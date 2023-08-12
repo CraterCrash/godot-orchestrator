@@ -1,0 +1,61 @@
+name: Bug Report
+description: Report a bug with Godot Orchestrator
+labels: kind/bug
+body:
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: Describe the bug
+      description: >-
+        Describe the issue you are experiencing here to communicate to the
+        maintainers. Tell us what you were tryin gto do and what happened.
+        
+        Provide a clear and concise description of what the problem is.
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+      description: >-
+        Describe the expected behavior clearly and concisely.
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual behavior
+      description: >-
+        Describe the actual behavior clearly and concisely.
+  - type: textarea
+    id: how_to_reproduce
+    attributes:
+      label: How to Reproduce?
+      description: >-
+        Describe how to reproduce the problem clearly.
+      placeholder: |
+        Reproducer:
+        
+        Steps to reproduce the behavior:
+        1.
+        2.
+        3.
+  - type: markdown
+    id: environment
+    attributes:
+      value: |
+        ## Environment
+  - type: input
+    id: godot_version
+    attributes:
+      label: Godot full version
+  - type: input
+    id: orchestrator_version
+    attributes:
+      label: Orchestrator version
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional information
+      description: >
+        If you have any additional information for us, use the field below.
+        Please note, you can attach screenshots or screen recordings here, by
+        dragging and dropping files in the field below.

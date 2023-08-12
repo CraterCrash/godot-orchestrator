@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Suggestions
+    url: https://forums.vahera.com/c/godot-plugins/orchestrator/22
+    about: I have a suggestion for Godot Orchestrator
+  - name: Discussions
+    url: https://forums.vahera.com/c/godot-plugins/orchestrator/22
+    about: I have a community discussion related to Godot Orchestrator
