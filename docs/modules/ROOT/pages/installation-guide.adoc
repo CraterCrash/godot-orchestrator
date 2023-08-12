@@ -1,0 +1,35 @@
+= Installation Guide
+
+Installation of the Orchestrator plug-in is relatively straightforward.
+This section will cover all the steps needed to acquire the code and begin using it within your project.
+
+== Download plugin
+
+To install the Orchestrator plugin, you must download it as a ZIP archive.
+Installation can be done on the Asset Library using the **Download** button from the editor or web interface.
+
+On GitHub, the Orchestrator plugin has https://github.com/Vahera/godot-orchestrator/tags[tags,role=external-reference] (versions); go to the https://github.com/Vahera/godot-orchestrator/releases[Releases,role=external-reference] tab and download the latest stable version.
+This guarantees you're using a stable version provided by Vahera.
+
+If you have trouble finding the **Releases** tab or picking a specific version _tag_, use the **Download ZIP** button to download a ZIP of the latest version, or use this https://github.com/Vahera/godot-orchestrator/archive/refs/heads/main.zip[link,role=external-reference] to obtain the ZIP archive.
+
+image::github-download-zip.png[Download ZIP]
+
+Extract the ZIP archive and move the `addons/` folder it contains into your project folder.
+If your project already contains an `addons/` folder, move the plugin's `addons/` folder into your project folder to merge the new folder with existing contents.
+Your file manager may ask whether you wish to write into the folder; answer **Yes**.
+This process will not overwrite any files.
+
+== Enable plugin
+
+To enable the freshly installed plugin, open **Projects > Project Settings** at the top of the editor, then go to the **Plugins** tab.
+This screen will show a list of installed plugins.
+Find the line with `Orchestrator` as the name and click the **Enable** checkbox to enable the plugin.
+
+image::enable-plugin.png[Enable Plugin]
+
+Once the plugin is enabled, you will notice that a new Editor module exists at the top of your editor UI, as shown below:
+
+image::editor-top-ui.png[Editor UI]
+
+You can now safely navigate into the `Orchestrator` editor UI and begin using the plugin immediately.

@@ -1,0 +1,173 @@
+= Custom Nodes
+
+Orchestrator provides several flow control, logic, terminal, and utility nodes by default; however, combining these may not provide the necessary functionality.
+Orchestrator allows users to add custom `OrchestratorNode` implementations to an `Orchestration`.
+These custom nodes will be executed just like built-in nodes at runtime.
+
+== Steps
+
+The following sections will step you through all the necessary parts to create a custom node.
+
+=== Create script
+The process to create a custom node is quite simple, and it only requires that you create a single `GDScript` script that extends `OrchestrationNode`, as shown below:
+
+.Initial custom node example
+[source,gdscript]
+----
+# file named my_custom_node.gd
+@tool // <.>
+extends OrchestrationNode // <.>
+----
+<.> Must specify `@tool` in order for the node to be visible in the editor.
+<.> The super type provided by Orchestrator that the script should extend.
+
+[NOTE]
+====
+While you may decide to declare the script with a `class_name`, there is absolutely no advantage in doing so, and this will only pollute the editor's node selection UI by doing so, so we recommend that you don't.
+====
+
+=== Define _init
+
+After instantiation, a `GDScript` calls the `_init()` method.
+This method is typically where you would initialize a script state that does not require the scene tree, and we leverage this method in an `OrchestrationNode` implementation to set several super type variables, as shown below:
+
+[source,gdscript]
+----
+func _init() -> void:
+    type = 1001 // <.>
+    category = "My category" // <.>
+    name = "My custom node" // <.>
+    description = "A custom node implementation example" // <.>
+----
+<.> The `type` defines a unique type associated with the node.
+<.> The `category` is the name shown in the editor used to group like nodes; it defaults to `Custom`.
+<.> The `name` defines the name of the node.
+<.> The `description` is used as a tooltip hover within the editor.
+
+[IMPORTANT]
+====
+The `type` should be unique, and we recommend that you begin with the value of `1001` for user-defined nodes and increment from there to avoid any overlap with future Orchestrator node implementations.
+
+You are required to define values for `type`, `name`, and `description`.
+However, omitting the setting `category` is acceptable as it defaults to `Custom`.
+====
+
+=== Define get_attributes
+
+The `get_attributes` method is essential for any node that wishes to serialize node state onto disk when an `Orchestration` is saved.
+Most nodes typically require this functionality as they have some state that influences the node's behavior at runtime.
+
+.Example get_attributes() method
+[source,gdscript]
+----
+func get_attributes() -> Dictionary:
+    return { "wait_time" : _wait_time }
+----
+
+In the above example, the method returns a `Dictionary` that stores a wait time value with a key.
+This data is available when rendering the node in the editor or executing the node at runtime.
+
+=== Define execute
+
+The Orchestrator plug-in uses the `execute` method at runtime to evaluate the node's behavior.
+Below is an example of the `execute` method:
+
+.Example execute method
+[source,gdscript]
+----
+func execute(context: OrchestrationExecutionContext) -> Variant:
+    # the runtime logic will be defined here
+----
+
+This method accepts a single argument of type `OrchestrationExecutionContext`.
+This argument provides the node with information about the node's state and provides methods access the state and resolve the next node's id as the returned `Variant` value.
+
+For example, the **wait** logic node's execute method is quite straightforward:
+
+.Wait node's execute method
+[source,gdscript]
+----
+func execute(context: OrchestrationExecuteContext) -> Variant:
+    var wait_time = context.get_attribute("wait_time", 0)
+    if wait_time > 0:
+        await Orchestrator.get_tree().create_timer(wait_time).timeout
+    return context.get_output_target_node_id(0)
+----
+
+In the above example, the first line retrieves the `wait_time`,  the number of seconds the node yields before proceeding with the orchestration's flow.
+If this value exceeds zero, the node will create a `Timer` and wait for the timer to expire using the `create_timer` helper method.
+And finally, once the timeout signal is emitted, the return value is calculated by resolving the next node id based on the output slot `0`.
+
+[IMPORTANT]
+====
+Orchestrator evaluates the return value after each node's execute step.
+If a node returns a value less than or equal to `0` or `null`, the plug-in immediately terminates the orchestration.
+It's important that each node correctly evaluates the next node in the flow graph so that the orchestration only ends when it encounters an `End` terminal node.
+====
+
+=== Define create_ui
+
+The Godot editor uses the `create_ui` method to render the node within the Orchestrator's main graph view.
+This method has the following signature:
+
+[source,gdscript]
+----
+func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
+    # create ui logic here
+----
+
+This method accepts two arguments; the first is a dictionary of attributes or the persisted state that would have been loaded from disk when opening an Orchestration in the editor.
+This dictionary class type provides several helper methods beyond a traditional Godot `Dictionary`.
+
+The second argument is the UI scene node, the parent of any node-specific UI controls.
+
+.Example custom_ui method
+[source,gdscript]
+----
+func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
+    # Create slots
+    add_input_slot(0, 0)
+    add_output_slot(0, 0)
+
+    # Create label
+    var label = Label.new()
+    label.text = "My custom node"
+    scene_node.add_child(label)
+----
+
+== Complete example
+
+Now, putting it all together, the following shows a complete `GDScript` for a custom test node that has a label and stores no attributes.
+
+[source,gdscript]
+----
+@tool
+extends OrchestrationNode
+
+func _init():
+    type = 1001
+    name = "SimpleTest"
+    description = "Simple test node"
+
+
+func execute(context: OrchestrationExecutionContext) -> Variant:
+    print("Hello from the simple test node")
+    return context.get_output_target_node_id(0)
+
+
+# This method is added for completeness but if you do not need to
+# persist any data related to the node, you do not need to implement this
+# method as the super type implements a return of an empty dictionary.
+func get_attributes() -> Dictionary:
+    return {}
+
+
+func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
+    add_input_slot(0, 0)
+    add_output_slot(0, 0)
+
+    var label = Label.new()
+    label.text = "Simple test node"
+    scene_node.add_child(label)
+----
+

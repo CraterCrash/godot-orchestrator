@@ -1,0 +1,335 @@
+= Nodes
+
+Orchestrator uses a node-graph to design complex behaviors called an `Orchestration`.
+Each orchestration comprises at least three `OrchestrationNode` nodes, which provide specific behavior for the orchestration's interactions.
+Each `OrchestrationNode` is organized into one of several _categories_.
+
+* xref:#flow-control[Flow Control]
+* xref:#logic[Logic]
+* xref:#terminal[Terminal]
+* xref:#utility[Utility]
+
+[id="flow-control"]
+== Flow control nodes
+
+Flow control nodes are responsible for controlling the flow of an orchestration.
+There are several different types of flow control nodes.
+
+.Flow control nodes
+image::flow-control-nodes.png[Flow control nodes]
+
+The following sections will describe each flow control node in more detail.
+
+=== Chance
+
+A **chance** node provides a simple way to control the flow of an orchestration based on a percent chance calculation.
+
+.Chance flow control node
+image::flow-control-nodes-chance.png[Chance node]
+
+The node's horizontal slider widget adjusts the output slot's percentage chance.
+Placing the slider to the left sets the bottom output slot to 100% where the node will never pick the top output slot.
+Similarly, placing the slider to the right sets the top output slot to 100% where the node will never pick the bottom output slot.
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's chance calculation.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|Upper
+|The output path taken when the percentage chance is between 1 and the specified percentage.
+If the value is 0%, the node path will never be taken.
+
+|Lower
+|The output path taken when the percentage chance is between (100 - percentage change) and 100.
+If the value is 0%, the node path will never be taken.
+|===
+
+=== Condition
+
+A **condition** node provides a convenient way to create a decision-based flow from a single true/false condition.
+
+.Condition flow control node
+image::flow-control-node-condition.png[Condition node]
+
+When the node begins its execution, the condition will be evaluated as a _boolean_.
+The output path taken depends entirely on whether the evaluated expression evaluates as _true_ or _false_.
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's condition evaluation.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|true
+|If the condition is _true_, this output path is taken.
+
+|false
+|If the condition is _false_, this output path is taken.
+|===
+
+=== Random
+
+A **random** node allows the orchestration flow to pick a random output path based on equal probability.
+
+.Random flow control node
+image::flow-control-node-random.png[Random node]
+
+The horizontal slider adjusts the number of output possibilities dynamically.
+Each possible output, up to a maximum of 10, has an equal chance of being chosen by the node.
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's randomness evaluation.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|Slots 1 to 10
+|The output path taken based on the equal probability of picking a value between 1 and the number of possibilities.
+
+|===
+
+=== Repeat
+
+A **repeat** node allows executing a series of nodes a specified number of times.
+
+.Repeat flow control node
+image::flow-control-node-repeat.png[Repeat node]
+
+The node's spin-box allows for specifying the number of repeat iterations, up to a maximum of 10.
+While iterations remain, the node will always take the _repetitions_ path; however, once reaching the maximum iterations, the node will end and take the _done_ output path.
+The repeatable nodes should eventually loop back to the repeat node's input slot.
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's flow control.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|Repetitions
+|The output slot that links to all nodes that should be executed the specified number of times.
+
+|Done
+|The output slot that is taken when the number of repetitions has occurred.
+
+|===
+
+[id="logic"]
+== Logic nodes
+
+Logic nodes are responsible for executing different types of operations within an orchestration.
+There are several different types of logic nodes available.
+
+.Logic nodes
+image::logic-nodes.png[Logic nodes]
+
+The following sections will describe each logic node in more detail.
+
+=== Expression
+
+An *expression* node executes a single `GDScript` expression.
+
+.Expression logic node
+image::logic-node-expression.png[Expression node]
+
+An evaluated _expression_ may return a result; however, the **expression** node does not use it.
+After evaluating the expression, the orchestration's flow continues to the next node on the output path.
+
+[TIP]
+====
+An **expression** node is great for assigning a value or calling a function on an _autoloaded_ singleton.
+====
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's expression.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|(Unlabeled)
+|The output path taken after the expression has been executed.
+
+|===
+
+=== Script
+
+A **script** node calls a single method in a `GDScript` script instance.
+
+.Script logic node
+image::logic-node-script.png[Script logic node]
+
+When executing a *script* node, the orchestration creates an instance of the specified script and calls the specified method.
+Once the method ends, the script instance is released, and the orchestration advances to the next node.
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's script.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|(Unlabeled)
+|The output path taken after the script method has been executed.
+
+|===
+
+=== Show Message
+
+The **show message** node is responsible for presenting a dialogue screen, optionally allowing the user to select between one or more choices.
+
+.Show message logic node
+image::logic-node-show-message.png[Show message node]
+
+This is one of the most complex nodes in the Orchestrator plug-in.
+You can specify a custom scene to render the pop-up dialogue message, or the node will otherwise use the built-in default scene.
+
+Additionally, you can specify multiple choices with an optional condition to control whether a specific choice should be available in the orchestration's logic.
+When the user picks a specific choice, that specific output node's path is used.
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's dialogue.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|(Unlabeled)
+|The output path taken after the message is shown.
+
+|(Choice)
+|The output path taken after selecting the specified choice.
+
+|===
+
+=== Wait
+
+The **wait** node allows the executing orchestration to yield for a given time period.
+
+.Wait logic node
+image::logic-node-wait.png[Wait node]
+
+The spin-box allows you to set the number of seconds the orchestration should yield.
+This node can wait from a minimum of `0` seconds to a maximum of `60` seconds.
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's wait.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|(Unlabeled)
+|The output path taken after the wait has finished.
+
+|===
+
+[id="terminal"]
+== Terminal nodes
+
+Terminal nodes are responsible for controlling the start and conclusion of an orchestration.
+There are only two different types of terminal nodes.
+
+.Terminal nodes
+image::terminal-nodes.png[Terminal nodes]
+
+The following sections will describe each terminal node in more detail.
+
+=== Start
+
+A **start** node is responsible for declaring the starting point for the orchestration.
+
+.Start terminal node
+image::terminal-nodes-start.png[Start node]
+
+As expected, a start node does not have an _input_ connection but only an _output_ connection.
+When starting an orchestration, it looks for this specific node to know where the logic for an orchestration node graph starts.
+
+[NOTE]
+====
+A start node is a special terminal node; only a single instance of this node can exist in an orchestration.
+====
+
+=== End
+
+An **end** node is responsible for declaring the end point for an orchestration.
+
+.End terminal node
+image::terminal-nodes-end.png[End node]
+
+As expected, an end node does not have an _output_ connection but only an _input_ connection.
+When encountering an end node, the orchestration will end successfully.
+
+[id="utility"]
+== Utility nodes
+
+Utility nodes are not meant to participate within an orchestration directly but instead are orchestration helper nodes.
+There is only one type of utility node.
+
+.Utility nodes
+image::utility-nodes.png[Utility nodes]
+
+The following sections will describe each utility node in more detail.
+
+=== Comment
+
+A **comment** node provides a way to document as part of the orchestration-specific parts of the flow graph.
+
+.Comment utility node
+image::utility-nodes-comment.png[Comment node]
+
+You can populate the comment node's text box with an unbounded amount of text describing parts of the orchestration.
+This node is not used during the execution of orchestrations and, instead, is used only during rendering of the orchestration in the editor.

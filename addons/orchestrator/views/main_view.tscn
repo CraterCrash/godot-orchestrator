@@ -1,0 +1,250 @@
+[gd_scene load_steps=9 format=3 uid="uid://wfb5pent2480"]
+
+[ext_resource type="Script" path="res://addons/orchestrator/views/main_view.gd" id="1_xj5tm"]
+[ext_resource type="Texture2D" uid="uid://cui6eik3ennus" path="res://addons/orchestrator/assets/icons/Settings.svg" id="2_p1ocq"]
+[ext_resource type="PackedScene" uid="uid://dsqj77ik0jgyp" path="res://addons/orchestrator/components/editor/files_list.tscn" id="3_nsrnn"]
+[ext_resource type="PackedScene" uid="uid://cx4q7e16k284a" path="res://addons/orchestrator/components/editor/node_tree_list.tscn" id="4_t06vx"]
+[ext_resource type="PackedScene" uid="uid://bptlhwv2xyyqr" path="res://addons/orchestrator/views/about_view.tscn" id="5_2m6ak"]
+[ext_resource type="PackedScene" uid="uid://c5dvbnjltdq3e" path="res://addons/orchestrator/components/editor/orchestration_graph.tscn" id="5_pbcxq"]
+
+[sub_resource type="Image" id="Image_7y2xd"]
+data = {
+"data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
+"format": "RGBA8",
+"height": 16,
+"mipmaps": false,
+"width": 16
+}
+
+[sub_resource type="ImageTexture" id="ImageTexture_xxnia"]
+image = SubResource("Image_7y2xd")
+
+[node name="MainView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_xj5tm")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MenuBar" type="MenuBar" parent="Margin/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/VBoxContainer/HBoxContainer/MenuBar"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/separation = 0
+
+[node name="FileMenu" type="MenuButton" parent="Margin/VBoxContainer/HBoxContainer/MenuBar/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "File"
+item_count = 15
+popup/item_0/text = "New Orchestration..."
+popup/item_0/id = 1
+popup/item_1/text = "Open..."
+popup/item_1/id = 2
+popup/item_2/text = ""
+popup/item_2/id = -1
+popup/item_2/separator = true
+popup/item_3/text = "Save"
+popup/item_3/id = 3
+popup/item_3/disabled = true
+popup/item_4/text = "Save As..."
+popup/item_4/id = 4
+popup/item_4/disabled = true
+popup/item_5/text = "Save All"
+popup/item_5/id = 5
+popup/item_5/disabled = true
+popup/item_6/text = ""
+popup/item_6/id = -1
+popup/item_6/separator = true
+popup/item_7/text = "Show in FileSystem"
+popup/item_7/id = 6
+popup/item_7/disabled = true
+popup/item_8/text = ""
+popup/item_8/id = -1
+popup/item_8/separator = true
+popup/item_9/text = "Close"
+popup/item_9/id = 7
+popup/item_9/disabled = true
+popup/item_10/text = "Close All"
+popup/item_10/id = 8
+popup/item_10/disabled = true
+popup/item_11/text = ""
+popup/item_11/id = -1
+popup/item_11/separator = true
+popup/item_12/text = "Run"
+popup/item_12/id = 9
+popup/item_12/disabled = true
+popup/item_13/text = ""
+popup/item_13/id = -1
+popup/item_13/separator = true
+popup/item_14/text = "Toggle Orchestrations Panel"
+popup/item_14/id = 10
+
+[node name="HelpMenu" type="MenuButton" parent="Margin/VBoxContainer/HBoxContainer/MenuBar/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "Help"
+item_count = 1
+popup/item_0/text = "About Orchestrator"
+popup/item_0/id = 1
+
+[node name="MenuBar2" type="MenuBar" parent="Margin/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/VBoxContainer/HBoxContainer/MenuBar2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
+
+[node name="Settings" type="Button" parent="Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+icon = ExtResource("2_p1ocq")
+
+[node name="VSeparator" type="VSeparator" parent="Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Version" type="Label" parent="Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer"]
+visible = false
+layout_mode = 2
+text = "v1.0.0"
+vertical_alignment = 1
+
+[node name="HSplitContainer" type="HSplitContainer" parent="Margin/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VSplitContainer" type="VSplitContainer" parent="Margin/VBoxContainer/HSplitContainer"]
+custom_minimum_size = Vector2(302, 0)
+layout_mode = 2
+
+[node name="FilesList" parent="Margin/VBoxContainer/HSplitContainer/VSplitContainer" instance=ExtResource("3_nsrnn")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NodeTree" parent="Margin/VBoxContainer/HSplitContainer/VSplitContainer" instance=ExtResource("4_t06vx")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="OrchestrationGraphs" type="MarginContainer" parent="Margin/VBoxContainer/HSplitContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OrchestrationGraph" parent="Margin/VBoxContainer/HSplitContainer/VBoxContainer/OrchestrationGraphs" instance=ExtResource("5_pbcxq")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/VBoxContainer/HSplitContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TogglePanelButton" type="Button" parent="Margin/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 32)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+focus_mode = 0
+icon = SubResource("ImageTexture_xxnia")
+flat = true
+expand_icon = true
+
+[node name="Label" type="Label" parent="Margin/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Godot Orchestrator v1.0.0"
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="MarginContainer2" type="MarginContainer" parent="Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/MarginContainer2"]
+layout_mode = 2
+size_flags_vertical = 0
+alignment = 2
+
+[node name="About" type="Window" parent="."]
+title = "About Godot Orchestrator"
+initial_position = 2
+size = Vector2i(800, 500)
+visible = false
+transient = true
+exclusive = true
+unresizable = true
+
+[node name="AboutView" parent="About" instance=ExtResource("5_2m6ak")]
+
+[node name="NewFileDialog" type="FileDialog" parent="."]
+title = "Create new orchestration"
+initial_position = 2
+size = Vector2i(750, 500)
+filters = PackedStringArray("*.tres ; Resources")
+
+[node name="OpenFileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+initial_position = 1
+size = Vector2i(700, 500)
+ok_button_text = "Open"
+file_mode = 0
+filters = PackedStringArray("*.tres ; Resources")
+
+[node name="SaveFileDialog" type="FileDialog" parent="."]
+title = "Save an Orchestration"
+initial_position = 1
+size = Vector2i(700, 500)
+filters = PackedStringArray("*.tres ; Resources")
+
+[node name="CloseDiscardConfirmDialog" type="ConfirmationDialog" parent="."]
+initial_position = 1
+dialog_text = "The file '%s' has been changed. Do you want to discard the changes?"

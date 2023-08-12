@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddr8gd2i12dad"]
+
+[ext_resource type="Script" path="res://addons/orchestrator/test/test.gd" id="1_ko5bt"]
+
+[node name="Test" type="Node"]
+script = ExtResource("1_ko5bt")

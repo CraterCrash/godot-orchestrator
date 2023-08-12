@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5dvbnjltdq3e"]
+
+[ext_resource type="Script" path="res://addons/orchestrator/components/editor/orchestration_graph.gd" id="1_6kom1"]
+
+[node name="OrchestrationGraph" type="GraphEdit"]
+right_disconnects = true
+minimap_enabled = false
+script = ExtResource("1_6kom1")
+
+[connection signal="connection_request" from="." to="." method="_on_connection_request"]
+[connection signal="disconnection_request" from="." to="." method="_on_disconnection_request"]

@@ -1,0 +1,122 @@
+= Code guidelines
+
+Orchestrator uses the same naming convention as the Godot Engine.
+The code should follow the following rules when contributing code to the addon.
+
+== File names
+
+Use `snake_case` for file names.
+Avoid using capital letters, as these are handled slightly differently across operating systems.
+When adding new `OrchestratorNode` implementations, align the script file name based on the node's unique name.
+
+For example, when creating a new node called `Repeat`, the file should be named `repeat_node.gd`.
+
+== Nodes
+
+An `OrchestratorNode` implementation should be named with as few words as possible to describe its behavior.
+For example, a node that waits for a specific amount of time until a condition evaluates `true` would be named `Wait Until` with a node file name of `wait_until_node.gd`.
+
+[IMPORTANT]
+====
+Nodes should not define a `class_name` to avoid polluting the editor's node selection interface.
+====
+
+== Classes
+
+There are multiple cases where we define classes in GDScript; in such cases, classes should use `PascalCase` for their names.
+Additionally, when loading a class into a constant or variable, `PascalCase should be used.
+Below are several examples:
+
+[source,gdscript]
+----
+class_name SomeClass
+extends BaseClass
+
+@onready var orch = preload("res://orch.tres")
+
+func _ready() -> void:
+    print("hello world")
+
+----
+
+[source,gdscript]
+----
+const RepeatNode = preload("res://addons/orchestrator/nodes/repeat_node.gd")
+----
+
+== Functions and variables
+
+Use `snake_case` when specifying names for variables or functions, as shown below:
+
+[source,gdscript]
+----
+var expression_text
+
+func my_test_func():
+  pass
+----
+
+[NOTE]
+====
+Like Godot Engine, private variables, and functions begin with an underscore ('_').
+The automated documentation system handles these slightly differently when prefixed this way.
+====
+
+== Signals
+
+Use past tense verbs to name signals:
+
+[source,gdscript]
+----
+signal orchestration_started
+signal orchestration_stopped
+----
+
+== Constants and enums
+
+Constants should use `CONSTANT_CASE`, that is, all caps with an underscore (`_`) to separate words:
+
+[source,gdscript]
+----
+const MAX_SPEED = 10
+----
+
+Define enums using `PascalCase` for their names and `CONSTANT_CASE` for their values:
+
+[source,gdscript]
+----
+enum DataType {
+  ANY,
+  NUMERIC
+}
+----
+
+== Code order
+
+The flow of code uses the same suggested order as the Godot Engine.
+The order is defined as:
+
+[source,gdscript]
+----
+01. @tool
+02. class_name
+03. extends
+04. # docstring
+
+05. signals
+06. enums
+07. constants
+08. @export variables
+09. public variables
+10. private variables
+11. @onready variables
+
+12. optional built-in virtual _init() method
+13. optional built-in virutal _enter_tree() method
+14. built-in virtual _ready() method
+15. remaining built-in virtual methods
+16. public methods
+17. private methods
+18. subclasses
+----
+

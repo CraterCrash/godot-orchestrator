@@ -1,0 +1,112 @@
+= Contributing guidelines
+
+The possibility to study, use, modify, and redistribute modifications of this addon's source code is the fundamental rights that Orchestrator's https://www.tldrlegal.com/license/mit-license[MIT,role=external-reference] license grants you, making it https://en.wikipedia.org/wiki/Free_and_open-source_software[free and open source software,role=external-reference].
+
+As such, everyone can modify this addon's source code and send those modifications back to the upstream project as a pull request, which is a proposal to merge one or more Git commits (patches) into the main development branch of the addon.
+
+Contributing code upstream provides several advantages:
+
+* Other developers will review and improve your code, which eventually is maintained directly in the upstream project, so you won't have to reapply your changes every time you move to a newer version.
+* The whole community will benefit from your work, and other contributors will behave similarly, contributing code that will help you.
+
+To guarantee good collaboration and overall quality, the Orchestrator developers enforce some rules for code contributions, such as the style to use in the source code (indentation, naming, etc.) or the Git and PR workflow, such as commit messages.
+
+All pull requests must go through a review process before being accepted.
+Depending on the scope of the changes, it may take time for a maintainer to provide their review.
+We value all contributors and ask them to be patient because, in an open-source project, there will be way more contributions than people available to validate them.
+
+To ensure that your time and effort are well-spent, we recommend you vet your idea before implementing it and submitting it for review as a pull request.
+Orchestrator has a dedicated https://forums.vahera.com/c/godot-plugins/orchestrator/22[section,role=external-reference] on the https://forums.vahera.com/[Vahera forums,role=external-reference] where you can discuss your idea with the community, other contributors, and maintainers ahead of time.
+
+[NOTE]
+====
+We recommend a proposal when working on an enhancement or new feature.
+Bug reports are sufficient for fixing issues or regressions.
+====
+
+== Pull request workflow
+
+The pull request workflow is a common approach to many projects on GitHub.
+The idea is that only a few people, known as maintainers, commit directly to the _main_ branch of the repository.
+Instead, contributors _fork_ the project and then use GitHub to request a pull from one of their fork's branches to one branch of the upstream repository.
+
+Other contributors or maintainers will review the _pull request_ (PR), approving, rejecting, or requesting changes.
+When the pull request is approved, a maintainer merges the PR, and its commit(s) become part of the target branch (typically the _main_ branch).
+
+== Git source repository
+
+The https://github.com/Vahera/godot-orchestrator[repository on GitHub,role=external-reference] is a https://git-scm.com/[Git,role=external-reference] code repository together with an embedded issue tracker and pull request system.
+
+[NOTE]
+====
+The same repository is home to both Orchestrator's code and documentation.
+If you want to change the documentation, please modify files in the `/docs` subdirectory as the files in the `/addons` directory refer to the source code.
+====
+
+The Git version control system is the tool used to keep track of successive edits to the source code.
+There are several graphical interfaces for Git, but they generally encourage bad habits regarding the contribution workflow, so we do not recommend using them.
+We also suggest not using the GitHub online editor for code contributions. The interface is designed for one commit per file or modification, quickly leading to PRs with unreadable Git history.
+
+The branches in the Git repository are organized as follows:
+
+* The `main` branch is where all development for the next release occurs.
+As a development branch, it can be unstable and not meant for production use.
+Contributors should typically open pull requests against the `main` branch.
+* The stable branches are named after their versions, e.g. `1.0` or `2.1`.
+They are used to backport bug fixes and enhancements from the `main` branch to the currently maintained releases.
+As a rule of thumb, only the most recent stable branch is maintained (e.g., the `1.0` branch until the release of `1.1`).
+If you want to make pull requests against a stable branch, please check if your changes are also relevant for the `main` branch, and if so, open the pull request against the `main` branch.
+In such cases, the maintainers cherry-pick the fix to the stable branch after merging the pull request.
+* A feature branch may also exist; these use names that do not adhere to the above two naming conventions.
+These branches are designed for collaborative work between maintainers when working on new features or substantial changes to the code base.
+Maintainers will merge these branches into the `main` branch at some future point, and contributors should generally not open pull requests into these branches.
+
+== Fork and clone
+
+The first step to contributing is to _fork_ the repository on GitHub.
+To do so, you must have a GitHub account, be logged in, and click the button in the top right that reads "Fork".
+You will need to answer a series of questions. Once complete, you will find a repository under your username in the URL with the same upstream repository name of `godot-orchestrator`.
+
+Once you have forked the repository, it's time to make a local copy so you can more easily make changes.
+In Git speak, you must clone your fork to your local computer.
+To clone your repository, use the following command in a terminal window:
+
+[source]
+----
+git clone https://github.com/<USERNAME>/godot-orchestrator.git
+----
+
+After Git has cloned the repository, you will find a new directory called `godot-orchestrator`.
+Next, change directories into the `godot-orchestrator` directory and execute the following commands:
+
+[source]
+----
+git remote add upstream https://github.com/Vahera/godot-orchestrator.git
+git fetch upstream
+----
+
+The above creates a reference named `upstream` to the original `godot-orchestrator` repository maintained by Vahera.
+This reference will be helpful because you want to keep your local repository up-to-date with new commits added to the original repository.
+You will also have another reference to `origin`, which points to your _fork_ repository on GitHub.
+
+== Rebasing changes on conflicts
+
+Ideally, it would help if you created a feature or bugfix branch locally.
+This branch is where you will make all the necessary changes to add your new feature or bug fix.
+
+When submitting pull requests for code changes, the commit history should be linear, not contain merge commits, and be free of merge conflicts.
+If you contribute a pull request and GitHub states there are conflicts, consider pulling down the latest upstream changes and rebasing your work on those changes before opening the pull request.
+
+Assuming you have set up the `upstream` reference and you have committed all your changes in your local fork's branch, execute the following commands to rebase:
+
+[source,bash]
+----
+git checkout main
+git pull upstream main
+git checkout <your branch>
+git rebase main
+----
+
+If there are conflicts, you must compare the upstream changes with your local changes in your feature branch.
+You can continue the rebase by running `git rebase --continue` after resolving all conflicts.
+Once the rebase has finished, you must update your feature branch using `push --force` to your GitHub fork's branch.

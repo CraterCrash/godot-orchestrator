@@ -1,0 +1,96 @@
+= Addon architecture
+
+There are two main directories at the top level of the https://github.com/Vahera/godot-orchestrator[Orchestrator repository] called `/addons` and `/docs`.
+These two directories serve to separate the source code for the addon from the documentation you are presenting reading.
+
+The architecture consists of several logical pieces:
+
+* xref:#source[Source]
+* xref:#documentation[Documentation]
+
+== Source
+
+Orchestrator is a https://godotengine.org[Godot Engine] plugin designed to provide extended functionality to a user's project without the need to write the code themselves.
+A Godot plugin must adhere to the following rules:
+
+1. The top-level directory should be called `/addons`.
+2. The addon directory should exist as a child of `/addons` and named using `snake_case`.
+
+For Orchestrator, you will find the `/addons/orchestrator` directory where all the source code for the plugin exists and the directory structure we will discuss in the remainder of this section.
+
+=== Organization
+
+The source code is organized by purpose.
+When looking at the contents of the plugin's top-level directory, we'll see the following:
+
+[source]
+----
++ assets <.>
++ components <.>
++ core <.>
++ test <.>
++ views <.>
++ orchestrator.gd <.>
++ orchestrator_node_factory.gd <.>
++ orchestrator_settings.gd <.>
++ plugin.cfg <.>
++ plugin.gd <.>
+----
+<.> The assets directory maintains all images, themes, and other similar types of files.
+<.> The components directory is where source code used by other system parts is kept, such as child components used by the in-game editor, node implementations, or node-specific scenes.
+The idea is that these files cannot live independently; they're pieces to a much larger unit of work.
+<.> The core directory is where we maintain files used across the entire project, such as files that represent `Resource` types such as an `Orchestrator` or `OrchestrationNode`.
+<.> The test directory maintains a simple test scene and scripts for running an Orchestration from within the in-game editor.
+<.> The views directory is where the editor's top-level scenes are maintained.
+<.> The Godot autoload/singleton instance, `Orchestrator`, runs this plugin.
+<.> The Godot autoload/singleton instance, `OrchestratorNodeFactory`, creates resources.
+<.> A settings class implementation.
+<.> Plugin's configuration file, required by Godot.
+<.> Plugin's entry point script, required by Godot.
+
+== Documentation
+
+The Orchestrator documentation comprises a series of asciidoc (`.adoc`) files assembled by an open-source documentation solution called https://www.antora.org[Antora].  The directory structure used under the `/docs` directory aligns with the Antora requirements for building this documentation.
+
+=== Component descriptor
+
+Each component available within the https://www.vahera.com/docs[Vahera documentation] has a component descriptor file named `antora.yml`.  This file provides metadata about the component, including where navigation components exist, the component's version, and much more.
+
+.An example descriptor
+[source,yaml,subs="+attributes"]
+----
+name: orchestrator <.>
+title: Orchestator <.>
+version: {version} <.>
+start_page: start.adoc <.>
+asciidoc:
+  attributes: <.>
+    syntax-highlighter: ~
+    source-language: asciidoc@
+    table-caption: false
+nav: <.>
+- modules/ROOT/nav.adoc
+----
+<.> The component reference name used in URLs should always be lowercase.
+<.> The component display name should always use Title case.
+<.> The version. It should align with the release version of the code base. The version should omit suffix qualifiers and reference the `major.minor.maintenance` version syntax.
+<.> The component's landing page.
+<.> Documentation substitution attributes. Attributes are an excellent choice for strings that often change over the project's lifetime to keep the management of release-specific values in a single place.
+<.> This section defines all left navigation window documentation hyperlinks.
+
+=== Modules
+
+The `/docs/modules` directory stores all content related to the component descriptor.
+Antora requires this directory, which helps keep the documentation pages, assets, and other documentation-related files isolated.
+
+Inside the `/docs/modules` directory are child directories, referred to as a _module_.
+A _module_ is a directory that stores the source files for documentation pages, snippets, examples, assets such as images, and other content.
+Each _module_ directory represents a "family" or logical grouping of documentation content.
+Orchestrator does not use "family" or logical groupings because the documentation is relatively small, so instead, Orchestrator uses a ROOT-module directory rather than named modules.
+
+Inside the `/docs/modules/ROOT` module directory, you will find a `/docs/modules/ROOT/pages` directory that stores the contents of the documentation pages and a `/docs/modules/ROOT/nav.adoc`, which is used by Antora to render the left navigation panel on the website.
+
+[NOTE]
+====
+Generally, every asciidoc page in the `/pages` directory should have a matching entry in the `nav.adoc` file or the dangling page should be referenced by a page included in the `nav.adoc`.
+====

@@ -1,0 +1,107 @@
+= Tutorial
+
+We will walk through a simple example of how to create an `Orchestration` that outputs the text "Hello World" to the console / output editor window twice before the orchestration ends.
+To do this, we're going to make use of the xref:nodes.adoc#_start[Start], xref:nodes.adoc#_end[End], xref:nodes.adoc#_repeat[Repeat], and xref:nodes.adoc#_expression[Expression] nodes.
+
+== Create the orchestration
+
+Start the Godot editor and navigate to the "Orchestrator" main view to create a new, empty orchestration.
+If you still need to enable the Orchestrator plug-in within your project, please read the xref:installation-guide.adoc[Installation Guide].
+
+.Steps to create an orchestration:
+1. Click **File > New Orchestration** menu option from the Orchestrator main view toolbar.
+2. Provide a new orchestration file name, for this example use `tutorial.tres` and click `OK`.
+
+At this point, the editor will show the `tutorial` name in the **File List View**, and the main view's editor graph window will appear.
+The following shows what this should look like:
+
+.Blank tutorial orchestration example
+image::tutorial-create-orchestration.png[Create orchestration]
+
+== Add nodes to node graph
+
+An `Orchestration` is a node graph representing the logic the orchestration executes at runtime.
+We intend to create a simple orchestration in the tutorial that prints out "Hello World" twice to the console or editor output window.
+
+=== Add start node
+
+The first node you should generally add to an `Orchestration` is a xref:nodes.adoc#_start[Start] node.
+A start node provides a marker for the Orchestrator plug-in to know where to begin execution at runtime.
+To add a start node, expand the xref:nodes.adoc#terminal[Terminal] category on the bottom left and drag the **Start** type onto the node graph.
+Once the mouse is over the node graph, when you release the mouse, the node will be added.
+
+=== Add repeat node
+
+The next node to be added is the xref:nodes.adoc#_repeat[Repeat] node.
+A repeat node is a flow-control node that allows a specific sequence of node to be executed a configured number of times.
+To add a repeat node, repeat the same process by expanding the xref:nodes.adoc#flow-control[Flow control] category on the bottom left and drag the **Repeat** type onto the node graph.
+Once the mouse is over the node graph, when you release the mouse, the node will be added.
+
+=== Add expression node
+
+Follow the same procedure for the xref:nodes.adoc#_expression[Expression] node by expanding the xref:nodes.adoc#logic[Logic] category, and drag the **Expression** node onto the node graph.
+The **expression** node allows us to define code that the `Orchestration` will execute.
+
+=== Add end node
+
+Finally, add the xref:nodes.adoc#_end[End] node by expanding the xref:nodes.adoc#terminal[Terminal] category, and drag the **End** node onto the node graph.
+
+=== Result
+
+Once all nodes are added, you should have a view that looks similar to the following:
+
+.Tutorial output after adding nodes
+image::tutorial-preconnect-orchestration.png[Preconnect tutorial]
+
+== Link nodes in node graph
+
+Now, we must connect the nodes so the orchestration is runnable.
+Nodes can be connected by left-clicking the mouse on the output slot (circle on right side of nodes) to an input slot (circle on the left side of nodes).
+
+=== Link start to repeat
+
+The first easy part is to link the **Start** and **Repeat** nodes.
+
+.Link start and repeat
+image::tutorial-start-repeat-link.png[Link start and repeat]
+
+=== Link repeat with expression
+
+The next step is to link **Repeat** with **Expression** and **Expression** back to **Repeat**.
+We want to create this loop because we want to execute a `print` method call twice to output "Hello World".
+
+.Link repeat and expression
+image::tutorial-repeat-expression-link.png[Link repeat and expression]
+
+In addition, we should also set the **Repeat** node's value to `2` and set the **Expression** node's expression value to `print("Hello World")`, as indicated.
+
+[NOTE]
+====
+The nodes have also been slightly rearranged to make the connections more visible and understand which slots are connected where.
+====
+
+=== Link repeat with end
+
+The final step is to link **Repeat** with **End**.
+This will be done by connecting the `done` output of **Repeat** to the input slot of **End**.
+
+.Link repeat and end
+image::tutorial-repeat-end-link.png[Link repeat and end]
+
+== Save and run orchestration
+
+With the `Orchestration` filled with the node behavior we need, we need to save the `Orchestration` before it can be tested.
+Navigate to the **File > Save** menu option to save the nodes and their connections inside the `tutorial.tres` orchestration resource.
+
+To test the `Orchestration`, navigate to the **File** menu and select the **Run** option.
+You will briefly see Godot's editor start a game window, which executes the orchestration and then terminates.
+If you navigate to the editor's **Output** window, you'll notice the orchestration provided some output.
+
+.Tutorial output
+[source,text]
+----
+Hello World
+Hello World
+--- Debugging process stopped ---
+----
+
