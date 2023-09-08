@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://bptlhwv2xyyqr"]
+[gd_scene load_steps=6 format=3 uid="uid://bptlhwv2xyyqr"]
 
 [ext_resource type="Script" path="res://addons/orchestrator/views/about_view.gd" id="1_xky0g"]
 [ext_resource type="Texture2D" uid="uid://bqime3p2y5r76" path="res://addons/orchestrator/assets/icons/OrchestratorLogo.svg" id="2_08bvf"]
-[ext_resource type="Texture2D" uid="uid://utppe8dnl0hb" path="res://addons/orchestrator/assets/icons/VaheraStudios.svg" id="3_j6rse"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c516b"]
 bg_color = Color(0.113725, 0.133333, 0.160784, 1)
@@ -61,14 +60,6 @@ texture = ExtResource("2_08bvf")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="TextureRect2" type="TextureRect" parent="AboutLayout/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer"]
-visible = false
-custom_minimum_size = Vector2(75, 0)
-layout_mode = 2
-texture = ExtResource("3_j6rse")
-expand_mode = 1
-stretch_mode = 5
-
 [node name="VBoxContainer" type="VBoxContainer" parent="AboutLayout/MarginContainer/HBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = -5
@@ -76,7 +67,7 @@ alignment = 1
 
 [node name="Label" type="Label" parent="AboutLayout/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-text = "Godot Orchestrator v1.0.0.Final [sha]"
+text = "Godot Orchestrator v1.0.1.Final"
 
 [node name="Label2" type="Label" parent="AboutLayout/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
