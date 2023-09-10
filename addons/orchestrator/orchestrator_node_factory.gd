@@ -29,7 +29,14 @@ func get_node_resource(node_type: int) -> OrchestrationNode:
 func rescan_for_resources() -> void:
 	var nodes : Dictionary = {}
 	for script_file in _get_all_scripts_in_path():
-		var script = load(script_file)
+		var script : GDScript = _load_script(script_file)
+		if not script:
+			continue
+
+		# All Orchestrator scripts are resources
+		if script.get_instance_base_type() != "Resource":
+			continue
+
 		if _is_script_valid_with_noarg_init(script):
 			var script_inst = script.new()
 			if script_inst is OrchestrationNode:
@@ -43,6 +50,26 @@ func rescan_for_resources() -> void:
 	_nodes = nodes
 	node_factory_updated.emit()
 
+
+func _load_script(script_file : String) -> GDScript:
+	if ResourceLoader.has_cached(script_file):
+		# Load it from the cache
+		return load(script_file)
+
+	# Explicitly use sub threads to avoid failure on main thread
+	var error = ResourceLoader.load_threaded_request(script_file, "", true)
+	if error != OK:
+		return null
+
+	# Wait for loading
+	var status = ResourceLoader.THREAD_LOAD_IN_PROGRESS
+	while status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		status = ResourceLoader.load_threaded_get_status(script_file)
+
+	if status == ResourceLoader.THREAD_LOAD_FAILED:
+		return null
+
+	return ResourceLoader.load_threaded_get(script_file)
 
 func _is_script_valid_with_noarg_init(script: Script) -> bool:
 	if script.can_instantiate():
