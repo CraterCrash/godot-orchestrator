@@ -5,27 +5,30 @@ extends EditorPlugin
 const ADDON_NAME = "Orchestrator"
 const ADDON_NODE_FACTORY_NAME = "OrchestratorNodeFactory"
 
-const OrchestratorSettings = preload("res://addons/orchestrator/orchestrator_settings.gd")
-const OrchestratorNodeFactory = preload("res://addons/orchestrator/orchestrator_node_factory.gd")
-const MainView = preload("res://addons/orchestrator/views/main_view.tscn")
+const MAIN_VIEW_SCENE = "res://addons/orchestrator/views/main_view.tscn"
+const ORCHESTRATOR_SETTINGS = "res://addons/orchestrator/orchestrator_settings.gd"
+const ORCHESTRATOR_NODE_FACTORY = "res://addons/orchestrator/orchestrator_node_factory.gd"
+const ORCHESTRATOR = "res://addons/orchestrator/orchestrator.gd"
+
 const OrchestratorEditorIcon = preload("res://addons/orchestrator/assets/icons/Orchestrator_16x16.png")
 
 ## The plugin's main view.
 var main_view
 
 # Reference to the node factory.
-var _node_factory : OrchestratorNodeFactory
+var _node_factory : Node
 
 func _enter_tree():
-	add_autoload_singleton(ADDON_NODE_FACTORY_NAME, "res://addons/orchestrator/orchestrator_node_factory.gd")
-	add_autoload_singleton(ADDON_NAME, "res://addons/orchestrator/orchestrator.gd")
+	add_autoload_singleton(ADDON_NODE_FACTORY_NAME, ORCHESTRATOR_NODE_FACTORY)
+	add_autoload_singleton(ADDON_NAME, ORCHESTRATOR)
 
 	if not Engine.is_editor_hint():
 		return
 
-	OrchestratorSettings.prepare()
+	var settings = load(ORCHESTRATOR_SETTINGS)
+	settings.prepare()
 
-	main_view = MainView.instantiate()
+	main_view = load(MAIN_VIEW_SCENE).instantiate()
 	main_view.editor_plugin = self
 	get_editor_interface().get_editor_main_screen().add_child(main_view)
 	_make_visible(false)
@@ -91,7 +94,7 @@ func _on_file_removed(file_name: String) -> void:
 	_rescan_resources()
 
 
-func _get_node_factory() -> OrchestratorNodeFactory:
+func _get_node_factory() -> Node:
 	if not _node_factory:
 		_node_factory = get_tree().root.find_child(ADDON_NODE_FACTORY_NAME, true, false)
 	return _node_factory
