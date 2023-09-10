@@ -75,8 +75,7 @@ func close_all_orchestrations() -> void:
 
 
 func apply_changes() -> void:
-	print("TBD: rehook apply changes")
-	#_save_all_orchestrations()
+	_save_all_orchestrations()
 
 
 func get_current_file() -> String:
