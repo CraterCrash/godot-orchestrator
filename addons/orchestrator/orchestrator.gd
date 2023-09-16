@@ -24,6 +24,11 @@ func execute(resource: Orchestration) -> void:
 		printerr("Failed to find starat node in orchestration, terminated.")
 		return
 
+	# Because OrchestratorNodeFactory awaits on the process frame, we have to
+	# await on the same spot here to avoid there being a loading issue and
+	# the factory not yet having scanned the nodes.
+	await get_tree().process_frame
+
 	var node = OrchestratorNodeFactory.get_node_resource(data["type"])
 
 	var context = OrchestrationExecutionContext.new()
