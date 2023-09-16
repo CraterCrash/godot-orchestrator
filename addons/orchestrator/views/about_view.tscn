@@ -67,7 +67,7 @@ alignment = 1
 
 [node name="Label" type="Label" parent="AboutLayout/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-text = "Godot Orchestrator v1.0.1.Final"
+text = "Godot Orchestrator v1.0.4.Final"
 
 [node name="Label2" type="Label" parent="AboutLayout/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2

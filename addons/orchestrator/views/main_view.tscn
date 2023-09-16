@@ -147,7 +147,7 @@ size_flags_vertical = 4
 [node name="Version" type="Label" parent="Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer"]
 visible = false
 layout_mode = 2
-text = "v1.0.1"
+text = "v1.0.4"
 vertical_alignment = 1
 
 [node name="HSplitContainer" type="HSplitContainer" parent="Margin/VBoxContainer"]
@@ -199,7 +199,7 @@ expand_icon = true
 [node name="Label" type="Label" parent="Margin/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Godot Orchestrator v1.0.1"
+text = "Godot Orchestrator v1.0.4"
 horizontal_alignment = 2
 vertical_alignment = 2
 
