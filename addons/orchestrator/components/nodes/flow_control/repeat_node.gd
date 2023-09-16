@@ -26,7 +26,7 @@ func execute(context: OrchestrationExecutionContext) -> Variant:
 		return context.get_output_target_node_id(1)
 
 	context.set_state("iterations", remaining_iterations - 1)
-	context.editor_print("Iteration: %s" % (iterations - remaining_iterations + 1))
+	# context.editor_print("Iteration: %s" % (iterations - remaining_iterations + 1))
 	return context.get_output_target_node_id(0)
 
 

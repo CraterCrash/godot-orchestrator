@@ -124,7 +124,7 @@ func _eval_script(context: OrchestrationExecutionContext) -> void:
 	if script is Node:
 		Orchestrator.get_tree().current_scene.add_child(script)
 
-	context.editor_print("Calling method %s in script %s" % [method_name, script_file])
+	# context.editor_print("Calling method %s in script %s" % [method_name, script_file])
 
 	instance.call(method_name)
 

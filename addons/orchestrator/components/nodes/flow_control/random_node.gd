@@ -18,7 +18,7 @@ func execute(context: OrchestrationExecutionContext) -> Variant:
 		return context.get_output_target_node_id(0)
 
 	var choice = randi_range(1, possibilities)
-	context.editor_print("Random Choice -> %s" % choice)
+	# context.editor_print("Random Choice -> %s" % choice)
 	return context.get_output_target_node_id(choice - 1)
 
 
