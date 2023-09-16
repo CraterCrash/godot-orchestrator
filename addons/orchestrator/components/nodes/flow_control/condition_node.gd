@@ -15,10 +15,10 @@ func execute(context: OrchestrationExecutionContext) -> Variant:
 
 	var result = Orchestrator.evaluate(context, context.get_attribute("condition", false))
 	if result:
-		context.editor_print("Output -> true")
+		# context.editor_print("Output -> true")
 		return context.get_output_target_node_id(0)
 
-	context.editor_print("Output -> false")
+	# context.editor_print("Output -> false")
 	return context.get_output_target_node_id(1)
 
 

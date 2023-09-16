@@ -15,7 +15,7 @@ func execute(context: OrchestrationExecutionContext) -> Variant:
 
 	var chance = context.get_attribute("chance", 0)
 	var result = randi_range(1, 100)
-	context.editor_print("Calculated chance: %s" % result)
+	# context.editor_print("Calculated chance: %s" % result)
 
 	if result <= chance:
 		return context.get_output_target_node_id(0)

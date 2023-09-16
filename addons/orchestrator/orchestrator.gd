@@ -21,7 +21,7 @@ func execute(resource: Orchestration) -> void:
 
 	var data = _get_start_node_data(resource)
 	if data.is_empty():
-		printerr("Failed to find starat node in orchestration, terminated.")
+		printerr("Failed to find start node in orchestration, terminated.")
 		return
 
 	# Because OrchestratorNodeFactory awaits on the process frame, we have to
@@ -40,9 +40,9 @@ func execute(resource: Orchestration) -> void:
 	orchestration_started.emit()
 
 	while is_instance_valid(node):
-		context.editor_print("Processing %s with node %s [%s]" % [data["name"], node.name, node])
+		# context.editor_print("Processing %s with node %s [%s]" % [data["name"], node.name, node])
 		var next_node_id = await node.execute(context)
-		context.editor_print("Target node id: %s" % next_node_id)
+		# context.editor_print("Target node id: %s" % next_node_id)
 		free_node(node)
 		node = null
 
