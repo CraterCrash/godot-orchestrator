@@ -56,6 +56,8 @@ func _ready():
 
 	%TogglePanelButton.pressed.connect(_toggle_panel)
 
+	editor_plugin.get_editor_interface().get_file_system_dock().files_moved.connect(_on_files_moved)
+
 
 ################################################################################
 # Public API
@@ -256,6 +258,22 @@ func _apply_theme() -> void:
 
 ################################################################################
 # Events/Signal Handlers
+
+func _on_files_moved(old_file: String, new_file: String) -> void:
+	for open_file in _open_files:
+		if open_file == old_file:
+			var resource = ResourceLoader.load(new_file, "", ResourceLoader.CACHE_MODE_IGNORE)
+			_open_files[new_file] = {
+				"resource": resource,
+				"scene": _open_files[open_file]["scene"]
+			}
+			_open_files.erase(old_file)
+
+			%FilesList._files = _open_files.keys()
+			%FilesList.select_file(new_file)
+			_current_file = new_file
+			break
+
 
 func _on_file_menu_id_pressed(id: int) -> void:
 	match id:
