@@ -6,7 +6,7 @@ func _init():
 	name = "End"
 	category = "Terminal"
 	description = "Ends the orchestation."
-	allow_multiple = false
+	allow_multiple = true
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:
