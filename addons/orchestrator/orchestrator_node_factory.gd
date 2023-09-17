@@ -8,16 +8,6 @@ signal node_factory_updated
 # Collection of [OrchestrationNode] resources, keyed by type
 var _nodes : Dictionary
 
-
-func _ready():
-	# This is necessary as the node factory is added to the tree before the
-	# Orchestrator singleton and we cannot scan for scripts until both of
-	# the singletons are active, so we wait one process frame.
-	await get_tree().process_frame
-
-	rescan_for_resources()
-
-
 ## Returns an array of [OrchestrationNode] script instances
 func get_resources() -> Array:
 	return _nodes.values()

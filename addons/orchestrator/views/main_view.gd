@@ -58,14 +58,19 @@ func _ready():
 
 	%TogglePanelButton.pressed.connect(_toggle_panel)
 
-	if editor_plugin:
-		editor_plugin.get_editor_interface().get_file_system_dock().files_moved.connect(_on_files_moved)
-		menu_version.text = "v" + editor_plugin.get_version()
-		view_version.text = "Godot Orchestator v" + editor_plugin.get_version()
+	editor_plugin.get_editor_interface().get_file_system_dock().files_moved.connect(_on_files_moved)
+	menu_version.text = "v" + editor_plugin.get_version()
+	view_version.text = "Godot Orchestrator v" + editor_plugin.get_version()
 
 
 ################################################################################
 # Public API
+
+func set_plugin(plugin: EditorPlugin) -> void:
+	# Set the plugin and delegate it to children that require it.
+	editor_plugin = plugin
+	%NodeTree.set_plugin(plugin)
+
 
 func set_version(version: String) -> void:
 	menu_version = "v" + version

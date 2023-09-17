@@ -2,6 +2,8 @@
 @tool
 extends EditorPlugin
 
+signal node_resources_updated(node_factory)
+
 const ADDON_NAME = "Orchestrator"
 const ADDON_NODE_FACTORY_NAME = "OrchestratorNodeFactory"
 
@@ -15,8 +17,18 @@ const OrchestratorEditorIcon = preload("res://addons/orchestrator/assets/icons/O
 ## The plugin's main view.
 var main_view
 
-# Reference to the node factory.
-var _node_factory : Node
+# Reference to the node factory
+var _node_factory
+
+func _ready():
+	# OrchestratorNodeFactory may enter scene later due to order of operations.
+	# For example, when loading and plug-in is disabled, tool script loads early.
+	# When loading Godot with plug-in enabled, tool script loads later.
+	# This causes the functionality to be uniform across both scenarios.
+	await get_tree().process_frame
+	_node_factory = get_tree().root.find_child(ADDON_NODE_FACTORY_NAME, true, false)
+	_rescan_for_resources()
+
 
 func _enter_tree():
 	add_autoload_singleton(ADDON_NODE_FACTORY_NAME, ORCHESTRATOR_NODE_FACTORY)
@@ -29,7 +41,8 @@ func _enter_tree():
 	settings.prepare()
 
 	main_view = load(MAIN_VIEW_SCENE).instantiate()
-	main_view.editor_plugin = self
+	main_view.set_plugin(self)
+
 	get_editor_interface().get_editor_main_screen().add_child(main_view)
 	_make_visible(false)
 
@@ -42,6 +55,7 @@ func _enter_tree():
 func _exit_tree():
 	remove_autoload_singleton(ADDON_NAME)
 	remove_autoload_singleton(ADDON_NODE_FACTORY_NAME)
+
 	if is_instance_valid(main_view):
 		main_view.queue_free()
 
@@ -83,25 +97,21 @@ func _apply_changes() -> void:
 
 
 func _on_filesystem_changed() -> void:
-	_rescan_resources()
+	_rescan_for_resources()
 
 
 func _on_files_moved(old_file: String, new_file: String) -> void:
-	_rescan_resources()
+	_rescan_for_resources()
 
 
 func _on_file_removed(file_name: String) -> void:
-	_rescan_resources()
+	_rescan_for_resources()
 
 
-func _get_node_factory() -> Node:
-	if not _node_factory:
-		_node_factory = get_tree().root.find_child(ADDON_NODE_FACTORY_NAME, true, false)
-	return _node_factory
-
-
-func _rescan_resources() -> void:
-	_get_node_factory().rescan_for_resources()
+func _rescan_for_resources() -> void:
+	if _node_factory:
+		_node_factory.rescan_for_resources()
+		node_resources_updated.emit(_node_factory)
 
 
 func get_version() -> String:
