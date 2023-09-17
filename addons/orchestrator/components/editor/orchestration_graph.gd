@@ -8,7 +8,6 @@ var editor_plugin : EditorPlugin
 # The associated orchestration
 var _orchestration : Orchestration
 
-
 func _ready():
 	minimap_enabled = false
 	right_disconnects = true
@@ -27,7 +26,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 func _drop_data(at_position: Vector2, data: Variant) -> void:
 	var tree_item : TreeItem = data["origin_tree_item"]
 	var node_type = tree_item.get_meta("_node_type")
-	var resource = OrchestratorNodeFactory.get_node_resource(node_type)
+	var resource = _get_node_factory().get_node_resource(node_type)
 	if not resource:
 		return
 
@@ -166,7 +165,7 @@ func swap_output_connections(id: Variant, index: int, other: int) -> void:
 # Private API
 
 func _add_orchestration_graph_node(data: Dictionary) -> void:
-	var orchestration_node = OrchestratorNodeFactory.get_node_resource(data["type"])
+	var orchestration_node = _get_node_factory().get_node_resource(data["type"])
 	if not orchestration_node:
 		await get_tree().process_frame
 		var message = ("Unable to find node '%s' registered. " + \
@@ -206,6 +205,10 @@ func _is_multiple_of_node_allowed(resource: OrchestrationNode) -> bool:
 				if child.get_orchestration_node().type == resource.type:
 					return false
 	return true
+
+
+func _get_node_factory():
+	return get_tree().root.find_child("OrchestratorNodeFactory", true, false)
 
 
 ################################################################################

@@ -12,21 +12,19 @@ var filter : String = "" : set = set_filter, get = get_filter
 # All nodes from last scan
 var _available_nodes : Dictionary = {}
 
-# Support lazily connecting to the node factory if it enters the editor scene late.
-var _connected := false
+# Node factory
+# Lazily loaded when editor plugin raises node_resources_updated
+# Set set_plugin method
+var _node_factory
+
 
 func _ready():
 	filters.text_changed.connect(_on_filters_text_changed)
 	_apply_theme()
 
 
-func _process(delta:float) -> void:
-	if not _connected:
-		var factory = get_tree().root.find_child("OrchestratorNodeFactory", true, false)
-		if factory:
-			factory.node_factory_updated.connect(_on_node_factory_updated)
-			_connected = true
-			factory.rescan_for_resources()
+func set_plugin(editor_plugin: EditorPlugin) -> void:
+	editor_plugin.node_resources_updated.connect(_on_node_factory_updated)
 
 
 ## Set the filter to limit the nodes shown.
@@ -50,7 +48,7 @@ func apply_filter() -> void:
 
 	var resources = []
 	var categories = []
-	for resource in OrchestratorNodeFactory.get_resources():
+	for resource in _node_factory.get_resources():
 		if filter == "" or filter.to_lower() in resource.name.to_lower():
 			resources.push_back(resource)
 			if not categories.has(resource.category):
@@ -69,7 +67,8 @@ func _on_filters_text_changed(new_text: String) -> void:
 	filter = new_text
 
 
-func _on_node_factory_updated() -> void:
+func _on_node_factory_updated(node_factory) -> void:
+	_node_factory = node_factory
 	apply_filter()
 
 

@@ -10,9 +10,12 @@ signal orchestration_started
 ## Emitted when an orchestration has finished its execution.
 signal orchestration_finished
 
+@onready var _node_factory = get_node("/root/OrchestratorNodeFactory")
+
 
 func _ready():
 	Engine.register_singleton("Orchestrator", self)
+	_node_factory.rescan_for_resources()
 
 
 ## Executes the provided orchestration
@@ -29,7 +32,7 @@ func execute(resource: Orchestration) -> void:
 	# the factory not yet having scanned the nodes.
 	await get_tree().process_frame
 
-	var node = OrchestratorNodeFactory.get_node_resource(data["type"])
+	var node = _node_factory.get_node_resource(data["type"])
 
 	var context = OrchestrationExecutionContext.new()
 	context._data = data
@@ -54,7 +57,7 @@ func execute(resource: Orchestration) -> void:
 		data = _get_node_data(next_node_id, resource)
 		context._data = data
 
-		node = OrchestratorNodeFactory.get_node_resource(data["type"])
+		node = _node_factory.get_node_resource(data["type"])
 
 	context.editor_print("Orchestration execution completed.")
 	orchestration_finished.emit()
