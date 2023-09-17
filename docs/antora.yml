@@ -1,10 +1,10 @@
 name: orchestrator
 title: Orchestrator
-version: 1.0.4
+version: 1.0.5
 start_page: overview.adoc
 asciidoc:
   attributes:
-    version: 1.0.4
+    version: 1.0.5
     source-highlighter: ~
     source-language: asciidoc@
     table-caption: false
