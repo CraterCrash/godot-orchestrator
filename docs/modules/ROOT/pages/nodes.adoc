@@ -277,6 +277,31 @@ This node can wait from a minimum of `0` seconds to a maximum of `60` seconds.
 
 |===
 
+=== Wait For Action
+
+The **wait for action** node allows the executing orchestration to yield until the specified input action has been pressed.
+
+.Wait for action node
+image::logic-node-wait-for-action.png[Wait for action node]
+
+.Input slots
+|===
+|Input |Description
+
+|(Unlabeled)
+|The sequence input slot responsible for executing the node's wait for action.
+
+|===
+
+.Output slots
+|===
+|Output |Description
+
+|(Unlabeled)
+|The output path taken after the wait for the action press has finished.
+
+|===
+
 [id="terminal"]
 == Terminal nodes
 
