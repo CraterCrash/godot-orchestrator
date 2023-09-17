@@ -8,6 +8,7 @@ bg_color = Color(0.113725, 0.133333, 0.160784, 1)
 
 [sub_resource type="SystemFont" id="SystemFont_1rny5"]
 font_weight = 999
+subpixel_positioning = 0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r3s5y"]
 bg_color = Color(0.145098, 0.168627, 0.203922, 1)
@@ -67,7 +68,6 @@ alignment = 1
 
 [node name="Label" type="Label" parent="AboutLayout/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-text = "Godot Orchestrator v1.0.4.Final"
 
 [node name="Label2" type="Label" parent="AboutLayout/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
@@ -124,7 +124,7 @@ theme_override_constants/separation = 0
 
 [node name="Label" type="Label" parent="AboutLayout/MarginContainer2/TabContainer/Authors/ScrollContainer/MarginContainer/VBoxContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
-text = "Darryl Agee"
+text = "Darryl Agee (Zomphie)"
 vertical_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="AboutLayout/MarginContainer2/TabContainer/Authors/ScrollContainer/MarginContainer/VBoxContainer/PanelContainer/VBoxContainer"]

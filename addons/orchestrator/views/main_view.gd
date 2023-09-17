@@ -33,6 +33,8 @@ enum HelpMenuIds {
 @onready var open_file_dialog = $OpenFileDialog
 @onready var save_file_dialog = $SaveFileDialog
 @onready var close_discard_confirm_dialog = $CloseDiscardConfirmDialog
+@onready var menu_version = $Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer/Version
+@onready var view_version = $Margin/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/Label
 
 # The orchestator plugin
 var editor_plugin : EditorPlugin
@@ -56,11 +58,19 @@ func _ready():
 
 	%TogglePanelButton.pressed.connect(_toggle_panel)
 
-	editor_plugin.get_editor_interface().get_file_system_dock().files_moved.connect(_on_files_moved)
+	if editor_plugin:
+		editor_plugin.get_editor_interface().get_file_system_dock().files_moved.connect(_on_files_moved)
+		menu_version.text = "v" + editor_plugin.get_version()
+		view_version.text = "Godot Orchestator v" + editor_plugin.get_version()
 
 
 ################################################################################
 # Public API
+
+func set_version(version: String) -> void:
+	menu_version = "v" + version
+	view_version = "Godot Orchestrator v" + version
+
 
 func open_orchestration(orchestration: Orchestration) -> void:
 	_open_file(orchestration.resource_path)

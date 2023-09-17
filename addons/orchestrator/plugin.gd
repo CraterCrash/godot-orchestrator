@@ -102,3 +102,9 @@ func _get_node_factory() -> Node:
 
 func _rescan_resources() -> void:
 	_get_node_factory().rescan_for_resources()
+
+
+func get_version() -> String:
+	var config = ConfigFile.new()
+	config.load("res://addons/orchestrator/plugin.cfg")
+	return config.get_value("plugin", "version")
