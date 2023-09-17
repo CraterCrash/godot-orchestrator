@@ -13,8 +13,9 @@ func _init():
 
 func execute(context: OrchestrationExecutionContext) -> Variant:
 	var action_name = context.get_attribute("action_name")
-	while not Input.is_action_pressed(action_name):
+	while not Input.is_action_just_pressed(action_name):
 		await Orchestrator.get_tree().process_frame
+	await Orchestrator.get_tree().process_frame
 	return context.get_output_target_node_id(0)
 
 
@@ -38,7 +39,7 @@ func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
 	input_event_action_name.text = _action_name
 
 	var label = Label.new()
-	label.text = "if InputEventAction.pressed"
+	label.text = "if InputEventAction.justpressed"
 
 	var row = HBoxContainer.new()
 	row.add_child(label)
