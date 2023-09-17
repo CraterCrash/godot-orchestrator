@@ -12,14 +12,14 @@ func _init():
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:
-	var _action_name = context.get_attribute("_action_name")
-	while not Input.is_action_pressed(_action_name):
+	var action_name = context.get_attribute("action_name")
+	while not Input.is_action_pressed(action_name):
 		await Orchestrator.get_tree().process_frame
 	return context.get_output_target_node_id(0)
 
 
 func get_attributes() -> Dictionary:
-	return {"_action_name" : _action_name }
+	return {"action_name" : _action_name }
 
 
 func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
