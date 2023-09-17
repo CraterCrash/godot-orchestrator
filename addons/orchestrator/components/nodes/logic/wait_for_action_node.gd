@@ -33,7 +33,7 @@ func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
 
 	var input_event_action_name = LineEdit.new()
 	input_event_action_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	input_event_action_name.custom_minimum_size = Vector2(256, 0)
+	input_event_action_name.custom_minimum_size = Vector2(128, 0)
 	input_event_action_name.text_changed.connect(func(new_value: String): _action_name = new_value)
 	input_event_action_name.text = _action_name
 
@@ -45,5 +45,4 @@ func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
 	row.add_child(input_event_action_name)
 	margin.add_child(row)
 	scene_node.add_child(margin)
-
 
