@@ -4,6 +4,9 @@ signal show_message_finished(selected_index: int)
 
 const TEXT_SPEED = 0.03
 
+var _current_tween : Tween
+var _current_choices : Dictionary
+
 @onready var speaker = $MarginContainer/PanelContainer/MarginContainer/V/Speaker
 @onready var speaker_text = $MarginContainer/PanelContainer/MarginContainer/V/SpeakerText
 @onready var response_template = $MarginContainer/PanelContainer/MarginContainer/V/ResponseTemplate
@@ -22,6 +25,13 @@ func _ready():
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and \
+		(event.keycode == KEY_ESCAPE or event.keycode == KEY_SPACE):
+		if _current_tween.is_running():
+			_current_tween.stop()
+			speaker_text.visible_characters = speaker_text.text.length()
+			_on_tween_finished(_current_choices)
+
 	# ShowMessage is only allowed to process input when visible
 	get_viewport().set_input_as_handled()
 
@@ -29,12 +39,13 @@ func _unhandled_input(event: InputEvent) -> void:
 func show_message(speaker_name: String, message: String, choices: Dictionary) -> void:
 	speaker.text = speaker_name
 	speaker_text.text = message
+	_current_choices = choices
 	await get_tree().process_frame
 
 	var duration = speaker_text.text.length() * TEXT_SPEED
-	var tween = get_tree().create_tween()
-	tween.tween_property(speaker_text, "visible_characters", speaker_text.text.length(), duration)
-	tween.finished.connect(Callable(_on_tween_finished).bind(choices))
+	_current_tween = get_tree().create_tween()
+	_current_tween.tween_property(speaker_text, "visible_characters", speaker_text.text.length(), duration)
+	_current_tween.finished.connect(Callable(_on_tween_finished).bind(choices))
 
 	show()
 
