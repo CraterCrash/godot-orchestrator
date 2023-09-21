@@ -38,6 +38,8 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	add_child(scene_node)
 	scene_node.name = "GraphNode-%s" % _get_next_node_id()
 	scene_node.position_offset = (at_position + scroll_offset) / zoom
+	resource.id = scene_node.name
+
 	var attributes = OrchestratorDictionary.new({})
 	scene_node.initialize(attributes, resource)
 
@@ -137,15 +139,17 @@ func clear_node_connections(node: GraphNode) -> void:
 ## Disconnect an output connection based on node's [code]id[/code] and [code]port[/code].
 func disconnect_output_connection(id: Variant, port: int) -> void:
 	var entry = get_node_output(id, port)
-	disconnect_node(entry["from"], entry["from_port"], entry["to"], entry["to_port"])
+	if not entry.is_empty():
+		disconnect_node(entry["from"], entry["from_port"], entry["to"], entry["to_port"])
 
 
 ## Move an output port connection for a node with [code]id[/code] to the [code]dest[/code]
 ## port number from the [code]from[/code] port number.
 func move_output_connections(id: Variant, dest: int, from: int) -> void:
 	var entry = get_node_output(id, from)
-	disconnect_node(entry["from"], entry["from_port"], entry["to"], entry["to_port"])
-	connect_node(entry["from"], dest, entry["to"], entry["to_port"])
+	if not entry.is_empty():
+		disconnect_node(entry["from"], entry["from_port"], entry["to"], entry["to_port"])
+		connect_node(entry["from"], dest, entry["to"], entry["to_port"])
 
 
 ## Swap two output connections for a node with [code]id[/code] exchanging the connections
@@ -153,12 +157,12 @@ func move_output_connections(id: Variant, dest: int, from: int) -> void:
 func swap_output_connections(id: Variant, index: int, other: int) -> void:
 	var entry_index = get_node_output(id, index)
 	var entry_other = get_node_output(id, other)
+	if not entry_index.is_empty() and not entry_other.is_empty():
+		disconnect_node(entry_index["from"], entry_index["from_port"], entry_index["to"], entry_index["to_port"])
+		disconnect_node(entry_other["from"], entry_other["from_port"], entry_other["to"], entry_other["to_port"])
 
-	disconnect_node(entry_index["from"], entry_index["from_port"], entry_index["to"], entry_index["to_port"])
-	disconnect_node(entry_other["from"], entry_other["from_port"], entry_other["to"], entry_other["to_port"])
-
-	connect_node(entry_index["from"], entry_index["from_port"], entry_other["to"], entry_other["to_port"])
-	connect_node(entry_other["from"], entry_other["from_port"], entry_index["to"], entry_index["to_port"])
+		connect_node(entry_index["from"], entry_index["from_port"], entry_other["to"], entry_other["to_port"])
+		connect_node(entry_other["from"], entry_other["from_port"], entry_index["to"], entry_index["to_port"])
 
 
 ################################################################################
