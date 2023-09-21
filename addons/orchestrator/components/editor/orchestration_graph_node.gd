@@ -14,7 +14,17 @@ var _attributes : OrchestratorDictionary
 func _ready():
 	# All nodes are resizable
 	resizable = true
-	show_close = true
+
+	if Engine.get_version_info().hex < 0x040200:
+		call("set_show_close_button", true)
+	else:
+		var button = Button.new()
+		button.icon = get_theme_icon("Close", "EditorIcons")
+		button.flat = true
+		get_titlebar_hbox().add_child(button)
+		button.position.x += 10
+		button.anchors_preset = Control.PRESET_CENTER_RIGHT
+		button.pressed.connect(_on_close_request)
 
 	# Setup callbacks
 	position_offset_changed.connect(_on_position_offset_changed)
@@ -72,26 +82,12 @@ func update_project_settings() -> void:
 
 # Get the output connections for a given slot.
 func _get_output_connection(slot: int) -> Dictionary:
-	var editor = get_parent()
-	if editor is GraphEdit:
-		for entry in editor.get_connection_list():
-			if entry["from"] == name and entry["from_port"] == slot:
-				return entry
-	return {}
+	return get_parent().get_output_connection(name, slot)
 
 
 ## Disconnects a given connection.
 func _disconnect(connection: Dictionary) -> void:
-	print("Attempting to disconnect %s" % connection)
-	if connection.is_empty():
-		return
-
-	var editor = get_parent()
-	if editor is GraphEdit:
-		editor.disconnect_node(connection["from"], \
-			connection["from_port"], \
-			connection["to"], \
-			connection["to_port"])
+	get_parent().disconnect_connection(connection)
 
 
 # Resets all connection slots
@@ -140,10 +136,12 @@ func _update_styles() -> void:
 		return
 
 	var category = orchestration_node.category.to_lower().replacen(" ", "_")
+	var is_42_plus = Engine.get_version_info().hex >= 0x040200
 
 	var category_color = OrchestratorSettings.get_setting("nodes/colors/%s" % category, Color.DEEP_SKY_BLUE)
 	var background_color = OrchestratorSettings.get_setting("nodes/colors/background", Color(0.12, 0.15, 0.19))
 
+	# Creates the non-selected panel style
 	var style = StyleBoxFlat.new()
 	style.bg_color = background_color
 	style.set_corner_radius_all(1)
@@ -153,18 +151,51 @@ func _update_styles() -> void:
 	style.shadow_color = Color.html("#0000004d")
 	style.shadow_size = 2
 
+	if is_42_plus:
+		style.border_width_top = 0
+		style.corner_radius_top_left = 0
+		style.corner_radius_top_right = 0
+
+	# Creates the selected panel style
 	var selected_style = style.duplicate()
 	selected_style.border_color = Color(category_color.r, category_color.g, category_color.b, 0.45)
 
-	add_theme_stylebox_override("frame", style)
-	add_theme_stylebox_override("selected_frame", selected_style)
+	# Handle border/frame styles
+	if is_42_plus:
+		add_theme_stylebox_override("panel", style)
+		add_theme_stylebox_override("panel_selected", selected_style)
+	else:
+		add_theme_stylebox_override("frame", style)
+		add_theme_stylebox_override("selected_frame", selected_style)
+
+	# Handle titlebar styles text
+	if is_42_plus:
+		# Create the titlebar style
+		var titlebar_style = style.duplicate()
+		titlebar_style.set_corner_radius_all(1)
+		titlebar_style.corner_radius_bottom_left = 0
+		titlebar_style.corner_radius_bottom_right = 0
+		titlebar_style.bg_color = titlebar_style.border_color
+		titlebar_style.shadow_size = 0
+		add_theme_stylebox_override("titlebar", titlebar_style)
+
+		# Create the selected titlebar style
+		var selected_titlebar_style = titlebar_style.duplicate()
+		selected_titlebar_style.border_color.a = 0.45
+		selected_titlebar_style.bg_color.a = 0.45
+		add_theme_stylebox_override("titlebar_selected", selected_titlebar_style)
+
+		# Setup titlebar font
+		var titlebar_label = get_titlebar_hbox().get_children()[0] as Label
+		titlebar_label.add_theme_color_override("font_color", Color.WHITE)
+
+		# Hack to adjust the title label to be offset like close icon
+		titlebar_label.text = " " + titlebar_label.text.trim_prefix(" ")
 
 
 # Disconnects the output close from this node if its conencted.
 func _disconnect_output_port(port: int) -> void:
-	for entry in get_parent().get_connection_list():
-		if entry["from"] == name and entry["from_port"] == port:
-			get_parent().disconnect_node(entry["from"], entry["from_port"], entry["to"], entry["to_port"])
+	get_parent().disconnect_output_port(name, port)
 
 
 func _on_input_slot_added(slot_index: int, slot: OrchestrationNodeSlot) -> void:
