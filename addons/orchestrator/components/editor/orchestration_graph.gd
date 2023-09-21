@@ -1,7 +1,13 @@
-
 @tool
 extends GraphEdit
 ## A GraphEdit implementation for designing Orchestrations
+
+const FROM_PORT : String = "from_port"
+const TO_PORT	: String = "to_port"
+
+# Keys were changed between 4.1 and 4.2
+var FROM 		= "from" if Engine.get_version_info().hex < 0x040200 else "from_node"
+var TO   		= "to"   if Engine.get_version_info().hex < 0x040200 else "to_node"
 
 # The associated orchestration
 var _orchestration : Orchestration
@@ -61,8 +67,8 @@ func set_orchestration(orchestration: Orchestration) -> void:
 		_add_orchestration_graph_node(node)
 
 	# Apply connections
-	for connection in orchestration.connections:
-		_add_orchestration_connection(connection)
+	for conn in _deserialize_connection_list(orchestration.connections):
+		_add_orchestration_connection(conn)
 
 	# This is needed to make sure that the GraphEdit is fully initialized
 	# with all the node data and connections before we apply the zoom and
@@ -78,7 +84,7 @@ func set_orchestration(orchestration: Orchestration) -> void:
 func apply_graph_to_orchestration(orchestration: Orchestration) -> void:
 	# Clear the nodes and populate the basic information
 	orchestration.nodes.clear()
-	orchestration.connections = get_connection_list()
+	orchestration.connections = _serialize_connection_list()
 	orchestration.zoom = zoom
 	orchestration.scroll_offset = scroll_offset
 
@@ -98,10 +104,19 @@ func apply_graph_to_orchestration(orchestration: Orchestration) -> void:
 			orchestration.nodes.push_back(attributes)
 
 
+func get_output_connection(node_name: String, slot: int) -> Dictionary:
+	for entry in get_connection_list():
+		if entry[FROM] == node_name and entry[FROM_PORT] == slot:
+			return entry
+	return {}
+
+
 ## Get the output connection from a node with a given [code]id[/code] and [code]port[/code].
 func get_node_output(id: Variant, port: int) -> Dictionary:
+	if not id:
+		push_error("Cannot get node output for node id '%s' with port '%s'" % [id,port])
 	for entry in get_connection_list():
-		if entry["from"] == id and entry["from_port"] == port:
+		if entry[FROM] == id and entry[FROM_PORT] == port:
 			return entry
 	return {}
 
@@ -110,12 +125,12 @@ func get_node_output(id: Variant, port: int) -> Dictionary:
 func get_node_connections(node: GraphNode) -> Array[Dictionary]:
 	var node_connections : Array[Dictionary]
 	for connection in get_connection_list():
-		if connection["from"] == node.name:
+		if connection[FROM] == node.name:
 			var node_connection = {}
-			node_connection["source_port"] = connection["from_port"]
-			node_connection["target_node"] = connection["to"]
-			node_connection["target_port"] = connection["to_port"]
-			var other_node = find_child(connection["to"], false, false)
+			node_connection["source_port"] = connection[FROM_PORT]
+			node_connection["target_node"] = connection[TO]
+			node_connection["target_port"] = connection[TO_PORT]
+			var other_node = find_child(connection[TO], false, false)
 			if other_node:
 				node_connection["target_id"] = other_node.name
 			node_connections.push_back(node_connection)
@@ -135,17 +150,31 @@ func clear() -> void:
 func clear_node_connections(node: GraphNode) -> void:
 	# todo: maybe notify child of disconnect?
 	for conn in get_connection_list():
-		if conn["from"] == node.name:
-			disconnect_node(conn["from"], conn["from_port"], conn["to"], conn["to_port"])
-		elif conn["to"] == node.name:
-			disconnect_node(conn["from"], conn["from_port"], conn["to"], conn["to_port"])
+		if conn[FROM] == node.name:
+			disconnect_node(conn[FROM], conn[FROM_PORT], conn[TO], conn[TO_PORT])
+		elif conn[TO] == node.name:
+			disconnect_node(conn[FROM], conn[FROM_PORT], conn[TO], conn[TO_PORT])
+
+
+func disconnect_connection(connection: Dictionary) -> void:
+	if connection != null and not connection.is_empty():
+		disconnect_node(connection[FROM], \
+			connection[FROM_PORT], \
+			connection[TO], \
+			connection[TO_PORT])
+
+
+func disconnect_output_port(node_name: String, port: int) -> void:
+	for entry in get_connection_list():
+		if entry[FROM] == node_name and entry[FROM_PORT] == port:
+			disconnect_node(entry[FROM], entry[FROM_PORT], entry[TO], entry[TO_PORT])
 
 
 ## Disconnect an output connection based on node's [code]id[/code] and [code]port[/code].
 func disconnect_output_connection(id: Variant, port: int) -> void:
 	var entry = get_node_output(id, port)
 	if not entry.is_empty():
-		disconnect_node(entry["from"], entry["from_port"], entry["to"], entry["to_port"])
+		disconnect_node(entry[FROM], entry[FROM_PORT], entry[TO], entry[TO_PORT])
 
 
 ## Move an output port connection for a node with [code]id[/code] to the [code]dest[/code]
@@ -153,8 +182,8 @@ func disconnect_output_connection(id: Variant, port: int) -> void:
 func move_output_connections(id: Variant, dest: int, from: int) -> void:
 	var entry = get_node_output(id, from)
 	if not entry.is_empty():
-		disconnect_node(entry["from"], entry["from_port"], entry["to"], entry["to_port"])
-		connect_node(entry["from"], dest, entry["to"], entry["to_port"])
+		disconnect_node(entry[FROM], entry[FROM_PORT], entry[TO], entry[TO_PORT])
+		connect_node(entry[FROM], dest, entry[TO], entry[TO_PORT])
 
 
 ## Swap two output connections for a node with [code]id[/code] exchanging the connections
@@ -163,11 +192,11 @@ func swap_output_connections(id: Variant, index: int, other: int) -> void:
 	var entry_index = get_node_output(id, index)
 	var entry_other = get_node_output(id, other)
 	if not entry_index.is_empty() and not entry_other.is_empty():
-		disconnect_node(entry_index["from"], entry_index["from_port"], entry_index["to"], entry_index["to_port"])
-		disconnect_node(entry_other["from"], entry_other["from_port"], entry_other["to"], entry_other["to_port"])
+		disconnect_node(entry_index[FROM], entry_index[FROM_PORT], entry_index[TO], entry_index[TO_PORT])
+		disconnect_node(entry_other[FROM], entry_other[FROM_PORT], entry_other[TO], entry_other[TO_PORT])
 
-		connect_node(entry_index["from"], entry_index["from_port"], entry_other["to"], entry_other["to_port"])
-		connect_node(entry_other["from"], entry_other["from_port"], entry_index["to"], entry_index["to_port"])
+		connect_node(entry_index[FROM], entry_index[FROM_PORT], entry_other[TO], entry_other[TO_PORT])
+		connect_node(entry_other[FROM], entry_other[FROM_PORT], entry_index[TO], entry_index[TO_PORT])
 
 
 ################################################################################
@@ -198,7 +227,7 @@ func _add_orchestration_graph_node(data: Dictionary) -> void:
 
 
 func _add_orchestration_connection(conn: Dictionary) -> void:
-	connect_node(conn["from"], conn["from_port"], conn["to"], conn["to_port"])
+	connect_node(conn[FROM], conn[FROM_PORT], conn[TO], conn[TO_PORT])
 
 
 func _get_next_node_id() -> int:
@@ -218,6 +247,41 @@ func _is_multiple_of_node_allowed(resource: OrchestrationNode) -> bool:
 
 func _get_node_factory():
 	return get_tree().root.find_child("OrchestratorNodeFactory", true, false)
+
+
+func _serialize_connection_list() -> Array[Dictionary]:
+	if Engine.get_version_info().hex < 0x040200:
+		return get_connection_list()
+
+	# Godot 4.2 reworked the connections and changed some of the dictionary
+	# keys.  So we need to adjust the new format back to pre-4.2 for save
+	# purposes so that the same format is compatible with older versions.
+	var connections : Array[Dictionary]
+	for entry in get_connection_list():
+		var connection = {}
+		connection["from"] = entry[FROM]
+		connection["from_port"] = entry[FROM_PORT]
+		connection["to"] = entry[TO]
+		connection["to_port"] = entry[TO_PORT]
+		connections.append(connection)
+	return connections
+
+
+func _deserialize_connection_list(list: Array[Dictionary]) -> Array[Dictionary]:
+	if Engine.get_version_info().hex < 0x040200:
+		return list
+
+	# Converts the serialized list using Godot 4.1 and prior format to the
+	# Godot 4.2 and later formats
+	var connections: Array[Dictionary]
+	for entry in list:
+		var connection = {}
+		connection[FROM] = entry["from"]
+		connection[FROM_PORT] = entry[FROM_PORT]
+		connection[TO] = entry["to"]
+		connection[TO_PORT] = entry[TO_PORT]
+		connections.append(connection)
+	return connections
 
 
 ################################################################################
