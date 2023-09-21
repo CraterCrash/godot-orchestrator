@@ -1,0 +1,18 @@
+name: Feature Request / Enhancement
+description: Request or propose a new feature/enhancement
+labels: kind/enhancement
+body:
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: Description
+      description: >-
+        Describe the feature here.
+  - type: textarea
+    id: impl_ideas
+    attributes:
+      label: Implementation ideas
+      description: >-
+        If you have any implementation ideas, they can go here.
