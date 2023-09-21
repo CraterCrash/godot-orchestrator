@@ -109,7 +109,7 @@ func create_ui(attributes: OrchestratorDictionary, scene_node: Node) -> void:
 	character_name.text = _speaker_name
 
 	var character_name_row = _create_ui_row("Name:", character_name)
-	character_name_row.visible = false
+	character_name_row.visible = true
 	container.add_child(character_name_row)
 
 #	var recipient = OptionButton.new()
