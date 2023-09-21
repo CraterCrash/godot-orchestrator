@@ -45,7 +45,7 @@ func execute(context: OrchestrationExecutionContext) -> Variant:
 
 	Orchestrator.get_tree().current_scene.add_child(node)
 	var options = _get_options(context, choices)
-	node.show_message(speaker, message, options)
+	node.show_message(speaker_name, message, options)
 
 	var selected_index = await node.show_message_finished
 	if selected_index >= 0:
