@@ -39,7 +39,7 @@ See [CHANGELOG](https://github.com/Vahera/godot-orchestrator/blob/main/CHANGELOG
 
 - Source code: [MIT License](/LICENSE)
 - Godot logo: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- Orchestrator logo: [&copy; 2023 Vahera Studios. All Rights Reserved](https://vahera.com/copyright-notices/)
+- Orchestrator logo: [&copy; 2023 Vahera Studios. All Rights Reserved](https://legal.vahera.com/copyright-notices/)
 
 ## 👏 Contributors
 
