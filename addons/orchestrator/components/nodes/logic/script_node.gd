@@ -10,6 +10,7 @@ func _init():
 	name = "Script"
 	category = "Logic"
 	description = "Executes a specific script function"
+	icon = "GDScript"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

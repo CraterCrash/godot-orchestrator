@@ -8,6 +8,7 @@ func _init():
 	name = "Condition"
 	category = "Flow Control"
 	description = "Evaluates the specified condition as a boolean and takes the appropriate path."
+	icon = "Filesystem"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

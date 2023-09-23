@@ -8,6 +8,7 @@ func _init():
 	category = "Terminal"
 	description = "Starts an orchestration."
 	allow_multiple = false
+	icon = "PlayStart"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

@@ -9,6 +9,7 @@ func _init():
 	name = "Wait for Action"
 	category = "Logic"
 	description = "Waits for a given InputEventAction."
+	icon = "ToolBoneSelect"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

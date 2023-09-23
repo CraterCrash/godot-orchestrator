@@ -9,6 +9,7 @@ func _init():
 	name = "Wait"
 	category = "Logic"
 	description = "Waits for a given number of seconds."
+	icon = "History"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

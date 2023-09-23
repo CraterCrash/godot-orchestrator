@@ -8,6 +8,7 @@ func _init():
 	name = "Chance"
 	category = "Flow Control"
 	description = "Calculates a chance between 0% and 100% and takes appropriate path."
+	icon = "RandomNumberGenerator"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

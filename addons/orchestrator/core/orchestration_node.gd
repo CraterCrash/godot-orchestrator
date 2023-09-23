@@ -10,6 +10,10 @@ extends Resource
 
 const END_EXECUTION := -1
 
+const ORCHESTRATION_NODE_USAGE_ANY = 0 ## Can be used in any scene type
+const ORCHESTRATION_NODE_USAGE_2D  = 1 ## Applies only to 2D scenes
+const ORCHESTRATION_NODE_USAGE_3D  = 2 ## Applies only to 3D scenes
+
 ## A signal emitted when an input slot is added to the node.
 signal input_slot_added(index: int, slot: OrchestrationNodeSlot)
 
@@ -40,6 +44,15 @@ var category: String = "Custom"
 ## The node's description.
 ## This is shown as a tooltip when hovering over a node in the editor's UI.
 var description: String
+
+## The node's icon to be shown.
+## This can either be a resource path to an asset provided by the addon or to
+## an EditorIcons associated icon.
+var icon: String
+
+## Specifies the node's usage history.
+## See the ORCHESTRATION_NODE_USAGE properties.
+var usage_hint: int = ORCHESTRATION_NODE_USAGE_ANY
 
 ## The unique id assigned to this node resource.
 ## All nodes within an orchestration have a unique [code]id[/code].

@@ -60,7 +60,8 @@ func apply_filter() -> void:
 		var group = _create_node_group(node_type)
 		for resource in resources:
 			if resource.category == node_type:
-				_create_node_type(resource.name, resource.type, group)
+				_create_node_type(resource.name, resource.type, resource.icon,
+					resource.usage_hint, resource.description, group)
 
 
 func _on_filters_text_changed(new_text: String) -> void:
@@ -82,11 +83,27 @@ func _create_node_group(name: String, parent: TreeItem = null) -> TreeItem:
 	return group
 
 
-func _create_node_type(name: String, type: int, parent: TreeItem) -> TreeItem:
+func _create_node_type(name: String, type: int, icon: String, usage: int, description: String, parent: TreeItem) -> TreeItem:
 	var node = tree.create_item(parent)
 	node.set_meta("_node_type", type)
 	node.set_text(0, name)
+	node.set_icon(0, _get_node_type_icon(icon, usage))
+	node.set_tooltip_text(0, name + ":\n" + description)
 	return node
+
+
+func _get_node_type_icon(icon: String, usage: int) -> Texture2D:
+	if icon == null or icon.length() == 0:
+		match usage:
+			OrchestrationNode.ORCHESTRATION_NODE_USAGE_2D:
+				return get_theme_icon("Node2D", "EditorIcons")
+			OrchestrationNode.ORCHESTRATION_NODE_USAGE_3D:
+				return get_theme_icon("Node3D", "EditorIcons")
+		return get_theme_icon("Node", "EditorIcons")
+	elif icon.begins_with("res://addons"):
+		return load(icon)
+	else:
+		return get_theme_icon(icon, "EditorIcons")
 
 
 func _apply_theme() -> void:
