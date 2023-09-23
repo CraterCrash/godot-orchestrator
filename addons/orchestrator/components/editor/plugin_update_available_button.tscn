@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3 uid="uid://citypnc51nx10"]
+
+[ext_resource type="Script" path="res://addons/orchestrator/components/editor/plugin_update_available_button.gd" id="1_c2qg7"]
+[ext_resource type="PackedScene" uid="uid://c17vkt01afj0o" path="res://addons/orchestrator/components/editor/plugin_download_update_dialog.tscn" id="2_ykt8p"]
+
+[node name="PluginUpdateAvailableButton" type="Button"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+text = "v1.0.5"
+script = ExtResource("1_c2qg7")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 3600.0
+
+[node name="PluginDownloadDialog" type="AcceptDialog" parent="."]
+title = "Download update!"
+size = Vector2i(300, 250)
+unresizable = true
+ok_button_text = "Close"
+
+[node name="PluginDownloadDialogPanel" parent="PluginDownloadDialog" instance=ExtResource("2_ykt8p")]
+
+[node name="PluginDownloadFailedDialog" type="AcceptDialog" parent="."]
+
+[node name="NeedsReloadDialog" type="ConfirmationDialog" parent="."]
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]
+[connection signal="request_completed" from="HTTPRequest" to="." method="_on_http_request_request_completed"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[connection signal="close_requested" from="PluginDownloadDialog" to="." method="_on_plugin_download_dialog_close_requested"]
+[connection signal="update_failed" from="PluginDownloadDialog/PluginDownloadDialogPanel" to="." method="_on_plugin_download_dialog_panel_update_failed"]
+[connection signal="update_succeeded" from="PluginDownloadDialog/PluginDownloadDialogPanel" to="." method="_on_plugin_download_dialog_panel_update_succeeded"]
+[connection signal="confirmed" from="NeedsReloadDialog" to="." method="_on_needs_reload_dialog_confirmed"]

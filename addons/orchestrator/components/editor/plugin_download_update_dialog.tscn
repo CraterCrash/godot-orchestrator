@@ -1,0 +1,57 @@
+[gd_scene load_steps=3 format=3 uid="uid://c17vkt01afj0o"]
+
+[ext_resource type="Script" path="res://addons/orchestrator/components/editor/plugin_download_update_dialog.gd" id="1_ikkvg"]
+[ext_resource type="Texture2D" uid="uid://bqime3p2y5r76" path="res://addons/orchestrator/assets/icons/OrchestratorLogo.svg" id="2_gqckb"]
+
+[node name="PluginDownloadUpdateDialog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_ikkvg")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer"]
+clip_contents = true
+custom_minimum_size = Vector2(300, 80)
+layout_mode = 2
+texture = ExtResource("2_gqckb")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "v1.2.3 is available for download."
+horizontal_alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="DownloadUpdate" type="Button" parent="VBoxContainer/CenterContainer"]
+layout_mode = 2
+text = "Download and install update"
+
+[node name="CenterContainer2" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="ReleaseNotesButton" type="LinkButton" parent="VBoxContainer/CenterContainer2"]
+layout_mode = 2
+text = "Read release notes..."
+
+[connection signal="request_completed" from="HTTPRequest" to="." method="_on_http_request_request_completed"]
+[connection signal="pressed" from="VBoxContainer/CenterContainer/DownloadUpdate" to="." method="_on_download_update_pressed"]
+[connection signal="pressed" from="VBoxContainer/CenterContainer2/ReleaseNotesButton" to="." method="_on_release_notes_button_pressed"]
