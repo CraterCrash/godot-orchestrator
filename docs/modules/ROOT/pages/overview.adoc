@@ -11,6 +11,24 @@ An orchestration can be loaded in the Editor to make changes to the flow and can
 An `Orchestration` is made up of `OrchestrationNode` resources, which represent each of the steps or nodes within the graph, and each node serves a unique purpose.
 Orchestrator also permits custom node implementations to add to the existing behavior of the plug-in, which is discussed in the xref:orchestrator::custom-nodes.adoc[Custom Nodes] section.
 
+== Editor configuration
+
+The Godot engine provides functionality for editor plug-ins to directly integrate with many of its internal components, such as the `Project Settings` dialog available on the `Project` menu.
+
+With the project settings dialog open, click the **General** tab and navigate near the bottom of the options left panel or simply using the filter settings widget and begin typing `Orchestrator`.
+The plug-in allows you to define a number of features in this window including:
+
+* A custom scene to use when running the orchestration from within the editor.
+* Background, border, and title-bar colors used by different node types.
+
+image::editor-plugin-project-settings.png[Plugin project settings]
+
+[NOTE]
+====
+If you have any suggestions for what other settings should be customizable, we welcome the feedback.
+Please provide your suggestions on the project's https://github.com/Vahera/godot-orchestrator/issues/new/choose[GitHub] issues as a feature/suggestion.
+====
+
 == Editor integration
 
 Orchestrator provides an in-editor interface, allowing you to quickly create and modify `Orchestration` resources using a drag-and-drop node visual-scripting-like interface.
