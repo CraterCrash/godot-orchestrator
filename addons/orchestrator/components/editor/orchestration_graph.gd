@@ -41,7 +41,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	resource.id = scene_node.name
 
 	var attributes = OrchestratorDictionary.new({})
-	scene_node.initialize(attributes, resource)
+	scene_node.initialize(attributes, resource, editor_plugin)
 
 
 ###############################################################################
@@ -189,7 +189,7 @@ func _add_orchestration_graph_node(data: Dictionary) -> void:
 	scene_node.size = data["size"]
 
 	var attributes = OrchestratorDictionary.new(data["attributes"])
-	scene_node.initialize(attributes, orchestration_node)
+	scene_node.initialize(attributes, orchestration_node, editor_plugin)
 
 
 func _add_orchestration_connection(conn: Dictionary) -> void:

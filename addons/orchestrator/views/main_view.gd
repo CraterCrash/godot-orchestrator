@@ -58,7 +58,6 @@ func _ready():
 
 	%TogglePanelButton.pressed.connect(_toggle_panel)
 
-	editor_plugin.get_editor_interface().get_file_system_dock().files_moved.connect(_on_files_moved)
 	menu_version.text = "v" + editor_plugin.get_version()
 	view_version.text = "Godot Orchestrator v" + editor_plugin.get_version()
 
@@ -70,6 +69,9 @@ func set_plugin(plugin: EditorPlugin) -> void:
 	# Set the plugin and delegate it to children that require it.
 	editor_plugin = plugin
 	%NodeTree.set_plugin(plugin)
+
+	var editor : EditorInterface = editor_plugin.get_editor_interface()
+	editor.get_file_system_dock().files_moved.connect(_on_files_moved)
 
 
 func set_version(version: String) -> void:
@@ -180,7 +182,7 @@ func _show_in_filesystem() -> void:
 func _run_orchestration() -> void:
 	OrchestratorSettings.set_user_value("is_running_test_scene", true)
 	OrchestratorSettings.set_user_value("run_resource_path", _current_file)
-	var test_scene_path = OrchestratorSettings.get_setting("custom_test_scene_path", "res://addons/orchestrator/test/test.tscn")
+	var test_scene_path = OrchestratorSettings.get_setting("run/test_scene")
 	if test_scene_path:
 		editor_plugin.get_editor_interface().play_custom_scene(test_scene_path)
 
