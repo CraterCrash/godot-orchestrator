@@ -18,4 +18,11 @@ mono_crash.*.json
 # Idea-specific things
 .idea
 
+# Test data
+test/*
+
+# Publish scripts
+*.sh
+*.bat
+
 
