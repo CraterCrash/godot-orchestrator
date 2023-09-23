@@ -35,6 +35,7 @@ func _ready() -> void:
 	files.item_activated.connect(_on_files_activated)
 	files.item_clicked.connect(_on_files_clicked)
 	theme_changed.connect(_on_theme_changed)
+	files.allow_rmb_select = true
 
 
 ## Set the filter to limit the files shown.
@@ -99,11 +100,13 @@ func _on_files_activated(index: int) -> void:
 
 
 func _on_files_clicked(index: int, at_position: Vector2, mouse_button_index: int) -> void:
-	if mouse_button_index == MOUSE_BUTTON_LEFT:
-		var file = _files_lookup.find_key(_get_file_from_list(index))
-		select_file(file)
-		file_selected.emit(file)
-	elif mouse_button_index == MOUSE_BUTTON_RIGHT:
+	match mouse_button_index:
+		MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT:
+			var file = _files_lookup.find_key(_get_file_from_list(index))
+			select_file(file)
+			file_selected.emit(file)
+
+	if mouse_button_index == MOUSE_BUTTON_RIGHT:
 		file_popup_menu_requested.emit(at_position)
 
 

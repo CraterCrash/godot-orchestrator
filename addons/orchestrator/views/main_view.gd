@@ -5,21 +5,21 @@ extends Control
 const OrchestratorSettings = preload("res://addons/orchestrator/orchestrator_settings.gd")
 const OrchestrationGraphScene = preload("res://addons/orchestrator/components/editor/orchestration_graph.tscn")
 
-enum FileMenuIds {
+# Accelerator Menu Ids
+enum AccelMenuIds {
 	NEW = 1,
 	OPEN = 2,
 	SAVE = 3,
 	SAVE_AS = 4,
 	SAVE_ALL = 5,
-	SHOW_IN_FILESYSTEM = 6,
-	CLOSE = 7,
-	CLOSE_ALL = 8,
+	CLOSE = 6,
+	CLOSE_ALL = 7,
+	CLOSE_OTHERS = 8,
 	RUN = 9,
-	TOGGLE_PANEL = 10
-}
-
-enum HelpMenuIds {
-	ABOUT = 1
+	ABOUT = 10,
+	SHOW_IN_FILESYSTEM = 11,
+	COPY_PATH = 12,
+	TOGGLE_PANEL = 13
 }
 
 @onready var file_menu : MenuButton = $Margin/VBoxContainer/HBoxContainer/MenuBar/HBoxContainer/FileMenu
@@ -33,6 +33,7 @@ enum HelpMenuIds {
 @onready var open_file_dialog = $OpenFileDialog
 @onready var save_file_dialog = $SaveFileDialog
 @onready var close_discard_confirm_dialog = $CloseDiscardConfirmDialog
+@onready var context_menu : PopupMenu = $ContextMenu
 @onready var menu_version = $Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer/Version
 @onready var view_version = $Margin/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/Label
 
@@ -53,6 +54,8 @@ func _ready():
 	_setup_external_docs()
 
 	%FilesList.file_selected.connect(_on_files_list_file_selected)
+	%FilesList.file_popup_menu_requested.connect(_on_files_list_context_menu)
+	context_menu.id_pressed.connect(_on_accel_menu_id_pressed)
 	about.close_requested.connect(_on_about_closed)
 
 	set_current_file("")
@@ -91,6 +94,16 @@ func close_all_orchestrations() -> void:
 		_close_file(key)
 
 
+func close_other_orchestrations() -> void:
+	# Create a copy of the keys and the current file name
+	# This is necessary as _close_file will potentially adjust both these
+	var _keys = _open_files.keys().duplicate()
+	var _current_open_file = _current_file
+	for key in _keys:
+		if key != _current_open_file:
+			_close_file(key)
+
+
 func apply_changes() -> void:
 	_save_all_orchestrations()
 
@@ -107,13 +120,13 @@ func set_current_file(value: String) -> void:
 	# Set menu visibility
 	var no_files = %FilesList._files.size() == 0
 	var fmpm = file_menu.get_popup()
-	fmpm.set_item_disabled(fmpm.get_item_index(FileMenuIds.SAVE), no_files)
-	fmpm.set_item_disabled(fmpm.get_item_index(FileMenuIds.SAVE_AS), no_files)
-	fmpm.set_item_disabled(fmpm.get_item_index(FileMenuIds.SAVE_ALL), no_files)
-	fmpm.set_item_disabled(fmpm.get_item_index(FileMenuIds.SHOW_IN_FILESYSTEM), no_files)
-	fmpm.set_item_disabled(fmpm.get_item_index(FileMenuIds.CLOSE), no_files)
-	fmpm.set_item_disabled(fmpm.get_item_index(FileMenuIds.CLOSE_ALL), no_files)
-	fmpm.set_item_disabled(fmpm.get_item_index(FileMenuIds.RUN), no_files)
+	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.SAVE), no_files)
+	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.SAVE_AS), no_files)
+	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.SAVE_ALL), no_files)
+	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.SHOW_IN_FILESYSTEM), no_files)
+	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.CLOSE), no_files)
+	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.CLOSE_ALL), no_files)
+	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.RUN), no_files)
 
 	for child in %OrchestrationGraphs.get_children():
 		child.visible = false
@@ -128,30 +141,30 @@ func set_current_file(value: String) -> void:
 
 func _build_menu() -> void:
 	file_menu.get_popup().clear()
-	file_menu.get_popup().add_item("New Orchestration...", FileMenuIds.NEW, KEY_N | KEY_MASK_CTRL)
-	file_menu.get_popup().add_item("Open...", FileMenuIds.OPEN)
+	file_menu.get_popup().add_item("New Orchestration...", AccelMenuIds.NEW, KEY_N | KEY_MASK_CTRL)
+	file_menu.get_popup().add_item("Open...", AccelMenuIds.OPEN)
 	# todo: add open recent
 	file_menu.get_popup().add_separator()
-	file_menu.get_popup().add_item("Save", FileMenuIds.SAVE, KEY_S | KEY_MASK_CTRL | KEY_MASK_ALT)
-	file_menu.get_popup().add_item("Save As...", FileMenuIds.SAVE_AS)
-	file_menu.get_popup().add_item("Save All", FileMenuIds.SAVE_ALL, KEY_S | KEY_MASK_SHIFT | KEY_MASK_ALT);
+	file_menu.get_popup().add_item("Save", AccelMenuIds.SAVE, KEY_S | KEY_MASK_CTRL | KEY_MASK_ALT)
+	file_menu.get_popup().add_item("Save As...", AccelMenuIds.SAVE_AS)
+	file_menu.get_popup().add_item("Save All", AccelMenuIds.SAVE_ALL, KEY_S | KEY_MASK_SHIFT | KEY_MASK_ALT);
 	file_menu.get_popup().add_separator()
-	file_menu.get_popup().add_item("Show in FileSystem", FileMenuIds.SHOW_IN_FILESYSTEM)
+	file_menu.get_popup().add_item("Show in FileSystem", AccelMenuIds.SHOW_IN_FILESYSTEM)
 	file_menu.get_popup().add_separator()
 
-	file_menu.get_popup().add_item("Close", FileMenuIds.CLOSE, KEY_W | KEY_MASK_CTRL)
-	file_menu.get_popup().add_item("Close All", FileMenuIds.CLOSE_ALL)
+	file_menu.get_popup().add_item("Close", AccelMenuIds.CLOSE, KEY_W | KEY_MASK_CTRL)
+	file_menu.get_popup().add_item("Close All", AccelMenuIds.CLOSE_ALL)
 	file_menu.get_popup().add_separator()
-	file_menu.get_popup().add_item("Run", FileMenuIds.RUN, KEY_X | KEY_MASK_SHIFT | KEY_MASK_CTRL)
+	file_menu.get_popup().add_item("Run", AccelMenuIds.RUN, KEY_X | KEY_MASK_SHIFT | KEY_MASK_CTRL)
 	file_menu.get_popup().add_separator()
-	file_menu.get_popup().add_item("Toggle Orchestrations Panel", FileMenuIds.TOGGLE_PANEL, KEY_BACKSLASH | KEY_MASK_CTRL)
-	if not file_menu.get_popup().id_pressed.is_connected(_on_file_menu_id_pressed):
-		file_menu.get_popup().id_pressed.connect(_on_file_menu_id_pressed)
+	file_menu.get_popup().add_item("Toggle Orchestrations Panel", AccelMenuIds.TOGGLE_PANEL, KEY_BACKSLASH | KEY_MASK_CTRL)
+	if not file_menu.get_popup().id_pressed.is_connected(_on_accel_menu_id_pressed):
+		file_menu.get_popup().id_pressed.connect(_on_accel_menu_id_pressed)
 
 	help_menu.get_popup().clear()
-	help_menu.get_popup().add_item("About Orchestrator", HelpMenuIds.ABOUT)
-	if not help_menu.get_popup().id_pressed.is_connected(_on_help_menu_id_pressed):
-		help_menu.get_popup().id_pressed.connect(_on_help_menu_id_pressed)
+	help_menu.get_popup().add_item("About Orchestrator", AccelMenuIds.ABOUT)
+	if not help_menu.get_popup().id_pressed.is_connected(_on_accel_menu_id_pressed):
+		help_menu.get_popup().id_pressed.connect(_on_accel_menu_id_pressed)
 
 
 func _setup_dialogs() -> void:
@@ -300,37 +313,65 @@ func _on_files_moved(old_file: String, new_file: String) -> void:
 			break
 
 
-func _on_file_menu_id_pressed(id: int) -> void:
-	match id:
-		FileMenuIds.NEW:
+func _on_accel_menu_id_pressed(menu_id: int) -> void:
+	match menu_id:
+		AccelMenuIds.NEW:
 			new_file_dialog.show()
-		FileMenuIds.OPEN:
+		AccelMenuIds.OPEN:
 			open_file_dialog.show()
-		FileMenuIds.SAVE:
+		AccelMenuIds.SAVE:
 			_save_file(_current_file)
-		FileMenuIds.SAVE_AS:
+		AccelMenuIds.SAVE_AS:
 			save_file_dialog.show()
-		FileMenuIds.SAVE_ALL:
+		AccelMenuIds.SAVE_ALL:
 			_save_all_orchestrations()
-		FileMenuIds.SHOW_IN_FILESYSTEM:
+		AccelMenuIds.SHOW_IN_FILESYSTEM:
 			_show_in_filesystem()
-		FileMenuIds.CLOSE:
+		AccelMenuIds.CLOSE:
 			close_orchestration()
-		FileMenuIds.CLOSE_ALL:
+		AccelMenuIds.CLOSE_ALL:
 			close_all_orchestrations()
-		FileMenuIds.RUN:
+		AccelMenuIds.CLOSE_OTHERS:
+			close_other_orchestrations()
+		AccelMenuIds.RUN:
 			_run_orchestration()
-		FileMenuIds.TOGGLE_PANEL:
+		AccelMenuIds.COPY_PATH:
+			DisplayServer.clipboard_set(_current_file)
+		AccelMenuIds.ABOUT:
+			about.show()
+		AccelMenuIds.TOGGLE_PANEL:
 			_toggle_panel()
-
-
-func _on_help_menu_id_pressed(id: int) -> void:
-	if HelpMenuIds.ABOUT == id:
-		about.show()
 
 
 func _on_files_list_file_selected(file_name: String) -> void:
 	_current_file = file_name
+
+
+func _on_files_list_context_menu(at_position: Vector2) -> void:
+	context_menu.clear()
+
+	var files = %FilesList.find_child("Files") as ItemList
+	if not files or files.get_selected_items().is_empty():
+		return
+
+	context_menu.add_item("Save", AccelMenuIds.SAVE, KEY_S | KEY_MASK_CTRL | KEY_MASK_ALT)
+	context_menu.add_item("Save As...", AccelMenuIds.SAVE_AS)
+	context_menu.add_item("Close", AccelMenuIds.CLOSE, KEY_W | KEY_MASK_CTRL)
+	context_menu.add_item("Close All", AccelMenuIds.CLOSE_ALL)
+	context_menu.add_item("Close Others", AccelMenuIds.CLOSE_OTHERS)
+	if _open_files.size() == 1:
+		context_menu.set_item_disabled(context_menu.get_item_index(AccelMenuIds.CLOSE_OTHERS), true)
+	context_menu.add_separator()
+	context_menu.add_item("Run", AccelMenuIds.RUN, KEY_X | KEY_MASK_CTRL | KEY_MASK_SHIFT)
+	context_menu.add_separator()
+	context_menu.add_item("Copy Resource Path", AccelMenuIds.COPY_PATH)
+	context_menu.add_item("Show in Filesystem", AccelMenuIds.SHOW_IN_FILESYSTEM)
+	context_menu.add_separator()
+	context_menu.add_item("Toggle Orchestrations Panel", AccelMenuIds.TOGGLE_PANEL)
+
+	context_menu.set_position(get_screen_position() + get_local_mouse_position())
+	context_menu.reset_size()
+	context_menu.show()
 
 
 func _on_new_file_selected(file_name: String) -> void:
