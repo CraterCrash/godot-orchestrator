@@ -38,11 +38,14 @@ func _init() -> void:
     category = "My category" // <.>
     name = "My custom node" // <.>
     description = "A custom node implementation example" // <.>
+    icon = "res://<path-to-icon-image>" // <.>
 ----
 <.> The `type` defines a unique type associated with the node.
 <.> The `category` is the name shown in the editor used to group like nodes; it defaults to `Custom`.
 <.> The `name` defines the name of the node.
 <.> The `description` is used as a tooltip hover within the editor.
+<.> The `icon` is used to render an icon for the node in the node list.
+The icon's value can either reference an image using the `res://` path to the file or it may reference an editor icon using the icon's look-up name, such as `Loop` for the `Loop.svg` editor icon.
 
 [IMPORTANT]
 ====
@@ -50,6 +53,16 @@ The `type` should be unique, and we recommend that you begin with the value of `
 
 You are required to define values for `type`, `name`, and `description`.
 However, omitting the setting `category` is acceptable as it defaults to `Custom`.
+
+When omitting the `icon` definition, the node will automatically use the standard Godot editor Node icon.
+====
+
+[TIP]
+====
+If a custom node applies only to 2D or 3D, the `_init()` method should override `usage_hint` and set the value to either `ORCHESTRATION_NODE_USAGE_2D` or `ORCHESTRATION_NODE_USAGE_3D`, respectively.
+By default, the usage hint is `ORCHESTRATION_NODE_USAGE_ANY`.
+
+This doesn't stop a node classified as 2D from being used in 3D and vice verse, it just provides a reference to whether the node's icon should use the `Node`, `Node2D`, or `Node3D` editor icon.
 ====
 
 === Define get_attributes
@@ -148,6 +161,7 @@ func _init():
     type = 1001
     name = "SimpleTest"
     description = "Simple test node"
+    icon = "Sprite3D"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:
