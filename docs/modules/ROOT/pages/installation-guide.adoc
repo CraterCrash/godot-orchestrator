@@ -20,6 +20,26 @@ If your project already contains an `addons/` folder, move the plugin's `addons/
 Your file manager may ask whether you wish to write into the folder; answer **Yes**.
 This process will not overwrite any files.
 
+== New updates notification
+
+When releases are published, you don't have to wait for the Asset Library to be updated with the new build information.
+The Godot Orchestrator interface will directly notify you when an update is available in the top-right of the **Orchestrator** main view, shown below:
+
+image::editor-main-view-update-available.png[Update available]
+
+This check is performed at the start-up of the editor and every 12 hours thereafter.
+The remote check is a call directly to the GitHub API.
+
+When clicking the green button, you will be presented the following dialog window:
+
+image::editor-download-update.png[Download update]
+
+From here you can quickly browse the release notes available for the release on GitHub or click the **Download update** button for the update to be downloaded directly from GitHub.
+Once the files have been downloaded, the contents of the `res://addons/orchestrator` folder will be replaced with the new version and the old plug-in directory will be moved to your operating system's recycle bin.
+
+After installation, you will be prompted to restart the editor so the new plug-in version is activated.
+
+
 == Enable plugin
 
 To enable the freshly installed plugin, open **Projects > Project Settings** at the top of the editor, then go to the **Plugins** tab.
