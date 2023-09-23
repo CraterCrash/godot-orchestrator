@@ -50,6 +50,7 @@ func _ready():
 	_apply_theme()
 	_build_menu()
 	_setup_dialogs()
+	_setup_external_docs()
 
 	%FilesList.file_selected.connect(_on_files_list_file_selected)
 	about.close_requested.connect(_on_about_closed)
@@ -58,10 +59,6 @@ func _ready():
 
 	%TogglePanelButton.pressed.connect(_toggle_panel)
 
-	menu_version.text = "v" + editor_plugin.get_version()
-	view_version.text = "Godot Orchestrator v" + editor_plugin.get_version()
-
-
 ################################################################################
 # Public API
 
@@ -69,14 +66,15 @@ func set_plugin(plugin: EditorPlugin) -> void:
 	# Set the plugin and delegate it to children that require it.
 	editor_plugin = plugin
 	%NodeTree.set_plugin(plugin)
+	%PluginUpdateAvailableButton.editor_plugin = plugin
 
 	var editor : EditorInterface = editor_plugin.get_editor_interface()
 	editor.get_file_system_dock().files_moved.connect(_on_files_moved)
 
 
 func set_version(version: String) -> void:
-	menu_version = "v" + version
-	view_version = "Godot Orchestrator v" + version
+	menu_version.text = "Godot Orchestrator v" + version
+	view_version.text = "Godot Orchestrator v" + version
 
 
 func open_orchestration(orchestration: Orchestration) -> void:
@@ -168,6 +166,16 @@ func _setup_dialogs() -> void:
 	save_file_dialog.file_selected.connect(_on_save_file_selected)
 	save_file_dialog.clear_filters()
 	save_file_dialog.add_filter("*.tres", "Resources")
+
+
+func _setup_external_docs() -> void:
+	%OpenDocs.flat = true
+	%OpenDocs.icon = get_theme_icon("ExternalLink", "EditorIcons")
+
+	var config = ConfigFile.new()
+	config.load("res://addons/orchestrator/plugin.cfg")
+	var doc_url = config.get_value("plugin", "documentation_url")
+	%OpenDocs.pressed.connect(func(): OS.shell_open(doc_url))
 
 
 func _save_all_orchestrations() -> void:

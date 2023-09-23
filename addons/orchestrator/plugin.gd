@@ -44,6 +44,8 @@ func _enter_tree():
 	main_view.set_plugin(self)
 
 	get_editor_interface().get_editor_main_screen().add_child(main_view)
+	main_view.set_version(get_version())
+
 	_make_visible(false)
 
 	var editor = get_editor_interface()
