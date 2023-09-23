@@ -8,6 +8,7 @@ func _init():
 	name = "Comment"
 	category = "Utility"
 	description = "Comments."
+	icon = "VisualShaderNodeComment"
 
 
 func get_attributes() -> Dictionary:

@@ -7,6 +7,7 @@ func _init():
 	category = "Terminal"
 	description = "Ends the orchestation."
 	allow_multiple = true
+	icon = "TransitionEnd"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

@@ -8,6 +8,7 @@ func _init():
 	name = "Random"
 	category = "Flow Control"
 	description = "Picks a random output path."
+	icon = "AnimationTrackList"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

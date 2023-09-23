@@ -8,6 +8,7 @@ func _init():
 	name = "Expression"
 	category = "Logic"
 	description = "Evaluates and executes the expression."
+	icon = "CombineLines"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

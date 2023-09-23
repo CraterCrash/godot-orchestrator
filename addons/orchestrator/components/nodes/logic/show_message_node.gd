@@ -19,6 +19,7 @@ func _init():
 	name = "Show Message"
 	category = "Logic"
 	description = "Presents a dialog with optional choices to the player."
+	icon = "AcceptDialog"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:

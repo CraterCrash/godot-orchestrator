@@ -8,6 +8,7 @@ func _init():
 	name = "Repeat"
 	category = "Flow Control"
 	description = "Executes the repetitions output the specified number of times."
+	icon = "Loop"
 
 
 func execute(context: OrchestrationExecutionContext) -> Variant:
