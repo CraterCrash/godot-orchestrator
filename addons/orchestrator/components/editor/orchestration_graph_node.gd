@@ -3,6 +3,8 @@ class_name OrchestrationGraphNode
 extends GraphNode
 ## Uses an OrchestrationNode resource and creates a GraphNode UI widget.
 
+const OrchestratorSettings = preload("res://addons/orchestrator/orchestrator_settings.gd")
+
 ## The orchestration node resource linked to this graph node.
 var orchestration_node : OrchestrationNode : set = set_orchestration_node
 
@@ -52,7 +54,9 @@ func set_orchestration_node(node: OrchestrationNode) -> void:
 	orchestration_node._graph_edit = get_parent()
 
 
-func initialize(attributes: OrchestratorDictionary, node: OrchestrationNode) -> void:
+func initialize(attributes: OrchestratorDictionary, node: OrchestrationNode, plugin: EditorPlugin) -> void:
+	plugin.project_settings_changed.connect(func(): _update_styles())
+
 	set_attributes(attributes)
 	set_orchestration_node(node)
 
@@ -135,15 +139,23 @@ func _update_styles() -> void:
 
 	var category = orchestration_node.category.to_lower().replacen(" ", "_")
 
-	var frame_name = "res://addons/orchestrator/assets/themes/%s_node.tres" % category
-	if FileAccess.file_exists(frame_name):
-		var frame = load(frame_name)
-		if frame: add_theme_stylebox_override("frame", frame)
+	var category_color = OrchestratorSettings.get_setting("nodes/colors/%s" % category, Color.DEEP_SKY_BLUE)
+	var background_color = OrchestratorSettings.get_setting("nodes/colors/background", Color(0.12, 0.15, 0.19))
 
-	var frame_selected_name = "res://addons/orchestrator/assets/themes/%s_node_selected.tres" % category
-	if FileAccess.file_exists(frame_selected_name):
-		var frame_selected = load(frame_selected_name)
-		if frame_selected: add_theme_stylebox_override("selected_frame", frame_selected)
+	var style = StyleBoxFlat.new()
+	style.bg_color = background_color
+	style.set_corner_radius_all(1)
+	style.set_border_width_all(2)
+	style.border_width_top = 24
+	style.border_color = category_color
+	style.shadow_color = Color.html("#0000004d")
+	style.shadow_size = 2
+
+	var selected_style = style.duplicate()
+	selected_style.border_color = Color(category_color.r, category_color.g, category_color.b, 0.45)
+
+	add_theme_stylebox_override("frame", style)
+	add_theme_stylebox_override("selected_frame", selected_style)
 
 
 # Disconnects the output close from this node if its conencted.
@@ -187,4 +199,3 @@ func _on_resize_request(new_size: Vector2) -> void:
 # Callback when the graph node's close button is clicked
 func _on_close_request() -> void:
 	queue_free()
-
