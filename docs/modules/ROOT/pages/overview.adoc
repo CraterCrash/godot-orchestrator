@@ -128,10 +128,79 @@ Orchestrator cannot be configured to use a different test scene;  however, this 
 
 == In-game integration
 
-The main goal of Orchestrator is to provide your game with the ability to execute an `Orchestration` from your game's code at runtime.
-Without being able to run the code at runtime within your game, there is very little point to this plug-in.
+Any Godot project can integrate with this plug-in using one of two methods:
 
-To run an orchestration, it's really quite simple.
+* Use the `OrchestrationPlayer` scene tree node
+* Using GDScript to interface directly with the `Orchestrator` singleton.
+
+In this section, we're going to dive into the advantages of both.
+
+=== Orchestration player
+
+The `OrchestrationPlayer` node is an extension node provided by this plug-in that you can drop into any scene where you want to execute orchestrations.
+The node extends Godot's `Node` contract, which makes it available for both 2D and 3D scenes alike.
+
+To add an `OrchestrationPlayer` node to your scene, simply open the "Create new node" dialog window and search for `OrchestrationPlayer`.
+You should see the following option available if the Orchestrator plug-in is currently enabled in your project:
+
+image::editor-create-orchestration-player.png[Create orchestration player node]
+
+With the node added to your scene, there are several attributes you can configure on the node.
+By selecting the node in the scene tree, the following shows what options are available in the inspector:
+
+image::editor-inspector-orchestration-player.png[Inspecting orchestration player]
+
+In this view, you can set the `Orchestration` resource to be played along with whether the resource is to be auto-played or requires manual start using the `start()` method.
+When the player enables auto-play, the `Orchestration` will be started when the player's `_ready()` function is called.
+
+[TIP]
+====
+You can also use the `OrchestrationPlayer` directly from your own GDScript code, dynamically adding the player to your scene as needed.
+
+Since the node's `_ready()` function dispatches the `start()` method when the node is configured with auto-play enabled, be sure that when setting the node's properties that you do so before adding the node to the scene to guarantee proper auto-play behavior.
+====
+
+If you would like to dynamically add the `OrchestrationPlayer` to your scene using GDScript, the following shows a simple example of how to do that with auto-play enabled:
+
+[source,gdscript]
+----
+func _ready() -> void:
+    var orchestration_player = OrchestrationPlayer.new() <.>
+    orchestration_player.orchestration = "res://test/resources/test4.tres" <.>
+    orchestration_player.auto_play = true <.>
+    add_child(orchestration_player) <.>
+----
+<.> Construct a new `OrchestrationPlayer` instance.
+<.> Assign the orchestration resource that should be loaded.
+<.> Mark the player to start automatically.
+<.> Add the player to the scene.
+
+The following example illustrates adding the `OrchestrationPlayer` to the scene using GDScript, but in this case the player is not started automatically and is triggered instead by some other callback:
+
+[source,gdscript]
+----
+var _orchestration_player : OrchestrationPlayer
+
+func _ready() -> void:
+    _orchestration_player = OrchestrationPlayer.new() <.>
+    _orchestration_player.orchestration = "res://test/resources/test4.tres" <.>
+    add_child(_orchestration_player) <.>
+
+func _on_button_pressed() -> void:
+    _orchestration_player.start() <.>
+----
+<.> Construct a new `OrchestrationPlayer` instance.
+<.> Assign the orchestration resource that should be loaded.
+<.> Add the player to the scene.
+<.> Starts the orchestration when the button pressed signal is called.
+
+=== Orchestrator singleton
+
+At the foundation of the Orchestrator plug-in during a game's runtime is the `Orchestrator` singleton.
+This autoload is enabled by the plug-in and is responsible for providing access to running orchestrations directly from GDScript with any scene element.
+
+While we recommend to use `OrchestrationPlayer`, there may be times when embedding the plug-in inside an existing node's behavior is warranted, so utilizing the `Orchestrator` singleton for this use case is preferred.
+The following illustrates just how easy it is to use the singleton in GDScript:
 
 [source,gdscript]
 ----
@@ -141,12 +210,16 @@ func _ready() -> void:
   Orchestrator.orchestration_finished.connect(_orchestration_finished) <.>
   Orchestrator.execute(_orchestration) <.>
 
+func _exit_tree() -> void:
+  Orchestrator.orchestration_finished.disconnect(_orchestration_finished) <.>
+
 func _orchestration_finished() -> void: <.>
   # do whatever logic after orchestration finished
   pass
 ----
 <.> Use `load` or `preload` to have the engine load the `Orchestration` resource.
 <.> Connect the `orchestration_finished` signal callback.
+<.> Disconnect from the `orchestration_finished` signal.
 <.> Executes the orchestration using the `Orchestrator` autoload / singleton.
 <.> Orchestration finished callback, called when the orchestration has completed.
 
