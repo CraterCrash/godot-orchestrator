@@ -1,7 +1,7 @@
-## Helper class for managing a [Dictionary].
 @tool
 class_name OrchestratorDictionary
 extends RefCounted
+## Helper class for managing a [Dictionary].
 
 var _data : Dictionary
 

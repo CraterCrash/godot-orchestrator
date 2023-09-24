@@ -1,4 +1,6 @@
 @icon("res://addons/orchestrator/assets/icons/OrchestratorLogo.svg")
+class_name OrchestrationPlayer
+extends Node
 ## Allows playing an [code]Orchestration[/code] from a scene tree node.
 ##
 ## An orchestration player is used for general-purpose execution of orchestrations.[br]
@@ -11,8 +13,6 @@
 ## dynamically in a script, be sure to set the player's attributes prior to adding
 ## the node to the scene should you require auto-play functionality.
 ##
-class_name OrchestrationPlayer
-extends Node
 
 ## Emitted when the orchestration starts.
 signal orchestration_started()
@@ -36,7 +36,11 @@ signal orchestration_finished()
 		return auto_play
 
 
+# Reference to the autoload
+var _orchestrator
+
 func _ready() -> void:
+	_orchestrator = get_tree().root.find_child("Orchestrator", true, false)
 	if auto_play:
 		start()
 
@@ -44,9 +48,9 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	# Be sure to disconnect from the Orchestrator singleton if connected and
 	# the node is being removed from the tree.
-	if Orchestrator.orchestration_started.is_connected(_on_orchestration_started):
-		Orchestrator.orchestration_started.disconnect(_on_orchestration_started)
-		Orchestrator.orchestration_finished.disconnect(_on_orchestration_finished)
+	if _orchestrator and _orchestrator.orchestration_started.is_connected(_on_orchestration_started):
+		_orchestrator.orchestration_started.disconnect(_on_orchestration_started)
+		_orchestrator.orchestration_finished.disconnect(_on_orchestration_finished)
 
 
 ## Starts the associated orchestration.
@@ -67,11 +71,14 @@ func start() -> void:
 	# Connect to the orchestrator callbacks
 	# We specifically use signal bubbling here as a way to allow different use cases
 	# to subscribe either to the player or the Orchestrator singleton.
-	if not Orchestrator.orchestration_started.is_connected(_on_orchestration_started):
-		Orchestrator.orchestration_started.connect(_on_orchestration_started)
-		Orchestrator.orchestration_finished.connect(_on_orchestration_finished)
+	if _orchestrator and not _orchestrator.orchestration_started.is_connected(_on_orchestration_started):
+		_orchestrator.orchestration_started.connect(_on_orchestration_started)
+		_orchestrator.orchestration_finished.connect(_on_orchestration_finished)
 
-	Orchestrator.execute(resource)
+	if _orchestrator:
+		_orchestrator.execute(resource)
+	else:
+		printerr("Orchestrator autoload is not in the scene, the orchestration won't be ran.")
 
 
 func _on_orchestration_started() -> void:

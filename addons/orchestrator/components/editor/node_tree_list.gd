@@ -1,30 +1,24 @@
 @tool
 extends VBoxContainer
-
-var editor_plugin : EditorPlugin
-
-@onready var filters = $NodeFilters
-@onready var tree = $Nodes
+## Provides the list of available nodes in the main view.
 
 # The file to be applied
 var filter : String = "" : set = set_filter, get = get_filter
 
 # All nodes from last scan
-var _available_nodes : Dictionary = {}
+var _available_nodes : Array
 
-# Node factory
-# Lazily loaded when editor plugin raises node_resources_updated
-# Set set_plugin method
-var _node_factory
+@onready var filters = $NodeFilters
+@onready var tree = $Nodes
 
 
 func _ready():
-	filters.text_changed.connect(_on_filters_text_changed)
 	_apply_theme()
 
 
-func set_plugin(editor_plugin: EditorPlugin) -> void:
-	editor_plugin.node_resources_updated.connect(_on_node_factory_updated)
+func update_available_nodes(nodes: Array) -> void:
+	_available_nodes = nodes
+	apply_filter()
 
 
 ## Set the filter to limit the nodes shown.
@@ -48,7 +42,7 @@ func apply_filter() -> void:
 
 	var resources = []
 	var categories = []
-	for resource in _node_factory.get_resources():
+	for resource in _available_nodes:
 		if filter == "" or filter.to_lower() in resource.name.to_lower():
 			resources.push_back(resource)
 			if not categories.has(resource.category):
@@ -68,11 +62,6 @@ func _on_filters_text_changed(new_text: String) -> void:
 	filter = new_text
 
 
-func _on_node_factory_updated(node_factory) -> void:
-	_node_factory = node_factory
-	apply_filter()
-
-
 func _create_node_group(name: String, parent: TreeItem = null) -> TreeItem:
 	parent = parent if not null else tree.get_root()
 	var group = tree.create_item(parent)
@@ -83,7 +72,8 @@ func _create_node_group(name: String, parent: TreeItem = null) -> TreeItem:
 	return group
 
 
-func _create_node_type(name: String, type: int, icon: String, usage: int, description: String, parent: TreeItem) -> TreeItem:
+func _create_node_type(name: String, type: int, icon: String, usage: int,
+		description: String, parent: TreeItem) -> TreeItem:
 	var node = tree.create_item(parent)
 	node.set_meta("_node_type", type)
 	node.set_text(0, name)

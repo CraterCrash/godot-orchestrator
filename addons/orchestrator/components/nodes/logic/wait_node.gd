@@ -1,6 +1,6 @@
-## An orchestration node resource that represents wait node.
 @tool
 extends OrchestrationNode
+## An orchestration node resource that represents wait node.
 
 var _wait_time : int = 0
 
@@ -15,7 +15,7 @@ func _init():
 func execute(context: OrchestrationExecutionContext) -> Variant:
 	var wait_time = context.get_attribute("wait_time", 0)
 	if wait_time > 0:
-		await Orchestrator.get_tree().create_timer(wait_time).timeout
+		await Engine.get_main_loop().create_timer(wait_time).timeout
 	return context.get_output_target_node_id(0)
 
 

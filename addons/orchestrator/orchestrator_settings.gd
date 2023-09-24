@@ -1,6 +1,6 @@
-## Handles settings for the Orchestrator addon.
 @tool
 extends Node
+## Handles settings for the Orchestrator addon.
 
 const BASE_PATH = "orchestrator"
 const USER_CONFIG_PATH = "user://orchestrator_user_config.json"
@@ -55,6 +55,7 @@ const DEFAULT_PROJECT_SETTINGS = {
 		"value": Color(0.47, 0.27, .2)
 	}
 }
+
 
 static func prepare() -> void:
 	# Iterate all default project settings and be sure they're added

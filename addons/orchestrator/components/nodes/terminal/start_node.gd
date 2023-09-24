@@ -1,6 +1,6 @@
-## An orchestration node resource that represents a terminal start node.
 @tool
 extends OrchestrationNode
+## An orchestration node resource that represents a terminal start node.
 
 func _init():
 	type = 1

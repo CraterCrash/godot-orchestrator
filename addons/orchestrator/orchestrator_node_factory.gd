@@ -1,12 +1,13 @@
-## A factory that can create OrchestrationNode instances.
 @tool
 extends Node
+## A factory that can create OrchestrationNode instances.
 
 ## Emitted when the node factory detects filesystem changes.
 signal node_factory_updated
 
 # Collection of [OrchestrationNode] resources, keyed by type
 var _nodes : Dictionary
+
 
 ## Returns an array of [OrchestrationNode] script instances
 func get_resources() -> Array:

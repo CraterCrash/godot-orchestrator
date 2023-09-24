@@ -14,7 +14,7 @@ func _init():
 func execute(context: OrchestrationExecutionContext) -> Variant:
 	context.require_attribute("condition")
 
-	var result = Orchestrator.evaluate(context, context.get_attribute("condition", false))
+	var result = context.evaluate(context.get_attribute("condition", false))
 	if result:
 		# context.editor_print("Output -> true")
 		return context.get_output_target_node_id(0)

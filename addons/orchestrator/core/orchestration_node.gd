@@ -1,12 +1,12 @@
+@tool
+class_name OrchestrationNode
+extends Resource
 ## A resource that represents a node within an orchestration.
 ##
 ## An [OrchestrationNode] represents the node details within an [Orchestration].
 ## This resource is shared by both the editor's UI interface and graph editor
 ## and the Orchestrator addon's runtime pipeline.
 ##
-@tool
-class_name OrchestrationNode
-extends Resource
 
 const END_EXECUTION := -1
 

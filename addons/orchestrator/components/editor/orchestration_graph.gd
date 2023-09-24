@@ -1,16 +1,21 @@
-## A GraphEdit implementation for designing Orchestrations
+
 @tool
 extends GraphEdit
-
-## The editor plugin
-var editor_plugin : EditorPlugin
+## A GraphEdit implementation for designing Orchestrations
 
 # The associated orchestration
 var _orchestration : Orchestration
 
+
 func _ready():
 	minimap_enabled = false
 	right_disconnects = true
+
+
+func update_project_settings() -> void:
+	for child in get_children():
+		if child is OrchestrationGraphNode:
+			child.update_project_settings()
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
@@ -41,7 +46,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	resource.id = scene_node.name
 
 	var attributes = OrchestratorDictionary.new({})
-	scene_node.initialize(attributes, resource, editor_plugin)
+	scene_node.initialize(attributes, resource)
 
 
 ###############################################################################
@@ -189,7 +194,7 @@ func _add_orchestration_graph_node(data: Dictionary) -> void:
 	scene_node.size = data["size"]
 
 	var attributes = OrchestratorDictionary.new(data["attributes"])
-	scene_node.initialize(attributes, orchestration_node, editor_plugin)
+	scene_node.initialize(attributes, orchestration_node)
 
 
 func _add_orchestration_connection(conn: Dictionary) -> void:

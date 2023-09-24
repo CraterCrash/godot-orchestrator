@@ -1,6 +1,6 @@
-## An orchestration node resource that represents the wait for action node.
 @tool
 extends OrchestrationNode
+## An orchestration node resource that represents the wait for action node.
 
 var _action_name : String
 
@@ -15,8 +15,8 @@ func _init():
 func execute(context: OrchestrationExecutionContext) -> Variant:
 	var action_name = context.get_attribute("action_name")
 	while not Input.is_action_just_pressed(action_name):
-		await Orchestrator.get_tree().process_frame
-	await Orchestrator.get_tree().process_frame
+		await Engine.get_main_loop().process_frame
+	await Engine.get_main_loop().process_frame
 	return context.get_output_target_node_id(0)
 
 

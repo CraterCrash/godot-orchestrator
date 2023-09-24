@@ -13,7 +13,7 @@ func _init():
 
 func execute(context: OrchestrationExecutionContext) -> Variant:
 	context.require_attribute("expression")
-	var result = Orchestrator.evaluate(context, context.get_attribute("expression"))
+	var result = context.evaluate(context.get_attribute("expression"))
 	return context.get_output_target_node_id(0)
 
 

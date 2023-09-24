@@ -1,9 +1,6 @@
-## Orchestrator Editor Main View
 @tool
 extends Control
-
-const OrchestratorSettings = preload("res://addons/orchestrator/orchestrator_settings.gd")
-const OrchestrationGraphScene = preload("res://addons/orchestrator/components/editor/orchestration_graph.tscn")
+## Orchestrator Editor Main View
 
 # Accelerator Menu Ids
 enum AccelMenuIds {
@@ -22,6 +19,21 @@ enum AccelMenuIds {
 	TOGGLE_PANEL = 13
 }
 
+const OrchestratorSettings = preload("res://addons/orchestrator/orchestrator_settings.gd")
+const OrchestrationGraphScene = preload("res://addons/orchestrator/components/editor/orchestration_graph.tscn")
+const OrchestratorVersion = preload("res://addons/orchestrator/orchestrator_version.gd")
+
+# The orchestator plugin
+var editor_plugin : EditorPlugin
+var editor_interface : EditorInterface
+
+# A reference to the currently opened resources
+var _open_files : Dictionary = {}
+
+var _current_file : String = "": set = set_current_file, get = get_current_file
+var _orchestration : Orchestration
+var _initially_hidden := false
+
 @onready var file_menu : MenuButton = $Margin/VBoxContainer/HBoxContainer/MenuBar/HBoxContainer/FileMenu
 @onready var help_menu : MenuButton = $Margin/VBoxContainer/HBoxContainer/MenuBar/HBoxContainer/HelpMenu
 
@@ -37,47 +49,39 @@ enum AccelMenuIds {
 @onready var menu_version = $Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer/Version
 @onready var view_version = $Margin/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/Label
 
-# The orchestator plugin
-var editor_plugin : EditorPlugin
-
-# A reference to the currently opened resources
-var _open_files : Dictionary = {}
-
-var _current_file : String = "": set = set_current_file, get = get_current_file
-var _orchestration : Orchestration
-var _initially_hidden := false
 
 func _ready():
 	_apply_theme()
 	_build_menu()
 	_setup_dialogs()
 	_setup_external_docs()
-
-	%FilesList.file_selected.connect(_on_files_list_file_selected)
-	%FilesList.file_popup_menu_requested.connect(_on_files_list_context_menu)
-	context_menu.id_pressed.connect(_on_accel_menu_id_pressed)
-	about.close_requested.connect(_on_about_closed)
-
 	set_current_file("")
+	menu_version.text = OrchestratorVersion.get_full_version()
+	view_version.text = OrchestratorVersion.get_full_version()
 
-	%TogglePanelButton.pressed.connect(_toggle_panel)
 
 ################################################################################
 # Public API
 
 func set_plugin(plugin: EditorPlugin) -> void:
-	# Set the plugin and delegate it to children that require it.
 	editor_plugin = plugin
-	%NodeTree.set_plugin(plugin)
-	%PluginUpdateAvailableButton.editor_plugin = plugin
+	editor_interface = editor_plugin.get_editor_interface()
 
-	var editor : EditorInterface = editor_plugin.get_editor_interface()
-	editor.get_file_system_dock().files_moved.connect(_on_files_moved)
+	# This must be called here rather than in _ready because if the scene is
+	# opened in the editor, the editor will invoke the _enter_tree and _ready
+	# functions because this is a tool-annotated script. Since the plugin.gd
+	# isn't called in this case to initialize the editor plugin, the plugin
+	# details aren't available and therefore must be guarded.
+	editor_interface.get_file_system_dock().files_moved.connect(_on_files_moved)
 
 
-func set_version(version: String) -> void:
-	menu_version.text = "Godot Orchestrator v" + version
-	view_version.text = "Godot Orchestrator v" + version
+func update_project_settings() -> void:
+	for entry in _open_files.values():
+		entry["scene"].update_project_settings()
+
+
+func update_available_nodes(nodes: Array) -> void:
+	%NodeTree.update_available_nodes(nodes)
 
 
 func open_orchestration(orchestration: Orchestration) -> void:
@@ -128,8 +132,7 @@ func set_current_file(value: String) -> void:
 	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.CLOSE_ALL), no_files)
 	fmpm.set_item_disabled(fmpm.get_item_index(AccelMenuIds.RUN), no_files)
 
-	for child in %OrchestrationGraphs.get_children():
-		child.visible = false
+	%OrchestrationGraphs.get_children().map(func(child): child.visible = false)
 
 	if _current_file != "":
 		var file = _open_files.get(_current_file)
@@ -168,15 +171,12 @@ func _build_menu() -> void:
 
 
 func _setup_dialogs() -> void:
-	new_file_dialog.file_selected.connect(_on_new_file_selected)
 	new_file_dialog.clear_filters()
 	new_file_dialog.add_filter("*.tres", "Resources")
 
-	open_file_dialog.file_selected.connect(_on_open_file_selected)
 	open_file_dialog.clear_filters()
 	open_file_dialog.add_filter("*.tres", "Resources")
 
-	save_file_dialog.file_selected.connect(_on_save_file_selected)
 	save_file_dialog.clear_filters()
 	save_file_dialog.add_filter("*.tres", "Resources")
 
@@ -197,7 +197,7 @@ func _save_all_orchestrations() -> void:
 
 
 func _show_in_filesystem() -> void:
-	editor_plugin.get_editor_interface().get_file_system_dock().navigate_to_path(_current_file)
+	editor_interface.get_file_system_dock().navigate_to_path(_current_file)
 
 
 func _run_orchestration() -> void:
@@ -205,7 +205,7 @@ func _run_orchestration() -> void:
 	OrchestratorSettings.set_user_value("run_resource_path", _current_file)
 	var test_scene_path = OrchestratorSettings.get_setting("run/test_scene")
 	if test_scene_path:
-		editor_plugin.get_editor_interface().play_custom_scene(test_scene_path)
+		editor_interface.play_custom_scene(test_scene_path)
 
 
 func _apply_toggle_state() -> void:
@@ -225,19 +225,17 @@ func _new_file(file_name: String) -> bool:
 	var orchestration = Orchestration.new()
 	var err = ResourceSaver.save(orchestration, file_name)
 	if err == OK:
-		editor_plugin.get_editor_interface().get_resource_filesystem().scan()
+		editor_interface.get_resource_filesystem().scan()
 		return true
 	return false
 
 
 func _open_file(file_name: String) -> bool:
 	if not _open_files.has(file_name):
-		for child in %OrchestrationGraphs.get_children():
-			child.visible = false
+		%OrchestrationGraphs.get_children().map(func(child): child.visible = false)
 
 		var scene = OrchestrationGraphScene.instantiate()
 		%OrchestrationGraphs.add_child(scene)
-		scene.editor_plugin = editor_plugin
 
 		var resource = ResourceLoader.load(file_name, "", ResourceLoader.CACHE_MODE_IGNORE)
 		_open_files[file_name] = {
@@ -350,8 +348,7 @@ func _on_files_list_file_selected(file_name: String) -> void:
 func _on_files_list_context_menu(at_position: Vector2) -> void:
 	context_menu.clear()
 
-	var files = %FilesList.find_child("Files") as ItemList
-	if not files or files.get_selected_items().is_empty():
+	if %FilesList.files.get_selected_items().is_empty():
 		return
 
 	context_menu.add_item("Save", AccelMenuIds.SAVE, KEY_S | KEY_MASK_CTRL | KEY_MASK_ALT)
@@ -401,3 +398,7 @@ func _on_save_file_selected(file_name: String) -> void:
 
 func _on_about_closed() -> void:
 	about.hide()
+
+
+func _on_restart_editor() -> void:
+	editor_interface.restart_editor(true)

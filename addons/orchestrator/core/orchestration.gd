@@ -1,13 +1,13 @@
+@tool
+@icon("./assets/Orchestrator.svg")
+class_name Orchestration
+extends Resource
 ## An orchestration workflow resource.
 ##
 ## An orchestration is a visual scripting like language.
 ## The workflow provides access to stock behavior nodes and allows the user to
 ## define custom nodes. This resource is primarily used when using the Orchestrator
 ## plugin from within the edtor or running an Orchestration from within a game.
-@tool
-@icon("./assets/Orchestrator.svg")
-class_name Orchestration
-extends Resource
 
 ## The version of the workflow
 @export var version : int = 1

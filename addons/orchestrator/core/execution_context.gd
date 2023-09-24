@@ -1,11 +1,12 @@
-## An execution context for running orchestrations at runtime.
 class_name OrchestrationExecutionContext
 extends RefCounted
+## An execution context for running orchestrations at runtime.
 
 var _data : Dictionary
 var _state : Dictionary
 var _orchestration : Orchestration
 var _locals : Dictionary
+var _orchestrator
 
 
 func get_node_data() -> Dictionary:
@@ -69,3 +70,7 @@ func get_output_target_node_id(port: int) -> Variant:
 func editor_print(message: String) -> void:
 	if OS.has_feature("editor"):
 		print(message)
+
+
+func evaluate(user_expression: String) -> Variant:
+	return _orchestrator.evaluate(self, user_expression)

@@ -1,6 +1,6 @@
-## Represents a slot on an [OrchestrationNode].
 class_name OrchestrationNodeSlot
 extends RefCounted
+## Represents a slot on an [OrchestrationNode].
 
 ## The port the slot is assigned
 var port: int
