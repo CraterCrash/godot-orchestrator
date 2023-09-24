@@ -1,5 +1,6 @@
 @tool
 extends Tree
+## Provides drag-and-drop functionality for the node tree in the main view.
 
 func _get_drag_data(at_position: Vector2) -> Variant:
 	var tree_item : TreeItem = get_selected()

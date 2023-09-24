@@ -1,9 +1,13 @@
-# A panel that handles the download and installation of the
-# plugin updates from the GitHub releases page.
 @tool
 extends Control
+## A panel that handles the download and installation of the
+## plugin updates from the GitHub releases page.
 
+## Emitted when the update fails to be applied.
 signal update_failed()
+
+## Emitted when the update succeeds and is applied.
+## The new version that was applied is passed as the argument.
 signal update_succeeded(version: String)
 
 const TEMP_FILE_NAME = "user://temp.zip"

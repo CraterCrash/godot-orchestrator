@@ -1,10 +1,13 @@
-# A simple button that will be shown when a plugin update exists.
 @tool
 extends Button
+## A simple button that will be shown when a plugin update exists.
+
+## Emitted when the update process requires an editor restart.
+signal editor_restart_requested()
 
 const CONFIG_FILE = "res://addons/orchestrator/plugin.cfg"
 
-var editor_plugin : EditorPlugin
+const OrchestratorVersion = preload("res://addons/orchestrator/orchestrator_version.gd")
 
 @onready var http_request = $HTTPRequest
 @onready var timer = $Timer
@@ -38,12 +41,6 @@ func _check_for_updates() -> void:
 	http_request.request(config.get_value("plugin", "github_releases_url"))
 
 
-func _get_version() -> String:
-	var configuration = ConfigFile.new()
-	configuration.load(CONFIG_FILE)
-	return configuration.get_value("plugin", "version")
-
-
 func _version_to_number(version: String) -> int:
 	var bits = version.split(".")
 	return bits[0].to_int() * 1000000 + bits[1].to_int() * 1000 + bits[2].to_int()
@@ -56,7 +53,7 @@ func _on_http_request_request_completed(result: int, \
 	if result != HTTPRequest.RESULT_SUCCESS:
 		return
 
-	var current_version = _get_version() as String
+	var current_version = OrchestratorVersion.get_version()
 
 	var response = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(response) != TYPE_ARRAY:
@@ -103,4 +100,5 @@ func _on_plugin_download_dialog_panel_update_succeeded(version):
 
 
 func _on_needs_reload_dialog_confirmed():
-	editor_plugin.get_editor_interface().restart_editor(true)
+	editor_restart_requested.emit()
+

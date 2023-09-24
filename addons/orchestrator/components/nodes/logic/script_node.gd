@@ -1,6 +1,6 @@
-## An orchestration node resource that represents script execution node.
 @tool
 extends OrchestrationNode
+## An orchestration node resource that represents script execution node.
 
 var _method_name : String
 var _script : String
@@ -123,7 +123,7 @@ func _eval_script(context: OrchestrationExecutionContext) -> void:
 
 	var instance = script.new()
 	if script is Node:
-		Orchestrator.get_tree().current_scene.add_child(script)
+		Engine.get_main_loop().current_scene.add_chlild(script)
 
 	# context.editor_print("Calling method %s in script %s" % [method_name, script_file])
 
@@ -138,6 +138,7 @@ func _populate_function_list(dropdown: OptionButton, file_name: String, selected
 	var script : GDScript = load(file_name)
 
 	var index = 0
+	dropdown.clear()
 	for method in script.get_script_method_list():
 		var method_name = method["name"]
 		if not method_names.has(method_name):

@@ -1,8 +1,6 @@
-## Orchestrator editor plugin
 @tool
 extends EditorPlugin
-
-signal node_resources_updated(node_factory)
+## Orchestrator editor plugin
 
 const ADDON_NAME = "Orchestrator"
 const ADDON_NODE_FACTORY_NAME = "OrchestratorNodeFactory"
@@ -19,6 +17,7 @@ var main_view
 
 # Reference to the node factory
 var _node_factory
+
 
 func _ready():
 	# OrchestratorNodeFactory may enter scene later due to order of operations.
@@ -37,6 +36,8 @@ func _enter_tree():
 	if not Engine.is_editor_hint():
 		return
 
+	project_settings_changed.connect(_on_project_settings_changed)
+
 	var settings = load(ORCHESTRATOR_SETTINGS)
 	settings.prepare()
 
@@ -44,7 +45,6 @@ func _enter_tree():
 	main_view.set_plugin(self)
 
 	get_editor_interface().get_editor_main_screen().add_child(main_view)
-	main_view.set_version(get_version())
 
 	_make_visible(false)
 
@@ -57,6 +57,9 @@ func _enter_tree():
 func _exit_tree():
 	remove_autoload_singleton(ADDON_NAME)
 	remove_autoload_singleton(ADDON_NODE_FACTORY_NAME)
+
+	if project_settings_changed.is_connected(_on_project_settings_changed):
+		project_settings_changed.disconnect(_on_project_settings_changed)
 
 	if is_instance_valid(main_view):
 		main_view.queue_free()
@@ -111,12 +114,12 @@ func _on_file_removed(file_name: String) -> void:
 
 
 func _rescan_for_resources() -> void:
-	if _node_factory:
-		_node_factory.rescan_for_resources()
-		node_resources_updated.emit(_node_factory)
+	if not _node_factory:
+		return
+	_node_factory.rescan_for_resources()
+	main_view.update_available_nodes(_node_factory.get_resources())
 
 
-func get_version() -> String:
-	var config = ConfigFile.new()
-	config.load("res://addons/orchestrator/plugin.cfg")
-	return config.get_value("plugin", "version")
+func _on_project_settings_changed() -> void:
+	if main_view:
+		main_view.update_project_settings()

@@ -44,7 +44,7 @@ func execute(context: OrchestrationExecutionContext) -> Variant:
 	if not node:
 		return END_EXECUTION
 
-	Orchestrator.get_tree().current_scene.add_child(node)
+	Engine.get_main_loop().current_scene.add_child(node)
 	var options = _get_options(context, choices)
 	node.show_message(speaker_name, message, options)
 
@@ -391,7 +391,7 @@ func _is_choice_visible(context: OrchestrationExecutionContext, choice: Dictiona
 	if not choice["condition"]:
 		return true
 
-	return Orchestrator.evaluate(context, choice["condition"])
+	return context.evaluate(choice["condition"])
 
 
 func _get_options(context: OrchestrationExecutionContext, choices: Array) -> Dictionary:

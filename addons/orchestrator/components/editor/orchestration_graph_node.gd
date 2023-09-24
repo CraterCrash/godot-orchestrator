@@ -54,9 +54,7 @@ func set_orchestration_node(node: OrchestrationNode) -> void:
 	orchestration_node._graph_edit = get_parent()
 
 
-func initialize(attributes: OrchestratorDictionary, node: OrchestrationNode, plugin: EditorPlugin) -> void:
-	plugin.project_settings_changed.connect(func(): _update_styles())
-
+func initialize(attributes: OrchestratorDictionary, node: OrchestrationNode) -> void:
 	set_attributes(attributes)
 	set_orchestration_node(node)
 
@@ -65,6 +63,10 @@ func initialize(attributes: OrchestratorDictionary, node: OrchestrationNode, plu
 
 	# Populate slots
 	_create_connection_slots()
+	_update_styles()
+
+
+func update_project_settings() -> void:
 	_update_styles()
 
 

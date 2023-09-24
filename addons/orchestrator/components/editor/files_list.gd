@@ -1,7 +1,6 @@
 @tool
 extends VBoxContainer
-
-const FileIcon = preload("res://addons/orchestrator/assets/icons/Orchestrator_16x16.png")
+## Provides a file list control for orchestations in the main view.
 
 ## Emitted when a file is selected
 signal file_selected(file_path: String)
@@ -12,8 +11,7 @@ signal file_popup_menu_requested(at_position: Vector2)
 ## Emitted when double clicking a file
 signal file_double_clicked(file_path: String)
 
-@onready var filters : LineEdit = $FileFilters
-@onready var files : ItemList = $Files
+const FileIcon = preload("res://addons/orchestrator/assets/icons/Orchestrator_16x16.png")
 
 # The file to be applied
 var filter : String : set = set_filter, get = get_filter
@@ -28,13 +26,12 @@ var _unsaved_files_lookup : Array[String] = []
 # Current selected file path
 var _current_file_path : String = ""
 
+@onready var filters : LineEdit = $FileFilters
+@onready var files : ItemList = $Files
+
 
 func _ready() -> void:
 	_apply_theme()
-	filters.text_changed.connect(_on_filters_text_changed)
-	files.item_activated.connect(_on_files_activated)
-	files.item_clicked.connect(_on_files_clicked)
-	theme_changed.connect(_on_theme_changed)
 	files.allow_rmb_select = true
 
 
@@ -137,5 +134,3 @@ func _update_files_lookup() -> void:
 					pretty_file_name = get_pretty_file(file, parts_count)
 				_files_lookup[key] = existing_pretty_file_name
 		_files_lookup[file] = pretty_file_name
-
-

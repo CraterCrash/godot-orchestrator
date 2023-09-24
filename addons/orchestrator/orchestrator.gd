@@ -1,9 +1,9 @@
+extends Node
 ## Singleton that provides runtime execution of Orchestrations
 ##
 ## [Orchestration] resources provide scripted behavior that can be used by the
 ## [Orchestrator] autoload singleton during game-play.
 ##
-extends Node
 
 ## Emitted when an orchestration has started.
 signal orchestration_started
@@ -39,6 +39,7 @@ func execute(resource: Orchestration) -> void:
 	context._state = {}
 	context._orchestration = resource
 	context._locals = _get_locals()
+	context._orchestrator = self
 
 	orchestration_started.emit()
 
