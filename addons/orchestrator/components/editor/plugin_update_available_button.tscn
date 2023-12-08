@@ -13,7 +13,7 @@ grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
-text = "v1.0.5"
+text = "v1.1.0"
 script = ExtResource("1_c2qg7")
 
 [node name="HTTPRequest" type="HTTPRequest" parent="."]

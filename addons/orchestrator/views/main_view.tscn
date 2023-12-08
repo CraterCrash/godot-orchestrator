@@ -146,7 +146,7 @@ size_flags_vertical = 4
 
 [node name="Version" type="Label" parent="Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer"]
 layout_mode = 2
-text = "Godot Orchestrator v1.0.5"
+text = "Godot Orchestrator v1.1.0"
 vertical_alignment = 1
 
 [node name="PluginUpdateAvailableButton" parent="Margin/VBoxContainer/HBoxContainer/MenuBar2/HBoxContainer" instance=ExtResource("2_hestl")]
