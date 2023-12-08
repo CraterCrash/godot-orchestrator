@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://c17vkt01afj0o"]
 
 [ext_resource type="Script" path="res://addons/orchestrator/components/editor/plugin_download_update_dialog.gd" id="1_ikkvg"]
-[ext_resource type="Texture2D" uid="uid://bqime3p2y5r76" path="res://addons/orchestrator/assets/icons/OrchestratorLogo.svg" id="2_gqckb"]
+[ext_resource type="Texture2D" path="res://addons/orchestrator/assets/icons/OrchestratorLogo.svg" id="2_gqckb"]
 
 [node name="PluginDownloadUpdateDialog" type="Control"]
 layout_mode = 3
@@ -43,7 +43,8 @@ layout_mode = 2
 
 [node name="DownloadUpdate" type="Button" parent="VBoxContainer/CenterContainer"]
 layout_mode = 2
-text = "Download and install update"
+disabled = true
+text = "Cannot update local repository"
 
 [node name="CenterContainer2" type="CenterContainer" parent="VBoxContainer"]
 layout_mode = 2

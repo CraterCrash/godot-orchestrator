@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://bptlhwv2xyyqr"]
 
 [ext_resource type="Script" path="res://addons/orchestrator/views/about_view.gd" id="1_xky0g"]
-[ext_resource type="Texture2D" uid="uid://bqime3p2y5r76" path="res://addons/orchestrator/assets/icons/OrchestratorLogo.svg" id="2_08bvf"]
+[ext_resource type="Texture2D" path="res://addons/orchestrator/assets/icons/OrchestratorLogo.svg" id="2_08bvf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c516b"]
 bg_color = Color(0.113725, 0.133333, 0.160784, 1)
