@@ -29,7 +29,6 @@ func _ready():
 	# Setup callbacks
 	position_offset_changed.connect(_on_position_offset_changed)
 	resize_request.connect(_on_resize_request)
-	close_request.connect(_on_close_request)
 
 
 func set_attributes(attributes: OrchestratorDictionary) -> void:
