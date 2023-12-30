@@ -166,7 +166,10 @@ void OrchestratorGraphNodeSpawnerCallMemberFunction::execute(OrchestratorGraphEd
 
     Ref<OScript> script = p_graph->get_owning_script();
     Ref<OScriptNodeCallMemberFunction> node = language->create_node_from_type<OScriptNodeCallMemberFunction>(script);
-    node->initialize(OScriptNodeInitContext(_method));
+
+    OScriptNodeInitContext context;
+    context.method = _method;
+    node->initialize(context);
 
     p_graph->spawn_node(node, p_position);
 }
@@ -234,7 +237,10 @@ void OrchestratorGraphNodeSpawnerCallScriptFunction::execute(OrchestratorGraphEd
 
     Ref<OScript> script = p_graph->get_owning_script();
     Ref<OScriptNodeCallScriptFunction> node = language->create_node_from_type<OScriptNodeCallScriptFunction>(script);
-    node->initialize(OScriptNodeInitContext(_method));
+
+    OScriptNodeInitContext context;
+    context.method = _method;
+    node->initialize(context);
 
     p_graph->spawn_node(node, p_position);
 }
@@ -247,7 +253,10 @@ void OrchestratorGraphNodeSpawnerEvent::execute(OrchestratorGraphEdit* p_graph, 
 
     Ref<OScript> script = p_graph->get_owning_script();
     Ref<OScriptNodeEvent> node = language->create_node_from_type<OScriptNodeEvent>(script);
-    node->initialize(OScriptNodeInitContext(_method));
+
+    OScriptNodeInitContext context;
+    context.method = _method;
+    node->initialize(context);
 
     p_graph->spawn_node(node, p_position);
 }
@@ -279,7 +288,11 @@ void OrchestratorGraphNodeSpawnerEmitSignal::execute(OrchestratorGraphEdit* p_gr
         {
             OScriptLanguage* language = OScriptLanguage::get_singleton();
             Ref<OScriptNodeEmitSignal> node = language->create_node_from_type<OScriptNodeEmitSignal>(script);
-            node->initialize(OScriptNodeInitContext(_method));
+
+            OScriptNodeInitContext context;
+            context.method = _method;
+            node->initialize(context);
+
             p_graph->spawn_node(node, p_position);
         }
     }

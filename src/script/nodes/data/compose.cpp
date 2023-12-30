@@ -444,28 +444,33 @@ bool OScriptNodeComposeFrom::is_supported(Variant::Type p_type, const Vector<Pro
             // Single argument constructors with same types, ignore them.
             if (p_args.size() == 1 && p_args[0].type == p_type)
                 return false;
+            break;
         case Variant::TRANSFORM3D:
             // Single argument constructors with same types, ignore them.
-            if (p_args.size() == 1 && p_args[0].type == p_type || p_args[0].type == Variant::PROJECTION)
+            if (p_args.size() == 1 && (p_args[0].type == p_type || p_args[0].type == Variant::PROJECTION))
                 return false;
-            if (p_args.size() ==2 && p_args[0].type == Variant::BASIS && p_args[1].type == Variant::VECTOR3)
+            if (p_args.size() == 2 && p_args[0].type == Variant::BASIS && p_args[1].type == Variant::VECTOR3)
                 return false;
+            break;
         case Variant::RECT2:
             // Single argument constructors with same types, ignore them.
-            if (p_args.size() == 1 && p_args[0].type == p_type || p_args[0].type == Variant::RECT2I)
+            if (p_args.size() == 1 && (p_args[0].type == p_type || p_args[0].type == Variant::RECT2I))
                 return false;
+            break;
         case Variant::RECT2I:
             // Single argument constructors with same types, ignore them.
-            if (p_args.size() == 1 && p_args[0].type == p_type || p_args[0].type == Variant::RECT2)
+            if (p_args.size() == 1 && (p_args[0].type == p_type || p_args[0].type == Variant::RECT2))
                 return false;
+            break;
         case Variant::PROJECTION:
             // Single argument constructors with same types, ignore them.
-            if (p_args.size() == 1 && p_args[0].type == p_type || p_args[0].type == Variant::TRANSFORM3D)
+            if (p_args.size() == 1 && (p_args[0].type == p_type || p_args[0].type == Variant::TRANSFORM3D))
                 return false;
             break;
         case Variant::QUATERNION:
             if (p_args.size() == 1 && p_args[0].type == Variant::BASIS)
                 return false;
+            break;
         default:
             break;
     }

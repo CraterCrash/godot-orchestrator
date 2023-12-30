@@ -139,7 +139,7 @@ public:
 
     /// Handles Godot GUI input
     /// @param p_event the input event
-    void _gui_input(const Ref<InputEvent>& p_event);
+    void _gui_input(const Ref<InputEvent>& p_event) override;
 
     /// Updates this control, should be called by the script view
     virtual void update();

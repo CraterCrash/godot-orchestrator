@@ -18,7 +18,10 @@
 
 #include "common/logger.h"
 
+#include <version>
+#ifdef __cpp_lib_format
 #include <format>
+#endif
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -89,6 +92,7 @@ void OScriptExecutionStack::_initialize(const OScriptExecutionStackInfo& p_stack
 
 void OScriptExecutionStack::dump()
 {
+    #ifdef __cpp_lib_format
     Logger::debug("STACK DETAILS");
     Logger::debug("====================================================");
     Logger::debug(std::format("      Base : {} (max count {})", (void*)_variant_stack, _info.max_stack_size).c_str());
@@ -98,10 +102,12 @@ void OScriptExecutionStack::dump()
     Logger::debug(std::format("      Flow : {} (max count {})", (void*)_flow, _info.flow_size).c_str());
     Logger::debug(std::format("      Pass : {} (max count {})", (void*)_pass, _info.pass_size).c_str());
     Logger::debug(std::format("     Total : {} bytes", _stack_size).c_str());
+    #endif
 }
 
 void OScriptExecutionStack::dump_variant_stack()
 {
+    #ifdef __cpp_lib_format
     const int max = Math::min(_info.max_stack_size, _info.max_inputs + _info.max_outputs);
 
     Logger::debug("STACK:");
@@ -111,10 +117,12 @@ void OScriptExecutionStack::dump_variant_stack()
         std::string text = std::format("{}: [{}]: %s", (void*)&_variant_stack[i], i);
         Logger::debug(vformat(text.c_str(), val));
     }
+    #endif
 }
 
 void OScriptExecutionStack::dump_input_stack()
 {
+    #ifdef __cpp_lib_format
     Logger::debug("Input stack max size: ", _info.max_inputs);
     for (int i = 0; i < _info.max_inputs; i++)
     {
@@ -122,10 +130,12 @@ void OScriptExecutionStack::dump_input_stack()
         std::string text = std::format("{}: [{}]: %s", (void*)&_inputs[i], i);
         Logger::debug(vformat(text.c_str(), (val ? *val : "<null>")));
     }
+    #endif
 }
 
 void OScriptExecutionStack::dump_output_stack()
 {
+    #ifdef __cpp_lib_format
     Logger::debug("Output stack max size: ", _info.max_outputs);
     for (int i = 0; i < _info.max_outputs; i++)
     {
@@ -133,4 +143,5 @@ void OScriptExecutionStack::dump_output_stack()
         std::string text = std::format("{}: [{}]: %s", (void*)&_outputs[i], i);
         Logger::debug(vformat(text.c_str(), (val ? *val : "<null>")));
     }
+    #endif
 }

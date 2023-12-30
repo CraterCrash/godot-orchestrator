@@ -40,7 +40,7 @@ StringName OScriptNodeEvent::resolve_type_class(const Ref<OScriptNodePin>& p_pin
     if (_function.is_valid())
     {
         const int32_t pin_index = p_pin->get_pin_index() - 1;
-        if (pin_index >= 0 && pin_index < _function->get_argument_count())
+        if (pin_index >= 0 && pin_index < int(_function->get_argument_count()))
         {
             // Return the specialized "InputEventKey" in this use case.
             if (_function->get_method_info().name.match("_unhandled_key_input"))

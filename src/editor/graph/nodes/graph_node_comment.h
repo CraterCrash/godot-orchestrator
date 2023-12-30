@@ -57,7 +57,7 @@ public:
     OrchestratorGraphNodeComment(OrchestratorGraphEdit* p_graph, const Ref<OScriptNodeComment>& p_node);
 
     //~ Begin OrchestratorGraphNode Interface
-    bool is_groupable() const { return true; }
+    bool is_groupable() const override { return true; }
     bool is_group_selected() override;
     void select_group() override;
     void deselect_group() override;

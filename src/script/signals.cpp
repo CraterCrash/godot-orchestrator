@@ -31,7 +31,7 @@ void OScriptSignal::_get_property_list(List<PropertyInfo>* r_list) const
     int32_t read_only = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY;
     r_list->push_back(PropertyInfo(Variant::STRING, "signal_name", PROPERTY_HINT_NONE, "", read_only));
     r_list->push_back(PropertyInfo(Variant::INT, "argument_count", PROPERTY_HINT_RANGE, "0,32", PROPERTY_USAGE_EDITOR));
-    for (int i = 1; i <= _method.arguments.size(); i++)
+    for (size_t i = 1; i <= _method.arguments.size(); i++)
     {
         r_list->push_back(PropertyInfo(Variant::INT, "argument_" + itos(i) + "/type", PROPERTY_HINT_ENUM, types,
                                        PROPERTY_USAGE_EDITOR));
@@ -54,7 +54,7 @@ bool OScriptSignal::_get(const StringName &p_name, Variant &r_value)
     }
     else if (p_name.match("argument_count"))
     {
-        r_value = _method.arguments.size();
+        r_value = static_cast<int64_t>(_method.arguments.size());
         return true;
     }
     else if (p_name.begins_with("argument_"))
@@ -93,7 +93,7 @@ bool OScriptSignal::_set(const StringName &p_name, const Variant &p_value)
     }
     else if (p_name.match("argument_count"))
     {
-        if (resize_argument_list(p_value))
+        if (resize_argument_list(static_cast<int64_t>(p_value)))
             notify_property_list_changed();
         return true;
     }

@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_LOGGER_H
 
 #include <chrono>
+#include <iomanip>
 #include <sstream>
 
 #include <godot_cpp/classes/file_access.hpp>
@@ -87,14 +88,29 @@ protected:
             for (size_t i = 0; i < args.size(); i++)
                 strings.push_back(UtilityFunctions::str(args[i]));
 
-            using std::chrono::seconds, std::chrono::days;
-            auto time = std::chrono::current_zone()->to_local(
-                std::chrono::floor<seconds>(std::chrono::system_clock::now()));
-            auto today = std::chrono::floor<days>(time);
-            std::string datetime = std::format("{0:%Y-%m-%d} {1:%H:%M:%S}", std::chrono::year_month_day{ today },
-                                               std::chrono::hh_mm_ss{ time - today });
+            std::chrono::time_point now = std::chrono::system_clock::now();
+            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+            #ifndef _WIN32
+            std::tm local_tm = *std::localtime(&now_c);
+            #else
+            std::tm local_tm;
+            localtime_s(&local_tm, &now_c);
+            #endif
 
-            const String timestamp(datetime.c_str());
+            int year = local_tm.tm_year + 1900;
+            int month = local_tm.tm_mon + 1;
+            int day = local_tm.tm_mday;
+            int hours = local_tm.tm_hour;
+            int minutes = local_tm.tm_min;
+            int seconds = local_tm.tm_sec;
+
+            std::stringstream ss;
+            ss << std::setfill('0');
+            ss << year << '-' << std::setw(2) << month << '-' << std::setw(2) << day;
+            ss << ' ';
+            ss << std::setw(2) << hours << ':' << std::setw(2) << minutes << ':' << std::setw(2) << seconds;
+
+            const String timestamp = ss.str().c_str();
 
             String message;
             message += timestamp;

@@ -36,7 +36,7 @@ public:
         }
 
         std::vector<Variant> args;
-        for (int i = 0; i < _signal.arguments.size(); i++)
+        for (size_t i = 0; i < _signal.arguments.size(); i++)
             args.push_back(p_context.get_input(i));
 
         dispatch(_signal.name, args);
@@ -109,7 +109,7 @@ void OScriptNodeEmitSignal::_get_property_list(List<PropertyInfo>* r_list) const
 
         static String types = VariantUtils::to_enum_list();
         const MethodInfo& mi = _signal->get_method_info();
-        for (int i = 1; i <= mi.arguments.size(); i++)
+        for (size_t i = 1; i <= mi.arguments.size(); i++)
         {
             r_list->push_back(PropertyInfo(Variant::INT, "argument_" + itos(i) + "/type", PROPERTY_HINT_ENUM, types, usage));
             r_list->push_back(PropertyInfo(Variant::STRING, "argument_" + itos(i) + "/name", PROPERTY_HINT_NONE, "", usage));
@@ -127,7 +127,7 @@ bool OScriptNodeEmitSignal::_get(const StringName& p_name, Variant& r_value) con
     }
     else if (p_name.match("argument_count"))
     {
-        r_value = _signal.is_valid() ? _signal->get_argument_count() : 0;
+        r_value = _signal.is_valid() ? static_cast<int64_t>(_signal->get_argument_count()) : 0;
         return true;
     }
     else if (p_name.begins_with("argument_"))
@@ -170,7 +170,7 @@ bool OScriptNodeEmitSignal::_set(const StringName& p_name, const Variant& p_valu
     {
         if (_signal.is_valid())
         {
-            if (_signal->resize_argument_list(p_value))
+            if (_signal->resize_argument_list(static_cast<int64_t>(p_value)))
                 notify_property_list_changed();
             return true;
         }
