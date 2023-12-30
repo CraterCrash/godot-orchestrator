@@ -1,0 +1,16 @@
+[configuration]
+
+entry_symbol = "extension_library_init"
+compatibility_minimum="4.2"
+reloadable = false
+
+[libraries]
+
+linux.x86_64 = "res://addons/orchestrator/orchestrator.linux.64.release.so"
+#linux.debug.x86_64 = "res://addons/orchestrator/orchestrator.linux.64.debug.so"
+
+macos = "res://addons/orchestrator/orchestrator.darwin.64.release.dylib"
+#macos.debug = "res://addons/orchestrator/orchestrator.darwin.64.debug.dylib"
+
+windows.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.release.dll"
+#windows.debug.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.debug.dll"

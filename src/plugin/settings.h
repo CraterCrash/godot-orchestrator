@@ -1,0 +1,81 @@
+// This file is part of the Godot Orchestrator project.
+//
+// Copyright (c) 2023-present Vahera Studios LLC and its contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+#ifndef ORCHESTRATOR_SETTINGS_H
+#define ORCHESTRATOR_SETTINGS_H
+
+#include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/templates/vector.hpp>
+
+using namespace godot;
+
+class OrchestratorSettings : public Object
+{
+    GDCLASS(OrchestratorSettings, Object);
+
+    static void _bind_methods() {}
+
+    struct Setting
+    {
+        PropertyInfo info;
+        Variant value;
+
+        explicit Setting(const PropertyInfo& p_info, const Variant& p_value) : info(p_info), value(p_value) {}
+    };
+
+    static OrchestratorSettings* _singleton;
+    std::vector<Setting> _removed;
+    std::vector<Setting> _settings;
+
+public:
+    OrchestratorSettings();
+    ~OrchestratorSettings() override;
+
+    static OrchestratorSettings* get_singleton() { return _singleton; }
+
+    /// Check whether the specified setting exists
+    /// @param p_key the setting to lookup
+    /// @return true if the setting exists, false otherwise
+    bool has_setting(const String& p_key) const;
+
+    /// Get the value of setting
+    /// @param p_key the setting key to find
+    /// @param p_default_value the default value to use if key does not exist
+    /// @return the found value or the specified default
+    Variant get_setting(const String& p_key, const Variant& p_default_value = Variant());
+
+private:
+
+    /// Get the base settings key
+    /// @return the base setting key
+    String _get_base_key() const { return "orchestrator"; }
+
+    /// Register deprecated settings
+    void _register_deprecated_settings();
+
+    /// Register current usable settings
+    void _register_settings();
+
+    /// Initializes the default settings
+    /// This is useful when starting the plugin for the first time to seed the project settings
+    void _initialize_settings();
+
+    /// Performs any update operations on the settings
+    /// This handles any migration of settings from an older version to the current version.
+    void _update_default_settings();
+};
+
+#endif  // ORCHESTRATOR_SETTINGS_H

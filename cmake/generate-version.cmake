@@ -1,0 +1,57 @@
+## This file is part of the Godot Orchestrator project.
+##
+## Copyright (c) 2023-present Vahera Studios LLC and its contributors.
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##		http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+
+FUNCTION( GENERATE_VERSION )
+    FILE(READ VERSION version_text)
+    STRING(REPLACE "\n" ";" version_lines "${version_text}")
+    SET(version_max_length 0)
+    FOREACH(line ${version_lines})
+        IF(NOT line STREQUAL "")
+            STRING(REGEX MATCH "^[^=]+" variable_name "${line}")
+            STRING(LENGTH "${variable_name}" variable_name_length)
+            IF(version_max_length LESS variable_name_length)
+                SET(version_max_length ${variable_name_length})
+            ENDIF()
+        ENDIF()
+    ENDFOREACH()
+
+    FUNCTION(PAD_STRING input length output)
+        SET(padded ${input})
+        STRING(LENGTH "${padded}" current_length)
+        WHILE(${current_length} LESS ${length})
+            SET(padded "${padded} ")
+            STRING(LENGTH "${padded}" current_length)
+        ENDWHILE()
+        SET(${output} "${padded}" PARENT_SCOPE)
+    ENDFUNCTION()
+
+    FOREACH(line ${version_lines})
+        IF (NOT line STREQUAL "")
+            STRING(REGEX MATCH "^[^=]+" variable_name "${line}")
+            STRING(REPLACE "${variable_name}=" "" variable_value "${line}")
+            STRING(REGEX REPLACE "^[ \t\n\r]+" "" variable_value "${variable_value}")
+            PAD_STRING("${variable_name}" ${version_max_length} variable_name_padded)
+            STRING(TOUPPER "${variable_name_padded}" variable_name_upper)
+            STRING(CONFIGURE "${variable_value}" variable_value_configured)
+            SET(version_formatted "${version_formatted}#define ${variable_name_upper}\t${variable_value_configured}\n")
+        ENDIF()
+    ENDFOREACH()
+    PAD_STRING("VERSION_HASH" ${version_max_length} version_hash)
+    SET(version_formatted "${version_formatted}#define ${version_hash}\t\"${GIT_COMMIT_HASH}\"")
+    CONFIGURE_FILE(cmake/version.h.in _generated/version.gen.h @ONLY)
+ENDFUNCTION()
+

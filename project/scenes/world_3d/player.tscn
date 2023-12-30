@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3 uid="uid://d1eu3lxtgtc8h"]
+
+[ext_resource type="Script" path="res://scenes/world_3d/player.os" id="1_idu7t"]
+[ext_resource type="PackedScene" uid="uid://d2fqumjmubvy0" path="res://scenes/world_3d/camera.tscn" id="2_30xhs"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0vwb7"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_esanm"]
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_idu7t")
+Movement/accelleration = 8.0
+camera_path = NodePath("OrbitalCamera")
+Movement/gravity = 30.0
+Movement/jump_additional_force = 4.5
+Movement/jump_initial_impulse = 12.0
+Movement/move_speed = 8.0
+Movement/rotation_speed = 12.0
+Movement/speed = 7.0
+Movement/stopping_speed = 8.0
+"Action Mappings/action_jump" = &"jump"
+"Action Mappings/action_move_up" = &"move_up"
+"Action Mappings/action_move_down" = &"move_down"
+"Action Mappings/action_move_left" = &"move_left"
+"Action Mappings/action_move_right" = &"move_right"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_0vwb7")
+
+[node name="OrbitalCamera" parent="." instance=ExtResource("2_30xhs")]
+Sensitivity/horizontal_sensitivity = 0.002
+Zoom/max_zoom = 20.0
+Zoom/min_zoom = 6.0
+Zoom/zoom_step = 2.0
+Zoom/zoom_y_step = 0.15
+Sensitivity/vertical_sensitivity = 0.002
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_esanm")
