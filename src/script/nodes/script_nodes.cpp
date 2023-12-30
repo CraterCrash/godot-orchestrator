@@ -103,7 +103,6 @@ void register_script_node_classes()
     //~ Utility
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeComment)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEngineSingleton)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeExpression)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePrintString)
 
     // Variables
