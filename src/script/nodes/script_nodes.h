@@ -78,7 +78,6 @@
 // Utility
 #include "utilities/comment.h"
 #include "utilities/engine_singleton.h"
-#include "utilities/expression.h"
 #include "utilities/self.h"
 #include "utilities/print_string.h"
 
