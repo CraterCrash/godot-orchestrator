@@ -1,0 +1,35 @@
+[gd_scene load_steps=7 format=3 uid="uid://k26geaksotly"]
+
+[ext_resource type="Script" path="res://scenes/world_3d/manny_rotate.os" id="1_3nshh"]
+[ext_resource type="Script" path="res://scenes/world_3d/manny_area.os" id="1_3xxqk"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bl2bb"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x2jg1"]
+vertex_color_use_as_albedo = true
+albedo_color = Color(0, 0.439216, 0.439216, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_epgww"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_2r3jc"]
+height = 4.0
+radius = 4.0
+
+[node name="Manny" type="CharacterBody3D"]
+script = ExtResource("1_3nshh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_bl2bb")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_x2jg1")
+mesh = SubResource("BoxMesh_epgww")
+
+[node name="Area3D" type="Area3D" parent="."]
+script = ExtResource("1_3xxqk")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("CylinderShape3D_2r3jc")
+
+[connection signal="body_entered" from="Area3D" to="Area3D" method="_on_body_entered"]
+[connection signal="body_exited" from="Area3D" to="Area3D" method="_on_body_exited"]

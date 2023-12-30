@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://d2fqumjmubvy0"]
+
+[ext_resource type="Script" path="res://scenes/world_3d/camera.os" id="1_04cjj"]
+
+[node name="OrbitalCamera" type="Node3D"]
+script = ExtResource("1_04cjj")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
+current = true

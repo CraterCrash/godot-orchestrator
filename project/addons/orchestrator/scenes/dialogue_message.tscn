@@ -1,0 +1,75 @@
+[gd_scene load_steps=2 format=3 uid="uid://dg7kqpda74ttw"]
+
+[ext_resource type="Script" path="res://addons/orchestrator/scenes/dialogue_message.gd" id="1_08qvw"]
+
+[node name="DialogueMessage" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_08qvw")
+
+[node name="BlockMouseInteractions" type="MarginContainer" parent="."]
+editor_description = "Prevents interacting with other objects when dialogue starts."
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -58.5
+offset_top = -82.0
+offset_right = 58.5
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 0
+theme_override_constants/margin_bottom = 25
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Speaker" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Speaker Name"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SpeakerText" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+text = "Speaker Text that will be shown."
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ResponseTemplate" type="Button" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Some Response (If choices are provided)"
+alignment = 0
+
+[node name="NextButton" type="Button" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Continue"
+alignment = 2

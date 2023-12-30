@@ -1,0 +1,8 @@
+[submodule "engine"]
+	path = extern/godot-engine
+	url = https://github.com/godotengine/godot.git
+	branch = 4.2
+[submodule "godot-cpp"]
+	path = extern/godot-cpp
+	url = https://github.com/godotengine/godot-cpp
+	branch = 4.2
