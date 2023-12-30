@@ -21,7 +21,7 @@
 #include "editor/graph/pins/graph_node_pin_color.h"
 #include "editor/graph/pins/graph_node_pin_enum.h"
 #include "editor/graph/pins/graph_node_pin_exec.h"
-#include "editor/graph/pins/graph_node_pin_File.h"
+#include "editor/graph/pins/graph_node_pin_file.h"
 #include "editor/graph/pins/graph_node_pin_node_path.h"
 #include "editor/graph/pins/graph_node_pin_numeric.h"
 #include "editor/graph/pins/graph_node_pin_object.h"
