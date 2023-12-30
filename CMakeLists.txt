@@ -54,15 +54,6 @@ LIST(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/cmake/"
 )
 
-PROJECT("${GDEXTENSION_LIB_NAME}" LANGUAGES C CXX VERSION 2.0.0)
-
-# Compiler Identification
-SET(compiler_is_clang "$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>>")
-SET(compiler_is_gnu "$<CXX_COMPILER_ID:GNU>")
-SET(compiler_is_msvc "$<CXX_COMPILER_ID:MSVC>")
-
-# Configure godot-cpp - a statically linked library to this project.
-INCLUDE(godot-dev-configuration)
 INCLUDE(generate-authors)
 INCLUDE(generate-license)
 INCLUDE(generate-version)
@@ -75,6 +66,16 @@ GENERATE_VERSION()
 GENERATE_AUTHORS()
 GENERATE_DONORS()
 GENERATE_GODOT_EXTENSION_DB()
+
+PROJECT("${GDEXTENSION_LIB_NAME}" LANGUAGES C CXX VERSION ${RESOLVED_VERSION})
+
+# Compiler Identification
+SET(compiler_is_clang "$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>>")
+SET(compiler_is_gnu "$<CXX_COMPILER_ID:GNU>")
+SET(compiler_is_msvc "$<CXX_COMPILER_ID:MSVC>")
+
+# Configure godot-cpp - a statically linked library to this project.
+INCLUDE(godot-dev-configuration)
 
 # Library sources
 FILE(GLOB_RECURSE gdext_sources
@@ -125,6 +126,15 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
         >
 )
 
+find_program(ccache_exe ccache)
+if (ccache_exe)
+    set(CMAKE_VS_GLOBALS
+            "TrackFileAccess=false"
+            "UseMultiToolTask=true"
+            "DebugInformationFormat=OldStyle"
+    )
+endif()
+
 # Include directories for GDExtension library
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
@@ -156,8 +166,22 @@ ENDIF ()
 
 STRING(TOLOWER "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}.${system_bits}.${CMAKE_BUILD_TYPE}" gde_lib_name)
 
+# Generate library resource
+IF(WIN32)
+    SET(win32_product_name "${RESOLVED_VERSION_NAME}")
+    SET(win32_file_version "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
+    SET(win32_product_version "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
+    SET(win32_file_description "Godot ${win32_product_name}")
+    CONFIGURE_FILE(cmake/windows.rc.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc @ONLY)
+ENDIF()
+
+IF (WIN32)
+    LIST(APPEND gdext_sources "${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc")
+ENDIF()
+
 SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
+        PREFIX ""
         POSITION_INDEPENDENT_CODE ON
         CMAKE_EXPORT_COMPILE_OPTIMIZATION_RELEASE ON
         CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON

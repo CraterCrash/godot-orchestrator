@@ -6,9 +6,6 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.runner }}
-    name: ${{ matrix.name }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -30,14 +27,14 @@ jobs:
           - identifier: windows-debug
             name: 🪟 Windows (Debug)
             build_type: Debug
-            runner: ubuntu-latest
+            runner: windows-latest
             target: template_debug
             platform: windows
             arch: x86_64
           - identifier: windows-release
             name: 🪟 Windows (Release)
             build_type: Release
-            runner: ubuntu-latest
+            runner: windows-latest
             target: template_release
             platform: windows
             arch: x86_64
@@ -53,44 +50,32 @@ jobs:
             runner: macos-latest
             target: template_release
             platform: macos
+    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.name }}
 
     steps:
 
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Latest GCC (Windows/Linux)
-        if: startsWith(matrix.identifier, 'windows-') || startsWith(matrix.identifier, 'linux-')
-        shell: sh
-        run: |          
-          sudo apt-get install gcc-13 g++-13 -y
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
-          sudo update-alternatives --config gcc
-          sudo update-alternatives --config g++ 
+      - name: Setup Linux Dependencies
+        if: startsWith(matrix.identifier, 'linux-')
+        uses: ./.github/actions/linux-deps
 
       - name: Setup Windows Dependencies
         if: startsWith(matrix.identifier, 'windows-')
         uses: ./.github/actions/windows-deps
 
+      - name: Setup MacOS Dependencies
+        if: startsWith(matrix.identifier, 'macos-')
+        uses: ./.github/actions/macos-deps
+
       - name: Setup Base Dependencies
         uses: ./.github/actions/base-deps
 
-      - name: Install Ninja (Windows/Linux)
-        if: startsWith(matrix.identifier, 'windows-') || startsWith(matrix.identifier, 'linux-')
-        shell: sh
-        run: |
-          sudo apt-get install ninja-build
-
-      - name: Install Ninja (MacOS)
-        if: startsWith(matrix.identifier, 'macos-')
-        shell: sh
-        run: |
-          brew install ninja          
-
-      - name: ccache
+      - name: ccache (Linux/Mac)
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ccache-${{ matrix.identifier }}
@@ -99,29 +84,41 @@ jobs:
         if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
         shell: sh
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier}} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja 
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier}} --target orchestrator -j 18
-          ls -l project/addons/*/
-          ls -l ${{ github.workspace }}/.out-${{ matrix.identifier}}
+          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja          
+          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
 
       - name: Build Orchestrator (Windows)
         if: startsWith(matrix.identifier, 'windows-')
-        shell: sh
+        shell: bash
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier}} -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/toolchain-windows.cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier}} --target orchestrator -j 18
-          ls -l project/addons/*/
-          ls -l ${{ github.workspace }}/.out-${{ matrix.identifier}}
+          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER=cl -S '${{ github.workspace }}' -G Ninja
+          cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18        
 
-      - name: Include Files
-        shell: sh
+      - name: Prepare addon files
+        shell: bash
         run: |
-          cp '${{ github.workspace }}/AUTHORS.md' '${{ github.workspace }}/CHANGELOG.md' '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/project/addons/orchestrator/'          
+          cp '${{ github.workspace }}/AUTHORS.md' '${{ github.workspace }}/project/addons/orchestrator/'
+          cp '${{ github.workspace }}/CHANGELOG.md' '${{ github.workspace }}/project/addons/orchestrator/'
+          cp '${{ github.workspace }}/README.md' '${{ github.workspace }}/project/addons/orchestrator/'
+          cp '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/project/addons/orchestrator/'
 
-      - name: Upload artifact
+      - name: Upload artifact (Demo)
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ github.event.repository.name }}
-          retention-days: 2
+          name: ${{ github.event.repository.name }}-demo-${{ matrix.identifier }}
+          retention-days: 1
           path: |
             ${{ github.workspace }}/project/
+
+      - name: Upload artifact (Plugin)
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event.repository.name }}-plugin
+          retention-days: 1
+          path: |
+            ${{ github.workspace }}/project
+            !${{ github.workspace }}/project/addons/orchestrator/*debug*
+            !${{ github.workspace }}/project/scenes
+            !${{ github.workspace }}/project/icon.svg
+            !${{ github.workspace }}/project/project.godot
+            
