@@ -1,0 +1,10 @@
+name: Setup MacOS Dependencies
+description: Setup MacOS Build Dependencies
+runs:
+  using: "composite"
+  steps:
+
+    - name: Install Ninja (MacOS)
+      shell: sh
+      run: |
+        brew install ninja

@@ -44,14 +44,24 @@ FUNCTION( GENERATE_VERSION )
             STRING(REGEX MATCH "^[^=]+" variable_name "${line}")
             STRING(REPLACE "${variable_name}=" "" variable_value "${line}")
             STRING(REGEX REPLACE "^[ \t\n\r]+" "" variable_value "${variable_value}")
-            PAD_STRING("${variable_name}" ${version_max_length} variable_name_padded)
-            STRING(TOUPPER "${variable_name_padded}" variable_name_upper)
+            STRING(TOUPPER "${variable_name}" variable_name_upper)
+            STRING(REPLACE " " "" variable_name_upper "${variable_name_upper}")
+            PAD_STRING("${variable_name_upper}" ${version_max_length} variable_name_padded)
             STRING(CONFIGURE "${variable_value}" variable_value_configured)
-            SET(version_formatted "${version_formatted}#define ${variable_name_upper}\t${variable_value_configured}\n")
+            SET(version_formatted "${version_formatted}#define ${variable_name_padded}\t${variable_value_configured}\n")
+            SET("V${variable_name_upper}" ${variable_value_configured})
         ENDIF()
     ENDFOREACH()
     PAD_STRING("VERSION_HASH" ${version_max_length} version_hash)
     SET(version_formatted "${version_formatted}#define ${version_hash}\t\"${GIT_COMMIT_HASH}\"")
     CONFIGURE_FILE(cmake/version.h.in _generated/version.gen.h @ONLY)
+
+    # Pass certain values up to the parent scope
+    # These are used to create windows DLL resource file details
+    STRING(REPLACE "\"" "" VVERSION_NAME "${VVERSION_NAME}")
+    SET("RESOLVED_VERSION" "${VVERSION_MAJOR}.${VVERSION_MINOR}.${VVERSION_MAINTENANCE}" PARENT_SCOPE)
+    SET("RESOLVED_VERSION_NAME" "${VVERSION_NAME}" PARENT_SCOPE)
+    SET("RESOLVED_VERSION_YEAR" "${VVERSION_YEAR}" PARENT_SCOPE)
+
 ENDFUNCTION()
 
