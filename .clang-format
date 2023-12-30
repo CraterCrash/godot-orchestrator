@@ -3,7 +3,7 @@ Language: Cpp
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align # BlockIndent
 AlignArrayOfStructures: None # Left
-AlignConsecutiveMacros: AcrossComments
+# AlignConsecutiveMacros: AcrossComments
 AlignConsecutiveAssignments: None
 AlignConsecutiveBitFields: Consecutive
 AlignConsecutiveDeclarations: None
