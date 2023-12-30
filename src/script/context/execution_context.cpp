@@ -25,12 +25,12 @@
 OScriptNodeExecutionContext::OScriptNodeExecutionContext(const Ref<OScriptExecutionStack>& p_stack, int p_node_id, int p_passes,
                                                          int p_flow_stack_position, GDExtensionCallError* p_error)
     : _execution_stack(p_stack)
-    , _current_node_id(p_node_id)
     , _initial_node_id(p_node_id)
-    , _flow_stack_position(p_flow_stack_position)
+    , _current_node_id(p_node_id)
     , _passes(p_passes)
-    , _error(p_error)
     , _step_mode(OScriptNodeInstance::StepMode::STEP_MODE_BEGIN)
+    , _error(p_error)
+    , _flow_stack_position(p_flow_stack_position)
 {
 }
 

@@ -104,6 +104,18 @@ namespace godot
 		/// Populates the contents of the ExtensionDB singleton database
 		class ExtensionDBLoader
 		{
+			/// Populates Math Constants
+			void prime_math_constants();
+			
+			/// Populates Global Enumerations
+			void prime_global_enumerations();
+			
+			/// Populates Builtin Data Types
+			void prime_builtin_classes();
+			
+			/// Populates Utility Functions
+			void prime_utility_functions();
+		
 		public:
 			/// Populates the ExtensionDB
 			void prime();

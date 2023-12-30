@@ -20,17 +20,21 @@
 
 void OScriptNodeFunctionTerminator::_get_property_list(List<PropertyInfo>* r_list) const
 {
+    Ref<OScriptFunction> function = get_function();
+
+    // Setup flags
     int32_t read_only_serialize = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY;
     int32_t read_only_editor    = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_READ_ONLY;
+
+    int32_t usage = read_only_editor;
+    if (function.is_valid() && function->is_user_defined())
+        usage = PROPERTY_USAGE_EDITOR;
 
     r_list->push_back(PropertyInfo(Variant::STRING, "function_id", PROPERTY_HINT_NONE, "", read_only_serialize));
     r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", read_only_editor));
 
-    Ref<OScriptFunction> function = get_function();
     if (function.is_valid())
     {
-        int32_t usage = function->is_user_defined() ? PROPERTY_USAGE_EDITOR : read_only_editor;
-
         if (_supports_return_values())
         {
             r_list->push_back(PropertyInfo(Variant::BOOL, "has_return_value", PROPERTY_HINT_NONE, "", usage));
@@ -45,7 +49,7 @@ void OScriptNodeFunctionTerminator::_get_property_list(List<PropertyInfo>* r_lis
 
         static String types = VariantUtils::to_enum_list();
         const MethodInfo& mi = function->get_method_info();
-        for (int i = 1; i <= mi.arguments.size(); i++)
+        for (size_t i = 1; i <= mi.arguments.size(); i++)
         {
             r_list->push_back(PropertyInfo(Variant::INT, "argument_" + itos(i) + "/type", PROPERTY_HINT_ENUM, types, usage));
             r_list->push_back(PropertyInfo(Variant::STRING, "argument_" + itos(i) + "/name", PROPERTY_HINT_NONE, "", usage));
@@ -69,7 +73,7 @@ bool OScriptNodeFunctionTerminator::_get(const StringName& p_name, Variant& r_va
     else if (p_name.match("argument_count"))
     {
         Ref<OScriptFunction> function = get_function();
-        r_value = function.is_valid() ? function->get_argument_count() : 0;
+        r_value = function.is_valid() ? static_cast<int64_t>(function->get_argument_count()) : 0;
         return true;
     }
     else if (p_name.begins_with("argument_"))
@@ -124,7 +128,7 @@ bool OScriptNodeFunctionTerminator::_set(const StringName& p_name, const Variant
         Ref<OScriptFunction> function = get_function();
         if (function.is_valid())
         {
-            if (function->resize_argument_list(p_value))
+            if (function->resize_argument_list(static_cast<int64_t>(p_value)))
                 notify_property_list_changed();
             return true;
         }

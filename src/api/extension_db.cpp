@@ -94,7 +94,7 @@ namespace godot
                 _sanitize_enum(ei);
         }
 
-		void ExtensionDBLoader::prime()
+		void ExtensionDBLoader::prime_math_constants()
 		{
 			// Math Constants
 			ExtensionDB::_singleton->_math_constant_names.push_back("One");
@@ -117,7 +117,10 @@ namespace godot
 			ExtensionDB::_singleton->_math_constants["INF"] = { "INF", Variant::FLOAT, Math_INF };
 			ExtensionDB::_singleton->_math_constant_names.push_back("NAN");
 			ExtensionDB::_singleton->_math_constants["NAN"] = { "NAN", Variant::FLOAT, Math_NAN };
+		}
 		
+		void ExtensionDBLoader::prime_global_enumerations()
+		{
 			// Global enumerations
 			{
 				EnumInfo ei;
@@ -830,7 +833,10 @@ namespace godot
 				for (const EnumValue& v : ei.values)
 					ExtensionDB::_singleton->_global_enum_value_names.push_back(v.name);
 			}
+		}
 		
+		void ExtensionDBLoader::prime_builtin_classes()
+		{
 			// Builtin Data Types
 			{
 				BuiltInType type;
@@ -3274,7 +3280,10 @@ namespace godot
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_COLOR_ARRAY] = "PackedColorArray";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedColorArray");
 			}
+		}
 		
+		void ExtensionDBLoader::prime_utility_functions()
+		{
 			// Utility Functions
 			{
 				FunctionInfo fi;
@@ -4495,6 +4504,14 @@ namespace godot
 				ExtensionDB::_singleton->_functions["is_same"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("is_same");
 			}
+		}
+		
+		void ExtensionDBLoader::prime()
+		{
+			prime_math_constants();
+			prime_global_enumerations();
+			prime_builtin_classes();
+			prime_utility_functions();
 		}
 
     }

@@ -22,6 +22,8 @@
 #include "script/nodes/variables/local_variable.h"
 #include "script/script.h"
 
+#include <iomanip>
+
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -132,8 +134,8 @@ const GDExtensionScriptInstanceInfo2 OScriptInstance::INSTANCE_INFO = init_scrip
 
 OScriptInstance::OScriptInstance(const Ref<OScript>& p_script, OScriptLanguage* p_language, Object* p_owner)
     : _script(p_script)
-    , _language(p_language)
     , _owner(p_owner)
+    , _language(p_language)
 {
     // Initialize variables
     _initialize_variables(p_script);
@@ -286,7 +288,13 @@ void OScriptInstance::notification(int32_t p_what, bool p_reversed)
 void OScriptInstance::to_string(GDExtensionBool* r_is_valid, String* r_out)
 {
     *r_is_valid = true;
-    *r_out = std::format("OrchestratorScriptInstance[{}]:{}", _script->get_path().utf8().get_data(), (void*)this).c_str();
+
+    if (r_out)
+    {
+        std::stringstream ss;
+        ss << "OrchestratorScriptInstance[" << _script->get_path().utf8().get_data() << "]:" << std::hex << this;
+        *r_out = ss.str().c_str();
+    }
 }
 
 bool OScriptInstance::get_variable(const StringName& p_name, Variant& r_value) const

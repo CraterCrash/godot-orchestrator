@@ -35,7 +35,7 @@ protected:
 
     //~ Begin OScriptNodeCallFunction Interface
     bool _is_method_info_serialized() const override { return false; }
-    MethodInfo get_method_info() const { return _function->get_method_info(); }
+    MethodInfo get_method_info() override { return _function->get_method_info(); }
     int get_argument_count() const override { return (int) _function->get_argument_count(); }
     int get_argument_offset() const override { return 0; }
     //~ End OScriptNodeCallFunction Interface

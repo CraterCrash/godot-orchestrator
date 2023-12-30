@@ -31,9 +31,9 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 OScript::OScript()
-    : _language(OScriptLanguage::get_singleton())
+    : _valid(true)
     , _base_type("Object")
-    , _valid(true)
+    , _language(OScriptLanguage::get_singleton())
 {
 }
 

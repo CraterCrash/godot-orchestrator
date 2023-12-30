@@ -85,7 +85,7 @@ bool OrchestratorSceneTreeDialog::_update_tree(TreeItem* p_item)
     bool keep = false;
 
     String text = p_item->get_text(0).to_lower();
-    if (has_filter && text.contains(_filter->get_text().strip_edges().to_lower()) || !has_filter)
+    if ((has_filter && text.contains(_filter->get_text().strip_edges().to_lower())) || !has_filter)
     {
         keep = true;
 

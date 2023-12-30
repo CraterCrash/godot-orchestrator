@@ -651,7 +651,8 @@ void OrchestratorScriptViewFunctionsSection::_handle_add_new_item()
     mi.name = name;
 
     // Initialize the node and register it with the script
-    OScriptNodeInitContext context(mi);
+    OScriptNodeInitContext context;
+    context.method = mi;
     node->initialize(context);
 
     _script->add_node(graph, node);
@@ -1428,7 +1429,8 @@ void OrchestratorScriptView::_add_callback(Object* p_object, const String& p_fun
         mi.arguments.push_back(pi);
     }
 
-    OScriptNodeInitContext context(mi);
+    OScriptNodeInitContext context;
+    context.method = mi;
     node->initialize(context);
 
     OrchestratorGraphEdit* editor_graph = _get_or_create_tab("EventGraph", true, false);

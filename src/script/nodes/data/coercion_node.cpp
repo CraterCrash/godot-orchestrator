@@ -35,7 +35,7 @@ public:
 
 OScriptNodeCoercion::OScriptNodeCoercion()
 {
-    set_flags(ScriptNodeFlags::NONE);
+    _flags = ScriptNodeFlags::NONE;
 }
 
 void OScriptNodeCoercion::post_initialize()

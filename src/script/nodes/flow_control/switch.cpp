@@ -281,8 +281,8 @@ bool OScriptNodeSwitchEditablePin::_get(const StringName& p_name, Variant& r_val
 {
     if (p_name.begins_with("pin_names/name_"))
     {
-        const size_t index = p_name.get_slicec('_', 2).to_int() - 1;
-        ERR_FAIL_INDEX_V(index, int(_pin_names.size()), false);
+        const int64_t index = p_name.get_slicec('_', 2).to_int() - 1;
+        ERR_FAIL_INDEX_V(index, _pin_names.size(), false);
         r_value = _pin_names[index];
         return true;
     }
@@ -303,16 +303,16 @@ bool OScriptNodeSwitchEditablePin::_set(const StringName& p_name, const Variant&
 {
     if (p_name.begins_with("pin_names/name_"))
     {
-        const size_t index = p_name.get_slicec('_', 2).to_int() - 1;
+        const int64_t index = p_name.get_slicec('_', 2).to_int() - 1;
 
-        const size_t current_size = _pin_names.size();
+        const int64_t current_size = _pin_names.size();
         if (index >= current_size)
         {
             _pin_names.resize(index + 1);
             notify_property_list_changed();
         }
 
-        ERR_FAIL_INDEX_V(index, int(_pin_names.size()), false);
+        ERR_FAIL_INDEX_V(index, _pin_names.size(), false);
         _pin_names[index] = p_value;
         _notify_pins_changed();
         return true;

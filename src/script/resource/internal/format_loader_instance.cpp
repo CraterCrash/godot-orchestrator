@@ -297,7 +297,7 @@ Error OScriptResourceLoaderInstance::_parse_variant(Variant& r_val)
         }
         case VARIANT_NODE_PATH:
         {
-            bool absolute;
+            [[maybe_unused]] bool absolute;
             Array names;
             Array subnames;
 
@@ -443,7 +443,7 @@ Error OScriptResourceLoaderInstance::load(const Ref<FileAccess>& p_file)
     }
 
     bool big_endian;
-    bool use_real64;
+    [[maybe_unused]] bool use_real64;
 
     big_endian = f->get_32();
     use_real64 = f->get_32();
