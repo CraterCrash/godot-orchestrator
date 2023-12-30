@@ -10,3 +10,16 @@ runs:
         sudo apt-get install mingw-w64
         sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+#    - name: (Windows) Configure mingw64
+#      if: startsWith(matrix.identifier, 'windows-')
+#      shell: sh
+#      run: |
+#        sudo ln -sf /usr/bin/gcc-13 /usr/bin/x86_64-w64-mingw32-gcc
+#        sudo ln -sf /usr/bin/g++-13 /usr/bin/x86_64-w64-mingw32-g++
+#        export CC=x86_64-w64-mingw32-gcc
+#        export CXX=x86_64-w64-mingw32-g++
+    - name: Verify GCC version
+      if: startsWith(matrix.identifier, 'windows-')
+      shell: sh
+      run: x86_64-w64-mingw32-gcc --version
+

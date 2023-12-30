@@ -61,6 +61,16 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install Latest GCC (Windows/Linux)
+        if: startsWith(matrix.identifier, 'windows-') || startsWith(matrix.identifier, 'linux-')
+        shell: sh
+        run: |          
+          sudo apt-get install gcc-13 g++-13 -y
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+          sudo update-alternatives --config gcc
+          sudo update-alternatives --config g++ 
+
       - name: Setup Windows Dependencies
         if: startsWith(matrix.identifier, 'windows-')
         uses: ./.github/actions/windows-deps
@@ -91,7 +101,7 @@ jobs:
         run: |
           cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier}} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja 
           cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier}} --target orchestrator -j 18
-          ls -l project/addons/*/bin/
+          ls -l project/addons/*/
           ls -l ${{ github.workspace }}/.out-${{ matrix.identifier}}
 
       - name: Build Orchestrator (Windows)
@@ -100,13 +110,13 @@ jobs:
         run: |
           cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier}} -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/toolchain-windows.cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja
           cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier}} --target orchestrator -j 18
-          ls -l project/addons/*/bin/
+          ls -l project/addons/*/
           ls -l ${{ github.workspace }}/.out-${{ matrix.identifier}}
 
       - name: Include Files
         shell: sh
         run: |
-          cp '${{ github.workspace }}/AUTHORS.md' '${{ github.workspace }}/CHANGELOG.md' ${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' ${{ github.workspace }}/project/addons/orchestrator/          
+          cp '${{ github.workspace }}/AUTHORS.md' '${{ github.workspace }}/CHANGELOG.md' '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/project/addons/orchestrator/'          
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
