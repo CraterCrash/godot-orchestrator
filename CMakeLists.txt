@@ -26,7 +26,7 @@ add_compile_definitions(TOOLS_ENABLED)
 OPTION(
         AUTOFORMAT_SRC_ON_CONFIGURE
         "If enabled, clang-format will be used to format all sources in src/ during configuration"
-        ON
+        OFF
 )
 
 SET(CMAKE_CXX_STANDARD 20)
