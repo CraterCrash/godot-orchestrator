@@ -98,13 +98,6 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<O
 
     _context_menu = memnew(PopupMenu);
     add_child(_context_menu);
-
-    // Allow disconnecting from either side
-    // 0 = execution, 1 = data
-    add_valid_left_disconnect_type(0);
-    add_valid_left_disconnect_type(1);
-    add_valid_right_disconnect_type(0);
-    add_valid_right_disconnect_type(1);
 }
 
 void OrchestratorGraphEdit::initialize_clipboard()
