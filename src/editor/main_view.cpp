@@ -536,7 +536,16 @@ void OrchestratorMainView::_navigate_to_current_path()
 int OrchestratorMainView::_parse_version(const String& p_version)
 {
     PackedStringArray bits = p_version.split(".");
-    return bits[0].to_int() * 1000000 + bits[1].to_int() * 1000 + bits[2].to_int();
+
+    int version = 0;
+    if (bits[0].is_valid_int())
+        version += bits[0].to_int() * 1000000;
+    if (bits[1].is_valid_int())
+        version += bits[1].to_int() * 1000;
+    if (bits[2].is_valid_int())
+        version += bits[2].to_int();
+
+    return version;
 }
 
 void OrchestratorMainView::_show_script_editor_view(const String& p_file_name)
