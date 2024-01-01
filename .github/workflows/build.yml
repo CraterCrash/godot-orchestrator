@@ -103,7 +103,7 @@ jobs:
           cp '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/project/addons/orchestrator/'
 
       - name: Upload artifact (Demo)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-demo-${{ matrix.identifier }}
           retention-days: 1
@@ -111,7 +111,7 @@ jobs:
             ${{ github.workspace }}/project/
 
       - name: Upload artifact (Plugin)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-plugin
           retention-days: 1
