@@ -1406,6 +1406,15 @@ void OrchestratorScriptView::_on_override_function()
 
 void OrchestratorScriptView::_add_callback(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
 {
+    // Get the script attached to the object
+    Ref<Script> edited_script = p_object->get_script();
+    if (!edited_script.is_valid())
+        return;
+
+    // Make sure that we're only applying the callback to the right resource
+    if (edited_script.ptr() != _script.ptr())
+        return;
+
     // Check if the method already exists and return if it does.
     if (_script->has_function(p_function_name))
         return;
