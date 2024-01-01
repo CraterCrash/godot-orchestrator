@@ -1,6 +1,6 @@
 = Contributing guidelines
 
-The possibility to study, use, modify, and redistribute modifications of this addon's source code is the fundamental rights that Orchestrator's https://www.tldrlegal.com/license/mit-license[MIT,role=external-reference] license grants you, making it https://en.wikipedia.org/wiki/Free_and_open-source_software[free and open source software,role=external-reference].
+The possibility to study, use, modify, and redistribute modifications of this addon's source code is the fundamental rights that Orchestrator's https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0 License,role=external-reference] grants you, making it https://en.wikipedia.org/wiki/Free_and_open-source_software[free and open source software,role=external-reference].
 
 As such, everyone can modify this addon's source code and send those modifications back to the upstream project as a pull request, which is a proposal to merge one or more Git commits (patches) into the main development branch of the addon.
 
@@ -16,7 +16,7 @@ Depending on the scope of the changes, it may take time for a maintainer to prov
 We value all contributors and ask them to be patient because, in an open-source project, there will be way more contributions than people available to validate them.
 
 To ensure that your time and effort are well-spent, we recommend you vet your idea before implementing it and submitting it for review as a pull request.
-Orchestrator has a dedicated https://forums.vahera.com/c/godot-plugins/orchestrator/22[section,role=external-reference] on the https://forums.vahera.com/[Vahera forums,role=external-reference] where you can discuss your idea with the community, other contributors, and maintainers ahead of time.
+Orchestrator has an official https://discord.gg/7x98Pzsn[discord,role=external-reference] where you can discuss your idea with the community, other contributors, and maintainers ahead of time.
 
 [NOTE]
 ====
@@ -40,7 +40,7 @@ The https://github.com/Vahera/godot-orchestrator[repository on GitHub,role=exter
 [NOTE]
 ====
 The same repository is home to both Orchestrator's code and documentation.
-If you want to change the documentation, please modify files in the `/docs` subdirectory as the files in the `/addons` directory refer to the source code.
+If you want to change the documentation, please modify files in the `/docs` subdirectory as the files in the other directories refer to the source code.
 ====
 
 The Git version control system is the tool used to keep track of successive edits to the source code.

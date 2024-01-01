@@ -6,7 +6,7 @@
 ** xref:tutorial.adoc[]
 * Advanced Topics
 ** xref:architecture.adoc[]
-** xref:custom-nodes.adoc[]
+
 * Contributing
 ** xref:contributing-guidelines.adoc[]
 ** xref:code-guidelines.adoc[]

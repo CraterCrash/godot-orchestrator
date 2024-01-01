@@ -1,18 +1,66 @@
 = Tutorial
 
-We will walk through a simple example of how to create an `Orchestration` that outputs the text "Hello World" to the console / output editor window twice before the orchestration ends.
-To do this, we're going to make use of the xref:nodes.adoc#_start[Start], xref:nodes.adoc#_end[End], xref:nodes.adoc#_repeat[Repeat], and xref:nodes.adoc#_expression[Expression] nodes.
+In this tutorial, we will walk through a simple example of how to set up an `Orchestration` to spin a cube each frame.
+
+== Setting up the scene
+
+Before we begin to set up the visual scripting aspects of our scene with Orchestrator, we actually first need a scene to work with.
+For the purposes of this tutorial, we're going to create a 3D scene with a cube at the origin.
+
+At the top of the Editor, select the `3D` module and then select the `3D Scene` option on the left to create a new 3D scene.
+If you don't see this option, select **Scene > New Scene**.
+
+This scene is not very exciting as it has no content, so let's add the cube that we want to rotate.
+From the `Scene` tab, right-click on the `Node3D` root node and select **Add Child Node**.
+This will open up a node selection dialog window.
+Search for `MeshInstance3D` and select it.
+Your Scene tree should look like the following now:
+
+.Scene after adding MeshInstance3D
+image::tutorial-add-mesh3d.png[Scene]
+
+As we can see, there really isn't much in the viewport to look at yet, and that is because we have not yet assigned a mesh, aka the shape, that we want to draw.
+Select the `MeshInstance3D` node in the scene tree if it isn't already selected, then on the right side in the Inspector Dock, click the button next to Mesh that reads "empty".
+You should be presented with a drop-down menu and select `New BoxMesh`.
+Your 3D viewport should look similar to this now:
+
+.Scene after adding BoxMesh
+image::tutorial-add-box-mesh.png[Scene]
+
+The last thing we need before we begin writing our Orchestration is a Camera in the scene so that when we run the scene, we can see the cube being rotated.
+In the Scene tab, select the root `Node3D` node, right-click and select **Add Child Node**.
+Now search for `Camera3D` and select to add it.
+Your scene tree should now look like this:
+
+.Scene after adding Camera
+image::tutorial-add-camera.png[Scene]
+
+Now just before we go, we need to adjust the position of the Camera.
+As you may notice in the 3D viewport, both the camera and the cube are both at the origin, or `(0,0,0)`.
+
+To adjust the placement of the camera, you can use the 3D Gizmo or you can adjust the properties of the Camera3D node directly from the inspector.
+With the `Camera3D` node selected in the scene tree, navigate to the Inspector Dock, expand the **Transform** section under **Node3D** and set the following properties:
+
+.Camera properties
+image::tutorial-add-camera-properties.png[Scene]
+
+The camera is now set up.
+You can toggle the camera's perspective by clicking the **Preview** checkbox in the top left corner of the viewport to see what the scene will look like when you run the game, or you can hit **F6** to run the scene directly.
+Now with that done, lets jump into creating some visual scripting!
 
 == Create the orchestration
 
-Start the Godot editor and navigate to the "Orchestrator" main view to create a new, empty orchestration.
+At the top of the Godot Editor, navigate to the "Orchestrator" main view to create a new, empty orchestration.
 If you still need to enable the Orchestrator plug-in within your project, please read the xref:installation-guide.adoc[Installation Guide].
 
 .Steps to create an orchestration:
 1. Click **File > New Orchestration** menu option from the Orchestrator main view toolbar.
-2. Provide a new orchestration file name, for this example use `tutorial.tres` and click `OK`.
+2. Select a base type class, in our case it will be `Node3D`.
+3. Provide a new orchestration file name, for this example use `rotate.os` and click `OK`.
 
-At this point, the editor will show the `tutorial` name in the **File List View**, and the main view's editor graph window will appear.
+At this point, the editor will show the file `res://rotate.os` in the **File List View**, and the main view's editor graph window will appear.
+Additionally, the component view will appear and contain the default **EventGraph** graph.
+
 The following shows what this should look like:
 
 .Blank tutorial orchestration example
@@ -20,88 +68,147 @@ image::tutorial-create-orchestration.png[Create orchestration]
 
 == Add nodes to node graph
 
-An `Orchestration` is a node graph representing the logic the orchestration executes at runtime.
-We intend to create a simple orchestration in the tutorial that prints out "Hello World" twice to the console or editor output window.
+An `Orchestration` is a visual representation of code using nodes in a graph to form logic.
+Lets step through how to add nodes to the graph area to simulate rotating the cube.
 
-=== Add start node
+=== Step 1 - Process Event
 
-The first node you should generally add to an `Orchestration` is a xref:nodes.adoc#_start[Start] node.
-A start node provides a marker for the Orchestrator plug-in to know where to begin execution at runtime.
-To add a start node, expand the xref:nodes.adoc#terminal[Terminal] category on the bottom left and drag the **Start** type onto the node graph.
-Once the mouse is over the node graph, when you release the mouse, the node will be added.
+We want our cube to begin rotating right as the scene starts to play.
+But more importantly, we want to continuously rotate the node each frame, and the way to handle that in Godot is to set up a per-frame handler, called a **Process Event** which represents a `_process` function call.
 
-=== Add repeat node
+In the component view on the right, locate the **Override Function** button in the Function component's panel and click it.
+This opens up a new **All Actions** dialog, which contains all available functions that can be overwritten.
+In the search box type **Process** and you should see two options remain, **Call Physics Process** and **Call Process**.
+For the purposes of this tutorial, we're going to use the **Call Process** option, so select that option.
 
-The next node to be added is the xref:nodes.adoc#_repeat[Repeat] node.
-A repeat node is a flow-control node that allows a specific sequence of node to be executed a configured number of times.
-To add a repeat node, repeat the same process by expanding the xref:nodes.adoc#flow-control[Flow control] category on the bottom left and drag the **Repeat** type onto the node graph.
-Once the mouse is over the node graph, when you release the mouse, the node will be added.
+A new **Process Event** node will be added to the graph area.
+If you cannot find the node, you'll see that there is now a `_process` entry under **EventGraph** in the graph component view.
+By double-clicking the `_process` item, the newly added node should be focused automatically.
 
-=== Add expression node
+This function acts as our entry-point, it will be what Godot calls to inform us to do our rotation logic each frame.
+The node has two output pins, one execution and one data pin.
+The execution pin is what defines the control flow of the graph, while the data pin defines some data that is being passed.
+For the **Process Event**, this data pin passes the _delta_ time value that we'll use shortly.
 
-Follow the same procedure for the xref:nodes.adoc#_expression[Expression] node by expanding the xref:nodes.adoc#logic[Logic] category, and drag the **Expression** node onto the node graph.
-The **expression** node allows us to define code that the `Orchestration` will execute.
+.Orchestration after adding Process Event
+image::tutorial-step-1.png[Step 1]
 
-=== Add end node
+=== Step 2 - Rotate Cube
 
-Finally, add the xref:nodes.adoc#_end[End] node by expanding the xref:nodes.adoc#terminal[Terminal] category, and drag the **End** node onto the node graph.
+We intend to attach this Orchestration to the `MeshInstance3D` node in the scene tree.
+By doing this, we can call any function on ourselves to affect the cube we added to the scene earlier.
 
-=== Result
+So in the graph area, click using the right mouse button to open the **All Actions** dialog window.
+Using the search box, enter **Rotate Y**.
+We're going to do a simple rotation of the cube around its Y-axis.
+Select the **Call Rotote Y** action and a new node should be added to the graph.
 
-Once all nodes are added, you should have a view that looks similar to the following:
+This node looks a bit different from the **Process Event** we added in the previous step.
 
-.Tutorial output after adding nodes
-image::tutorial-preconnect-orchestration.png[Preconnect tutorial]
+Most notably, this pin has 2 data input values, one with a label of **Target (self)** and another that is called **angle**.
+The former allows this node to take an object reference to call the `rotate_y` function on that object instead.
+For the sake of this demo, we're going to want to call that function on our self, so we will leave that pin disconnected.
+The latter represents the angle in radians that which the cube should be rotated.
 
-== Link nodes in node graph
+For now, in the text entry box next to the **angle** input, enter the value of `0.05`.
+This sets a default, hard-coded rotation angle value.
 
-Now, we must connect the nodes so the orchestration is runnable.
-Nodes can be connected by left-clicking the mouse on the output slot (circle on right side of nodes) to an input slot (circle on the left side of nodes).
+.Orchestration after adding Rotate Y Function Call
+image::tutorial-step-2.png[Step 2]
 
-=== Link start to repeat
+=== Step 3 - Test it
 
-The first easy part is to link the **Start** and **Repeat** nodes.
+The last step we need to do before we can test this Orchestration is that we need to attach the Orchestrator script to a scene node.
+From the FileSystem Dock, drag the `rotate.os` file up into the Scene tree and drop it over `MeshInstance3D`.
+You should see two things change in the scene tree when you do this:
 
-.Link start and repeat
-image::tutorial-start-repeat-link.png[Link start and repeat]
+1. A small document icon should toward the right, meaning a script is now attached.
+2. The node's icon should change to the Orchestrator logo.
 
-=== Link repeat with expression
+.After Attaching Orchestration to MeshInstance3D Node
+image::tutorial-step-3.png[Step 3]
 
-The next step is to link **Repeat** with **Expression** and **Expression** back to **Repeat**.
-We want to create this loop because we want to execute a `print` method call twice to output "Hello World".
+With the Orchestration attached, press the **F6** button to play the scene.
+The editor will most likely ask that you save the scene, so provide a name for the scene.
+Once the scene is saved, the Editor will begin to play the scene, and you should see the box rotate.
 
-.Link repeat and expression
-image::tutorial-repeat-expression-link.png[Link repeat and expression]
+=== Step 4 - Environment
 
-In addition, we should also set the **Repeat** node's value to `2` and set the **Expression** node's expression value to `print("Hello World")`, as indicated.
+Now the fidelity and lighting is horrible, that's because we haven't added any environment.
+Toward the middle of the toolbar on the 3D viewport, there is a an icon that looks like 3 white dots above one another.
+By clicking on that icon, a popup appears.
+On the left are settings for lighting and the right provides standard Environment settings.
+
+1. Select **Add Environment to Scene**
+2. Reopen the popup and select **Add Sun to Scene**
+
+There should now be 2 additional nodes that are children of the root `Node3D` node in the scene.
+
+.After Attaching Environment and Sun nodes
+image::tutorial-step-4.png[Step 4]
+
+If you hit **F6** to replay the scene, you should now notice that the cube and lighting look better.
+
+=== Step 5 - Interpolate rotation
+
+The final step we want to illustrate is interpolation.
+In **Step 2**, we used the hard-coded value of `0.05` to control the rotation of the cube.
+This isn't necessarily bad, but it's common practice to use interpolation in these use cases.
+
+What we're going to do is expose a variable that can be set in the scene to control the speed of the rotation.
+This will allow the same Orchestration to be used on different objects in the scene and you can specify different rotation speeds for each.
+
+Navigate back to the **Orchestrator** main view.
+First start by creating the variable that we want to export.
+In the components view on the right, click the **+** icon in the variable's section and define a variable with a name.
+Call it `rotation_speed`.
+In the Inspector Dock, the variable should be focused and change the data type from `Any` to `Float`.
+And finally click the `Exported` check-box to enable it.
+
+.What the variable definition should look like
+image::tutorial-step-5-variable.png[Variable declaration]
+
+Next, drag the variable from the variable component view onto the graph area.
+When letting go, a small popup box will be shown, asking to select either **Get rotation_speed** or **Set rotation_speed**.
+Since we want to read the variable's value, select the **Get** option.
+
+Users understand the idea of Degrees better than Radians typically, so we need to take the angle in degrees and convert it to radians for the `rotate_y` function call.
+We'll do this by dropping in a Godot built-in function call to `deg_to_rad`.
+Right-click the graph area to open the **All Actions** dialog window.
+
+In the search box, type `Deg` and you'll see near the bottom an entry that reads **Deg To Rad**.
+By selecting **Deg To Rad**, a new node is added to the graph.
+Lastly, re-open the **All Actions** dialog and search for `Multiply Float`.
+There will be a number of different ones, be sure to section the one under the **Float** category as we want to multiple two different floats.
+
+Now that we have all the nodes, we need to connect the data pins.
+
+1. Connect the `delta` pin from **Process Event** to the **A** port on the **Multiply Float** node.
+2. Connect the `rotation_speed` output pin to the **B** port on the **Multiply Float** node.
+3. Connect the output of the **Multiply Float** node to the input of the **Deg To Rad** node.
+4. Connect the output of the **Deg To Rad** node to the input `angle` port of **Call Rotate Y** node.
+
+Your graph should now look like the following:
+
+.Graph
+image::tutorial-step-5-graph.png[Graph]
+
+If you hit **F6** to play the scene, you'll notice that the cube is not rotating.
+This is expected because the variable's initial default value was left as `0`, so this means that we are not doing any rotation.
+
+In the Scene tree, click on the `MeshInstance3D`.
+You will see that there is now an Inspector Dock section called **rotate.os** and that there is a property **Rotation Speed** with a value of `0`.
+Modify the property's value to `50` and rerun the scene using **F6**.
+
+.Inspector Dock after changes to MeshInstance3D
+image::tutorial-step-5-inspector.png[Inspector]
+
+As you can see, the cube now spins.
 
 [NOTE]
 ====
-The nodes have also been slightly rearranged to make the connections more visible and understand which slots are connected where.
+As an added exercise, you can add another `MeshInstance3D` to the scene, dragging the `rotate.os` file over the new mesh in the scene tree.
+From there, set the value of **Rotation Speed** to something different from `50`.
+If you rerun the scene you should be able to see the two nodes running with separate interpolation rates, but using the same code.
 ====
-
-=== Link repeat with end
-
-The final step is to link **Repeat** with **End**.
-This will be done by connecting the `done` output of **Repeat** to the input slot of **End**.
-
-.Link repeat and end
-image::tutorial-repeat-end-link.png[Link repeat and end]
-
-== Save and run orchestration
-
-With the `Orchestration` filled with the node behavior we need, we need to save the `Orchestration` before it can be tested.
-Navigate to the **File > Save** menu option to save the nodes and their connections inside the `tutorial.tres` orchestration resource.
-
-To test the `Orchestration`, navigate to the **File** menu and select the **Run** option.
-You will briefly see Godot's editor start a game window, which executes the orchestration and then terminates.
-If you navigate to the editor's **Output** window, you'll notice the orchestration provided some output.
-
-.Tutorial output
-[source,text]
-----
-Hello World
-Hello World
---- Debugging process stopped ---
-----
 

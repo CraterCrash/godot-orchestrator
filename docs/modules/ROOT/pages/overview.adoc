@@ -1,15 +1,21 @@
 = Overview
 
-Orchestrator is a https://godotengine.org[Godot Engine,role=external-reference] plug-in that runs within the Godot Editor to design and implement a game logic using a graph-node visual-script-like system.
+Orchestrator is a https://godotengine.org[Godot Engine,role=external-reference] GDExtension plug-in that runs within the Godot Editor to design and implement a game logic using a graph-node visual-script-like system.
 
 .An example orchestration
-image::orchestrator-overview-example.png[Example]
+image::overview-example-orchestration.png[Example]
 
 The entire node graph is called an `Orchestration` and stored as a Godot resource within your project.
-An orchestration can be loaded in the Editor to make changes to the flow and can be loaded at runtime to execute the behavior as part of your game.
+An orchestration can be loaded in the Editor to make changes to the flow and logic, and attached to scene nodes much in the same way that GDScript or CSharp scripts can be attached to scene nodes.
 
-An `Orchestration` is made up of `OrchestrationNode` resources, which represent each of the steps or nodes within the graph, and each node serves a unique purpose.
-Orchestrator also permits custom node implementations to add to the existing behavior of the plug-in, which is discussed in the xref:orchestrator::custom-nodes.adoc[Custom Nodes] section.
+An `Orchestration`, or also referred to as an `OScript`, is made up of nodes called `OScriptNode` resources.
+These nodes can represent specific functionality, access to specific Godot utility functions, may call user-defined functions, or simply aid in documentation, as with comment nodes.
+
+[NOTE]
+====
+Orchestrator v1 allowed for custom node implementations to add existing behavior to the plug-in.
+At this time, adding custom nodes is not available in the new GDExtension implementation, but will be added in a future patch when we include support for Macro and Function libraries.
+====
 
 == Editor configuration
 
@@ -18,10 +24,14 @@ The Godot engine provides functionality for editor plug-ins to directly integrat
 With the project settings dialog open, click the **General** tab and navigate near the bottom of the options left panel or simply using the filter settings widget and begin typing `Orchestrator`.
 The plug-in allows you to define a number of features in this window including:
 
-* A custom scene to use when running the orchestration from within the editor.
-* Background, border, and title-bar colors used by different node types.
+* Default script class type
+* Numerous UI customizations for colors of nodes, connection lines, and icons.
 
-image::editor-plugin-project-settings.png[Plugin project settings]
+.Plugin General Settings
+image::overview-project-settings-1.png[Plugin Settings 1]
+
+.Plugin User Interface Settings
+image::overview-project-settings-2.png[Plugin Settings 2]
 
 [NOTE]
 ====
@@ -42,27 +52,16 @@ The editor does not initially show the editor graph.
 You must create a new or open an existing orchestration using the `File` menu first.
 
 .Orchestrator main view
-image::editor-main-view.png[Editor Main View]
-
-=== Grid / Graph editor
-
-The grid or graph editor window on the right side of the main view is where you will spend most of your time interacting with orchestrations.
-This is the view where you will drag nodes, configure node attributes, and connect nodes together to create a flow graph of nodes representing your desired behavior.
-
-[NOTE]
-====
-Currently, no context menu or immediate node creation functionality is available on mouse right clicks, similar to the old Godot Visual Scripting behavior.
-If you would like to see this added, please open a GitHub feature request.
-====
+image::overview-main-view.png[Editor Main View]
 
 === File list
 
-On the top left of the main view is the **Orchestration Files** list view.
-This list view provides access to the currently open orchestrations inside the editor.
-This allows you to open and manage multiple orchestrations concurrently freely.
+To the left of the graph area is the **Orchestration Files** list view.
+This list view provides access to all open orchestration script files inside the editor.
+You cn manage and open as many orchestrations concurrently and freely navigate between them.
 
 .File List View
-image::editor-main-view-file-list.png[Orchestration File List View]
+image::overview-file-list.png[Orchestration File List View]
 
 To change between each opened orchestration, click on the orchestration file name in this list, and the orchestration graph panel to the right will update accordingly.
 
@@ -72,159 +71,119 @@ If several orchestrations are open concurrently, you can use the "Filter orchest
 This can quickly help isolate a specific orchestration of interest without manually finding it within the list view.
 ====
 
-=== Available Nodes
+=== Component view
 
-On the bottom left of the main view is the **Available Nodes** list view.
-The Orchestrator plug-in maintains this list view, providing direct access to all `OrchestrationNode` implementations available by the Orchestrator plug-in or custom nodes provided by the currently opened project.
+To the right of the graph area is the **Orchestration Component** view.
+This view displays several accordion controls and tree lists of the graphs, functions, variables, etc. contained with the Orchestration.
+This is essentially an outline of the Orchestration that lets you quickly navigate to specific sub-elements of the Orchestration, as well as create new ones.
 
-.Available Node View
-image::editor-main-view-available-nodes.png[Available Nodes List View]
+.Component View
+image::overview-component-view.png[Orchestrator Component View]
 
-Each node _type_ in Orchestrator is organized into a category that best describes the functionality that the given node exposes for game logic purposes.
-For example, an "if condition" node called `Condition` is categorized into a "Flow Control" category because, based on evaluating the condition, the logic flow may take one of two paths.
+For example, a standard Orchestration will always have a default **EventGraph**.
+In addition, any functions created within the Orchestration will be displayed.
 
-[NOTE]
-====
-We will discuss `OrchestrationNode` attributes such as naming and category in the xref:orchestrator::custom-nodes.adoc[Custom Nodes] section where we cover how to create project-specific custom nodes.
-====
+==== Graphs
 
-To work with these nodes, select a node from this list and drag the node onto the Orchestration's graph grid space.
-Doing so, Orchestrator will create the specific node at the mouse's current position, and you can then safely configure and wire up the node with other nodes within the orchestration.
+The graph component view maintains a list of all node graphs stored within the Orchestration script.
+Graphs allow for better organization of logic and to avoid having large, complex graph workspaces.
 
-We will discuss each node and their actions in the xref:orchestrator::nodes.adoc[Basic > Nodes] section.
+New graphs can be created by using the **+** icon at the right of the panel header.
 
-[IMPORTANT]
-====
-Unlike other Visual Scripting solutions, such as Godot 3's VisualScript language, Orchestrator focuses on higher abstraction with node behaviors rather than lower-level language constructs.
-This difference enables faster development with a focus on reusable behaviors represented as nodes.
-====
+==== Functions
 
-=== Running orchestrations in the editor
+The function component view maintains a list of all user-defined functions within the Orchestration script.
+A user-defined function allows you to organize re-usable bits of logic within the Orchestration so that you can call that functionality from different points without having to duplicate the node graph.
+A function graph is very much modeled after a Godot function, where you can pass multiple input arguments into the function, and you can optionally return a value but you are limited to only one.
 
-You can create and manage orchestration(s) within the editor and test the logic that your orchestration provides with a few simple clicks.
-Orchestrator aims to provide a solid foundation for developing and testing your orchestrated game logic flows.
+New functions can be created by using the **+** icon at the right of the panel header.
+Additionally, Godot virtual functions such as `_ready` or `_physics_process` can be overwritten in an Orchestration by using the Lock button to the far right of the panel header.
+This opens a context menu to select overridable functions that will be directly placed onto the EventGraph.
 
-To run an orchestration from within the editor, open the **File menu** on the Orchestrator's main view toolbar menu and select the **Run** option, as shown below:
+Finally in order to call user-defined functions, simply drag the function onto the graph area or right-click the graph area to open the context node action menu, searching for the keywords "call" and the name of your function.
 
-.Orchestrator File Menu
-image::editor-main-view-file-run.png[Run Orchestration]
+==== Macros
 
-You can also use the hot-key mapping of `Shift` + `Ctrl` + `X` in order to execute the orchestration.
+The macro component view maintains a list of local macros that are defined in the Orchestration script.
+A macro is essentially a custom node type, where you implement your node logic using visual scripting building blocks and then within a user-defined function or event graph, the macro node would be used.
 
-[NOTE]
-====
-Currently, orchestrations are not saved automatically before executing the `Run` command, so be sure that if you've made changes, you save the orchestration before running.
-====
+Macros different from functions because they accept zero or more input values and can return zero or more output values.
+Additionally, macros can support multiple execution pins both into and out of the macro, where-as a function only supports a singular execution input and output pin.
 
-When running an `Orchestration` from within the editor, the plug-in will use the test scene found in `/addons/orchestrator/test` directory.
-
-The editor will start a separate Godot game process that uses this test scene.
-If you have configured your project with a main scene, the `Run` option will not use your main scene, and instead will use the test scene.
+Macros can be defined at two different levels, one is inside an Orchestration script and the other is inside an Orchestration macro library.
+When a macro is defined inside the script, it's local to that script and other scripts aren't able to access or use that macro node.
+When a macro is defined inside a library, it is global and any Orchestration script will be able to use that macro node.
 
 [NOTE]
 ====
-Orchestrator cannot be configured to use a different test scene;  however, this is something that has been requested and will be added in a future build of the plug-in.
+Macros are not a feature that is currently included in this release, but is planned in a future release.
 ====
 
-== In-game integration
+==== Variables
 
-Any Godot project can integrate with this plug-in using one of two methods:
+The variable component view maintains a list of variables that are defined in the Orchestration script.
+A variable is a logical name with a given data type that is used to store some arbitrary state at runtime.
 
-* Use the `OrchestrationPlayer` scene tree node
-* Using GDScript to interface directly with the `Orchestrator` singleton.
+.Variable component view and Inspector details
+image::overview-variable.png[Variable]
 
-In this section, we're going to dive into the advantages of both.
+In addition to a logical name and type, variables also can be categorized.
+By default, variables have an empty category, which means they'll be listed at the top-level of the variable tree.
+Specifying a variable category can be useful to organize like variables together based on some theme.
 
-=== Orchestration player
+Finally, Orchestrator script variables can be exported, just like GDScript variables.
+This means that those variables can be accessed by outside objects in your scene and manipulated as though they're public.
+It also means those properties will be visible in the InspectorDock for the scene tree node that the Orchestration script is attached.
 
-The `OrchestrationPlayer` node is an extension node provided by this plug-in that you can drop into any scene where you want to execute orchestrations.
-The node extends Godot's `Node` contract, which makes it available for both 2D and 3D scenes alike.
+To add a new variable, use the **+** icon at the right of the panel header.
+Once a variable has been defined, it can be edited through a combination of the InspectorDock and right-clicking the variable in the component view.
 
-To add an `OrchestrationPlayer` node to your scene, simply open the "Create new node" dialog window and search for `OrchestrationPlayer`.
-You should see the following option available if the Orchestrator plug-in is currently enabled in your project:
-
-image::editor-create-orchestration-player.png[Create orchestration player node]
-
-With the node added to your scene, there are several attributes you can configure on the node.
-By selecting the node in the scene tree, the following shows what options are available in the inspector:
-
-image::editor-inspector-orchestration-player.png[Inspecting orchestration player]
-
-In this view, you can set the `Orchestration` resource to be played along with whether the resource is to be auto-played or requires manual start using the `start()` method.
-When the player enables auto-play, the `Orchestration` will be started when the player's `_ready()` function is called.
+To use the variable, simply drag the variable from the component view to the graph area, and a popup menu will then allow you to select whether you want to read the variable value (Get) or write to the variable (Set).
 
 [TIP]
 ====
-You can also use the `OrchestrationPlayer` directly from your own GDScript code, dynamically adding the player to your scene as needed.
-
-Since the node's `_ready()` function dispatches the `start()` method when the node is configured with auto-play enabled, be sure that when setting the node's properties that you do so before adding the node to the scene to guarantee proper auto-play behavior.
+Specifying a variable category not only groups variables by category within the Variable view, but it also groups the variables under a collapsable section in the InspectorDock on the scene node if the variable is exported.
 ====
 
-If you would like to dynamically add the `OrchestrationPlayer` to your scene using GDScript, the following shows a simple example of how to do that with auto-play enabled:
+==== Signals
 
-[source,gdscript]
-----
-func _ready() -> void:
-    var orchestration_player = OrchestrationPlayer.new() <.>
-    orchestration_player.orchestration = "res://test/resources/test4.tres" <.>
-    orchestration_player.auto_play = true <.>
-    add_child(orchestration_player) <.>
-----
-<.> Construct a new `OrchestrationPlayer` instance.
-<.> Assign the orchestration resource that should be loaded.
-<.> Mark the player to start automatically.
-<.> Add the player to the scene.
+The signal component view maintains a list of all user-defined custom signals in the Orchestration script.
+A signal is a Godot concept that supports the Subject / Observer pattern.
 
-The following example illustrates adding the `OrchestrationPlayer` to the scene using GDScript, but in this case the player is not started automatically and is triggered instead by some other callback:
+Any interested party, a scene node, resource, or Editor component can subscribe to the signal by connecting to it.
+Then as the Orchestrator script's logic executes each frame, the script can raise or emit the signal and any connected party will be informed.
+In addition, signals can have zero or more arguments, so it's a great way to pass data in a de-coupled way from the observed subject to the observer.
 
-[source,gdscript]
-----
-var _orchestration_player : OrchestrationPlayer
+.Signal component view and Inspector details
+image::overview-signal.png[Variable]
 
-func _ready() -> void:
-    _orchestration_player = OrchestrationPlayer.new() <.>
-    _orchestration_player.orchestration = "res://test/resources/test4.tres" <.>
-    add_child(_orchestration_player) <.>
+To add a new signal, use the **+** icon at the right of the panel header.
+Once a signal has been defined, it can be edited through a combination of the InspectorDock and right-clicking the signal in the component view.
 
-func _on_button_pressed() -> void:
-    _orchestration_player.start() <.>
-----
-<.> Construct a new `OrchestrationPlayer` instance.
-<.> Assign the orchestration resource that should be loaded.
-<.> Add the player to the scene.
-<.> Starts the orchestration when the button pressed signal is called.
+To emit the signal, simply drag the signal from the component view to the graph area to create an emitter node.
 
-=== Orchestrator singleton
+=== Grid / Graph editor
 
-At the foundation of the Orchestrator plug-in during a game's runtime is the `Orchestrator` singleton.
-This autoload is enabled by the plug-in and is responsible for providing access to running orchestrations directly from GDScript with any scene element.
+The graph area in the main portion of the Editor window is where you will spend the vast majority of your time interacting with Orchestrations.
+This is the area where nodes will be created, dragged, configured, and connected together to create game logic and behaviors.
 
-While we recommend to use `OrchestrationPlayer`, there may be times when embedding the plug-in inside an existing node's behavior is warranted, so utilizing the `Orchestrator` singleton for this use case is preferred.
-The following illustrates just how easy it is to use the singleton in GDScript:
+To get started with adding nodes to the graph area, right click anywhere in the graph area space to open the context-sensitive action menu.
+This will provide access to all Orchestrator Script nodes and Godot class functions and properties based on the base type of the script.
+You can use the search box at the top to quickly filter the list of actions.
 
-[source,gdscript]
-----
-@onready var _orchestration = preload("res://my_orchestration.tres") <.>
+Once nodes are placed, you'll notice that most have two different types of ports along the edges of the node.
+The ports that look like white triangles facing right are called **execution** pins, and these define the control flow for your logic.
+The ports that are various color dots are called **data** pins, and these are what pass data between nodes.
 
-func _ready() -> void:
-  Orchestrator.orchestration_finished.connect(_orchestration_finished) <.>
-  Orchestrator.execute(_orchestration) <.>
+Ports on the left side of a node are called input pins while ports on the right are called output pins.
+These pins can be connected by using the left mouse button to click on a port to start creating a connection line to another port.
 
-func _exit_tree() -> void:
-  Orchestrator.orchestration_finished.disconnect(_orchestration_finished) <.>
+We will discuss each node and its functionality in the xref:orchestrator::nodes.adoc[Nodes] section.
 
-func _orchestration_finished() -> void: <.>
-  # do whatever logic after orchestration finished
-  pass
-----
-<.> Use `load` or `preload` to have the engine load the `Orchestration` resource.
-<.> Connect the `orchestration_finished` signal callback.
-<.> Disconnect from the `orchestration_finished` signal.
-<.> Executes the orchestration using the `Orchestrator` autoload / singleton.
-<.> Orchestration finished callback, called when the orchestration has completed.
+=== Running/Using orchestrations
 
-[NOTE]
-====
-The `orchestration_finished` signal is often quite important for knowing when the orchestration ends when using the "show message" node or any other custom node that has some UI-level interaction that may rely on user input or span across multiple frames.
-====
+An Orchestration is a script resource that must be attached to a scene node for it to execute.
+This works much in the same way that a CSharp script or a GDScript are attached to scene nodes.
 
+Once you've made changes to an Orchestration, pressing the **F5** key in the Editor will start debugging the main scene.
+It's here you can test your Orchestration logic and verify that it works as intended.
