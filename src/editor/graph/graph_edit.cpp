@@ -821,6 +821,26 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
 {
     for (const String& node_name : p_node_names)
     {
+        if (OrchestratorGraphNode* node = _get_node_by_name(node_name))
+        {
+            if (!node->get_script_node()->can_user_delete_node())
+            {
+                const String message = "Node %d with the title '%s' cannot be deleted.\n"
+                    "It may be that this node represents a function entry or some other node type that requires "
+                    "deletion via the component menu instead.";
+
+                _confirm_window->set_initial_position(godot::Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
+                _confirm_window->set_text(vformat(message, node->get_script_node_id(), node->get_title().strip_edges()));
+                _confirm_window->set_title("Delete canceled");
+                _confirm_window->reset_size();
+                _confirm_window->show();
+                return;
+            }
+        }
+    }
+
+    for (const String& node_name : p_node_names)
+    {
         OrchestratorGraphNode* node = _get_node_by_name(node_name);
         if (!node)
         {
@@ -934,5 +954,6 @@ void OrchestratorGraphEdit::_on_validate_and_build()
         _confirm_window->set_text("Orchestration validation successful.");
         _confirm_window->set_title("Validation OK");
     }
+    _confirm_window->reset_size();
     _confirm_window->show();
 }
