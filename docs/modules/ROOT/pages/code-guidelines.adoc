@@ -7,69 +7,139 @@ The code should follow the following rules when contributing code to the addon.
 
 Use `snake_case` for file names.
 Avoid using capital letters, as these are handled slightly differently across operating systems.
-When adding new `OrchestratorNode` implementations, align the script file name based on the node's unique name.
 
-For example, when creating a new node called `Repeat`, the file should be named `repeat_node.gd`.
+== License
 
-== Nodes
+All source files, header and source, must contain the approved Apache 2.0 License text at the immediate top of the file.
+The current approved license text should always read, with no exception:
 
-An `OrchestratorNode` implementation should be named with as few words as possible to describe its behavior.
-For example, a node that waits for a specific amount of time until a condition evaluates `true` would be named `Wait Until` with a node file name of `wait_until_node.gd`.
+[source,text]
+----
+// This file is part of the Godot Orchestrator project.
+//
+// Copyright (c) 2023-present Vahera Studios LLC and its contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+----
 
-[IMPORTANT]
-====
-Nodes should not define a `class_name` to avoid polluting the editor's node selection interface.
-====
+== Includes
+
+All C++ header and source files may specify one or more includes.
+All includes should be grouped logically based on their context, using the following priority order, with an empty line separating each logical group:
+
+1. Source file's header
+2. All Orchestrator project header files, sorted in natural alphabetical order.
+3. All Godot header files, sorted in natural alphabetical order.
+
+.An example test.cpp
+[source,cpp]
+----
+#include "test.h"
+
+#include "api/extension_db.h"
+#include "common/string_utils.h"
+
+#include <godot_cpp/classes/h_box_container.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
+----
+
+== Include Guards
+
+All C++ header files must specify an include guard that uses the `#ifdef` and `#define` pre-processors rather than using `#pragma once`.
+The guard name depends on whether the source is related to the Editor or the runtime script.
+
+.Example Guard for Editor-based classes
+[source,cpp]
+----
+#ifndef ORCHESTRATOR_MAIN_VIEW_H
+#define ORCHESTRATOR_MAIN_VIEW_H
+...
+#endif // ORCHESTRATOR_MAIN_VIEW_H
+----
+
+.Example Guard for Script runtime classes
+[source,cpp]
+----
+#ifndef ORCHESTRATOR_SCRIPT_NODE_H
+#define ORCHESTRATOR_SCRIPT_NODE_H
+...
+#endif // ORCHESTRATOR_SCRIPT_NODE_H
+----
+
+* Editor classes use the `ORCHESTRATOR` prefix
+* Runtime classes use the `ORCHESTRATOR_SCRIPT` prefix
 
 == Classes
 
-There are multiple cases where we define classes in GDScript; in such cases, classes should use `PascalCase` for their names.
-Additionally, when loading a class into a constant or variable, `PascalCase should be used.
-Below are several examples:
+All C++ class names in this project use Pascal Case.
 
-[source,gdscript]
-----
-class_name SomeClass
-extends BaseClass
+Additionally, there are two naming conventions that must be followed, depending on the context usage of the class.
+Editor-functionality related classes should be prefixed using `Orchestrator`.
+Runtime script functionality related classes should be prefixed with `OScript`.
 
-@onready var orch = preload("res://orch.tres")
+* Editor Example, `OrchestratorMainView` or `OrchestratorPlugin`.
+* Runtime Example, `OScriptNodeConstant` or `OScriptNodeInitContext`.
 
-func _ready() -> void:
-    print("hello world")
-
-----
-
-[source,gdscript]
-----
-const RepeatNode = preload("res://addons/orchestrator/nodes/repeat_node.gd")
-----
+Generally we prefer one class per file, but there are instances where it may make sense to include multiple classes in a single file.
+There is some of this already in the repository, but it should generally be viewed as an exception and not the norm.
 
 == Functions and variables
 
-Use `snake_case` when specifying names for variables or functions, as shown below:
+All functions and variables should be defined using `snake_case`.
+If a function or variable is not public, these should be proceeded with an underscore (`_`).
 
-[source,gdscript]
+Additionally, all function arguments should be prefixed with `p_` unless the value is being returned to the caller, in which case it should be prefixed with `r_`.
+
+.An example of function and variable definitions
+[source,cpp]
 ----
-var expression_text
+class MyClass : public Resource
+{
+  GDCLASS(MyClass, Resource);
 
-func my_test_func():
-  pass
+protected:
+    String _the_name;
+    void _set_the_name(const String& p_name);
+
+public:
+    void get_the_name() const;
+};
 ----
 
-[NOTE]
-====
-Like Godot Engine, private variables, and functions begin with an underscore ('_').
-The automated documentation system handles these slightly differently when prefixed this way.
-====
+Additionally, functions and variables of like scope should generally be grouped together.
+And lastly all functions that do not override a parent class should be documented as well as all variables.
 
-== Signals
-
-Use past tense verbs to name signals:
-
-[source,gdscript]
+.Example of documenting functions and variables
+[source,cpp]
 ----
-signal orchestration_started
-signal orchestration_stopped
+protected:
+    String _the_name;       //! The name of this object
+
+    /// Sets the name
+    /// @param p_name the name to be set
+    void _set_the_name(const String& p_name);
+----
+
+When a function overrides a parent function, it must be wrapped in a comment block.
+The following shows an example:
+
+.Documenting an virtual function override
+[source,cpp]
+----
+//~ Begin OScriptNode Interface
+void post_initialize() override;
+//~ End OScriptNode Interface
 ----
 
 == Constants and enums
@@ -81,42 +151,12 @@ Constants should use `CONSTANT_CASE`, that is, all caps with an underscore (`_`)
 const MAX_SPEED = 10
 ----
 
-Define enums using `PascalCase` for their names and `CONSTANT_CASE` for their values:
+Define enums using `PascalCase` with a prefix of `E` for their names:
 
 [source,gdscript]
 ----
-enum DataType {
-  ANY,
-  NUMERIC
-}
+enum EDataType {
+  EDT_ANY,
+  EDT_NUMERIC
+};
 ----
-
-== Code order
-
-The flow of code uses the same suggested order as the Godot Engine.
-The order is defined as:
-
-[source,gdscript]
-----
-01. @tool
-02. class_name
-03. extends
-04. # docstring
-
-05. signals
-06. enums
-07. constants
-08. @export variables
-09. public variables
-10. private variables
-11. @onready variables
-
-12. optional built-in virtual _init() method
-13. optional built-in virutal _enter_tree() method
-14. built-in virtual _ready() method
-15. remaining built-in virtual methods
-16. public methods
-17. private methods
-18. subclasses
-----
-

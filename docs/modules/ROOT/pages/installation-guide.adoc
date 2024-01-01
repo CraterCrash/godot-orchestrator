@@ -6,19 +6,25 @@ This section will cover all the steps needed to acquire the code and begin using
 == Download plugin
 
 To install the Orchestrator plugin, you must download it as a ZIP archive.
-Installation can be done on the Asset Library using the **Download** button from the editor or web interface.
 
-On GitHub, the Orchestrator plugin has https://github.com/Vahera/godot-orchestrator/tags[tags,role=external-reference] (versions); go to the https://github.com/Vahera/godot-orchestrator/releases[Releases,role=external-reference] tab and download the latest stable version.
-This guarantees you're using a stable version provided by Vahera.
+We recommend that you use the Godot Asset Library within the Godot Editor to search for Orchestrator.
+This guarantees that the right files are downloaded, uncompressed, and placed in the right place in your current Godot project.
 
-If you have trouble finding the **Releases** tab or picking a specific version _tag_, use the **Download ZIP** button to download a ZIP of the latest version, or use this https://github.com/Vahera/godot-orchestrator/archive/refs/heads/main.zip[link,role=external-reference] to obtain the ZIP archive.
+You can also obtain the ZIP archive directly from GitHub by going to the https://github.com/Vahera/godot-orchestrator/releases[Orchestrator releases] page.
+This page lists each release with a list of downloadable assets for each released version.
+The file you want to download is named `godot-orchestrator-<version>-plugin.zip`.
 
-image::github-download-zip.png[Download ZIP]
+[IMPORTANT]
+====
+Godot Orchestrator development (dev) builds are not published to Godot's Asset Library.
+Development builds are only available from the GitHub repository's releases page.
+====
 
-Extract the ZIP archive and move the `addons/` folder it contains into your project folder.
-If your project already contains an `addons/` folder, move the plugin's `addons/` folder into your project folder to merge the new folder with existing contents.
-Your file manager may ask whether you wish to write into the folder; answer **Yes**.
-This process will not overwrite any files.
+Whether you obtain the Orchestrator plugin from Godot's Asset Library or you download it directly from the releases page, the contents of the files are identical.
+The ZIP will contain a single folder path called `addons/orchestrator`.
+The contents of the ZIP file should be extracted directly into your Godot project root directory so that it is installed into `<project_root>/addons/orchestrator/`.
+
+Once the addon is installed, restart the Godot Editor.
 
 == New updates notification
 
@@ -39,16 +45,10 @@ Once the files have been downloaded, the contents of the `res://addons/orchestra
 
 After installation, you will be prompted to restart the editor so the new plug-in version is activated.
 
-
 == Enable plugin
 
-To enable the freshly installed plugin, open **Projects > Project Settings** at the top of the editor, then go to the **Plugins** tab.
-This screen will show a list of installed plugins.
-Find the line with `Orchestrator` as the name and click the **Enable** checkbox to enable the plugin.
-
-image::enable-plugin.png[Enable Plugin]
-
-Once the plugin is enabled, you will notice that a new Editor module exists at the top of your editor UI, as shown below:
+As Orchestrator is based on Godot GDExtension, it is automatically enabled when the Godot Editor starts.
+You will see it is enabled immediately as there will be a new module at the top of the Editor UI, shown below:
 
 image::editor-top-ui.png[Editor UI]
 

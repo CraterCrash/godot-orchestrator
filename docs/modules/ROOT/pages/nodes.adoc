@@ -1,360 +1,565 @@
 = Nodes
 
-Orchestrator uses a node-graph to design complex behaviors called an `Orchestration`.
-Each orchestration comprises at least three `OrchestrationNode` nodes, which provide specific behavior for the orchestration's interactions.
-Each `OrchestrationNode` is organized into one of several _categories_.
+The Orchestrator plugin uses nodes in a flow-graph pattern to design complex behaviors and game logic called an `Orchestration` or simply an `OScript`.
+These scripts can be attached to scene nodes to extend the behavior of that node.
 
-* xref:#flow-control[Flow Control]
-* xref:#logic[Logic]
-* xref:#terminal[Terminal]
-* xref:#utility[Utility]
+The building block of an `Orchestration` are called `OScriptNode` nodes.
+A node generally provides some logical step of behavior that is executed at runtime by the game engine.
+A node can optionally have multiple input and output execution pins to control the execution flow of the graph, while also supporting multiple input and output data pins to pass data between nodes.
+
+Orchestrator provides dozens of node types to access hundreds of thousands of unique behavior available in the Godot engine.
+Each `OScriptNode` can generally be categorized into one of several different high-level _categories_.
+
+[cols="1,1,1"]
+|===
+
+| * xref:#constants[Constants] +
+* xref:#data[Data] +
+* xref:#dialogue[Dialogue/Conversation] +
+* xref:#flow-control[Flow Control] +
+* xref:#functions[Function Calls] +
+
+| * xref:#io[Input/Output] +
+* xref:#math[Math] +
+* xref:#properties[Property Access] +
+* xref:#resources[Resources] +
+* xref:#scene[Scenes] +
+
+|* xref:#signals[Signals] +
+* xref:#utility[Utility] +
+* xref:#variables[Variables] +
+
+|===
+
+[id="constants"]
+== Constant nodes
+
+A **Constant** node outputs a single immutable value.
+It's most commonly used when creating expressions or as a part of _Switch_ flow control nodes to deviate the graph's execution flow.
+
+There are several subtypes of **Constant** nodes:
+
+[cols="15%,85%"]
+|===
+|Type |Description
+
+|**Global**
+|Provides access to constant enumeration value, such as `ClockDirection`, returning an `Integer`.
+
+|**Math**
+|Provides access to math-specific constant values, such as `TAU`, `PI`, or `INF` and returns a `Float` value.
+
+|**Built-in Types**
+|Provides access to common Godot data type constants, such as `Vector3::ZERO` or `Color::CYAN`.
+The returned value is based on the selected built-in data type.
+
+|**Class**
+|Provides access to Godot class-level enumeration constants, such as `Time::MONTH_MAY`, returning an `Integer`.
+
+|**Singleton**
+|Provides access to common Godot singleton object constants, such as `Input::CURSOR_WAIT`, returning an `Integer`.
+
+|===
+
+.An example using a _Class_ constant node
+image::nodes-example-class-constant.png[Example Class Constant Node]
+
+[NOTE]
+====
+Constant nodes are currently marked as _experimental_.
+====
+
+[id="data"]
+== Data nodes
+
+A **Data** node includes a variety of different node types, but their primary focus is on working with engine data types.
+In Godot, data is typically represented as a `Variant`, which is an opaque container that can store any known type, including primitives, complex structures like vectors, or even objects.
+
+There are five common subtypes of **Data** nodes:
+
+[cols="15%,85%"]
+|===
+|Type |Description
+
+|Arrays
+|Provides access to nodes that create and manipulate array data types.
+Arrays are a collection of optionally different data types.
+
+|Composition
+|Provides access to _Compose_ and _ComposeFrom_ nodes that simplify the creation of complex Godot data types such as Vectors and Transforms.
+For example, taking `Float` values for the X, Y, and Z-axis and creating a `Vector3`.
+|Decomposition
+|Provides access to _Decompose_ nodes that simply the breaking of complex Godot data types into their logical subtypes.
+For example, taking a `Vector3` and output its X, Y, and Z-axis float values that can be consumed independently by connected nodes.
+
+|Dictionaries
+|Provides access to nodes that create and manipulate dictionary data types.
+Dictionaries are a collection of key/value pairs.
+
+|Type Casting
+|Provides the ability to accept a Godot object type, often referred to as `Any` and explicitly casts the object to an explicit type.
+A **Type Cast** node is also considered a flow control node since it also has flow control semantics, allowing an Orchestration's execution to deviate execution flow based on whether the cast succeeded or failed.
+Upon a successful cast, the cast object is available as an output to access functions and properties that are specific to that type.
+
+|===
+
+.Examples of data type nodes
+image::nodes-example-data-nodes.png[Data Node Examples]
+
+[id="dialogue"]
+== Dialogue or Conversation nodes
+
+**Dialogue** or conversation nodes are a high-level concept designed to simply the creation of RPG elements by creating dialogue interactions with simplicity.
+There are two concrete node types.
+
+=== Dialogue Message node
+
+A **Dialogue Message** node is the basis for the dialogue system.
+It allows for specifying various input values to control what and how the data is presented to the player.
+
+.Dialogue Message Node
+image::nodes-example-dialogue-message.png[Dialogue Message Node]
+
+[cols="15%,85%"]
+|===
+|Pin |Description
+
+|Speaker
+|The name of the character that is speaking.
+
+|Message
+|The text that is being spoken by the character.
+
+|Scene
+|An optional custom scene that should be used to render the dialogue message window.
+By default, the node uses `res://addons/orchestrator/scenes/dialogue_message.tscn`.
+
+|Choices
+|By using the `Add New Pin` button, a variable number of choices can be added to the node.
+What a choice node is will be discussed below, but essentially when that choice is selected by the player, the execution flow will flow out the right pin for that choice, allowing a dialogue message node to alter the script's control by the user interaction choice.
+If no choices are added, there is only a single execution flow pin that will be used by default.
+|===
+
+=== Dialogue Choice node
+
+The **Dialogue Choice** node is pinnacle in creating immersive RPG interactions.
+This node represents a choice that can be selected by the player when a **Dialogue Message** node is shown.
+A **Dialogue Message** node can accept zero or many choice nodes by using the `Add New Pin` button.
+
+.Dialogue Choice Node
+image::nodes-example-dialogue-choice.png[Dialogue Choice Node]
+
+[cols="15%,85%"]
+|===
+|Pin |Description
+
+|Text
+|The text to be shown to the player.
+This is most often the response the player makes to the text spoken by the character in the **Dialogue Message** node.
+The text can also be computed dynamically using a combination of other scripting nodes that create a `String` by connecting the output of that computation to this pin's input port.
+
+|Visible
+|This pin controls whether the text choice will be shown to the player.
+It's common that some choices in an RPG are only available under certain conditions or game state.
+By connecting other nodes that compute a `Boolean` value to this pin's input port, the visibility of the choice can be made dynamic.
+
+|===
 
 [id="flow-control"]
 == Flow control nodes
 
-Flow control nodes are responsible for controlling the flow of an orchestration.
-There are several different types of flow control nodes.
+A **Flow Control** node is responsible for changing the execution flow of an orchestration.
+Typically, these nodes compute the change based on some user-defined condition or some calculation that dictates which output pin will receive the output control flow.
 
-.Flow control nodes
-image::flow-control-nodes.png[Flow control nodes]
+In any language, flow control concepts are pivotal in creating complex decisions about how the code proceeds from the current point forward.
+The most common example of flow control are _branches_, which executes one of two pieces code depending on whether the condition is `true` or `false`.
+Branches in most languages are represented as the common `if/then/else` pattern.
 
-The following sections will describe each flow control node in more detail.
+However, Orchestrator supports over a dozen different **Flow Control** node types:
 
-=== Chance
-
-A **chance** node provides a simple way to control the flow of an orchestration based on a percent chance calculation.
-
-.Chance flow control node
-image::flow-control-nodes-chance.png[Chance node]
-
-The node's horizontal slider widget adjusts the output slot's percentage chance.
-Placing the slider to the left sets the bottom output slot to 100% where the node will never pick the top output slot.
-Similarly, placing the slider to the right sets the top output slot to 100% where the node will never pick the bottom output slot.
-
-.Input slots
+[cols="15%,85%"]
 |===
-|Input |Description
+|Type |Description
 
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's chance calculation.
+|Branch
+|Given an input condition, the node will flow to one of two output execution flows depending on whether the given condition is `true` or `false`.
+The condition can be constructed from any complex node hierarchy that outputs a `Boolean` value.
 
-|===
+|Chance
+|Given a static chance value set in the Godot Inspector, the node will flow to one of two output execution flow pins.
+The node computes a random number between 0 and 100, and if the computed value is less-than or equal to the specified chance, it will flow through the top execution pin; otherwise it will flow through the bottom execution pin. +
+ +
+Setting the chance to `0` guarantees that the bottom output pin is used.
+Setting the chance to `100` guarantees that the top output pin is used.
 
-.Output slots
-|===
-|Output |Description
+|Delay
+|Given an input value that specifies a number of seconds, the node will yield the processing of the Orchestration until the number of seconds have passed.
 
-|Upper
-|The output path taken when the percentage chance is between 1 and the specified percentage.
-If the value is 0%, the node path will never be taken.
+|For
+|Given a numeric range, this node loops from the start index to the last index, calling the **Loop Body** pin for each iteration until it reaches the last index.
+Upon reaching the last index, execution flow exits through the **Completed** output pin. +
+ +
+Optionally, this node can be placed with **Break Support**, which allows you to control within the **Loop Body** if the for loop should exit early.
 
-|Lower
-|The output path taken when the percentage chance is between (100 - percentage change) and 100.
-If the value is 0%, the node path will never be taken.
-|===
+|For Each
+|Given an array of elements, this node loops over each element in the array, calling the **Loop Body** pin for each element until all elements have been iterated over.
+Upon reaching the last element, execution flow exits through the **Completed** output pin. +
+ +
+Optionally, this node can be placed with **Break Support**, which allows you to control within the **Loop Body** if the loop should exit early.
 
-=== Condition
+|Random
+|Given one or more output choices, this node randomly picks one of the choices as the output execution flow.
+The calculation is based on a random number generator that picks a number between 1 and the number of choices.
+Additional output pins can be added by clicking the `Add New Pin` button.
 
-A **condition** node provides a convenient way to create a decision-based flow from a single true/false condition.
+|Select
+|Given two inputs `A` and `B`, this node picks one of the two values based on the state of the `Boolean` input condition labeled **Pick A**.
+If this condition is `true`, then the value of `A` will be output; otherwise, the value of `B` will be output.
 
-.Condition flow control node
-image::flow-control-node-condition.png[Condition node]
+|Sequence
+|Given two or more output execution flows, this node executes each output flow in sequential order from the top to the bottom, executing `Then 0`, `Then 1`, etc.
+The last output pin at the bottom will conclude the **Sequence** node and should be where you attach to the next node in your Orchestration's workflow.
 
-When the node begins its execution, the condition will be evaluated as a _boolean_.
-The output path taken depends entirely on whether the evaluated expression evaluates as _true_ or _false_.
+|Switch
+|Not to be confused with the **Switch On** nodes, this node with a given input value, compares that value against a series of _case_ branches and if the values are equal, flow control is passed to that case's output execution pin. +
+ +
+When execution of that execution output pin concludes, flow returns to the **Switch** node and finishes by passing flow control out the **Done** output pin.
+If no case matches the input value, the **Switch** node will execute the **Default** output pin before proceeding to the **Done** output pin.
 
-.Input slots
-|===
-|Input |Description
+|Switch On
+|Not to be confused with the **Switch** node, these nodes provide more granular control on execution flow control based on specific data types.
+There are three different types of **Switch On** nodes: enumerations, integers, and strings. +
+ +
+The **Switch On Enumeration** node provides an easy way to vary the execution flow of the Orchestration based on one or more possible enumeration values.
+For example, doing something specific when the user pressed the `Esc` key versus the `Space` key. +
+ +
+The **Switch On Integer** node provides the ability to vary the execution flow based on a numeric value within a finite range.
+The range is controlled by setting the `Start Index` in the InspectorDock and then using the `Add New Pin` button to add possible output pins.
+If no matches are found, execution flow exits the `Default` output pin. +
+ +
+The **Switch On String** node provides the ability to vary the execution flow based on a `String` value using editable output pins.
+The output pin names can be edited in the InspectorDock and are used to compare against the input.
+If no matches are found, execution flow exists the `Default` output pin.
 
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's condition evaluation.
-
-|===
-
-.Output slots
-|===
-|Output |Description
-
-|true
-|If the condition is _true_, this output path is taken.
-
-|false
-|If the condition is _false_, this output path is taken.
-|===
-
-=== Random
-
-A **random** node allows the orchestration flow to pick a random output path based on equal probability.
-
-.Random flow control node
-image::flow-control-node-random.png[Random node]
-
-The horizontal slider adjusts the number of output possibilities dynamically.
-Each possible output, up to a maximum of 10, has an equal chance of being chosen by the node.
-
-.Input slots
-|===
-|Input |Description
-
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's randomness evaluation.
-
+|While
+|Given an input condition, executes the `Repeat` output pin repeatedly while the condition remains `true`.
+When the condition is `false`, the `Repeat` output pin is not called and control exits through the `Done` output pin.
 |===
 
-.Output slots
-|===
-|Output |Description
+.Some examples of Flow Control nodes
+image::nodes-example-flow-control.png[Flow Control Nodes]
 
-|Slots 1 to 10
-|The output path taken based on the equal probability of picking a value between 1 and the number of possibilities.
+[id="functions"]
+== Function Call nodes
 
-|===
+In programming, a _function_ is used to split code into logical named pieces of work.
+This allows for better readability and organization of complex logic while also allowing re-use of that code.
 
-=== Repeat
+A **Function Call** node is the gateway within an Orchestration to make such calls to these separate pieces of work.
+This node can call Godot built-in functions such as `clampf` or `wrapf`.
+This node can also call functions on Godot objects, such as `rotate_y`, `show`, or `hide`.
+And lastly, this node can also call user-defined functions within the Orchestration, which are custom function node graphs you create.
 
-A **repeat** node allows executing a series of nodes a specified number of times.
+These nodes have a single input execution pin that defines the entry point into the function, zero or more input values, a singular output execution pin for when the function call ends, and a maximum of one output data pin if the function returns a value.
 
-.Repeat flow control node
-image::flow-control-node-repeat.png[Repeat node]
+.Examples of Function Call nodes
+image::nodes-example-function-call.png[Function Call Nodes]
 
-The node's spin-box allows for specifying the number of repeat iterations, up to a maximum of 10.
-While iterations remain, the node will always take the _repetitions_ path; however, once reaching the maximum iterations, the node will end and take the _done_ output path.
-The repeatable nodes should eventually loop back to the repeat node's input slot.
+Within an Orchestration, it's recommended to try and subdivide your logic into functions where possible.
 
-.Input slots
-|===
-|Input |Description
+There are several subtypes of **Function Call** nodes that we should discuss in more detail, and those are called: _events_, _function entry_, and _function result_ nodes.
 
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's flow control.
+=== Event Nodes
 
-|===
+An **Event Node** is a special type of Function Call node that defines an entry point for a Godot event.
+A Godot Event is a virtual callback, such as `_ready`, `_process`, `_physics_process`, etc.
+These are calls that the engine makes to Godot objects as a part of the engine and object's lifecycle that allows designers to provide custom logic to be executed at specific moments of an object's lifecycle.
 
-.Output slots
-|===
-|Output |Description
+For example, our tutorial rotates a mesh on each frame.
+The Orchestration does this  by using an **Event Node** for `_process`, called **Process Event** to hook into that lifecycle callback and to perform the rotation calculation per frame.
 
-|Repetitions
-|The output slot that links to all nodes that should be executed the specified number of times.
-
-|Done
-|The output slot that is taken when the number of repetitions has occurred.
-
-|===
-
-[id="logic"]
-== Logic nodes
-
-Logic nodes are responsible for executing different types of operations within an orchestration.
-There are several different types of logic nodes available.
-
-.Logic nodes
-image::logic-nodes.png[Logic nodes]
-
-The following sections will describe each logic node in more detail.
-
-=== Expression
-
-An *expression* node executes a single `GDScript` expression.
-
-.Expression logic node
-image::logic-node-expression.png[Expression node]
-
-An evaluated _expression_ may return a result; however, the **expression** node does not use it.
-After evaluating the expression, the orchestration's flow continues to the next node on the output path.
+.Example of a Physics Process Event node
+image::nodes-example-event.png[Event Node Example]
 
 [TIP]
 ====
-An **expression** node is great for assigning a value or calling a function on an _autoloaded_ singleton.
+An Event Node is added to the graph by selecting the **Override Function** button in the Functions component panel header.
+A dialog window will be shown with all possible event nodes that can be placed.
+A specific event node can only be placed once per Orchestration.
 ====
 
-.Input slots
-|===
-|Input |Description
+=== Function Entry & Result Nodes
 
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's expression.
+A **Function Entry** and **Function Result** node are two special types of function-based nodes that you will find inside user-defined function graphs.
 
-|===
+The **Function Entry** node is as the name implies, it's the node that receives control when the function is called.
+Clicking this node allows editing the function's input arguments and respective types.
+Every user-defined function will have one **Function Entry** node that cannot be deleted.
+The **Function Entry** node is removed when the function itself is deleted from the Orchestration.
 
-.Output slots
-|===
-|Output |Description
+The **Function Result** node is also as the name implies, the node that returns control from the function and returns a result to the caller.
+The function must have a **Function Result** node placed in the graph and connected to pass a value from the function back to the Orchestration.
+Since **Function Result** nodes are optional, they're not added by default and must be manually added from the **All Actions** dialog window.
 
-|(Unlabeled)
-|The output path taken after the expression has been executed.
-
-|===
-
-=== Script
-
-A **script** node calls a single method in a `GDScript` script instance.
-
-.Script logic node
-image::logic-node-script.png[Script logic node]
-
-When executing a *script* node, the orchestration creates an instance of the specified script and calls the specified method.
-Once the method ends, the script instance is released, and the orchestration advances to the next node.
-
-.Input slots
-|===
-|Input |Description
-
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's script.
-
-|===
-
-.Output slots
-|===
-|Output |Description
-
-|(Unlabeled)
-|The output path taken after the script method has been executed.
-
-|===
-
-=== Show Message
-
-The **show message** node is responsible for presenting a dialogue screen, optionally allowing the user to select between one or more choices.
-
-.Show message logic node
-image::logic-node-show-message.png[Show message node]
-
-This is one of the most complex nodes in the Orchestrator plug-in.
-You can specify a custom scene to render the pop-up dialogue message, or the node will otherwise use the built-in default scene.
-
-Additionally, you can specify multiple choices with an optional condition to control whether a specific choice should be available in the orchestration's logic.
-When the user picks a specific choice, that specific output node's path is used.
-
-.Input slots
-|===
-|Input |Description
-
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's dialogue.
-
-|===
-
-.Output slots
-|===
-|Output |Description
-
-|(Unlabeled)
-|The output path taken after the message is shown.
-
-|(Choice)
-|The output path taken after selecting the specified choice.
-
-|===
-
-=== Wait
-
-The **wait** node allows the executing orchestration to yield for a given time period.
-
-.Wait logic node
-image::logic-node-wait.png[Wait node]
-
-The spin-box allows you to set the number of seconds the orchestration should yield.
-This node can wait from a minimum of `0` seconds to a maximum of `60` seconds.
-
-.Input slots
-|===
-|Input |Description
-
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's wait.
-
-|===
-
-.Output slots
-|===
-|Output |Description
-
-|(Unlabeled)
-|The output path taken after the wait has finished.
-
-|===
-
-=== Wait For Action
-
-The **wait for action** node allows the executing orchestration to yield until the specified input action has been pressed.
-
-.Wait for action node
-image::logic-node-wait-for-action.png[Wait for action node]
-
-.Input slots
-|===
-|Input |Description
-
-|(Unlabeled)
-|The sequence input slot responsible for executing the node's wait for action.
-
-|===
-
-.Output slots
-|===
-|Output |Description
-
-|(Unlabeled)
-|The output path taken after the wait for the action press has finished.
-
-|===
-
-[id="terminal"]
-== Terminal nodes
-
-Terminal nodes are responsible for controlling the start and conclusion of an orchestration.
-There are only two different types of terminal nodes.
-
-.Terminal nodes
-image::terminal-nodes.png[Terminal nodes]
-
-The following sections will describe each terminal node in more detail.
-
-=== Start
-
-A **start** node is responsible for declaring the starting point for the orchestration.
-
-.Start terminal node
-image::terminal-nodes-start.png[Start node]
-
-As expected, a start node does not have an _input_ connection but only an _output_ connection.
-When starting an orchestration, it looks for this specific node to know where the logic for an orchestration node graph starts.
+.An example of a user-defined function with entry and return nodes
+image::nodes-example-user-defined-function.png[An example user-defined function graph]
 
 [NOTE]
 ====
-A start node is a special terminal node; only a single instance of this node can exist in an orchestration.
+Orchestration functions are modeled after Godot's internal `MethodInfo` data structure, which limits a function to optionally returning a single value.
+This limitation will be lifted in a future patch.
+
+Orchestration functions are also limited to a single input execution pin and a single output execution pin.
+In order to create re-usable logic that can accept or exit using multiple execution pins, a Macro should be used for this use case.
+Macros will be available in a future patch.
 ====
 
-=== End
+[id="io"]
+== Input Action node
 
-An **end** node is responsible for declaring the end point for an orchestration.
+In per-frame processing, it's quite common to check to see if an `Input` condition is active to control things such as movement, combat controls, etc.
+The **Input Action** node simplifies this check by checking whether a given Godot Input Action mapping is either _pressed_, _released_, _just pressed_, or _just released_.
 
-.End terminal node
-image::terminal-nodes-end.png[End node]
+.An example Input Action node for mapping "jump"
+image::nodes-example-input-action.png[Input Action Node Example]
 
-As expected, an end node does not have an _output_ connection but only an _input_ connection.
-When encountering an end node, the orchestration will end successfully.
+[TIP]
+====
+It's recommended to use the **Input Action** mode as it enforces a centralized place for mapping input game actions to input triggers such as keys, mouse buttons, or specific joystick conditions.
+You can then freely change the input mapping without directly affecting the Orchestration.
+====
+
+[id="math"]
+== Math Operator nodes
+
+The **Math Operator** node allows an Orchestration to perform some expression evaluation.
+Expressions are not just limited to basic math operations such as addition or subtraction, but also include a wide range of other mathematical functions like _Modulo_, _Power_, _Bitwise Operators_, _Logical Operators_, as well as _Contains/Has_ semantics.
+
+The following table shows all the possible available operators:
+
+|===
+
+|Boolean |Mathematical |Bitwise |Logic |Containment
+
+|Equals +
+Not Equals +
+Less-than +
+Less-than or Equal +
+Greater-than +
+Greater-than or Equal
+
+|Addition +
+Subtraction +
+Multiplication +
+Division +
+Unary Negate +
+Unary Positive +
+Modulo +
+Power
+
+|Shift Left +
+Shift Right +
+And +
+Or +
+Xor +
+Negate
+
+|And +
+Or +
+Xor +
+Not +
+
+|Contains/Has
+
+|===
+
+There are hundreds of possible combinations between these operator types and the various Godot built-in data types.
+These nodes can be found under the `Script > Operators` category in the **All Actions** dialog window.
+
+.Several examples of Math Operator nodes
+image::nodes-example-math-operations.png[Math Operation nodes]
+
+[id="properties"]
+== Property nodes
+
+A **Property** node allows an Orchestration to either read ("get") or write ("set") a specific value in an object.
+In some contexts, a property may also be referred to as a _member variable_.
+
+Using **Property** nodes allows an Orchestration to update and mutate the state of other objects, most often in your scene, over the runtime of the script.
+For example, changing the position of an object in 3D space by modifying it's `Transform` property or changing an object's visibility by setting the `Visible` property.
+
+There are two key types of **Property** nodes: _get_ and _set_.
+
+=== Property Get nodes
+
+A **Property Get** node refers to a node that reads a property value from an object.
+These nodes do not have any execution pin as they're designed to act as a producer ofa single value.
+
+.Example of the Get Visible Property node
+image::nodes-example-property-get-visible.png[Get Visible Property Node]
+
+=== Property Set nodes
+
+A **Property Set** node refers to a node that writes a value to a property of an object.
+These nodes have both an input and output execution pin and have a singular input data pin to pass the value to be set to the property.
+
+.Example of the Set Visible Property node
+image::nodes-example-property-set-visible.png[Set Visible Property Node]
+
+[id="resources"]
+== Resource nodes
+
+A **Resource** node provides details about a specific Godot resource, such as a `Texture`, `PackedScene`, or even a basic `Resource` type.
+In Orchestrator, there are two **Resource** node subtypes: _path_ and _preload_.
+
+.Example of Resource Nodes
+image::nodes-example-resource-nodes.png[Resoure Node examples]
+
+[cols="15%,85%"]
+|===
+|Type |Description
+
+|Resource Path
+|A simple node that passes a resource name as an output to the input of another node.
+
+|Preload
+|A node that asynchronously loads a resource that can then be passed as an input to another node.
+
+|===
+
+To place **Resource** nodes, simply drag a resource from the Filesystem Dock onto the graph area.
+A popup menu will be presented to select either of the two above choices.
+
+[id="scene"]
+== Scene nodes
+
+In Godot, the basic organizational construct is called a **Scene Tree**.
+In the Godot Editor, this is typically on the top left area of the Editor where a hierarchy nodes are constructed to represent the objects that are drawn as part of a user interface or a 2D or 3D scene.
+
+It's often common that game logic needs to access specific nodes within the scene to read or mutate the state of a node.
+This can be accomplished in Orchestrator by using **Scene** nodes.
+As you may have guessed, there are two subtypes of nodes: _scene tree_ and _scene node_.
+
+=== Scene Tree node
+
+The **Scene Tree** node provides access to the top-level Godot `SceneTree` object.
+A `SceneTree` object provides access to a wide range of properties and methods, including the main engine loop, the creation of Timers, Tweens, and direct access to the current scene.
+
+=== Scene Node node
+
+The **Scene Node** node provides access to a specific scene node instance in the scene tree.
+Typically, usage of this node type helps to read or mutate state for another node in the scene that the Orchestration script is not directly attached.
+
+If you are familiar with GDScript, using a **Scene Node** node is equivalent to the following:
+
+[source,gdscript]
+----
+@onready var anim_player : AnimationPlayer = $SomePath/To/AnimationPlayer
+----
+
+[id="signals"]
+
+== Signal nodes
+
+In Godot, signals used for event-driven programming, and are at the heart of Godot's Observer pattern.
+In short, an Observer can connect to a named signal and once the Subject raises that signal, all the observers of the Subject will be called.
+
+For an Orchestration, custom signals can be defined and emitted so that other Observers can be notified.
+Signals can also be emitted with a variable number of arguments, allowing an Orchestration to pass information to the Observer with ease.
+
+In order to place a **Signal Node** into the graph area, the signal must first be defined.
+To define a signal, use the Signal component view to the right of the graph area and click the **+** button in the Signal component's panel header.
+Provide a unique name when prompted, followed by using the Inspector to modify the argument details if applicable.
+
+Once the signal has been created, the signal can be emitted by simply dragging the signal name from the component view onto the graph area or right-clicking to open the **All Actions** dialog window and search for the signal name.
+
+Signals, for all intents and purposes, are similar to **Function Call** nodes, except they do not return values.
+When a signal is emitted, the Orchestration pauses while the Observers of the signal is notified.
+Once all Observers have been notified by Godot's signal subsystem, control flow returns and the Orchestration will proceed through the output execution pin to the next node.
+
+.An example of a Signal node
+image::nodes-example-signal.png[Example Signal node]
 
 [id="utility"]
 == Utility nodes
 
-Utility nodes are not meant to participate within an orchestration directly but instead are orchestration helper nodes.
-There is only one type of utility node.
+In Orchestrator, a **Utility Node** is a broad category of nodes that provide some sort of functionality, but the functionality does not necessarily fall within the scope of other categories.
+In general, they're meant to ease the use of visual scripting.
+There are four utility nodes: _comment_, _singleton_, _print string_, and _self_.
 
-.Utility nodes
-image::utility-nodes.png[Utility nodes]
+[cols="15%,85%"]
+|===
+|Type |Description
 
-The following sections will describe each utility node in more detail.
+|Comment
+|A node that allows documenting specific details on the canvas, logically grouping nodes with a border to better organize parts of the visual script canvas.
+These nodes are purely informational and do not participate in the execution of any Orchestration.
 
-=== Comment
+|Print String
+|While Godot offers several print built-in functions, these are designed to output data only to the console.
+In addition, these functions are also available and execute when the game is exported, meaning that those nodes would need to be manually removed. +
+ +
+The **Print String** utility node is designed to bridge this problem and to also enable printing data to the top left corner of the game viewport.
+This node is skipped in exported games, so you can safely have output while developing games and easily not during release builds.
 
-A **comment** node provides a way to document as part of the orchestration-specific parts of the flow graph.
+|Self
+|A node that provides a reference to the Orchestration's self, i.e. `this` in C++ terms.
+This node can be useful when calling library functions that require a reference to the caller but that would otherwise have no logical way to access the caller.
 
-.Comment utility node
-image::utility-nodes-comment.png[Comment node]
+|Singleton
+|A singleton is an object that has only one instance.
+Godot ships with a number of these to handle various parts of the engine's architecture, such as `Input`, `Time`, or `RenderingServer`.
+If you need access to a specific singleton, this node provides diret access to any number of these.
 
-You can populate the comment node's text box with an unbounded amount of text describing parts of the orchestration.
-This node is not used during the execution of orchestrations and, instead, is used only during rendering of the orchestration in the editor.
+|===
+
+[NOTE]
+====
+Currently, the **Singleton** node does not provide access to an Autoload unless its explicitly registered with the engine as a singleton.
+In a future patch, we intend to provide access to Autoloads that are defined as part of the project but that are not directly defined as _singletons_.
+====
+
+.Examples of the Utility nodes
+image::nodes-example-utility.png[Utility Nodes]
+
+[id="variables"]
+== Variable nodes
+
+A **Variable** node allows an Orchestration to read ("get") or write ("set") a value to a specific memory location.
+There are two types of variable nodes: _orchestration variables_ and _local variables_.
+
+=== Orchestration Variable nodes
+
+An **Orchestration Variable** node is one that is defined in the Variable component view.
+These variables have a name, a value, can optionally be categorized and exported, and allow you to define a custom description.
+These variables allow for storing state that can be accessed from within the Orchestration, whether in an event graph or a function.
+
+To create an **Orchestration Variable**, click the **+** button on the Variable component panel's header bar.
+Provide a custom name of the variable and then use the Inspector Dock to customize the remaining attributes.
+
+Once a variable has been defined, it can be placed onto the graph area by dragging the variable name onto the graph area or using the **All Actions** dialog window, searching for the variable's name.
+If you drag the variable name on the graph area, a popup choice will be shown allowing you to select whether to create a get (reads the variable's value) or set (writes to the variable) node.
+
+Similar to **Property** nodes, reading a variable has a single output pin for the data type of the variable.
+Writing a variable has execution pins and a data pin on both the input and output side.
+Unlike **Property** nodes, once the value of a variable is set, you can get the new value from the output data pin should it be needed.
+
+.An example of Orchestration Variable nodes
+image::nodes-example-variable.png[Variable nodes]
+
+=== Local Variable nodes
+
+A **Local Variable** node is quite different from an **Orchestration Variable** node.
+Local variables are not specifically named, but instead refer to a slot on the execution stack in memory.
+This means that **Local Variable** nodes can only be placed in user-defined functions.
+
+In a user-defined function, creating a **Local Variable** node can be done by using the **All Actions** dialog window and searching with the keyword `Local` and the data type of choice.
+The **Local Variable** node acts as a get operation, reading the value from memory.
+
+In order to assign a value to a **Local Variable**, the **Variable Assign** node should be used, which accepts a reference to the **Local Variable** and a value to be set.
+
+.Example usage of Local variables and Assignments
+image::nodes-example-local-variable.png[Local Variable nodes]
+
+
+

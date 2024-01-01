@@ -1,60 +1,52 @@
 = Addon architecture
 
-There are two main directories at the top level of the https://github.com/Vahera/godot-orchestrator[Orchestrator repository] called `/addons` and `/docs`.
-These two directories serve to separate the source code for the addon from the documentation you are presenting reading.
+There are four core concepts at the top level of the https://github.com/Vahera/godot-orchestrator[Orchestrator repository].
 
-The architecture consists of several logical pieces:
+* xref:#build[Build configuration] in `/cmake` and the root directory.
+* xref:#source[Source code] in `/src` and `/extern`.
+* xref:#documentation[Documentation] in `/docs`.
+* xref:#demo[Demo Project] in `/project`.
 
-* xref:#source[Source]
-* xref:#documentation[Documentation]
+[id="build"]
+== Build configuration
 
+The Orchestrator plug-in is written in C++ based on the Godot GDExtension framework.
+This project uses a combination of `cmake` and `scons` build systems to build the code.
+
+The `scons` build system is used to build the content of `/extern/godot-engine`.
+This builds the Godot Editor from source, which can be useful when testing changes that may require editor updates.
+
+The `cmake` build system is used to build not only the content of `/extern/godot-cpp`, but the entire Orchestrator project.
+It consists of using a number of defined `.cmake` files in the `/cmake` directory along with several configuration files in the repository root such as `CMakeLists.txt`.
+
+Finally, this project makes use of `cmake` to create several generated source files.
+Some of these source files are directly written to the cmake output directory path under `_generated` but there are some that are generated inline within the `/src` path, like `api/extension_db.h` and `api/extension_db.cpp`.
+
+[id="source"]
 == Source
 
-Orchestrator is a https://godotengine.org[Godot Engine] plugin designed to provide extended functionality to a user's project without the need to write the code themselves.
-A Godot plugin must adhere to the following rules:
+Orchestrator is a https://godotengine.org[Godot Engine] plugin based on GDExtension.
+It's a project intended to provide functionality to a user's project without the need to write code themselves.
 
-1. The top-level directory should be called `/addons`.
-2. The addon directory should exist as a child of `/addons` and named using `snake_case`.
+All relevant code for this project is within the `/src` directory, which has dozens of C++ header and source files.
+In the `/src` directory, there are several subdirectories that are meant to group the code into several themes:
 
-For Orchestrator, you will find the `/addons/orchestrator` directory where all the source code for the plugin exists and the directory structure we will discuss in the remainder of this section.
+1. API
+2. Common/Utils
+3. Editor
+4. Plugin related
+5. Script
 
-=== Organization
-
-The source code is organized by purpose.
-When looking at the contents of the plugin's top-level directory, we'll see the following:
-
-[source]
-----
-+ assets <.>
-+ components <.>
-+ core <.>
-+ test <.>
-+ views <.>
-+ orchestrator.gd <.>
-+ orchestrator_node_factory.gd <.>
-+ orchestrator_settings.gd <.>
-+ plugin.cfg <.>
-+ plugin.gd <.>
-----
-<.> The assets directory maintains all images, themes, and other similar types of files.
-<.> The components directory is where source code used by other system parts is kept, such as child components used by the in-game editor, node implementations, or node-specific scenes.
-The idea is that these files cannot live independently; they're pieces to a much larger unit of work.
-<.> The core directory is where we maintain files used across the entire project, such as files that represent `Resource` types such as an `Orchestrator` or `OrchestrationNode`.
-<.> The test directory maintains a simple test scene and scripts for running an Orchestration from within the in-game editor.
-<.> The views directory is where the editor's top-level scenes are maintained.
-<.> The Godot autoload/singleton instance, `Orchestrator`, runs this plugin.
-<.> The Godot autoload/singleton instance, `OrchestratorNodeFactory`, creates resources.
-<.> A settings class implementation.
-<.> Plugin's configuration file, required by Godot.
-<.> Plugin's entry point script, required by Godot.
-
+[id="documentation"]
 == Documentation
 
-The Orchestrator documentation comprises a series of asciidoc (`.adoc`) files assembled by an open-source documentation solution called https://www.antora.org[Antora].  The directory structure used under the `/docs` directory aligns with the Antora requirements for building this documentation.
+The Orchestrator documentation comprises a series of asciidoc (`.adoc`) files assembled by an open-source documentation solution called https://www.antora.org[Antora].
+The directory structure used under the `/docs` directory aligns with the Antora requirements for building this documentation.
 
 === Component descriptor
 
-Each component available within the https://www.vahera.com/docs[Vahera documentation] has a component descriptor file named `antora.yml`.  This file provides metadata about the component, including where navigation components exist, the component's version, and much more.
+Each component available within the https://www.vahera.com/docs[Vahera documentation] has a component descriptor file named `antora.yml`.
+This file provides metadata about the component, including where navigation components exist, the component's version, and much more.
 
 .An example descriptor
 [source,yaml,subs="+attributes"]
@@ -94,3 +86,13 @@ Inside the `/docs/modules/ROOT` module directory, you will find a `/docs/modules
 ====
 Generally, every asciidoc page in the `/pages` directory should have a matching entry in the `nav.adoc` file or the dangling page should be referenced by a page included in the `nav.adoc`.
 ====
+
+[id="demo"]
+== Demo project
+
+In the `/project` directory, there exists a simple Godot demo project that is meant to showcase Orchestrator.
+This project starts a small 3D world with two characters, the player and an NPC.
+
+The player has a `PlayerController` designed in Orchestrator along with a `CameraController` that is also written with Orchestrator.
+The NPC has several Orchestrator scripts attached to it to handle dialogue interactions and animations.
+
