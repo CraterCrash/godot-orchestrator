@@ -45,7 +45,6 @@
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_create_dialog.hpp>
-#include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
@@ -128,7 +127,7 @@ void OrchestratorMainView::_notification(int p_what)
         _goto_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
         _goto_menu->set_text("Goto");
         _goto_menu->get_popup()->clear();
-        _goto_menu->get_popup()->add_item("Goto Node", AccelMenuIds::GOTO_NODE);
+        _goto_menu->get_popup()->add_item("Goto Node", AccelMenuIds::GOTO_NODE, SKEY(KEY_MASK_CTRL, KEY_L));
         _goto_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         _goto_menu->get_popup()->connect("about_to_popup", callable_mp(this, &OrchestratorMainView::_on_prepare_goto_menu));
         left_menu_container->add_child(_goto_menu);
@@ -266,6 +265,7 @@ void OrchestratorMainView::_notification(int p_what)
 
         LineEdit *node_number = memnew(LineEdit);
         node_number->set_select_all_on_focus(true);
+        _goto_dialog->register_text_enter(node_number);
         container->add_child(node_number);
 
         _goto_dialog->connect("visibility_changed", callable_mp(this, &OrchestratorMainView::_on_goto_node_visibility_changed).bind(node_number));
