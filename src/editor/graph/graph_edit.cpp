@@ -95,6 +95,7 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<O
 
     set_zoom(_script_graph->get_viewport_zoom());
     set_scroll_offset(_script_graph->get_viewport_offset());
+    set_show_zoom_label(true);
 
     _context_menu = memnew(PopupMenu);
     add_child(_context_menu);
