@@ -58,6 +58,15 @@ void OrchestratorGraphNode::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_ENTER_TREE)
     {
+        // Update the title bar widget layouts
+        HBoxContainer* titlebar = get_titlebar_hbox();
+        _indicators = memnew(HBoxContainer);
+        titlebar->add_child(_indicators);
+
+        Control* spacer = memnew(Control);
+        spacer->set_custom_minimum_size(Vector2(3, 0));
+        titlebar->add_child(spacer);
+
         // Used to replicate size/position state to underlying node resource
         connect("dragged", callable_mp(this, &OrchestratorGraphNode::_on_node_moved));
         connect("resized", callable_mp(this, &OrchestratorGraphNode::_on_node_resized));
@@ -238,59 +247,32 @@ void OrchestratorGraphNode::_update_pins()
 
         button->connect("pressed", callable_mp(this, &OrchestratorGraphNode::_on_add_pin_pressed));
     }
-
-    bool has_indicators = false;
-    if (_node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::DEVELOPMENT_ONLY))
-    {
-        _add_development_only_indicator();
-        has_indicators = true;
-    }
-    if (_node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::EXPERIMENTAL))
-    {
-        _add_experimental_indicator();
-        has_indicators = true;
-    }
-
-    if (has_indicators && !_has_toolbar_icon("__expander"))
-    {
-        Control* spacer = memnew(Control);
-        spacer->set_custom_minimum_size(Vector2(3, 0));
-        spacer->set_meta("__expander", "");
-
-        HBoxContainer* container = get_titlebar_hbox();
-        container->add_child(spacer);
-    }
 }
 
-void OrchestratorGraphNode::_add_development_only_indicator()
+void OrchestratorGraphNode::_update_indicators()
 {
-    if (!_has_toolbar_icon("__notification"))
+    // Free all child indicators
+    for (int i = 0; i < _indicators->get_child_count(); i++)
+        _indicators->get_child(i)->queue_free();
+
+    if (_node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::DEVELOPMENT_ONLY))
     {
         TextureRect* notification = memnew(TextureRect);
         notification->set_texture(SceneUtils::get_icon(this, "Notification"));
-        notification->set_meta("__notification", "");
         notification->set_custom_minimum_size(Vector2(0, 24));
         notification->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         notification->set_tooltip_text("Node only executes during development builds, not included in exported builds.");
-
-        HBoxContainer* container = get_titlebar_hbox();
-        container->add_child(notification);
+        _indicators->add_child(notification);
     }
-}
 
-void OrchestratorGraphNode::_add_experimental_indicator()
-{
-    if (!_has_toolbar_icon("__experimental"))
+    if (_node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::EXPERIMENTAL))
     {
         TextureRect* notification = memnew(TextureRect);
         notification->set_texture(SceneUtils::get_icon(this, "NodeWarning"));
-        notification->set_meta("__experimental", "");
         notification->set_custom_minimum_size(Vector2(0, 24));
         notification->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         notification->set_tooltip_text("Node is experimental and behavior may change without notice.");
-
-        HBoxContainer* container = get_titlebar_hbox();
-        container->add_child(notification);
+        _indicators->add_child(notification);
     }
 }
 
@@ -340,6 +322,8 @@ void OrchestratorGraphNode::_update_titlebar()
 
         set_title((rect ? " " : "") + _node->get_node_title() + "   ");
     }
+
+    _update_indicators();
 }
 
 void OrchestratorGraphNode::_update_styles()
@@ -354,68 +338,65 @@ void OrchestratorGraphNode::_update_styles()
         {
             apply_style_defaults = false;
             Color color = os->get_setting(key);
-            {
-                Ref<StyleBoxFlat> sb = get_theme_stylebox("panel_selected");
-                if (sb.is_valid())
-                {
-                    Ref<StyleBoxFlat> sbf = sb->duplicate(true);
-                    sbf->set_border_color(color);
-                    add_theme_stylebox_override("panel", sbf);
 
-                    Ref<StyleBoxFlat> sbf2 = sbf->duplicate(true);
-                    sbf2->set_border_color(Color(0.68, 0.44, 0.09));
-                    sbf2->set_border_width(SIDE_BOTTOM, 2);
-                    sbf2->set_border_width(SIDE_LEFT, 2);
-                    sbf2->set_border_width(SIDE_RIGHT, 2);
-                    add_theme_stylebox_override("panel_selected", sbf2);
-                }
-            }
-            {
-                Ref<StyleBoxFlat> sb = get_theme_stylebox("titlebar_selected");
-                if (sb.is_valid())
-                {
-                    Ref<StyleBoxFlat> sbf = sb->duplicate(true);
-                    sbf->set_bg_color(color);
-                    add_theme_stylebox_override("titlebar", sbf);
+            Ref<StyleBoxFlat> panel = _make_colored_style("panel_selected", color);
+            if (panel.is_valid())
+                add_theme_stylebox_override("panel", panel);
 
-                    Ref<StyleBoxFlat> sbf2 = sbf->duplicate(true);
-                    sbf2->set_border_color(Color(0.68, 0.44, 0.09));
-                    sbf2->set_border_width(SIDE_TOP, 2);
-                    sbf2->set_border_width(SIDE_LEFT, 2);
-                    sbf2->set_border_width(SIDE_RIGHT, 2);
-                    add_theme_stylebox_override("titlebar_selected", sbf2);
-                }
-            }
+            Ref<StyleBoxFlat> panel_selected = _make_selected_style("panel");
+            if (panel_selected.is_valid())
+                add_theme_stylebox_override("panel_selected", panel_selected);
+
+            Ref<StyleBoxFlat> titlebar = _make_colored_style("titlebar_selected", color, true);
+            if (titlebar.is_valid())
+                add_theme_stylebox_override("titlebar", titlebar);
+
+            Ref<StyleBoxFlat> titlebar_selected = _make_selected_style("titlebar", true);
+            if (titlebar_selected.is_valid())
+                add_theme_stylebox_override("titlebar_selected", titlebar_selected);
         }
     }
 
     if (apply_style_defaults)
     {
-        {
-            Ref<StyleBoxFlat> sb = get_theme_stylebox("panel_selected");
-            if (sb.is_valid())
-            {
-                Ref<StyleBoxFlat> sbf = sb->duplicate(true);
-                sbf->set_border_color(Color(0.68, 0.44, 0.09));
-                sbf->set_border_width(SIDE_BOTTOM, 2);
-                sbf->set_border_width(SIDE_LEFT, 2);
-                sbf->set_border_width(SIDE_RIGHT, 2);
-                add_theme_stylebox_override("panel_selected", sbf);
-            }
-        }
-        {
-            Ref<StyleBoxFlat> sb = get_theme_stylebox("titlebar_selected");
-            if (sb.is_valid())
-            {
-                Ref<StyleBoxFlat> sbf = sb->duplicate(true);
-                sbf->set_border_color(Color(0.68, 0.44, 0.09));
-                sbf->set_border_width(SIDE_TOP, 2);
-                sbf->set_border_width(SIDE_LEFT, 2);
-                sbf->set_border_width(SIDE_RIGHT, 2);
-                add_theme_stylebox_override("titlebar_selected", sbf);
-            }
-        }
+        Ref<StyleBoxFlat> panel_selected = _make_selected_style("panel_selected");
+        if (panel_selected.is_valid())
+            add_theme_stylebox_override("panel_selected", panel_selected);
+
+        Ref<StyleBoxFlat> titlebar_selected = _make_selected_style("titlebar_selected", true);
+        if (titlebar_selected.is_valid())
+            add_theme_stylebox_override("titlebar_selected", titlebar_selected);
     }
+}
+
+Ref<StyleBoxFlat> OrchestratorGraphNode::_make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar)
+{
+    Ref<StyleBoxFlat> sb = get_theme_stylebox(p_existing_name);
+    if (sb.is_valid())
+    {
+        Ref<StyleBoxFlat> dup = sb->duplicate(true);
+        if (p_titlebar)
+            dup->set_bg_color(p_color);
+        else
+            dup->set_border_color(p_color);
+        return dup;
+    }
+    return sb;
+}
+
+Ref<StyleBoxFlat> OrchestratorGraphNode::_make_selected_style(const String& p_existing_name, bool p_titlebar)
+{
+    Ref<StyleBoxFlat> sb = get_theme_stylebox(p_existing_name);
+    if (sb.is_valid())
+    {
+        Ref<StyleBoxFlat> dup = sb->duplicate(true);
+        dup->set_border_color(Color(0.68f, 0.44f, 0.09f));
+        dup->set_border_width(p_titlebar ? SIDE_TOP : SIDE_BOTTOM, 2);
+        dup->set_border_width(SIDE_LEFT, 2);
+        dup->set_border_width(SIDE_RIGHT, 2);
+        return dup;
+    }
+    return sb;
 }
 
 void OrchestratorGraphNode::_update_node_attributes()
@@ -545,32 +526,18 @@ bool OrchestratorGraphNode::_is_add_pin_button_visible() const
 
 List<OrchestratorGraphNode*> OrchestratorGraphNode::get_nodes_within_global_rect()
 {
-    List<OrchestratorGraphNode*> results;
-
     Rect2 rect = get_global_rect();
-    for (int i = 0; i < get_parent()->get_child_count(); i++)
-    {
-        OrchestratorGraphNode* other = Object::cast_to<OrchestratorGraphNode>(get_parent()->get_child(i));
+
+    List<OrchestratorGraphNode*> results;
+    _graph->for_each_graph_node([&](OrchestratorGraphNode* other) {
         if (other && other != this)
         {
             Rect2 other_rect = other->get_global_rect();
             if (rect.intersects(other_rect))
                 results.push_back(other);
         }
-    }
-
+    });
     return results;
-}
-
-bool OrchestratorGraphNode::_has_toolbar_icon(const String& p_name)
-{
-    HBoxContainer* container = get_titlebar_hbox();
-    for (int i = 0; i < container->get_child_count(); i++)
-    {
-        if (container->get_child(i)->has_meta(p_name))
-            return true;
-    }
-    return false;
 }
 
 void OrchestratorGraphNode::_on_node_moved([[maybe_unused]] Vector2 p_old_pos, Vector2 p_new_pos)

@@ -192,14 +192,10 @@ void OrchestratorGraphEdit::clear_selection()
 {
     set_selected(nullptr);
 
-    for (int i = 0; i < get_child_count(); i++)
-    {
-        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
-        {
-            if (node->is_selected())
-                node->set_selected(false);
-        }
-    }
+    for_each_graph_node([](OrchestratorGraphNode* node) {
+        if (node->is_selected())
+            node->set_selected(false);
+    });
 }
 
 void OrchestratorGraphEdit::focus_node(int p_node_id)
@@ -256,6 +252,15 @@ void OrchestratorGraphEdit::goto_class_help(const String& p_class_name)
 {
     _plugin->get_editor_interface()->set_main_screen_editor("Script");
     _plugin->get_editor_interface()->get_script_editor()->call("_help_class_open", p_class_name);
+}
+
+void OrchestratorGraphEdit::for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func)
+{
+    for (int i = 0; i < get_child_count(); i++)
+    {
+        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
+            p_func(node);
+    }
 }
 
 bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Variant& p_data) const
@@ -479,12 +484,9 @@ void OrchestratorGraphEdit::_remove_all_nodes()
 {
     // Remove all nodes from the graph.
     List<GraphNode*> removables;
-    for (int i = 0; i < get_child_count(); i++)
-    {
-        Node* child = get_child(i);
-        if (GraphNode* graph_node = Object::cast_to<GraphNode>(child))
-            removables.push_back(graph_node);
-    }
+    for_each_graph_node([&removables](OrchestratorGraphNode* node) {
+        removables.push_back(node);
+    });
 
     for (GraphNode* node : removables)
     {
@@ -552,15 +554,14 @@ void OrchestratorGraphEdit::_synchronize_graph_node(Ref<OScriptNode> p_node)
 void OrchestratorGraphEdit::_synchronize_child_order()
 {
     // Always place comment nodes above the nodes that are contained within their rects.
-    for (int i = 0; i < get_child_count(); i++)
-    {
-        if (OrchestratorGraphNodeComment* comment = Object::cast_to<OrchestratorGraphNodeComment>(get_child(i)))
+    for_each_graph_node([&](OrchestratorGraphNode* node) {
+        if (OrchestratorGraphNodeComment* comment = Object::cast_to<OrchestratorGraphNodeComment>(node))
         {
             // Raises the child
             move_child(comment, -1);
             comment->call_deferred("raise_request_node_reorder");
         }
-    }
+    });
 }
 
 void OrchestratorGraphEdit::_attempt_autowire(const Ref<OScriptNode>& p_new_node, const Ref<OScriptNode>& p_existing_node)
@@ -629,33 +630,25 @@ void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from
         {
             // From port is an output
             OrchestratorGraphNodePin* pin = source->get_output_pin(p_from_port);
-            for (int i = 0; i < get_child_count(); i++)
-            {
-                if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
-                {
-                    node->set_inputs_for_accept_opacity(0.3f, pin);
-                    node->set_all_outputs_opacity(.3f);
+            for_each_graph_node([&](OrchestratorGraphNode* node) {
+                node->set_inputs_for_accept_opacity(0.3f, pin);
+                node->set_all_outputs_opacity(0.3f);
 
-                    if (node->get_inputs_with_opacity() == 0 && node != source)
-                        node->set_modulate(Color(1, 1, 1, 0.5));
-                }
-            }
+                if (node->get_inputs_with_opacity() == 0 && node != source)
+                    node->set_modulate(Color(1, 1, 1, 0.5));
+            });
         }
         else
         {
             // From port is an input
             OrchestratorGraphNodePin* pin = source->get_input_pin(p_from_port);
-            for (int i = 0; i < get_child_count(); i++)
-            {
-                if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
-                {
-                    node->set_all_inputs_opacity(0.3f);
-                    node->set_outputs_for_accept_opacity(0.3f, pin);
+            for_each_graph_node([&](OrchestratorGraphNode* node) {
+                node->set_all_inputs_opacity(0.3f);
+                node->set_outputs_for_accept_opacity(0.3f, pin);
 
-                    if (node->get_outputs_with_opacity() == 0 && node != source)
-                        node->set_modulate(Color(1, 1, 1, 0.5));
-                }
-            }
+                if (node->get_outputs_with_opacity() == 0 && node != source)
+                    node->set_modulate(Color(1, 1, 1, 0.5));
+            });
         }
     }
 }
@@ -664,15 +657,11 @@ void OrchestratorGraphEdit::_on_connection_drag_ended()
 {
     _drag_context.end_drag();
 
-    for (int i = 0; i < get_child_count(); i++)
-    {
-        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
-        {
-            node->set_modulate(Color(1, 1, 1, 1));
-            node->set_all_inputs_opacity(1.f);
-            node->set_all_outputs_opacity(1.f);
-        }
-    }
+    for_each_graph_node([](OrchestratorGraphNode* node) {
+        node->set_modulate(Color(1, 1, 1, 1));
+        node->set_all_inputs_opacity(1.f);
+        node->set_all_outputs_opacity(1.f);
+    });
 }
 
 void OrchestratorGraphEdit::_on_action_menu_cancelled()

@@ -20,6 +20,7 @@
 #include "actions/action_menu.h"
 #include "graph_node.h"
 
+#include <functional>
 #include <godot_cpp/classes/curve2d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
@@ -158,6 +159,10 @@ public:
     /// Goto class help
     /// @param p_class_name the class name to show help for
     void goto_class_help(const String& p_class_name);
+
+    /// Perform an action for each graph node
+    /// @param p_func the lambda to be applied
+    void for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func);
 
     //~ GraphEdit overrides
     bool _can_drop_data(const Vector2& p_position, const Variant& p_data) const override;

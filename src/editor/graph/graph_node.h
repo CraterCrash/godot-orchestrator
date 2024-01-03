@@ -23,6 +23,7 @@
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
+#include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 
@@ -71,6 +72,7 @@ private:
     Ref<OScriptNode> _node;                     //! The script node instance
     List<Ref<OScriptAction>> _context_actions;  //! Context menu actions
     PopupMenu* _context_menu{ nullptr };        //! The node's context menu
+    HBoxContainer* _indicators{ nullptr };      //! Container for indicators
 
 protected:
     OrchestratorGraphNode() = default;
@@ -158,20 +160,28 @@ protected:
     /// Update pins for this graph node
     virtual void _update_pins();
 
+    /// Updates node indicators
+    virtual void _update_indicators();
+
     /// Should the node resize on updates, by default is true.
     virtual bool _resize_on_update() const { return true; }
-
-    /// Adds the development only indicator
-    void _add_development_only_indicator();
-
-    /// Adds the experimental indicator
-    void _add_experimental_indicator();
 
     /// Update the nodes titlebar details
     void _update_titlebar();
 
     /// Update the node's styles
     void _update_styles();
+
+    /// Creates a style based on a specific color.
+    /// @param p_existing_name the existing style to clone from
+    /// @param p_color the color to be applied
+    /// @param p_titlebar whether to treat the style box as a titlebar or panel border
+    Ref<StyleBoxFlat> _make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar = false);
+
+    /// Creates a style based on node selection color.
+    /// @param p_existing_name the existing style to clone from
+    /// @param p_titlebar whether to treat the style box as a titlebar or panel border
+    Ref<StyleBoxFlat> _make_selected_style(const String& p_existing_name, bool p_titlebar = false);
 
     /// Called by various callbacks to update node attributes
     void _update_node_attributes();
@@ -187,11 +197,6 @@ protected:
     bool _is_add_pin_button_visible() const;
 
 private:
-    /// Checks whether the toolbar icon exists.
-    /// @param p_name the toolbar icon name
-    /// @return true if the icon exists, false otherwise
-    bool _has_toolbar_icon(const String& p_name);
-
     /// Called when the graph node is moved
     /// @param p_old_pos old position
     /// @param p_new_pos new position
