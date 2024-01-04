@@ -159,6 +159,9 @@ void OrchestratorGraphEdit::_notification(int p_what)
         connect("delete_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_delete_nodes_requested));
         connect("connection_drag_started", callable_mp(this, &OrchestratorGraphEdit::_on_connection_drag_started));
         connect("connection_drag_ended", callable_mp(this, &OrchestratorGraphEdit::_on_connection_drag_ended));
+        connect("copy_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_copy_nodes_request));
+        connect("duplicate_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_duplicate_nodes_request));
+        connect("paste_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_paste_nodes_request));
 
         _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphEdit::_on_context_menu_selection));
 
@@ -621,6 +624,16 @@ void OrchestratorGraphEdit::_update_saved_mouse_position(const Vector2& p_positi
     _saved_mouse_position = (p_position + get_scroll_offset()) / get_zoom();
 }
 
+bool OrchestratorGraphEdit::_can_duplicate_node(OrchestratorGraphNode* p_node) const
+{
+    Ref<OScriptNode> node = p_node->get_script_node();
+    Ref<OScriptNodeEvent> event = node;
+    Ref<OScriptNodeFunctionEntry> function_entry = node;
+    Ref<OScriptNodeFunctionResult> function_result = node;
+    Ref<OScriptNodeLocalVariable> local_variable = node;
+    return !event.is_valid() && !function_entry.is_valid() && !function_result.is_valid() && !local_variable.is_valid();
+}
+
 void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from, int p_from_port, bool p_output)
 {
     _drag_context.start_drag(p_from, p_from_port, p_output);
@@ -939,4 +952,150 @@ void OrchestratorGraphEdit::_on_validate_and_build()
     }
     _confirm_window->reset_size();
     _confirm_window->show();
+}
+
+void OrchestratorGraphEdit::_on_copy_nodes_request()
+{
+    _clipboard->reset();
+
+    for_each_graph_node([&](OrchestratorGraphNode* node) {
+        if (node->is_selected())
+        {
+            Ref<OScriptNode> script_node = node->get_script_node();
+
+            if (!_can_duplicate_node(node))
+            {
+                WARN_PRINT_ONCE_ED("There are some nodes that cannot be copied, they were not placed on the clipboard.");
+                return;
+            }
+
+            const int id = script_node->get_id();
+            _clipboard->positions[id] = script_node->get_position();
+            // Be sure to clone to create new copies of pins
+            _clipboard->nodes[id] = script_node->duplicate(true);
+        }
+    });
+
+    for (const OScriptConnection& E : _script->get_connections())
+        if (_clipboard->nodes.has(E.from_node) && _clipboard->nodes.has(E.to_node))
+            _clipboard->connections.insert(E);
+}
+
+void OrchestratorGraphEdit::_on_duplicate_nodes_request()
+{
+    Vector<int> duplications;
+    for_each_graph_node([&](OrchestratorGraphNode* node) {
+        if (node->is_selected())
+        {
+            if (!_can_duplicate_node(node))
+            {
+                WARN_PRINT_ONCE_ED("There are some nodes that cannot be copied, they were not placed on the clipboard.");
+                return;
+            }
+            duplications.push_back(node->get_script_node_id());
+        }
+    });
+
+    if (duplications.is_empty())
+        return;
+
+    Vector<int> selections;
+    HashMap<int, int> bindings;
+    for (const int node_id : duplications)
+    {
+        Ref<OScriptNode> node = _script->get_node(node_id);
+
+        // Duplicate sub-resources to handle copying pins
+        Ref<OScriptNode> duplicate = node->duplicate(true);
+
+        // Initialize the duplicate node
+        // While the ID and Position are obvious, the other two maybe are not.
+        // Setting OScript is necessary because the OScript pointer is not stored/persisted.
+        // Additionally, there are other node properties that are maybe references to other objects or data
+        // that is post-processed after placement but before rendering, and this allows this step to handle
+        // that cleanly.
+        duplicate->set_id(_script->get_available_id());
+        duplicate->set_position(node->get_position() + Vector2(20, 20));
+        duplicate->set_owning_script(_script.ptr());
+        duplicate->post_initialize();
+
+        _script->add_node(_script_graph, duplicate);
+        duplicate->post_placed_new_node();
+
+        selections.push_back(duplicate->get_id());
+        bindings[node->get_id()] = duplicate->get_id();
+    }
+
+    for (const OScriptConnection& E : _script->get_connections())
+        if (duplications.has(E.from_node) && duplications.has(E.to_node))
+            _script->connect_nodes(bindings[E.from_node], E.from_port, bindings[E.to_node], E.to_port);
+
+    _synchronize_graph_with_script();
+
+    for (const int selected_id : selections)
+    {
+        if (OrchestratorGraphNode* node = _get_node_by_id(selected_id))
+            node->set_selected(true);
+    }
+}
+
+void OrchestratorGraphEdit::_on_paste_nodes_request()
+{
+    if (_clipboard->is_empty())
+    {
+        UtilityFunctions::print("There is nothing to paste, clipboard is empty.");
+        return;
+    }
+
+    Vector<int> duplications;
+    RBSet<Vector2> existing_positions;
+    for (const KeyValue<int, Vector2>& E : _clipboard->positions)
+    {
+        existing_positions.insert(E.value.snapped(Vector2(2, 2)));
+        duplications.push_back(E.key);
+    }
+
+    Vector2 mouse_up_position = get_screen_position() + get_local_mouse_position();
+    Vector2 position_offset = (get_scroll_offset() + (mouse_up_position - get_global_position())) / get_zoom();
+    if (is_snapping_enabled())
+    {
+        int snap = get_snapping_distance();
+        position_offset = position_offset.snapped(Vector2(snap, snap));
+    }
+
+    for (const KeyValue<int, Ref<OScriptNode>>& E : _clipboard->nodes)
+    {
+        position_offset -= _clipboard->positions[E.key];
+        break;
+    }
+
+    Vector<int> selections;
+    HashMap<int, int> bindings;
+    for (const KeyValue<int, Ref<OScriptNode>>& E : _clipboard->nodes)
+    {
+        Ref<OScriptNode> node = E.value->duplicate();
+
+        node->set_id(_script->get_available_id());
+        node->set_position(_clipboard->positions[E.key] + position_offset);
+        node->set_owning_script(_script.ptr());
+        node->post_initialize();
+
+        _script->add_node(_script_graph, node);
+
+        node->post_placed_new_node();
+        selections.push_back(node->get_id());
+
+        bindings[E.key] = node->get_id();
+    }
+
+    for (const OScriptConnection& E : _clipboard->connections)
+        _script->connect_nodes(bindings[E.from_node], E.from_port, bindings[E.to_node], E.to_port);
+
+    _synchronize_graph_with_script();
+
+    for (const int selected_id : selections)
+    {
+        if (OrchestratorGraphNode* node = _get_node_by_id(selected_id))
+            node->set_selected(true);
+    }
 }
