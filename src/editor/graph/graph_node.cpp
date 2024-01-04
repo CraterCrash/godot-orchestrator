@@ -27,6 +27,8 @@
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
+#include <godot_cpp/classes/input.hpp>
+#include <godot_cpp/classes/input_event_action.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
@@ -479,10 +481,9 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     _context_menu->add_icon_item(SceneUtils::get_icon(this, "Remove"), "Delete", CM_DELETE, KEY_DELETE);
     _context_menu->set_item_disabled(_context_menu->get_item_index(CM_DELETE), !_node->can_user_delete_node());
 
-    // todo: Implement cut/copy/duplicate nodes (see Trello)
-    // ActionCut / CM_CUT / Key(KEY_MASK_CTRL | KEY_X)
-    // ActionCopy / CM_COPY / Key(KEY_MASK_CTRL | KEY_C)
-    // Duplicate / CM_DUPLICATE / Key(KEY_MASK_CTRL | KEY_D)
+    _context_menu->add_icon_item(SceneUtils::get_icon(this, "ActionCut"), "Cut", CM_CUT, Key(KEY_MASK_CTRL | KEY_X));
+    _context_menu->add_icon_item(SceneUtils::get_icon(this, "ActionCopy"), "Copy", CM_COPY, Key(KEY_MASK_CTRL | KEY_C));
+    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Duplicate"), "Duplicate", CM_DUPLICATE, Key(KEY_MASK_CTRL | KEY_D));
 
     _context_menu->add_icon_item(SceneUtils::get_icon(this, "Loop"), "Refresh Nodes", CM_REFRESH);
     _context_menu->add_icon_item(SceneUtils::get_icon(this, "Unlinked"), "Break Node Link(s)", CM_BREAK_LINKS);
@@ -507,6 +508,15 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     _context_menu->set_position(get_screen_position() + (p_position * (real_t) get_graph()->get_zoom()));
     _context_menu->reset_size();
     _context_menu->popup();
+}
+
+void OrchestratorGraphNode::_simulate_action_pressed(const String& p_action_name)
+{
+    Ref<InputEventAction> action = memnew(InputEventAction());
+    action->set_action(p_action_name);
+    action->set_pressed(true);
+
+    Input::get_singleton()->parse_input_event(action);
 }
 
 void OrchestratorGraphNode::_on_changed()
@@ -590,6 +600,22 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
     {
         switch (p_id)
         {
+            case CM_CUT:
+            {
+                _simulate_action_pressed("ui_copy");
+                _simulate_action_pressed("ui_graph_delete");
+                break;
+            }
+            case CM_COPY:
+            {
+                _simulate_action_pressed("ui_copy");
+                break;
+            }
+            case CM_DUPLICATE:
+            {
+                _simulate_action_pressed("ui_graph_duplicate");
+                break;
+            }
             case CM_DELETE:
             {
                 if (_node->can_user_delete_node())

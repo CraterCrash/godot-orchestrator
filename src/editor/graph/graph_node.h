@@ -196,6 +196,10 @@ protected:
     /// @return true if the add-pin is visible, otherwise false
     bool _is_add_pin_button_visible() const;
 
+    /// Simulates the action being pressed
+    /// @param p_action_name the action to simulate
+    void _simulate_action_pressed(const String& p_action_name);
+
 private:
     /// Called when the graph node is moved
     /// @param p_old_pos old position

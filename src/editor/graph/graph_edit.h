@@ -80,6 +80,20 @@ class OrchestratorGraphEdit : public GraphEdit
         HashMap<int, Ref<OScriptNode>> nodes;
         HashMap<int, Vector2> positions;
         RBSet<OScriptConnection> connections;
+
+        /// Returns whether the clipboard is empty
+        bool is_empty() const
+        {
+            return nodes.is_empty();
+        }
+
+        /// Reset the clipboard
+        void reset()
+        {
+            nodes.clear();
+            positions.clear();
+            connections.clear();
+        }
     };
 
     static Clipboard* _clipboard;
@@ -222,6 +236,11 @@ private:
     /// @param p_position the position
     void _update_saved_mouse_position(const Vector2& p_position);
 
+    /// Returns whether the specified node can be duplicated.
+    /// @param p_node the node
+    /// @return true if the node can be duplicated, false otherwise
+    bool _can_duplicate_node(OrchestratorGraphNode* p_node) const;
+
     /// Connection drag started
     /// @param p_from the source node
     /// @param p_from_port source node port
@@ -303,6 +322,15 @@ private:
 
     /// Validates and builds the script
     void _on_validate_and_build();
+
+    /// Dispatched when the user presses {@code Ctrl+C} to copy selected nodes to the clipboard.
+    void _on_copy_nodes_request();
+
+    /// Dispatched when the user wants to duplicate a graph node.
+    void _on_duplicate_nodes_request();
+
+    /// Dispatched when the user pressed {@code Ctrl+V} to paste nodes onto the graph.
+    void _on_paste_nodes_request();
 };
 
 #endif  // ORCHESTRATOR_GRAPH_EDIT_H
