@@ -1042,10 +1042,7 @@ void OrchestratorGraphEdit::_on_duplicate_nodes_request()
 void OrchestratorGraphEdit::_on_paste_nodes_request()
 {
     if (_clipboard->is_empty())
-    {
-        UtilityFunctions::print("There is nothing to paste, clipboard is empty.");
         return;
-    }
 
     Vector<int> duplications;
     RBSet<Vector2> existing_positions;
