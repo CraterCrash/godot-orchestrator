@@ -18,7 +18,7 @@ jobs:
           submodules: recursive
 
       - name: Scan assets
-        uses: hugoalh/scan-virus-ghaction@v0.20.0
+        uses: hugoalh/scan-virus-ghaction@v0.20.1
         with:
           found_summary: true
           statistics_summary: true
@@ -39,7 +39,7 @@ jobs:
           fileName: "godot-orchestrator*plugin.zip"
 
       - name: Scan assets
-        uses: hugoalh/scan-virus-ghaction@v0.20.0
+        uses: hugoalh/scan-virus-ghaction@v0.20.1
         with:
           found_summary: true
           statistics_summary: true
