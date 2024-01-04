@@ -1,0 +1,45 @@
+name: Security Scan
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The tagged release to check"
+        required: true
+
+jobs:
+  scan_repository:
+    name: Scan repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Scan assets
+        uses: hugoalh/scan-virus-ghaction@v0.20.0
+        with:
+          found_summary: true
+          statistics_summary: true
+
+  scan_asset:
+    name: Scan release assets
+    runs-on: ubuntu-latest
+    # This only runs as part of workflow dispatch, otherwise only scan the repository
+    if: ${{ github.event.inputs.tag != '' }}
+    steps:
+
+      - name: Download assets (Specific Tag)
+        if: ${{ github.event.inputs.tag != '' }}
+        uses: robinraju/release-downloader@v1.8
+        with:
+          tag: ${{ github.event.inputs.tag }}
+          extract: true
+          fileName: "godot-orchestrator*plugin.zip"
+
+      - name: Scan assets
+        uses: hugoalh/scan-virus-ghaction@v0.20.0
+        with:
+          found_summary: true
+          statistics_summary: true
