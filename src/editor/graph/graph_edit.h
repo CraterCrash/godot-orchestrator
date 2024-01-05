@@ -107,7 +107,7 @@ class OrchestratorGraphEdit : public GraphEdit
     int _deferred_tween_node{ -1 };                        //! Node id to tween to upon load
     PopupMenu* _context_menu{ nullptr };                   //! Graph context menu
     OrchestratorPlugin* _plugin{ nullptr };                //! The plugin
-
+    Control* _status{ nullptr };                           //! Displays status in the center of graphs
     OrchestratorGraphEdit() = default;
 
 protected:

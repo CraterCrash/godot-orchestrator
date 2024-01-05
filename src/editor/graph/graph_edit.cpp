@@ -27,6 +27,7 @@
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
 
+#include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -120,6 +121,20 @@ void OrchestratorGraphEdit::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_ENTER_TREE)
     {
+        Label* label = memnew(Label);
+        label->set_text("Use Right Mouse Button To Add New Nodes");
+        label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+        label->add_theme_font_size_override("font_size", 24);
+
+        _status = memnew(CenterContainer);
+        _status->set_anchors_preset(Control::PRESET_FULL_RECT);
+        _status->add_child(label);
+        add_child(_status);
+
+        // When graph has nodes, hide right-click suggestion
+        if (!_script_graph->get_nodes().is_empty())
+            _status->hide();
+
         Button* show_script_details = memnew(Button);
         show_script_details->set_text("Script Details");
         show_script_details->set_tooltip_text("Shows script details in the Inspector");
@@ -867,6 +882,9 @@ void OrchestratorGraphEdit::_on_graph_node_added(int p_node_id)
 {
     Ref<OScriptNode> node = _script->get_node(p_node_id);
     _synchronize_graph_node(node);
+
+    // When node is added to graph, show right-click suggestion
+    _status->hide();
 }
 
 void OrchestratorGraphEdit::_on_graph_node_removed(int p_node_id)
@@ -877,6 +895,10 @@ void OrchestratorGraphEdit::_on_graph_node_removed(int p_node_id)
         node->queue_free();
     }
     _synchronize_graph_connections_with_script();
+
+    // When last node is removed from graph, show right-click suggestion
+    if (_script_graph->get_nodes().is_empty())
+        _status->show();
 }
 
 void OrchestratorGraphEdit::_on_graph_connections_changed(const String& p_caller)
