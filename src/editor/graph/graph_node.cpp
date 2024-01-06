@@ -58,7 +58,7 @@ void OrchestratorGraphNode::_bind_methods()
 
 void OrchestratorGraphNode::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
+    if (p_what == NOTIFICATION_READY)
     {
         // Update the title bar widget layouts
         HBoxContainer* titlebar = get_titlebar_hbox();

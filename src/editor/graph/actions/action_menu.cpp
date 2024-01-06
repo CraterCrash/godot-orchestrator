@@ -34,7 +34,7 @@ void OrchestratorGraphActionMenu::_bind_methods()
 
 void OrchestratorGraphActionMenu::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
+    if (p_what == NOTIFICATION_READY)
     {
         set_title("All Actions");
 

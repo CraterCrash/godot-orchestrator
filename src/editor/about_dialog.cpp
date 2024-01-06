@@ -119,7 +119,7 @@ void OrchestratorAboutDialog::_bind_methods()
 
 void OrchestratorAboutDialog::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
+    if (p_what == NOTIFICATION_READY)
     {
         connect("theme_changed", callable_mp(this, &OrchestratorAboutDialog::_on_theme_changed));
         _version_btn->connect("pressed", callable_mp(this, &OrchestratorAboutDialog::_on_version_pressed));

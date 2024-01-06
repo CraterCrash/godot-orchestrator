@@ -26,6 +26,7 @@
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
+#include "editor/window_wrapper.h"
 #include "main_view.h"
 #include "script_view.h"
 
@@ -54,6 +55,8 @@ void register_editor_classes()
 
     // View components
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorAboutDialog)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScreenSelect)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorWindowWrapper)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorMainView)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptView)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewSection)

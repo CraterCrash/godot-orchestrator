@@ -119,7 +119,7 @@ void OrchestratorGraphEdit::free_clipboard()
 
 void OrchestratorGraphEdit::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
+    if (p_what == NOTIFICATION_READY)
     {
         Label* label = memnew(Label);
         label->set_text("Use Right Mouse Button To Add New Nodes");
@@ -182,19 +182,8 @@ void OrchestratorGraphEdit::_notification(int p_what)
 
         ProjectSettings* ps = ProjectSettings::get_singleton();
         ps->connect("settings_changed", callable_mp(this, &OrchestratorGraphEdit::_on_project_settings_changed));
-    }
-    else if (p_what == NOTIFICATION_POST_ENTER_TREE)
-    {
+
         _synchronize_graph_with_script(_deferred_tween_node == -1);
-    }
-    else if (p_what == NOTIFICATION_EXIT_TREE)
-    {
-        _script_graph->disconnect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
-        _script_graph->disconnect("node_added", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_added));
-        _script->disconnect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
-    }
-    else if (p_what == NOTIFICATION_READY)
-    {
         _focus_node(_deferred_tween_node);
     }
 }
