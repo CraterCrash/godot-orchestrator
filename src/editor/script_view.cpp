@@ -29,6 +29,7 @@
 #include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -45,7 +46,7 @@ OrchestratorScriptViewSection::OrchestratorScriptViewSection(const String& p_sec
 
 void OrchestratorScriptViewSection::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
+    if (p_what == NOTIFICATION_READY)
     {
         set_v_size_flags(Control::SIZE_SHRINK_BEGIN);
         set_h_size_flags(Control::SIZE_EXPAND_FILL);
@@ -213,7 +214,7 @@ String OrchestratorScriptViewSection::_create_unique_name_with_prefix(const Stri
     return {};
 }
 
-bool OrchestratorScriptViewSection::_find_child_and_activate(const String& p_name)
+bool OrchestratorScriptViewSection::_find_child_and_activate(const String& p_name, bool p_edit)
 {
     TreeItem* root = _tree->get_root();
 
@@ -225,6 +226,14 @@ bool OrchestratorScriptViewSection::_find_child_and_activate(const String& p_nam
             {
                 _tree->call_deferred("set_selected", child, 0);
                 _handle_item_activated(child);
+
+                if (p_edit)
+                {
+                    Ref<SceneTreeTimer> timer = get_tree()->create_timer(0.1f);
+                    if (timer.is_valid())
+                        timer->connect("timeout", callable_mp(_tree, &Tree::edit_selected).bind(true));
+                }
+
                 return true;
             }
         }
@@ -470,8 +479,7 @@ void OrchestratorScriptViewGraphsSection::_handle_add_new_item()
 
     update();
 
-    if (_find_child_and_activate(name))
-        _tree->call_deferred("edit_selected", true);
+    _find_child_and_activate(name);
 }
 
 void OrchestratorScriptViewGraphsSection::_handle_item_activated(TreeItem* p_item)
@@ -567,7 +575,10 @@ void OrchestratorScriptViewFunctionsSection::_on_override_virtual_function()
 
 void OrchestratorScriptViewFunctionsSection::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_POST_ENTER_TREE)
+    // Godot does not dispatch to parent (shrugs)
+    OrchestratorScriptViewSection::_notification(p_what);
+
+    if (p_what == NOTIFICATION_READY)
     {
         HBoxContainer* container = _get_panel_hbox();
 
@@ -579,9 +590,6 @@ void OrchestratorScriptViewFunctionsSection::_notification(int p_what)
         override_button->set_tooltip_text("Override a Godot virtual function");
         container->add_child(override_button);
     }
-
-    // Godot does not dispatch to parent (shrugs)
-    OrchestratorScriptViewSection::_notification(p_what);
 }
 
 void OrchestratorScriptViewFunctionsSection::_show_function_graph(TreeItem* p_item)
@@ -664,8 +672,7 @@ void OrchestratorScriptViewFunctionsSection::_handle_add_new_item()
 
     update();
 
-    if (_find_child_and_activate(name))
-        _tree->call_deferred("edit_selected", true);
+    _find_child_and_activate(name);
 }
 
 void OrchestratorScriptViewFunctionsSection::_handle_item_activated(TreeItem* p_item)
@@ -749,7 +756,10 @@ String OrchestratorScriptViewMacrosSection::_get_tooltip_text() const
 
 void OrchestratorScriptViewMacrosSection::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_POST_ENTER_TREE)
+    // Godot does not dispatch to parent (shrugs)
+    OrchestratorScriptViewSection::_notification(p_what);
+
+    if (p_what == NOTIFICATION_READY)
     {
         HBoxContainer* container = _get_panel_hbox();
 
@@ -757,9 +767,6 @@ void OrchestratorScriptViewMacrosSection::_notification(int p_what)
         if (button)
             button->set_disabled(true);
     }
-
-    // Godot does not dispatch to parent (shrugs)
-    OrchestratorScriptViewSection::_notification(p_what);
 }
 
 void OrchestratorScriptViewMacrosSection::update()
@@ -885,8 +892,7 @@ void OrchestratorScriptViewVariablesSection::_handle_add_new_item()
 
     update();
 
-    if (_find_child_and_activate(name))
-        _tree->call_deferred("edit_selected", true);
+    _find_child_and_activate(name);
 }
 
 void OrchestratorScriptViewVariablesSection::_handle_item_selected()
@@ -1051,8 +1057,7 @@ void OrchestratorScriptViewSignalsSection::_handle_add_new_item()
 
     update();
 
-    if (_find_child_and_activate(name))
-        _tree->call_deferred("edit_selected", true);
+    _find_child_and_activate(name);
 }
 
 void OrchestratorScriptViewSignalsSection::_handle_item_selected()
@@ -1143,7 +1148,7 @@ OrchestratorScriptView::OrchestratorScriptView(OrchestratorPlugin* p_plugin, con
 
 void OrchestratorScriptView::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
+    if (p_what == NOTIFICATION_READY)
     {
         Node* editor_node = get_tree()->get_root()->get_child(0);
         editor_node->connect("script_add_function_request", callable_mp(this, &OrchestratorScriptView::_add_callback));

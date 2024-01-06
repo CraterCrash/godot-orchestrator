@@ -20,6 +20,7 @@
 #include "common/version.h"
 #include "editor/about_dialog.h"
 #include "editor/graph/graph_edit.h"
+#include "editor/window_wrapper.h"
 #include "plugin/plugin.h"
 #include "plugin/settings.h"
 #include "script/language.h"
@@ -52,22 +53,15 @@
 
 #define SKEY(m,k) Key(static_cast<int>(m) | static_cast<int>(k))
 
-OrchestratorMainView::OrchestratorMainView(OrchestratorPlugin* p_plugin)
+OrchestratorMainView::OrchestratorMainView(OrchestratorPlugin* p_plugin, OrchestratorWindowWrapper* p_window_wrapper)
 {
     _plugin = p_plugin;
+    _wrapper = p_window_wrapper;
 }
 
 void OrchestratorMainView::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
-    {
-        OrchestratorGraphEdit::initialize_clipboard();
-    }
-    else if (p_what == NOTIFICATION_EXIT_TREE)
-    {
-        OrchestratorGraphEdit::free_clipboard();
-    }
-    else if (p_what == NOTIFICATION_READY)
+    if (p_what == NOTIFICATION_READY)
     {
         set_anchors_preset(PRESET_FULL_RECT);
         set_h_size_flags(SIZE_EXPAND_FILL);
@@ -172,6 +166,21 @@ void OrchestratorMainView::_notification(int p_what)
         version->set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER);
         right_menu_container->add_child(version);
 
+        if (_wrapper->is_window_available())
+        {
+            vs = memnew(VSeparator);
+            vs->set_v_size_flags(SIZE_SHRINK_CENTER);
+            vs->set_custom_minimum_size(Vector2i(0, 24));
+            right_menu_container->add_child(vs);
+
+            _select = memnew(OrchestratorScreenSelect);
+            _select->set_flat(true);
+            _select->set_tooltip_text("Make the Orchestration editor floating.");
+            _select->connect("request_open_in_screen", callable_mp(_wrapper, &OrchestratorWindowWrapper::enable_window_on_screen).bind(true));
+            right_menu_container->add_child(_select);
+            _wrapper->connect("window_visibility_changed", callable_mp(this, &OrchestratorMainView::_on_window_changed));
+        }
+
         _update_container = memnew(HBoxContainer);
         _update_container->set_visible(false);
 
@@ -228,7 +237,7 @@ void OrchestratorMainView::_notification(int p_what)
 
         _open_dialog = memnew(FileDialog);
         _open_dialog->set_min_size(Vector2(700, 400));
-        _open_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN);
+        _open_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
         _open_dialog->set_title("Open Orchestration Script");
         _open_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
         _open_dialog->add_filter("*.os", "Orchestrator Scripts");
@@ -237,7 +246,7 @@ void OrchestratorMainView::_notification(int p_what)
 
         _save_dialog = memnew(FileDialog);
         _save_dialog->set_min_size(Vector2(700, 400));
-        _save_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN);
+        _save_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
         _save_dialog->set_title("Save As Orchestration Script");
         _save_dialog->set_file_mode(FileDialog::FILE_MODE_SAVE_FILE);
         _save_dialog->add_filter("*.os", "Orchestrator Scripts");
@@ -253,7 +262,6 @@ void OrchestratorMainView::_notification(int p_what)
         add_child(_close_confirm);
 
         _goto_dialog = memnew(ConfirmationDialog);
-        _goto_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN);
         _goto_dialog->set_title("Go to Node");
 
         VBoxContainer* container = memnew(VBoxContainer);
@@ -298,6 +306,14 @@ void OrchestratorMainView::apply_changes()
 {
     for (const ScriptFile& file : _script_files)
         file.editor->apply_changes();
+}
+
+void OrchestratorMainView::get_window_layout(const Ref<ConfigFile>& p_configuration)
+{
+}
+
+void OrchestratorMainView::set_window_layout(const Ref<ConfigFile>& p_configuration)
+{
 }
 
 bool OrchestratorMainView::build()
@@ -476,6 +492,10 @@ void OrchestratorMainView::_show_create_new_script_dialog()
 
     ScriptCreateDialog* dialog = _plugin->get_script_create_dialog();
 
+    // Cache existing position and change it for our pop-out
+    const Window::WindowInitialPosition initial_position = dialog->get_initial_position();
+    dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
+
     // Finds the LanguageMenu option button and forces the Orchestrator choice
     // This must be done before calling "config" to make sure that all the dialog logic for templates
     // and the language choice align properly.
@@ -505,6 +525,9 @@ void OrchestratorMainView::_show_create_new_script_dialog()
         dialog->connect("script_created", callable_mp(this, &OrchestratorMainView::_on_script_file_created));
 
     dialog->popup_centered();
+
+    // Restore old position
+    dialog->set_initial_position(initial_position);
 }
 
 void OrchestratorMainView::_update_files_list()
@@ -626,7 +649,7 @@ void OrchestratorMainView::_on_menu_option(int p_option)
             break;
         case GOTO_NODE:
         {
-            _goto_dialog->show();
+            _goto_dialog->popup_centered();
             break;
         }
         default:
@@ -723,6 +746,12 @@ void OrchestratorMainView::_on_goto_node(LineEdit* p_edit)
 void OrchestratorMainView::_on_goto_node_closed(LineEdit* p_edit)
 {
     p_edit->set_text("");
+}
+
+void OrchestratorMainView::_on_window_changed(bool p_visible)
+{
+    _select->set_visible(!p_visible);
+    _floating = p_visible;
 }
 
 void OrchestratorMainView::_on_request_completed(int p_result, int p_code, const PackedStringArray& p_headers,

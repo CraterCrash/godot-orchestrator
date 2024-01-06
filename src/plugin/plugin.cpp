@@ -17,12 +17,16 @@
 #include "plugin.h"
 
 #include "common/version.h"
+#include "editor/graph/graph_edit.h"
 #include "editor/main_view.h"
+#include "editor/window_wrapper.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/theme_db.hpp>
@@ -46,6 +50,8 @@ void OrchestratorPlugin::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_ENTER_TREE)
     {
+        OrchestratorGraphEdit::initialize_clipboard();
+
         // Plugins only enter the tree once and this happens before the main view.
         // It's safe then to cache the plugin reference here.
         _plugin = this;
@@ -55,12 +61,24 @@ void OrchestratorPlugin::_notification(int p_what)
         if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons"))
             theme->set_icon(_get_plugin_name(), "EditorIcons", _get_plugin_icon());
 
-        _main_view = memnew(OrchestratorMainView(this));
-        _editor.get_editor_main_screen()->add_child(_main_view);
+        _window_wrapper = memnew(OrchestratorWindowWrapper);
+        _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));
+        _window_wrapper->set_margins_enabled(true);
+
+        _main_view = memnew(OrchestratorMainView(this, _window_wrapper));
+
+        _editor.get_editor_main_screen()->add_child(_window_wrapper);
+        _window_wrapper->set_wrapped_control(_main_view);
+        _window_wrapper->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+        _window_wrapper->hide();
+        _window_wrapper->connect("window_visibility_changed", callable_mp(this, &OrchestratorPlugin::_on_window_visibility_changed));
+
         _make_visible(false);
     }
     else if (p_what == NOTIFICATION_EXIT_TREE)
     {
+        OrchestratorGraphEdit::free_clipboard();
+
         memdelete(_main_view);
         _main_view = nullptr;
 
@@ -74,7 +92,10 @@ void OrchestratorPlugin::_edit(Object* p_object)
     {
         Ref<OScript> script(Object::cast_to<OScript>(p_object));
         if (script.is_valid())
+        {
             _main_view->edit(script);
+            _window_wrapper->move_to_foreground();
+        }
     }
 }
 
@@ -90,8 +111,10 @@ bool OrchestratorPlugin::_has_main_screen() const
 
 void OrchestratorPlugin::_make_visible(bool p_visible)
 {
-    if (_main_view)
-        _main_view->set_visible(p_visible);
+    if (p_visible)
+        _window_wrapper->show();
+    else
+        _window_wrapper->hide();
 }
 
 String OrchestratorPlugin::_get_plugin_name() const
@@ -130,6 +153,52 @@ void OrchestratorPlugin::_apply_changes()
         _main_view->apply_changes();
 }
 
+void OrchestratorPlugin::_set_window_layout(const Ref<ConfigFile>& p_configuration)
+{
+    if (_main_view)
+        _main_view->set_window_layout(p_configuration);
+
+    Ref<EditorSettings> es = get_editor_interface()->get_editor_settings();
+    if (es.is_valid())
+    {
+        bool restore_on_load = es->get_setting("interface/multi_window/restore_windows_on_load");
+        if (restore_on_load && _window_wrapper->is_window_available()
+            && p_configuration->has_section_key("Orchestrator", "window_rect"))
+        {
+            _window_wrapper->restore_window_from_saved_position(
+                p_configuration->get_value("Orchestrator", "window_rect", Rect2i()),
+                p_configuration->get_value("Orchestrator", "window_screen", -1),
+                p_configuration->get_value("Orchestrator", "window_screen_rect", Rect2i()));
+        }
+        else
+            _window_wrapper->set_window_enabled(false);
+    }
+}
+
+void OrchestratorPlugin::_get_window_layout(const Ref<ConfigFile>& p_configuration)
+{
+    if (_main_view)
+        _main_view->get_window_layout(p_configuration);
+
+    if (_window_wrapper->get_window_enabled())
+    {
+        p_configuration->set_value("Orchestrator", "window_rect", _window_wrapper->get_window_rect());
+        int screen = _window_wrapper->get_window_screen();
+        p_configuration->set_value("Orchestrator", "window_screen", screen);
+        p_configuration->set_value("Orchestrator", "window_screen_rect",
+                                   DisplayServer::get_singleton()->screen_get_usable_rect(screen));
+    }
+    else
+    {
+        if (p_configuration->has_section_key("Orchestrator", "window_rect"))
+            p_configuration->erase_section_key("Orchestrator", "window_rect");
+        if (p_configuration->has_section_key("Orchestrator", "window_screen"))
+            p_configuration->erase_section_key("Orchestrator", "window_screen");
+        if (p_configuration->has_section_key("Orchestrator", "window_screen_rect"))
+            p_configuration->erase_section_key("Orchestrator", "window_screen_rect");
+    }
+}
+
 bool OrchestratorPlugin::_build()
 {
     if (_main_view)
@@ -144,6 +213,11 @@ void OrchestratorPlugin::_enable_plugin()
 
 void OrchestratorPlugin::_disable_plugin()
 {
+}
+
+void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)
+{
+    // todo: see script_editor_plugin.cpp
 }
 
 void register_plugin_classes()

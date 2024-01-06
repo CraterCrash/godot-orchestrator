@@ -54,7 +54,7 @@ String OrchestratorGraphNodePin::_get_color_name() const
 
 void OrchestratorGraphNodePin::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_ENTER_TREE)
+    if (p_what == NOTIFICATION_READY)
     {
         _create_widgets();
 

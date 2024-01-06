@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_MAIN_VIEW_H
 #define ORCHESTRATOR_MAIN_VIEW_H
 
+#include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -26,7 +27,9 @@ using namespace godot;
 /// Forward declarations
 class OrchestratorPlugin;
 class OScript;
+class OrchestratorScreenSelect;
 class OrchestratorScriptView;
+class OrchestratorWindowWrapper;
 
 namespace godot
 {
@@ -92,6 +95,9 @@ private:
     OrchestratorPlugin* _plugin{ nullptr };          //! Orchestrator plugin
     Timer* _update_timer{ nullptr };                 //! Update timer
     HTTPRequest* _http_request{ nullptr };           //! HTTP request
+    bool _floating{ false };                         //! Whether this window is floating
+    OrchestratorScreenSelect* _select{ nullptr };    //! Screen selection
+    OrchestratorWindowWrapper* _wrapper{ nullptr };  //! Window wrapper
 
     static void _bind_methods() { }
     OrchestratorMainView() = default;
@@ -99,7 +105,8 @@ private:
 public:
     /// Creates the main view
     /// @param p_plugin the plugin instance
-    OrchestratorMainView(OrchestratorPlugin* p_plugin);
+    /// @param p_window_wrapper the window wrapper
+    OrchestratorMainView(OrchestratorPlugin* p_plugin, OrchestratorWindowWrapper* p_window_wrapper);
 
     /// Godot callback that handles notifications
     /// @param p_what the notification to be handled
@@ -111,6 +118,14 @@ public:
 
     /// Saves all open files
     void apply_changes();
+
+    /// Get the window's layout to be serialized to disk when the editor is restored
+    /// @param p_configuration the configuration
+    void get_window_layout(const Ref<ConfigFile>& p_configuration);
+
+    /// Set the window's layout, restoring the previous editor state
+    /// @param p_configuration the configuration
+    void set_window_layout(const Ref<ConfigFile>& p_configuration);
 
     /// Performs the build step
     /// @return true if the build was successful; false otherwise
@@ -213,6 +228,10 @@ private:
     /// Dispatched when the goto dialog window's visibility changes.
     /// @param p_edit the line edit control, should never be null
     void _on_goto_node_visibility_changed(LineEdit* p_edit);
+
+    /// Dispatched when the window's floating status changes
+    /// @param p_visible the current visibility status
+    void _on_window_changed(bool p_visible);
 
     void _on_request_completed(int p_result, int p_code, const PackedStringArray& p_headers, const PackedByteArray& p_data);
 };

@@ -73,8 +73,9 @@ protected:
 
     /// Finds the specified child in the tree with text that matches the given name.
     /// @param p_name the text to find and activate in the tree control
+    /// @param p_edit true if the item should be edited after activation, false otherwise
     /// @return true if the item is found and activated, false otherwise
-    bool _find_child_and_activate(const String& p_name);
+    bool _find_child_and_activate(const String& p_name, bool p_edit = true);
 
     /// Get the panel's horizontal box control
     /// @return the HBoxContainer child of the top panel, never null

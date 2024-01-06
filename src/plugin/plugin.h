@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_PLUGIN_H
 #define ORCHESTRATOR_PLUGIN_H
 
+#include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
 
@@ -24,6 +25,7 @@ using namespace godot;
 
 /// Forward declarations
 class OrchestratorMainView;
+class OrchestratorWindowWrapper;
 
 /// The Orchestrator editor plug-in.
 class OrchestratorPlugin : public EditorPlugin
@@ -34,9 +36,9 @@ class OrchestratorPlugin : public EditorPlugin
 
     static OrchestratorPlugin* _plugin;
 
-    EditorInterface& _editor;                     //! Godot editor interface reference
-    OrchestratorMainView* _main_view{ nullptr };  //! Plugin's main view
-
+    EditorInterface& _editor;                                 //! Godot editor interface reference
+    OrchestratorMainView* _main_view{ nullptr };              //! Plugin's main view
+    OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
 public:
     /// Constructor
     OrchestratorPlugin();
@@ -65,10 +67,15 @@ public:
     String _get_plugin_name() const override;
     Ref<Texture2D> _get_plugin_icon() const override;
     void _apply_changes() override;
+    void _set_window_layout(const Ref<ConfigFile>& configuration) override;
+    void _get_window_layout(const Ref<ConfigFile>& configuration) override;
     bool _build() override;
     void _enable_plugin() override;
     void _disable_plugin() override;
     //~ End EditorPlugin interface
+
+private:
+    void _on_window_visibility_changed(bool p_visible);
 };
 
 void register_plugin_classes();
