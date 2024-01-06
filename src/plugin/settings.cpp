@@ -94,6 +94,8 @@ void OrchestratorSettings::_register_settings()
 
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_conversion_nodes", false));
+    _settings.emplace_back(RANGE_SETTING("ui/nodes/border_radius", "0,24,1", 6));
+    _settings.emplace_back(BOOL_SETTING("ui/nodes/titlebar/use_gradient_colors", false));
 
     // Nodes
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/constants_and_literals", Color(0.271, 0.392, 0.2)));

@@ -172,16 +172,36 @@ protected:
     /// Update the node's styles
     void _update_styles();
 
+    /// Returns the selection color when a node is selected by the user.
+    /// @return the selection color
+    Color _get_selection_color() const;
+
+    /// Returns whether to use gradient color scheme
+    /// @return true to use gradient title bar color scheme, false otherwise
+    bool _use_gradient_color_style() const;
+
     /// Creates a style based on a specific color.
     /// @param p_existing_name the existing style to clone from
     /// @param p_color the color to be applied
     /// @param p_titlebar whether to treat the style box as a titlebar or panel border
-    Ref<StyleBoxFlat> _make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar = false);
+    Ref<StyleBox> _make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar = false);
 
     /// Creates a style based on node selection color.
     /// @param p_existing_name the existing style to clone from
     /// @param p_titlebar whether to treat the style box as a titlebar or panel border
-    Ref<StyleBoxFlat> _make_selected_style(const String& p_existing_name, bool p_titlebar = false);
+    Ref<StyleBox> _make_selected_style(const String& p_existing_name, bool p_titlebar = false);
+
+    /// Creates a gradient style box
+    /// @param p_existing_name the existing style name to use as a basis
+    /// @param p_color the color to use
+    /// @param p_selected whether it should render as selected
+    /// @return the created style box
+    Ref<StyleBox> _make_gradient_titlebar_style(const String& p_existing_name, const Color& p_color, bool p_selected = false);
+
+    /// Apply the configured corner radius to the given style box.
+    /// @param p_stylebox the style box to be modified
+    /// @param p_titlebar whether the style box represents the titlebar
+    void _apply_corner_radius(Ref<StyleBoxFlat>& p_stylebox, bool p_titlebar = false);
 
     /// Called by various callbacks to update node attributes
     void _update_node_attributes();

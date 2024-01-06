@@ -27,6 +27,8 @@
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
+#include <godot_cpp/classes/gradient.hpp>
+#include <godot_cpp/classes/gradient_texture2d.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_action.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
@@ -36,6 +38,7 @@
 #include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
+#include <godot_cpp/classes/style_box_texture.hpp>
 
 OrchestratorGraphNode::OrchestratorGraphNode(OrchestratorGraphEdit* p_graph, const Ref<OScriptNode>& p_node)
 {
@@ -341,37 +344,68 @@ void OrchestratorGraphNode::_update_styles()
             apply_style_defaults = false;
             Color color = os->get_setting(key);
 
-            Ref<StyleBoxFlat> panel = _make_colored_style("panel_selected", color);
+            Ref<StyleBox> panel = _make_colored_style("panel_selected", color);
             if (panel.is_valid())
                 add_theme_stylebox_override("panel", panel);
 
-            Ref<StyleBoxFlat> panel_selected = _make_selected_style("panel");
+            Ref<StyleBox> panel_selected = _make_selected_style("panel");
             if (panel_selected.is_valid())
                 add_theme_stylebox_override("panel_selected", panel_selected);
 
-            Ref<StyleBoxFlat> titlebar = _make_colored_style("titlebar_selected", color, true);
-            if (titlebar.is_valid())
-                add_theme_stylebox_override("titlebar", titlebar);
+            if (_use_gradient_color_style())
+            {
+                Ref<StyleBox> sb = _make_colored_style("titlebar_selected", color, true);
+                if (sb.is_valid())
+                    add_theme_stylebox_override("titlebar", sb);
 
-            Ref<StyleBoxFlat> titlebar_selected = _make_selected_style("titlebar", true);
-            if (titlebar_selected.is_valid())
-                add_theme_stylebox_override("titlebar_selected", titlebar_selected);
+                Ref<StyleBox> sb_selected = _make_selected_style("titlebar", true);
+                if (sb_selected.is_valid())
+                    add_theme_stylebox_override("titlebar_selected", sb_selected);
+
+                Ref<StyleBox> sb2 = _make_gradient_titlebar_style("titlebar_selected", color, false);
+                if (sb2.is_valid())
+                    add_theme_stylebox_override("titlebar", sb2);
+            }
+            else
+            {
+                Ref<StyleBox> sb = _make_colored_style("titlebar_selected", color, true);
+                if (sb.is_valid())
+                    add_theme_stylebox_override("titlebar", sb);
+
+                Ref<StyleBox> sb_selected = _make_selected_style("titlebar", true);
+                if (sb_selected.is_valid())
+                    add_theme_stylebox_override("titlebar_selected", sb_selected);
+            }
         }
     }
 
     if (apply_style_defaults)
     {
-        Ref<StyleBoxFlat> panel_selected = _make_selected_style("panel_selected");
+        Ref<StyleBox> panel_selected = _make_selected_style("panel_selected");
         if (panel_selected.is_valid())
             add_theme_stylebox_override("panel_selected", panel_selected);
 
-        Ref<StyleBoxFlat> titlebar_selected = _make_selected_style("titlebar_selected", true);
+        Ref<StyleBox> titlebar_selected = _make_selected_style("titlebar_selected", true);
         if (titlebar_selected.is_valid())
             add_theme_stylebox_override("titlebar_selected", titlebar_selected);
     }
 }
 
-Ref<StyleBoxFlat> OrchestratorGraphNode::_make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar)
+Color OrchestratorGraphNode::_get_selection_color() const
+{
+    return { 0.68f, 0.44f, 0.09f };
+}
+
+bool OrchestratorGraphNode::_use_gradient_color_style() const
+{
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    if (os)
+        return os->get_setting("ui/nodes/titlebar/use_gradient_colors", false);
+
+    return false;
+}
+
+Ref<StyleBox> OrchestratorGraphNode::_make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar)
 {
     Ref<StyleBoxFlat> sb = get_theme_stylebox(p_existing_name);
     if (sb.is_valid())
@@ -381,24 +415,96 @@ Ref<StyleBoxFlat> OrchestratorGraphNode::_make_colored_style(const String& p_exi
             dup->set_bg_color(p_color);
         else
             dup->set_border_color(p_color);
+
+        _apply_corner_radius(dup, p_titlebar);
+
         return dup;
     }
     return sb;
 }
 
-Ref<StyleBoxFlat> OrchestratorGraphNode::_make_selected_style(const String& p_existing_name, bool p_titlebar)
+Ref<StyleBox> OrchestratorGraphNode::_make_selected_style(const String& p_existing_name, bool p_titlebar)
 {
     Ref<StyleBoxFlat> sb = get_theme_stylebox(p_existing_name);
     if (sb.is_valid())
     {
         Ref<StyleBoxFlat> dup = sb->duplicate(true);
-        dup->set_border_color(Color(0.68f, 0.44f, 0.09f));
+        dup->set_border_color(_get_selection_color());
         dup->set_border_width(p_titlebar ? SIDE_TOP : SIDE_BOTTOM, 2);
         dup->set_border_width(SIDE_LEFT, 2);
         dup->set_border_width(SIDE_RIGHT, 2);
+
+        _apply_corner_radius(dup, p_titlebar);
+
         return dup;
     }
     return sb;
+}
+
+Ref<StyleBox> OrchestratorGraphNode::_make_gradient_titlebar_style(const String& p_existing_name, const Color& p_color,
+                                                                   bool p_selected)
+{
+    Ref<Gradient> gradient(memnew(Gradient));
+
+    PackedFloat32Array offsets;
+    offsets.push_back(0);
+    offsets.push_back(1);
+    gradient->set_offsets(offsets);
+
+    PackedColorArray colors = gradient->get_colors();
+    colors.reverse();
+    gradient->set_colors(colors);
+
+    Ref<GradientTexture2D> texture(memnew(GradientTexture2D));
+    texture->set_gradient(gradient);
+    texture->set_width(64);
+    texture->set_height(64);
+    texture->set_fill_to(Vector2(1.1, 0));
+
+    Ref<StyleBoxTexture> titlebar_tex(memnew(StyleBoxTexture));
+    titlebar_tex->set_texture(texture);
+    titlebar_tex->set_modulate(p_color);
+
+    Ref<StyleBox> sb = get_theme_stylebox(p_existing_name);
+    if (sb.is_valid())
+    {
+        titlebar_tex->set_content_margin(SIDE_TOP, sb->get_content_margin(SIDE_TOP));
+        titlebar_tex->set_content_margin(SIDE_RIGHT, sb->get_content_margin(SIDE_RIGHT));
+        titlebar_tex->set_content_margin(SIDE_BOTTOM, sb->get_content_margin(SIDE_BOTTOM));
+        titlebar_tex->set_content_margin(SIDE_LEFT, sb->get_content_margin(SIDE_LEFT));
+    }
+
+    if (p_selected)
+        titlebar_tex->set_modulate(_get_selection_color());
+
+    return titlebar_tex;
+}
+
+void OrchestratorGraphNode::_apply_corner_radius(Ref<StyleBoxFlat>& p_stylebox, bool p_titlebar)
+{
+    if (p_stylebox.is_valid() && _use_gradient_color_style())
+    {
+        // In this case, we explicitly only support a border radius of 6 on the bottom part.
+        p_stylebox->set_corner_radius(CORNER_BOTTOM_LEFT, 6);
+        p_stylebox->set_corner_radius(CORNER_BOTTOM_RIGHT, 6);
+        return;
+    }
+
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    if (p_stylebox.is_valid() && os)
+    {
+        int border_radius = os->get_setting("ui/nodes/border_radius", 6);
+        if (p_titlebar)
+        {
+            p_stylebox->set_corner_radius(CORNER_TOP_LEFT, border_radius);
+            p_stylebox->set_corner_radius(CORNER_TOP_RIGHT, border_radius);
+        }
+        else
+        {
+            p_stylebox->set_corner_radius(CORNER_BOTTOM_LEFT, border_radius);
+            p_stylebox->set_corner_radius(CORNER_BOTTOM_RIGHT, border_radius);
+        }
+    }
 }
 
 void OrchestratorGraphNode::_update_node_attributes()
