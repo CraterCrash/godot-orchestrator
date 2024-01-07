@@ -37,6 +37,7 @@ struct ResolvedType
 {
     Variant::Type type{ Variant::NIL };
     StringName class_name;
+    Object* object;
 
     _FORCE_INLINE_ bool is_non_object_type() const { return type != Variant::NIL && type != Variant::OBJECT; }
     _FORCE_INLINE_ bool is_class_type() const { return !class_name.is_empty(); }

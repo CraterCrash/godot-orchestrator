@@ -535,3 +535,8 @@ Vector<Ref<OScriptNodePin>> OScriptNodePin::get_connections() const
 {
     return get_owning_node()->get_owning_script()->get_connections(this);
 }
+
+Object* OScriptNodePin::resolve_target()
+{
+    return get_owning_node()->resolve_target(this);
+}

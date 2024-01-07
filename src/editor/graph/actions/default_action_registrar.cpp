@@ -21,6 +21,7 @@
 #include "common/variant_utils.h"
 #include "common/string_utils.h"
 #include "editor/graph/graph_edit.h"
+#include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "script/nodes/script_nodes.h"
 
@@ -337,7 +338,11 @@ void OrchestratorDefaultGraphActionRegistrar::_register_graph_items(const Orches
         return;
 
     PackedStringArray classes;
-    if (!p_context.filter->target_classes.is_empty())
+    if (p_context.filter->target_object)
+    {
+        classes.push_back(p_context.filter->target_object->get_class());
+    }
+    else if (!p_context.filter->target_classes.is_empty())
     {
         for (String target_class : p_context.filter->target_classes)
         {
@@ -366,7 +371,12 @@ void OrchestratorDefaultGraphActionRegistrar::_register_graph_items(const Orches
 void OrchestratorDefaultGraphActionRegistrar::_register_class_properties(const OrchestratorGraphActionRegistrarContext& p_context,
                                                                    const StringName& p_class_name)
 {
-    TypedArray<Dictionary> properties = ClassDB::class_get_property_list(p_class_name, true);
+    TypedArray<Dictionary> properties;
+    if (p_context.filter->target_object)
+        properties = p_context.filter->target_object->get_property_list();
+    else
+        properties = ClassDB::class_get_property_list(p_class_name, true);
+
     for (int i = 0; i < properties.size(); i++)
     {
         const PropertyInfo pi = DictionaryUtils::to_property(properties[i]);
@@ -400,7 +410,12 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_properties(const O
 void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const OrchestratorGraphActionRegistrarContext& p_context,
                                                                 const StringName& p_class_name)
 {
-    TypedArray<Dictionary> methods = ClassDB::class_get_method_list(p_class_name, true);
+    TypedArray<Dictionary> methods;
+    if (p_context.filter->target_object)
+        methods = p_context.filter->target_object->get_method_list();
+    else
+        methods = ClassDB::class_get_method_list(p_class_name, true);
+
     for (int i = 0; i < methods.size(); i++)
     {
         const MethodInfo mi = DictionaryUtils::to_method(methods[i]);
@@ -428,7 +443,12 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
 void OrchestratorDefaultGraphActionRegistrar::_register_class_signals(const OrchestratorGraphActionRegistrarContext& p_context,
                                                                 const StringName& p_class_name)
 {
-    TypedArray<Dictionary> signals = ClassDB::class_get_signal_list(p_class_name, true);
+    TypedArray<Dictionary> signals;
+    if (p_context.filter->target_object)
+        signals = p_context.filter->target_object->get_signal_list();
+    else
+        signals = ClassDB::class_get_signal_list(p_class_name, true);
+
     for (int i = 0; i < signals.size(); i++)
     {
         const MethodInfo si = DictionaryUtils::to_method(signals[i]);

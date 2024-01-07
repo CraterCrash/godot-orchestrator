@@ -245,6 +245,10 @@ public:
     /// Return whether this pin acts as an execution pin.
     /// @return true if the pin is a control flow, execution pin, false otherwise
     _FORCE_INLINE_ bool is_execution() const { return get_flags().has_flag(OScriptNodePin::Flags::EXECUTION); }
+
+    /// Attempts to resolve the target object of this pin.
+    /// @return the target object of the pin or {@code nullptr} if there is no target.
+    Object* resolve_target();
 };
 
 VARIANT_BITFIELD_CAST(OScriptNodePin::Flags)
