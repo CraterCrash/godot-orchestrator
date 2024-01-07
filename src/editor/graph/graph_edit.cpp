@@ -733,6 +733,13 @@ void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& 
     filter.context.pins.push_back(pin);
 
     ResolvedType resolved_type = pin->resolve_type();
+    if (resolved_type.object)
+    {
+        // When a resolved object isp provided, it takes precedence
+        filter.target_classes.push_back(resolved_type.object->get_class());
+        filter.target_object = resolved_type.object;
+        filter.context.pins.clear();
+    }
     if (resolved_type.is_class_type())
     {
         filter.target_classes.push_back(resolved_type.class_name);
@@ -757,7 +764,14 @@ void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_
     filter.context.pins.push_back(pin);
 
     ResolvedType resolved_type = pin->resolve_type();
-    if (resolved_type.is_class_type())
+    if (resolved_type.object)
+    {
+        // When a resolved object is provided, it takes precedence
+        filter.target_classes.push_back(resolved_type.object->get_class());
+        filter.target_object = resolved_type.object;
+        filter.context.pins.clear();
+    }
+    else if (resolved_type.is_class_type())
     {
         filter.target_classes.push_back(resolved_type.class_name);
         filter.context.pins.clear();

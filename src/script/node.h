@@ -299,6 +299,11 @@ public:
     /// @return the resolved class type
     virtual StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const { return ""; }
 
+    /// Resolves the target object of the specified pin
+    /// @param p_pin the pin
+    /// @return the resolved target object
+    virtual Object* resolve_target(const Ref<OScriptNodePin>& p_pin) const { return nullptr; }
+
     /// Create a pin associated with this node.
     /// @param p_direction the pin direction, input or output
     /// @param p_name the pin name

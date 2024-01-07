@@ -109,6 +109,21 @@ String OScriptNodeSceneNode::get_icon() const
     return "NodeInfo";
 }
 
+Object* OScriptNodeSceneNode::resolve_target(const Ref<OScriptNodePin>& p_pin) const
+{
+    if (_is_in_editor() && p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
+    {
+        SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+        if (st && st->get_edited_scene_root())
+        {
+            Node* root = st->get_edited_scene_root();
+            if (root)
+                return root->get_node_or_null(_node_path);
+        }
+    }
+    return super::resolve_target(p_pin);
+}
+
 OScriptNodeInstance* OScriptNodeSceneNode::instantiate(OScriptInstance* p_instance)
 {
     OScriptNodeSceneNodeInstance* i = memnew(OScriptNodeSceneNodeInstance);
