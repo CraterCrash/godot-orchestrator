@@ -102,7 +102,8 @@ OrchestratorAboutDialog::OrchestratorAboutDialog()
     donor_sections.push_back("Gold donors");
     donor_sections.push_back("Silver donors");
     donor_sections.push_back("Bronze donors");
-    const char *const *donor_src[] = { DONORS_GOLD, DONORS_SILVER, DONORS_BRONZE };
+    donor_sections.push_back("Supporters");
+    const char *const *donor_src[] = { DONORS_GOLD, DONORS_SILVER, DONORS_BRONZE, SUPPORTERS };
     tc->add_child(_populate_list("Donors", donor_sections, donor_src, 3, true));
 
     // License

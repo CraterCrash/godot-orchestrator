@@ -11,3 +11,7 @@
 ## Bronze donors
 
     None currently, become one! <https://patreon.com/vahera>
+
+## Supporters
+    
+    Adrian Dalen
