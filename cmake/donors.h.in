@@ -31,4 +31,8 @@ const char *const DONORS_BRONZE[] = {
 @bronze_donors@
 };
 
+const char *const SUPPORTERS[] = {
+@supporters@
+};
+
 #endif // ORCHESTRATOR_DONORS_GENERATED_H
