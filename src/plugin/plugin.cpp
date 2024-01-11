@@ -137,9 +137,19 @@ String OrchestratorPlugin::get_github_release_url() const
     return VERSION_RELEASES_URL;
 }
 
+String OrchestratorPlugin::get_github_issues_url() const
+{
+    return "https://github.com/Vahera/godot-orchestrator/issues/new/choose";
+}
+
 String OrchestratorPlugin::get_patreon_url() const
 {
     return "https://patreon.com/vahera";
+}
+
+String OrchestratorPlugin::get_community_url() const
+{
+    return "https://discord.gg/J3UWtzWSkT";
 }
 
 String OrchestratorPlugin::get_plugin_version() const

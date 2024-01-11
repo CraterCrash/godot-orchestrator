@@ -56,7 +56,9 @@ public:
     String get_plugin_online_documentation_url() const;
 
     String get_github_release_url() const;
+    String get_github_issues_url() const;
     String get_patreon_url() const;
+    String get_community_url() const;
 
     //~ Begin EditorPlugin interface
     String get_plugin_version() const;

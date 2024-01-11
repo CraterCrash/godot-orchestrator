@@ -66,7 +66,11 @@ private:
         TOGGLE_LEFT_PANEL,
         GOTO_NODE,
         ABOUT,
-        ONLINE_DOCUMENTATION
+        ONLINE_DOCUMENTATION,
+        COMMUNITY,
+        GITHUB_ISSUES,
+        GITHUB_FEATURE,
+        SUPPORT
     };
 
     //! Simple struct for managing details about a script file

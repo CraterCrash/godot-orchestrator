@@ -130,7 +130,14 @@ void OrchestratorMainView::_notification(int p_what)
         _help_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
         _help_menu->set_text("Help");
         _help_menu->get_popup()->clear();
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Online Documentation", AccelMenuIds::ONLINE_DOCUMENTATION);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Community", AccelMenuIds::COMMUNITY);
+        _help_menu->get_popup()->add_separator();
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Report a Bug", AccelMenuIds::GITHUB_ISSUES);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Suggest a Feature", AccelMenuIds::GITHUB_FEATURE);
+        _help_menu->get_popup()->add_separator();
         _help_menu->get_popup()->add_item("About " VERSION_NAME, AccelMenuIds::ABOUT);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "Heart"), "Support " VERSION_NAME, AccelMenuIds::SUPPORT);
         _help_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         left_menu_container->add_child(_help_menu);
 
@@ -152,8 +159,6 @@ void OrchestratorMainView::_notification(int p_what)
         open_documentation->connect(
             "pressed",
             callable_mp(this, &OrchestratorMainView::_on_menu_option).bind(AccelMenuIds::ONLINE_DOCUMENTATION));
-        // Temporarily hidden until docs are updated for stable builds
-        open_documentation->set_visible(false);
         right_menu_container->add_child(open_documentation);
 
         VSeparator* vs = memnew(VSeparator);
@@ -637,6 +642,16 @@ void OrchestratorMainView::_on_menu_option(int p_option)
             break;
         case ONLINE_DOCUMENTATION:
             OS::get_singleton()->shell_open(_plugin->get_plugin_online_documentation_url());
+            break;
+        case COMMUNITY:
+            OS::get_singleton()->shell_open(_plugin->get_community_url());
+            break;
+        case GITHUB_ISSUES:
+        case GITHUB_FEATURE:
+            OS::get_singleton()->shell_open(_plugin->get_github_issues_url());
+            break;
+        case SUPPORT:
+            OS::get_singleton()->shell_open(_plugin->get_patreon_url());
             break;
         case ABOUT:
             _about_window->popup_centered(Size2(780, 500));
