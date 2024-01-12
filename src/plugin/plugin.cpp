@@ -152,6 +152,14 @@ String OrchestratorPlugin::get_community_url() const
     return "https://discord.gg/J3UWtzWSkT";
 }
 
+bool OrchestratorPlugin::restore_windows_on_load()
+{
+    Ref<EditorSettings> es = get_editor_interface()->get_editor_settings();
+    if (es.is_valid())
+        return es->get_setting("interface/multi_window/restore_windows_on_load");
+    return false;
+}
+
 String OrchestratorPlugin::get_plugin_version() const
 {
     return VERSION_NUMBER;
@@ -168,12 +176,9 @@ void OrchestratorPlugin::_set_window_layout(const Ref<ConfigFile>& p_configurati
     if (_main_view)
         _main_view->set_window_layout(p_configuration);
 
-    Ref<EditorSettings> es = get_editor_interface()->get_editor_settings();
-    if (es.is_valid())
+    if (restore_windows_on_load())
     {
-        bool restore_on_load = es->get_setting("interface/multi_window/restore_windows_on_load");
-        if (restore_on_load && _window_wrapper->is_window_available()
-            && p_configuration->has_section_key("Orchestrator", "window_rect"))
+        if (_window_wrapper->is_window_available() && p_configuration->has_section_key("Orchestrator", "window_rect"))
         {
             _window_wrapper->restore_window_from_saved_position(
                 p_configuration->get_value("Orchestrator", "window_rect", Rect2i()),

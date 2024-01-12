@@ -315,10 +315,45 @@ void OrchestratorMainView::apply_changes()
 
 void OrchestratorMainView::get_window_layout(const Ref<ConfigFile>& p_configuration)
 {
+    PackedStringArray open_files;
+    for (const ScriptFile& file : _script_files)
+        open_files.push_back(file.file_name);
+
+    p_configuration->set_value("Orchestrator", "open_files", open_files);
+
+    if (_has_open_script())
+        p_configuration->set_value("Orchestrator", "open_files_selected", _script_files[_current_index].file_name);
+    else
+        p_configuration->erase_section_key("Orchestrator", "open_files_selected");
 }
 
 void OrchestratorMainView::set_window_layout(const Ref<ConfigFile>& p_configuration)
 {
+    if (_plugin->restore_windows_on_load() && p_configuration->has_section_key("Orchestrator", "open_files"))
+    {
+        PackedStringArray open_files = p_configuration->get_value("Orchestrator", "open_files", {});
+        for (const String& file_name : open_files)
+        {
+            const Ref<OScript> script = ResourceLoader::get_singleton()->load(file_name);
+            if (script.is_valid())
+                _open_script(script);
+        }
+
+        String open_selected_file = p_configuration->get_value("Orchestrator", "open_files_selected", "");
+        if (!open_selected_file.is_empty())
+        {
+            for (int i = 0; i < _file_list->get_item_count(); i++)
+            {
+                if (_file_list->get_item_text(i) == open_selected_file)
+                {
+                    // Selecting the item in the ItemList does not raise the signal
+                    _file_list->select(i);
+                    _show_script_editor_view(open_selected_file);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 bool OrchestratorMainView::build()

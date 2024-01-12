@@ -60,6 +60,10 @@ public:
     String get_patreon_url() const;
     String get_community_url() const;
 
+    /// Returns whether windows are restored on load
+    /// @return true if windows are to be restored, false otherwise
+    bool restore_windows_on_load();
+
     //~ Begin EditorPlugin interface
     String get_plugin_version() const;
     void _edit(Object* p_object) override;
