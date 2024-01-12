@@ -73,6 +73,7 @@
 #include "scene/scene_tree.h"
 
 // Signals
+#include "signals/await_signal.h"
 #include "signals/emit_signal.h"
 
 // Utility

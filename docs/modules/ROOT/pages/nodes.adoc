@@ -464,8 +464,11 @@ If you are familiar with GDScript, using a **Scene Node** node is equivalent to 
 In Godot, signals used for event-driven programming, and are at the heart of Godot's Observer pattern.
 In short, an Observer can connect to a named signal and once the Subject raises that signal, all the observers of the Subject will be called.
 
-For an Orchestration, custom signals can be defined and emitted so that other Observers can be notified.
-Signals can also be emitted with a variable number of arguments, allowing an Orchestration to pass information to the Observer with ease.
+With Orchestrator, there are two types of **Signal Nodes**: Emit and Await
+
+=== Emit a Signal
+
+Custom signals can be defined in Orchestrator and can include a variable number of arguments, allowing the signal to pass information from the Orchestration to any observer that is listening for the signal.
 
 In order to place a **Signal Node** into the graph area, the signal must first be defined.
 To define a signal, use the Signal component view to the right of the graph area and click the **+** button in the Signal component's panel header.
@@ -479,6 +482,19 @@ Once all Observers have been notified by Godot's signal subsystem, control flow 
 
 .An example of a Signal node
 image::nodes-example-signal.png[Example Signal node]
+
+=== Awaiting a Signal
+
+Another common use case for signals is for code to `yield` or `await` a signal.
+Orchestrator supports awaiting signals by using an **Await For Signal** node.
+This node turns any code path in an Orchestration into a coroutine, temporarily yielding the Orchestration's execution until the signal is raised.
+Once the signal is raised, the Orchestration will resume where the execution yielded.
+
+This is a useful pattern when working with asynchronous situations where the Orchestration makes a call to an object that performs an async operation and the Orchestration needs to wait for that to complete before proceeding.
+In this case, it's expected that whatever object performs the asynchronous operation raises a signal when the operation finishes.
+
+.An example of an Await Signal node
+image::nodes-example-await-signal.png[Example Await Signal node]
 
 [id="utility"]
 == Utility nodes
