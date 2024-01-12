@@ -731,10 +731,14 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
         // settings/runtime/max_call_stack
         OrchestratorSettings* os = OrchestratorSettings::get_singleton();
         int max_call_stack = os->get_setting("settings/runtime/max_call_stack");
+        if (f->max_stack > max_call_stack)
+        {
+            ERR_FAIL_MSG("Unable to call function, call stack exceeds " + itos(max_call_stack));
+        }
 
         // Setup the OScriptExecutionStackInfo object
         OScriptExecutionStackInfo si;
-        si.max_stack_size = max_call_stack;  //! Max Call Stack
+        si.max_stack_size = f->max_stack;    //! Max Call Stack
         si.node_count = f->node_count;       //! Number of nodes
         si.max_inputs = _max_input_args;     //! max input arguments
         si.max_outputs = _max_output_args;   //! max output arguments
