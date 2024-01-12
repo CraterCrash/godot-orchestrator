@@ -202,6 +202,9 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     _register_node<OScriptNodeSceneNode>(p_context, "Scene/get_scene_node");
     _register_node<OScriptNodeSceneTree>(p_context, "Scene/get_scene_tree");
 
+    // Signals
+    _register_node<OScriptNodeAwaitSignal>(p_context, "Signals/Await Signal");
+
     // Utilities
     _register_node<OScriptNodeEngineSingleton>(p_context, "Utilities/engine_singleton");
     _register_node<OScriptNodePrintString>(p_context, "Utilities/print_string");

@@ -98,6 +98,7 @@ void register_script_node_classes()
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSceneTree)
 
     //~ Signals
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwaitSignal)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitSignal)
 
     //~ Utility
