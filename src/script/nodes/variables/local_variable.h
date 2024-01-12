@@ -26,6 +26,7 @@ class OScriptNodeLocalVariable : public OScriptNode
 protected:
     Guid _guid;           //! Uniquely identifies this variable from any other.
     Variant::Type _type;  //! Transient type used to initialize the pin.
+    String _description;  //! User-defined description
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
