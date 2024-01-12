@@ -323,7 +323,7 @@ void OrchestratorMainView::get_window_layout(const Ref<ConfigFile>& p_configurat
 
     if (_has_open_script())
         p_configuration->set_value("Orchestrator", "open_files_selected", _script_files[_current_index].file_name);
-    else
+    else if (p_configuration->has_section_key("Orchestrator", "open_files_selected"))
         p_configuration->erase_section_key("Orchestrator", "open_files_selected");
 }
 
