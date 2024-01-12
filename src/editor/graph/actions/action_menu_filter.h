@@ -73,7 +73,7 @@ struct OrchestratorGraphActionFilter
     Vector<StringName> target_classes;
 
     /// The target object to expressly get context details about
-    Object* target_object;
+    Object* target_object{ nullptr };
 };
 
 #endif  // ORCHESTRATOR_GRAPH_ACTION_MENU_ITEM_FILTER_H
