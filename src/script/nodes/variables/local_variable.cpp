@@ -51,6 +51,8 @@ public:
 void OScriptNodeLocalVariable::_get_property_list(List<PropertyInfo>* r_list) const
 {
     r_list->push_back(PropertyInfo(Variant::STRING, "guid", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::STRING, "variable_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR));
+    r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT));
 }
 
 bool OScriptNodeLocalVariable::_get(const StringName& p_name, Variant& r_value) const
@@ -58,6 +60,20 @@ bool OScriptNodeLocalVariable::_get(const StringName& p_name, Variant& r_value) 
     if (p_name.match("guid"))
     {
         r_value = _guid.to_string();
+        return true;
+    }
+    else if (p_name.match("variable_name"))
+    {
+        Ref<OScriptNodePin> variable = find_pin("variable", PD_Output);
+        if (variable.is_valid())
+        {
+            r_value = variable->get_label();
+            return true;
+        }
+    }
+    else if (p_name.match("description"))
+    {
+        r_value = _description;
         return true;
     }
     return false;
@@ -68,6 +84,26 @@ bool OScriptNodeLocalVariable::_set(const StringName& p_name, const Variant& p_v
     if (p_name.match("guid"))
     {
         _guid = Guid(p_value);
+        return true;
+    }
+    else if (p_name.match("variable_name"))
+    {
+        Ref<OScriptNodePin> variable = find_pin("variable", PD_Output);
+        if (variable.is_valid())
+        {
+            if (p_value)
+                variable->set_label(p_value);
+            else
+                variable->set_label("");
+
+            emit_changed();
+            return true;
+        }
+    }
+    else if (p_name.match("description"))
+    {
+        _description = p_value;
+        emit_changed();
         return true;
     }
     return false;
