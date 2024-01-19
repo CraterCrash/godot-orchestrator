@@ -22,6 +22,7 @@
 #include "plugin/plugin.h"
 
 #include <godot_cpp/classes/display_server.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_separator.hpp>
@@ -30,8 +31,10 @@
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
+#include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
 OrchestratorAboutDialog::OrchestratorAboutDialog()
@@ -121,11 +124,13 @@ void OrchestratorAboutDialog::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
-        connect("theme_changed", callable_mp(this, &OrchestratorAboutDialog::_on_theme_changed));
         _version_btn->connect("pressed", callable_mp(this, &OrchestratorAboutDialog::_on_version_pressed));
         _patreon_btn->connect("pressed", callable_mp(this, &OrchestratorAboutDialog::_on_patreon_button));
-
-        _on_theme_changed();
+    }
+    else if (p_what == NOTIFICATION_THEME_CHANGED)
+    {
+        _theme_changing = true;
+        callable_mp(this, &OrchestratorAboutDialog::_on_theme_changed).call_deferred();
     }
 }
 
@@ -188,6 +193,9 @@ void OrchestratorAboutDialog::_on_version_pressed()
 
 void OrchestratorAboutDialog::_on_theme_changed()
 {
+    if (!_theme_changing)
+        return;
+
     const Ref<Font> font = get_theme_font(StringName("source"), "EditorFonts");
     const int font_size  = get_theme_font_size(StringName("source_size"), "EditorFonts");
 
@@ -198,6 +206,19 @@ void OrchestratorAboutDialog::_on_theme_changed()
     _license_text->end_bulk_theme_override();
 
     _logo->set_texture(ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg"));
+
+    Ref<Theme> theme = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_theme();
+    if (theme.is_valid())
+    {
+        Ref<StyleBox> sb = theme->get_stylebox("panel", "EditorAbout");
+        if (sb.is_valid())
+        {
+            Ref<StyleBox> sbd = sb->duplicate();
+            add_theme_stylebox_override("panel", sbd);
+        }
+    }
+
+    _theme_changing = false;
 }
 
 void OrchestratorAboutDialog::_on_patreon_button()

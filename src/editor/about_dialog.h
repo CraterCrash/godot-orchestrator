@@ -34,6 +34,7 @@ class OrchestratorAboutDialog : public AcceptDialog
     LinkButton* _patreon_btn{ nullptr };
     RichTextLabel* _license_text{ nullptr };
     TextureRect* _logo{ nullptr };
+    bool _theme_changing{ false };
 
 protected:
     static void _bind_methods();
