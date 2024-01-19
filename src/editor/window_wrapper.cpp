@@ -314,7 +314,7 @@ void OrchestratorWindowWrapper::set_margins_enabled(bool p_enabled)
 
 void OrchestratorWindowWrapper::move_to_foreground()
 {
-    _window->move_to_foreground();
+    _window->grab_focus();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
