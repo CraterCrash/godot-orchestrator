@@ -47,6 +47,11 @@ OrchestratorScriptViewSection::OrchestratorScriptViewSection(const String& p_sec
     _section_name = p_section_name;
 }
 
+void OrchestratorScriptViewSection::_bind_methods()
+{
+    ADD_SIGNAL(MethodInfo("scroll_to_item", PropertyInfo(Variant::OBJECT, "item")));
+}
+
 void OrchestratorScriptViewSection::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
@@ -233,8 +238,8 @@ bool OrchestratorScriptViewSection::_find_child_and_activate(const String& p_nam
         {
             if (child->get_text(0).match(p_name))
             {
+                emit_signal("scroll_to_item", child);
                 _tree->call_deferred("set_selected", child, 0);
-                _handle_item_activated(child);
 
                 if (p_edit)
                 {
@@ -1277,6 +1282,7 @@ void OrchestratorScriptView::_notification(int p_what)
         _graphs->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_close_graph));
         _graphs->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
         _graphs->connect("graph_renamed", callable_mp(this, &OrchestratorScriptView::_on_graph_renamed));
+        _graphs->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_graphs);
 
         _functions = memnew(OrchestratorScriptViewFunctionsSection(_script));
@@ -1285,15 +1291,19 @@ void OrchestratorScriptView::_notification(int p_what)
         _functions->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
         _functions->connect("override_function_requested", callable_mp(this, &OrchestratorScriptView::_on_override_function));
         _functions->connect("graph_renamed", callable_mp(this, &OrchestratorScriptView::_on_graph_renamed));
+        _functions->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_functions);
 
         _macros = memnew(OrchestratorScriptViewMacrosSection(_script));
+        _macros->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_macros);
 
         _variables = memnew(OrchestratorScriptViewVariablesSection(_script));
+        _variables->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_variables);
 
         _signals = memnew(OrchestratorScriptViewSignalsSection(_script));
+        _signals->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_signals);
 
         // The base event graph tab
@@ -1520,6 +1530,22 @@ void OrchestratorScriptView::_on_override_function()
 void OrchestratorScriptView::_on_toggle_component_panel(bool p_visible)
 {
     _scroll_container->set_visible(p_visible);
+}
+
+void OrchestratorScriptView::_on_scroll_to_item(TreeItem* p_item)
+{
+    if (p_item && _scroll_container)
+    {
+        Tree* tree = p_item->get_tree();
+
+        const Rect2 item_rect = tree->get_item_area_rect(p_item);
+        const Rect2 tree_rect = tree->get_global_rect();
+        const Rect2 view_rect = _scroll_container->get_rect();
+
+        const float offset = tree_rect.get_position().y + item_rect.get_position().y;
+        if (offset > view_rect.get_size().y)
+            _scroll_container->set_v_scroll(offset);
+    }
 }
 
 void OrchestratorScriptView::_add_callback(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
