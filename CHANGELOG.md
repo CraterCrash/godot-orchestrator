@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## [2.0.dev2](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.dev2) - 2024-01-21
+
+- [ce09546](http://github.com/Vahera/godot-orchestrator/commit/ce09546d244ceb9fa750cc6220b410ca42824201) - GH-79 Avoid using deprecated `move_to_foreground`
+- [882e7f2](http://github.com/Vahera/godot-orchestrator/commit/882e7f2ff0c435400e230c5420da51df93edcf60) - Use Editor theme in About Dialog
+- [c864647](http://github.com/Vahera/godot-orchestrator/commit/c864647c50de8447ce72e086fed33031a6df3ab1) - GH-72 Add Await Signal Node Feature
+- [dde6d70](http://github.com/Vahera/godot-orchestrator/commit/dde6d7095af61fcbe9726cea540bfe490f2db905) - GH-67 Fix random error when key is missing
+- [fbe3159](http://github.com/Vahera/godot-orchestrator/commit/fbe3159fd3330aee2539705b4f397b9ad466a9b3) - GH-66 Add local variable name and description
+- [92b9971](http://github.com/Vahera/godot-orchestrator/commit/92b99718a1a8a26383ec049c963c6879e1ddf47a) - GH-67 Restore open orchestrations
+- [df28556](http://github.com/Vahera/godot-orchestrator/commit/df285569af773443bfc19efe2b5bfe0635882a9f) - GH-68 Fix `max_call_stack` property key
+- [14c11c2](http://github.com/Vahera/godot-orchestrator/commit/14c11c28d4591e3a44ee5086864ed2eeb05e8765) - GH-52 Fix editor crash due to nullptr
+- [f2e3766](http://github.com/Vahera/godot-orchestrator/commit/f2e37662f98bcbad8f0e34c6eb81e3cee2011dfc) - Add additional Help-menu options
+- [b5b3421](http://github.com/Vahera/godot-orchestrator/commit/b5b3421a476fdd121ff6c9d159a9918ce79759e8) - GH-52 Work with scene node properties & methods
+- [30b6df6](http://github.com/Vahera/godot-orchestrator/commit/30b6df629d0f944c207d4158e31378882d5e6494) - GH-61 Add floating window mode
+- [90bea05](http://github.com/Vahera/godot-orchestrator/commit/90bea051b5f16f4095aad560175ddd27cf257841) - GH-56 Display status text on empty graphs
+- [500b0c1](http://github.com/Vahera/godot-orchestrator/commit/500b0c1e0fef79d884ae2de9b29993aa22f2a30a) - GH-54 Remove print statement
+- [2e666ce](http://github.com/Vahera/godot-orchestrator/commit/2e666ce8f05b3dfcd9b9a44c238c5b50e1169996) - GH-54 Add cut/copy/paste/duplicate support
+- [06f80b7](http://github.com/Vahera/godot-orchestrator/commit/06f80b7baf6824cd8434349ab53a0084a4f7c719) - Upgrade hugoalh/scan-virus-ghaction to 0.20.1
+- [85aaacf](http://github.com/Vahera/godot-orchestrator/commit/85aaacf39309bb67708920d35e03d72a9f174ac8) - GH-48 Fix rendering of "Update Available" on dev builds
+- [f1572bf](http://github.com/Vahera/godot-orchestrator/commit/f1572bff1bee46bc82021e1d628699714c9424f0) - Add GitHub Security Workflow
+- [625429e](http://github.com/Vahera/godot-orchestrator/commit/625429e26b6b40f1da069e3dad567b83eae2b1de) - Add Zoom percentage graph indicator
+- [94c85be](http://github.com/Vahera/godot-orchestrator/commit/94c85beb56ef14be843f1704122e2086bf8d6ef9) - Add Goto Node accelerator
+- [f614bdc](http://github.com/Vahera/godot-orchestrator/commit/f614bdcfbed99a72bc54a1c24c3480ffd25b02b2) - Refactor/Cleanup code
+
 ## [2.0.dev1](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.dev1) - 2024-01-01
 
 - [511348b](http://github.com/Vahera/godot-orchestrator/commit/511348bdfd863d480de6bd710d5a132b91ede92c) - GH-43 Fix signal function registration
