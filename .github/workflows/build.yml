@@ -103,7 +103,7 @@ jobs:
           cp '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/project/addons/orchestrator/'
 
       - name: Upload artifact (Demo)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-demo-${{ matrix.identifier }}
           retention-days: 1
@@ -111,9 +111,9 @@ jobs:
             ${{ github.workspace }}/project/
 
       - name: Upload artifact (Plugin)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-plugin
+          name: ${{ github.event.repository.name }}-plugin-${{ matrix.identifier }}
           retention-days: 1
           path: |
             ${{ github.workspace }}/project
@@ -121,4 +121,29 @@ jobs:
             !${{ github.workspace }}/project/scenes
             !${{ github.workspace }}/project/icon.svg
             !${{ github.workspace }}/project/project.godot
-            
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Combine Artifacts
+    steps:
+      - name: Download Plugin Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ github.event.repository.name }}-plugin-*
+          merge-multiple: true
+
+      - name: Upload Plugin Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-plugin
+          retention-days: 1
+          path: |
+            ${{ github.workspace }}/project
+
+      - name: Remove Transient Artifacts
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: |
+            ${{ github.event.repository.name}}-plugin-*
+          failOnError: false
