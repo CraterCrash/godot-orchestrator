@@ -141,9 +141,9 @@ jobs:
           path: |
             ${{ github.workspace }}/project
 
-      - name: Remove Transient Artifacts
-        uses: geekyeggo/delete-artifact@v4
-        with:
-          name: |
-            ${{ github.event.repository.name}}-plugin-*
-          failOnError: false
+#      - name: Remove Transient Artifacts
+#        uses: geekyeggo/delete-artifact@v4
+#        with:
+#          name: |
+#            ${{ github.event.repository.name}}-plugin-*
+#          failOnError: false
