@@ -17,4 +17,4 @@ runs:
         choco upgrade ccache ninja
 
     # This forces the use of MSVC rather than GCC
-    - uses: ilammy/msvc-dev-cmd@v1.12.1
+    - uses: ilammy/msvc-dev-cmd@v1.13.0
