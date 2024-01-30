@@ -133,6 +133,9 @@ jobs:
           pattern: ${{ github.event.repository.name }}-plugin-*
           merge-multiple: true
 
+      - name: Show files
+        run: ls -la ${{ github.workspace }}
+
       - name: Upload Plugin Artifact
         uses: actions/upload-artifact@v4
         with:
