@@ -5,9 +5,7 @@ runs:
   steps:
 
     - name: Install CMake (Windows)
-      uses: jwlawson/actions-setup-cmake@v1.14
-      with:
-        cmake-version: '3.28'
+      uses: lukka/get-cmake@v3.28.0
 
     - name: Install Ninja (Windows)
       shell: powershell
