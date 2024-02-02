@@ -25,6 +25,7 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
 #include <godot_cpp/classes/input_event.hpp>
+#include <godot_cpp/classes/timer.hpp>
 
 using namespace godot;
 
@@ -108,6 +109,8 @@ class OrchestratorGraphEdit : public GraphEdit
     PopupMenu* _context_menu{ nullptr };                   //! Graph context menu
     OrchestratorPlugin* _plugin{ nullptr };                //! The plugin
     Control* _status{ nullptr };                           //! Displays status in the center of graphs
+    Label* _drag_hint{ nullptr };                          //! Displays the drag status at the bottom of the graph
+    Timer* _drag_hint_timer{ nullptr };                    //! Timer for drag hint messages
     OrchestratorGraphEdit() = default;
 
 protected:
@@ -240,6 +243,13 @@ private:
     /// @param p_node the node
     /// @return true if the node can be duplicated, false otherwise
     bool _can_duplicate_node(OrchestratorGraphNode* p_node) const;
+
+    /// Displays the drag status hint
+    /// @param p_message the hint message
+    void _show_drag_hint(const String& p_message) const;
+
+    /// Hides the drag status hint
+    void _hide_drag_hint();
 
     /// Connection drag started
     /// @param p_from the source node

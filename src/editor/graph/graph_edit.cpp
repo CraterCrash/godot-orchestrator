@@ -29,6 +29,7 @@
 
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
@@ -121,6 +122,14 @@ void OrchestratorGraphEdit::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        _drag_hint = memnew(Label);
+        _drag_hint->set_anchor_and_offset(SIDE_TOP, ANCHOR_END, 0);
+        _drag_hint->set_anchor_and_offset(SIDE_BOTTOM, ANCHOR_END, -50);
+        _drag_hint->set_anchor_and_offset(SIDE_RIGHT, ANCHOR_END, 0);
+        _drag_hint->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+        _drag_hint->set_vertical_alignment(VERTICAL_ALIGNMENT_BOTTOM);
+        add_child(_drag_hint);
+
         Label* label = memnew(Label);
         label->set_text("Use Right Mouse Button To Add New Nodes");
         label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
@@ -134,6 +143,11 @@ void OrchestratorGraphEdit::_notification(int p_what)
         // When graph has nodes, hide right-click suggestion
         if (!_script_graph->get_nodes().is_empty())
             _status->hide();
+
+        _drag_hint_timer = memnew(Timer);
+        _drag_hint_timer->set_wait_time(5);
+        _drag_hint_timer->connect("timeout", callable_mp(this, &OrchestratorGraphEdit::_hide_drag_hint));
+        add_child(_drag_hint_timer);
 
         Button* show_script_details = memnew(Button);
         show_script_details->set_text("Script Details");
@@ -289,7 +303,16 @@ bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Vari
     allowed_types.push_back("variable");
     allowed_types.push_back("signal");
     allowed_types.push_back("function");
-    return allowed_types.has(type);
+
+    if (allowed_types.has(type))
+    {
+        if (type == "variable")
+            _show_drag_hint("Hint: Use Ctrl to drop a Setter, Shift to drop a Getter");
+
+        return true;
+    }
+
+    return false;
 }
 
 void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant& p_data)
@@ -394,22 +417,36 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
     }
     else if (type == "variable")
     {
+        _hide_drag_hint();
+
         const String variable_name = String(Array(data["variables"])[0]);
+        if (Input::get_singleton()->is_key_pressed(Key::KEY_CTRL))
+        {
+            OrchestratorGraphNodeSpawnerVariableSet setter(variable_name);
+            setter.execute(this, _saved_mouse_position);
+        }
+        else if (Input::get_singleton()->is_key_pressed(Key::KEY_SHIFT))
+        {
+            OrchestratorGraphNodeSpawnerVariableGet getter(variable_name);
+            getter.execute(this, _saved_mouse_position);
+        }
+        else
+        {
+            // Create context-menu handlers
+            Ref<OrchestratorGraphActionHandler> get_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
+            Ref<OrchestratorGraphActionHandler> set_handler(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
 
-        // Create context-menu handlers
-        Ref<OrchestratorGraphActionHandler> get_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
-        Ref<OrchestratorGraphActionHandler> set_handler(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
-
-        // Create context-menu to specify variable get or set choice
-        _context_menu->clear();
-        _context_menu->add_separator("Variable " + variable_name);
-        _context_menu->add_item("Get " + variable_name, CM_VARIABLE_GET);
-        _context_menu->add_item("Set " + variable_name, CM_VARIABLE_SET);
-        _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET), get_handler);
-        _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_SET), set_handler);
-        _context_menu->reset_size();
-        _context_menu->set_position(get_screen_position() + p_position);
-        _context_menu->popup();
+            // Create context-menu to specify variable get or set choice
+            _context_menu->clear();
+            _context_menu->add_separator("Variable " + variable_name);
+            _context_menu->add_item("Get " + variable_name, CM_VARIABLE_GET);
+            _context_menu->add_item("Set " + variable_name, CM_VARIABLE_SET);
+            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET), get_handler);
+            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_SET), set_handler);
+            _context_menu->reset_size();
+            _context_menu->set_position(get_screen_position() + p_position);
+            _context_menu->popup();
+        }
     }
     else if (type == "signal")
     {
@@ -636,6 +673,18 @@ bool OrchestratorGraphEdit::_can_duplicate_node(OrchestratorGraphNode* p_node) c
     Ref<OScriptNodeFunctionResult> function_result = node;
     Ref<OScriptNodeLocalVariable> local_variable = node;
     return !event.is_valid() && !function_entry.is_valid() && !function_result.is_valid() && !local_variable.is_valid();
+}
+
+void OrchestratorGraphEdit::_show_drag_hint(const godot::String& p_message) const
+{
+    _drag_hint->set_text(p_message);
+    _drag_hint->show();
+    _drag_hint_timer->start();
+}
+
+void OrchestratorGraphEdit::_hide_drag_hint()
+{
+    _drag_hint->hide();
 }
 
 void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from, int p_from_port, bool p_output)
