@@ -192,13 +192,7 @@ void OrchestratorScriptViewSection::_confirm_removal(TreeItem* p_item)
 
 String OrchestratorScriptViewSection::_create_unique_name_with_prefix(const String& p_prefix)
 {
-    TreeItem* root = _tree->get_root();
-
-    PackedStringArray child_names;
-    for (int i = 0; i < root->get_child_count(); i++)
-        if (TreeItem* child = Object::cast_to<TreeItem>(root->get_child(i)))
-            child_names.push_back(child->get_text(0));
-
+    const PackedStringArray child_names = _get_existing_names();
     if (!child_names.has(p_prefix))
         return p_prefix;
 
@@ -406,6 +400,14 @@ void OrchestratorScriptViewGraphsSection::_remove_graph_function(TreeItem* p_ite
     update();
 }
 
+PackedStringArray OrchestratorScriptViewGraphsSection::_get_existing_names() const
+{
+    PackedStringArray result;
+    for (const Ref<OScriptGraph> graph : _script->get_graphs())
+        result.push_back(graph->get_graph_name());
+    return result;
+}
+
 String OrchestratorScriptViewGraphsSection::_get_tooltip_text() const
 {
     return "A graph allows you to place many types of nodes to create various behaviors. "
@@ -599,6 +601,11 @@ void OrchestratorScriptViewFunctionsSection::_show_function_graph(TreeItem* p_it
     emit_signal("show_graph_requested", function_name);
     emit_signal("focus_node_requested", function_name, _script->get_function_node_id(function_name));
     _tree->deselect_all();
+}
+
+PackedStringArray OrchestratorScriptViewFunctionsSection::_get_existing_names() const
+{
+    return _script->get_function_names();
 }
 
 String OrchestratorScriptViewFunctionsSection::_get_tooltip_text() const
@@ -850,6 +857,11 @@ void OrchestratorScriptViewVariablesSection::_create_item(TreeItem* p_parent, co
     }
 }
 
+PackedStringArray OrchestratorScriptViewVariablesSection::_get_existing_names() const
+{
+    return _script->get_variable_names();
+}
+
 String OrchestratorScriptViewVariablesSection::_get_tooltip_text() const
 {
     return "A variable represents some data that will be stored and managed by the orchestration.\n\n"
@@ -1013,6 +1025,11 @@ OrchestratorScriptViewSignalsSection::OrchestratorScriptViewSignalsSection(const
     : OrchestratorScriptViewSection("Signals")
     , _script(p_script)
 {
+}
+
+PackedStringArray OrchestratorScriptViewSignalsSection::_get_existing_names() const
+{
+    return _script->get_custom_signal_names();
 }
 
 String OrchestratorScriptViewSignalsSection::_get_tooltip_text() const
