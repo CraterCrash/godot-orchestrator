@@ -81,6 +81,10 @@ protected:
     /// @return the HBoxContainer child of the top panel, never null
     HBoxContainer* _get_panel_hbox();
 
+    /// Get all the existing names for a given element.
+    /// @return packed string array of all existing object names
+    virtual PackedStringArray _get_existing_names() const { return {}; }
+
     /// Get the tooltip text for the panel header.
     /// @return the tooltip text to be shown.
     virtual String _get_tooltip_text() const { return {}; }
@@ -220,6 +224,7 @@ protected:
     void _remove_graph_function(TreeItem* p_item);
 
     //~ Begin OrchestratorScriptViewSection Interface
+    PackedStringArray _get_existing_names() const override;
     String _get_tooltip_text() const override;
     String _get_remove_confirm_text(TreeItem* p_item) const override;
     String _get_section_item_name() const override { return "EventGraph"; }
@@ -266,6 +271,7 @@ protected:
     void _show_function_graph(TreeItem* p_item);
 
     //~ Begin OrchestratorScriptViewSection Interface
+    PackedStringArray _get_existing_names() const override;
     String _get_tooltip_text() const override;
     String _get_remove_confirm_text(TreeItem* p_item) const override;
     String _get_section_item_name() const override { return "Function"; }
@@ -343,6 +349,7 @@ protected:
     void _create_item(TreeItem* p_parent, const Ref<OScriptVariable>& p_variable);
 
     //~ Begin OrchestratorScriptViewSection Interface
+    PackedStringArray _get_existing_names() const override;
     String _get_tooltip_text() const override;
     String _get_remove_confirm_text(TreeItem* p_item) const override;
     String _get_section_item_name() const override { return "Variable"; }
@@ -383,6 +390,7 @@ protected:
     static void _bind_methods() { }
 
     //~ Begin OrchestratorScriptViewSection Interface
+    PackedStringArray _get_existing_names() const override;
     String _get_tooltip_text() const override;
     String _get_remove_confirm_text(TreeItem* p_item) const override;
     String _get_section_item_name() const override { return "Signal"; }
