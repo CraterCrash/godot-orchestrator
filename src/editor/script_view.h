@@ -47,6 +47,7 @@ protected:
     Button* _collapse_button{ nullptr };      //! The collapse button
     PopupMenu* _context_menu{ nullptr };      //! Context menu
     ConfirmationDialog* _confirm{ nullptr };  //! Confirmation dialog
+    AcceptDialog* _notify{ nullptr };         //! Notification dialog
     bool _expanded{ true };                   //! Whether the section is currently expanded
     bool _theme_changing{ false };            //! Whether the theme is being changed
 
@@ -60,6 +61,10 @@ protected:
 
     /// Toggles the visbility of the tree control.
     void _toggle();
+
+    /// Notifies the user of a message.
+    /// @param p_message the text to notify
+    void _show_notification(const String& p_message);
 
     /// Presents the user a dialog, confirming the removal of the tree item.
     /// @param p_item the item to be removed, should not be null

@@ -108,6 +108,10 @@ void OrchestratorScriptViewSection::_notification(int p_what)
         _confirm->set_title("Please confirm...");
         _confirm->connect("confirmed", callable_mp(this, &OrchestratorScriptViewSection::_on_remove_confirmed));
         add_child(_confirm);
+
+        _notify = memnew(AcceptDialog);
+        _notify->set_title("Message");
+        add_child(_notify);
     }
     else if (p_what == NOTIFICATION_THEME_CHANGED)
     {
@@ -181,6 +185,13 @@ void OrchestratorScriptViewSection::_toggle()
     _expanded = !_expanded;
     _update_collapse_button_icon();
     _tree->set_visible(_expanded);
+}
+
+void OrchestratorScriptViewSection::_show_notification(const String& p_message)
+{
+    _notify->set_text(p_message);
+    _notify->reset_size();
+    _notify->popup_centered();
 }
 
 void OrchestratorScriptViewSection::_confirm_removal(TreeItem* p_item)
@@ -494,6 +505,12 @@ void OrchestratorScriptViewGraphsSection::_handle_item_activated(TreeItem* p_ite
 
 void OrchestratorScriptViewGraphsSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
 {
+    if (_get_existing_names().has(p_new_name))
+    {
+        _show_notification("A graph with the name '" + p_new_name + "' already exists.");
+        return;
+    }
+
     _script->rename_graph(p_old_name, p_new_name);
     emit_signal("graph_renamed", p_old_name, p_new_name);
 
@@ -689,6 +706,12 @@ void OrchestratorScriptViewFunctionsSection::_handle_item_activated(TreeItem* p_
 
 void OrchestratorScriptViewFunctionsSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
 {
+    if (_get_existing_names().has(p_new_name))
+    {
+        _show_notification("A function with the name '" + p_new_name + "' already exists.");
+        return;
+    }
+
     _script->rename_function(p_old_name, p_new_name);
     emit_signal("graph_renamed", p_old_name, p_new_name);
 
@@ -923,6 +946,12 @@ void OrchestratorScriptViewVariablesSection::_handle_item_activated(TreeItem* p_
 
 void OrchestratorScriptViewVariablesSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
 {
+    if (_get_existing_names().has(p_new_name))
+    {
+        _show_notification("A variable with the name '" + p_new_name + "' already exists.");
+        return;
+    }
+
     _script->rename_variable(p_old_name, p_new_name);
     update();
 }
@@ -1093,6 +1122,12 @@ void OrchestratorScriptViewSignalsSection::_handle_item_activated(TreeItem* p_it
 
 void OrchestratorScriptViewSignalsSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
 {
+    if (_get_existing_names().has(p_new_name))
+    {
+        _show_notification("A signal with the name '" + p_new_name + "' already exists.");
+        return;
+    }
+
     _script->rename_custom_user_signal(p_old_name, p_new_name);
     update();
 }
