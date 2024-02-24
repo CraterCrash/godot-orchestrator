@@ -759,7 +759,7 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
         stack.push_arguments(p_args, static_cast<int>(p_arg_count));
 
         // Dispatch the call to the internal handler
-        *r_return = _call_internal(p_method, &stack, 0, 0, false, f->instance, f, *r_err);
+        _call_internal(p_method, &stack, 0, 0, false, f->instance, f, *r_return, *r_err);
     }
     else if (_script->has_method(p_method))
     {
@@ -778,12 +778,10 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
     }
 }
 
-Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
-                                        int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, Function* p_function,
-                                        GDExtensionCallError& r_err)
+void OScriptInstance::_call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
+                                     int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, Function* p_function,
+                                     Variant& r_return, GDExtensionCallError& r_err)
 {
-    Variant return_value;
-
     OScriptNodeInstance* node = p_node;
     int node_port = 0; // always assumes 0
     Function* f = p_function;
@@ -806,7 +804,8 @@ Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecu
                                            context.get_error().error, context.get_current_node(),
                                            context.get_error_reason());
             ERR_PRINT(message);
-            return return_value;
+            r_return.clear();
+            return;
         }
 
         // Initialize working memory
@@ -861,7 +860,9 @@ Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecu
             memcpy(state->stack.ptrw(), p_stack->get_stack_ptr(), stack_size);
 
             context.set_error(GDEXTENSION_CALL_OK);
-            return state;
+            r_return = state;
+
+            return;
         }
 
         // Calculate the output node
@@ -878,7 +879,7 @@ Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecu
             else
             {
                 // Assign first element from working memory
-                return_value = context.get_working_memory();
+                r_return = context.get_working_memory();
             }
             break;
         }
@@ -988,7 +989,6 @@ Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecu
 
     // Clean-up variant stack
     context.cleanup();
-    return return_value;
 }
 
 void OScriptInstance::_resolve_inputs(OScriptExecutionContext& p_context, OScriptNodeInstance* p_node,
@@ -1258,7 +1258,9 @@ void OScriptState::_signal_callback(const Array& p_args)
 
     void* stack_ptr = reinterpret_cast<void*>(const_cast<unsigned char*>(stack.ptr()));
     OScriptExecutionStack execution_stack(stack_info, stack_ptr, false, false);
-    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, func_ptr, r_error);
+
+    Variant result;
+    instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, func_ptr, result, r_error);
     function = StringName();
 }
 
@@ -1289,7 +1291,10 @@ Variant OScriptState::resume(const Array& p_args)
 
     void* stack_ptr = reinterpret_cast<void*>(const_cast<unsigned char*>(stack.ptr()));
     OScriptExecutionStack execution_stack(stack_info, stack_ptr, false, false);
-    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, func_ptr, r_error);
+
+    Variant result;
+    instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, func_ptr, result, r_error);
     function = StringName();
+
     return result;
 }

@@ -170,11 +170,11 @@ private:
     /// @param p_resume_yield whether the method call is resuming from a prior yield
     /// @param p_node the current node in the graph that should be called
     /// @param p_function the executing function instance, should not be {@code null}
+    /// @param r_result the result value
     /// @param r_err the output error code when an error is encountered
-    /// @return the result value, if applicable or null
-    Variant _call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
-                           int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, Function* p_function,
-                           GDExtensionCallError& r_err);
+    void _call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
+                        int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, Function* p_function,
+                        Variant& r_result, GDExtensionCallError& r_err);
 
     /// Resolve the inputs for an node that is about to be executed.
     /// @param p_context the execution context
