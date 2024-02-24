@@ -66,6 +66,7 @@ class OScriptInstance : public OScriptInstanceBase
     Vector<Variant> _default_values;            //! Registered default values
     int _max_input_args{ 0 };                   //! Maximum number of input arguments
     int _max_output_args{ 0 };                  //! Maximum number of output arguments
+    int _max_call_stack{ 0 };                   //! cached configured maximum function call stack
 
 public:
     /// Defines details about the script instance to be passed to Godot
