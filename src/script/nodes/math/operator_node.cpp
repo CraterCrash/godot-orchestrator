@@ -27,12 +27,12 @@ class OScriptNodeOperatorInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeOperator);
     Variant::Operator _operator{ Variant::Operator::OP_EQUAL };
     bool _unary{ false };
+    Variant _result;
 
     int _evaluate_variant(OScriptNodeExecutionContext& p_context, const Variant& p_arg0, const Variant& p_arg1)
     {
         bool valid = true;
-        Variant result;
-        Variant::evaluate(_operator, p_arg0, p_arg1, result, valid);
+        Variant::evaluate(_operator, p_arg0, p_arg1, _result, valid);
         if (!valid)
         {
             const String message = vformat("Operation type #%d failed: ({arg0=[%s,%s]}, {arg1=[%s,%s]})",
@@ -42,7 +42,7 @@ class OScriptNodeOperatorInstance : public OScriptNodeInstance
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, message);
             return -1 | STEP_FLAG_END;
         }
-        p_context.set_output(0, result);
+        p_context.set_output(0, &_result);
         return 0;
     }
 
