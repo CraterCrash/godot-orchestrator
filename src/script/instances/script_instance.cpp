@@ -142,6 +142,10 @@ OScriptInstance::OScriptInstance(const Ref<OScript>& p_script, OScriptLanguage* 
 
     // Initialize functions
     _initialize_functions(p_script);
+
+    // settings/runtime/max_call_stack
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    _max_call_stack = os->get_setting("settings/runtime/max_call_stack");
 }
 
 OScriptInstance::~OScriptInstance()
@@ -728,12 +732,9 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
             ERR_FAIL_MSG("Unable to locate node for method '" + p_method + "' with id " + itos(f->node));
         }
 
-        // settings/runtime/max_call_stack
-        OrchestratorSettings* os = OrchestratorSettings::get_singleton();
-        int max_call_stack = os->get_setting("settings/runtime/max_call_stack");
-        if (f->max_stack > max_call_stack)
+        if (f->max_stack > _max_call_stack)
         {
-            ERR_FAIL_MSG("Unable to call function, call stack exceeds " + itos(max_call_stack));
+            ERR_FAIL_MSG("Unable to call function, call stack exceeds " + itos(_max_call_stack));
         }
 
         // Setup the OScriptExecutionStackInfo object
