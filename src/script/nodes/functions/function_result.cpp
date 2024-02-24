@@ -95,23 +95,7 @@ bool OScriptNodeFunctionResult::validate_node_during_build() const
 
 bool OScriptNodeFunctionResult::is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const
 {
-    bool is_function_graph = p_graph.is_valid() && p_graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION);
-    if (is_function_graph)
-    {
-        TypedArray<int> node_ids = p_graph->get_nodes();
-        for (int i = 0; i < node_ids.size(); i++)
-        {
-            Ref<OScriptNode> node = p_graph->get_owning_script()->get_node(node_ids[i]);
-            if (node.is_valid())
-            {
-                Ref<OScriptNodeFunctionResult> result = node;
-                if (result.is_valid())
-                    return false;
-            }
-        }
-        return true;
-    }
-    return false;
+    return p_graph.is_valid() && p_graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION);
 }
 
 void OScriptNodeFunctionResult::post_placed_new_node()
