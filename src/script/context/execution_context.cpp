@@ -56,8 +56,10 @@ void OScriptNodeExecutionContext::clear_error()
 
 Variant OScriptNodeExecutionContext::get_working_memory(int p_index)
 {
+#if _DEBUG
     ERR_FAIL_COND_V_MSG(p_index >= _current_node_working_memory, _empty,
                         "Working memory index " + itos(p_index) + " is out of bounds for node #" + itos(_current_node_id));
+#endif
     return has_working_memory() ? _working_memory[p_index] : Variant();
 }
 
@@ -74,8 +76,10 @@ void OScriptNodeExecutionContext::set_working_memory(int p_index)
 
 void OScriptNodeExecutionContext::set_working_memory(int p_index, const Variant& p_value)
 {
+#if _DEBUG
     ERR_FAIL_COND_MSG(p_index >= _current_node_working_memory,
                       "Working memory index " + itos(p_index) + " is out of bounds for node #" + itos(_current_node_id));
+#endif
     _working_memory[p_index] = p_value;
 }
 
@@ -86,8 +90,10 @@ void OScriptNodeExecutionContext::cleanup()
 
 Variant& OScriptNodeExecutionContext::get_input(int p_index)
 {
+#ifdef _DEBUG
     ERR_FAIL_COND_V_MSG(p_index >= _current_node_inputs, _empty,
                       "Input index " + itos(p_index) + " out of bounds processing node #" + itos(_current_node_id));
+#endif
     return *_execution_stack->_inputs[p_index];
 }
 
@@ -98,38 +104,38 @@ const Variant** OScriptNodeExecutionContext::get_input_ptr()
 
 void OScriptNodeExecutionContext::set_input(int p_index, const Variant* p_value)
 {
+#ifdef _DEBUG
     ERR_FAIL_COND_MSG(p_index >= _current_node_inputs,
                       "Input index " + itos(p_index) + " out of bounds processing node #" + itos(_current_node_id));
+#endif
     _execution_stack->_inputs[p_index] = const_cast<Variant*>(p_value);
 }
 
 Variant& OScriptNodeExecutionContext::get_output(int p_index)
 {
+#ifdef _DEBUG
     ERR_FAIL_COND_V_MSG(p_index >= _current_node_outputs, _empty,
                       "Output index " + itos(p_index) + " out of bounds processing node #" + itos(_current_node_id));
+#endif
     return *_execution_stack->_outputs[p_index];
 }
 
 bool OScriptNodeExecutionContext::set_output(int p_index, const Variant& p_value)
 {
+#ifdef _DEBUG
     ERR_FAIL_COND_V_MSG(p_index >= _current_node_outputs, false,
                         "Output index " + itos(p_index) + " out of bounds processing node #" + itos(_current_node_id));
+#endif
     *_execution_stack->_outputs[p_index] = p_value;
     return true;
 }
 
 bool OScriptNodeExecutionContext::set_output(int p_index, Variant* p_value)
 {
-    #ifdef _DEBUG
-    DEV_ASSERT(p_index < _current_node_outputs);
-    if (p_index >= _current_node_outputs)
-    {
-        CRASH_NOW_MSG("Output index " + itos(p_index) + " out of bounds processing node #" + itos(_current_node_id));
-    }
-    #else
+#ifdef _DEBUG
     ERR_FAIL_COND_V_MSG(p_index >= _current_node_outputs, false,
                         "Output index " + itos(p_index) + " out of bounds processing node #" + itos(_current_node_id));
-    #endif
+#endif
     *_execution_stack->_outputs[p_index] = *p_value;
     return true;
 }
