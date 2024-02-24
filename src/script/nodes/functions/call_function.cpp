@@ -28,9 +28,12 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeCallFunction);
 
     OScriptFunctionReference _reference;
+    StringName _function_name;
+    Object* _owner{ nullptr };
     int _argument_count{ 0 };
     int _argument_offset{ 2 };
     bool _pure = false;
+    Array _args;
 
     int _do_pure(OScriptNodeExecutionContext& p_context) const
     {
@@ -56,7 +59,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
         {
             // Execute the expression with the provided arguments.
             // This requires an instance object, we use the script owner.
-            Variant result = parser->execute(args, _instance->get_owner());
+            Variant result = parser->execute(args, _owner);
             if (!parser->has_execute_failed())
             {
                 // Execution was successful, set output if applicable.
@@ -97,7 +100,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
     Object* _get_call_instance(OScriptNodeExecutionContext& p_context)
     {
         if (_argument_offset == 0)
-            return _instance->get_owner();
+            return _owner;
 
         Variant target = p_context.get_input(0);
         return !target ? _instance->get_owner() : Object::cast_to<Object>(target);
@@ -114,15 +117,6 @@ public:
         if (_reference.target_type != Variant::NIL)
             return _do_target_type(p_context);
 
-        // Handle instanced function calls
-        Array args;
-        PackedStringArray arg_names;
-        for (int i = 0; i < _argument_count; i++)
-        {
-            Variant input = p_context.get_input(i + _argument_offset);
-            args.push_back(input);
-        }
-
         Object* instance = _get_call_instance(p_context);
         if (!instance)
         {
@@ -130,12 +124,25 @@ public:
             return -1 | STEP_FLAG_END;
         }
 
-        // todo: how to deal with type coercion.
-        //       for example, passing bool and method argument accepts a string?
-        Variant result = instance->callv(_reference.name, args);
-        if (_reference.return_type != Variant::NIL)
-            p_context.set_output(0, result);
+        // Handle instanced function calls
+        if (_argument_count > 0)
+        {
+            if (_args.size() != _argument_count)
+                _args.resize(_argument_count);
 
+            for (int i = 0; i < _argument_count; i++)
+                _args[i] = p_context.get_input(i + _argument_offset);
+        }
+
+        if (_reference.return_type != Variant::NIL)
+        {
+            Variant result = instance->callv(_function_name, _args);
+            p_context.set_output(0, result);
+        }
+        else
+        {
+            instance->callv(_function_name, _args);
+        }
         return 0;
     }
 };
@@ -350,9 +357,11 @@ OScriptNodeInstance* OScriptNodeCallFunction::instantiate(OScriptInstance* p_ins
     OScriptNodeCallFunctionInstance *i = memnew(OScriptNodeCallFunctionInstance);
     i->_node = this;
     i->_instance = p_instance;
+    i->_owner = p_instance->get_owner();
     i->_argument_count = get_argument_count();
     i->_argument_offset = get_argument_offset();
     i->_reference = _reference;
+    i->_function_name = _reference.name;
     i->_pure = _function_flags.has_flag(FF_PURE);
     return i;
 }
