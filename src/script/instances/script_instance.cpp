@@ -723,13 +723,16 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
     if (F)
     {
         Function* f = &F->value;
-
-        // Lookup node that offers the function call
-        HashMap<int, OScriptNodeInstance*>::Iterator E = _nodes.find(f->node);
-        if (!E)
+        if (!f->instance)
         {
-            r_err->error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
-            ERR_FAIL_MSG("Unable to locate node for method '" + p_method + "' with id " + itos(f->node));
+            // Lookup node that offers the function call
+            HashMap<int, OScriptNodeInstance*>::Iterator E = _nodes.find(f->node);
+            if (!E)
+            {
+                r_err->error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
+                ERR_FAIL_MSG("Unable to locate node for method '" + p_method + "' with id " + itos(f->node));
+            }
+            f->instance = E->value;
         }
 
         if (f->max_stack > _max_call_stack)
@@ -756,7 +759,7 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
         stack.push_arguments(p_args, static_cast<int>(p_arg_count));
 
         // Dispatch the call to the internal handler
-        *r_return = _call_internal(p_method, &stack, 0, 0, false, E->value, *r_err);
+        *r_return = _call_internal(p_method, &stack, 0, 0, false, f->instance, f, *r_err);
     }
     else if (_script->has_method(p_method))
     {
@@ -764,7 +767,6 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
         Array args;
         for (int i = 0; i < p_arg_count; i++)
             args.push_back(*p_args[i]);
-
         r_err->error = GDEXTENSION_CALL_OK;
         *r_return = _script->callv(p_method, args);
     }
@@ -777,19 +779,14 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
 }
 
 Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
-                                        int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node,
+                                        int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, Function* p_function,
                                         GDExtensionCallError& r_err)
 {
-    // Check that the method is defined in the function map
-    // If the function isn't, we fail and return immediately
-    HashMap<StringName, Function>::Iterator F = _functions.find(p_method);
-    ERR_FAIL_COND_V(!F, Variant());
-
     Variant return_value;
 
     OScriptNodeInstance* node = p_node;
     int node_port = 0; // always assumes 0
-    Function* f = &F->value;
+    Function* f = p_function;
 
     OScriptExecutionContext context(p_stack, f->node, p_passes, p_flow_pos, &r_err);
 
@@ -854,6 +851,7 @@ Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecu
             state->working_mem_index = node->working_memory_index;
             state->variant_stack_size = f->max_stack;
             state->node = node;
+            state->func_ptr = p_function;
             state->flow_stack_pos = context.get_flow_stack_position();
             state->pass = context.get_passes();
 
@@ -1260,7 +1258,7 @@ void OScriptState::_signal_callback(const Array& p_args)
 
     void* stack_ptr = reinterpret_cast<void*>(const_cast<unsigned char*>(stack.ptr()));
     OScriptExecutionStack execution_stack(stack_info, stack_ptr, false, false);
-    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, r_error);
+    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, func_ptr, r_error);
     function = StringName();
 }
 
@@ -1291,7 +1289,7 @@ Variant OScriptState::resume(const Array& p_args)
 
     void* stack_ptr = reinterpret_cast<void*>(const_cast<unsigned char*>(stack.ptr()));
     OScriptExecutionStack execution_stack(stack_info, stack_ptr, false, false);
-    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, r_error);
+    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, func_ptr, r_error);
     function = StringName();
     return result;
 }

@@ -47,13 +47,14 @@ class OScriptInstance : public OScriptInstanceBase
     /// Function attributes
     struct Function
     {
-        int node{ 0 };             //! The function's node unique identifier
-        int max_stack{ 0 };        //! The function's maximum value stack size
-        int trash_pos{ 0 };        //! The position in the stack for writing to trash
-        int flow_stack_size{ 0 };  //! The function's flow stack size
-        int pass_stack_size{ 0 };  //! The function's pass stack size
-        int node_count{ 0 };       //! The node count?
-        int argument_count{ 0 };   //! The number of arguments for the function call.
+        int node{ 0 };                             //! The function's node unique identifier
+        int max_stack{ 0 };                        //! The function's maximum value stack size
+        int trash_pos{ 0 };                        //! The position in the stack for writing to trash
+        int flow_stack_size{ 0 };                  //! The function's flow stack size
+        int pass_stack_size{ 0 };                  //! The function's pass stack size
+        int node_count{ 0 };                       //! The node count?
+        int argument_count{ 0 };                   //! The number of arguments for the function call.
+        OScriptNodeInstance* instance{ nullptr };  //! Cached instance of the node that starts the function
     };
 
     Ref<OScript> _script;                       //! The script this instance represents
@@ -168,10 +169,12 @@ private:
     /// @param p_passes the number of execution passes ran, typically 0
     /// @param p_resume_yield whether the method call is resuming from a prior yield
     /// @param p_node the current node in the graph that should be called
+    /// @param p_function the executing function instance, should not be {@code null}
     /// @param r_err the output error code when an error is encountered
     /// @return the result value, if applicable or null
     Variant _call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
-                           int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, GDExtensionCallError& r_err);
+                           int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, Function* p_function,
+                           GDExtensionCallError& r_err);
 
     /// Resolve the inputs for an node that is about to be executed.
     /// @param p_context the execution context
@@ -256,17 +259,18 @@ class OScriptState : public RefCounted
 
     static void _bind_methods();
 
-    ObjectID instance_id;                  //! The script instance object id
-    ObjectID script_id;                    //! The script instance id
-    OScriptInstance* instance{ nullptr };  //! The OScript runtime instance object
-    StringName function;                   //! The function/method being executed
-    Vector<uint8_t> stack;                 //! The execution stack
-    OScriptExecutionStackInfo stack_info;  //! The stack information
-    int working_mem_index{ 0 };            //! The current position in the working memory
-    int variant_stack_size{ 0 };           //! The current variant stack size
-    OScriptNodeInstance* node{ nullptr };  //! The current OScriptNode runtime instance object
-    int flow_stack_pos{ 0 };               //! The current flow stack position
-    int pass{ 0 };                         //! The current number of passes
+    ObjectID instance_id;                            //! The script instance object id
+    ObjectID script_id;                              //! The script instance id
+    OScriptInstance* instance{ nullptr };            //! The OScript runtime instance object
+    StringName function;                             //! The function/method being executed
+    Vector<uint8_t> stack;                           //! The execution stack
+    OScriptExecutionStackInfo stack_info;            //! The stack information
+    int working_mem_index{ 0 };                      //! The current position in the working memory
+    int variant_stack_size{ 0 };                     //! The current variant stack size
+    OScriptNodeInstance* node{ nullptr };            //! The current OScriptNode runtime instance object
+    int flow_stack_pos{ 0 };                         //! The current flow stack position
+    int pass{ 0 };                                   //! The current number of passes
+    OScriptInstance::Function* func_ptr{ nullptr };  //! The executing function pointer
 
     /// The signal callback, which is dispatched when the resume signal is raised by
     /// the engine for the OScript to resume execution.
