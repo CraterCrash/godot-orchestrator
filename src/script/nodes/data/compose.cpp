@@ -123,11 +123,6 @@ class OScriptNodeComposeFromInstance : public OScriptNodeInstance
         return StringUtils::join(", ", args);
     }
 
-    bool _is_target_type_supported(Variant::Type p_target_type)
-    {
-        return true;
-    }
-
 public:
     int step(OScriptNodeExecutionContext& p_context) override
     {
@@ -138,36 +133,45 @@ public:
                 Variant output = VariantUtils::make_default(_target_type);
                 p_context.set_output(0, output);
             }
-            else if (!_is_target_type_supported(_target_type))
-            {
-                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Type not supported");
-                p_context.set_invalid_argument(this, 0, _target_type, Variant::NIL);
-                return -1 | STEP_FLAG_END;
-            }
             else
             {
-                const String type_name = Variant::get_type_name(_target_type);
-                String ctor_expression = vformat("%s(%s)", type_name, _get_argument_list(p_context));
-
-                Ref<Expression> expression;
-                expression.instantiate();
-
-                if (expression->parse(ctor_expression) != Error::OK)
+                switch (_target_type)
                 {
-                    p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                                        "Failed to parse expression: " + ctor_expression);
-                    return -1 | STEP_FLAG_END;
-                }
+                    case Variant::BOOL:
+                    case Variant::INT:
+                    case Variant::FLOAT:
+                    case Variant::STRING:
+                    case Variant::STRING_NAME:
+                        // Perform optimization, no need to use the format solution
+                        p_context.set_output(0, p_context.get_input(0));
+                        break;
+                    default:
+                    {
+                        const String type_name = Variant::get_type_name(_target_type);
+                        String ctor_expression = vformat("%s(%s)", type_name, _get_argument_list(p_context));
 
-                Variant result = expression->execute();
-                if (expression->has_execute_failed())
-                {
-                    p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                                        "Failed to evaluate expression: " + ctor_expression);
-                    return -1 | STEP_FLAG_END;
-                }
+                        Ref<Expression> expression;
+                        expression.instantiate();
 
-                p_context.set_output(0, result);
+                        if (expression->parse(ctor_expression) != Error::OK)
+                        {
+                            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
+                                                "Failed to parse expression: " + ctor_expression);
+                            return -1 | STEP_FLAG_END;
+                        }
+
+                        Variant result = expression->execute();
+                        if (expression->has_execute_failed())
+                        {
+                            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
+                                                "Failed to evaluate expression: " + ctor_expression);
+                            return -1 | STEP_FLAG_END;
+                        }
+
+                        p_context.set_output(0, result);
+                        break;
+                    }
+                }
             }
         }
         else
