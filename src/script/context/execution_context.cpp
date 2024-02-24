@@ -50,8 +50,11 @@ void OScriptNodeExecutionContext::set_invalid_argument(OScriptNodeInstance* p_in
 
 void OScriptNodeExecutionContext::clear_error()
 {
-    _error->error = GDEXTENSION_CALL_OK;
-    _error_reason = "";
+    if (_error->error != GDEXTENSION_CALL_OK)
+    {
+        _error->error = GDEXTENSION_CALL_OK;
+        _error_reason = "";
+    }
 }
 
 Variant OScriptNodeExecutionContext::get_working_memory(int p_index)
