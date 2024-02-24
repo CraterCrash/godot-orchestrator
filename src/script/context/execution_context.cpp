@@ -60,7 +60,8 @@ Variant OScriptNodeExecutionContext::get_working_memory(int p_index)
     ERR_FAIL_COND_V_MSG(p_index >= _current_node_working_memory, _empty,
                         "Working memory index " + itos(p_index) + " is out of bounds for node #" + itos(_current_node_id));
 #endif
-    return has_working_memory() ? _working_memory[p_index] : Variant();
+    static Variant empty = Variant();
+    return has_working_memory() ? _working_memory[p_index] : empty;
 }
 
 void OScriptNodeExecutionContext::set_working_memory(int p_index)
