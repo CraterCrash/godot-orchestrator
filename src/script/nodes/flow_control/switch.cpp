@@ -68,18 +68,17 @@ public:
 class OScriptNodeSwitchIntegerInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSwitchInteger);
-    PackedStringArray _values;
+    std::vector<int> _values;
     bool _has_default{ false };
 
 public:
     int step(OScriptNodeExecutionContext& p_context) override
     {
         int value = p_context.get_input(0);
-        for (int i = 0; i < _values.size(); i++)
-        {
-            if (_values[i] == itos(value))
-                return i;
-        }
+        auto it = std::lower_bound(_values.begin(), _values.end(), value);
+        if (it != _values.end() && *it == value)
+            return static_cast<int>(std::distance(_values.begin(), it));
+
         // Default is always execution index 1
         return _has_default ? _values.size() : -1;
     }
@@ -493,8 +492,11 @@ OScriptNodeInstance* OScriptNodeSwitchInteger::instantiate(OScriptInstance* p_in
     OScriptNodeSwitchIntegerInstance* i = memnew(OScriptNodeSwitchIntegerInstance);
     i->_node = this;
     i->_instance = p_instance;
-    i->_values = _pin_names;
     i->_has_default = _has_default_value;
+
+    for (const String& pin_name : _pin_names)
+        i->_values.push_back(pin_name.to_int());
+
     return i;
 }
 
