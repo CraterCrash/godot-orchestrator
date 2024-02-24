@@ -20,7 +20,7 @@
 
 int OScriptNodeInstance::get_id()
 {
-    return get_base_node()->get_id();
+    return id;
 }
 
 Ref<OScriptNode> OScriptNodeInstance::get_base_node()
