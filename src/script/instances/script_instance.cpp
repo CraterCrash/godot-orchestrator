@@ -746,13 +746,17 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
         si.flow_size = f->flow_stack_size;   //! flow size
         si.pass_size = f->pass_stack_size;   //! pass stack size
 
+        const int stack_size = si.get_stack_size();
+        void* fstack = alloca(stack_size);
+        memset(fstack, 0, stack_size);
+
         // Setup the stack
-        Ref<OScriptExecutionStack> stack(memnew(OScriptExecutionStack(si)));
-        stack->push_node_onto_flow_stack(f->node);
-        stack->push_arguments(p_args, p_arg_count);
+        OScriptExecutionStack stack(si, fstack, true, false);
+        stack.push_node_onto_flow_stack(f->node);
+        stack.push_arguments(p_args, static_cast<int>(p_arg_count));
 
         // Dispatch the call to the internal handler
-        *r_return = _call_internal(p_method, stack, 0, 0, false, E->value, *r_err);
+        *r_return = _call_internal(p_method, &stack, 0, 0, false, E->value, *r_err);
     }
     else if (_script->has_method(p_method))
     {
@@ -772,7 +776,7 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
     }
 }
 
-Variant OScriptInstance::_call_internal(const StringName& p_method, const Ref<OScriptExecutionStack>& p_stack, int p_flow_pos,
+Variant OScriptInstance::_call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
                                         int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node,
                                         GDExtensionCallError& r_err)
 {
@@ -851,8 +855,13 @@ Variant OScriptInstance::_call_internal(const StringName& p_method, const Ref<OS
             state->variant_stack_size = f->max_stack;
             state->node = node;
             state->flow_stack_pos = context.get_flow_stack_position();
-            state->stack = p_stack;
             state->pass = context.get_passes();
+
+            const int stack_size = p_stack->get_metadata().get_stack_size();
+            state->stack_info = p_stack->get_metadata();
+            state->stack.resize(stack_size);
+            memcpy(state->stack.ptrw(), p_stack->get_stack_ptr(), stack_size);
+
             context.set_error(GDEXTENSION_CALL_OK);
             return state;
         }
@@ -1201,7 +1210,10 @@ void OScriptInstance::_copy_stack_to_node_outputs(OScriptExecutionContext& p_con
 OScriptState::~OScriptState()
 {
     if (function != StringName())
-        stack->cleanup_variant_stack();
+    {
+        Variant* ptr = reinterpret_cast<Variant*>(const_cast<unsigned char*>(stack.ptr()));
+        OScriptExecutionStack::cleanup_variant_stack(stack_info, ptr);
+    }
 }
 
 void OScriptState::_bind_methods()
@@ -1246,7 +1258,9 @@ void OScriptState::_signal_callback(const Array& p_args)
 
     r_error.error = GDEXTENSION_CALL_OK;
 
-    Variant result = instance->_call_internal(function, stack, flow_stack_pos, pass, true, node, r_error);
+    void* stack_ptr = reinterpret_cast<void*>(const_cast<unsigned char*>(stack.ptr()));
+    OScriptExecutionStack execution_stack(stack_info, stack_ptr, false, false);
+    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, r_error);
     function = StringName();
 }
 
@@ -1275,7 +1289,9 @@ Variant OScriptState::resume(const Array& p_args)
     GDExtensionCallError r_error;
     r_error.error = GDEXTENSION_CALL_OK;
 
-    Variant result = instance->_call_internal(function, stack, flow_stack_pos, pass, true, node, r_error);
+    void* stack_ptr = reinterpret_cast<void*>(const_cast<unsigned char*>(stack.ptr()));
+    OScriptExecutionStack execution_stack(stack_info, stack_ptr, false, false);
+    Variant result = instance->_call_internal(function, &execution_stack, flow_stack_pos, pass, true, node, r_error);
     function = StringName();
     return result;
 }

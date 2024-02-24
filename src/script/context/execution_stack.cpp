@@ -18,6 +18,7 @@
 
 #include "common/logger.h"
 
+#include <cassert>
 #include <version>
 #ifdef __cpp_lib_format
 #include <format>
@@ -25,46 +26,63 @@
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
-OScriptExecutionStack::OScriptExecutionStack(const OScriptExecutionStackInfo& p_stack_info)
+int OScriptExecutionStackInfo::get_stack_size() const
 {
-    _info = p_stack_info;
+    int stack_size = 0;
+    stack_size += max_stack_size * sizeof(Variant);
+    stack_size += node_count * sizeof(bool);
+    stack_size += (max_inputs + max_outputs) * sizeof(Variant*);
+    stack_size += flow_size * sizeof(int);
+    stack_size += pass_size * sizeof(int);
 
-    int max_flow = p_stack_info.flow_size;
+    return stack_size;
+}
 
-    // Calculate the stack size
-    _stack_size += p_stack_info.max_stack_size * sizeof(Variant);
-    _stack_size += p_stack_info.node_count * sizeof(bool);
-    _stack_size += (p_stack_info.max_inputs + p_stack_info.max_outputs) * sizeof(Variant*);
-    _stack_size += p_stack_info.flow_size * sizeof(int);
-    _stack_size += p_stack_info.pass_size * sizeof(int);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Allocate the memory block
-    _stack = malloc(_stack_size);
-    memset(_stack, 0, _stack_size);
+OScriptExecutionStack::OScriptExecutionStack(const OScriptExecutionStackInfo& p_stack_info, void* p_stack, bool p_init, bool p_allocated)
+    : _info(p_stack_info)
+    , _stack(p_stack)
+    , _allocated(p_allocated)
+{
+    assert(_stack != nullptr);
+
+    if (p_allocated)
+        memset(_stack, 0, _info.get_stack_size());
 
     // Reserve pointers into the stack
-    _variant_stack = (Variant*)_stack;
-    _execution_bits = (bool*)(_variant_stack + p_stack_info.max_stack_size);
-    _inputs = (Variant**)(_execution_bits + p_stack_info.node_count);
-    _outputs = (Variant**)(_inputs + p_stack_info.max_inputs);
-    _flow = max_flow ? (int*)(_outputs + p_stack_info.max_outputs) : (int*)nullptr;
-    _pass = _flow ? (int*)(_flow + max_flow) : (int*)nullptr;
+    _variant_stack = static_cast<Variant*>(_stack);
+    _execution_bits = reinterpret_cast<bool*>(_variant_stack + _info.max_stack_size);
+    _inputs = reinterpret_cast<Variant**>(_execution_bits + _info.node_count);
+    _outputs = reinterpret_cast<Variant**>(_inputs + _info.max_inputs);
 
-    // Initialize
-    _initialize(p_stack_info);
+    const int max_flow = _info.flow_size;
+    _flow = max_flow ? reinterpret_cast<int*>(_outputs + p_stack_info.max_outputs) : nullptr;
+    _pass = _flow ? reinterpret_cast<int*>(_flow + max_flow) : nullptr;
+
+    if (p_init)
+    {
+        for (int i = 0; i < _info.max_stack_size; i++)
+            memnew_placement(&_variant_stack[i], Variant);
+    }
 }
 
 OScriptExecutionStack::~OScriptExecutionStack()
 {
     // Deallocate the memory block
-    ::free(_stack);
+    if (_allocated)
+        ::free(_stack);
 }
 
 void OScriptExecutionStack::cleanup_variant_stack()
 {
-    Variant* stack = _variant_stack;
-    for (int i = 0; i < _info.max_stack_size; i++)
-        stack[i].~Variant();
+    cleanup_variant_stack(_info, _variant_stack);
+}
+
+void OScriptExecutionStack::cleanup_variant_stack(const OScriptExecutionStackInfo& p_info, Variant* p_stack)
+{
+    for (int i = 0; i < p_info.max_stack_size; i++)
+        p_stack[i].~Variant();
 }
 
 void OScriptExecutionStack::push_node_onto_flow_stack(int p_node_id)
@@ -79,17 +97,6 @@ void OScriptExecutionStack::push_arguments(const Variant* const* p_args, int p_c
         _variant_stack[i] = *p_args[i];
 }
 
-void OScriptExecutionStack::_initialize(const OScriptExecutionStackInfo& p_stack_info)
-{
-    // Everything starts false
-    for (int i = 0; i < p_stack_info.node_count; i++)
-        _execution_bits[i] = false;
-
-    // Allocate variants
-    for (int i = 0; i < p_stack_info.max_stack_size; i++)
-        memnew_placement(&_variant_stack[i], Variant);
-}
-
 void OScriptExecutionStack::dump()
 {
     #ifdef __cpp_lib_format
@@ -101,7 +108,6 @@ void OScriptExecutionStack::dump()
     Logger::debug(std::format("   Outputs : {} (max count {})", (void*)_outputs, _info.max_outputs).c_str());
     Logger::debug(std::format("      Flow : {} (max count {})", (void*)_flow, _info.flow_size).c_str());
     Logger::debug(std::format("      Pass : {} (max count {})", (void*)_pass, _info.pass_size).c_str());
-    Logger::debug(std::format("     Total : {} bytes", _stack_size).c_str());
     #endif
 }
 

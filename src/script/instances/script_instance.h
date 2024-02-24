@@ -163,14 +163,14 @@ private:
     /// prior await operation or other stack-based operations.
     ///
     /// @param p_method the method to call if the method has not yet started
-    /// @param p_stack the execution stack, should always be valid
+    /// @param p_stack the execution stack, should not be {@code null}
     /// @param p_flow_pos the position in the flow stack, typically 0
     /// @param p_passes the number of execution passes ran, typically 0
     /// @param p_resume_yield whether the method call is resuming from a prior yield
     /// @param p_node the current node in the graph that should be called
     /// @param r_err the output error code when an error is encountered
     /// @return the result value, if applicable or null
-    Variant _call_internal(const StringName& p_method, const Ref<OScriptExecutionStack>& p_stack, int p_flow_pos,
+    Variant _call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
                            int p_passes, bool p_resume_yield, OScriptNodeInstance* p_node, GDExtensionCallError& r_err);
 
     /// Resolve the inputs for an node that is about to be executed.
@@ -260,7 +260,8 @@ class OScriptState : public RefCounted
     ObjectID script_id;                    //! The script instance id
     OScriptInstance* instance{ nullptr };  //! The OScript runtime instance object
     StringName function;                   //! The function/method being executed
-    Ref<OScriptExecutionStack> stack;      //! The current execution stack
+    Vector<uint8_t> stack;                 //! The execution stack
+    OScriptExecutionStackInfo stack_info;  //! The stack information
     int working_mem_index{ 0 };            //! The current position in the working memory
     int variant_stack_size{ 0 };           //! The current variant stack size
     OScriptNodeInstance* node{ nullptr };  //! The current OScriptNode runtime instance object
