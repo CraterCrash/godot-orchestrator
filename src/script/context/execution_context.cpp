@@ -22,7 +22,7 @@
 // todo:    p_node_id and p_flow_stack_size are driven by OScriptInstance::Function
 //          can we refactor and only pass the function reference by chance?
 
-OScriptNodeExecutionContext::OScriptNodeExecutionContext(const Ref<OScriptExecutionStack>& p_stack, int p_node_id, int p_passes,
+OScriptNodeExecutionContext::OScriptNodeExecutionContext(OScriptExecutionStack* p_stack, int p_node_id, int p_passes,
                                                          int p_flow_stack_position, GDExtensionCallError* p_error)
     : _execution_stack(p_stack)
     , _initial_node_id(p_node_id)
@@ -157,7 +157,7 @@ void OScriptNodeExecutionContext::copy_input_to_output(size_t p_input_index, siz
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OScriptExecutionContext::OScriptExecutionContext(const Ref<OScriptExecutionStack>& p_stack, int p_node_id, int p_passes,
+OScriptExecutionContext::OScriptExecutionContext(OScriptExecutionStack* p_stack, int p_node_id, int p_passes,
                                                  int p_flow_stack_position, GDExtensionCallError* p_err)
     : OScriptNodeExecutionContext(p_stack, p_node_id, p_passes, p_flow_stack_position, p_err)
 {

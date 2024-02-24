@@ -34,7 +34,7 @@ class OScriptNodeInstance;
 class OScriptNodeExecutionContext
 {
 protected:
-    Ref<OScriptExecutionStack> _execution_stack;  //! The underlying execution stack
+    OScriptExecutionStack* _execution_stack;      //! The underlying execution stack
     int _initial_node_id{ -1 };                   //! The initial executing function node unique id
     int _current_node_id{ -1 };                   //! The current executing node's unique id
     int _current_node_port{ -1 };                 //! The current executing node's port that triggered the step
@@ -50,7 +50,7 @@ protected:
     int _current_node_outputs{ 0 };               //! Current execution node's max output count
 
 public:
-    OScriptNodeExecutionContext(const Ref<OScriptExecutionStack>& p_stack, int p_node_id, int p_passes,
+    OScriptNodeExecutionContext(OScriptExecutionStack* p_stack, int p_node_id, int p_passes,
                                 int p_flow_stack_position, GDExtensionCallError* p_err);
 
     /// Get the current node port
@@ -141,7 +141,7 @@ public:
 class OScriptExecutionContext : public OScriptNodeExecutionContext
 {
 public:
-    OScriptExecutionContext(const Ref<OScriptExecutionStack>& p_stack, int p_node_id, int p_passes, int p_flow_stack_position,
+    OScriptExecutionContext(OScriptExecutionStack* p_stack, int p_node_id, int p_passes, int p_flow_stack_position,
                             GDExtensionCallError* p_err);
 
     /// Get the current pass count

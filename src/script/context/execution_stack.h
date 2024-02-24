@@ -31,6 +31,8 @@ struct OScriptExecutionStackInfo
     int max_outputs{ 0 };
     int flow_size{ 0 };
     int pass_size{ 0 };
+
+    int get_stack_size() const;
 };
 
 /// The execution stack used by the OrchestratorScript. The stack represents all the state, including
@@ -49,19 +51,15 @@ struct OScriptExecutionStackInfo
 /// @endcode
 ///
 ///
-class OScriptExecutionStack : public RefCounted
+class OScriptExecutionStack
 {
     friend class OScriptNodeExecutionContext;
     friend class OScriptExecutionContext;
-
-    GDCLASS(OScriptExecutionStack, RefCounted);
-    static void _bind_methods() { }
 
     OScriptExecutionStack() = default;
 
     OScriptExecutionStackInfo _info;      //! The execution stack metadata
     void* _stack{ nullptr };              //! The allocated memory block
-    unsigned long long _stack_size{ 0 };  //! The size of the memory block
 
     // Defines pointers into the stack for quick reference
     Variant* _variant_stack{ nullptr };
@@ -70,14 +68,21 @@ class OScriptExecutionStack : public RefCounted
     Variant** _outputs{ nullptr };
     int* _flow{ nullptr };
     int* _pass{ nullptr };
+    bool _allocated{ false };
 
 public:
     /// Constructor
     /// @param p_stack_info the stack construction metadata object
-    explicit OScriptExecutionStack(const OScriptExecutionStackInfo& p_stack_info);
+    /// @param p_stack an existing stack
+    /// @param p_init whether the stack needs initialization
+    /// @param p_allocated whether the stack should be deallocated
+    OScriptExecutionStack(const OScriptExecutionStackInfo& p_stack_info, void* p_stack, bool p_init, bool p_allocated = true);
 
     /// ~Destructor
-    ~OScriptExecutionStack() override;
+    ~OScriptExecutionStack();
+
+    /// Get the pointer to the underlying stack buffer
+    void* get_stack_ptr() const { return _stack; }
 
     /// Get the metadata details about the stack's sizes and construction details
     /// @return the execution stack information
@@ -85,6 +90,11 @@ public:
 
     /// Cleanup the variant stack
     void cleanup_variant_stack();
+
+    /// Cleanup the specified variant stack
+    /// @param p_info the execution stack innformation
+    /// @param p_stack the stack to clean up
+    static void cleanup_variant_stack(const OScriptExecutionStackInfo& p_info, Variant* p_stack);
 
     /// @brief Push a node onto the graph flow stack
     /// @param p_node_id the node id
@@ -107,9 +117,6 @@ public:
     /// Dump the contents of the output stack to the console.
     void dump_output_stack();
 
-private:
-    /// @brief Initializes the stack
-    void _initialize(const OScriptExecutionStackInfo& p_stack_info);
 };
 
 #endif  // ORCHESTRATOR_EXECUTION_STACK_H
