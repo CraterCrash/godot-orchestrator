@@ -81,6 +81,9 @@ void OScript::_bind_methods()
                  "_get_graphs");
 
     ADD_SIGNAL(MethodInfo("connections_changed", PropertyInfo(Variant::STRING, "caller")));
+    ADD_SIGNAL(MethodInfo("functions_changed"));
+    ADD_SIGNAL(MethodInfo("variables_changed"));
+    ADD_SIGNAL(MethodInfo("signals_changed"));
 }
 
 void OScript::post_initialize()
@@ -812,6 +815,8 @@ Ref<OScriptFunction> OScript::create_function(const MethodInfo& p_method, int p_
     function->_user_defined = p_user_defined;
 
     _functions[p_method.name] = function;
+    emit_signal("functions_changed");
+
     return function;
 }
 
@@ -845,6 +850,8 @@ void OScript::remove_function(const StringName& p_name)
 
         // Let the editor handle node removal
         _functions.erase(p_name);
+
+        emit_signal("functions_changed");
     }
     emit_changed();
 }
@@ -892,6 +899,8 @@ void OScript::rename_function(const StringName& p_old_name, const String& p_new_
         if (graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION))
             rename_graph(p_old_name, p_new_name);
     }
+
+    emit_signal("functions_changed");
 }
 
 PackedStringArray OScript::get_function_names() const
@@ -931,6 +940,7 @@ Ref<OScriptVariable> OScript::create_variable(const StringName& p_name, Variant:
 #ifdef TOOLS_ENABLED
     _update_placeholders();
 #endif
+    emit_signal("variables_changed");
 
     return variable;
 }
@@ -948,6 +958,8 @@ void OScript::remove_variable(const StringName& p_name)
     }
 
     _variables.erase(p_name);
+
+    emit_signal("variables_changed");
 
     emit_changed();
     notify_property_list_changed();
@@ -979,6 +991,8 @@ void OScript::rename_variable(const StringName& p_old_name, const StringName& p_
     _variables[p_new_name]->set_variable_name(p_new_name);
 
     _variables.erase(p_old_name);
+
+    emit_signal("variables_changed");
 
     emit_changed();
     notify_property_list_changed();
@@ -1035,6 +1049,8 @@ Ref<OScriptSignal> OScript::create_custom_signal(const StringName& p_name)
     Ref<OScriptSignal> signal = OScriptSignal::create(this, method);
     _signals[p_name] = signal;
 
+    emit_signal("signals_changed");
+
     return signal;
 }
 
@@ -1051,6 +1067,8 @@ void OScript::remove_custom_signal(const StringName& p_name)
     }
 
     _signals.erase(p_name);
+
+    emit_signal("signals_changed");
 }
 
 Ref<OScriptSignal> OScript::get_custom_signal(const StringName& p_name)
@@ -1082,6 +1100,8 @@ void OScript::rename_custom_user_signal(const StringName& p_old_name, const Stri
     _signals[p_new_name]->rename(p_new_name);
 
     _signals.erase(p_old_name);
+
+    emit_signal("signals_changed");
 
     emit_changed();
     notify_property_list_changed();
