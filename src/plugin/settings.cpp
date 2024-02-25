@@ -68,6 +68,52 @@ Variant OrchestratorSettings::get_setting(const String& key, const Variant& p_de
     return ps->get_setting(path, p_default_value);
 }
 
+PackedStringArray OrchestratorSettings::get_action_favorites()
+{
+    return ProjectSettings::get_singleton()->get_setting(
+        "orchestrator/settings/action_favorites", PackedStringArray());
+}
+
+void OrchestratorSettings::add_action_favorite(const String& p_action_name)
+{
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+
+    const String key = "orchestrator/settings/action_favorites";
+    const PropertyInfo pi = PropertyInfo(Variant::PACKED_STRING_ARRAY, key);
+    if (!ps->has_setting(key))
+    {
+        ps->set_setting(key, PackedStringArray());
+        ps->set_initial_value(key, PackedStringArray());
+        ps->add_property_info(DictionaryUtils::from_property(pi));
+        ps->set_as_basic(key, false);
+    }
+
+    PackedStringArray actions = get_action_favorites();
+    if (!actions.has(p_action_name))
+    {
+        actions.push_back(p_action_name);
+        ps->set_setting(key, actions);
+        ps->save();
+    }
+}
+
+void OrchestratorSettings::remove_action_favorite(const String& p_action_name)
+{
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+
+    const String key = "orchestrator/settings/action_favorites";
+    if (!ps->has_setting(key))
+        return;
+
+    PackedStringArray actions = get_action_favorites();
+    if (actions.has(p_action_name))
+    {
+        actions.remove_at(actions.find(p_action_name));
+        ps->set_setting(key, actions);
+        ps->save();
+    }
+}
+
 void OrchestratorSettings::_register_deprecated_settings()
 {
     // Default settings (Orchestrator v1)

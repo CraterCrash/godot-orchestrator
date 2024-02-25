@@ -57,6 +57,18 @@ public:
     /// @return the found value or the specified default
     Variant get_setting(const String& p_key, const Variant& p_default_value = Variant());
 
+    /// Get all currently defined action favorites.
+    /// @return A <code>PackedStringArray</code> of all action category favorites.
+    PackedStringArray get_action_favorites();
+
+    /// Add an action category favorite.
+    /// @param p_action_name the action category to be added
+    void add_action_favorite(const String& p_action_name);
+
+    /// Removes an action category favorite.
+    /// @param p_action_name the action category to be removed
+    void remove_action_favorite(const String& p_action_name);
+
 private:
 
     /// Get the base settings key

@@ -50,6 +50,7 @@ class OrchestratorGraphActionMenu : public ConfirmationDialog
     OrchestratorGraphEdit* _graph_edit;           //! The graph edit
     OrchestratorGraphActionDB _action_db;         //! Action database
     OrchestratorGraphActionFilter _filter;        //! The filter
+    String _selection;                            //! Stores current selected item's category
 
 protected:
     OrchestratorGraphActionMenu() = default;
@@ -75,6 +76,19 @@ private:
     /// Populates the tree with filtered actions
     void _generate_filtered_actions();
 
+    /// Common functionality for creating action tree items
+    /// @param p_parent the parent item, should not be <code>null</code>
+    /// @param p_menu_item the menu item to be called, should be valid
+    /// @param p_text the text to be added to the menu item
+    /// @return the constructed tree item, never <code>null</code>
+    TreeItem* _make_item(TreeItem* p_parent, const Ref<OrchestratorGraphActionMenuItem>& p_menu_item, const String& p_text);
+
+    /// Creates the favorite item's text
+    /// @param p_parent the parent item, should not be <code>null</code>
+    /// @param p_menu_item the menu item, should be valid
+    /// @return the constructed favorite item text
+    String _create_favorite_item_text(TreeItem* p_parent, const Ref<OrchestratorGraphActionMenuItem>& p_menu_item);
+
     /// Removes all empty action nodes from the specified parent item
     /// @param p_parent the parent tree item
     void _remove_empty_action_nodes(TreeItem* p_parent);
@@ -82,6 +96,11 @@ private:
     /// Notify of selection and close window
     /// @param p_selected the selected item
     void _notify_and_close(TreeItem* p_selected);
+
+    /// Looks through the tree and applies the category in <code>_selection</code> to the appropriate item.
+    /// @param p_item the tree item hierarchy to traverse, should not be <code>null</code>
+    /// @return true if the selection was applied, false otherwise
+    bool _apply_selection(TreeItem* p_item);
 
     /// Dispatched when the context sensitive checkbox is toggled
     /// @param p_new_state the new checkbox state
@@ -96,6 +115,13 @@ private:
 
     /// Dispatched when a tree element is double-clicked
     void _on_tree_item_activated();
+
+    /// Dispatched when the user clicks a button in the tree
+    /// @param p_item the current tree item who's button was clicked
+    /// @param p_column the column the button is within
+    /// @param p_id the button's unique id
+    /// @param p_button_index the mouse button used to click the button
+    void _on_tree_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_button_index);
 
     /// Dispatched when the user selects the cancel or close window button
     void _on_close_requested();
