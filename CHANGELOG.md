@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## [2.0.dev3](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.dev3) - 2024-02-25
+
+- [862aa9d](http://github.com/Vahera/godot-orchestrator/commit/862aa9d310da3a4e900f5ec126a14c266bace010) - GH-84 Support favorites in "All actions" menu
+- [ceee2e8](http://github.com/Vahera/godot-orchestrator/commit/ceee2e80f521196379aa39509b62ab662d31fafe) - [ci] Upgrade metcalfc/changelog-generator from 4.3.0 to 4.3.1
+- [cfdf3e8](http://github.com/Vahera/godot-orchestrator/commit/cfdf3e8a3e614430da5c636fb03085dbecd5afd3) - [ci] Remove show files and retest upload
+- [843b800](http://github.com/Vahera/godot-orchestrator/commit/843b800dc901272b492d83fa7e81bc5323d5addc) - [ci] Show files after download
+- [0a381e2](http://github.com/Vahera/godot-orchestrator/commit/0a381e268a139661a1ca8ffdcc4e8a69090c6c6a) - [ci] Remove geekyeggo/delete-artifact
+- [ecc87c4](http://github.com/Vahera/godot-orchestrator/commit/ecc87c408954dcebd503326f5531f79c007d08e0) - [ci] Upgrade actions/upload-artifact from v3 to v4
+- [8e6b5a0](http://github.com/Vahera/godot-orchestrator/commit/8e6b5a0e4478ec3e5c2bd28d8f1421305ca90685) - [ci] Replace jwlawson/actions-setup-cmake@v1.14 with get-cmake@v3.28.0
+- [93d6f64](http://github.com/Vahera/godot-orchestrator/commit/93d6f6439d977cd6d33b37db2c6b63a62268af8d) - [ci] Upgrade ilammy/msvc-dev-cmd from 1.12.1 to 1.13.0
+- [9bfa8f5](http://github.com/Vahera/godot-orchestrator/commit/9bfa8f50dff93517f906f34ed19edf1ffc037c8f) - [ci] Upgrade actions/setup-python from 4 to 5
+- [d4bc2ea](http://github.com/Vahera/godot-orchestrator/commit/d4bc2eabc2429fee375b92366d762bcfbcb0d239) - GH-74 Add action menu database cache
+- [b14f433](http://github.com/Vahera/godot-orchestrator/commit/b14f4332ec8f7aa8c929373538b4dd312ea8e69e) - [perf]: minimize function call result variant copies
+- [f91ac2f](http://github.com/Vahera/godot-orchestrator/commit/f91ac2ff02248aba826d86cf6fd8aaa7beba305c) - [perf]: optimize variant usage in operator node
+- [ed2da2f](http://github.com/Vahera/godot-orchestrator/commit/ed2da2f31a4748781c9ba1757a201626200c09d3) - [perf]: reduce hash-map lookup by caching function node instance pair
+- [f2fdf5f](http://github.com/Vahera/godot-orchestrator/commit/f2fdf5f7290f781c4d164b04fca8b4447eb34c24) - [perf]: optimize ComposeFrom node behavior
+- [7d4f042](http://github.com/Vahera/godot-orchestrator/commit/7d4f0427783e366b4455913ee30ec67840e3b2e5) - [perf]: rework execution context and stack
+- [1a83ee8](http://github.com/Vahera/godot-orchestrator/commit/1a83ee83d5796a96438105bb9f60e989b2cafcc6) - [perf]: use cached script node identifier
+- [f14f82e](http://github.com/Vahera/godot-orchestrator/commit/f14f82e1ee8c1933b2874b14f8d04fcc75550017) - [perf]: allow multiple return nodes in function graphs
+- [96c2e5b](http://github.com/Vahera/godot-orchestrator/commit/96c2e5be9e3225000599e5f9ba7cc7c3810a7c4d) - [perf]: call function node improvements
+- [c60bfa4](http://github.com/Vahera/godot-orchestrator/commit/c60bfa464b4c524ef8447cd5b2b957ae3303fb9d) - [perf]: clear_error is now no-op if no error is set
+- [679139d](http://github.com/Vahera/godot-orchestrator/commit/679139d512eb6e6ecaa17ad9acd033491b4e83bf) - [perf]: allocate empty working memory register statically
+- [2f52346](http://github.com/Vahera/godot-orchestrator/commit/2f52346eeac9048c3efb26ae276d31334ae8d07f) - [perf]: scope ERR_FAIL_xxx macros to DEBUG builds
+- [2eda2af](http://github.com/Vahera/godot-orchestrator/commit/2eda2af72c85d73df3d1557e11685259bd5073fe) - [perf]: use std::vector<int> and std::lower_bound
+- [de2a0a8](http://github.com/Vahera/godot-orchestrator/commit/de2a0a8aa147bb32630c6e44fa7d10f5105b8595) - [perf]: cache settings/runtime/max_call_stack
+- [8d875ef](http://github.com/Vahera/godot-orchestrator/commit/8d875ef049f59042cd4ea25601440d9720f53a7e) - GH-92 Add short-cut keybindings for Variable drag-n-drop
+- [e34c057](http://github.com/Vahera/godot-orchestrator/commit/e34c0575e7060bb9f2f55d3a5e9325b596d23414) - GH-89 On rename, notify user if new name already exists
+- [fe8a393](http://github.com/Vahera/godot-orchestrator/commit/fe8a3935e655b2726cb11b0ebe125e18c7e137cf) - GH-89 Correctly resolve new variable names on insert
+- [70c0233](http://github.com/Vahera/godot-orchestrator/commit/70c023353490014f83db29fdaf21f8b34a2443a5) - GH-82 Fix crash when dragging from node pins
+- [2d0c5eb](http://github.com/Vahera/godot-orchestrator/commit/2d0c5eb818a215b382806a1495707c4d09dd1d5c) - [ci] Upgrade metcalfc/changelog-generator from 4.2.0 to 4.3.0
+- [7defe77](http://github.com/Vahera/godot-orchestrator/commit/7defe77aecdb3f14ab15ea06768c2e36ec7c61bb) - [ci] Upgrade robinraju/release-downloader from 1.8 to 1.9
+
 ## [2.0.dev2](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.dev2) - 2024-01-21
 
 - [ce09546](http://github.com/Vahera/godot-orchestrator/commit/ce09546d244ceb9fa750cc6220b410ca42824201) - GH-79 Avoid using deprecated `move_to_foreground`
