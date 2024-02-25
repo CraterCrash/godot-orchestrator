@@ -27,6 +27,8 @@ struct OrchestratorGraphActionRegistrarContext
     OrchestratorGraphEdit* graph{ nullptr };
     List<Ref<OrchestratorGraphActionMenuItem>>* list{ nullptr };
     OrchestratorGraphActionFilter* filter{ nullptr };
+
+    static OrchestratorGraphActionRegistrarContext from_filter(const OrchestratorGraphActionFilter& p_filter);
 };
 
 /// Contract that defines an OrchestratorGraphAction registrar.

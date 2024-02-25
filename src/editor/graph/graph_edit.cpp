@@ -88,12 +88,12 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<O
 
     _plugin = p_plugin;
 
-    // Add action menu
-    _action_menu = memnew(OrchestratorGraphActionMenu);
-    add_child(_action_menu);
-
     _script = p_script;
     _script_graph = _script->get_graph(p_name);
+
+    // Add action menu
+    _action_menu = memnew(OrchestratorGraphActionMenu(this));
+    add_child(_action_menu);
 
     set_zoom(_script_graph->get_viewport_zoom());
     set_scroll_offset(_script_graph->get_viewport_offset());

@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_EDITOR_GRAPH_ACTION_MENU_H
 #define ORCHESTRATOR_EDITOR_GRAPH_ACTION_MENU_H
 
+#include "action_db.h"
 #include "action_menu_filter.h"
 #include "action_menu_item.h"
 
@@ -45,32 +46,34 @@ class OrchestratorGraphActionMenu : public ConfirmationDialog
     CheckBox* _context_sensitive{ nullptr };      //! Context-sensitive check box
     Button* _expand{ nullptr };                   //! Expand button
     Button* _collapse{ nullptr };                 //! Collapse button
-    bool _force_refresh{ false };                 //! Forces refresh of action items
     HashMap<String, Ref<Texture2D>> _icon_cache;  //! Cache of icons
-    List<Ref<OrchestratorGraphActionMenuItem>> _items;
-    OrchestratorGraphActionFilter _filter;
+    OrchestratorGraphEdit* _graph_edit;           //! The graph edit
+    OrchestratorGraphActionDB _action_db;         //! Action database
+    OrchestratorGraphActionFilter _filter;        //! The filter
+
+protected:
+    OrchestratorGraphActionMenu() = default;
 
 public:
+
+    /// Constructs a graph action menu
+    /// @param p_graph_edit the graph edit control, should not be {@code null}
+    OrchestratorGraphActionMenu(OrchestratorGraphEdit* p_graph_edit);
 
     /// Godot callback that handles notifications
     /// @param p_what the notification to be handled
     void _notification(int p_what);
+
+    /// Requests to clear any persisted state maintained by the menu
+    void clear();
 
     /// Applies the specified filter and shows the results
     /// @param p_filter the action filter
     void apply_filter(const OrchestratorGraphActionFilter& p_filter);
 
 private:
-    /// Refreshes the action list
-    void _refresh_actions();
-
-    /// Populates the action items list
-    /// @param p_context the action context
-    void _generate_actions(const OrchestratorGraphActionContext& p_context);
-
     /// Populates the tree with filtered actions
-    /// @param p_context the action context
-    void _generate_filtered_actions([[maybe_unused]] [[maybe_unused]] const OrchestratorGraphActionContext& p_context);
+    void _generate_filtered_actions();
 
     /// Removes all empty action nodes from the specified parent item
     /// @param p_parent the parent tree item

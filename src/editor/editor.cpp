@@ -33,6 +33,7 @@
 void register_editor_classes()
 {
     // Action components
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionDB)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenu)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenuItem)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionHandler)

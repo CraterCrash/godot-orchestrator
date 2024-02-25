@@ -27,6 +27,11 @@
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
+OrchestratorGraphActionMenu::OrchestratorGraphActionMenu(OrchestratorGraphEdit* p_graph_edit)
+{
+    _graph_edit = p_graph_edit;
+}
+
 void OrchestratorGraphActionMenu::_bind_methods()
 {
     ADD_SIGNAL(MethodInfo("action_selected", PropertyInfo(Variant::OBJECT, "handler")));
@@ -98,7 +103,18 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         connect("confirmed", callable_mp(this, &OrchestratorGraphActionMenu::_on_confirmed));
         connect("canceled", callable_mp(this, &OrchestratorGraphActionMenu::_on_close_requested));
         connect("close_requested", callable_mp(this, &OrchestratorGraphActionMenu::_on_close_requested));
+
+        // When certain script elements change, this handles forcing a refresh
+        Ref<OScript> script = _graph_edit->get_owning_script();
+        script->connect("functions_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
+        script->connect("variables_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
+        script->connect("signals_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
     }
+}
+
+void OrchestratorGraphActionMenu::clear()
+{
+    _action_db.clear();
 }
 
 void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilter& p_filter)
@@ -108,11 +124,11 @@ void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilt
     _context_sensitive->set_pressed(_filter.context_sensitive);
     _context_sensitive->set_block_signals(false);
 
-    _force_refresh = true;
     _collapse->set_pressed(false);
     _expand->set_pressed(true);
 
-    _refresh_actions();
+    _action_db.load(_filter);
+    _generate_filtered_actions();
 
     set_size(Vector2(350, 700));
     popup();
@@ -121,39 +137,7 @@ void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilt
     _filters_text_box->grab_focus();
 }
 
-void OrchestratorGraphActionMenu::_refresh_actions()
-{
-    if (_items.is_empty() || _force_refresh)
-        _generate_actions(_filter.context);
-
-    _generate_filtered_actions(_filter.context);
-}
-
-void OrchestratorGraphActionMenu::_generate_actions(const OrchestratorGraphActionContext& p_context)
-{
-    _force_refresh = false;
-    _items.clear();
-
-    OrchestratorGraphActionRegistrarContext ctx;
-    ctx.graph = p_context.graph;
-    ctx.script = _filter.context.graph->get_owning_script();
-    ctx.list = &_items;
-    ctx.filter = &_filter;
-
-    for (const String &name : ClassDB::get_inheriters_from_class(OrchestratorGraphActionRegistrar::get_class_static()))
-    {
-        if (!ClassDB::can_instantiate(name))
-            continue;
-
-        Variant object = ClassDB::instantiate(name);
-        if (OrchestratorGraphActionRegistrar* registrator = Object::cast_to<OrchestratorGraphActionRegistrar>(object))
-            registrator->register_actions(ctx);
-    }
-
-    _items.sort_custom<OrchestratorGraphActionMenuItemComparator>();
-}
-
-void OrchestratorGraphActionMenu::_generate_filtered_actions([[maybe_unused]] const OrchestratorGraphActionContext& p_context)
+void OrchestratorGraphActionMenu::_generate_filtered_actions()
 {
     _tree_view->clear();
 
@@ -162,14 +146,9 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions([[maybe_unused]] co
 
     Ref<Texture2D> broken = SceneUtils::get_icon(this, "_not_found_");
 
-    for (const Ref<OrchestratorGraphActionMenuItem>& item : _items)
+    List<Ref<OrchestratorGraphActionMenuItem>> items = _action_db.get_items();
+    for (const Ref<OrchestratorGraphActionMenuItem>& item : items)
     {
-        if (item->get_handler().is_valid())
-        {
-            if (item->get_handler()->is_filtered(_filter, item->get_spec()))
-                continue;
-        }
-
         TreeItem* parent = _tree_view->get_root();
 
         const PackedStringArray categories = item->get_spec().category.split("/");
@@ -260,7 +239,9 @@ void OrchestratorGraphActionMenu::_notify_and_close(TreeItem* p_selected)
 void OrchestratorGraphActionMenu::_on_context_sensitive_toggled(bool p_new_state)
 {
     _filter.context_sensitive = p_new_state;
-    _generate_filtered_actions(_filter.context);
+    _action_db.load(_filter);
+
+    _generate_filtered_actions();
 }
 
 void OrchestratorGraphActionMenu::_on_filter_text_changed(const String& p_new_text)
@@ -275,7 +256,8 @@ void OrchestratorGraphActionMenu::_on_filter_text_changed(const String& p_new_te
 
     get_ok_button()->set_disabled(true);
 
-    _generate_filtered_actions(_filter.context);
+    _action_db.load(_filter);
+    _generate_filtered_actions();
 }
 
 void OrchestratorGraphActionMenu::_on_tree_item_selected()
