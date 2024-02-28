@@ -56,6 +56,12 @@ namespace VariantUtils
     /// @param p_type the variant type
     /// @return the default Variant value of the specified type
     Variant make_default(Variant::Type p_type);
+
+    /// Cast to a desired type.
+    /// @param p_value the value to be cast
+    /// @param T the cast type
+    /// @return the value cast to the specified type <T>
+    template<typename T> T cast_to(const Variant& p_value) { return T(p_value); }
 }
 
 #endif  // ORCHESTRATOR_VARIANT_UTILS_H

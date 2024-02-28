@@ -138,12 +138,19 @@ public:
                 switch (_target_type)
                 {
                     case Variant::BOOL:
+                        p_context.set_output(0, VariantUtils::cast_to<bool>(p_context.get_input(0)));
+                        break;
                     case Variant::INT:
+                        p_context.set_output(0, VariantUtils::cast_to<int>(p_context.get_input(0)));
+                        break;
                     case Variant::FLOAT:
+                        p_context.set_output(0, VariantUtils::cast_to<float>(p_context.get_input(0)));
+                        break;
                     case Variant::STRING:
+                        p_context.set_output(0, VariantUtils::cast_to<String>(p_context.get_input(0)));
+                        break;
                     case Variant::STRING_NAME:
-                        // Perform optimization, no need to use the format solution
-                        p_context.set_output(0, p_context.get_input(0));
+                        p_context.set_output(0, VariantUtils::cast_to<StringName>(p_context.get_input(0)));
                         break;
                     default:
                     {
