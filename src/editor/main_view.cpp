@@ -80,7 +80,7 @@ void OrchestratorMainView::_notification(int p_what)
         margin->add_child(vbox);
 
         HBoxContainer* toolbar = memnew(HBoxContainer);
-        toolbar->set_custom_minimum_size(Vector2i(0, 32));
+        toolbar->set_custom_minimum_size(Vector2i(0, 32.0 * _plugin->get_editor_interface()->get_editor_scale()));
         toolbar->add_theme_constant_override("separation", 0);
         vbox->add_child(toolbar);
 
