@@ -89,21 +89,38 @@ OScriptPlaceHolderInstance::OScriptPlaceHolderInstance(Ref<OScript> p_script, Ob
 {
     _script = p_script;
     _owner = p_owner;
-
-    for (const Ref<OScriptVariable>& variable : _script->get_variables())
-    {
-        if (variable->is_exported())
-            _variables[variable->get_variable_name()] = variable->get_default_value();
-    }
-
 }
 
 bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_value, PropertyError* r_err)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
-    if (variable.is_valid())
+    if (_script->_is_placeholder_fallback_enabled())
+        return false;
+
+    if (_variables.has(p_name))
     {
-        if (variable->is_exported())
+        Variant def_value = _script->get_property_default_value(p_name);
+
+        bool valid = true;
+        Variant result;
+        Variant::evaluate(Variant::OP_EQUAL, def_value, p_value, result, valid);
+        if (valid && bool(result))
+            _variables.erase(p_name);
+        else
+            _variables[p_name] = p_value;
+
+        if (r_err)
+            *r_err = PROP_OK;
+
+        return true;
+    }
+    else
+    {
+        Variant def_value = _script->get_property_default_value(p_name);
+
+        bool valid = true;
+        Variant result;
+        Variant::evaluate(Variant::OP_NOT_EQUAL, def_value, p_value, result, valid);
+        if (valid && bool(result))
         {
             _variables[p_name] = p_value;
             if (r_err)
@@ -120,14 +137,24 @@ bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_
 
 bool OScriptPlaceHolderInstance::get(const StringName& p_name, Variant& r_value, PropertyError* r_err)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
-    if (variable.is_valid())
+    if (_variables.has(p_name))
     {
-        if (variable->is_exported())
+        r_value = _variables[p_name];
+        if (r_err)
+            *r_err = PROP_OK;
+
+        return true;
+    }
+
+    if (!_script->_is_placeholder_fallback_enabled())
+    {
+        Variant def_value = _script->get_property_default_value(p_name);
+        if (def_value.get_type() != Variant::NIL)
         {
-            r_value = _variables[p_name];
+            r_value = def_value;
             if (r_err)
                 *r_err = PROP_OK;
+
             return true;
         }
     }
