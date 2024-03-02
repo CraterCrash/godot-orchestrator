@@ -63,12 +63,12 @@ jobs:
           cp ../ui/build/ui-bundle.zip ./ui-bundle.zip 
           antora playbook.yml 
 
-      - name: Sync Documentation
-        uses: burnett01/rsync-deployments@6.0.0
-        with:
-          switches: -avh --recursive
-          path: ./builder/build
-          remote_path: ${{ secrets.SSH_DOCS_PATH }}
-          remote_host: ${{ secrets.SSH_DOCS_HOST }}
-          remote_user: ${{ secrets.SSH_DOCS_USER }}
-          remote_key: ${{ secrets.SSH_DOCS_PRIVATE_KEY }}
+#      - name: Sync Documentation
+#        uses: burnett01/rsync-deployments@6.0.0
+#        with:
+#          switches: -avh --recursive
+#          path: ./builder/build
+#          remote_path: ${{ secrets.SSH_DOCS_PATH }}
+#          remote_host: ${{ secrets.SSH_DOCS_HOST }}
+#          remote_user: ${{ secrets.SSH_DOCS_USER }}
+#          remote_key: ${{ secrets.SSH_DOCS_PRIVATE_KEY }}
