@@ -29,7 +29,7 @@ jobs:
     name: "Deploy documentation changes"
     needs: [ file_changes ]
     runs-on: ubuntu-latest
-    if: ${{ needs.file_changes.outputs.documentation-changed == 'true' }}
+    # if: ${{ needs.file_changes.outputs.documentation-changed == 'true' }}
     steps:
       - name: Setup Node
         uses: actions/setup-node@v4
