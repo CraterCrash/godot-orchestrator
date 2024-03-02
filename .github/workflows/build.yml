@@ -1,8 +1,13 @@
 name: 🛠️ Build All
+
 on:
   push:
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref_name }}"
+  cancel-in-progress: true
 
 jobs:
   build:
