@@ -799,6 +799,8 @@ void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& 
     filter.context.pins.push_back(pin);
 
     ResolvedType resolved_type = pin->resolve_type();
+    filter.target_type = resolved_type.type;
+
     if (resolved_type.object)
     {
         // When a resolved object isp provided, it takes precedence
@@ -830,6 +832,8 @@ void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_
     filter.context.pins.push_back(pin);
 
     ResolvedType resolved_type = pin->resolve_type();
+    filter.target_type = resolved_type.type;
+
     if (resolved_type.object)
     {
         // When a resolved object is provided, it takes precedence
