@@ -90,6 +90,7 @@ private:
     EPinDirection _direction{ PD_Input };      //! The direction
     BitField<Flags> _flags{ 0 };               //! Pin flags
     String _label;                             //! A custom label name
+    String _file_types;                        //! File dialog types
     OScriptNode* _owning_node{ nullptr };      //! The node that owns this pin
     bool _set_type_resets_default{ false };    //! Whether changing the type resets the default value
     int _cached_pin_index{ -1 };               //! Cached pin index calculated after pins added to node
@@ -216,6 +217,13 @@ public:
     /// Set the pin's label
     /// @param p_label the label
     void set_label(const String &p_label);
+
+    /// Set the file types associated with a file pin
+    /// @param p_file_types the file types
+    void set_file_types(const String &p_file_types) { _file_types = p_file_types; }
+
+    /// Get the file types for a file pin
+    String get_file_types() const { return _file_types; }
 
     /// Checks whether this pin can be connected with the supplied pin.
     /// @param p_pin the other pin

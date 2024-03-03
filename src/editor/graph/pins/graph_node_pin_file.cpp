@@ -16,7 +16,9 @@
 //
 #include "graph_node_pin_file.h"
 
+#include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "script/nodes/script_nodes.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/file_dialog.hpp>
@@ -30,17 +32,32 @@ void OrchestratorGraphNodePinFile::_bind_methods()
 {
 }
 
+String OrchestratorGraphNodePinFile::_get_default_text() const
+{
+    if (_pin->get_owning_node()->get_class() == OScriptNodeDialogueMessage::get_class_static())
+        return "Default Scene";
+
+    return "Assign...";
+}
+
+void OrchestratorGraphNodePinFile::_on_clear_file(Button* p_button)
+{
+    _pin->set_default_value("");
+    p_button->set_text(_get_default_text());
+    _clear_button->set_visible(false);
+}
+
 void OrchestratorGraphNodePinFile::_on_show_file_dialog(Button* p_button)
 {
-    p_button->set_text("Default Scene");
-    _pin->set_default_value(Variant());
-
     FileDialog* dialog = memnew(FileDialog);
     dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
     dialog->set_min_size(Vector2(700, 400));
     dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
     dialog->set_hide_on_ok(true);
     dialog->set_title("Select a file");
+    if (!_pin->get_file_types().is_empty())
+        dialog->set_filters(Array::make(_pin->get_file_types()));
+
     add_child(dialog);
 
     dialog->connect("file_selected", callable_mp(this, &OrchestratorGraphNodePinFile::_on_file_selected).bind(dialog, p_button));
@@ -52,6 +69,7 @@ void OrchestratorGraphNodePinFile::_on_file_selected(const String& p_file_name, 
 {
     p_button->set_text(p_file_name);
     _pin->set_default_value(p_file_name);
+    _clear_button->set_visible(p_button->get_text() != _get_default_text());
 
     p_dialog->queue_free();
 }
@@ -63,10 +81,22 @@ void OrchestratorGraphNodePinFile::_on_file_canceled(FileDialog* p_dialog, Butto
 
 Control* OrchestratorGraphNodePinFile::_get_default_value_widget()
 {
-    Button* button = memnew(Button);
-    button->set_custom_minimum_size(Vector2(28, 0));
-    button->set_focus_mode(Control::FOCUS_NONE);
-    button->set_text(StringUtils::default_if_empty(_pin->get_effective_default_value(), "Default Scene"));
-    button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinFile::_on_show_file_dialog).bind(button));
-    return button;
+    HBoxContainer* container = memnew(HBoxContainer);
+    container->add_theme_constant_override("separation", 1);
+
+    Button* file_button = memnew(Button);
+    file_button->set_custom_minimum_size(Vector2(28, 0));
+    file_button->set_focus_mode(Control::FOCUS_NONE);
+    file_button->set_text(StringUtils::default_if_empty(_pin->get_effective_default_value(), _get_default_text()));
+    file_button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinFile::_on_show_file_dialog).bind(file_button));
+    container->add_child(file_button);
+
+    _clear_button = memnew(Button);
+    _clear_button->set_focus_mode(Control::FOCUS_NONE);
+    _clear_button->set_button_icon(SceneUtils::get_icon(this, "Reload"));
+    _clear_button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinFile::_on_clear_file).bind(file_button));
+    _clear_button->set_visible(file_button->get_text() != _get_default_text());
+    container->add_child(_clear_button);
+
+    return container;
 }

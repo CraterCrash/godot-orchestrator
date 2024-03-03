@@ -120,6 +120,10 @@ public:
 
 void OScriptNodeDialogueMessage::post_initialize()
 {
+    Ref<OScriptNodePin> scene = find_pin("scene", PD_Input);
+    if (scene.is_valid())
+        scene->set_file_types("*.scn,*.tscn; Scene Files");
+
     for (const Ref<OScriptNodePin>& pin : find_pins(PD_Input))
     {
         if (pin->get_pin_name().begins_with("choice_"))
@@ -142,6 +146,7 @@ void OScriptNodeDialogueMessage::allocate_default_pins()
 
     Ref<OScriptNodePin> scene = create_pin(PD_Input, "scene", Variant::STRING, "");
     scene->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::FILE);
+    scene->set_file_types("*.scn,*.tscn; Scene Files");
 
     if (_choices == 0)
     {
