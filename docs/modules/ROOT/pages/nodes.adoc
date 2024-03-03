@@ -440,6 +440,11 @@ It's often common that game logic needs to access specific nodes within the scen
 This can be accomplished in Orchestrator by using **Scene** nodes.
 As you may have guessed, there are two subtypes of nodes: _scene tree_ and _scene node_.
 
+=== Instantiate Scene node
+
+The **Instantiate Scene** node allows an orchestration to instantiate a scene from an existing `.scn` or `.tscn` file.
+This node will automatically instantiate the `PackedScene` from the loaded file and return the root `Node` for the scene that can then be used in any node-based call such as `add_child`.
+
 === Scene Tree node
 
 The **Scene Tree** node provides access to the top-level Godot `SceneTree` object.

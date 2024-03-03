@@ -203,6 +203,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     _register_node<OScriptNodeResourcePath>(p_context, "Resource/get_resource_path");
 
     // Scene
+    _register_node<OScriptNodeInstantiateScene>(p_context, "Scene/instantiate_scene");
     _register_node<OScriptNodeSceneNode>(p_context, "Scene/get_scene_node");
     _register_node<OScriptNodeSceneTree>(p_context, "Scene/get_scene_tree");
 
