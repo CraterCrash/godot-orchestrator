@@ -574,12 +574,28 @@ void OrchestratorMainView::_update_files_list()
 {
     _file_list->clear();
 
+    HashSet<String> file_stems;
+    HashSet<String> duplicate_stems;
+    for (const ScriptFile& file : _script_files)
+    {
+        const String file_stem = file.file_name.get_file();
+        if (!file_stems.has(file_stem))
+            file_stems.insert(file_stem);
+        else
+            duplicate_stems.insert(file_stem);
+    }
+
     for (int i = 0; i < _script_files.size(); i++)
     {
         const ScriptFile& file = _script_files[i];
         if (_file_name_filter.is_empty() || file.file_name.contains(_file_name_filter))
         {
-            int32_t index = _file_list->add_item(file.file_name, SceneUtils::get_icon(this, "GDScript"));
+            const String stem = file.file_name.get_file();
+            const String base = file.file_name.get_base_dir().replace("res://", "");
+            const String full = base.is_empty() ? stem : vformat("%s/%s", base, stem);
+
+            String item_text = duplicate_stems.has(stem) ? full : stem;
+            int32_t index = _file_list->add_item(item_text, SceneUtils::get_icon(this, "GDScript"));
 
             if (i == _current_index)
                 _file_list->select(index);
@@ -744,7 +760,7 @@ void OrchestratorMainView::_on_file_filters_changed(const String& p_text)
 
 void OrchestratorMainView::_on_file_list_selected(int p_index)
 {
-    _show_script_editor_view(_file_list->get_item_text(p_index));
+    _show_script_editor_view(_script_files[p_index].file_name);
 }
 
 void OrchestratorMainView::_on_close_current_tab(bool p_save)
