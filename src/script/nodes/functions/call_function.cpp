@@ -291,7 +291,15 @@ bool OScriptNodeCallFunction::_has_execution_pins(const MethodInfo& p_method) co
 
 bool OScriptNodeCallFunction::_has_return_value(const MethodInfo& p_method) const
 {
-    return p_method.return_val.type != Variant::NIL;
+    // Check if it does return a value
+    if (p_method.return_val.type != Variant::NIL)
+        return true;
+
+    // If return value is NIL, check if it returns Variant
+    if ((p_method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT) == PROPERTY_USAGE_NIL_IS_VARIANT)
+        return true;
+
+    return false;
 }
 
 void OScriptNodeCallFunction::_set_function_flags(const MethodInfo& p_method)
