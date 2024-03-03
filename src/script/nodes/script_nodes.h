@@ -69,6 +69,7 @@
 #include "resources/resource_path.h"
 
 // Scene
+#include "scene/instantiate_scene.h"
 #include "scene/scene_node.h"
 #include "scene/scene_tree.h"
 

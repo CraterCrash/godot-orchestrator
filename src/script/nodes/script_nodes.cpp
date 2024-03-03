@@ -94,6 +94,7 @@ void register_script_node_classes()
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeResourcePath)
 
     //~ Scene
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeInstantiateScene)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSceneNode)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSceneTree)
 
