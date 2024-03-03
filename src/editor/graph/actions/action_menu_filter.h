@@ -67,6 +67,9 @@ struct OrchestratorGraphActionFilter
     /// List of keywords entered by the user.
     Vector<String> keywords;
 
+    /// Target type
+    Variant::Type target_type{ Variant::NIL };
+
     /// A list of class names that you want members for. If an action would produce a
     /// node with a target pin and that pin is incompatible with one of these classes,
     /// then the action is filtered out.

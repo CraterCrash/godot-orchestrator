@@ -107,10 +107,17 @@ bool OrchestratorGraphNodeSpawnerPropertyGet::is_filtered(const OrchestratorGrap
     {
         // PropertyGet nodes return a specific type, and so if a pin is provided,
         // it must be an input node and have a compatible type.
+        bool found = false;
         for (OrchestratorGraphNodePin* pin : p_filter.context.pins)
+        {
             if (pin->is_input() && pin->get_value_type() == _property.type)
-                return false;
-        return true;
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return true;
     }
 
     return OrchestratorGraphNodeSpawnerProperty::is_filtered(p_filter, p_spec);
@@ -149,10 +156,17 @@ bool OrchestratorGraphNodeSpawnerPropertySet::is_filtered(const OrchestratorGrap
     {
         // PropertySet nodes accept a specific type, and so if a pin is provided,
         // it must be an output node and have a compatible type.
+        bool found = false;
         for (OrchestratorGraphNodePin* pin : p_filter.context.pins)
+        {
             if (pin->is_output() && pin->get_value_type() == _property.type)
-                return false;
-        return true;
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return true;
     }
 
     return OrchestratorGraphNodeSpawnerProperty::is_filtered(p_filter, p_spec);
@@ -214,7 +228,7 @@ bool OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(const Orchestra
             {
                 // If the method returns nothing but the pin is an output, this triggers
                 // a unique state where we reject the method all together.
-                if (_method.return_val.type == Variant::NIL)
+                if (_method.return_val.type == Variant::NIL && !(_method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT))
                     return_filtered = true;
 
                 if (!return_filtered && _method.return_val.type != pin->get_value_type())
@@ -304,6 +318,32 @@ bool OrchestratorGraphNodeSpawnerEmitSignal::is_filtered(const OrchestratorGraph
     if (p_filter.flags & OrchestratorGraphActionFilter::Filter_RejectSignals)
         return true;
 
+    if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
+    {
+        const OrchestratorGraphNodePin* pin = p_filter.context.pins[0];
+        if (pin && pin->is_output())
+        {
+            Ref<OScript> script = p_filter.context.graph->get_owning_script();
+            if (script->has_custom_signal(_method.name))
+            {
+                Ref<OScriptSignal> signal = script->get_custom_signal(_method.name);
+                if (signal.is_valid() && signal->get_argument_count() > 0)
+                {
+                    bool filtered = true;
+                    for (const PropertyInfo& property : signal->get_method_info().arguments)
+                    {
+                        if (property.type == p_filter.target_type)
+                        {
+                            filtered = false;
+                            break;
+                        }
+                    }
+                    if (filtered)
+                        return true;
+                }
+            }
+        }
+    }
     return OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(p_filter, p_spec);
 }
 
@@ -334,6 +374,19 @@ void OrchestratorGraphNodeSpawnerVariableGet::execute(OrchestratorGraphEdit* p_g
     p_graph->spawn_node(node, p_position);
 }
 
+bool OrchestratorGraphNodeSpawnerVariableGet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
+                                                          const OrchestratorGraphActionSpec& p_spec)
+{
+    if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
+    {
+        Ref<OScript> script = p_filter.context.graph->get_owning_script();
+        Ref<OScriptVariable> variable = script->get_variable(_variable_name);
+        if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
+            return true;
+    }
+    return OrchestratorGraphNodeSpawnerVariable::is_filtered(p_filter, p_spec);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void OrchestratorGraphNodeSpawnerVariableSet::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
@@ -348,6 +401,19 @@ void OrchestratorGraphNodeSpawnerVariableSet::execute(OrchestratorGraphEdit* p_g
     node->initialize(context);
 
     p_graph->spawn_node(node, p_position);
+}
+
+bool OrchestratorGraphNodeSpawnerVariableSet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
+                                                          const OrchestratorGraphActionSpec& p_spec)
+{
+    if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
+    {
+        Ref<OScript> script = p_filter.context.graph->get_owning_script();
+        Ref<OScriptVariable> variable = script->get_variable(_variable_name);
+        if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
+            return true;
+    }
+    return OrchestratorGraphNodeSpawnerVariable::is_filtered(p_filter, p_spec);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -374,6 +440,29 @@ bool OrchestratorGraphNodeSpawnerScriptNode::is_filtered(const OrchestratorGraph
 
     if (!p_spec.graph_compatible)
         return true;
+
+    // If the target type is set and there is a pin, try to contextualize the drag node types
+    // by comparing the node's input/output pins with the specified type.
+    if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
+    {
+        const OrchestratorGraphNodePin* pin = p_filter.context.pins[0];
+        if (pin)
+        {
+            const EPinDirection direction = pin->is_input() ? PD_Output : PD_Input;
+
+            bool filtered = true;
+            for (const Ref<OScriptNodePin>& node_pin : _node->find_pins(direction))
+            {
+                if (node_pin->get_type() == p_filter.target_type)
+                {
+                    filtered = false;
+                    break;
+                }
+            }
+            if (filtered)
+                return filtered;
+        }
+    }
 
     return OrchestratorGraphNodeSpawner::is_filtered(p_filter, p_spec);
 }

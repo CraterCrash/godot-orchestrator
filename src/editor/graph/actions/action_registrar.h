@@ -23,7 +23,7 @@
 /// Registrar context
 struct OrchestratorGraphActionRegistrarContext
 {
-    Ref<OScriptNode> script;
+    Ref<OScript> script;
     OrchestratorGraphEdit* graph{ nullptr };
     List<Ref<OrchestratorGraphActionMenuItem>>* list{ nullptr };
     OrchestratorGraphActionFilter* filter{ nullptr };

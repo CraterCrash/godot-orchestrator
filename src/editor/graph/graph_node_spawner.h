@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_GRAPH_NODE_SPAWNER_H
 
 #include "actions/action_menu_filter.h"
+#include "script/node.h"
 
 /// Base class for all OrchestratorGraphNode spawner action handlers
 class OrchestratorGraphNodeSpawner : public OrchestratorGraphActionHandler
@@ -155,11 +156,9 @@ class OrchestratorGraphNodeSpawnerCallScriptFunction : public OrchestratorGraphN
 protected:
     OrchestratorGraphNodeSpawnerCallScriptFunction() = default;
 
-    MethodInfo _method;
-
 public:
     OrchestratorGraphNodeSpawnerCallScriptFunction(const MethodInfo& p_method)
-        : _method(p_method)
+        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method)
     {
     }
 
@@ -255,6 +254,7 @@ public:
 
     //~ Begin OrchestratorGraphNodeSpawner Interface
     void execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position) override;
+    bool is_filtered(const OrchestratorGraphActionFilter& p_filter, const OrchestratorGraphActionSpec& p_spec) override;
     //~ End OrchestratorGraphNodeSpawner Interface
 };
 
@@ -276,6 +276,7 @@ public:
 
     //~ Begin OrchestratorGraphNodeSpawner Interface
     void execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position) override;
+    bool is_filtered(const OrchestratorGraphActionFilter& p_filter, const OrchestratorGraphActionSpec& p_spec) override;
     //~ End OrchestratorGraphNodeSpawner Interface
 };
 
@@ -291,11 +292,13 @@ protected:
 
     StringName _node_name;
     Dictionary _data;
+    Ref<OScriptNode> _node;
 
 public:
-    OrchestratorGraphNodeSpawnerScriptNode(const StringName& p_node_name, const Dictionary& p_data)
+    OrchestratorGraphNodeSpawnerScriptNode(const StringName& p_node_name, const Dictionary& p_data, const Ref<OScriptNode>& p_node)
         : _node_name(p_node_name)
         , _data(p_data)
+        , _node(p_node)
     {
     }
 

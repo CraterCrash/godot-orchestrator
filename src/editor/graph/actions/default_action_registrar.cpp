@@ -21,7 +21,6 @@
 #include "common/variant_utils.h"
 #include "common/string_utils.h"
 #include "editor/graph/graph_edit.h"
-#include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "script/nodes/script_nodes.h"
 
@@ -45,7 +44,12 @@ void OrchestratorDefaultGraphActionRegistrar::_register_node(const OrchestratorG
     spec.type_icon = "PluginScript";
     spec.graph_compatible = node->is_compatible_with_graph(p_context.graph->get_owning_graph());
 
-    Ref<OrchestratorGraphActionHandler> handler(memnew(OrchestratorGraphNodeSpawnerScriptNode(p_class_name, p_data)));
+    // Initialize the node based on the basic data so that filtration can resolve pin types
+    OScriptNodeInitContext context;
+    context.user_data = p_data;
+    node->initialize(context);
+
+    Ref<OrchestratorGraphActionHandler> handler(memnew(OrchestratorGraphNodeSpawnerScriptNode(p_class_name, p_data, node)));
     p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(spec, handler)));
 }
 
