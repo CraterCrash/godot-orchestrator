@@ -36,11 +36,20 @@ class OrchestratorGraphNodePinFile : public OrchestratorGraphNodePin
     static void _bind_methods();
 
 protected:
+    Button* _clear_button;
+
     OrchestratorGraphNodePinFile() = default;
 
     //~ Begin OrchestratorGraphNodePin Interface
     Control* _get_default_value_widget() override;
     //~ End OrchestratorGraphNodePin Interface
+
+    /// Get the default text for the button
+    String _get_default_text() const;
+
+    /// Dispatched when the clear button is clicked
+    /// @param p_button the button control, should not be null
+    void _on_clear_file(Button* p_button);
 
     /// Dispatched when the button is clicked
     /// @param p_button the button control, should not be null
