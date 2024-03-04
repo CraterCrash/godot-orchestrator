@@ -719,63 +719,53 @@ void OScriptInstance::call(const StringName& p_method, const Variant* const* p_a
 
     // We first check whether this function is defined as part of the Orchestration
     // If it is, we invoke that variant of the method.
-    HashMap<StringName, Function>::Iterator F = _functions.find(p_method);
-    if (F)
-    {
-        Function* f = &F->value;
-        if (!f->instance)
-        {
-            // Lookup node that offers the function call
-            HashMap<int, OScriptNodeInstance*>::Iterator E = _nodes.find(f->node);
-            if (!E)
-            {
-                r_err->error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
-                ERR_FAIL_MSG("Unable to locate node for method '" + p_method + "' with id " + itos(f->node));
-            }
-            f->instance = E->value;
-        }
-
-        if (f->max_stack > _max_call_stack)
-        {
-            ERR_FAIL_MSG("Unable to call function, call stack exceeds " + itos(_max_call_stack));
-        }
-
-        // Setup the OScriptExecutionStackInfo object
-        OScriptExecutionStackInfo si;
-        si.max_stack_size = f->max_stack;    //! Max Call Stack
-        si.node_count = f->node_count;       //! Number of nodes
-        si.max_inputs = _max_input_args;     //! max input arguments
-        si.max_outputs = _max_output_args;   //! max output arguments
-        si.flow_size = f->flow_stack_size;   //! flow size
-        si.pass_size = f->pass_stack_size;   //! pass stack size
-
-        const int stack_size = si.get_stack_size();
-        void* fstack = alloca(stack_size);
-        memset(fstack, 0, stack_size);
-
-        // Setup the stack
-        OScriptExecutionStack stack(si, fstack, true, false);
-        stack.push_node_onto_flow_stack(f->node);
-        stack.push_arguments(p_args, static_cast<int>(p_arg_count));
-
-        // Dispatch the call to the internal handler
-        _call_internal(p_method, &stack, 0, 0, false, f->instance, f, *r_return, *r_err);
-    }
-    else if (_script->has_method(p_method))
-    {
-        // Calling a native method
-        Array args;
-        for (int i = 0; i < p_arg_count; i++)
-            args.push_back(*p_args[i]);
-        r_err->error = GDEXTENSION_CALL_OK;
-        *r_return = _script->callv(p_method, args);
-    }
-    else
+    const HashMap<StringName, Function>::Iterator F = _functions.find(p_method);
+    if (!F)
     {
         // Method invalid
         r_err->error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
         *r_return = Variant();
+        return;
     }
+
+    Function* f = &F->value;
+    if (!f->instance)
+    {
+        // Lookup node that offers the function call
+        HashMap<int, OScriptNodeInstance*>::Iterator E = _nodes.find(f->node);
+        if (!E)
+        {
+            r_err->error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
+            ERR_FAIL_MSG("Unable to locate node for method '" + p_method + "' with id " + itos(f->node));
+        }
+        f->instance = E->value;
+    }
+
+    if (f->max_stack > _max_call_stack)
+    {
+        ERR_FAIL_MSG("Unable to call function, call stack exceeds " + itos(_max_call_stack));
+    }
+
+    // Setup the OScriptExecutionStackInfo object
+    OScriptExecutionStackInfo si;
+    si.max_stack_size = f->max_stack;    //! Max Call Stack
+    si.node_count = f->node_count;       //! Number of nodes
+    si.max_inputs = _max_input_args;     //! max input arguments
+    si.max_outputs = _max_output_args;   //! max output arguments
+    si.flow_size = f->flow_stack_size;   //! flow size
+    si.pass_size = f->pass_stack_size;   //! pass stack size
+
+    const int stack_size = si.get_stack_size();
+    void* fstack = alloca(stack_size);
+    memset(fstack, 0, stack_size);
+
+    // Setup the stack
+    OScriptExecutionStack stack(si, fstack, true, false);
+    stack.push_node_onto_flow_stack(f->node);
+    stack.push_arguments(p_args, static_cast<int>(p_arg_count));
+
+    // Dispatch the call to the internal handler
+    _call_internal(p_method, &stack, 0, 0, false, f->instance, f, *r_return, *r_err);
 }
 
 void OScriptInstance::_call_internal(const StringName& p_method, OScriptExecutionStack* p_stack, int p_flow_pos,
