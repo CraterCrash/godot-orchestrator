@@ -19,6 +19,7 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
 
 using namespace godot;
@@ -54,6 +55,18 @@ namespace SceneUtils
     /// @param p_width the maximum width of a line of text before wrapping
     /// @return the wrapped tooltip text
     String create_wrapped_tooltip_text(const String& p_tooltip_text, int p_width = 512);
+
+    /// Finds the first node with the specified script attached
+    /// @param p_script the script instance, should be valid
+    /// @param p_node the node being inspected, should not be <code>null</code>
+    /// @param p_root the root node of the scene being inspected, should not be <code>null</code>
+    /// @return first node that has the script attached or <code>null</code> if not found
+    Node* get_node_with_script(const Ref<Script>& p_script, Node* p_node, Node* p_root);
+
+    /// Finds the specified node's relative scene root.
+    /// @param p_node the node to find the nearest scene root for
+    /// @return the nearest relative scene root to the given node
+    Node* get_relative_scene_root(Node* p_node);
 }
 
 #endif  // ORCHESTRATOR_SCENE_UTILS_H
