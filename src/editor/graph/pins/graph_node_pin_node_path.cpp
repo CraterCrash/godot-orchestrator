@@ -18,6 +18,7 @@
 
 #include "common/string_utils.h"
 #include "common/scene_utils.h"
+#include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -119,20 +120,36 @@ void OrchestratorSceneTreeDialog::_populate_tree()
     TreeItem* root = _tree->create_item();
     _tree->set_hide_root(true);
 
+    // Don't allow showing the tree unless the scene that the script is attached is opened.
+    Node* found = SceneUtils::get_node_with_script(_script, st->get_edited_scene_root(), st->get_edited_scene_root());
+    if (found)
+    {
+        const String found_scene = SceneUtils::get_relative_scene_root(found)->get_scene_file_path();
+        if (st->get_edited_scene_root()->get_scene_file_path() != found_scene)
+            return;
+    }
+
+    _script_node = found;
     _populate_tree(root, st->get_edited_scene_root(), st->get_edited_scene_root());
 }
 
 void OrchestratorSceneTreeDialog::_populate_tree(TreeItem* p_parent, Node* p_node, Node* p_root)
 {
+    if (!(p_node == p_root || p_node->get_owner() == p_root))
+        return;
+
+    if (!_script_node)
+        return;
+
     TreeItem* child = p_parent->create_child();
     child->set_text(0, p_node->get_name());
     child->set_icon(0, SceneUtils::get_icon(this, p_node->get_class()));
-    child->set_metadata(0, p_root->get_path_to(p_node));
+    child->set_metadata(0, _script_node->get_path_to(p_node));
     child->set_meta("__node", p_node);
     if (!p_node->can_process())
         child->set_custom_color(0, Color(0.6, 0.6, 0.6));
 
-    if (p_root->get_path_to(p_node) == _node_path)
+    if (_script_node->get_path_to(p_node) == _node_path)
         child->select(0);
 
     for (int i = 0; i < p_node->get_child_count(); i++)
@@ -195,7 +212,7 @@ void OrchestratorGraphNodePinNodePath::_on_show_scene_tree_dialog()
     dialog->set_min_size(Size2(475, 700));
     dialog->set_node_path(_pin->get_effective_default_value());
     dialog->connect("node_selected", callable_mp(this, &OrchestratorGraphNodePinNodePath::_on_node_selected));
-
+    dialog->set_script(_pin->get_owning_node()->get_owning_script());
     add_child(dialog);
 
     dialog->popup_centered();

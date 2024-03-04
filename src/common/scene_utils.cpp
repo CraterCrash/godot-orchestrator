@@ -90,4 +90,40 @@ namespace SceneUtils
         wrapped += current;
         return wrapped;
     }
+
+    Node* get_node_with_script(const Ref<Script>& p_script, Node* p_node, Node* p_root)
+    {
+        // Non-instanced scene children
+        if (p_node == p_root || p_node->get_owner() == p_root)
+        {
+            if (p_node->get_script() == p_script)
+                return p_node;
+
+            for (int i = 0; i < p_node->get_child_count(); i++)
+            {
+                Node* result = get_node_with_script(p_script, p_node->get_child(i), p_root);
+                if (result)
+                    return result;
+            }
+        }
+        return nullptr;
+    }
+
+    Node* get_relative_scene_root(Node* p_node)
+    {
+        // Check if node is top level scene root
+        if (!p_node->get_owner())
+            return p_node;
+
+        // Check if Node is top-level of a nested scene
+        const String node_scene_file = p_node->get_scene_file_path();
+        const String node_owner_scene_file = p_node->get_owner()->get_scene_file_path();
+        if (!node_scene_file.is_empty()
+            && !node_owner_scene_file.is_empty()
+            && node_scene_file != node_owner_scene_file)
+            return p_node;
+
+        // Traverse node's owner
+        return get_relative_scene_root(p_node->get_owner());
+    }
 }

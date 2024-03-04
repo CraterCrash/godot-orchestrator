@@ -20,6 +20,7 @@
 #include "editor/graph/graph_node_pin.h"
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/script.hpp>
 
 /// Forward declarations
 namespace godot
@@ -38,9 +39,11 @@ class OrchestratorSceneTreeDialog : public ConfirmationDialog
     GDCLASS(OrchestratorSceneTreeDialog, ConfirmationDialog);
     static void _bind_methods();
 
-    LineEdit* _filter{ nullptr };  //! The node filter
-    Tree* _tree{ nullptr };        //! The node tree
-    NodePath _node_path;           //! The current node path for selections
+    LineEdit* _filter{ nullptr };   //! The node filter
+    Tree* _tree{ nullptr };         //! The node tree
+    Node* _script_node{ nullptr };  //! The node that the script is attached
+    NodePath _node_path;            //! The current node path for selections
+    Ref<Script> _script;            //! The script
 
     // Callback helpers
     void _on_close_requested();
@@ -71,6 +74,10 @@ public:
     /// Set the node path selection in the dialog
     /// @param p_node_path the node path
     void set_node_path(const NodePath& p_node_path) { _node_path = p_node_path; }
+
+    /// Sets the logical script that is triggering this dialog
+    /// @param p_script the script instance
+    void set_script(const Ref<Script>& p_script) { _script = p_script; }
 };
 
 /// An implementation of OrchestratorGraphNodePin for node-path pin types.

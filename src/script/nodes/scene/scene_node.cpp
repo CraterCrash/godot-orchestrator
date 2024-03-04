@@ -16,6 +16,8 @@
 //
 #include "scene_node.h"
 
+#include "common/scene_utils.h"
+
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -24,24 +26,6 @@ class OScriptNodeSceneNodeInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSceneNode);
     NodePath _node_path;
-
-    Node* _get_relative_scene_root(Node* p_node)
-    {
-        // Check if node is top level scene root
-        if (!p_node->get_owner())
-            return p_node;
-
-        // Check if Node is top-level of a nested scene
-        const String node_scene_file = p_node->get_scene_file_path();
-        const String node_owner_scene_file = p_node->get_owner()->get_scene_file_path();
-        if (!node_scene_file.is_empty()
-            && !node_owner_scene_file.is_empty()
-            && node_scene_file != node_owner_scene_file)
-            return p_node;
-
-        // Traverse node's owner
-        return _get_relative_scene_root(p_node->get_owner());
-    }
 
 public:
     int step(OScriptNodeExecutionContext& p_context) override
@@ -53,7 +37,7 @@ public:
             return 0;
         }
 
-        Node* scene_node = _get_relative_scene_root(owner)->get_node_or_null(_node_path);
+        Node* scene_node = SceneUtils::get_relative_scene_root(owner)->get_node_or_null(_node_path);
         if (!scene_node)
         {
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Node path does not exist");
