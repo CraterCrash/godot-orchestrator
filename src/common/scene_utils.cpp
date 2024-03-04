@@ -96,7 +96,8 @@ namespace SceneUtils
         // Non-instanced scene children
         if (p_node == p_root || p_node->get_owner() == p_root)
         {
-            if (p_node->get_script() == p_script)
+            Ref<Script> node_script = p_node->get_script();
+            if (node_script == p_script)
                 return p_node;
 
             for (int i = 0; i < p_node->get_child_count(); i++)
