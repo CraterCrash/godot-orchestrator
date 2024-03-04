@@ -344,7 +344,7 @@ void OrchestratorMainView::set_window_layout(const Ref<ConfigFile>& p_configurat
         {
             for (int i = 0; i < _file_list->get_item_count(); i++)
             {
-                if (_file_list->get_item_text(i) == open_selected_file)
+                if (_script_files[i].file_name == open_selected_file)
                 {
                     // Selecting the item in the ItemList does not raise the signal
                     _file_list->select(i);
