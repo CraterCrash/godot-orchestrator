@@ -211,6 +211,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     _register_node<OScriptNodeAwaitSignal>(p_context, "Signals/Await Signal");
 
     // Utilities
+    _register_node<OScriptNodeAutoload>(p_context, "Utilities/get_autoload");
     _register_node<OScriptNodeEngineSingleton>(p_context, "Utilities/engine_singleton");
     _register_node<OScriptNodePrintString>(p_context, "Utilities/print_string");
 

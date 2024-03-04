@@ -61,6 +61,9 @@ struct OrchestratorGraphActionFilter
     /// Whether the filter should be context-sensitive or not, defaults to true.
     bool context_sensitive{ true };
 
+    /// Controls whether the lookup should use the action database cache
+    bool use_cache{ true };
+
     /// The action context the filter is created for
     OrchestratorGraphActionContext context;
 

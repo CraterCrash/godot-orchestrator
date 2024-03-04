@@ -64,6 +64,8 @@ private:
     static OScriptLanguage* _singleton;                        //! The one and only instance
     static HashMap<StringName, ScriptNodeInfo> _nodes;         //! Script node registration data
     SelfList<OScript>::List _scripts;                          //! all loaded scripts
+    HashMap<StringName, Variant> _global_constants;            //! Stores global constants
+    HashMap<StringName, Variant> _named_global_constants;      //! Stores named global constants
 
 protected:
 
@@ -128,6 +130,7 @@ public:
     bool _is_control_flow_keyword(const String& p_keyword) const override;
     void _add_global_constant(const StringName& p_name, const Variant& p_value) override;
     void _add_named_global_constant(const StringName& p_name, const Variant& p_value) override;
+    void _remove_named_global_constant(const StringName& p_name) override;
     int32_t _find_function(const String& p_class_name, const String& p_function_name) const override;
     String _make_function(const String& p_class_name, const String& p_function_name,
                           const PackedStringArray& p_function_args) const override;
@@ -150,6 +153,10 @@ public:
     bool _handles_global_class_type(const String& p_type) const override;
     Dictionary _get_global_class_name(const String& p_path) const override;
     //~ End ScriptLanguageExtension Interface
+
+    bool has_any_global_constant(const StringName& p_name) const;
+    Variant get_any_global_constant(const StringName& p_name);
+    PackedStringArray get_global_constant_names() const;
 
     // Debugging
     bool debug_break(const String& p_error, bool p_allow_continue);
