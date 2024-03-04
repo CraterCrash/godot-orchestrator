@@ -20,7 +20,6 @@
 #include "common/scene_utils.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
-#include "plugin/plugin.h"
 #include "plugin/settings.h"
 #include "script/nodes/editable_pin_node.h"
 #include "script/script.h"
@@ -32,8 +31,6 @@
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
-#include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 
@@ -330,7 +327,6 @@ void OrchestratorGraphNode::_update_titlebar()
 
 void OrchestratorGraphNode::_update_styles()
 {
-    bool apply_style_defaults = true;
     const String color_name = _node->get_node_title_color_name();
     if (!color_name.is_empty())
     {
@@ -338,67 +334,62 @@ void OrchestratorGraphNode::_update_styles()
         const String key = vformat("ui/node_colors/%s", color_name);
         if (os->has_setting(key))
         {
-            apply_style_defaults = false;
             Color color = os->get_setting(key);
 
-            Ref<StyleBoxFlat> panel = _make_colored_style("panel_selected", color);
+            Ref<StyleBoxFlat> panel = get_theme_stylebox("panel");
             if (panel.is_valid())
-                add_theme_stylebox_override("panel", panel);
+            {
+                Ref<StyleBoxFlat> new_panel = panel->duplicate(true);
+                if (new_panel.is_valid())
+                {
+                    new_panel->set_border_color(Color(0.f, 0.f, 0.f));
+                    new_panel->set_border_width_all(2);
+                    new_panel->set_border_width(Side::SIDE_TOP, 0);
+                    new_panel->set_content_margin_all(2);
+                    new_panel->set_content_margin(Side::SIDE_BOTTOM, 6);
+                    add_theme_stylebox_override("panel", new_panel);
 
-            Ref<StyleBoxFlat> panel_selected = _make_selected_style("panel");
-            if (panel_selected.is_valid())
-                add_theme_stylebox_override("panel_selected", panel_selected);
+                    Ref<StyleBoxFlat> panel_selected = new_panel->duplicate();
+                    if (panel_selected.is_valid())
+                    {
+                        panel_selected->set_border_color(_get_selection_color());
+                        add_theme_stylebox_override("panel_selected", panel_selected);
+                    }
+                }
+            }
 
-            Ref<StyleBoxFlat> titlebar = _make_colored_style("titlebar_selected", color, true);
+            Ref<StyleBoxFlat> titlebar = get_theme_stylebox("titlebar");
             if (titlebar.is_valid())
-                add_theme_stylebox_override("titlebar", titlebar);
+            {
+                Ref<StyleBoxFlat> new_titlebar = titlebar->duplicate(true);
+                if (new_titlebar.is_valid())
+                {
+                    new_titlebar->set_bg_color(color);
+                    new_titlebar->set_border_width_all(2);
+                    new_titlebar->set_border_width(Side::SIDE_BOTTOM, 0);
 
-            Ref<StyleBoxFlat> titlebar_selected = _make_selected_style("titlebar", true);
-            if (titlebar_selected.is_valid())
-                add_theme_stylebox_override("titlebar_selected", titlebar_selected);
+                    new_titlebar->set_content_margin_all(4);
+                    new_titlebar->set_content_margin(Side::SIDE_LEFT, 12);
+                    new_titlebar->set_content_margin(Side::SIDE_RIGHT, 12);
+                    new_titlebar->set_border_color(color);
+
+                    add_theme_stylebox_override("titlebar", new_titlebar);
+
+                    Ref<StyleBoxFlat> titlebar_selected = new_titlebar->duplicate();
+                    if (titlebar_selected.is_valid())
+                    {
+                        titlebar_selected->set_border_color(_get_selection_color());
+                        add_theme_stylebox_override("titlebar_selected", titlebar_selected);
+                    }
+                }
+            }
         }
     }
-
-    if (apply_style_defaults)
-    {
-        Ref<StyleBoxFlat> panel_selected = _make_selected_style("panel_selected");
-        if (panel_selected.is_valid())
-            add_theme_stylebox_override("panel_selected", panel_selected);
-
-        Ref<StyleBoxFlat> titlebar_selected = _make_selected_style("titlebar_selected", true);
-        if (titlebar_selected.is_valid())
-            add_theme_stylebox_override("titlebar_selected", titlebar_selected);
-    }
 }
 
-Ref<StyleBoxFlat> OrchestratorGraphNode::_make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar)
+Color OrchestratorGraphNode::_get_selection_color() const
 {
-    Ref<StyleBoxFlat> sb = get_theme_stylebox(p_existing_name);
-    if (sb.is_valid())
-    {
-        Ref<StyleBoxFlat> dup = sb->duplicate(true);
-        if (p_titlebar)
-            dup->set_bg_color(p_color);
-        else
-            dup->set_border_color(p_color);
-        return dup;
-    }
-    return sb;
-}
-
-Ref<StyleBoxFlat> OrchestratorGraphNode::_make_selected_style(const String& p_existing_name, bool p_titlebar)
-{
-    Ref<StyleBoxFlat> sb = get_theme_stylebox(p_existing_name);
-    if (sb.is_valid())
-    {
-        Ref<StyleBoxFlat> dup = sb->duplicate(true);
-        dup->set_border_color(Color(0.68f, 0.44f, 0.09f));
-        dup->set_border_width(p_titlebar ? SIDE_TOP : SIDE_BOTTOM, 2);
-        dup->set_border_width(SIDE_LEFT, 2);
-        dup->set_border_width(SIDE_RIGHT, 2);
-        return dup;
-    }
-    return sb;
+    return Color(0.68f, 0.44f, 0.09f);
 }
 
 void OrchestratorGraphNode::_update_node_attributes()

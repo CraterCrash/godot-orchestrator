@@ -23,8 +23,8 @@
 #include "script_view.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
-#include <godot_cpp/classes/method_tweener.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
@@ -32,9 +32,8 @@
 #include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
+#include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/theme.hpp>
-#include <godot_cpp/classes/theme_db.hpp>
-#include <godot_cpp/classes/tween.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
