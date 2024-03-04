@@ -21,11 +21,7 @@
 
 #include <godot_cpp/classes/graph_node.hpp>
 #include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
-#include <godot_cpp/classes/style_box_flat.hpp>
-#include <godot_cpp/classes/texture_rect.hpp>
-#include <godot_cpp/templates/hash_map.hpp>
 
 using namespace godot;
 
@@ -172,16 +168,9 @@ protected:
     /// Update the node's styles
     void _update_styles();
 
-    /// Creates a style based on a specific color.
-    /// @param p_existing_name the existing style to clone from
-    /// @param p_color the color to be applied
-    /// @param p_titlebar whether to treat the style box as a titlebar or panel border
-    Ref<StyleBoxFlat> _make_colored_style(const String& p_existing_name, const Color& p_color, bool p_titlebar = false);
-
-    /// Creates a style based on node selection color.
-    /// @param p_existing_name the existing style to clone from
-    /// @param p_titlebar whether to treat the style box as a titlebar or panel border
-    Ref<StyleBoxFlat> _make_selected_style(const String& p_existing_name, bool p_titlebar = false);
+    /// Get the selection color
+    /// @return the border color for when nodes are selected
+    Color _get_selection_color() const;
 
     /// Called by various callbacks to update node attributes
     void _update_node_attributes();
@@ -215,7 +204,7 @@ private:
     /// Called when a pin is connected
     /// @param p_type pin type
     /// @param p_index the pin index
-    void _on_pin_connected(int p_Type, int p_index);
+    void _on_pin_connected(int p_type, int p_index);
 
     /// Called when a pin is disconnected
     /// @param p_type pin type
