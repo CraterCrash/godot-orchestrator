@@ -806,6 +806,7 @@ void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& 
         // When a resolved object isp provided, it takes precedence
         filter.target_classes.push_back(resolved_type.object->get_class());
         filter.target_object = resolved_type.object;
+        filter.use_cache = false;
         filter.context.pins.clear();
     }
     if (resolved_type.is_class_type())
@@ -839,6 +840,7 @@ void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_
         // When a resolved object is provided, it takes precedence
         filter.target_classes.push_back(resolved_type.object->get_class());
         filter.target_object = resolved_type.object;
+        filter.use_cache = false;
         filter.context.pins.clear();
     }
     else if (resolved_type.is_class_type())

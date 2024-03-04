@@ -99,6 +99,12 @@ void OrchestratorGraphActionDB::load(const OrchestratorGraphActionFilter& p_filt
         return;
     }
 
+    if (!p_filter.use_cache)
+    {
+        _object_items["$Temp$"] = { };
+        name = "$Temp$";
+    }
+
     if (_object_items.is_empty())
         _object_items[name] = { };
 

@@ -197,10 +197,17 @@ bool OScriptLanguage::_is_control_flow_keyword(const String& p_keyword) const
 
 void OScriptLanguage::_add_global_constant(const StringName& p_name, const Variant& p_value)
 {
+    _global_constants[p_name] = p_value;
 }
 
 void OScriptLanguage::_add_named_global_constant(const StringName& p_name, const Variant& p_value)
 {
+    _named_global_constants[p_name] = p_value;
+}
+
+void OScriptLanguage::_remove_named_global_constant(const StringName& p_name)
+{
+    _named_global_constants.erase(p_name);
 }
 
 int32_t OScriptLanguage::_find_function(const String& p_class_name, const String& p_function_name) const
@@ -324,6 +331,36 @@ List<Ref<OScript>> OScriptLanguage::get_scripts() const
     return scripts;
 }
 #endif
+
+bool OScriptLanguage::has_any_global_constant(const StringName& p_name) const
+{
+    return _named_global_constants.has(p_name) || _global_constants.has(p_name);
+}
+
+Variant OScriptLanguage::get_any_global_constant(const StringName& p_name)
+{
+    if (_named_global_constants.has(p_name))
+        return _named_global_constants[p_name];
+
+    if (_global_constants.has(p_name))
+        return _global_constants[p_name];
+
+    return Variant();
+}
+
+PackedStringArray OScriptLanguage::get_global_constant_names() const
+{
+    PackedStringArray keys;
+    for (const KeyValue<StringName, Variant>& E : _named_global_constants)
+        if (!keys.has(E.key))
+            keys.push_back(E.key);
+
+    for (const KeyValue<StringName, Variant>& E : _global_constants)
+        if (!keys.has(E.key))
+            keys.push_back(E.key);
+
+    return keys;
+}
 
 bool OScriptLanguage::debug_break(const String& p_error, bool p_allow_continue)
 {

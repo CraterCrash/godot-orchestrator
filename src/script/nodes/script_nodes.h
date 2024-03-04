@@ -78,6 +78,7 @@
 #include "signals/emit_signal.h"
 
 // Utility
+#include "utilities/autoload.h"
 #include "utilities/comment.h"
 #include "utilities/engine_singleton.h"
 #include "utilities/self.h"

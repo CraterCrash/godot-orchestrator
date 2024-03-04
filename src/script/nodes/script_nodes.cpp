@@ -103,6 +103,7 @@ void register_script_node_classes()
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitSignal)
 
     //~ Utility
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAutoload)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeComment)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEngineSingleton)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePrintString)

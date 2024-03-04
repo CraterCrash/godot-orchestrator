@@ -506,11 +506,17 @@ image::nodes-example-await-signal.png[Example Await Signal node]
 
 In Orchestrator, a **Utility Node** is a broad category of nodes that provide some sort of functionality, but the functionality does not necessarily fall within the scope of other categories.
 In general, they're meant to ease the use of visual scripting.
-There are four utility nodes: _comment_, _singleton_, _print string_, and _self_.
+
+
+There are five utility nodes: _autoload_, _comment_, _singleton_, _print string_, and _self_.
 
 [cols="15%,85%"]
 |===
 |Type |Description
+
+|Autoload
+|A node that returns a reference to a project defined autoload singleton.
+Autoloads are scripts that are defined in the Godot Project Settings and are node objects that are always added to the scene and are globally accessible.
 
 |Comment
 |A node that allows documenting specific details on the canvas, logically grouping nodes with a border to better organize parts of the visual script canvas.
@@ -533,12 +539,6 @@ Godot ships with a number of these to handle various parts of the engine's archi
 If you need access to a specific singleton, this node provides diret access to any number of these.
 
 |===
-
-[NOTE]
-====
-Currently, the **Singleton** node does not provide access to an Autoload unless its explicitly registered with the engine as a singleton.
-In a future patch, we intend to provide access to Autoloads that are defined as part of the project but that are not directly defined as _singletons_.
-====
 
 .Examples of the Utility nodes
 image::nodes-example-utility.png[Utility Nodes]
