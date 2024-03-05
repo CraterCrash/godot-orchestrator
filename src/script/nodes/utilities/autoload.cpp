@@ -18,6 +18,8 @@
 
 #include "common/string_utils.h"
 
+#include <godot_cpp/classes/node.hpp>
+
 class OScriptNodeAutoloadInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeAutoload);
@@ -130,4 +132,20 @@ OScriptNodeInstance* OScriptNodeAutoload::instantiate(OScriptInstance* p_instanc
     i->_instance = p_instance;
     i->_autoload = _autoload;
     return i;
+}
+
+bool OScriptNodeAutoload::validate_node_during_build() const
+{
+    if (OScriptLanguage::get_singleton()->has_any_global_constant(_autoload))
+    {
+        Variant autoload = OScriptLanguage::get_singleton()->get_any_global_constant(_autoload);
+        if (autoload && autoload.get_type() == Variant::OBJECT)
+        {
+            if (Object::cast_to<Node>(autoload))
+                return true;
+        }
+    }
+
+    ERR_PRINT(vformat("No autoload registered with name '%s' in the project settings.", _autoload));
+    return false;
 }
