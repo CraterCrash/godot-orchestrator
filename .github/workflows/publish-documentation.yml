@@ -20,7 +20,7 @@ jobs:
 
       - name: Get modified files (documentation)
         id: changed-files-documentation
-        uses: tj-actions/changed-files@v42.0.5
+        uses: tj-actions/changed-files@v42.0.6
         with:
           files: |
             docs/**
