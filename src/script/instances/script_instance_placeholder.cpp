@@ -188,6 +188,9 @@ GDExtensionPropertyInfo* OScriptPlaceHolderInstance::get_property_list(uint32_t*
 
     *r_count = infos.size();
 
+    if (infos.size() == 0)
+        return nullptr;
+
     GDExtensionPropertyInfo* list = MemoryUtils::memnew_with_size<GDExtensionPropertyInfo>(infos.size());
     memcpy(list, infos.ptr(), sizeof(GDExtensionPropertyInfo) * infos.size());
 
