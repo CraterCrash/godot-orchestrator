@@ -105,11 +105,7 @@ protected:
             int seconds = local_tm.tm_sec;
 
             char buffer[256];
-            #ifndef _WIN32
-            sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
-            #else
-            sprintf_s(buffer, 256, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
-            #endif
+            snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
 
             String message = buffer;
             message += " [" + _get_level(p_level) + "]: ";
