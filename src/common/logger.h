@@ -104,16 +104,14 @@ protected:
             int minutes = local_tm.tm_min;
             int seconds = local_tm.tm_sec;
 
-            std::stringstream ss;
-            ss << std::setfill('0');
-            ss << year << '-' << std::setw(2) << month << '-' << std::setw(2) << day;
-            ss << ' ';
-            ss << std::setw(2) << hours << ':' << std::setw(2) << minutes << ':' << std::setw(2) << seconds;
+            char buffer[256];
+            #ifndef _WIN32
+            sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
+            #else
+            sprintf_s(buffer, 256, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
+            #endif
 
-            const String timestamp = ss.str().c_str();
-
-            String message;
-            message += timestamp;
+            String message = buffer;
             message += " [" + _get_level(p_level) + "]: ";
 
             for (const String& part : strings)
