@@ -46,7 +46,13 @@ See [CHANGELOG](https://github.com/Vahera/godot-orchestrator/blob/main/CHANGELOG
 
 - Source code: [Apache-2.0 License](/LICENSE)
 - Godot logo: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- Orchestrator logo: [&copy; 2023-present Vahera Studios. All Rights Reserved](https://support.vahera.com/legal/webcn.html)
+- Orchestrator logo: [&copy; 2023-present Vahera Studios. All Rights Reserved](https://www.vahera.com/legal/webcn.html)
+
+## 💬 Community
+
+- [Vahera Forums](https://forums.vahera.com)
+- [Discord](https://discord.com/invite/J3UWtzWSkT)
+- [Mastodon](https://vahera.social/@orchestrator)
 
 ## 👏 Contributors
 

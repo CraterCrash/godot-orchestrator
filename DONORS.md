@@ -14,4 +14,5 @@
 
 ## Supporters
     
-    Adrian Dalen
+    Adrian D
+    Richard A
