@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## [2.0.rc1](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.rc1) - 2024-03-10
+
+- [468efc6](http://github.com/Vahera/godot-orchestrator/commit/468efc63bf36ac24848a7a709fcbf40ef87cd795) - [docs] Update tutorial
+- [5522fd1](http://github.com/Vahera/godot-orchestrator/commit/5522fd11df1dc027fc0f8b0430133d4285976fe9) - [docs] Update docs images with new styles
+- [7ed918c](http://github.com/Vahera/godot-orchestrator/commit/7ed918c8620c7720466df92699c49b4e22d26887) - [docs] Update nodes
+- [2b5ba1a](http://github.com/Vahera/godot-orchestrator/commit/2b5ba1a90d9c98b6d0875bdecc1ac93d6396309e) - GH-145 Use `snprintf` instead
+- [cbd89b2](http://github.com/Vahera/godot-orchestrator/commit/cbd89b22f5bf149c72070e051a614f2ad6969db4) - GH-145 Use arch_linux compatible time formatting
+- [ebb0b0b](http://github.com/Vahera/godot-orchestrator/commit/ebb0b0bf3b24a31f002aeac42140903ed4202e10) - [ci] Upgrade tj-actions/changed-files from v42.0.6 v42.0.7
+- [2a64fe4](http://github.com/Vahera/godot-orchestrator/commit/2a64fe44c2a22b815d5484ef571c4adcc1dc8dee) - GH-136 Add build validation for autoload node
+- [696f89a](http://github.com/Vahera/godot-orchestrator/commit/696f89a1f729438889bb0891e2eea792ee97db6d) - GH-136 Add support for accessing Godot autoloads
+- [dfb8ece](http://github.com/Vahera/godot-orchestrator/commit/dfb8eceec8c5c39c5830f6ec78697e84bdb4632a) - GH-143 Return null rather than 0-sized property info list
+- [290f57e](http://github.com/Vahera/godot-orchestrator/commit/290f57ee5406351591d632d61551d56618e1ebb1) - [ci] Upgrade tj-actions/changed-files from v42.0.5 to v42.0.6
+- [573abaa](http://github.com/Vahera/godot-orchestrator/commit/573abaa18b2b122489999ff45e451e79d813e49b) - GH-122 Introduce `Instantiate Scene` node
+- [92c7b06](http://github.com/Vahera/godot-orchestrator/commit/92c7b06eb62a032fe968c5fe0529a2eb7e5842a9) - GH-122 Make file pin behavior generic
+- [2f84493](http://github.com/Vahera/godot-orchestrator/commit/2f844933ef730124636a81b3d6264466201c584c) - GH-118 Fix equality ambiguity failure
+- [3a98226](http://github.com/Vahera/godot-orchestrator/commit/3a982264068d6a61d2da9774ad7655c1930a0a67) - GH-118 Fix NodePath property resolution
+- [33a995d](http://github.com/Vahera/godot-orchestrator/commit/33a995ddf8ddcd03525eca56649d8f4c969acd00) - GH-118 Fix GetSceneNode resolution
+- [24f9f5a](http://github.com/Vahera/godot-orchestrator/commit/24f9f5af46b2df43027b15c09584eaa0264c8a1d) - GH-121 Dispatch only script user-defined functions
+- [19026d5](http://github.com/Vahera/godot-orchestrator/commit/19026d5dfafe62ef4eafd274f295a0fca6ed3c75) - GH-126 Correctly select last open file
+- [20665b2](http://github.com/Vahera/godot-orchestrator/commit/20665b22a3c9fb8eb716a86bcb85fccf473d082a) - GH-132 Improved graph node rendering
+- [16eab41](http://github.com/Vahera/godot-orchestrator/commit/16eab414ec4cf0e2f09530e8c2fc5cd2311b55e0) - GH-130 Improve filtering of All Actions dialog
+- [8afc997](http://github.com/Vahera/godot-orchestrator/commit/8afc997f15c7b5154e4cf2f417fad0bdaf59a256) - GH-126 Render file list like Script tab file list
+- [420505a](http://github.com/Vahera/godot-orchestrator/commit/420505a3e52c1f1cb2ebee3b4192d1e7f52ab7a7) - GH-111 Correctly handle return type as Variant
+- [e3def5b](http://github.com/Vahera/godot-orchestrator/commit/e3def5b21a3bbe14c13ee45f48779f44c7ff8a4f) - [ci] Add build concurrency
+- [7d67fa4](http://github.com/Vahera/godot-orchestrator/commit/7d67fa48b35b6c5aeec518e2fb776d83b39c1728) - [ci] Temporarily disable rsync
+- [6c775b3](http://github.com/Vahera/godot-orchestrator/commit/6c775b34d9d8054fd573ebcbcd21cfdd6c88f748) - [ci] Remove rsync delete
+- [b5fc6f8](http://github.com/Vahera/godot-orchestrator/commit/b5fc6f8af0826f3ca9be369318b3a8686ba4a2e2) - [ci] Temporarily rsync docs
+- [5710786](http://github.com/Vahera/godot-orchestrator/commit/5710786b48ade7225a299716710f736232e5a829) - [ci] Fix documentation workflow condition
+- [92332e8](http://github.com/Vahera/godot-orchestrator/commit/92332e886c3a1c7b37e984d80788d2e1d0f91a80) - [ci] New Documentation Workflow Builder
+- [7c398b2](http://github.com/Vahera/godot-orchestrator/commit/7c398b2ad0c6af11712062aff1712102bbd97d1c) - GH-112 Correctly coerce `ComposeFrom` values
+- [e91d54f](http://github.com/Vahera/godot-orchestrator/commit/e91d54f1053a22d0fcba67bf685ad421cbe74468) - GH-116 Correctly update exported default values on nodes
+- [665ec25](http://github.com/Vahera/godot-orchestrator/commit/665ec25d4f86f945ba4c93b9fbe1e795b6923608) - GH-114 Apply editor display scale to toolbar
+- [f705d1e](http://github.com/Vahera/godot-orchestrator/commit/f705d1eea449530db468f26e6e902df5df836c49) - [CMake] Add MacOS universal binary (x86_64,arm64) support
+
 ## [2.0.dev3](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.dev3) - 2024-02-25
 
 - [862aa9d](http://github.com/Vahera/godot-orchestrator/commit/862aa9d310da3a4e900f5ec126a14c266bace010) - GH-84 Support favorites in "All actions" menu
