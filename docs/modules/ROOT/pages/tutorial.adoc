@@ -45,7 +45,8 @@ With the `Camera3D` node selected in the scene tree, navigate to the Inspector D
 image::tutorial-add-camera-properties.png[Scene]
 
 The camera is now set up.
-You can toggle the camera's perspective by clicking the **Preview** checkbox in the top left corner of the viewport to see what the scene will look like when you run the game, or you can hit **F6** to run the scene directly.
+You can toggle the camera's perspective by clicking the **Preview** checkbox in the top left corner of the viewport to see what the scene will look like when you run the game.
+You can also hit **F6** to run the scene directly; however, Godot will ask that you save the scene before you can proceed.
 Now with that done, lets jump into creating some visual scripting!
 
 == Create the orchestration
@@ -76,7 +77,7 @@ Lets step through how to add nodes to the graph area to simulate rotating the cu
 We want our cube to begin rotating right as the scene starts to play.
 But more importantly, we want to continuously rotate the node each frame, and the way to handle that in Godot is to set up a per-frame handler, called a **Process Event** which represents a `_process` function call.
 
-In the component view on the right, locate the **Override Function** button in the Function component's panel and click it.
+In the component view on the right, locate the **Override a Godot virtual function** button in the Function component's panel and click it.
 This opens up a new **All Actions** dialog, which contains all available functions that can be overwritten.
 In the search box type **Process** and you should see two options remain, **Call Physics Process** and **Call Process**.
 For the purposes of this tutorial, we're going to use the **Call Process** option, so select that option.
@@ -156,37 +157,42 @@ In **Step 2**, we used the hard-coded value of `0.05` to control the rotation of
 This isn't necessarily bad, but it's common practice to use interpolation in these use cases.
 
 What we're going to do is expose a variable that can be set in the scene to control the speed of the rotation.
-This will allow the same Orchestration to be used on different objects in the scene and you can specify different rotation speeds for each.
+This will allow the same Orchestration to be used on different objects in the scene, and you can specify different rotation speeds for each.
 
-Navigate back to the **Orchestrator** main view.
-First start by creating the variable that we want to export.
-In the components view on the right, click the **+** icon in the variable's section and define a variable with a name.
-Call it `rotation_speed`.
-In the Inspector Dock, the variable should be focused and change the data type from `Any` to `Float`.
-And finally click the `Exported` check-box to enable it.
+==== Creating and exporting the `rotation_speed` variable:
 
-.What the variable definition should look like
-image::tutorial-step-5-variable.png[Variable declaration]
+1. In Godot, click on the `Orchestrator` tab at the top of the editor.
+2. In the component view on the right, find and click the "+" button to add a new variable.
+3. Click on the icon in the variables section and define a variable named `rotation_speed`.
+4. Set the variable's data type to `Float` via the inspector, allowing the variable to store fractional numbers.
+5. Mark the variable as "Exported" by checking the appropriate box.
+This will make the `rotation_speed` variable public, allowing its value to be changed from within the editor's node inspector dock.
 
-Next, drag the variable from the variable component view onto the graph area.
-When letting go, a small popup box will be shown, asking to select either **Get rotation_speed** or **Set rotation_speed**.
-Since we want to read the variable's value, select the **Get** option.
+==== Using a variable in a graph:
 
-Users understand the idea of Degrees better than Radians typically, so we need to take the angle in degrees and convert it to radians for the `rotate_y` function call.
-We'll do this by dropping in a Godot built-in function call to `deg_to_rad`.
-Right-click the graph area to open the **All Actions** dialog window.
+1. Using the mouse, drag the `rotation_speed` variable from the component view onto the graph.
+2. When you release the variable, select the "Get `rotation_speed`" option to read its value.
 
-In the search box, type `Deg` and you'll see near the bottom an entry that reads **Deg To Rad**.
-By selecting **Deg To Rad**, a new node is added to the graph.
-Lastly, re-open the **All Actions** dialog and search for `Multiply Float`.
-There will be a number of different ones, be sure to section the one under the **Float** category as we want to multiple two different floats.
+==== Converting degrees to radians:
 
-Now that we have all the nodes, we need to connect the data pins.
+1. OPen the "All Actions" dialog box in the graph by right-clicking on the graph area.
+2. Type "Deg" in the search box to find the action "From degree to radians" (`Deg To Rad`).
+3. Add the selected action to the graph.
 
-1. Connect the `delta` pin from **Process Event** to the **A** port on the **Multiply Float** node.
-2. Connect the `rotation_speed` output pin to the **B** port on the **Multiply Float** node.
-3. Connect the output of the **Multiply Float** node to the input of the **Deg To Rad** node.
-4. Connect the output of the **Deg To Rad** node to the input `angle` port of **Call Rotate Y** node.
+==== Performing a mathematical operation:
+
+1. Open the "All Actions" dialog box again, and search for "Multiply Float".
+2. Find and add the "Multiply Float" action under the "Float" category to the graph.
+
+==== Connecting nodes:
+
+1. Connect the `delta` from the "Process Event" node to the input `A` of the "Multiply Float" node.
+2. Connect the `rotation_speed` output to the input `B` of the "Multiply Float" node.
+3. Connect the output of the "Multiply Float" node to the input of the "Deg To Rad" node.
+4. Connect the output of the "Deg To Rad" node to the input port of the angle node `rotate_y`.
+
+After completing all these steps, your graph will be correctly configured to read the value of the rotation speed, convert it from degrees to radians, and use the resulting value to rotate the object around the Y-axis based on the `delta` time.
+This will ensure smooth rotation of the object in your scene.
 
 Your graph should now look like the following:
 
