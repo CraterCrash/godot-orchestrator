@@ -36,38 +36,22 @@ jobs:
         with:
           node-version: 'latest'
 
-      - name: Checkout Action (UI)
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          repository: Vahera/vahera-docs-ui
-          path: ui
 
-      - name: Build UI
+      - name: Install Antora
         run: |
-          npm install -g gulp-cli
-          npm install
           npm install -g @antora/cli@3.1 @antora/site-generator@3.1
-          gulp build
-          gulp bundle:pack
-        working-directory: ./ui
-
-      - name: Checkout Action (UI Builder)
-        uses: actions/checkout@v4
-        with:
-          repository: Vahera/vahera-docs-builder
-          path: builder
 
       - name: Build documentation
-        working-directory: ./builder
         run: |
-          cp ../ui/build/ui-bundle.zip ./ui-bundle.zip 
-          antora playbook.yml 
+          antora --fetch playbook.yml
 
-#      - name: Sync Documentation
+#      - name: Synchronize documentation
 #        uses: burnett01/rsync-deployments@6.0.0
 #        with:
 #          switches: -avh --recursive
-#          path: ./builder/build
+#          path: ./docs-build
 #          remote_path: ${{ secrets.SSH_DOCS_PATH }}
 #          remote_host: ${{ secrets.SSH_DOCS_HOST }}
 #          remote_user: ${{ secrets.SSH_DOCS_USER }}

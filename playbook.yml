@@ -1,0 +1,23 @@
+site:
+  title: Vahera Documentation
+  url: https://vahera.com/docs
+  start_page: orchestrator::overview.adoc
+
+content:
+  sources:
+    - url: https://github.com/Vahera/godot-orchestrator.git
+      branches: 
+        - 'main'
+      start_path: docs
+
+ui:
+  bundle:
+    url: https://github.com/Vahera/antora-ui-vahera/releases/download/latest/ui-bundle.zip
+    snapshot: true
+ 
+output:
+  dir: ./docs-build
+
+asciidoc:
+  attributes:
+    experimental: true
