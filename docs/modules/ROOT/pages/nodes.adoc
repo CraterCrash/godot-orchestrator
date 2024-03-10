@@ -10,24 +10,24 @@ A node can optionally have multiple input and output execution pins to control t
 Orchestrator provides dozens of node types to access hundreds of thousands of unique behavior available in the Godot engine.
 Each `OScriptNode` can generally be categorized into one of several different high-level _categories_.
 
-[cols="1,1,1"]
+[.no-hover,cols="1,1,1"]
 |===
 
-| * xref:#constants[Constants] +
-* xref:#data[Data] +
-* xref:#dialogue[Dialogue/Conversation] +
-* xref:#flow-control[Flow Control] +
-* xref:#functions[Function Calls] +
+|xref:#constants[Constants] +
+xref:#data[Data] +
+xref:#dialogue[Dialogue/Conversation] +
+xref:#flow-control[Flow Control] +
+xref:#functions[Function Calls] +
 
-| * xref:#io[Input/Output] +
-* xref:#math[Math] +
-* xref:#properties[Property Access] +
-* xref:#resources[Resources] +
-* xref:#scene[Scenes] +
+|xref:#io[Input/Output] +
+xref:#math[Math] +
+xref:#properties[Property Access] +
+xref:#resources[Resources] +
+xref:#scene[Scenes] +
 
-|* xref:#signals[Signals] +
-* xref:#utility[Utility] +
-* xref:#variables[Variables] +
+|xref:#signals[Signals] +
+xref:#utility[Utility] +
+xref:#variables[Variables] +
 
 |===
 
@@ -337,8 +337,8 @@ Expressions are not just limited to basic math operations such as addition or su
 
 The following table shows all the possible available operators:
 
+[.no-hover]
 |===
-
 |Boolean |Mathematical |Bitwise |Logic |Containment
 
 |Equals +
