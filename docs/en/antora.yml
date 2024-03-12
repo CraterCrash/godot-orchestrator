@@ -1,7 +1,6 @@
-name: orchestrator
-title: Orchestrator
-version: en
-display_version: English
+name: en
+title: Orchestrator documentation in English
+version: 2.0.0
 start_page: overview.adoc
 asciidoc:
   attributes:
@@ -10,4 +9,4 @@ asciidoc:
     source-language: asciidoc@
     table-caption: false
 nav:
-- modules/ROOT/nav.adoc
+  - modules/ROOT/nav.adoc

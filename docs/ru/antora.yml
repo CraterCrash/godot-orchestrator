@@ -1,7 +1,6 @@
-name: orchestrator
-title: Orchestrator
-version: ru
-display_version: Русский
+name: ru
+title: Документация Orchestrator на русском языке
+version: 2.0.0
 start_page: overview.adoc
 asciidoc:
   attributes:
