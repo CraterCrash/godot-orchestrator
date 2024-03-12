@@ -1,6 +1,7 @@
 name: orchestrator
 title: Orchestrator
-version: 2.0.0
+version: en
+display_version: English
 start_page: overview.adoc
 asciidoc:
   attributes:

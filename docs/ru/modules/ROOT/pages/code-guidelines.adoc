@@ -1,0 +1,162 @@
+= Code guidelines
+
+Orchestrator uses the same naming convention as the Godot Engine.
+The code should follow the following rules when contributing code to the addon.
+
+== File names
+
+Use `snake_case` for file names.
+Avoid using capital letters, as these are handled slightly differently across operating systems.
+
+== License
+
+All source files, header and source, must contain the approved Apache 2.0 License text at the immediate top of the file.
+The current approved license text should always read, with no exception:
+
+[source,text]
+----
+// This file is part of the Godot Orchestrator project.
+//
+// Copyright (c) 2023-present Vahera Studios LLC and its contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+----
+
+== Includes
+
+All C++ header and source files may specify one or more includes.
+All includes should be grouped logically based on their context, using the following priority order, with an empty line separating each logical group:
+
+1. Source file's header
+2. All Orchestrator project header files, sorted in natural alphabetical order.
+3. All Godot header files, sorted in natural alphabetical order.
+
+.An example test.cpp
+[source,cpp]
+----
+#include "test.h"
+
+#include "api/extension_db.h"
+#include "common/string_utils.h"
+
+#include <godot_cpp/classes/h_box_container.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
+----
+
+== Include Guards
+
+All C++ header files must specify an include guard that uses the `#ifdef` and `#define` pre-processors rather than using `#pragma once`.
+The guard name depends on whether the source is related to the Editor or the runtime script.
+
+.Example Guard for Editor-based classes
+[source,cpp]
+----
+#ifndef ORCHESTRATOR_MAIN_VIEW_H
+#define ORCHESTRATOR_MAIN_VIEW_H
+...
+#endif // ORCHESTRATOR_MAIN_VIEW_H
+----
+
+.Example Guard for Script runtime classes
+[source,cpp]
+----
+#ifndef ORCHESTRATOR_SCRIPT_NODE_H
+#define ORCHESTRATOR_SCRIPT_NODE_H
+...
+#endif // ORCHESTRATOR_SCRIPT_NODE_H
+----
+
+* Editor classes use the `ORCHESTRATOR` prefix
+* Runtime classes use the `ORCHESTRATOR_SCRIPT` prefix
+
+== Classes
+
+All C++ class names in this project use Pascal Case.
+
+Additionally, there are two naming conventions that must be followed, depending on the context usage of the class.
+Editor-functionality related classes should be prefixed using `Orchestrator`.
+Runtime script functionality related classes should be prefixed with `OScript`.
+
+* Editor Example, `OrchestratorMainView` or `OrchestratorPlugin`.
+* Runtime Example, `OScriptNodeConstant` or `OScriptNodeInitContext`.
+
+Generally we prefer one class per file, but there are instances where it may make sense to include multiple classes in a single file.
+There is some of this already in the repository, but it should generally be viewed as an exception and not the norm.
+
+== Functions and variables
+
+All functions and variables should be defined using `snake_case`.
+If a function or variable is not public, these should be proceeded with an underscore (`_`).
+
+Additionally, all function arguments should be prefixed with `p_` unless the value is being returned to the caller, in which case it should be prefixed with `r_`.
+
+.An example of function and variable definitions
+[source,cpp]
+----
+class MyClass : public Resource
+{
+  GDCLASS(MyClass, Resource);
+
+protected:
+    String _the_name;
+    void _set_the_name(const String& p_name);
+
+public:
+    void get_the_name() const;
+};
+----
+
+Additionally, functions and variables of like scope should generally be grouped together.
+And lastly all functions that do not override a parent class should be documented as well as all variables.
+
+.Example of documenting functions and variables
+[source,cpp]
+----
+protected:
+    String _the_name;       //! The name of this object
+
+    /// Sets the name
+    /// @param p_name the name to be set
+    void _set_the_name(const String& p_name);
+----
+
+When a function overrides a parent function, it must be wrapped in a comment block.
+The following shows an example:
+
+.Documenting an virtual function override
+[source,cpp]
+----
+//~ Begin OScriptNode Interface
+void post_initialize() override;
+//~ End OScriptNode Interface
+----
+
+== Constants and enums
+
+Constants should use `CONSTANT_CASE`, that is, all caps with an underscore (`_`) to separate words:
+
+[source,gdscript]
+----
+const MAX_SPEED = 10
+----
+
+Define enums using `PascalCase` with a prefix of `E` for their names:
+
+[source,gdscript]
+----
+enum EDataType {
+  EDT_ANY,
+  EDT_NUMERIC
+};
+----

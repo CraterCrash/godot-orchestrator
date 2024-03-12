@@ -8,13 +8,17 @@ content:
     - url: https://github.com/Vahera/godot-orchestrator.git
       branches: 
         - 'main'
-      start_path: docs
+      start_path: docs/en
+    - url: https://github.com/Vahera/godot-orchestrator.git
+      branches: 
+        - 'main'
+      start_path: docs/ru
 
 ui:
   bundle:
     url: https://github.com/Vahera/antora-ui-vahera/releases/download/latest/ui-bundle.zip
     snapshot: true
- 
+
 output:
   dir: ./docs-build
 

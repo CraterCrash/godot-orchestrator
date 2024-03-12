@@ -1,0 +1,98 @@
+= Addon architecture
+
+There are four core concepts at the top level of the https://github.com/Vahera/godot-orchestrator[Orchestrator repository].
+
+* xref:#build[Build configuration] in `/cmake` and the root directory.
+* xref:#source[Source code] in `/src` and `/extern`.
+* xref:#documentation[Documentation] in `/docs`.
+* xref:#demo[Demo Project] in `/project`.
+
+[id="build"]
+== Build configuration
+
+The Orchestrator plug-in is written in C++ based on the Godot GDExtension framework.
+This project uses a combination of `cmake` and `scons` build systems to build the code.
+
+The `scons` build system is used to build the content of `/extern/godot-engine`.
+This builds the Godot Editor from source, which can be useful when testing changes that may require editor updates.
+
+The `cmake` build system is used to build not only the content of `/extern/godot-cpp`, but the entire Orchestrator project.
+It consists of using a number of defined `.cmake` files in the `/cmake` directory along with several configuration files in the repository root such as `CMakeLists.txt`.
+
+Finally, this project makes use of `cmake` to create several generated source files.
+Some of these source files are directly written to the cmake output directory path under `_generated` but there are some that are generated inline within the `/src` path, like `api/extension_db.h` and `api/extension_db.cpp`.
+
+[id="source"]
+== Source
+
+Orchestrator is a https://godotengine.org[Godot Engine] plugin based on GDExtension.
+It's a project intended to provide functionality to a user's project without the need to write code themselves.
+
+All relevant code for this project is within the `/src` directory, which has dozens of C++ header and source files.
+In the `/src` directory, there are several subdirectories that are meant to group the code into several themes:
+
+1. API
+2. Common/Utils
+3. Editor
+4. Plugin related
+5. Script
+
+[id="documentation"]
+== Documentation
+
+The Orchestrator documentation comprises a series of asciidoc (`.adoc`) files assembled by an open-source documentation solution called https://www.antora.org[Antora].
+The directory structure used under the `/docs` directory aligns with the Antora requirements for building this documentation.
+
+=== Component descriptor
+
+Each component available within the https://www.vahera.com/docs[Vahera documentation] has a component descriptor file named `antora.yml`.
+This file provides metadata about the component, including where navigation components exist, the component's version, and much more.
+
+.An example descriptor
+[source,yaml,subs="+attributes"]
+----
+name: orchestrator <.>
+title: Orchestator <.>
+version: {version} <.>
+start_page: start.adoc <.>
+asciidoc:
+  attributes: <.>
+    syntax-highlighter: ~
+    source-language: asciidoc@
+    table-caption: false
+nav: <.>
+- modules/ROOT/nav.adoc
+----
+<.> The component reference name used in URLs should always be lowercase.
+<.> The component display name should always use Title case.
+<.> The version. It should align with the release version of the code base. The version should omit suffix qualifiers and reference the `major.minor.maintenance` version syntax.
+<.> The component's landing page.
+<.> Documentation substitution attributes. Attributes are an excellent choice for strings that often change over the project's lifetime to keep the management of release-specific values in a single place.
+<.> This section defines all left navigation window documentation hyperlinks.
+
+=== Modules
+
+The `/docs/modules` directory stores all content related to the component descriptor.
+Antora requires this directory, which helps keep the documentation pages, assets, and other documentation-related files isolated.
+
+Inside the `/docs/modules` directory are child directories, referred to as a _module_.
+A _module_ is a directory that stores the source files for documentation pages, snippets, examples, assets such as images, and other content.
+Each _module_ directory represents a "family" or logical grouping of documentation content.
+Orchestrator does not use "family" or logical groupings because the documentation is relatively small, so instead, Orchestrator uses a ROOT-module directory rather than named modules.
+
+Inside the `/docs/modules/ROOT` module directory, you will find a `/docs/modules/ROOT/pages` directory that stores the contents of the documentation pages and a `/docs/modules/ROOT/nav.adoc`, which is used by Antora to render the left navigation panel on the website.
+
+[NOTE]
+====
+Generally, every asciidoc page in the `/pages` directory should have a matching entry in the `nav.adoc` file or the dangling page should be referenced by a page included in the `nav.adoc`.
+====
+
+[id="demo"]
+== Demo project
+
+In the `/project` directory, there exists a simple Godot demo project that is meant to showcase Orchestrator.
+This project starts a small 3D world with two characters, the player and an NPC.
+
+The player has a `PlayerController` designed in Orchestrator along with a `CameraController` that is also written with Orchestrator.
+The NPC has several Orchestrator scripts attached to it to handle dialogue interactions and animations.
+
