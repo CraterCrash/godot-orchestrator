@@ -59,6 +59,11 @@ OrchestratorMainView::OrchestratorMainView(OrchestratorPlugin* p_plugin, Orchest
     _wrapper = p_window_wrapper;
 }
 
+void OrchestratorMainView::_bind_methods()
+{
+    ADD_SIGNAL(MethodInfo("toggle_component_panel", PropertyInfo(Variant::BOOL, "visible")));
+}
+
 void OrchestratorMainView::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
@@ -111,6 +116,7 @@ void OrchestratorMainView::_notification(int p_what)
         _file_menu->get_popup()->add_item("Run", AccelMenuIds::RUN, SKEY(KEY_MASK_SHIFT | KEY_MASK_CTRL, KEY_X));
         _file_menu->get_popup()->add_separator();
         _file_menu->get_popup()->add_item("Toggle Orchestrator Panel", AccelMenuIds::TOGGLE_LEFT_PANEL, SKEY(KEY_MASK_CTRL, KEY_BACKSLASH));
+        _file_menu->get_popup()->add_item("Toggle Component Panel", AccelMenuIds::TOGGLE_RIGHT_PANEL, SKEY(KEY_MASK_CTRL, KEY_SLASH));
         _file_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         _file_menu->get_popup()->connect("about_to_popup",
                                          callable_mp(this, &OrchestratorMainView::_on_prepare_file_menu));
@@ -208,7 +214,6 @@ void OrchestratorMainView::_notification(int p_what)
         vbox->add_child(main_view_container);
 
         VSplitContainer* left_panel = memnew(VSplitContainer);
-        left_panel->set_custom_minimum_size(Vector2i(250, 0));
         main_view_container->add_child(left_panel);
         _left_panel = left_panel;
 
@@ -224,6 +229,7 @@ void OrchestratorMainView::_notification(int p_what)
         files_container->add_child(file_filters);
 
         _file_list = memnew(ItemList);
+        _file_list->set_custom_minimum_size(Vector2i(165, 0));
         _file_list->set_allow_rmb_select(true);
         _file_list->set_focus_mode(FOCUS_NONE);
         _file_list->set_v_size_flags(SIZE_EXPAND_FILL);
@@ -432,7 +438,7 @@ void OrchestratorMainView::_open_script(const Ref<OScript>& p_script)
     }
 
     // This is a new file opened
-    OrchestratorScriptView* editor = memnew(OrchestratorScriptView(_plugin, p_script));
+    OrchestratorScriptView* editor = memnew(OrchestratorScriptView(_plugin, this, p_script));
     _script_editor_container->add_child(editor);
 
     ScriptFile file;
@@ -446,6 +452,9 @@ void OrchestratorMainView::_open_script(const Ref<OScript>& p_script)
     _on_prepare_file_menu();
 
     _show_script_editor_view(file.file_name);
+
+    // Since the editor's ready callback needs to fire, we defer this call
+    call_deferred("emit_signal", "toggle_component_panel", _right_panel_visible);
 }
 
 void OrchestratorMainView::_save_script()
@@ -712,6 +721,10 @@ void OrchestratorMainView::_on_menu_option(int p_option)
             break;
         case TOGGLE_LEFT_PANEL:
             _left_panel->set_visible(!_left_panel->is_visible());
+            break;
+        case TOGGLE_RIGHT_PANEL:
+            _right_panel_visible = !_right_panel_visible;
+            emit_signal("toggle_component_panel", _right_panel_visible);
             break;
         case GOTO_NODE:
         {

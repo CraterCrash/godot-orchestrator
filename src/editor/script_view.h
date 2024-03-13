@@ -33,6 +33,12 @@
 /// Forward declarations
 class OrchestratorGraphEdit;
 class OrchestratorPlugin;
+class OrchestratorMainView;
+
+namespace godot
+{
+    class ScrollContainer;
+}
 
 /// Represents a component section
 class OrchestratorScriptViewSection : public VBoxContainer
@@ -427,8 +433,10 @@ class OrchestratorScriptView : public HSplitContainer
 private:
     Ref<OScript> _script;                                //! The orchestrator script
     TabContainer* _tabs{ nullptr };                      //! The tab container
+    ScrollContainer* _scroll_container{ nullptr };       //! The right component container
     OrchestratorGraphEdit* _event_graph{ nullptr };      //! The standard event graph that cannot be removed
     OrchestratorPlugin* _plugin{ nullptr };              //! Reference to the plug-in
+    OrchestratorMainView* _main_view{ nullptr };         //! The owning main view
     OrchestratorScriptViewGraphsSection* _graphs;        //! Graphs section
     OrchestratorScriptViewFunctionsSection* _functions;  //! Functions section
     OrchestratorScriptViewMacrosSection* _macros;        //! Macros section
@@ -441,7 +449,7 @@ protected:
     OrchestratorScriptView() = default;
 
 public:
-    OrchestratorScriptView(OrchestratorPlugin* p_plugin, const Ref<OScript>& p_script);
+    OrchestratorScriptView(OrchestratorPlugin* p_plugin, OrchestratorMainView* p_main_view, const Ref<OScript>& p_script);
 
     /// Godot's notification callback
     /// @param p_what the notification type
@@ -518,6 +526,10 @@ private:
 
     /// Dispatched when function override is requested
     void _on_override_function();
+
+    /// Dispatched when the component panel's visibility should change
+    /// @param p_visible whether the panel is visible
+    void _on_toggle_component_panel(bool p_visible);
 
     /// Dispatched when a user creates a signal connection via the Editor UI
     /// @param p_object the object to whom is being connected

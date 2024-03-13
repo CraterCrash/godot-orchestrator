@@ -70,7 +70,8 @@ private:
         COMMUNITY,
         GITHUB_ISSUES,
         GITHUB_FEATURE,
-        SUPPORT
+        SUPPORT,
+        TOGGLE_RIGHT_PANEL
     };
 
     //! Simple struct for managing details about a script file
@@ -90,6 +91,7 @@ private:
     FileDialog* _save_dialog{ nullptr };             //! Save as file dialog window
     Container* _script_editor_container{ nullptr };  //! Script editor container
     Control* _left_panel{ nullptr };                 //! Left file list panel
+    bool _right_panel_visible{ true };               //! Right component panel visibility
     String _file_name_filter;                        //! Current file name filter text
     ItemList* _file_list{ nullptr };                 //! File list
     HBoxContainer* _update_container{ nullptr };     //! Update container
@@ -103,7 +105,7 @@ private:
     OrchestratorScreenSelect* _select{ nullptr };    //! Screen selection
     OrchestratorWindowWrapper* _wrapper{ nullptr };  //! Window wrapper
 
-    static void _bind_methods() { }
+    static void _bind_methods();
     OrchestratorMainView() = default;
 
 public:

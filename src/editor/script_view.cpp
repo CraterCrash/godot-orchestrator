@@ -17,6 +17,7 @@
 #include "api/extension_db.h"
 #include "common/scene_utils.h"
 #include "editor/graph/graph_edit.h"
+#include "editor/main_view.h"
 #include "plugin/plugin.h"
 #include "script/nodes/functions/event.h"
 #include "script/nodes/functions/function_entry.h"
@@ -1183,9 +1184,10 @@ void OrchestratorScriptViewSignalsSection::update()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OrchestratorScriptView::OrchestratorScriptView(OrchestratorPlugin* p_plugin, const Ref<OScript>& p_script)
+OrchestratorScriptView::OrchestratorScriptView(OrchestratorPlugin* p_plugin, OrchestratorMainView* p_main_view, const Ref<OScript>& p_script)
 {
     _plugin = p_plugin;
+    _main_view = p_main_view;
     _script = p_script;
 
     // When scripts are first opened, this adds the event graph if it doesn't exist.
@@ -1201,6 +1203,8 @@ void OrchestratorScriptView::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        _main_view->connect("toggle_component_panel", callable_mp(this, &OrchestratorScriptView::_on_toggle_component_panel));
+
         Node* editor_node = get_tree()->get_root()->get_child(0);
         editor_node->connect("script_add_function_request", callable_mp(this, &OrchestratorScriptView::_add_callback));
 
@@ -1218,14 +1222,14 @@ void OrchestratorScriptView::_notification(int p_what)
                                       callable_mp(this, &OrchestratorScriptView::_on_close_tab_requested));
         margin->add_child(_tabs);
 
-        ScrollContainer* sc = memnew(ScrollContainer);
-        sc->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
-        sc->set_vertical_scroll_mode(ScrollContainer::SCROLL_MODE_AUTO);
-        add_child(sc);
+        _scroll_container = memnew(ScrollContainer);
+        _scroll_container->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
+        _scroll_container->set_vertical_scroll_mode(ScrollContainer::SCROLL_MODE_AUTO);
+        add_child(_scroll_container);
 
         VBoxContainer* vbox = memnew(VBoxContainer);
         vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-        sc->add_child(vbox);
+        _scroll_container->add_child(vbox);
 
         _graphs = memnew(OrchestratorScriptViewGraphsSection(_script));
         _graphs->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_show_graph));
@@ -1458,6 +1462,11 @@ void OrchestratorScriptView::_on_focus_node(const String& p_graph_name, int p_no
 void OrchestratorScriptView::_on_override_function()
 {
     _show_available_function_overrides();
+}
+
+void OrchestratorScriptView::_on_toggle_component_panel(bool p_visible)
+{
+    _scroll_container->set_visible(p_visible);
 }
 
 void OrchestratorScriptView::_add_callback(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
