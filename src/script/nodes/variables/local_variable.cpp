@@ -124,7 +124,7 @@ void OScriptNodeLocalVariable::allocate_default_pins()
 
 String OScriptNodeLocalVariable::get_node_title() const
 {
-    return vformat("Local %s", VariantUtils::get_friendly_type_name(_type));
+    return vformat("Local %s", VariantUtils::get_friendly_type_name(_type, true));
 }
 
 String OScriptNodeLocalVariable::get_icon() const
