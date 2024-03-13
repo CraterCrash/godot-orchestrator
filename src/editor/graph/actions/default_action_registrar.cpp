@@ -222,20 +222,22 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     const String local_var_category = vformat("%s/Assign", func_or_macro_group);
     _register_node<OScriptNodeAssignLocalVariable>(p_context, local_var_category);
 
+    // Register Local Object variables
+    const String lv_object_name = vformat("%s/local_object", func_or_macro_group);
+    const Dictionary object_type_dict = DictionaryUtils::of({ { "type", Variant::OBJECT } });
+    _register_node<OScriptNodeLocalVariable>(p_context, lv_object_name, object_type_dict);
+
     // Builtin Types
     for (const String& type_name : ExtensionDB::get_builtin_type_names())
     {
         const BuiltInType type = ExtensionDB::get_builtin_type(type_name);
-        const String friendly_name = VariantUtils::get_friendly_type_name(type.type);
+        const String friendly_name = VariantUtils::get_friendly_type_name(type.type, true);
 
         const Dictionary type_dict = DictionaryUtils::of({ { "type", type.type } });
 
         // Register local variables differently for macros
-        if (type.type != Variant::NIL)
-        {
-            const String lv_name = vformat("%s/local_%s", func_or_macro_group, friendly_name);
-            _register_node<OScriptNodeLocalVariable>(p_context, lv_name, type_dict);
-        }
+        const String lv_name = vformat("%s/local_%s", func_or_macro_group, friendly_name);
+        _register_node<OScriptNodeLocalVariable>(p_context, lv_name, type_dict);
 
         if (!type.properties.is_empty())
         {
