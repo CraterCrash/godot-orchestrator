@@ -188,7 +188,7 @@ String OScriptNodeOperator::_get_expression() const
     {
         return "Power(%s, %s)";
     }
-    return "%s " + _info.code + " %s";
+    return "%s " + _info.code.replacen("%", "%%") + " %s";
 }
 
 bool OScriptNodeOperator::_is_unary() const
