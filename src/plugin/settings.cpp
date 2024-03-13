@@ -189,6 +189,15 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/dictionary", Color(0.47, 0.93, 0.69)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/array", Color(0.88, 0.88, 0.88)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/callable", Color(0.47, 0.95, 0.91)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed byte array", Color(0.55, 0.65, 0.94)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed string array", Color(0.42, 0.65, 0.93)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed int32 array", Color(0.59, 0.78, 0.94)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed int64 array", Color(0.59, 0.78, 0.94)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed float32 array", Color(0.38, 0.85, 0.96)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed float64 array", Color(0.38, 0.85, 0.96)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector2 array", Color(0.74, 0.57, 0.95)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector3 array", Color(0.84, 0.49, 0.93)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed color array", Color(0.62, 1.00, 0.44)));
 }
 
 void OrchestratorSettings::_initialize_settings()

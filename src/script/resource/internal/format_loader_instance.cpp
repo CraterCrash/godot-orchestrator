@@ -417,11 +417,152 @@ Error OScriptResourceLoaderInstance::_parse_variant(Variant& r_val)
             r_val = a;
             break;
         }
+        case VARIANT_PACKED_BYTE_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedByteArray array;
+            array.resize(size);
+
+            uint8_t* data_ptr = array.ptrw();
+            f->get_buffer(data_ptr, size);
+
+            _advance_padding(f, size);
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_INT32_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedInt32Array array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+                array[i] = f->get_32();
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_INT64_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedInt64Array array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+                array[i] = f->get_64();
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_FLOAT32_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedFloat32Array array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+                array[i] = f->get_float();
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_FLOAT64_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedFloat64Array array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+                array[i] = f->get_double();
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_STRING_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedStringArray array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+                array[i] = _read_unicode_string();
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_VECTOR2_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedVector2Array array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+            {
+                array[i].x = f->get_double();
+                array[i].y = f->get_double();
+            }
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_VECTOR3_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedVector3Array array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+            {
+                array[i].x = f->get_double();
+                array[i].y = f->get_double();
+                array[i].z = f->get_double();
+            }
+
+            r_val = array;
+            break;
+        }
+        case VARIANT_PACKED_COLOR_ARRAY:
+        {
+            uint32_t size = f->get_32();
+
+            PackedColorArray array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+            {
+                array[i].r = f->get_float();
+                array[i].g = f->get_float();
+                array[i].b = f->get_float();
+                array[i].a = f->get_float();
+            }
+
+            r_val = array;
+            break;
+        }
         default:
             ERR_FAIL_V(ERR_FILE_CORRUPT);
     }
 
     return OK;
+}
+
+void OScriptResourceLoaderInstance::_advance_padding(Ref<FileAccess>& p_file, int p_size)
+{
+    uint32_t extra = 4 - (p_size % 4);
+    if (extra < 4)
+    {
+        for (uint32_t i = 0; i < extra; i++)
+            p_file->get_8(); // pad to 32 bytes
+    }
 }
 
 Error OScriptResourceLoaderInstance::load(const Ref<FileAccess>& p_file)

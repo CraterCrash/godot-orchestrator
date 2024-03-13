@@ -435,18 +435,18 @@ bool OScriptNodeComposeFrom::is_supported(Variant::Type p_type, const Vector<Pro
         case Variant::NIL: // Unnecessary
         case Variant::ARRAY: // Makes use of custom MakeArray
         case Variant::DICTIONARY: // Makes use of custom MakeDictionary
-        case Variant::PACKED_BYTE_ARRAY: // Not yet supported
-        case Variant::PACKED_STRING_ARRAY: // Not yet supported
-        case Variant::PACKED_COLOR_ARRAY: // Not yet supported
-        case Variant::PACKED_FLOAT32_ARRAY: // Not yet supported
-        case Variant::PACKED_FLOAT64_ARRAY: // Not yet supported
-        case Variant::PACKED_INT32_ARRAY: // Not yet supported
-        case Variant::PACKED_INT64_ARRAY: // Not yet supported
-        case Variant::PACKED_VECTOR2_ARRAY: // Not yet supported
-        case Variant::PACKED_VECTOR3_ARRAY: // Not yet supported
         case Variant::RID: // Not necessary
         case Variant::SIGNAL: // Not necessary
             return false;
+        case Variant::PACKED_BYTE_ARRAY:
+        case Variant::PACKED_STRING_ARRAY:
+        case Variant::PACKED_COLOR_ARRAY:
+        case Variant::PACKED_FLOAT32_ARRAY:
+        case Variant::PACKED_FLOAT64_ARRAY:
+        case Variant::PACKED_INT32_ARRAY:
+        case Variant::PACKED_INT64_ARRAY:
+        case Variant::PACKED_VECTOR2_ARRAY:
+        case Variant::PACKED_VECTOR3_ARRAY:
         case Variant::AABB:
         case Variant::BASIS:
         case Variant::CALLABLE:

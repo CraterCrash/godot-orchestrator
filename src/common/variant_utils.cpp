@@ -44,8 +44,48 @@ namespace VariantUtils
                 return "Integer";
             case Variant::BOOL:
                 return "Boolean";
+            case Variant::RECT2:
+                return "Rect2";
+            case Variant::RECT2I:
+                return "Rect2i";
+            case Variant::VECTOR2:
+                return "Vector2";
+            case Variant::VECTOR2I:
+                return "Vector2i";
+            case Variant::VECTOR3:
+                return "Vector3";
+            case Variant::VECTOR3I:
+                return "Vector3i";
+            case Variant::VECTOR4:
+                return "Vector4";
+            case Variant::VECTOR4I:
+                return "Vector4i";
+            case Variant::TRANSFORM2D:
+                return "Transform2D";
+            case Variant::TRANSFORM3D:
+                return "Transform3D";
             case Variant::STRING_NAME:
                 return "String Name";
+            case Variant::NODE_PATH:
+                return "NodePath";
+            case Variant::PACKED_BYTE_ARRAY:
+                return "Packed Byte Array";
+            case Variant::PACKED_INT32_ARRAY:
+                return "Packed Int32 Array";
+            case Variant::PACKED_INT64_ARRAY:
+                return "Packed Int64 Array";
+            case Variant::PACKED_FLOAT32_ARRAY:
+                return "Packed Float32 Array";
+            case Variant::PACKED_FLOAT64_ARRAY:
+                return "Packed Float64 Array";
+            case Variant::PACKED_STRING_ARRAY:
+                return "Packed String Array";
+            case Variant::PACKED_VECTOR2_ARRAY:
+                return "Packed Vector2 Array";
+            case Variant::PACKED_VECTOR3_ARRAY:
+                return "Packed Vector3 Array";
+            case Variant::PACKED_COLOR_ARRAY:
+                return "Packed Color Array";
             default:
             {
                 String name = Variant::get_type_name(p_type);

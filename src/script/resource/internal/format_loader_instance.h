@@ -77,6 +77,8 @@ class OScriptResourceLoaderInstance : protected OrchestratorResourceFormat
     /// @return parser error code
     Error _parse_variant(Variant& r_value);
 
+    void _advance_padding(Ref<FileAccess>& p_file, int p_size);
+
 public:
     Error load(const Ref<FileAccess>& p_file);
 };

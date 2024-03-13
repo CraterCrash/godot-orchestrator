@@ -140,6 +140,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     // Data toggles
     const Dictionary with_break = DictionaryUtils::of({ { "with_break", true } });
     const Dictionary without_break = DictionaryUtils::of({ { "with_break", false } });
+    const Dictionary array_data = DictionaryUtils::of({ { "collection_type", Variant::ARRAY },{ "index_type", Variant::NIL } });
 
     // Comments
     _register_node<OScriptNodeComment>(p_context, "add_comment");
@@ -152,8 +153,8 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     _register_node<OScriptNodeSingletonConstant>(p_context, "Constant/singleton_constant");
 
     // Data
-    _register_node<OScriptNodeArrayGet>(p_context, "Array/get_array_element");
-    _register_node<OScriptNodeArraySet>(p_context, "Array/set_array_element");
+    _register_node<OScriptNodeArrayGet>(p_context, "Operators/Array/get_at_index", array_data);
+    _register_node<OScriptNodeArraySet>(p_context, "Operators/Array/set_at_index", array_data);
     _register_node<OScriptNodeArrayFind>(p_context, "Array/find_array_element");
     _register_node<OScriptNodeArrayClear>(p_context, "Array/clear_array");
     _register_node<OScriptNodeArrayAppend>(p_context, "Array/append_arrays");
@@ -276,7 +277,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
                         { { "type", type.type }, { "constructor_args", properties } });
 
                     const String args = StringUtils::join(" and ", type_names);
-                    const String category = vformat("%s/make_%s_from_%s", friendly_name, friendly_name.to_lower(), args);
+                    const String category = vformat("%s/make_%s_from_%s", type.name, friendly_name.to_lower(), args);
 
                     _register_node<OScriptNodeComposeFrom>(p_context, category, ctor_dict);
                 }
@@ -315,6 +316,19 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
 
                 _register_node<OScriptNodeOperator>(p_context, category, data);
             }
+        }
+
+        if (type.index_returning_type != Variant::NIL && type.type >= Variant::ARRAY)
+        {
+            const String get_category = vformat("Operators/%s/%s", type.name, "Get At Index");
+            const String set_category = vformat("Operators/%s/%s", type.name, "Set At Index");
+
+            const Dictionary data = DictionaryUtils::of({
+                { "collection_type", type.type },
+                { "index_type", type.index_returning_type } });
+
+            _register_node<OScriptNodeArrayGet>(p_context, get_category, data);
+            _register_node<OScriptNodeArraySet>(p_context, set_category, data);
         }
     }
 

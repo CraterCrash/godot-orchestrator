@@ -53,14 +53,21 @@ class OScriptNodeArrayGet : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayGet, OScriptNode);
 
+protected:
+    Variant::Type _collection_type{ Variant::ARRAY };
+    Variant::Type _index_type{ Variant::NIL };
+    String _collection_name{ "Array" };
+
 public:
     //~ Begin OScriptNode Interface
+    void post_initialize() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };
 
@@ -69,14 +76,21 @@ class OScriptNodeArraySet : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArraySet, OScriptNode);
 
+protected:
+    Variant::Type _collection_type{ Variant::ARRAY };
+    Variant::Type _index_type{ Variant::NIL };
+    String _collection_name{ "Array" };
+
 public:
     //~ Begin OScriptNode Interface
+    void post_initialize() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };
 
