@@ -107,6 +107,8 @@ class OScriptResourceSaverInstance : protected OrchestratorResourceFormat
     /// @return true if its a built-in resource, otherwise false
     bool _is_resource_built_in(Ref<Resource> p_resource) const;
 
+    void _pad_buffer(Ref<FileAccess> p_file, int size);
+
 public:
     /// Save the specified resource to the given file
     /// @param p_path the file path to be used for persisting the resource

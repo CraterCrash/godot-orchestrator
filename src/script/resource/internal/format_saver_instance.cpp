@@ -675,6 +675,109 @@ void OScriptResourceSaverInstance::_write_variant(Ref<FileAccess> p_file, const 
                 _write_variant(p_file, array[i], p_resource_map, p_string_map);
             break;
         }
+        case Variant::PACKED_BYTE_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_BYTE_ARRAY);
+            PackedByteArray array = p_value;
+            const int size = static_cast<int>(array.size());
+            p_file->store_32(size);
+            const uint8_t*data = array.ptr();
+            p_file->store_buffer(data, size);
+            _pad_buffer(p_file, size);
+            break;
+        }
+        case Variant::PACKED_INT32_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_INT32_ARRAY);
+            PackedInt32Array array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+                p_file->store_32(array[i]);
+            break;
+        }
+        case Variant::PACKED_INT64_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_INT64_ARRAY);
+            PackedInt64Array array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+                p_file->store_64(array[i]);
+            break;
+        }
+        case Variant::PACKED_FLOAT32_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_FLOAT32_ARRAY);
+            PackedFloat32Array array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+                p_file->store_float(array[i]);
+            break;
+        }
+        case Variant::PACKED_FLOAT64_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_FLOAT64_ARRAY);
+            PackedFloat64Array array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+                p_file->store_double(array[i]);
+            break;
+        }
+        case Variant::PACKED_STRING_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_STRING_ARRAY);
+            PackedStringArray array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+                _save_unicode_string(p_file, array[i]);
+            break;
+        }
+        case Variant::PACKED_VECTOR2_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_VECTOR2_ARRAY);
+            PackedVector2Array array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+            {
+                p_file->store_double(array[i].x);
+                p_file->store_double(array[i].y);
+            }
+            break;
+        }
+        case Variant::PACKED_VECTOR3_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_VECTOR3_ARRAY);
+            PackedVector3Array array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+            {
+                p_file->store_double(array[i].x);
+                p_file->store_double(array[i].y);
+                p_file->store_double(array[i].z);
+            }
+            break;
+        }
+        case Variant::PACKED_COLOR_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_COLOR_ARRAY);
+            PackedColorArray array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+            {
+                p_file->store_float(array[i].r);
+                p_file->store_float(array[i].g);
+                p_file->store_float(array[i].b);
+                p_file->store_float(array[i].a);
+            }
+            break;
+        }
         default:
         {
             ERR_FAIL_MSG(vformat("Unable to serialize property type %s with name %s", p_value.get_type(), p_hint.name));
@@ -687,4 +790,14 @@ bool OScriptResourceSaverInstance::_is_resource_built_in(Ref<Resource> p_resourc
     // taken from resource.h
     String path_cache = p_resource->get_path();
     return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
+}
+
+void OScriptResourceSaverInstance::_pad_buffer(Ref<FileAccess> p_file, int size)
+{
+    int extra = 4 - (size % 4);
+    if (extra < 4)
+    {
+        for (int i = 0; i < extra; i++)
+            p_file->store_8(0); // pad to 32 bytes
+    }
 }

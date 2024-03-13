@@ -16,6 +16,8 @@
 //
 #include "arrays.h"
 
+#include "common/variant_utils.h"
+
 class OScriptNodeMakeArrayInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeMakeArray);
@@ -39,10 +41,13 @@ class OScriptNodeArrayGetInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArrayGet)
 
-public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    Variant::Type _collection_type;
+    Variant::Type _index_type;
+
+    template<typename T>
+    int _step_internal(OScriptNodeExecutionContext& p_context)
     {
-        Array array = p_context.get_input(0);
+        T array = p_context.get_input(0);
         int index = p_context.get_input(1);
 
         if (array.size() > index)
@@ -52,6 +57,38 @@ public:
 
         return 0;
     }
+
+public:
+    int step(OScriptNodeExecutionContext& p_context) override
+    {
+        switch (_collection_type)
+        {
+            case Variant::ARRAY:
+                return _step_internal<Array>(p_context);
+            case Variant::PACKED_BYTE_ARRAY:
+                return _step_internal<PackedByteArray>(p_context);
+            case Variant::PACKED_INT32_ARRAY:
+                return _step_internal<PackedInt32Array>(p_context);
+            case Variant::PACKED_INT64_ARRAY:
+                return _step_internal<PackedInt64Array>(p_context);
+            case Variant::PACKED_FLOAT32_ARRAY:
+                return _step_internal<PackedFloat32Array>(p_context);
+            case Variant::PACKED_FLOAT64_ARRAY:
+                return _step_internal<PackedFloat64Array>(p_context);
+            case Variant::PACKED_STRING_ARRAY:
+                return _step_internal<PackedStringArray>(p_context);
+            case Variant::PACKED_VECTOR2_ARRAY:
+                return _step_internal<PackedVector2Array>(p_context);
+            case Variant::PACKED_VECTOR3_ARRAY:
+                return _step_internal<PackedVector3Array>(p_context);
+            case Variant::PACKED_COLOR_ARRAY:
+                return _step_internal<PackedColorArray>(p_context);
+            default:
+                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
+                    "The collection type " + itos(_collection_type) + " is not supported.");
+            return -1;
+        }
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,29 +97,71 @@ class OScriptNodeArraySetInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArraySet)
 
-public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    Variant::Type _collection_type;
+    Variant::Type _index_type;
+
+    int _invalid_index(OScriptNodeExecutionContext& p_context, int p_index)
     {
-        Array array = p_context.get_input(0);
+        p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
+            "Size is too small to index at index " + itos(p_index));
+        return -1;
+    }
+
+    template<typename T>
+    int _step_internal(OScriptNodeExecutionContext& p_context)
+    {
+        T array = p_context.get_input(0);
         int index = p_context.get_input(1);
         Variant item = p_context.get_input(2);
         bool size_to_fit = p_context.get_input(3);
 
-        if (array.size() <= index && !size_to_fit)
+        const int size = array.size();
+        if (size <= index && !size_to_fit)
         {
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                                "Array size is too small to insert at index " + itos(index));
+                "Collection size is too small to insert at index " + itos(index));
             return -1;
         }
-        else if (array.size() <= index)
+        else if (size <= index)
         {
             array.resize(index + 1);
         }
 
         array[index] = item;
         p_context.set_output(0, array);
-
         return 0;
+    }
+
+public:
+    int step(OScriptNodeExecutionContext& p_context) override
+    {
+        switch (_collection_type)
+        {
+            case Variant::ARRAY:
+                return _step_internal<Array>(p_context);
+            case Variant::PACKED_BYTE_ARRAY:
+                return _step_internal<PackedByteArray>(p_context);
+            case Variant::PACKED_INT32_ARRAY:
+                return _step_internal<PackedInt32Array>(p_context);
+            case Variant::PACKED_INT64_ARRAY:
+                return _step_internal<PackedInt64Array>(p_context);
+            case Variant::PACKED_FLOAT32_ARRAY:
+                return _step_internal<PackedFloat32Array>(p_context);
+            case Variant::PACKED_FLOAT64_ARRAY:
+                return _step_internal<PackedFloat64Array>(p_context);
+            case Variant::PACKED_STRING_ARRAY:
+                return _step_internal<PackedStringArray>(p_context);
+            case Variant::PACKED_VECTOR2_ARRAY:
+                return _step_internal<PackedVector2Array>(p_context);
+            case Variant::PACKED_VECTOR3_ARRAY:
+                return _step_internal<PackedVector3Array>(p_context);
+            case Variant::PACKED_COLOR_ARRAY:
+                return _step_internal<PackedColorArray>(p_context);
+            default:
+                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
+                    "The collection type " + itos(_collection_type) + " is not supported.");
+                return -1;
+        }
     }
 };
 
@@ -294,23 +373,34 @@ void OScriptNodeMakeArray::remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeArrayGet::post_initialize()
+{
+    _collection_type = find_pin("array", PD_Input)->get_type();
+    _index_type = find_pin("element", PD_Output)->get_type();
+    _collection_name = Variant::get_type_name(_collection_type);
+
+    super::post_initialize();
+}
+
 void OScriptNodeArrayGet::allocate_default_pins()
 {
-    create_pin(PD_Input, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    _collection_name = Variant::get_type_name(_collection_type);
+
+    create_pin(PD_Input, "array", _collection_type)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Input, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "element", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, "element", _index_type)->set_flags(OScriptNodePin::Flags::DATA);
 
     super::allocate_default_pins();
 }
 
 String OScriptNodeArrayGet::get_tooltip_text() const
 {
-    return "Given an array and index, returns the item in the array at that index.";
+    return vformat("Given a %s and index, return the item at the specified index.", _collection_name);
 }
 
 String OScriptNodeArrayGet::get_node_title() const
 {
-    return "Get Array Element";
+    return "Get Element At Index";
 }
 
 String OScriptNodeArrayGet::get_icon() const
@@ -323,33 +413,57 @@ OScriptNodeInstance* OScriptNodeArrayGet::instantiate(OScriptInstance* p_instanc
     OScriptNodeArrayGetInstance* i = memnew(OScriptNodeArrayGetInstance);
     i->_node = this;
     i->_instance = p_instance;
+    i->_collection_type = _collection_type;
+    i->_index_type = _index_type;
     return i;
+}
+
+void OScriptNodeArrayGet::initialize(const OScriptNodeInitContext& p_context)
+{
+    if (p_context.user_data)
+    {
+        const Dictionary& data = p_context.user_data.value();
+        _collection_type = VariantUtils::to_type(data["collection_type"]);
+        _index_type = VariantUtils::to_type(data["index_type"]);
+    }
+    return super::initialize(p_context);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeArraySet::post_initialize()
+{
+    _collection_type = find_pin("array", PD_Input)->get_type();
+    _index_type = find_pin("element", PD_Input)->get_type();
+    _collection_name = Variant::get_type_name(_collection_type);
+
+    super::post_initialize();
+}
+
 void OScriptNodeArraySet::allocate_default_pins()
 {
+    _collection_name = Variant::get_type_name(_collection_type);
+
     create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, "array", _collection_type)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Input, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "element", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, "element", _index_type)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Input, "size_to_fit", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
 
     create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "result", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, "result", _collection_type)->set_flags(OScriptNodePin::Flags::DATA);
 
     super::allocate_default_pins();
 }
 
 String OScriptNodeArraySet::get_tooltip_text() const
 {
-    return "Given an array and index, assigns the element to the specified array index.";
+    return vformat("Given a %s and index, assign the value at the specified index.", _collection_name);
 }
 
 String OScriptNodeArraySet::get_node_title() const
 {
-    return "Set Array Element";
+    return "Set Element At Index";
 }
 
 String OScriptNodeArraySet::get_icon() const
@@ -362,7 +476,20 @@ OScriptNodeInstance* OScriptNodeArraySet::instantiate(OScriptInstance* p_instanc
     OScriptNodeArraySetInstance* i = memnew(OScriptNodeArraySetInstance);
     i->_node = this;
     i->_instance = p_instance;
+    i->_collection_type = _collection_type;
+    i->_index_type = _index_type;
     return i;
+}
+
+void OScriptNodeArraySet::initialize(const OScriptNodeInitContext& p_context)
+{
+    if (p_context.user_data)
+    {
+        const Dictionary& data = p_context.user_data.value();
+        _collection_type = VariantUtils::to_type(data["collection_type"]);
+        _index_type = VariantUtils::to_type(data["index_type"]);
+    }
+    return super::initialize(p_context);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
