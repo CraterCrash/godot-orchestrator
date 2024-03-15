@@ -18,14 +18,14 @@ jobs:
           - identifier: linux-debug
             name: 🐧 Linux (Debug)
             build_type: Debug
-            runner: ubuntu-latest
+            runner: ubuntu-20.04
             target: template_debug
             platform: linux
             arch: x86_64
           - identifier: linux-release
             name: 🐧 Linux (Release)
             build_type: Release
-            runner: ubuntu-latest
+            runner: ubuntu-20.04
             target: template_release
             platform: linux
             arch: x86_64
