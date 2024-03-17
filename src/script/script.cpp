@@ -449,7 +449,7 @@ Variant OScript::_get_rpc_config() const
 
 String OScript::_get_class_icon_path() const
 {
-    return OScriptLanguage::ICON;
+    return {};
 }
 
 /// OScript ////////////////////////////////////////////////////////////////////////////////////////////////////////////
