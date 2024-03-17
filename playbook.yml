@@ -1,7 +1,7 @@
 site:
   title: Vahera Documentation
   url: https://vahera.com/docs
-  start_page: en::overview.adoc
+  start_page: overview.adoc
 
 content:
   sources:
