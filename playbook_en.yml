@@ -1,18 +1,14 @@
 site:
   title: Vahera Documentation
   url: https://vahera.com/docs
-  start_page: overview.adoc
+  start_page: orchestrator::overview.adoc
 
 content:
   sources:
     - url: https://github.com/Vahera/godot-orchestrator.git
-      branches: 
-        - 'main'
+      branches:
+        - "main"
       start_path: docs/en
-    - url: https://github.com/Vahera/godot-orchestrator.git
-      branches: 
-        - 'main'
-      start_path: docs/ru
 
 ui:
   bundle:
@@ -20,7 +16,7 @@ ui:
     snapshot: true
 
 output:
-  dir: ./docs-build
+  dir: ./docs-build/en
 
 asciidoc:
   attributes:

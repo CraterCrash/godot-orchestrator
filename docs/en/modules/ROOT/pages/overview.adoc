@@ -178,7 +178,7 @@ The ports that are various color dots are called **data** pins, and these are wh
 Ports on the left side of a node are called input pins while ports on the right are called output pins.
 These pins can be connected by using the left mouse button to click on a port to start creating a connection line to another port.
 
-We will discuss each node and its functionality in the xref:en::nodes.adoc[Nodes] section.
+We will discuss each node and its functionality in the xref:orchestrator::nodes.adoc[Nodes] section.
 
 === Running/Using orchestrations
 
