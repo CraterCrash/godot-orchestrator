@@ -23,7 +23,6 @@
 
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/label.hpp>
-#include <godot_cpp/classes/style_box_flat.hpp>
 
 /// A simple OrchestratorGraphNode implementation to render comment nodes.
 class OrchestratorGraphNodeComment : public OrchestratorGraphNode
@@ -35,8 +34,6 @@ class OrchestratorGraphNodeComment : public OrchestratorGraphNode
 protected:
     Label* _label{ nullptr };
     Ref<OScriptNodeComment> _comment_node;
-    Ref<StyleBoxFlat> _panel;
-    Ref<StyleBoxFlat> _panel_selected;
     bool _selected{ false };
 
     OrchestratorGraphNodeComment() = default;
