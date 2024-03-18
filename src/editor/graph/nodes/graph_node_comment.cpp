@@ -81,7 +81,10 @@ void OrchestratorGraphNodeComment::_update_pins()
     }
 
     _panel->set_bg_color(_comment_node->get_background_color());
+    add_theme_stylebox_override("panel", _panel);
+
     _panel_selected->set_bg_color(_comment_node->get_background_color());
+    add_theme_stylebox_override("panel_selected", _panel_selected);
 
     const int font_size = _comment_node->get_font_size();
     _label->add_theme_font_size_override("font_size", font_size != 0 ? font_size : 14);
