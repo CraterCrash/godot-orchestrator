@@ -36,18 +36,6 @@ OrchestratorGraphNodeComment::OrchestratorGraphNodeComment(OrchestratorGraphEdit
     _label = memnew(Label);
     container->add_child(_label);
 
-    _panel.instantiate();
-    _panel->set_bg_color(_comment_node->get_background_color());
-    add_theme_stylebox_override("panel", _panel);
-
-    Ref<StyleBox> selected = get_theme_stylebox("panel_selected");
-    if (selected.is_valid())
-    {
-        _panel_selected.reference_ptr(Object::cast_to<StyleBoxFlat>(selected->duplicate(true).ptr()));
-        _panel_selected->set_bg_color(_panel->get_bg_color());
-        add_theme_stylebox_override("panel_selected", _panel_selected);
-    }
-
     if (_comment_node->is_title_center_aligned())
     {
         HBoxContainer* hbox = get_titlebar_hbox();
@@ -80,11 +68,13 @@ void OrchestratorGraphNodeComment::_update_pins()
         }
     }
 
-    _panel->set_bg_color(_comment_node->get_background_color());
-    add_theme_stylebox_override("panel", _panel);
+    Ref<StyleBoxFlat> panel = get_theme_stylebox("panel");
+    panel->set_bg_color(_comment_node->get_background_color());
+    add_theme_stylebox_override("panel", panel);
 
-    _panel_selected->set_bg_color(_comment_node->get_background_color());
-    add_theme_stylebox_override("panel_selected", _panel_selected);
+    Ref<StyleBoxFlat> panel_selected = get_theme_stylebox("panel_selected");
+    panel_selected->set_bg_color(_comment_node->get_background_color());
+    add_theme_stylebox_override("panel_selected", panel_selected);
 
     const int font_size = _comment_node->get_font_size();
     _label->add_theme_font_size_override("font_size", font_size != 0 ? font_size : 14);
