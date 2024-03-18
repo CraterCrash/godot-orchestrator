@@ -1,5 +1,10 @@
 = Overview
 
+[IMPORTANT]
+====
+Обратите, пожалуйста, внимание, что основная документация Orchestrator написана на https://vahera.com/docs/en/[английском языке]. Документация Orchestrator на русском языке может быть не полностью переведена с английского языка, а также учитывайте, что документация по Orchestrator регулярно обновляется, и актуализация документации на русском языке занимает время. Если вы хотите получить всегда самую актуальную документацию, используйте, пожалуйста, документацию на https://vahera.com/docs/en/[английском языке].
+====
+
 Orchestrator is a https://godotengine.org[Godot Engine,role=external-reference] GDExtension plug-in that runs within the Godot Editor to design and implement a game logic using a graph-node visual-script-like system.
 
 .An example orchestration
