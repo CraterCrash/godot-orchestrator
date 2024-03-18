@@ -1,4 +1,4 @@
-![screen-shot](https://cdn.vahera.com/utG8NiO3oN8sfXvI2ZZ0zg/04e5cfe2-58ed-4803-e372-b3e3c1dcaf00/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/20bdd53e-9a27-4326-1b11-65fe443e0400/public)
 
 ![Godot v4.2](https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white&style=flat-square)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Vahera/godot-orchestrator?&style=flat-square)
@@ -14,13 +14,13 @@ Whether you are an experienced Godot veteran or an aspiring developer eager to g
 
 The following screenshots only scratch the surface of what the plug-in offers out of the box, with much more in future builds.
 
-![screen-shot](https://cdn.vahera.com/utG8NiO3oN8sfXvI2ZZ0zg/69580c27-8002-41a1-8895-98af984b3700/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/69580c27-8002-41a1-8895-98af984b3700/public)
 
-![screen-shot](https://cdn.vahera.com/utG8NiO3oN8sfXvI2ZZ0zg/2afcb531-6791-4746-fe39-8e20343f2700/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/2afcb531-6791-4746-fe39-8e20343f2700/public)
 
-![screen-shot](https://cdn.vahera.com/utG8NiO3oN8sfXvI2ZZ0zg/dbcc1f15-2b12-4b94-54ce-8d5100232c00/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/dbcc1f15-2b12-4b94-54ce-8d5100232c00/public)
 
-![screen-shot](https://cdn.vahera.com/utG8NiO3oN8sfXvI2ZZ0zg/65f62cb9-f880-4ce1-4f26-007e5efeb100/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/65f62cb9-f880-4ce1-4f26-007e5efeb100/public)
 
 ## 🚀 Features
 
