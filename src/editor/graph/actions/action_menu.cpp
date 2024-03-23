@@ -135,6 +135,10 @@ void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilt
     set_size(Vector2(350, 700));
     popup();
 
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    if (os && os->get_setting("ui/actions_menu/center_on_mouse"))
+        set_position(get_position() - (get_size() / 2));
+
     _tree_view->scroll_to_item(_tree_view->get_root());
     _filters_text_box->grab_focus();
 }

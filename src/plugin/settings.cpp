@@ -138,6 +138,8 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
     _settings.emplace_back(BOOL_SETTING("settings/runtime/tickable", true));
 
+    _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
+
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_conversion_nodes", false));
 
