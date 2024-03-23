@@ -622,6 +622,10 @@ void OrchestratorGraphEdit::_attempt_autowire(const Ref<OScriptNode>& p_new_node
         if (!pin.is_valid() || pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
             continue;
 
+        // Skip pins that are specifically flagged as non-autowirable
+        if (pin->get_flags().has_flag(OScriptNodePin::Flags::NO_AUTOWIRE))
+            continue;
+
         // If pin direction matches drag, skip
         if (_drag_context.get_direction() == pin->get_direction())
             continue;
