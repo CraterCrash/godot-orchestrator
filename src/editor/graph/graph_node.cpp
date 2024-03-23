@@ -22,6 +22,7 @@
 #include "graph_node_pin.h"
 #include "plugin/settings.h"
 #include "script/nodes/editable_pin_node.h"
+#include "script/nodes/functions/call_function.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -454,9 +455,6 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
         node_action_id++;
     }
 
-    // Check the node type
-    Ref<OScriptEditablePinNode> editable_node = _node;
-
     // Comment nodes are group-able, meaning that any node that is contained with the Comment node's rect window
     // can be automatically selected and dragged with the comment node. This can be done in two ways, one by
     // double-clicking the comment node to trigger the selection/deselection process or two by selecting the
@@ -480,7 +478,7 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     _context_menu->add_icon_item(SceneUtils::get_icon(this, "Unlinked"), "Break Node Link(s)", CM_BREAK_LINKS);
     _context_menu->set_item_disabled(_context_menu->get_item_index(CM_BREAK_LINKS), !_node->has_any_connections());
 
-    if (editable_node.is_valid())
+    if (_is_editable())
         _context_menu->add_item("Add Option Pin", CM_ADD_OPTION_PIN);
 
     // todo: support breakpoints (See Trello)
@@ -519,10 +517,41 @@ void OrchestratorGraphNode::_on_changed()
     _update_node_attributes();
 }
 
+bool OrchestratorGraphNode::_is_editable() const
+{
+    Ref<OScriptEditablePinNode> editable_node = _node;
+    if (editable_node.is_valid())
+        return true;
+
+    Ref<OScriptNodeCallFunction> function_call_node = _node;
+    if (function_call_node.is_valid() && function_call_node->is_vararg())
+        return true;
+
+    return false;
+}
+
 bool OrchestratorGraphNode::_is_add_pin_button_visible() const
 {
     Ref<OScriptEditablePinNode> editable_node = _node;
-    return editable_node.is_valid() && editable_node->can_add_dynamic_pin();
+    if (editable_node.is_valid())
+        return editable_node->can_add_dynamic_pin();
+
+    Ref<OScriptNodeCallFunction> function_call_node = _node;
+    if (function_call_node.is_valid())
+        return function_call_node->is_vararg();
+
+    return false;
+}
+
+void OrchestratorGraphNode::_add_option_pin()
+{
+    Ref<OScriptEditablePinNode> editable = _node;
+    if (editable.is_valid())
+        editable->add_dynamic_pin();
+
+    Ref<OScriptNodeCallFunction> function_call_node = _node;
+    if(function_call_node.is_valid() && function_call_node->is_vararg())
+        function_call_node->add_dynamic_pin();
 }
 
 List<OrchestratorGraphNode*> OrchestratorGraphNode::get_nodes_within_global_rect()
@@ -570,9 +599,7 @@ void OrchestratorGraphNode::_on_pin_disconnected(int p_type, int p_index)
 
 void OrchestratorGraphNode::_on_add_pin_pressed()
 {
-    Ref<OScriptEditablePinNode> editable_node = _node;
-    if (editable_node.is_valid() && editable_node->can_add_dynamic_pin())
-        editable_node->add_dynamic_pin();
+    _add_option_pin();
 }
 
 void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
@@ -640,9 +667,7 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             }
             case CM_ADD_OPTION_PIN:
             {
-                Ref<OScriptEditablePinNode> editable = _node;
-                if (editable.is_valid())
-                    editable->add_dynamic_pin();
+                _add_option_pin();
                 break;
             }
             #ifdef _DEBUG
