@@ -28,20 +28,21 @@ void OrchestratorGraphNodePinEnum::_bind_methods()
 {
 }
 
-void OrchestratorGraphNodePinEnum::_on_item_selected(int p_index)
+void OrchestratorGraphNodePinEnum::_on_item_selected(int p_index, OptionButton* p_button)
 {
     const String enum_class = _pin->get_target_class();
     if (ExtensionDB::get_global_enum_names().has(enum_class))
     {
         const EnumInfo& ei = ExtensionDB::get_global_enum(enum_class);
         _pin->set_default_value(ei.values[p_index].value);
+        p_button->release_focus();
     }
 }
 
 Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
 {
     OptionButton* button = memnew(OptionButton);
-    button->connect("item_selected", callable_mp(this, &OrchestratorGraphNodePinEnum::_on_item_selected));
+    button->connect("item_selected", callable_mp(this, &OrchestratorGraphNodePinEnum::_on_item_selected).bind(button));
 
     const String enum_class = _pin->get_target_class();
     if (!enum_class.is_empty() && ExtensionDB::get_global_enum_names().has(enum_class))

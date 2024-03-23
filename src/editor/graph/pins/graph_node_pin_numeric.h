@@ -35,13 +35,19 @@ class OrchestratorGraphNodePinNumeric : public OrchestratorGraphNodePin
 protected:
     OrchestratorGraphNodePinNumeric() = default;
 
-    /// Called when the default value is changed in the UI.
-    /// @param p_new_value the new default value
-    void _on_default_value_changed(const String& p_new_value);
+    /// Sets the default value.
+    /// @param p_value the new default value
+    /// @return true if the default value was set; false otherwise
+    bool _set_default_value(const String& p_value);
+
+    /// Called when the user hits "ENTER" in the line edit widget.
+    /// @param p_value the submitted value
+    /// @param p_line_edit the line edit widget
+    void _on_text_submitted(const String& p_value, LineEdit* p_line_edit);
 
     /// Called when focus is lost on the line edit widget.
     /// @param p_line_edit the line edit widget
-    void _on_focus_lost(LineEdit* p_line_edit);
+    void _on_focus_lost(const LineEdit* p_line_edit);
 
     //~ Begin OrchestratorGraphNodePin Interface
     Control* _get_default_value_widget() override;
