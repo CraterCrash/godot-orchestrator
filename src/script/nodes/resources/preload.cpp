@@ -16,6 +16,8 @@
 //
 #include "preload.h"
 
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 
 class OScriptNodePreloadInstance : public OScriptNodeInstance
@@ -82,9 +84,8 @@ bool OScriptNodePreload::_set(const StringName &p_name, const Variant& p_value)
 void OScriptNodePreload::allocate_default_pins()
 {
     Ref<OScriptNodePin> path = create_pin(PD_Output, "path", Variant::OBJECT, _resource_path);
-    path->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL);
+    path->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL | OScriptNodePin::Flags::NO_CAPITALIZE);
     path->set_label(_resource_path);
-    path->set_target_class("Resource");
 
     super::allocate_default_pins();
 }
@@ -108,6 +109,28 @@ String OScriptNodePreload::get_node_title() const
 String OScriptNodePreload::get_icon() const
 {
     return "ResourcePreloader";
+}
+
+StringName OScriptNodePreload::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const
+{
+    if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
+    {
+        // If resource is invalid, attempt to load it
+        Ref<Resource> resource = _resource;
+        if (!resource.is_valid())
+            resource = ResourceLoader::get_singleton()->load(_resource_path);
+
+        // If resource is valid, if scene, get root node type; otherwise resource type
+        if (resource.is_valid())
+        {
+            const Ref<PackedScene> scene = resource;
+            if (scene.is_valid() && scene->can_instantiate())
+                return scene->instantiate()->get_class();
+
+            return resource->get_class();
+        }
+    }
+    return super::resolve_type_class(p_pin);
 }
 
 OScriptNodeInstance* OScriptNodePreload::instantiate(OScriptInstance* p_instance)
