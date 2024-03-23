@@ -51,7 +51,7 @@ String OScriptNodeCallBuiltinFunction::get_tooltip_text() const
 
 String OScriptNodeCallBuiltinFunction::get_node_title() const
 {
-    return vformat("Call %s (%s)", _reference.method.name, _reference.method.name.capitalize());
+    return vformat("Call %s", _reference.method.name.capitalize());
 }
 
 void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_context)
