@@ -22,6 +22,7 @@
 namespace godot
 {
     class LineEdit;
+    class TextEdit;
 }
 
 /// An implementation of OrchestratorGraphNodePin for types that want to represent their default values
@@ -35,10 +36,18 @@ class OrchestratorGraphNodePinString : public OrchestratorGraphNodePin
 protected:
     OrchestratorGraphNodePinString() = default;
 
-    /// Called when the default value is changed in the UI.
-    /// @param p_new_value the new default value
-    void _on_default_value_changed(const String& p_new_value);
-    void _on_text_edit_changed(Control* p_control);
+    /// Sets the default value on the pin
+    /// @param p_value the default value to set
+    void _set_default_value(const String& p_value);
+
+    /// Called when the text edit's (multi-line text) text changes
+    /// @param p_text_edit the text edit widget
+    void _on_text_changed(TextEdit* p_text_edit);
+
+    /// Called when the line edit's text submitted handler.
+    /// @param p_value the text value submitted
+    /// @param p_line_edit the line edit widget
+    void _on_text_submitted(const String& p_value, LineEdit* p_line_edit);
 
     /// Called when focus is lost on the line edit widget.
     /// @param p_line_edit the line edit widget

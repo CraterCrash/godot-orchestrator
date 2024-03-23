@@ -28,19 +28,30 @@ void OrchestratorGraphNodePinString::_bind_methods()
 {
 }
 
-void OrchestratorGraphNodePinString::_on_default_value_changed(const String& p_new_value)
+void OrchestratorGraphNodePinString::_set_default_value(const String& p_value)
 {
-    _pin->set_default_value(p_new_value);
+    _pin->set_default_value(p_value);
 }
 
-void OrchestratorGraphNodePinString::_on_text_edit_changed(Control* p_control)
+void OrchestratorGraphNodePinString::_on_text_changed(TextEdit* p_text_edit)
 {
-    _pin->set_default_value(Object::cast_to<TextEdit>(p_control)->get_text());
+    if (p_text_edit)
+        _set_default_value(p_text_edit->get_text());
+}
+
+void OrchestratorGraphNodePinString::_on_text_submitted(const String& p_value, LineEdit* p_line_edit)
+{
+    if (p_line_edit)
+    {
+        _set_default_value(p_line_edit->get_text());
+        p_line_edit->release_focus();
+    }
 }
 
 void OrchestratorGraphNodePinString::_on_focus_lost(LineEdit* p_line_edit)
 {
-    _on_default_value_changed(p_line_edit->get_text());
+    if (p_line_edit)
+        _set_default_value(p_line_edit->get_text());
 }
 
 Control* OrchestratorGraphNodePinString::_get_default_value_widget()
@@ -58,23 +69,21 @@ Control* OrchestratorGraphNodePinString::_get_default_value_widget()
         text_edit->set_line_wrapping_mode(TextEdit::LINE_WRAPPING_BOUNDARY);
         text_edit->set_fit_content_height_enabled(true);
         text_edit->connect("text_changed",
-                           callable_mp(this, &OrchestratorGraphNodePinString::_on_text_edit_changed).bind(text_edit));
+                           callable_mp(this, &OrchestratorGraphNodePinString::_on_text_changed).bind(text_edit));
         return text_edit;
     }
-    else
-    {
-        LineEdit* line_edit = memnew(LineEdit);
-        line_edit->set_custom_minimum_size(Vector2(30, 0));
-        line_edit->set_expand_to_text_length_enabled(true);
-        line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-        line_edit->set_text(_pin->get_effective_default_value());
-        line_edit->set_select_all_on_focus(true);
-        line_edit->connect("text_submitted",
-                           callable_mp(this, &OrchestratorGraphNodePinString::_on_default_value_changed));
-        line_edit->connect("focus_exited",
-                           callable_mp(this, &OrchestratorGraphNodePinString::_on_focus_lost).bind(line_edit));
-        return line_edit;
-    }
+
+    LineEdit* line_edit = memnew(LineEdit);
+    line_edit->set_custom_minimum_size(Vector2(30, 0));
+    line_edit->set_expand_to_text_length_enabled(true);
+    line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    line_edit->set_text(_pin->get_effective_default_value());
+    line_edit->set_select_all_on_focus(true);
+    line_edit->connect("text_submitted",
+                       callable_mp(this, &OrchestratorGraphNodePinString::_on_text_submitted).bind(line_edit));
+    line_edit->connect("focus_exited",
+                       callable_mp(this, &OrchestratorGraphNodePinString::_on_focus_lost).bind(line_edit));
+    return line_edit;
 }
 
 bool OrchestratorGraphNodePinString::_render_default_value_below_label() const

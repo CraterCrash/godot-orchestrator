@@ -70,10 +70,18 @@ protected:
     //~ End OrchestratorGraphNodePin Interface
 
     /// Dispatched when the edit control receives focus
+    /// @param p_index the line edit control index
     void _on_focus_entered(int p_index);
 
-    /// Dispatched when the default value changed
-    void _on_default_value_changed();
+    /// Dispatched when the edit control looses focus
+    /// @param p_index the line edit control index
+    void _on_focus_exited(int p_index);
+
+    /// Dispatched when the text is submitted in a field
+    void _on_text_submitted();
+
+    /// Sets the default value from the all collective line edit controls
+    void _set_default_value_from_line_edits();
 
 public:
     /// Constructs the pin object

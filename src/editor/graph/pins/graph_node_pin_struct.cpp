@@ -126,7 +126,18 @@ void OrchestratorGraphNodePinStruct::_on_focus_entered(int p_index)
         _edits[p_index]->call_deferred("select_all");
 }
 
-void OrchestratorGraphNodePinStruct::_on_default_value_changed()
+void OrchestratorGraphNodePinStruct::_on_focus_exited(int p_index)
+{
+    if (p_index >= 0 && p_index < _edits.size())
+        _set_default_value_from_line_edits();
+}
+
+void OrchestratorGraphNodePinStruct::_on_text_submitted()
+{
+    _set_default_value_from_line_edits();
+}
+
+void OrchestratorGraphNodePinStruct::_set_default_value_from_line_edits()
 {
     // this works if the sub-parts are variant based types, i.e. floats
     // what about when there are sub-component types, i.e. basis or transform2d
@@ -184,8 +195,8 @@ Control* OrchestratorGraphNodePinStruct::_get_default_value_widget()
         line_edit->set_expand_to_text_length_enabled(true);
         line_edit->add_theme_constant_override("minimum_character_width", 0);
         line_edit->connect("focus_entered", callable_mp(this, &OrchestratorGraphNodePinStruct::_on_focus_entered).bind(i));
-        line_edit->connect("focus_exited", callable_mp(this, &OrchestratorGraphNodePinStruct::_on_default_value_changed));
-        line_edit->connect("text_submitted", callable_mp(this, &OrchestratorGraphNodePinStruct::_on_default_value_changed));
+        line_edit->connect("focus_exited", callable_mp(this, &OrchestratorGraphNodePinStruct::_on_focus_exited).bind(i));
+        line_edit->connect("text_submitted", callable_mp(this, &OrchestratorGraphNodePinStruct::_on_text_submitted));
         container->add_child(line_edit);
 
         _edits.push_back(line_edit);

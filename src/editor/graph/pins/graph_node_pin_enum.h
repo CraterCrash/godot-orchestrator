@@ -19,6 +19,12 @@
 
 #include "editor/graph/graph_node_pin.h"
 
+/// Forward declarations
+namespace godot
+{
+    class OptionButton;
+}
+
 /// An implementation of OrchestratorGraphNodePin for enum pin types, which renders a
 /// drop down selection box for choices.
 class OrchestratorGraphNodePinEnum : public OrchestratorGraphNodePin
@@ -32,7 +38,8 @@ protected:
 
     /// Dispatched when the user makes a selection.
     /// @param p_index the choice index that was selected
-    void _on_item_selected(int p_index);
+    /// @param p_button the button widget
+    void _on_item_selected(int p_index, OptionButton* p_button);
 
     //~ Begin OrchestratorGraphNodePin Interface
     Control* _get_default_value_widget() override;
