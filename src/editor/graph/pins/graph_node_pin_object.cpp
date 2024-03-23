@@ -16,6 +16,9 @@
 //
 #include "graph_node_pin_object.h"
 
+#include "script/node.h"
+#include "script/nodes/functions/call_function.h"
+
 OrchestratorGraphNodePinObject::OrchestratorGraphNodePinObject(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
 {
@@ -27,6 +30,17 @@ void OrchestratorGraphNodePinObject::_bind_methods()
 
 Control* OrchestratorGraphNodePinObject::_get_default_value_widget()
 {
+    // Specifically checks if the node is a CallFunction node and if the pin is not the "Target" pin.
+    // In these cases, we should not render the "(self)" label.
+    if (OScriptNode* node = _pin->get_owning_node())
+    {
+        if (OScriptNodeCallFunction* call_function = Object::cast_to<OScriptNodeCallFunction>(node))
+        {
+            if (!_pin->get_pin_name().match("target"))
+                return nullptr;
+        }
+    }
+
     Label* label = memnew(Label);
     label->set_text("(self)");
     return label;
