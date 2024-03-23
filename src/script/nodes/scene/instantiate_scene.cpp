@@ -122,6 +122,20 @@ void OScriptNodeInstantiateScene::pin_default_value_changed(const Ref<OScriptNod
     super::pin_default_value_changed(p_pin);
 }
 
+StringName OScriptNodeInstantiateScene::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const
+{
+    if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
+    {
+        Ref<PackedScene> packed_scene = ResourceLoader::get_singleton()->load(_scene);
+        if (packed_scene.is_valid())
+        {
+            if (packed_scene->can_instantiate())
+                return packed_scene->instantiate()->get_class();
+        }
+    }
+    return super::resolve_type_class(p_pin);
+}
+
 OScriptNodeInstance* OScriptNodeInstantiateScene::instantiate(OScriptInstance* p_instance)
 {
     OScriptNodeInstantiateSceneInstance* i = memnew(OScriptNodeInstantiateSceneInstance);
