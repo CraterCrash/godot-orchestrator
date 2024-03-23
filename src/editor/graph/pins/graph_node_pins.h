@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_GRAPH_NODE_PINS_H
 #define ORCHESTRATOR_GRAPH_NODE_PINS_H
 
+#include "editor/graph/pins/graph_node_pin_bitfield.h"
 #include "editor/graph/pins/graph_node_pin_bool.h"
 #include "editor/graph/pins/graph_node_pin_color.h"
 #include "editor/graph/pins/graph_node_pin_enum.h"
