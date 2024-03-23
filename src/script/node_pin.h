@@ -78,6 +78,7 @@ public:
         FILE            = 1 << 23,  //! Should allow the user to select a file
         MULTILINE       = 1 << 24,  //! Text should be rendered using a TextEdit rather than LineEdit
         ENUM            = 1 << 25,  //! Target class holds the name of the enum
+        BITFIELD        = 1 << 26,  //! Target class holds a bitfield
     };
 
 private:

@@ -17,7 +17,9 @@
 #include "graph_node_pin_enum.h"
 
 #include "api/extension_db.h"
+
 #include <godot_cpp/classes/option_button.hpp>
+
 
 OrchestratorGraphNodePinEnum::OrchestratorGraphNodePinEnum(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
@@ -44,19 +46,39 @@ Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
     OptionButton* button = memnew(OptionButton);
     button->connect("item_selected", callable_mp(this, &OrchestratorGraphNodePinEnum::_on_item_selected).bind(button));
 
-    const String enum_class = _pin->get_target_class();
-    if (!enum_class.is_empty() && ExtensionDB::get_global_enum_names().has(enum_class))
-    {
-        int effective_default = _pin->get_effective_default_value();
+    int effective_default = _pin->get_effective_default_value();
 
-        const EnumInfo &ei = ExtensionDB::get_global_enum(enum_class);
-        for (const EnumValue& value : ei.values)
+    const String target_enum_class = _pin->get_target_class();
+    if (!target_enum_class.is_empty())
+    {
+        if (target_enum_class.contains("."))
         {
-            if (!value.friendly_name.is_empty())
+            const int dot = target_enum_class.find(".");
+            const String class_name = target_enum_class.substr(0, dot);
+            const String enum_name  = target_enum_class.substr(dot + 1);
+            const PackedStringArray enum_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
+
+            int index = 0;
+            for (const String& enum_value : enum_values)
             {
-                button->add_item(value.friendly_name);
-                if (effective_default == value.value)
+                button->add_item(enum_value);
+                if (effective_default == index)
                     button->select(button->get_item_count() - 1);
+
+                index++;
+            }
+        }
+        else if (ExtensionDB::get_global_enum_names().has(target_enum_class))
+        {
+            const EnumInfo &ei = ExtensionDB::get_global_enum(target_enum_class);
+            for (const EnumValue& value : ei.values)
+            {
+                if (!value.friendly_name.is_empty())
+                {
+                    button->add_item(value.friendly_name);
+                    if (effective_default == value.value)
+                        button->select(button->get_item_count() - 1);
+                }
             }
         }
     }

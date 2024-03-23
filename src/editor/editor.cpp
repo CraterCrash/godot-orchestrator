@@ -80,6 +80,7 @@ void register_editor_classes()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSceneTreeDialog)
 
     // Graph Pin Types
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinBitField)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinBool)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinColor)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinEnum)

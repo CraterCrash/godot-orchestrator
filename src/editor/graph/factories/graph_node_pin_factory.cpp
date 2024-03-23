@@ -29,6 +29,9 @@ OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::create_pin(Orchestrat
     else if (p_pin->get_flags().has_flag(OScriptNodePin::Flags::ENUM))
         return memnew(OrchestratorGraphNodePinEnum(p_node, p_pin));
 
+    else if (p_pin->get_flags().has_flag(OScriptNodePin::Flags::BITFIELD))
+        return memnew(OrchestratorGraphNodePinBitField(p_node, p_pin));
+
     switch (p_pin->get_type())
     {
         case Variant::STRING:

@@ -267,7 +267,22 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
     {
         Ref<OScriptNodePin> pin = create_pin(PD_Input, pi.name, pi.type);
         if (pin.is_valid())
-            pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+        {
+            BitField<OScriptNodePin::Flags> flags(OScriptNodePin::Flags::DATA | OScriptNodePin::NO_CAPITALIZE);
+            if (pi.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
+            {
+                flags.set_flag(OScriptNodePin::Flags::ENUM);
+                pin->set_target_class(pi.class_name);
+                pin->set_type(pi.type);
+            }
+            else if (pi.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
+            {
+                flags.set_flag(OScriptNodePin::Flags::BITFIELD);
+                pin->set_target_class(pi.class_name);
+                pin->set_type(pi.type);
+            }
+            pin->set_flags(flags);
+        }
     }
 
     if (_has_return_value(p_method))
