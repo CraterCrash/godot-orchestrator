@@ -25,7 +25,6 @@ class OScriptNodeInstantiateSceneInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeInstantiateScene);
     String _scene_name;
     Ref<PackedScene> _scene;
-    Node* _scene_node;
 
 public:
     int step(OScriptNodeExecutionContext& p_context) override
@@ -38,10 +37,10 @@ public:
                 p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Failed to load scene");
                 return -1;
             }
-            _scene_node = _scene->instantiate();
         }
 
-        p_context.set_output(0, _scene_node);
+        Node* scene_node = _scene->instantiate();
+        p_context.set_output(0, scene_node);
         return 0;
     }
 };
