@@ -200,6 +200,9 @@ private:
     void _select_nodes_for_pin(const Ref<OScriptNodePin>& p_pin);
     void _select_nodes_for_pin(const Ref<OScriptNodePin>& p_pin, OrchestratorGraphNode* p_node);
 
+    /// Removes the editable pin
+    void _remove_editable_pin();
+
     /// Promote this pin to a variable
     void _promote_as_variable();
 

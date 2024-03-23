@@ -181,9 +181,15 @@ protected:
     /// Display the node's context menu
     void _show_context_menu(const Vector2& p_position);
 
+    /// Returns whether the node is considered editable
+    bool _is_editable() const;
+
     /// Is the "add-pin" button visible
     /// @return true if the add-pin is visible, otherwise false
     bool _is_add_pin_button_visible() const;
+
+    /// Adds a new option pin to the node
+    void _add_option_pin();
 
     /// Simulates the action being pressed
     /// @param p_action_name the action to simulate

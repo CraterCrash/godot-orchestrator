@@ -21,9 +21,10 @@
 #include "graph_edit.h"
 #include "graph_node.h"
 #include "plugin/settings.h"
-#include "script/nodes/editable_pin_node.h"
 #include "script/nodes/data/coercion_node.h"
 #include "script/nodes/data/dictionary.h"
+#include "script/nodes/editable_pin_node.h"
+#include "script/nodes/functions/call_function.h"
 #include "script/nodes/variables/variable_get.h"
 #include "script/nodes/variables/variable_set.h"
 
@@ -219,6 +220,17 @@ void OrchestratorGraphNodePin::set_default_value_control_visibility(bool p_visib
 {
     if (_default_value)
         _default_value->set_visible(p_visible);
+}
+
+void OrchestratorGraphNodePin::_remove_editable_pin()
+{
+    Ref<OScriptEditablePinNode> editable = _node->get_script_node();
+    if (editable.is_valid())
+        editable->remove_dynamic_pin(_pin);
+
+    Ref<OScriptNodeCallFunction> function_call = _node->get_script_node();
+    if (function_call.is_valid() && function_call->is_vararg())
+        function_call->remove_dynamic_pin(_pin);
 }
 
 void OrchestratorGraphNodePin::_promote_as_variable()
@@ -464,7 +476,12 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
     }
 
     Ref<OScriptEditablePinNode> editable = owner_node;
-    if (editable.is_valid() && editable->can_remove_dynamic_pin(_pin))
+    bool editable_pin_removable = editable.is_valid() && editable->can_remove_dynamic_pin(_pin);
+
+    Ref<OScriptNodeCallFunction> function_call = owner_node;
+    bool function_call_pin_removable = function_call.is_valid() && function_call->can_remove_dynamic_pin(_pin);
+
+    if (editable_pin_removable || function_call_pin_removable)
     {
         String text = "Remove pin";
 
@@ -615,9 +632,7 @@ void OrchestratorGraphNodePin::_on_context_menu_selection(int p_id)
         }
         case CM_REMOVE:
         {
-            Ref<OScriptEditablePinNode> editable = _node->get_script_node();
-            if (editable.is_valid())
-                editable->remove_dynamic_pin(_pin);
+            _remove_editable_pin();
             break;
         }
         case CM_PROMOTE_TO_VARIABLE:

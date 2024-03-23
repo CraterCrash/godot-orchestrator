@@ -173,6 +173,9 @@ void OScriptNodeCallFunction::_get_property_list(List<PropertyInfo>* r_list) con
 
     if (_is_method_info_serialized())
         r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+
+    if (_reference.method.flags & METHOD_FLAG_VARARG)
+        r_list->push_back(PropertyInfo(Variant::INT, "variable_arg_count", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
 bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) const
@@ -207,6 +210,11 @@ bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) c
         r_value = DictionaryUtils::from_method(_reference.method);
         return true;
     }
+    else if (p_name.match("variable_arg_count"))
+    {
+        r_value = _vararg_count;
+        return true;
+    }
     return false;
 }
 
@@ -236,6 +244,12 @@ bool OScriptNodeCallFunction::_set(const StringName& p_name, const Variant& p_va
     else if (p_name.match("method"))
     {
         _reference.method = DictionaryUtils::to_method(p_value);
+        return true;
+    }
+    else if (p_name.match("variable_arg_count"))
+    {
+        _vararg_count = int(p_value);
+        _notify_pins_changed();
         return true;
     }
     return false;
@@ -268,6 +282,15 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         Ref<OScriptNodePin> pin = create_pin(PD_Input, pi.name, pi.type);
         if (pin.is_valid())
             pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    }
+
+    if (_reference.method.flags & METHOD_FLAG_VARARG)
+    {
+        for (int i = 0; i < _vararg_count; i++)
+        {
+            Ref<OScriptNodePin> vararg_pin = create_pin(PD_Input, "varg_" + itos(i), Variant::NIL);
+            vararg_pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+        }
     }
 
     if (_has_return_value(p_method))
@@ -319,7 +342,11 @@ void OScriptNodeCallFunction::_set_function_flags(const MethodInfo& p_method)
 
 int OScriptNodeCallFunction::get_argument_count() const
 {
-    return (int) _reference.method.arguments.size();
+    int arg_count = _reference.method.arguments.size();
+    if (_reference.method.flags & METHOD_FLAG_VARARG)
+        arg_count += _vararg_count;
+
+    return arg_count;
 }
 
 void OScriptNodeCallFunction::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins)
@@ -378,4 +405,35 @@ void OScriptNodeCallFunction::initialize(const OScriptNodeInitContext& p_context
 {
     ERR_FAIL_COND_MSG(_reference.name.is_empty(), "Function name not specified.");
     super::initialize(p_context);
+}
+
+void OScriptNodeCallFunction::add_dynamic_pin()
+{
+    _vararg_count++;
+    reconstruct_node();
+}
+
+bool OScriptNodeCallFunction::can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const
+{
+    if (!is_vararg())
+        return false;
+
+    return p_pin.is_valid() && p_pin->get_pin_name().begins_with("varg_");
+}
+
+void OScriptNodeCallFunction::remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin)
+{
+    if (p_pin.is_valid() && can_remove_dynamic_pin(p_pin))
+    {
+        int pin_offset = p_pin->get_pin_index();
+
+        p_pin->unlink_all(true);
+        remove_pin(p_pin);
+
+        // Taken from OScriptNodeEditablePin::_adjust_connections
+        get_owning_script()->adjust_connections(this, pin_offset, -1, PD_Input);
+
+        _vararg_count--;
+        reconstruct_node();
+    }
 }

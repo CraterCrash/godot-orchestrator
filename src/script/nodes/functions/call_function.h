@@ -69,6 +69,7 @@ public:
 protected:
     BitField<FunctionFlags> _function_flags{ FF_NONE };  //! Function flags
     OScriptFunctionReference _reference;                 //! Function reference
+    int _vararg_count{ 0 };                              //! Variable argument count
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -120,6 +121,20 @@ public:
     //~ End OScriptNode Interface
 
     OScriptNodeCallFunction() { _flags = ScriptNodeFlags::NONE; }
+
+    /// Returns whether the function call supports variadic arguments
+    bool is_vararg() const { return _reference.method.flags & METHOD_FLAG_VARARG; }
+
+    /// Adds a new dynamic pin to the node
+    void add_dynamic_pin();
+
+    /// Check whether the specified pin can be removed
+    /// @param p_pin the pin to be removed
+    bool can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const;
+
+    /// Removes the variadic argument pin
+    /// @param p_pin the pin to be removed
+    void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin);
 };
 
 VARIANT_ENUM_CAST(OScriptNodeCallFunction::FunctionFlags)
