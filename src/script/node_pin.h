@@ -71,6 +71,7 @@ public:
         SHOW_LABEL      = 1 << 9,   //! Label should be shown, always
         HIDE_LABEL      = 1 << 10,  //! Label should be hidden, always
         NO_CAPITALIZE   = 1 << 11,  //! Label is not capitalized
+        NO_AUTOWIRE     = 1 << 12,  //! Prevents being autowired
         CONST           = 1 << 20,  //! Represents a "const" data port
         REFERENCE       = 1 << 21,  //! Represents a "reference" data port
         OBJECT          = 1 << 22,  //! Refers to an object type
