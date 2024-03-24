@@ -127,4 +127,24 @@ namespace SceneUtils
         // Traverse node's owner
         return get_relative_scene_root(p_node->get_owner());
     }
+
+    Vector<Node*> find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script)
+    {
+        Vector<Node*> nodes;
+        if (p_current->get_owner() != p_base && p_base != p_current)
+            return nodes;
+
+        Ref<Script> c = p_current->get_script();
+        if (c == p_script)
+            nodes.push_back(p_current);
+
+        for (int i = 0; i < p_current->get_child_count(); i++)
+        {
+            Vector<Node*> found = find_all_nodes_for_script(p_base, p_current->get_child(i), p_script);
+            nodes.append_array(found);
+        }
+
+        return nodes;
+    }
+
 }
