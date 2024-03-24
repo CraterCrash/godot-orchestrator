@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## [2.0.rc2](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.rc2) - 2024-03-24
+
+- [65f82f2](http://github.com/Vahera/godot-orchestrator/commit/65f82f2229f09fd04b35960c1954c3ba44805881) - Rework about dialog
+- [3b17834](http://github.com/Vahera/godot-orchestrator/commit/3b1783489887777c51b1291c51dbbb2dc7d48243) - GH-176 Move dialog center prior to popup
+- [10034e3](http://github.com/Vahera/godot-orchestrator/commit/10034e3ec8df8ef76179298752d07ff79932ff3c) - GH-193 Allow highlighting selected nodes/connections
+- [1e4ae2e](http://github.com/Vahera/godot-orchestrator/commit/1e4ae2e6b6ab56cbef3432878bfd5fd9e2f3a0e8) - GH-183 Signal function connection indicator/dialog
+- [34f85f8](http://github.com/Vahera/godot-orchestrator/commit/34f85f877dec17f4526ac898b2086f72f56322a3) - GH-177 Fix type propagation for Preload and Instantiate Scene
+- [e769057](http://github.com/Vahera/godot-orchestrator/commit/e7690574fa98026435ab8d35369e62a8734ecaf7) - GH-194 Reduce title text in call function nodes
+- [57e13ce](http://github.com/Vahera/godot-orchestrator/commit/57e13ce430ddab059df0fa4757309acc53ccc501) - GH-187 Add BitField input/default value support
+- [3599beb](http://github.com/Vahera/godot-orchestrator/commit/3599bebde3aaab834fca4c71c58c0332e7bf5896) - GH-180 Support variadic function arguments
+- [5e36291](http://github.com/Vahera/godot-orchestrator/commit/5e3629180135fdfffea93d0b111877ae172ff573) - GH-190 Do not cache instantiated scene node
+- [fdec82f](http://github.com/Vahera/godot-orchestrator/commit/fdec82f958e94c2aa82010d0eace46f1f3e247dd) - GH-179 Remove Function Call `(self)` indicator from non-target pins
+- [1590194](http://github.com/Vahera/godot-orchestrator/commit/1590194efb24248638536029b65386742ce73742) - GH-179 Function Call `Target` pin no longer autowired
+- [b19db62](http://github.com/Vahera/godot-orchestrator/commit/b19db62f31e78495f47ebae0af2f4ca4d539ea81) - GH-182 The `ENTER` key releases node input focus
+- [4e146cb](http://github.com/Vahera/godot-orchestrator/commit/4e146cba5eeedf8a9fb3a5abea1c3c8191c71a0e) - GH-176 Position all actions menu based on `center_on_mouse`
+- [2b95ddd](http://github.com/Vahera/godot-orchestrator/commit/2b95ddd35423082b89b9ea621deaa516acbf0e2d) - [ci] Upgrade tj-actions/changed-files from v43.0.0 to v43.0.1
+- [d84191d](http://github.com/Vahera/godot-orchestrator/commit/d84191dbc4282f7cb33ef19faf9cbb7b78134179) - GH-173 Align styles with non-comment nodes
+- [6cd0b66](http://github.com/Vahera/godot-orchestrator/commit/6cd0b66aea13d6d8d9d0cca37bc5e55bd5f96f55) - GH-173 Sync comment background color on inspector change
+- [df24b23](http://github.com/Vahera/godot-orchestrator/commit/df24b23d6e6a877a41ba07b5f15bea12d9ca0cfb) - Update README.md
+- [551ed1f](http://github.com/Vahera/godot-orchestrator/commit/551ed1f738fe64c8c11d1a4ae37afe648198fa51) - GH-98 Distribute Orchestrator icon .import files
+- [df6691f](http://github.com/Vahera/godot-orchestrator/commit/df6691fff827a8df9f69a16570ac1b25b4fa3eb5) - GH-152 Do not change node icons when script attached
+- [269e8e9](http://github.com/Vahera/godot-orchestrator/commit/269e8e9f2079226bf9c33634ee1dd75999f694b5) - GH-167 Use `ubuntu-20.04` for GLIBC 2.31
+- [161976e](http://github.com/Vahera/godot-orchestrator/commit/161976e26078cf28a0da6add0f76063110ee85c4) - [ci] Upgrade tj-actions/changed-files from v42.1.0 to v43.0.0
+- [de49a48](http://github.com/Vahera/godot-orchestrator/commit/de49a480e4512b2095a0a39d4b2b31928b105c80) - GH-164 Add Local Variable types Object & Any
+- [38e5b43](http://github.com/Vahera/godot-orchestrator/commit/38e5b43df3614a3b49d4d2436c568b624cc949c4) - GH-158 Correctly escape modulus title text
+- [7d77cff](http://github.com/Vahera/godot-orchestrator/commit/7d77cffe6da374574acd20e9c619a7ec9fd04eaa) - GH-155 Allow toggling component panel visibility
+- [6113a9c](http://github.com/Vahera/godot-orchestrator/commit/6113a9c4b84a79497effa07d74173b92df5bf7c4) - GH-159 Support all Packed-Array types
+- [63011e1](http://github.com/Vahera/godot-orchestrator/commit/63011e1d397232321bc948298659641c75b5cea1) - [ci] Upgrade tj-actions/changed-files from v42.0.7 to v42.1.0
+- [7c6731e](http://github.com/Vahera/godot-orchestrator/commit/7c6731e72793b774d4d7b1fe9c6b796255100f0d) - Update documentation workflow
+
 ## [2.0.rc1](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.rc1) - 2024-03-10
 
 - [468efc6](http://github.com/Vahera/godot-orchestrator/commit/468efc63bf36ac24848a7a709fcbf40ef87cd795) - [docs] Update tutorial
