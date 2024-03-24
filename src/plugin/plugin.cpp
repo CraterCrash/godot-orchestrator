@@ -144,7 +144,7 @@ String OrchestratorPlugin::get_github_issues_url() const
 
 String OrchestratorPlugin::get_patreon_url() const
 {
-    return "https://patreon.com/vahera";
+    return "https://forums.vahera.com/d/9-open-source-games-plugins-development-fund";
 }
 
 String OrchestratorPlugin::get_community_url() const

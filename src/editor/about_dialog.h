@@ -18,10 +18,12 @@
 #define ORCHESTRATOR_ABOUT_DIALOG_H
 
 #include <godot_cpp/classes/accept_dialog.hpp>
+#include <godot_cpp/classes/item_list.hpp>
 #include <godot_cpp/classes/link_button.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
@@ -35,6 +37,7 @@ class OrchestratorAboutDialog : public AcceptDialog
     RichTextLabel* _license_text{ nullptr };
     TextureRect* _logo{ nullptr };
     bool _theme_changing{ false };
+    Vector<ItemList*> _name_lists;
 
 protected:
     static void _bind_methods();
@@ -49,7 +52,8 @@ public:
 
 private:
     ScrollContainer* _populate_list(const String& p_name, const List<String>& p_sections,
-                                    const char* const* const p_src[], int _p_flag_single_column, bool p_donor);
+                                    const char* const* const p_src[], int _p_flag_single_column = 0, bool p_donor = false,
+                                    const bool p_allow_website = false);
 
     /// Dispatched when the version is clicked
     void _on_version_pressed();
@@ -59,6 +63,15 @@ private:
 
     /// Dispatched when a user clicks the patreon button
     void _on_patreon_button();
+
+    /// Dispatched when a website item is selected.
+    /// @param p_id the list item id
+    /// @param p_list the list
+    void _on_item_website_selected(int p_id, ItemList* p_list);
+
+    /// Dispatched when the item list is resized
+    /// @param p_list the list that was resized
+    void _on_item_list_resized(ItemList* p_list);
 };
 
 #endif  // ORCHESTRATOR_ABOUT_DIALOG_H
