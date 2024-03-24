@@ -11,7 +11,7 @@ no other name is available.
 
 ## Project Founders
 
-    Darryl Agee
+    Darryl Agee (Zomphie)
     Chris Cranford (Naros)
 
 ## Lead Developers
