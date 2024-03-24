@@ -26,11 +26,11 @@
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_separator.hpp>
-#include <godot_cpp/classes/item_list.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
+#include <godot_cpp/classes/style_box_empty.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
@@ -41,79 +41,6 @@ OrchestratorAboutDialog::OrchestratorAboutDialog()
 {
     set_title("About Godot Orchestrator");
     set_hide_on_ok(true);
-
-    VBoxContainer* vbc = memnew(VBoxContainer);
-    add_child(vbc);
-
-    HBoxContainer* hbc = memnew(HBoxContainer);
-    hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-    hbc->set_alignment(BoxContainer::ALIGNMENT_CENTER);
-    hbc->add_theme_constant_override("separation", 30);
-    vbc->add_child(hbc);
-
-    _logo = memnew(TextureRect);
-    _logo->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
-    _logo->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
-    _logo->set_custom_minimum_size(Size2(75, 0));
-    hbc->add_child(_logo);
-
-    VBoxContainer* version_info_vbc = memnew(VBoxContainer);
-
-    // Add a dummy control node for spacing.
-    Control* v_spacer = memnew(Control);
-    version_info_vbc->add_child(v_spacer);
-
-    _version_btn = memnew(LinkButton);
-    String hash = String(VERSION_HASH);
-    if (hash.length() != 0)
-        hash = " " + vformat("[%s]", hash.left(9));
-    _version_btn->set_text(VERSION_FULL_NAME + hash);
-    // Set the text to copy in metadata as it slightly differs from the button's text.
-    _version_btn->set_meta("text_to_copy", "v" VERSION_FULL_BUILD + hash);
-    _version_btn->set_underline_mode(LinkButton::UNDERLINE_MODE_ON_HOVER);
-    _version_btn->set_tooltip_text("Click to copy.");
-    version_info_vbc->add_child(_version_btn);
-
-    Label* about_text = memnew(Label);
-    about_text->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-    about_text->set_text(String::utf8("\xc2\xa9 2023-present ") + ("Vahera Studios, LLC and it's contributors."));
-    version_info_vbc->add_child(about_text);
-
-    hbc->add_child(version_info_vbc);
-
-    TabContainer* tc = memnew(TabContainer);
-    tc->set_tab_alignment(TabBar::ALIGNMENT_CENTER);
-    tc->set_custom_minimum_size(Size2(400, 200));
-    tc->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-    tc->set_theme_type_variation("TabContainerOdd");
-    vbc->add_child(tc);
-
-    // Authors
-
-    List<String> dev_sections;
-    dev_sections.push_back("Project Founders");
-    dev_sections.push_back("Lead Developer");
-    dev_sections.push_back("Developers");
-    const char *const *dev_src[] = { AUTHORS_FOUNDERS, AUTHORS_LEAD_DEVELOPERS, AUTHORS_DEVELOPERS };
-    tc->add_child(_populate_list("Authors", dev_sections, dev_src, 1, false));
-
-    // Donors
-    List<String> donor_sections;
-    donor_sections.push_back("Gold donors");
-    donor_sections.push_back("Silver donors");
-    donor_sections.push_back("Bronze donors");
-    donor_sections.push_back("Supporters");
-    const char *const *donor_src[] = { DONORS_GOLD, DONORS_SILVER, DONORS_BRONZE, SUPPORTERS };
-    tc->add_child(_populate_list("Donors", donor_sections, donor_src, 3, true));
-
-    // License
-    _license_text = memnew(RichTextLabel);
-    _license_text->set_threaded(true);
-    _license_text->set_name("License");
-    _license_text->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-    _license_text->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-    _license_text->set_text(String::utf8(ORCHESTRATOR_LICENSE_TEXT));
-    tc->add_child(_license_text);
 }
 
 void OrchestratorAboutDialog::_bind_methods()
@@ -125,6 +52,79 @@ void OrchestratorAboutDialog::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        VBoxContainer* vbc = memnew(VBoxContainer);
+        add_child(vbc);
+
+        HBoxContainer* hbc = memnew(HBoxContainer);
+        hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        hbc->set_alignment(BoxContainer::ALIGNMENT_CENTER);
+        hbc->add_theme_constant_override("separation", 30);
+        vbc->add_child(hbc);
+
+        _logo = memnew(TextureRect);
+        _logo->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        _logo->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+        _logo->set_custom_minimum_size(Size2(75, 0));
+        hbc->add_child(_logo);
+
+        VBoxContainer* version_info_vbc = memnew(VBoxContainer);
+
+        // Add a dummy control node for spacing.
+        Control* v_spacer = memnew(Control);
+        version_info_vbc->add_child(v_spacer);
+
+        _version_btn = memnew(LinkButton);
+        String hash = String(VERSION_HASH);
+        if (hash.length() != 0)
+            hash = " " + vformat("[%s]", hash.left(9));
+        _version_btn->set_text(VERSION_FULL_NAME + hash);
+        // Set the text to copy in metadata as it slightly differs from the button's text.
+        _version_btn->set_meta("text_to_copy", "v" VERSION_FULL_BUILD + hash);
+        _version_btn->set_underline_mode(LinkButton::UNDERLINE_MODE_ON_HOVER);
+        _version_btn->set_tooltip_text("Click to copy.");
+        version_info_vbc->add_child(_version_btn);
+
+        Label* about_text = memnew(Label);
+        about_text->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
+        about_text->set_text(String::utf8("\xc2\xa9 2023-present ") + ("Vahera Studios, LLC and it's contributors."));
+        version_info_vbc->add_child(about_text);
+
+        hbc->add_child(version_info_vbc);
+
+        TabContainer* tc = memnew(TabContainer);
+        tc->set_tab_alignment(TabBar::ALIGNMENT_CENTER);
+        tc->set_custom_minimum_size(Size2(400, 200));
+        tc->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+        tc->set_theme_type_variation("TabContainerOdd");
+        vbc->add_child(tc);
+
+        // Authors
+
+        List<String> dev_sections;
+        dev_sections.push_back("Project Founders");
+        dev_sections.push_back("Lead Developer");
+        dev_sections.push_back("Developers");
+        const char *const *dev_src[] = { AUTHORS_FOUNDERS, AUTHORS_LEAD_DEVELOPERS, AUTHORS_DEVELOPERS };
+        tc->add_child(_populate_list("Authors", dev_sections, dev_src, 0b1, false));
+
+        // Donors
+        List<String> donor_sections;
+        // donor_sections.push_back("Gold donors");
+        // donor_sections.push_back("Silver donors");
+        // donor_sections.push_back("Bronze donors");
+        donor_sections.push_back("Supporters");
+        const char *const *donor_src[] = { /*DONORS_GOLD, DONORS_SILVER, DONORS_BRONZE,*/ SUPPORTERS };
+        tc->add_child(_populate_list("Donors", donor_sections, donor_src, /*0b1*/ 0b0, true, true));
+
+        // License
+        _license_text = memnew(RichTextLabel);
+        _license_text->set_threaded(true);
+        _license_text->set_name("License");
+        _license_text->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        _license_text->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+        _license_text->set_text(String::utf8(ORCHESTRATOR_LICENSE_TEXT));
+        tc->add_child(_license_text);
+
         _version_btn->connect("pressed", callable_mp(this, &OrchestratorAboutDialog::_on_version_pressed));
         _patreon_btn->connect("pressed", callable_mp(this, &OrchestratorAboutDialog::_on_patreon_button));
     }
@@ -136,7 +136,8 @@ void OrchestratorAboutDialog::_notification(int p_what)
 }
 
 ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, const List<String> &p_sections,
-                                             const char *const *const p_src[], int p_flag_single_column, bool p_donor)
+                                             const char *const *const p_src[], int p_flag_single_column, bool p_donor,
+                                             const bool p_allow_website)
 {
     ScrollContainer* sc = memnew(ScrollContainer);
     sc->set_name(p_name);
@@ -146,9 +147,11 @@ ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, c
     vbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
     sc->add_child(vbc);
 
+    Ref<StyleBoxEmpty> empty_stylebox = memnew(StyleBoxEmpty);
+
     for (int i = 0; i < p_sections.size(); i++)
     {
-        bool single_column = p_flag_single_column & 1 << i;
+        bool single_column = p_flag_single_column & (1 << i);
         const char *const *names_ptr = p_src[i];
         if (*names_ptr)
         {
@@ -163,9 +166,43 @@ ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, c
             list->set_auto_height(true);
             list->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
             list->add_theme_constant_override("h_separation", 16);
-            while (*names_ptr)
-                list->add_item(String::utf8(*names_ptr++), nullptr, false);
-            list->set_max_columns(list->get_item_count() < 4 || single_column ? 1 : 16);
+            if (p_allow_website)
+            {
+                list->set_focus_mode(Control::FOCUS_CLICK);
+                list->set_mouse_filter(Control::MOUSE_FILTER_PASS);
+                list->connect("item_activated", callable_mp(this, &OrchestratorAboutDialog::_on_item_website_selected).bind(list));
+                list->connect("resized", callable_mp(this, &OrchestratorAboutDialog::_on_item_list_resized).bind(list));
+                list->connect("focus_exited", callable_mp(list, &ItemList::deselect_all));
+                list->add_theme_stylebox_override("focus", empty_stylebox);
+                list->add_theme_stylebox_override("selected", empty_stylebox);
+                while (*names_ptr)
+                {
+                    const String name = String::utf8(*names_ptr++);
+                    const String identifier = name.get_slice("<", 0);
+                    const String website = name.get_slice_count("<") == 1 ? "" : name.get_slice("<", 1).trim_suffix(">");
+
+                    const int name_item_id = list->add_item(identifier, nullptr, false);
+                    list->set_item_tooltip_enabled(name_item_id, false);
+                    if (!website.is_empty())
+                    {
+                        list->set_item_selectable(name_item_id, true);
+                        list->set_item_metadata(name_item_id, website);
+                        list->set_item_tooltip(name_item_id, "\n\nDouble-click to open in browser.");
+                        list->set_item_tooltip_enabled(name_item_id, true);
+                    }
+
+                    if (!*names_ptr && name.contains(" anonymous "))
+                        list->set_item_disabled(name_item_id, true);
+                }
+            }
+            else
+            {
+                while (*names_ptr)
+                    list->add_item(String::utf8(*names_ptr++), nullptr, false);
+            }
+
+            list->set_max_columns(single_column ? 1 : 16);
+            _name_lists.append(list);
             vbc->add_child(list);
 
             HSeparator* hs = memnew(HSeparator);
@@ -178,7 +215,7 @@ ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, c
     {
         _patreon_btn = memnew(LinkButton);
         _patreon_btn->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
-        _patreon_btn->set_text("Become a patreon member at https://patreon.com/vahera");
+        _patreon_btn->set_text("Donote and become a supporter today!");
         _patreon_btn->set_focus_mode(Control::FOCUS_NONE);
         _patreon_btn->set_underline_mode(LinkButton::UNDERLINE_MODE_ON_HOVER);
         vbc->add_child(_patreon_btn);
@@ -208,6 +245,18 @@ void OrchestratorAboutDialog::_on_theme_changed()
 
     _logo->set_texture(ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg"));
 
+    for (ItemList *list : _name_lists)
+    {
+        for (int i = 0; i < list->get_item_count(); i++)
+        {
+            if (list->get_item_metadata(i))
+            {
+                list->set_item_icon(i, get_theme_icon("ExternalLink", "EditorIcons"));
+                list->set_item_icon_modulate(i, get_theme_color("font_disabled_color", "Editor"));
+            }
+        }
+    }
+
     Ref<Theme> theme = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_theme();
     if (theme.is_valid())
     {
@@ -225,4 +274,16 @@ void OrchestratorAboutDialog::_on_theme_changed()
 void OrchestratorAboutDialog::_on_patreon_button()
 {
     OS::get_singleton()->shell_open(OrchestratorPlugin::get_singleton()->get_patreon_url());
+}
+
+void OrchestratorAboutDialog::_on_item_website_selected(int p_id, ItemList* p_list)
+{
+    const String website = p_list->get_item_metadata(p_id);
+    if (!website.is_empty())
+        OS::get_singleton()->shell_open(website);
+}
+
+void OrchestratorAboutDialog::_on_item_list_resized(ItemList* p_list)
+{
+    p_list->set_fixed_column_width(p_list->get_size().x / 3.0 - 16 * 2.5);
 }
