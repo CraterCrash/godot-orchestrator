@@ -23,6 +23,7 @@
 #include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "plugin/plugin.h"
+#include "plugin/settings.h"
 #include "script/language.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
@@ -869,6 +870,37 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
     if (node.is_null())
         return;
 
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    if (os->get_setting("ui/nodes/highlight_selected_connections", false))
+    {
+        // Get list of all selected nodes
+        List<Ref<OScriptNode>> selected_nodes;
+        for_each_graph_node([&](OrchestratorGraphNode* other) {
+            if (other && other->is_selected())
+                selected_nodes.push_back(other->get_script_node());
+        });
+
+        List<Ref<OScriptNode>> linked_nodes;
+        for (const Ref<OScriptNode>& selected : selected_nodes)
+        {
+            Vector<Ref<OScriptNodePin>> pins = selected->get_all_pins();
+            for (const Ref<OScriptNodePin>& pin : pins)
+            {
+                const Vector<Ref<OScriptNodePin>> connections = pin->get_connections();
+                for (const Ref<OScriptNodePin>& connection : connections)
+                {
+                    if (!selected_nodes.find(connection->get_owning_node()))
+                        linked_nodes.push_back(connection->get_owning_node());
+                }
+            }
+        }
+        for_each_graph_node([&](OrchestratorGraphNode* other) {
+            other->set_modulate(Color(1, 1, 1, 0.5));
+            if (selected_nodes.find(other->get_script_node()) || linked_nodes.find(other->get_script_node()))
+                other->set_modulate(Color(1, 1, 1, 1));
+        });
+    }
+
     if (!node->can_inspect_node_properties())
         return;
 
@@ -888,6 +920,46 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
 void OrchestratorGraphEdit::_on_node_deselected(Node* p_node)
 {
     _plugin->get_editor_interface()->inspect_object(nullptr);
+
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    if (os->get_setting("ui/nodes/highlight_selected_connections", false))
+    {
+        // Get list of all selected nodes
+        List<Ref<OScriptNode>> selected_nodes;
+        for_each_graph_node([&](OrchestratorGraphNode* other) {
+            if (other && other->is_selected())
+                selected_nodes.push_back(other->get_script_node());
+        });
+
+        if (selected_nodes.is_empty())
+        {
+            for_each_graph_node([&](OrchestratorGraphNode* other) {
+                other->set_modulate(Color(1, 1, 1, 1.0));
+            });
+        }
+        else
+        {
+            List<Ref<OScriptNode>> linked_nodes;
+            for (const Ref<OScriptNode>& selected : selected_nodes)
+            {
+                Vector<Ref<OScriptNodePin>> pins = selected->get_all_pins();
+                for (const Ref<OScriptNodePin>& pin : pins)
+                {
+                    const Vector<Ref<OScriptNodePin>> connections = pin->get_connections();
+                    for (const Ref<OScriptNodePin>& connection : connections)
+                    {
+                        if (!selected_nodes.find(connection->get_owning_node()))
+                            linked_nodes.push_back(connection->get_owning_node());
+                    }
+                }
+            }
+            for_each_graph_node([&](OrchestratorGraphNode* other) {
+                other->set_modulate(Color(1, 1, 1, 0.5));
+                if (selected_nodes.find(other->get_script_node()) || linked_nodes.find(other->get_script_node()))
+                    other->set_modulate(Color(1, 1, 1, 1));
+            });
+        }
+    }
 }
 
 void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& p_node_names)

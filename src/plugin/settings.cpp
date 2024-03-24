@@ -142,6 +142,7 @@ void OrchestratorSettings::_register_settings()
 
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_conversion_nodes", false));
+    _settings.emplace_back(BOOL_SETTING("ui/nodes/highlight_selected_connections", false));
 
     // Nodes
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/constants_and_literals", Color(0.271, 0.392, 0.2)));
