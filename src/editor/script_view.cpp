@@ -21,10 +21,13 @@
 #include "plugin/plugin.h"
 #include "script/nodes/functions/event.h"
 #include "script/nodes/functions/function_entry.h"
+#include "script_connections.h"
 #include "script_view.h"
 
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
+#include <godot_cpp/classes/main_loop.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/panel_container.hpp>
@@ -36,6 +39,7 @@
 #include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
+#include <godot_cpp/classes/window.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
@@ -97,6 +101,7 @@ void OrchestratorScriptViewSection::_notification(int p_what)
         _tree->connect("item_selected", callable_mp(this, &OrchestratorScriptViewSection::_on_item_selected));
         _tree->connect("item_mouse_selected", callable_mp(this, &OrchestratorScriptViewSection::_on_item_mouse_selected));
         _tree->connect("item_collapsed", callable_mp(this, &OrchestratorScriptViewSection::_on_item_collapsed));
+        _tree->connect("button_clicked", callable_mp(this, &OrchestratorScriptViewSection::_on_button_clicked));
         _tree->create_item()->set_text(0, "Root"); // creates the root item
         add_child(_tree);
 
@@ -324,6 +329,11 @@ void OrchestratorScriptViewSection::_on_remove_confirmed()
     _handle_remove(_tree->get_selected());
 }
 
+void OrchestratorScriptViewSection::_on_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
+{
+    _handle_button_clicked(p_item, p_column, p_id, p_mouse_button);
+}
+
 Variant OrchestratorScriptViewSection::_on_tree_drag_data(const Vector2& p_position)
 {
     const Dictionary data = _handle_drag_data(p_position);
@@ -373,6 +383,69 @@ void OrchestratorScriptViewGraphsSection::_bind_methods()
     ADD_SIGNAL(MethodInfo("focus_node_requested",
                           PropertyInfo(Variant::STRING, "graph_name"),
                           PropertyInfo(Variant::INT, "node_id")));
+}
+
+void OrchestratorScriptViewGraphsSection::_notification(int p_what)
+{
+    if (p_what == NOTIFICATION_ENTER_TREE)
+    {
+        if (Node* editor_node = get_tree()->get_root()->get_child(0))
+        {
+            if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
+                scene_tabs->connect("tab_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed));
+        }
+    }
+    else if (p_what == NOTIFICATION_EXIT_TREE)
+    {
+        if (Node* editor_node = get_tree()->get_root()->get_child(0))
+        {
+            if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
+                scene_tabs->disconnect("tabs_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed));
+        }
+    }
+    OrchestratorScriptViewSection::_notification(p_what);
+}
+
+void OrchestratorScriptViewGraphsSection::_on_tab_changed(int p_tab_index)
+{
+    update();
+}
+
+bool OrchestratorScriptViewGraphsSection::_is_signal_slot_function(const StringName& p_function_name) const
+{
+    SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+    Node* scene_root = st->get_edited_scene_root();
+
+    Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script(scene_root, scene_root, _script);
+    for (int i = 0; i < script_nodes.size(); i++)
+    {
+        Node* node = script_nodes[i];
+        TypedArray<Dictionary> incoming_connections = node->get_incoming_connections();
+        for (int j = 0; j < incoming_connections.size(); ++j)
+        {
+            const Dictionary& connection = incoming_connections[j];
+            const int connection_flags = connection["flags"];
+            if (!(connection_flags & CONNECT_PERSIST))
+                continue;
+
+            const Signal signal = connection["signal"];
+
+            // As deleted nodes are still accessible via the undo/redo system, check if they're in the tree
+            Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id()));
+            if (source && !source->is_inside_tree())
+                continue;
+
+            const Callable callable = connection["callable"];
+            const StringName method = callable.get_method();
+
+            if (!ClassDB::class_has_method(_script->get_instance_base_type(), method))
+            {
+                if (p_function_name == method)
+                    return true;
+            }
+        }
+    }
+    return false;
 }
 
 void OrchestratorScriptViewGraphsSection::_show_graph_item(TreeItem* p_item)
@@ -523,6 +596,19 @@ void OrchestratorScriptViewGraphsSection::_handle_remove(TreeItem* p_item)
         _remove_graph(p_item);
 }
 
+void OrchestratorScriptViewGraphsSection::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
+                                                                 int p_mouse_button)
+{
+    Node* root = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
+    if (root)
+    {
+        const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script(root, root, _script);
+        OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
+        add_child(dialog);
+        dialog->popup_connections(p_item->get_text(0), nodes);
+    }
+}
+
 void OrchestratorScriptViewGraphsSection::update()
 {
     _clear_tree();
@@ -556,6 +642,9 @@ void OrchestratorScriptViewGraphsSection::update()
                 TreeItem* func = item->create_child();
                 func->set_text(0, function_name);
                 func->set_icon(0, SceneUtils::get_icon(this, "PlayStart"));
+
+                if (_is_signal_slot_function(function_name))
+                    func->add_button(0, SceneUtils::get_icon(this, "Slot"));
             }
         }
     }

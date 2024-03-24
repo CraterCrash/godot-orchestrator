@@ -21,6 +21,7 @@
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
@@ -67,6 +68,13 @@ namespace SceneUtils
     /// @param p_node the node to find the nearest scene root for
     /// @return the nearest relative scene root to the given node
     Node* get_relative_scene_root(Node* p_node);
+
+    /// Find all nodes associated with the specified script
+    /// @param p_base the base node to start from, should not be <code>null</code>
+    /// @param p_current the current node, should not be <code>null</code>
+    /// @param p_script the script instance, should be valid
+    /// @return vector list of node instances or an empty vector if none found
+    Vector<Node*> find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script);
 }
 
 #endif  // ORCHESTRATOR_SCENE_UTILS_H

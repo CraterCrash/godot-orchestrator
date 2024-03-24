@@ -137,6 +137,13 @@ protected:
     /// @param p_item the tree item to be removed
     virtual void _handle_remove(TreeItem* p_item) { }
 
+    /// Handles button click in the tree
+    /// @param p_item the tree item
+    /// @param p_column the tree column
+    /// @param p_id the button id
+    /// @param p_mouse_button the mouse button pressed
+    virtual void _handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button) { }
+
     /// Generates a drag-and-drop dictionary data bucket
     /// @param p_position the position where the drag started
     /// @return data to be used for the draggable item, returning an empty Dictionary cancels the drag
@@ -193,6 +200,13 @@ private:
     /// Dispatched when the user accepts the removal confirmation dialog.
     void _on_remove_confirmed();
 
+    /// Dispatched when a button in the tree is clicked
+    /// @param p_item the tree item
+    /// @param p_column the column index
+    /// @param p_id the button id
+    /// @param p_mouse_button the mouse button used to click
+    void _on_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button);
+
     /// Dispatched when drag data is requested for the tree control.
     /// @param p_position the position where the drag started
     Variant _on_tree_drag_data(const Vector2& p_position);
@@ -216,6 +230,19 @@ protected:
     Ref<OScript> _script;
 
     static void _bind_methods();
+
+    /// Godot callback that handles notifications
+    /// @param p_what the notification to be handled
+    void _notification(int p_what);
+
+    /// Dispatched when the main editor's scene tab is changed
+    /// @param p_tab_index the tab index
+    void _on_tab_changed(int p_tab_index);
+
+    /// Checks whether the specified function name is the recipient of a signal callback
+    /// @param p_function_name the function name
+    /// @return true if it is a signal handler, false otherwise
+    bool _is_signal_slot_function(const StringName& p_function_name) const;
 
     /// Notifies the script view to show the specified graph associated with the tree item
     /// @param p_item the graph tree item, should not be null
@@ -245,6 +272,7 @@ protected:
     void _handle_item_activated(TreeItem* p_item) override;
     void _handle_item_renamed(const String& p_old_name, const String& p_new_name) override;
     void _handle_remove(TreeItem* p_item) override;
+    void _handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button) override;
     //~ End OrchestratorScriptViewSection Interface
 
     OrchestratorScriptViewGraphsSection() = default;
