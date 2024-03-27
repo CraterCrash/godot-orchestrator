@@ -37,13 +37,11 @@ namespace godot
     class Container;
     class FileDialog;
     class HBoxContainer;
-    class HTTPRequest;
     class ItemList;
     class LineEdit;
     class MenuButton;
     class Script;
     class ScriptCreateDialog;
-    class Timer;
 }
 
 /// The plug-in main window
@@ -94,14 +92,13 @@ private:
     bool _right_panel_visible{ true };               //! Right component panel visibility
     String _file_name_filter;                        //! Current file name filter text
     ItemList* _file_list{ nullptr };                 //! File list
-    HBoxContainer* _update_container{ nullptr };     //! Update container
+    Control* _updater{ nullptr };                    //! Updater widget
     ConfirmationDialog* _close_confirm{ nullptr };   //! Confirmation dialog
     ConfirmationDialog* _goto_dialog{ nullptr };     //! Goto node dialog
     List<ScriptFile> _script_close_queue;            //! Queue of scripts to be removed
     OrchestratorPlugin* _plugin{ nullptr };          //! Orchestrator plugin
-    Timer* _update_timer{ nullptr };                 //! Update timer
-    HTTPRequest* _http_request{ nullptr };           //! HTTP request
     bool _floating{ false };                         //! Whether this window is floating
+    Control* _select_separator{ nullptr };           //! Screen selection separator
     OrchestratorScreenSelect* _select{ nullptr };    //! Screen selection
     OrchestratorWindowWrapper* _wrapper{ nullptr };  //! Window wrapper
 
@@ -138,9 +135,6 @@ public:
     bool build();
 
 private:
-    /// Checks for updates
-    void _check_for_updates();
-
     /// Check whether the current index points to an open script
     /// @return true if there is an open script, false otherwise
     bool _has_open_script() const;
@@ -182,8 +176,6 @@ private:
 
     /// Navigate to the current file in the FileSystemDock
     void _navigate_to_current_path();
-
-    int _parse_version(const String& p_version);
 
     /// Dispatched immediate before the file menu is shown to update its state
     void _on_prepare_file_menu();
@@ -238,8 +230,6 @@ private:
     /// Dispatched when the window's floating status changes
     /// @param p_visible the current visibility status
     void _on_window_changed(bool p_visible);
-
-    void _on_request_completed(int p_result, int p_code, const PackedStringArray& p_headers, const PackedByteArray& p_data);
 };
 
 #endif  // ORCHESTRATOR_MAIN_VIEW_H

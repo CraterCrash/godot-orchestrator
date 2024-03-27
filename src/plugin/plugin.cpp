@@ -24,16 +24,14 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
-#include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
 OrchestratorPlugin* OrchestratorPlugin::_plugin = nullptr;
 
@@ -137,6 +135,22 @@ String OrchestratorPlugin::get_github_release_url() const
     return VERSION_RELEASES_URL;
 }
 
+String OrchestratorPlugin::get_github_release_tag_url(const String& p_tag)
+{
+    const int index = p_tag.rfind(".");
+    const String tag = p_tag.left(index) + "-" + p_tag.substr(index + 1);
+
+    return vformat(
+        "https://github.com/Vahera/godot-orchestrator/releases/download/%s/godot-orchestrator-%s-plugin.zip",
+        p_tag,
+        tag);
+}
+
+String OrchestratorPlugin::get_github_release_notes_url(const String& p_tag)
+{
+    return vformat("https://github.com/Vahera/godot-orchestrator/releases/%s", p_tag);
+}
+
 String OrchestratorPlugin::get_github_issues_url() const
 {
     return "https://github.com/Vahera/godot-orchestrator/issues/new/choose";
@@ -158,6 +172,29 @@ bool OrchestratorPlugin::restore_windows_on_load()
     if (es.is_valid())
         return es->get_setting("interface/multi_window/restore_windows_on_load");
     return false;
+}
+
+Ref<Texture2D> OrchestratorPlugin::get_plugin_icon_hires() const
+{
+    return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg");
+}
+
+void OrchestratorPlugin::request_editor_restart()
+{
+    AcceptDialog* request = memnew(AcceptDialog);
+    request->set_title("Restart editor");
+    _main_view->add_child(request);
+
+    VBoxContainer* container = memnew(VBoxContainer);
+    Label* label = memnew(Label);
+    label->set_text("The editor requires a restart.");
+    label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+    container->add_child(label);
+
+    request->add_child(container);
+
+    request->connect("confirmed", callable_mp(this, &OrchestratorPlugin::_on_editor_restart));
+    request->popup_centered();
 }
 
 String OrchestratorPlugin::get_plugin_version() const
@@ -233,6 +270,11 @@ void OrchestratorPlugin::_disable_plugin()
 void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)
 {
     // todo: see script_editor_plugin.cpp
+}
+
+void OrchestratorPlugin::_on_editor_restart()
+{
+    get_editor_interface()->restart_editor(true);
 }
 
 void register_plugin_classes()

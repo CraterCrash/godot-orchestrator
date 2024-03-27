@@ -28,7 +28,6 @@
 #include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/os.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/style_box_empty.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
@@ -243,7 +242,7 @@ void OrchestratorAboutDialog::_on_theme_changed()
     _license_text->add_theme_constant_override("line_separation", 4);
     _license_text->end_bulk_theme_override();
 
-    _logo->set_texture(ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg"));
+    _logo->set_texture(OrchestratorPlugin::get_singleton()->get_plugin_icon_hires());
 
     for (ItemList *list : _name_lists)
     {
