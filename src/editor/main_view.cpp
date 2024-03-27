@@ -20,6 +20,7 @@
 #include "common/version.h"
 #include "editor/about_dialog.h"
 #include "editor/graph/graph_edit.h"
+#include "editor/updater.h"
 #include "editor/window_wrapper.h"
 #include "plugin/plugin.h"
 #include "plugin/settings.h"
@@ -32,8 +33,6 @@
 #include <godot_cpp/classes/file_system_dock.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
-#include <godot_cpp/classes/http_request.hpp>
-#include <godot_cpp/classes/json.hpp>
 #include <godot_cpp/classes/item_list.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
@@ -46,7 +45,6 @@
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_create_dialog.hpp>
-#include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
@@ -147,15 +145,11 @@ void OrchestratorMainView::_notification(int p_what)
         _help_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         left_menu_container->add_child(_help_menu);
 
-        MenuBar* right_menu = memnew(MenuBar);
-        right_menu->set_h_size_flags(SIZE_EXPAND_FILL);
-        toolbar->add_child(right_menu);
-
         HBoxContainer* right_menu_container = memnew(HBoxContainer);
         right_menu_container->add_theme_constant_override("separation", 0);
         right_menu_container->set_alignment(BoxContainer::ALIGNMENT_END);
         right_menu_container->set_anchors_preset(PRESET_FULL_RECT);
-        right_menu->add_child(right_menu_container);
+        toolbar->add_child(right_menu_container);
 
         Button* open_documentation = memnew(Button);
         open_documentation->set_text("Online Docs");
@@ -177,12 +171,16 @@ void OrchestratorMainView::_notification(int p_what)
         version->set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER);
         right_menu_container->add_child(version);
 
+        _updater = memnew(OrchestratorUpdater);
+        right_menu_container->add_child(_updater);
+
         if (_wrapper->is_window_available())
         {
             vs = memnew(VSeparator);
             vs->set_v_size_flags(SIZE_SHRINK_CENTER);
             vs->set_custom_minimum_size(Vector2i(0, 24));
             right_menu_container->add_child(vs);
+            _select_separator = vs;
 
             _select = memnew(OrchestratorScreenSelect);
             _select->set_flat(true);
@@ -191,23 +189,6 @@ void OrchestratorMainView::_notification(int p_what)
             right_menu_container->add_child(_select);
             _wrapper->connect("window_visibility_changed", callable_mp(this, &OrchestratorMainView::_on_window_changed));
         }
-
-        _update_container = memnew(HBoxContainer);
-        _update_container->set_visible(false);
-
-        VSeparator* vs2 = memnew(VSeparator);
-        vs2->set_v_size_flags(SIZE_SHRINK_CENTER);
-        vs2->set_custom_minimum_size(Vector2i(0, 24));
-        _update_container->add_child(vs2);
-
-        Button* update_button = memnew(Button);
-        update_button->set_text("Update available!");
-        update_button->set_vertical_icon_alignment(VERTICAL_ALIGNMENT_CENTER);
-        update_button->set_flat(true);
-        update_button->set_focus_mode(Control::FOCUS_NONE);
-        _update_container->add_child(update_button);
-
-        right_menu_container->add_child(_update_container);
 
         HSplitContainer* main_view_container = memnew(HSplitContainer);
         main_view_container->set_v_size_flags(SIZE_EXPAND_FILL);
@@ -292,19 +273,6 @@ void OrchestratorMainView::_notification(int p_what)
         _goto_dialog->connect("canceled", callable_mp(this, &OrchestratorMainView::_on_goto_node_closed).bind(node_number));
 
         add_child(_goto_dialog);
-
-        _http_request = memnew(HTTPRequest);
-        _http_request->connect("request_completed", callable_mp(this, &OrchestratorMainView::_on_request_completed));
-        add_child(_http_request);
-
-        // Check for updates
-        _check_for_updates();
-
-        // Set-up timer for checking for updates
-        _update_timer = memnew(Timer);
-        add_child(_update_timer);
-        _update_timer->connect("timeout", callable_mp(this, &OrchestratorMainView::_check_for_updates));
-        _update_timer->start(60 * 60 * 12); // every 12 hours
     }
 }
 
@@ -370,12 +338,6 @@ bool OrchestratorMainView::build()
             return false;
     }
     return true;
-}
-
-void OrchestratorMainView::_check_for_updates()
-{
-    if (_http_request)
-        _http_request->request(_plugin->get_github_release_url());
 }
 
 bool OrchestratorMainView::_has_open_script() const
@@ -621,21 +583,6 @@ void OrchestratorMainView::_navigate_to_current_path()
     }
 }
 
-int OrchestratorMainView::_parse_version(const String& p_version)
-{
-    PackedStringArray bits = p_version.split(".");
-
-    int version = 0;
-    if (bits[0].is_valid_int())
-        version += bits[0].to_int() * 1000000;
-    if (bits[1].is_valid_int())
-        version += bits[1].to_int() * 1000;
-    if (bits[2].is_valid_int())
-        version += bits[2].to_int();
-
-    return version;
-}
-
 void OrchestratorMainView::_show_script_editor_view(const String& p_file_name)
 {
     // Hide all editors
@@ -829,45 +776,7 @@ void OrchestratorMainView::_on_goto_node_closed(LineEdit* p_edit)
 
 void OrchestratorMainView::_on_window_changed(bool p_visible)
 {
+    _select_separator->set_visible(!p_visible);
     _select->set_visible(!p_visible);
     _floating = p_visible;
-}
-
-void OrchestratorMainView::_on_request_completed(int p_result, int p_code, const PackedStringArray& p_headers,
-                                                 const PackedByteArray& p_data)
-{
-    if (p_result != HTTPRequest::RESULT_SUCCESS)
-        return;
-
-    const Variant json = JSON::parse_string(p_data.get_string_from_utf8());
-    if (json.get_type() != Variant::ARRAY)
-        return;
-
-    int current_version = _parse_version(vformat("%s.%s.%s", VERSION_MAJOR, VERSION_MINOR, VERSION_MAINTENANCE));
-
-    PackedInt64Array versions;
-    Array data = (Array) json;
-    for (int i = 0; i < data.size(); i++)
-    {
-        const Dictionary dict = data[i];
-        const Array keys = dict.keys();
-        for (int j = 0; j < keys.size(); j++)
-        {
-            const String tag_name = keys[j];
-            if (tag_name.match("tag_name"))
-            {
-                String tag  = dict[tag_name];
-                tag = tag.substr(1);
-
-                int tag_version = _parse_version(tag);
-                if (tag_version > current_version)
-                    versions.push_back(tag_version);
-            }
-        }
-    }
-
-    if (!versions.is_empty())
-        _update_container->show();
-    else
-        _update_container->hide();
 }

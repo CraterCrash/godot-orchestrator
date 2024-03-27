@@ -56,6 +56,8 @@ public:
     String get_plugin_online_documentation_url() const;
 
     String get_github_release_url() const;
+    String get_github_release_tag_url(const String& p_tag);
+    String get_github_release_notes_url(const String& p_tag);
     String get_github_issues_url() const;
     String get_patreon_url() const;
     String get_community_url() const;
@@ -63,6 +65,13 @@ public:
     /// Returns whether windows are restored on load
     /// @return true if windows are to be restored, false otherwise
     bool restore_windows_on_load();
+
+    /// Requests to restart the editor
+    void request_editor_restart();
+
+    /// Get the plugin's high-resolution logo / icon
+    /// @return high-res texture
+    Ref<Texture2D> get_plugin_icon_hires() const;
 
     //~ Begin EditorPlugin interface
     String get_plugin_version() const;
@@ -82,6 +91,7 @@ public:
 
 private:
     void _on_window_visibility_changed(bool p_visible);
+    void _on_editor_restart();
 };
 
 void register_plugin_classes();
