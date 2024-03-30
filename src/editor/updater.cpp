@@ -262,11 +262,16 @@ std::vector<OrchestratorUpdater::Version> OrchestratorUpdater::_get_versions_aft
         {
             versions.push_back(version);
         }
-        else if (version.major == VERSION_MAJOR && version.minor == VERSION_MINOR)
+        else if (version.major == VERSION_MAJOR && version.minor == VERSION_MINOR && (VERSION_MAINTENANCE == 0 && version.patch > 0))
         {
-            if (version.patch == version.NOT_AVAILABLE)
+            versions.push_back(version);
+        }
+        else if (version.major == VERSION_MAJOR && version.minor == VERSION_MINOR && version.patch == version.NOT_AVAILABLE)
+        {
+            const String status = VERSION_STATUS;
+            if (VERSION_MAINTENANCE == 0 && version.patch == -1 && !status.begins_with("stable"))
             {
-                const String status = VERSION_STATUS;
+                // Requires checking the build types
                 if (version.build.begins_with("rc") && status.begins_with("rc"))
                 {
                     // Both are Release Candidates
@@ -283,14 +288,22 @@ std::vector<OrchestratorUpdater::Version> OrchestratorUpdater::_get_versions_aft
                     if (version_build > local_build)
                         versions.push_back(version);
                 }
+                else if (version.build.begins_with("stable"))
+                {
+                    // Tag is a stable release, local build is not stable
+                    versions.push_back(version);
+                }
                 else if (version.build.begins_with("rc"))
                 {
                     // Tag is a release candidate, local build is a dev build
                     versions.push_back(version);
                 }
             }
-            else if (version.patch > VERSION_MAINTENANCE)
+            else if (version.patch >= 0 && VERSION_MAINTENANCE < version.patch)
+            {
+                // Patch outdated
                 versions.push_back(version);
+            }
         }
     }
     return versions;
