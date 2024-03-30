@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [2.0.stable](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.stable) - 2024-03-30
+
+- [280aadc](http://github.com/Vahera/godot-orchestrator/commit/280aadcb5c592722e52718af4bb247c249dc5a57) - GH-202 Fix disconnect error on `tab_changed` signal
+- [30d6299](http://github.com/Vahera/godot-orchestrator/commit/30d6299a21786024e9b1669ff826f2b0b789a3fe) - GH-208 Fix patch/build version check logic
+- [5038580](http://github.com/Vahera/godot-orchestrator/commit/503858047c6c90b28a57351aed7f6e080de96602) - GH-208 Add auto-update functionality
+- [ecbdebf](http://github.com/Vahera/godot-orchestrator/commit/ecbdebf2fd3e96cad724c16788d47ca7e1f1fba1) - [ci] Upgrade tj-actions/changed-files from v43.0.1 to v44.0.0
+
 ## [2.0.rc2](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.rc2) - 2024-03-24
 
 - [65f82f2](http://github.com/Vahera/godot-orchestrator/commit/65f82f2229f09fd04b35960c1954c3ba44805881) - Rework about dialog
