@@ -400,7 +400,10 @@ void OrchestratorScriptViewGraphsSection::_notification(int p_what)
         if (Node* editor_node = get_tree()->get_root()->get_child(0))
         {
             if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
-                scene_tabs->disconnect("tabs_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed));
+            {
+                if (scene_tabs->is_connected("tab_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed)))
+                    scene_tabs->disconnect("tab_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed));
+            }
         }
     }
     OrchestratorScriptViewSection::_notification(p_what);
