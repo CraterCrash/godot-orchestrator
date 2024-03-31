@@ -245,6 +245,11 @@ void OrchestratorGraphEdit::post_apply_changes()
 {
 }
 
+void OrchestratorGraphEdit::set_spawn_position_center_view()
+{
+    _saved_mouse_position = (get_scroll_offset() + get_rect().get_center()) / get_zoom();
+}
+
 void OrchestratorGraphEdit::spawn_node(const Ref<OScriptNode>& p_node, const Vector2& p_position)
 {
     Logger::debug("Spawning node ", p_node->get_class(), " at ", p_position);

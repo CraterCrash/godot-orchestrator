@@ -168,6 +168,9 @@ public:
     /// A post save operation that is called after apply_changes.
     void post_apply_changes();
 
+    /// Sets the spawn position the center of the graph edit view
+    void set_spawn_position_center_view();
+
     /// Spawn a node at the specified position.
     /// @param p_node the node to be spawned
     /// @param p_position the position where the node should be spawned
