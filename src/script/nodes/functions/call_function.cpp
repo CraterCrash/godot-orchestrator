@@ -277,6 +277,12 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         }
     }
 
+    const size_t default_start_index = p_method.arguments.empty()
+        ? 0
+        : p_method.arguments.size() - p_method.default_arguments.size();
+
+    size_t argument_index = 0;
+    size_t default_index = 0;
     for (const PropertyInfo& pi : p_method.arguments)
     {
         Ref<OScriptNodePin> pin = create_pin(PD_Input, pi.name, pi.type);
@@ -296,7 +302,11 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
                 pin->set_type(pi.type);
             }
             pin->set_flags(flags);
+
+            if (argument_index >= default_start_index)
+                pin->set_default_value(p_method.default_arguments[default_index++]);
         }
+        argument_index++;
     }
 
     if (_reference.method.flags & METHOD_FLAG_VARARG)
