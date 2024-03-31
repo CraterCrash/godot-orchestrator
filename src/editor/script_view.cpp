@@ -1483,6 +1483,8 @@ void OrchestratorScriptView::_show_available_function_overrides()
 {
     if (OrchestratorGraphEdit* graph = _get_or_create_tab("EventGraph", false, false))
     {
+        graph->set_spawn_position_center_view();
+
         OrchestratorGraphActionFilter filter;
         filter.context_sensitive = true;
         filter.context.graph = graph;
