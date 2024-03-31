@@ -385,35 +385,6 @@ void OrchestratorScriptViewGraphsSection::_bind_methods()
                           PropertyInfo(Variant::INT, "node_id")));
 }
 
-void OrchestratorScriptViewGraphsSection::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_ENTER_TREE)
-    {
-        if (Node* editor_node = get_tree()->get_root()->get_child(0))
-        {
-            if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
-                scene_tabs->connect("tab_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed));
-        }
-    }
-    else if (p_what == NOTIFICATION_EXIT_TREE)
-    {
-        if (Node* editor_node = get_tree()->get_root()->get_child(0))
-        {
-            if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
-            {
-                if (scene_tabs->is_connected("tab_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed)))
-                    scene_tabs->disconnect("tab_changed", callable_mp(this, &OrchestratorScriptViewGraphsSection::_on_tab_changed));
-            }
-        }
-    }
-    OrchestratorScriptViewSection::_notification(p_what);
-}
-
-void OrchestratorScriptViewGraphsSection::_on_tab_changed(int p_tab_index)
-{
-    update();
-}
-
 bool OrchestratorScriptViewGraphsSection::_is_signal_slot_function(const StringName& p_function_name) const
 {
     SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
@@ -1372,6 +1343,11 @@ void OrchestratorScriptView::goto_node(int p_node_id)
             }
         }
     }
+}
+
+void OrchestratorScriptView::scene_tab_changed()
+{
+    _update_components();
 }
 
 bool OrchestratorScriptView::is_modified() const

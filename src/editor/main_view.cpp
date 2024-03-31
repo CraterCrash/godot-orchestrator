@@ -29,6 +29,7 @@
 
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_dialog.hpp>
 #include <godot_cpp/classes/file_system_dock.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
@@ -44,6 +45,7 @@
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script_create_dialog.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
@@ -273,6 +275,25 @@ void OrchestratorMainView::_notification(int p_what)
         _goto_dialog->connect("canceled", callable_mp(this, &OrchestratorMainView::_on_goto_node_closed).bind(node_number));
 
         add_child(_goto_dialog);
+    }
+    else if (p_what == NOTIFICATION_ENTER_TREE)
+    {
+        if (Node* editor_node = get_tree()->get_root()->get_child(0))
+        {
+            if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
+                scene_tabs->connect("tab_changed", callable_mp(this, &OrchestratorMainView::_on_scene_tab_changed));
+        }
+    }
+    else if (p_what == NOTIFICATION_EXIT_TREE)
+    {
+        if (Node* editor_node = get_tree()->get_root()->get_child(0))
+        {
+            if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
+            {
+                if (scene_tabs->is_connected("tab_changed", callable_mp(this, &OrchestratorMainView::_on_scene_tab_changed)))
+                    scene_tabs->disconnect("tab_changed", callable_mp(this, &OrchestratorMainView::_on_scene_tab_changed));
+            }
+        }
     }
 }
 
@@ -779,4 +800,33 @@ void OrchestratorMainView::_on_window_changed(bool p_visible)
     _select_separator->set_visible(!p_visible);
     _select->set_visible(!p_visible);
     _floating = p_visible;
+}
+
+void OrchestratorMainView::_on_scene_tab_changed(int p_tab_index)
+{
+    if (is_visible() && _has_open_script())
+    {
+        // Update current script view
+        _script_files[_current_index].editor->scene_tab_changed();
+
+        // Change script view if necessary
+        MainLoop* main_loop = Engine::get_singleton()->get_main_loop();
+        if (Node* current_scene = Object::cast_to<SceneTree>(main_loop)->get_edited_scene_root())
+        {
+            const Ref<OScript>& script = current_scene->get_script();
+            if (script.is_valid())
+            {
+                for (const ScriptFile& script_file : _script_files)
+                {
+                    if (script_file.editor->is_same_script(script))
+                    {
+                        _show_script_editor_view(script_file.file_name);
+                        script_file.editor->scene_tab_changed();
+                        _update_files_list();
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }

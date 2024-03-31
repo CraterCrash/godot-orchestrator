@@ -23,7 +23,6 @@
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
 #include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/panel.hpp>
 #include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
@@ -230,14 +229,6 @@ protected:
     Ref<OScript> _script;
 
     static void _bind_methods();
-
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
-    void _notification(int p_what);
-
-    /// Dispatched when the main editor's scene tab is changed
-    /// @param p_tab_index the tab index
-    void _on_tab_changed(int p_tab_index);
 
     /// Checks whether the specified function name is the recipient of a signal callback
     /// @param p_function_name the function name
@@ -483,10 +474,18 @@ public:
     /// @param p_what the notification type
     void _notification(int p_what);
 
+    /// Return whether the given script is what the editor view represents.
+    /// @param p_script the script to check
+    /// @return true if the scripts are the same, false otherwise
+    bool is_same_script(const Ref<OScript>& p_script) const { return p_script == _script; }
+
     /// Locates the node in the Orchestration and navigates to it, opening any graph that is
     /// necessary to navigate to the node.
     /// @param p_node_id the node to locate and focus
     void goto_node(int p_node_id);
+
+    /// Notifies the script view that the current scene tab has changed
+    void scene_tab_changed();
 
     /// Return whether the underlying script has been modified or has unsaved changes.
     /// @return true if the editor has pending changes, false otherwise
