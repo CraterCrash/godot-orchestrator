@@ -16,8 +16,10 @@
 //
 #include "scene_utils.h"
 
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/window.hpp>
@@ -147,4 +149,48 @@ namespace SceneUtils
         return nodes;
     }
 
+    Vector<Node*> find_all_nodes_for_script_in_edited_scene(const Ref<Script>& p_script)
+    {
+        SceneTree* scene_tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+        if (scene_tree)
+        {
+            Node* scene_root = scene_tree->get_edited_scene_root();
+            return find_all_nodes_for_script(scene_root, scene_root, p_script);
+        }
+        return {};
+    }
+
+    bool has_any_signals_connected_to_function(const String& p_function_name, const String& p_base_type,
+                                               const Vector<Node*>& p_nodes)
+    {
+        for (int i = 0; i < p_nodes.size(); i++)
+        {
+            Node* node = p_nodes[i];
+            TypedArray<Dictionary> incoming_connections = node->get_incoming_connections();
+            for (int j = 0; j < incoming_connections.size(); ++j)
+            {
+                const Dictionary& connection = incoming_connections[j];
+                const int connection_flags = connection["flags"];
+                if (!(connection_flags & Node::CONNECT_PERSIST))
+                    continue;
+
+                const Signal signal = connection["signal"];
+
+                // As deleted nodes are still accessible via the undo/redo system, check if they're in the tree
+                Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id()));
+                if (source && !source->is_inside_tree())
+                    continue;
+
+                const Callable callable = connection["callable"];
+                const StringName method = callable.get_method();
+
+                if (!ClassDB::class_has_method(p_base_type, method))
+                {
+                    if (p_function_name == method)
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
 }
