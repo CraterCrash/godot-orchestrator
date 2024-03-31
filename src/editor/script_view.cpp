@@ -27,7 +27,6 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
-#include <godot_cpp/classes/main_loop.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/panel_container.hpp>
@@ -385,43 +384,6 @@ void OrchestratorScriptViewGraphsSection::_bind_methods()
                           PropertyInfo(Variant::INT, "node_id")));
 }
 
-bool OrchestratorScriptViewGraphsSection::_is_signal_slot_function(const StringName& p_function_name) const
-{
-    SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
-    Node* scene_root = st->get_edited_scene_root();
-
-    Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script(scene_root, scene_root, _script);
-    for (int i = 0; i < script_nodes.size(); i++)
-    {
-        Node* node = script_nodes[i];
-        TypedArray<Dictionary> incoming_connections = node->get_incoming_connections();
-        for (int j = 0; j < incoming_connections.size(); ++j)
-        {
-            const Dictionary& connection = incoming_connections[j];
-            const int connection_flags = connection["flags"];
-            if (!(connection_flags & CONNECT_PERSIST))
-                continue;
-
-            const Signal signal = connection["signal"];
-
-            // As deleted nodes are still accessible via the undo/redo system, check if they're in the tree
-            Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id()));
-            if (source && !source->is_inside_tree())
-                continue;
-
-            const Callable callable = connection["callable"];
-            const StringName method = callable.get_method();
-
-            if (!ClassDB::class_has_method(_script->get_instance_base_type(), method))
-            {
-                if (p_function_name == method)
-                    return true;
-            }
-        }
-    }
-    return false;
-}
-
 void OrchestratorScriptViewGraphsSection::_show_graph_item(TreeItem* p_item)
 {
     const String graph_name = p_item->get_text(0);
@@ -573,14 +535,11 @@ void OrchestratorScriptViewGraphsSection::_handle_remove(TreeItem* p_item)
 void OrchestratorScriptViewGraphsSection::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
                                                                  int p_mouse_button)
 {
-    Node* root = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
-    if (root)
-    {
-        const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script(root, root, _script);
-        OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
-        add_child(dialog);
-        dialog->popup_connections(p_item->get_text(0), nodes);
-    }
+    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
+
+    OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
+    add_child(dialog);
+    dialog->popup_connections(p_item->get_text(0), nodes);
 }
 
 void OrchestratorScriptViewGraphsSection::update()
@@ -595,6 +554,9 @@ void OrchestratorScriptViewGraphsSection::update()
         item->set_selectable(0, false);
         return;
     }
+
+    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
+    const String base_type = _script->get_instance_base_type();
 
     const PackedStringArray functions = _script->get_function_names();
     for (const Ref<OScriptGraph>& graph : graphs)
@@ -617,7 +579,7 @@ void OrchestratorScriptViewGraphsSection::update()
                 func->set_text(0, function_name);
                 func->set_icon(0, SceneUtils::get_icon(this, "PlayStart"));
 
-                if (_is_signal_slot_function(function_name))
+                if (SceneUtils::has_any_signals_connected_to_function(function_name, base_type, script_nodes))
                     func->add_button(0, SceneUtils::get_icon(this, "Slot"));
             }
         }
@@ -791,6 +753,16 @@ void OrchestratorScriptViewFunctionsSection::_handle_remove(TreeItem* p_item)
     update();
 }
 
+void OrchestratorScriptViewFunctionsSection::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
+                                                                    int p_mouse_button)
+{
+    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
+
+    OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
+    add_child(dialog);
+    dialog->popup_connections(p_item->get_text(0), nodes);
+}
+
 Dictionary OrchestratorScriptViewFunctionsSection::_handle_drag_data(const Vector2& p_position)
 {
     Dictionary data;
@@ -808,6 +780,9 @@ void OrchestratorScriptViewFunctionsSection::update()
 {
     _clear_tree();
 
+    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
+    const String base_type = _script->get_instance_base_type();
+
     for (const Ref<OScriptGraph>& graph : _script->get_graphs())
     {
         if (!(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION)))
@@ -817,6 +792,9 @@ void OrchestratorScriptViewFunctionsSection::update()
         item->set_text(0, graph->get_graph_name());
         item->set_meta("__name", graph->get_graph_name()); // Used for renames
         item->set_icon(0, SceneUtils::get_icon(this, "MemberMethod"));
+
+        if (SceneUtils::has_any_signals_connected_to_function(graph->get_graph_name(), base_type, script_nodes))
+            item->add_button(0, SceneUtils::get_icon(this, "Slot"));
     }
 
     if (_tree->get_root()->get_child_count() == 0)

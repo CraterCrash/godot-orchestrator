@@ -75,6 +75,19 @@ namespace SceneUtils
     /// @param p_script the script instance, should be valid
     /// @return vector list of node instances or an empty vector if none found
     Vector<Node*> find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script);
+
+    /// Calls the @link find_all_nodes_for_script method for the specified script in the current edited scene.
+    /// @param p_script the script instance, should be valid
+    /// @return vector list of node instances or an empty vector if none found
+    Vector<Node*> find_all_nodes_for_script_in_edited_scene(const Ref<Script>& p_script);
+
+    /// Returns whether any signals of the specified <code>p_nodes</code> are linked with the specified
+    /// function or the base type.
+    /// @param p_function_name the function name
+    /// @param p_base_type the base type
+    /// @param p_nodes the vector of nodes
+    /// @return true if the function is a target of a signal; false otherwise
+    bool has_any_signals_connected_to_function(const String& p_function_name, const String& p_base_type, const Vector<Node*>& p_nodes);
 }
 
 #endif  // ORCHESTRATOR_SCENE_UTILS_H
