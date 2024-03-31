@@ -230,6 +230,10 @@ private:
     /// Dispatched when the window's floating status changes
     /// @param p_visible the current visibility status
     void _on_window_changed(bool p_visible);
+
+    /// Dispatched when the user changes scene tabs.
+    /// @param p_tab_index the new tab index that gained focus
+    void _on_scene_tab_changed(int p_tab_index);
 };
 
 #endif  // ORCHESTRATOR_MAIN_VIEW_H
