@@ -86,6 +86,11 @@ String OScriptNodeEngineSingleton::get_icon() const
     return "GodotMonochrome";
 }
 
+PackedStringArray OScriptNodeEngineSingleton::get_keywords() const
+{
+    return Engine::get_singleton()->get_singleton_list();
+}
+
 StringName OScriptNodeEngineSingleton::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const
 {
     return _singleton;
