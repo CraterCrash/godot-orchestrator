@@ -159,7 +159,7 @@ public:
 
     /// Get keywords that should also be matched when performing action lookups
     /// @return keywords that are additional matches beyond the node name
-    virtual String get_keywords() const { return {}; }
+    virtual PackedStringArray get_keywords() const { return {}; }
 
     /// Get all node-specific actions that will be appended to the node context menu.
     /// @param p_action_list the list of actions to append actions

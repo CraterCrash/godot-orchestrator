@@ -35,11 +35,14 @@ void OrchestratorDefaultGraphActionRegistrar::_register_node(const OrchestratorG
 
     PackedStringArray name_parts = p_category.split("/");
 
+    PackedStringArray keywords = node->get_keywords();
+    keywords.append_array(name_parts);
+
     OrchestratorGraphActionSpec spec;
     spec.category = "Script/Nodes/" + p_category;
     spec.tooltip = node->get_tooltip_text();
     spec.text = name_parts[int(name_parts.size()) - 1].capitalize();
-    spec.keywords = StringUtils::join(",", name_parts);
+    spec.keywords = StringUtils::join(",", keywords);
     spec.icon = node->get_icon();
     spec.type_icon = "PluginScript";
     spec.graph_compatible = node->is_compatible_with_graph(p_context.graph->get_owning_graph());

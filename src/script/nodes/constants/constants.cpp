@@ -181,6 +181,11 @@ String OScriptNodeGlobalConstant::get_icon() const
     return "MemberConstant";
 }
 
+PackedStringArray OScriptNodeGlobalConstant::get_keywords() const
+{
+    return ExtensionDB::get_global_enum_value_names();
+}
+
 OScriptNodeInstance* OScriptNodeGlobalConstant::instantiate(OScriptInstance* p_instance)
 {
     OScriptNodeGlobalConstantInstance* i = memnew(OScriptNodeGlobalConstantInstance);
@@ -256,6 +261,11 @@ String OScriptNodeMathConstant::get_node_title() const
 String OScriptNodeMathConstant::get_icon() const
 {
     return "MemberConstant";
+}
+
+PackedStringArray OScriptNodeMathConstant::get_keywords() const
+{
+    return ExtensionDB::get_math_constant_names();
 }
 
 OScriptNodeInstance* OScriptNodeMathConstant::instantiate(OScriptInstance* p_instance)
