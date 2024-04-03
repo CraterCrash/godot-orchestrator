@@ -57,6 +57,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_icon() const override;
+    PackedStringArray get_keywords() const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool validate_node_during_build() const override;
@@ -83,6 +84,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_icon() const override;
+    PackedStringArray get_keywords() const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
     bool validate_node_during_build() const override;
     //~ End OScriptNodeInterface

@@ -40,6 +40,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "variable"; }
     String get_icon() const override;
+    PackedStringArray get_keywords() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
     //~ End OScriptNode Interface
