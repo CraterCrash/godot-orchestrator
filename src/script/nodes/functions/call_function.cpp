@@ -311,9 +311,10 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
 
     if (_reference.method.flags & METHOD_FLAG_VARARG)
     {
+        const int base_arg_count = _reference.method.arguments.size() + 1;
         for (int i = 0; i < _vararg_count; i++)
         {
-            Ref<OScriptNodePin> vararg_pin = create_pin(PD_Input, "varg_" + itos(i), Variant::NIL);
+            Ref<OScriptNodePin> vararg_pin = create_pin(PD_Input, "arg" + itos(base_arg_count + i), Variant::NIL);
             vararg_pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
         }
     }
@@ -440,10 +441,16 @@ void OScriptNodeCallFunction::add_dynamic_pin()
 
 bool OScriptNodeCallFunction::can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const
 {
-    if (!is_vararg())
-        return false;
-
-    return p_pin.is_valid() && p_pin->get_pin_name().begins_with("varg_");
+    if (is_vararg() && p_pin.is_valid())
+    {
+        for (const PropertyInfo& pi : _reference.method.arguments)
+        {
+            if (pi.name.match(p_pin->get_pin_name()))
+                return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 void OScriptNodeCallFunction::remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin)

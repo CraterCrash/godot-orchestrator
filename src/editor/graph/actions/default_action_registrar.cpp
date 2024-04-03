@@ -342,6 +342,10 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
         MethodInfo mi;
         mi.name = fi.name;
         mi.return_val = fi.return_val;
+        mi.flags = METHOD_FLAGS_DEFAULT;
+
+        if (fi.is_vararg)
+            mi.flags |= METHOD_FLAG_VARARG;
 
         for (const PropertyInfo& argument : fi.arguments)
             mi.arguments.push_back(argument);
