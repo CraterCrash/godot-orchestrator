@@ -586,20 +586,20 @@ void OrchestratorGraphEdit::_synchronize_graph_connections_with_script()
 void OrchestratorGraphEdit::_synchronize_graph_node(Ref<OScriptNode> p_node)
 {
     const String node_id = itos(p_node->get_id());
-
-    if (has_node(node_id))
+    if (!has_node(node_id))
     {
-        WARN_PRINT("_synchronize_graph_node cannot update existing nodes; likely a bug!?");
-        return;
+        const Vector2 node_size = p_node->get_size();
+
+        OrchestratorGraphNode* graph_node = OrchestratorGraphNodeFactory::create_node(this, p_node);
+        graph_node->set_title(p_node->get_node_title());
+        graph_node->set_position_offset(p_node->get_position());
+        graph_node->set_size(node_size.is_zero_approx() ? graph_node->get_size() : node_size);
+        add_child(graph_node);
     }
-
-    const Vector2 node_size = p_node->get_size();
-
-    OrchestratorGraphNode* graph_node = OrchestratorGraphNodeFactory::create_node(this, p_node);
-    graph_node->set_title(p_node->get_node_title());
-    graph_node->set_position_offset(p_node->get_position());
-    graph_node->set_size(node_size.is_zero_approx() ? graph_node->get_size() : node_size);
-    add_child(graph_node);
+    else
+    {
+        p_node->reconstruct_node();
+    }
 }
 
 void OrchestratorGraphEdit::_synchronize_child_order()
