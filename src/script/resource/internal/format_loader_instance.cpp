@@ -371,12 +371,14 @@ Error OScriptResourceLoaderInstance::_parse_variant(Variant& r_val)
         }
         case VARIANT_CALLABLE:
         {
-            r_val = Callable();
+            // No data is stored, return an empty Variant
+            r_val = Variant();
             break;
         }
         case VARIANT_SIGNAL:
         {
-            r_val = Signal();
+            // No data is stored, return an empty variant
+            r_val = Variant();
             break;
         }
         case VARIANT_DICTIONARY:
