@@ -642,14 +642,14 @@ void OScriptResourceSaverInstance::_write_variant(Ref<FileAccess> p_file, const 
         }
         case Variant::CALLABLE:
         {
+            // There is no way to serialize a callable, only type is written.
             p_file->store_32(VARIANT_CALLABLE);
-            WARN_PRINT("Cannot save callables");
             break;
         }
         case Variant::SIGNAL:
         {
+            // There is no way to serialize signals, only type is written.
             p_file->store_32(VARIANT_SIGNAL);
-            WARN_PRINT("Cannot save signals");
             break;
         }
         case Variant::DICTIONARY:
