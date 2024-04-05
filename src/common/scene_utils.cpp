@@ -133,7 +133,7 @@ namespace SceneUtils
     Vector<Node*> find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script)
     {
         Vector<Node*> nodes;
-        if (p_current->get_owner() != p_base && p_base != p_current)
+        if (!p_current || (p_current->get_owner() != p_base && p_base != p_current))
             return nodes;
 
         Ref<Script> c = p_current->get_script();
