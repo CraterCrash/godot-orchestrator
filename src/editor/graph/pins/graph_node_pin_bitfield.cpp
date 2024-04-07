@@ -16,6 +16,9 @@
 //
 #include "editor/graph/pins/graph_node_pin_bitfield.h"
 
+#include "api/extension_db.h"
+#include "common/scene_utils.h"
+
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/grid_container.hpp>
@@ -31,18 +34,84 @@ void OrchestratorGraphNodePinBitField::_bind_methods()
 {
 }
 
+String OrchestratorGraphNodePinBitField::_get_enum_prefix(const PackedStringArray& p_values)
+{
+    // Taken from ExtensionDB::_resolve_enum_prefix
+    if (p_values.size() == 0)
+        return {};
+
+    String prefix = p_values[0];
+    // Some Godot enums are prefixed with a trailing underscore, those are our target.
+    if (!prefix.contains("_"))
+        return {};
+
+    for (const String& value : p_values)
+    {
+        while (value.find(prefix) != 0)
+        {
+            prefix = prefix.substr(0, prefix.length() - 1);
+            if (prefix.is_empty())
+                return {};
+        }
+    }
+    return prefix;
+}
+
+void OrchestratorGraphNodePinBitField::_get_bitfield_values(HashMap<String, int64_t>& r_values,
+                                                            HashMap<String, String>& r_friendly_names) const
+{
+    const String target_class = _pin->get_target_class();
+    if (!target_class.is_empty())
+    {
+        if (target_class.contains("."))
+        {
+            // Class specific bitfield
+            const int64_t dot = target_class.find(".");
+            const String class_name = target_class.substr(0, dot);
+            const String enum_name  = target_class.substr(dot + 1);
+
+            const PackedStringArray bitfield_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
+            const String bitfield_prefix = _get_enum_prefix(bitfield_values);
+            for (const String& bitfield : bitfield_values)
+            {
+                const int64_t enum_value = ClassDB::class_get_integer_constant(class_name, bitfield);
+                r_values[bitfield] = enum_value;
+                // This friendly logic is part of ExtensionDB::internal::_sanitize_enum
+                r_friendly_names[bitfield] = bitfield.replace(bitfield_prefix, "").capitalize();
+            }
+        }
+        else
+        {
+            // @GlobalScope bitfields
+            const EnumInfo& enum_info = ExtensionDB::get_global_enum(target_class);
+            if (enum_info.is_bitfield)
+            {
+                for (const EnumValue& ev : enum_info.values)
+                {
+                    r_values[ev.name] = ev.value;
+                    r_friendly_names[ev.name] = ev.friendly_name;
+                }
+            }
+        }
+    }
+}
+
+void OrchestratorGraphNodePinBitField::_update_button_value()
+{
+    if (_button)
+        _button->set_text(vformat("%d", _pin->get_effective_default_value()));
+}
+
 void OrchestratorGraphNodePinBitField::_on_bit_toggle(bool p_state, int64_t p_enum_value)
 {
     int64_t current_value = _pin->get_effective_default_value();
     if (p_state)
         current_value |= p_enum_value;
     else
-        current_value &= p_enum_value;
+        current_value &= ~p_enum_value;
 
     _pin->set_default_value(current_value);
-
-    if (_button)
-        _button->set_text(vformat("%d", _pin->get_effective_default_value()));
+    _update_button_value();
 }
 
 void OrchestratorGraphNodePinBitField::_on_hide_flags(PopupPanel* p_panel)
@@ -60,36 +129,24 @@ void OrchestratorGraphNodePinBitField::_on_show_flags()
     panel->set_position(_button->get_screen_position() + Vector2(0, _button->get_size().height));
     panel->connect("popup_hide", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_hide_flags).bind(panel));
 
-    const String target_class = _pin->get_target_class();
-    if (!target_class.is_empty() && target_class.contains("."))
+    const int64_t default_value = _pin->get_effective_default_value();
+
+    HashMap<String, int64_t> bitfield_values;
+    HashMap<String, String> bitfield_friendly_names;
+    _get_bitfield_values(bitfield_values, bitfield_friendly_names);
+
+    GridContainer* grid = memnew(GridContainer);
+    grid->set_columns(1);
+    panel->add_child(grid);
+
+    for (const KeyValue<String, int64_t>& E : bitfield_values)
     {
-        const int64_t dot = target_class.find(".");
-        const String class_name = target_class.substr(0, dot);
-        const String enum_name  = target_class.substr(dot + 1);
+        CheckBox* cb = memnew(CheckBox);
+        cb->set_pressed(default_value & E.value);
+        cb->set_text(bitfield_friendly_names[E.key]);
+        grid->add_child(cb);
 
-        GridContainer* grid = memnew(GridContainer);
-        grid->set_columns(2);
-        panel->add_child(grid);
-
-        const int default_value = _pin->get_effective_default_value();
-
-        const PackedStringArray bitfield_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
-        for (const String& bitfield : bitfield_values)
-        {
-            const int64_t enum_value = ClassDB::class_get_integer_constant(class_name, bitfield);
-
-            CheckBox* cb = memnew(CheckBox);
-            grid->add_child(cb);
-
-            if (default_value & enum_value)
-                cb->set_pressed(true);
-
-            Label* label = memnew(Label);
-            label->set_text(bitfield);
-            grid->add_child(label);
-
-            cb->connect("toggled", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_bit_toggle).bind(enum_value));
-        }
+        cb->connect("toggled", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_bit_toggle).bind(E.value));
     }
 
     panel->reset_size();
@@ -107,9 +164,13 @@ void OrchestratorGraphNodePinBitField::_on_show_flags()
 Control* OrchestratorGraphNodePinBitField::_get_default_value_widget()
 {
     _button = memnew(Button);
-    _button->set_text(vformat("%d", _pin->get_effective_default_value()));
     _button->set_h_size_flags(SIZE_SHRINK_BEGIN);
+    _button->set_button_icon(SceneUtils::get_icon(this, "GuiOptionArrow"));
+    _button->set_icon_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
     _button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_show_flags));
+
+    _update_button_value();
+
     return _button;
 }
 
