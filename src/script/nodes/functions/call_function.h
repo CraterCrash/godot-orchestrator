@@ -90,11 +90,6 @@ protected:
     /// @return true if there should be execution pins on the node, false means only data pins.
     virtual bool _has_execution_pins(const MethodInfo& p_method) const;
 
-    /// Check whether the Godot method has a return value.
-    /// @param p_method the Godot method object
-    /// @return true if the method has a return value, false otherwise
-    virtual bool _has_return_value(const MethodInfo& p_method) const;
-
     /// Check whether the referenced MethodInfo object should be serialized for this node's data.
     /// @return true if the MethodInfo is saved as part of the node's data, false if it isn't
     virtual bool _is_method_info_serialized() const { return true; }

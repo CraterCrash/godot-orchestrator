@@ -16,6 +16,7 @@
 //
 #include "graph_node_spawner.h"
 
+#include "common/method_utils.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
 #include "script/nodes/script_nodes.h"
@@ -228,7 +229,7 @@ bool OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(const Orchestra
             {
                 // If the method returns nothing but the pin is an output, this triggers
                 // a unique state where we reject the method all together.
-                if (_method.return_val.type == Variant::NIL && !(_method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT))
+                if (!MethodUtils::has_return_value(_method))
                     return_filtered = true;
 
                 if (!return_filtered && _method.return_val.type != pin->get_value_type())

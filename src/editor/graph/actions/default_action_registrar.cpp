@@ -18,8 +18,9 @@
 
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
-#include "common/variant_utils.h"
+#include "common/method_utils.h"
 #include "common/string_utils.h"
+#include "common/variant_utils.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "script/nodes/script_nodes.h"
@@ -102,7 +103,7 @@ String OrchestratorDefaultGraphActionRegistrar::_get_method_icon(const MethodInf
 {
     if (!OScriptNodeEvent::is_event_method(p_method))
     {
-        if (p_method.return_val.type != Variant::NIL)
+        if (MethodUtils::has_return_value(p_method))
         {
             // Method has a return type
             String return_type = Variant::get_type_name(p_method.return_val.type);
