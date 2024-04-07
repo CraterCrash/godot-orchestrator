@@ -17,6 +17,7 @@
 #include "call_function.h"
 
 #include "common/dictionary_utils.h"
+#include "common/method_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -63,7 +64,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
             if (!parser->has_execute_failed())
             {
                 // Execution was successful, set output if applicable.
-                if (_reference.return_type != Variant::NIL)
+                if (MethodUtils::has_return_value(_reference.method))
                     p_context.set_output(0, result);
 
                 return 0;
@@ -91,7 +92,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
             return -1 | STEP_FLAG_END;
         }
 
-        if (_reference.return_type != Variant::NIL)
+        if (MethodUtils::has_return_value(_reference.method))
             p_context.set_output(0, result);
 
         return 0;
@@ -134,7 +135,7 @@ public:
                 _args[i] = p_context.get_input(i + _argument_offset);
         }
 
-        if (_reference.return_type != Variant::NIL)
+        if (MethodUtils::has_return_value(_reference.method))
         {
             Variant result = instance->callv(_function_name, _args);
             p_context.set_output(0, result);
@@ -319,7 +320,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         }
     }
 
-    if (_has_return_value(p_method))
+    if (MethodUtils::has_return_value(p_method))
     {
         Ref<OScriptNodePin> rv = create_pin(PD_Output, "return_value", p_method.return_val.type);
         rv->set_flags(OScriptNodePin::Flags::DATA);
@@ -329,26 +330,13 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
 
 bool OScriptNodeCallFunction::_has_execution_pins(const MethodInfo& p_method) const
 {
-    if (_has_return_value(p_method) && p_method.arguments.empty())
+    if (MethodUtils::has_return_value(p_method) && p_method.arguments.empty())
     {
         const String method_name = p_method.name.capitalize();
         if (method_name.begins_with("Is ") || method_name.begins_with("Get "))
             return false;
     }
     return true;
-}
-
-bool OScriptNodeCallFunction::_has_return_value(const MethodInfo& p_method) const
-{
-    // Check if it does return a value
-    if (p_method.return_val.type != Variant::NIL)
-        return true;
-
-    // If return value is NIL, check if it returns Variant
-    if ((p_method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT) == PROPERTY_USAGE_NIL_IS_VARIANT)
-        return true;
-
-    return false;
 }
 
 void OScriptNodeCallFunction::_set_function_flags(const MethodInfo& p_method)

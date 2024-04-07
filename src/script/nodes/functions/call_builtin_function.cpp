@@ -17,6 +17,7 @@
 #include "call_builtin_function.h"
 
 #include "common/dictionary_utils.h"
+#include "common/method_utils.h"
 
 OScriptNodeCallBuiltinFunction::OScriptNodeCallBuiltinFunction()
 {
@@ -25,12 +26,7 @@ OScriptNodeCallBuiltinFunction::OScriptNodeCallBuiltinFunction()
 
 bool OScriptNodeCallBuiltinFunction::_has_execution_pins(const MethodInfo& p_method) const
 {
-    return !_has_return_value(p_method);
-}
-
-bool OScriptNodeCallBuiltinFunction::_has_return_value(const MethodInfo& p_method) const
-{
-    return p_method.return_val.type != Variant::NIL || (p_method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
+    return !MethodUtils::has_return_value(p_method);
 }
 
 void OScriptNodeCallBuiltinFunction::post_initialize()
