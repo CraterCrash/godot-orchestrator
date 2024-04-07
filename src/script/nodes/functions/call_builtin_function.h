@@ -30,7 +30,6 @@ protected:
 
     //~ Begin OScriptNodeCallFunction Interface
     bool _has_execution_pins(const MethodInfo& p_method) const override;
-    bool _has_return_value(const MethodInfo& p_method) const override;
     int get_argument_offset() const override { return 0; }
     //~ End OScriptNodeCallFunction Interface
 
