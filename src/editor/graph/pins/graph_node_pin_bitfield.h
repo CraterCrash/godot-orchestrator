@@ -43,6 +43,21 @@ protected:
     Control* _get_default_value_widget() override;
     //~ End OrchestratorGraphNodePin Interface
 
+    /// Calculates the prefix of a Godot enum.
+    /// This works by comparing the enum values and resolving the common prefix among the value set.
+    /// @param p_values the enum constant value names
+    /// @return the common prefix or an empty string if there is no common prefix
+    static String _get_enum_prefix(const PackedStringArray& p_values);
+
+    /// Get the bitfield values and friendly names to be used; regardless of the enum bitfield is
+    /// in the <code>@GlobalScope</code> or if its nested within a class.
+    /// @param r_values the output mappings of constant names to their respective bitfield values
+    /// @param r_friendly_names the output mappings of constant names to their friendly names
+    void _get_bitfield_values(HashMap<String, int64_t>& r_values, HashMap<String, String>& r_friendly_names) const;
+
+    /// Updates the button's value from the pin's effective value
+    void _update_button_value();
+
     /// Dispatched when a bitfield checkbox is toggled
     /// @param p_state true if the checkbox is toggled, false otherwise
     /// @param p_value the value to be adjusted for the bitfield
