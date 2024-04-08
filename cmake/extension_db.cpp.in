@@ -158,5 +158,12 @@ namespace godot
     {
         return ExtensionDB::_singleton->_functions[p_name];
     }
+
+    bool ExtensionDB::is_class_enum_bitfield(const StringName& p_class_name, const String& p_enum_name)
+    {
+        if (ExtensionDB::_singleton->_classes.has(p_class_name))
+            return ExtensionDB::_singleton->_classes[p_class_name].bitfield_enums.has(p_enum_name);
+        return false;
+    }
 }
 
