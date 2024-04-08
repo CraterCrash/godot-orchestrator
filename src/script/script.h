@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_H
 #define ORCHESTRATOR_SCRIPT_H
 
+#include "common/version.h"
 #include "context/execution_stack.h"
 #include "function.h"
 #include "graph.h"
@@ -28,7 +29,6 @@
 
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/script_extension.hpp>
-#include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/rb_set.hpp>
@@ -168,6 +168,9 @@ public:
     TypedArray<StringName> _get_members() const override;
     Variant _get_rpc_config() const override;
     String _get_class_icon_path() const override;
+    #if GODOT_VERSION >= 0x040300
+    ScriptLanguage::ScriptNameCasing _preferred_file_name_casing() const override;
+    #endif
     //~ End ScriptExtension overrides
 
     /// Performs post load steps after the script has been initialized.

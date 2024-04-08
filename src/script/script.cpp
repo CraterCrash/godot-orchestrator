@@ -463,6 +463,13 @@ String OScript::_get_class_icon_path() const
     return {};
 }
 
+#if GODOT_VERSION >= 0x040300
+ScriptLanguage::ScriptNameCasing OScript::_preferred_file_name_casing() const
+{
+    return ScriptLanguage::SCRIPT_NAME_CASING_SNAKE_CASE;
+}
+#endif
+
 /// OScript ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool OScript::validate_and_build()
