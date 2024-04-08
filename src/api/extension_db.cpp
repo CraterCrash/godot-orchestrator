@@ -4506,12 +4506,79 @@ namespace godot
 			}
 		}
 		
+		void ExtensionDBLoader::prime_class_details()
+		{
+			// Class details
+			// This currently only loads classes that have bitfield enums; use ClassDB otherwise.
+			// Can eventually be replaced by: https://github.com/godotengine/godot/pull/90368
+			
+			// Control
+			ExtensionDB::_singleton->_classes["Control"].name = "Control";
+			ExtensionDB::_singleton->_classes["Control"].bitfield_enums.push_back("SizeFlags");
+			
+			// FileAccess
+			ExtensionDB::_singleton->_classes["FileAccess"].name = "FileAccess";
+			ExtensionDB::_singleton->_classes["FileAccess"].bitfield_enums.push_back("UnixPermissionFlags");
+			
+			// ImageFormatLoader
+			ExtensionDB::_singleton->_classes["ImageFormatLoader"].name = "ImageFormatLoader";
+			ExtensionDB::_singleton->_classes["ImageFormatLoader"].bitfield_enums.push_back("LoaderFlags");
+			
+			// Mesh
+			ExtensionDB::_singleton->_classes["Mesh"].name = "Mesh";
+			ExtensionDB::_singleton->_classes["Mesh"].bitfield_enums.push_back("ArrayFormat");
+			
+			// NavigationPathQueryParameters2D
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters2D"].name = "NavigationPathQueryParameters2D";
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters2D"].bitfield_enums.push_back("PathMetadataFlags");
+			
+			// NavigationPathQueryParameters3D
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters3D"].name = "NavigationPathQueryParameters3D";
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters3D"].bitfield_enums.push_back("PathMetadataFlags");
+			
+			// Node
+			ExtensionDB::_singleton->_classes["Node"].name = "Node";
+			ExtensionDB::_singleton->_classes["Node"].bitfield_enums.push_back("ProcessThreadMessages");
+			
+			// OpenXRInterface
+			ExtensionDB::_singleton->_classes["OpenXRInterface"].name = "OpenXRInterface";
+			ExtensionDB::_singleton->_classes["OpenXRInterface"].bitfield_enums.push_back("HandJointFlags");
+			
+			// RenderingDevice
+			ExtensionDB::_singleton->_classes["RenderingDevice"].name = "RenderingDevice";
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("BarrierMask");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("TextureUsageBits");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("StorageBufferUsage");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("PipelineDynamicStateFlags");
+			
+			// RenderingServer
+			ExtensionDB::_singleton->_classes["RenderingServer"].name = "RenderingServer";
+			ExtensionDB::_singleton->_classes["RenderingServer"].bitfield_enums.push_back("ArrayFormat");
+			
+			// ResourceSaver
+			ExtensionDB::_singleton->_classes["ResourceSaver"].name = "ResourceSaver";
+			ExtensionDB::_singleton->_classes["ResourceSaver"].bitfield_enums.push_back("SaverFlags");
+			
+			// RichTextLabel
+			ExtensionDB::_singleton->_classes["RichTextLabel"].name = "RichTextLabel";
+			ExtensionDB::_singleton->_classes["RichTextLabel"].bitfield_enums.push_back("ImageUpdateMask");
+			
+			// TextServer
+			ExtensionDB::_singleton->_classes["TextServer"].name = "TextServer";
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("JustificationFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("LineBreakFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("TextOverrunFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("GraphemeFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("FontStyle");
+		}
+		
 		void ExtensionDBLoader::prime()
 		{
 			prime_math_constants();
 			prime_global_enumerations();
 			prime_builtin_classes();
 			prime_utility_functions();
+			prime_class_details();
 		}
 
     }
@@ -4576,6 +4643,13 @@ namespace godot
     FunctionInfo ExtensionDB::get_function(const StringName& p_name)
     {
         return ExtensionDB::_singleton->_functions[p_name];
+    }
+
+    bool ExtensionDB::is_class_enum_bitfield(const StringName& p_class_name, const String& p_enum_name)
+    {
+        if (ExtensionDB::_singleton->_classes.has(p_class_name))
+            return ExtensionDB::_singleton->_classes[p_class_name].bitfield_enums.has(p_enum_name);
+        return false;
     }
 }
 

@@ -99,6 +99,13 @@ namespace godot
 		Variant::Type index_returning_type;
 	};
 	
+	/// Describes a Godot Class
+	struct ClassInfo
+	{
+		StringName name;
+		Vector<StringName> bitfield_enums;
+	};
+	
 	namespace internal
 	{
 		/// Populates the contents of the ExtensionDB singleton database
@@ -115,6 +122,9 @@ namespace godot
 			
 			/// Populates Utility Functions
 			void prime_utility_functions();
+			
+			/// Populate class details
+			void prime_class_details();
 		
 		public:
 			/// Populates the ExtensionDB
@@ -143,6 +153,8 @@ namespace godot
 		PackedStringArray _function_names;
 		HashMap<StringName, FunctionInfo> _functions;
 		
+		HashMap<StringName, ClassInfo> _classes;
+		
 	public:
 		ExtensionDB();
 		~ExtensionDB();
@@ -161,6 +173,8 @@ namespace godot
 		
 		static PackedStringArray get_function_names();
 		static FunctionInfo get_function(const StringName& p_name);
+		
+		static bool is_class_enum_bitfield(const StringName& p_class_name, const String& p_enum_name);
 	};
 	
 }

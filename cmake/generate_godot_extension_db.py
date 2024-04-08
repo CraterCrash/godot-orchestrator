@@ -308,6 +308,10 @@ def create_structs():
                                  "Vector<ConstantInfo> constants",
                                  "Vector<EnumInfo> enums",
                                  "Variant::Type index_returning_type"])
+
+    print_indent("/// Describes a Godot Class")
+    print_struct("ClassInfo", ["StringName name",
+                               "Vector<StringName> bitfield_enums"])
     indent_pop()
 
 
@@ -331,6 +335,9 @@ def create_loader_header():
     print_indent("")
     print_indent("/// Populates Utility Functions")
     print_indent("void prime_utility_functions();")
+    print_indent("")
+    print_indent("/// Populate class details")
+    print_indent("void prime_class_details();")
     indent_pop()
     print_indent("")
     print_indent("public:")
@@ -368,6 +375,8 @@ def create_db_header():
     print_indent("PackedStringArray _function_names;")
     print_indent("HashMap<StringName, FunctionInfo> _functions;")
     print_indent("")
+    print_indent("HashMap<StringName, ClassInfo> _classes;")
+    print_indent("")
     indent_pop()
     print_indent("public:")
     indent_push()
@@ -388,6 +397,8 @@ def create_db_header():
     print_indent("")
     print_indent("static PackedStringArray get_function_names();")
     print_indent("static FunctionInfo get_function(const StringName& p_name);")
+    print_indent("")
+    print_indent("static bool is_class_enum_bitfield(const StringName& p_class_name, const String& p_enum_name);")
     indent_pop()
     print_indent("};")
     print_indent("")
@@ -600,6 +611,24 @@ def write_utility_functions(functions):
         print_indent("}")
     indent_pop()
 
+def write_class_details(classes):
+    indent_push()
+    print_indent("// Class details")
+    print_indent("// This currently only loads classes that have bitfield enums; use ClassDB otherwise.")
+    print_indent("// Can eventually be replaced by: https://github.com/godotengine/godot/pull/90368")
+    for clazz in classes:
+        enum_names = []
+        if 'enums' in clazz:
+            for enum in clazz["enums"]:
+                if enum["is_bitfield"]:
+                    enum_names.append(enum["name"])
+        if enum_names:
+            print_indent("")
+            print_indent("// " + clazz["name"])
+            print_indent(DB + "_classes[" + quote(clazz["name"]) + "].name = " + quote(clazz["name"]) + ";")
+            for enum_name in enum_names:
+                print_indent(DB + "_classes[" + quote(clazz["name"]) + "].bitfield_enums.push_back(" + quote(enum_name) + ");")
+    indent_pop()
 
 def create_cpp():
     # Load the data
@@ -632,6 +661,12 @@ def create_cpp():
     print_indent("}")
     print_indent("")
 
+    print_indent("void ExtensionDBLoader::prime_class_details()")
+    print_indent("{")
+    write_class_details(data["classes"])
+    print_indent("}")
+    print_indent("")
+
     print_indent("void ExtensionDBLoader::prime()")
     print_indent("{")
     indent_push()
@@ -639,6 +674,7 @@ def create_cpp():
     print_indent("prime_global_enumerations();")
     print_indent("prime_builtin_classes();")
     print_indent("prime_utility_functions();")
+    print_indent("prime_class_details();")
     indent_pop()
     print_indent("}")
 
