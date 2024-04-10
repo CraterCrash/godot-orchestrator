@@ -32,7 +32,7 @@ jobs:
 
       - name: Download assets (Specific Tag)
         if: ${{ github.event.inputs.tag != '' }}
-        uses: robinraju/release-downloader@v1.9
+        uses: robinraju/release-downloader@v1.10
         with:
           tag: ${{ github.event.inputs.tag }}
           extract: true
