@@ -36,7 +36,7 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 
 ## 📑 Documentation
 
-For complete documentation, see https://www.vahera.com/docs.
+For complete documentation, see https://docs.vahera.com/orchestrator.
 
 ## 🗒️ Changelog
 
