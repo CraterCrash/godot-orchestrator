@@ -18,11 +18,14 @@
 
 #include "api/extension_db.h"
 #include "common/scene_utils.h"
+#include "common/string_utils.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/grid_container.hpp>
+#include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/popup_panel.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 OrchestratorGraphNodePinBitField::OrchestratorGraphNodePinBitField(OrchestratorGraphNode* p_node,
                                                                    const Ref<OScriptNodePin>& p_pin)
@@ -99,7 +102,15 @@ void OrchestratorGraphNodePinBitField::_get_bitfield_values(HashMap<String, int6
 void OrchestratorGraphNodePinBitField::_update_button_value()
 {
     if (_button)
-        _button->set_text(vformat("%d", _pin->get_effective_default_value()));
+    {
+        const int64_t value = _pin->get_effective_default_value();
+        _button->set_text(vformat("%d", value));
+        for (CheckBox* checkbox : _checkboxes)
+        {
+            int64_t cb_value = checkbox->get_meta("__enum_value");
+            checkbox->set_pressed_no_signal(cb_value == value || value & cb_value);
+        }
+    }
 }
 
 void OrchestratorGraphNodePinBitField::_on_bit_toggle(bool p_state, int64_t p_enum_value)
@@ -116,6 +127,7 @@ void OrchestratorGraphNodePinBitField::_on_bit_toggle(bool p_state, int64_t p_en
 
 void OrchestratorGraphNodePinBitField::_on_hide_flags(PopupPanel* p_panel)
 {
+    _checkboxes.clear();
     p_panel->queue_free();
 }
 
@@ -128,6 +140,7 @@ void OrchestratorGraphNodePinBitField::_on_show_flags()
     panel->set_size(Vector2(100, 100));
     panel->set_position(_button->get_screen_position() + Vector2(0, _button->get_size().height));
     panel->connect("popup_hide", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_hide_flags).bind(panel));
+    _button->add_child(panel);
 
     const int64_t default_value = _pin->get_effective_default_value();
 
@@ -135,18 +148,58 @@ void OrchestratorGraphNodePinBitField::_on_show_flags()
     HashMap<String, String> bitfield_friendly_names;
     _get_bitfield_values(bitfield_values, bitfield_friendly_names);
 
+    // Some bitfield enums constants overlap with one another, either where one constant is the exact same
+    // value as another constant, i.e. METHOD_FLAGS_NORMAL vs METHOD_FLAGS_DEFAULT, and others where a
+    // specific enum constant is a combination of others, i.e. BARRIER_MASK_ALL_BARRIERS.
+
+    // Iterate values and identify which are masks that toggle multiple bits on/off.
+    Vector<String> multi_flag_constants;
+    for (const KeyValue<String, int64_t>& E : bitfield_values)
+    {
+        if (E.value != 0 && (E.value - (E.value & -E.value)) != 0)
+            multi_flag_constants.push_back(E.key);
+    }
+
+    // Create a map of the various names by their respective unique values
+    HashMap<int64_t, Vector<String>> duplicate_constants;
+    for (const KeyValue<String, int64_t>& E : bitfield_values)
+    {
+        // We only add the non-multi-flag constants to this list
+        if (!multi_flag_constants.has(E.key))
+            duplicate_constants[E.value].push_back(bitfield_friendly_names[E.key]);
+    }
+
     GridContainer* grid = memnew(GridContainer);
     grid->set_columns(1);
     panel->add_child(grid);
 
-    for (const KeyValue<String, int64_t>& E : bitfield_values)
+    // Iterate and add the single value, potential multi-named entries first
+    for (const KeyValue<int64_t, Vector<String>>& E : duplicate_constants)
     {
         CheckBox* cb = memnew(CheckBox);
-        cb->set_pressed(default_value & E.value);
-        cb->set_text(bitfield_friendly_names[E.key]);
+        cb->set_pressed(default_value & E.key);
+        cb->set_text(StringUtils::join(" / ", E.value));
+        cb->set_meta("__enum_value", E.key);
         grid->add_child(cb);
+        cb->connect("toggled", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_bit_toggle).bind(E.key));
+        _checkboxes.push_back(cb);
+    }
 
-        cb->connect("toggled", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_bit_toggle).bind(E.value));
+    // If there are any multi-flag constants, add those after the separator
+    if (!multi_flag_constants.is_empty())
+    {
+        grid->add_child(memnew(HSeparator));
+        for (const String& flag_name : multi_flag_constants)
+        {
+            const int64_t value = bitfield_values[flag_name];
+            CheckBox* cb = memnew(CheckBox);
+            cb->set_pressed(default_value & value);
+            cb->set_text(bitfield_friendly_names[flag_name]);
+            cb->set_meta("__enum_value", value);
+            grid->add_child(cb);
+            cb->connect("toggled", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_bit_toggle).bind(value));
+            _checkboxes.push_back(cb);
+        }
     }
 
     panel->reset_size();
@@ -156,9 +209,9 @@ void OrchestratorGraphNodePinBitField::_on_show_flags()
         - Vector2i(panel->get_size().width / 2, 0)
         + Vector2(_button->get_size().width / 2, 0);
     panel->set_position(new_position);
-
-    _button->add_child(panel);
     panel->popup();
+
+    _update_button_value();
 }
 
 Control* OrchestratorGraphNodePinBitField::_get_default_value_widget()

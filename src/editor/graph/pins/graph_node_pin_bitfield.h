@@ -23,6 +23,7 @@
 namespace godot
 {
     class Button;
+    class CheckBox;
     class PopupPanel;
 }
 
@@ -35,6 +36,7 @@ class OrchestratorGraphNodePinBitField : public OrchestratorGraphNodePin
     static void _bind_methods();
 
     Button* _button{ nullptr }; //! The button that shows the pop-up
+    Vector<CheckBox*> _checkboxes;
 
 protected:
     OrchestratorGraphNodePinBitField() = default;
