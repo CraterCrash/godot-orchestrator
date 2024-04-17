@@ -191,6 +191,32 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class OrchestratorGraphNodeSpawnerEmitMemberSignal : public OrchestratorGraphNodeSpawnerCallMemberFunction
+{
+    GDCLASS(OrchestratorGraphNodeSpawnerEmitMemberSignal, OrchestratorGraphNodeSpawnerCallMemberFunction);
+    static void _bind_methods() { }
+
+protected:
+    OrchestratorGraphNodeSpawnerEmitMemberSignal() = default;
+
+    StringName _target_class;
+    MethodInfo _method;
+
+public:
+    OrchestratorGraphNodeSpawnerEmitMemberSignal(const MethodInfo& p_method, const StringName& p_target_class)
+        : _method(p_method)
+        , _target_class(p_target_class)
+    {
+    }
+
+    //~ Begin OrchestratorGraphNodeSpawner Interface
+    void execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position) override;
+    bool is_filtered(const OrchestratorGraphActionFilter& p_filter, const OrchestratorGraphActionSpec& p_spec) override;
+    //~ End OrchestratorGraphNodeSpawner Interface
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class OrchestratorGraphNodeSpawnerEmitSignal : public OrchestratorGraphNodeSpawnerCallMemberFunction
 {
     GDCLASS(OrchestratorGraphNodeSpawnerEmitSignal, OrchestratorGraphNodeSpawnerCallMemberFunction);
