@@ -510,7 +510,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_signals(const Orch
         mi.arguments = si.arguments;
         mi.return_val = PropertyInfo(Variant::NIL, "");
 
-        Ref<OrchestratorGraphActionHandler> handler(memnew(OrchestratorGraphNodeSpawnerEmitSignal(mi)));
+        Ref<OrchestratorGraphActionHandler> handler(memnew(OrchestratorGraphNodeSpawnerEmitMemberSignal(mi, p_class_name)));
         p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(spec, handler)));
     }
 }

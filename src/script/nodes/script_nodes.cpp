@@ -104,6 +104,7 @@ void register_script_node_classes()
 
     //~ Signals
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwaitSignal)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitMemberSignal)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitSignal)
 
     //~ Utility
