@@ -1045,6 +1045,8 @@ Ref<OScriptSignal> OScript::create_custom_signal(const StringName& p_name)
 
     MethodInfo method;
     method.name = p_name;
+    // Fixed by https://github.com/godotengine/godot-cpp/pull/1440
+    method.return_val.usage = PROPERTY_USAGE_DEFAULT;
 
     Ref<OScriptSignal> signal = OScriptSignal::create(this, method);
     _signals[p_name] = signal;

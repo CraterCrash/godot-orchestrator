@@ -293,6 +293,38 @@ bool OrchestratorGraphNodeSpawnerEvent::is_filtered(const OrchestratorGraphActio
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OrchestratorGraphNodeSpawnerEmitMemberSignal::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
+{
+    const Ref<OScript> script = p_graph->get_owning_script();
+    if (script.is_valid())
+    {
+        OScriptLanguage* language = OScriptLanguage::get_singleton();
+        Ref<OScriptNodeEmitMemberSignal> node = language->create_node_from_type<OScriptNodeEmitMemberSignal>(script);
+
+        Dictionary data;
+        data["target_class"] = _target_class;
+
+        OScriptNodeInitContext context;
+        context.method = _method;
+        context.user_data = data;
+
+        node->initialize(context);
+
+        p_graph->spawn_node(node, p_position);
+    }
+}
+
+bool OrchestratorGraphNodeSpawnerEmitMemberSignal::is_filtered(const OrchestratorGraphActionFilter& p_filter,
+                                                               const OrchestratorGraphActionSpec& p_spec)
+{
+    if (p_filter.flags & OrchestratorGraphActionFilter::Filter_RejectSignals)
+        return true;
+
+    return OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(p_filter, p_spec);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void OrchestratorGraphNodeSpawnerEmitSignal::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
     const Ref<OScript> script = p_graph->get_owning_script();
