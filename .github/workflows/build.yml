@@ -55,6 +55,19 @@ jobs:
             runner: macos-latest
             target: template_release
             platform: macos
+          - identifier: android-arm64
+            name: 🤖 Android Arm64
+            build_type: Release
+            runner: ubuntu-20.04
+            platform: android
+            arch: arm64-v8a
+          - identifier: android-arm32
+            name: 🤖 Android Arm32
+            build_type: Release
+            runner: ubuntu-20.04
+            platform: android
+            arch: armeabi-v7a
+
     runs-on: ${{ matrix.runner }}
     name: ${{ matrix.name }}
 
@@ -77,6 +90,10 @@ jobs:
         if: startsWith(matrix.identifier, 'macos-')
         uses: ./.github/actions/macos-deps
 
+      - name: Setup Android Dependencies
+        if: startsWith(matrix.identifier, 'android-')
+        uses: ./.github/actions/android-deps
+
       - name: Setup Base Dependencies
         uses: ./.github/actions/base-deps
 
@@ -98,6 +115,13 @@ jobs:
         run: |
           cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER=cl -S '${{ github.workspace }}' -G Ninja
           cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18        
+
+      - name: Build Orchestrator (Android)
+        if: startsWith(matrix.identifier, 'android-')
+        shell: sh
+        run: |
+          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_ANDROID_ARCH_ABI=${{ matrix.arch }} -DANDROID_ABI=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.9 -DANDROID_PLATFORM=android-23 -DANDROID_TOOLCHAIN=clang -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }}
+          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
 
       - name: Prepare addon files
         shell: bash
