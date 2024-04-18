@@ -423,7 +423,7 @@ void OrchestratorScriptViewGraphsSection::_remove_graph_function(TreeItem* p_ite
 PackedStringArray OrchestratorScriptViewGraphsSection::_get_existing_names() const
 {
     PackedStringArray result;
-    for (const Ref<OScriptGraph> graph : _script->get_graphs())
+    for (const Ref<OScriptGraph>& graph : _script->get_graphs())
         result.push_back(graph->get_graph_name());
     return result;
 }
