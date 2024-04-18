@@ -163,21 +163,19 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
         PUBLIC godot::cpp
 )
 
+SET(GDEXTENSION_LIB_PREFIX "")
 IF (NOT ANDROID)
-    MESSAGE(STATUS "Built for non-Android")
     IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
         SET(system_bits 64)
     ELSE ()
         SET(system_bits 32)
     ENDIF ()
 ELSE ()
-    MESSAGE(STATUS "Built for Android ${CMAKE_ANDROID_ARCH}")
+    SET(GDEXTENSION_LIB_PREFIX "lib")
     IF (CMAKE_ANDROID_ARCH STREQUAL "arm64")
         SET(system_bits 64)
-        #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --target=aarch64-linux-android${ANDROID_PLATFORM} -march=armv8-a")
     ELSE ()
         SET(system_bits 32)
-        #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --target=armv7a-linux-androideabi${ANDROID_PLATFORM} -march=armv7-a -mfpu=neon")
     ENDIF ()
 ENDIF ()
 
@@ -198,7 +196,7 @@ ENDIF()
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
-        PREFIX ""
+        PREFIX "${GDEXTENSION_LIB_PREFIX}"
         POSITION_INDEPENDENT_CODE ON
         CMAKE_EXPORT_COMPILE_OPTIMIZATION_RELEASE ON
         CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON
