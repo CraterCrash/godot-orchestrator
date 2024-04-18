@@ -1,0 +1,21 @@
+name: Setup Android Dependencies
+description: Setup Android Build Dependencies
+runs:
+  using: "composite"
+  steps:
+
+    - name: Install CLang (Android)
+      shell: sh
+      run: |
+        sudo apt-get install clang -y        
+
+    - name: Install Ninja (Linux)
+      shell: sh
+      run: |
+        sudo apt-get install ninja-build
+
+    - name: Install NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r23c
+        link-to-sdk: true
