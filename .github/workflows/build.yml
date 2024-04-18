@@ -15,13 +15,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - identifier: linux-debug
-            name: 🐧 Linux (Debug)
-            build_type: Debug
-            runner: ubuntu-20.04
-            target: template_debug
-            platform: linux
-            arch: x86_64
+#          - identifier: linux-debug
+#            name: 🐧 Linux (Debug)
+#            build_type: Debug
+#            runner: ubuntu-20.04
+#            target: template_debug
+#            platform: linux
+#            arch: x86_64
           - identifier: linux-release
             name: 🐧 Linux (Release)
             build_type: Release
@@ -29,13 +29,13 @@ jobs:
             target: template_release
             platform: linux
             arch: x86_64
-          - identifier: windows-debug
-            name: 🪟 Windows (Debug)
-            build_type: Debug
-            runner: windows-latest
-            target: template_debug
-            platform: windows
-            arch: x86_64
+#          - identifier: windows-debug
+#            name: 🪟 Windows (Debug)
+#            build_type: Debug
+#            runner: windows-latest
+#            target: template_debug
+#            platform: windows
+#            arch: x86_64
           - identifier: windows-release
             name: 🪟 Windows (Release)
             build_type: Release
@@ -43,12 +43,12 @@ jobs:
             target: template_release
             platform: windows
             arch: x86_64
-          - identifier: macos-debug
-            name: 🍎 MacOS (Debug)
-            build_type: Debug
-            runner: macos-latest
-            target: template_debug
-            platform: macos
+#          - identifier: macos-debug
+#            name: 🍎 MacOS (Debug)
+#            build_type: Debug
+#            runner: macos-latest
+#            target: template_debug
+#            platform: macos
           - identifier: macos-release
             name: 🍎 MacOS (Release)
             build_type: Release
