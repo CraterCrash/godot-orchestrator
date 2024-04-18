@@ -14,3 +14,9 @@ macos = "res://addons/orchestrator/orchestrator.darwin.64.release.dylib"
 
 windows.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.release.dll"
 #windows.debug.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.debug.dll"
+
+android.arm32 = "res://addons/orchestrator/orchestrator.android.32.release.so"
+#android.debug.arm32 = "res://addons/orchestrator/orchestrator.android.32.debug.so"
+
+android.arm64 = "res://addons/orchestrator/orchestrator.android.64.release.so"
+#android.debug.arm64 = "res://addons/orchestrator/orchestrator.android.64.debug.so"
