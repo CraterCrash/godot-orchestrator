@@ -275,7 +275,7 @@ bool OScriptNodeEmitSignal::validate_node_during_build() const
 
 bool OScriptNodeEmitSignal::can_inspect_node_properties() const
 {
-    return _signal.is_valid() & !_signal->get_signal_name().is_empty();
+    return _signal.is_valid() && !_signal->get_signal_name().is_empty();
 }
 
 OScriptNodeInstance* OScriptNodeEmitSignal::instantiate(OScriptInstance* p_instance)
