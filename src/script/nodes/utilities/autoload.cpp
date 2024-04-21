@@ -134,6 +134,14 @@ OScriptNodeInstance* OScriptNodeAutoload::instantiate(OScriptInstance* p_instanc
     return i;
 }
 
+void OScriptNodeAutoload::initialize(const OScriptNodeInitContext& p_context)
+{
+    if (p_context.user_data.has_value() && p_context.user_data.value().has("class_name"))
+        _autoload = p_context.user_data.value()["class_name"];
+
+    super::initialize(p_context);
+}
+
 bool OScriptNodeAutoload::validate_node_during_build() const
 {
     if (OScriptLanguage::get_singleton()->has_any_global_constant(_autoload))

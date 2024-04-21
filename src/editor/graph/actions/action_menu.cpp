@@ -27,6 +27,7 @@
 
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
 
 OrchestratorGraphActionMenu::OrchestratorGraphActionMenu(OrchestratorGraphEdit* p_graph_edit)
 {
@@ -111,6 +112,9 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         script->connect("functions_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
         script->connect("variables_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
         script->connect("signals_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
+
+        // When user changes any project settings, this is used to force a refresh for autoloads
+        ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
     }
 }
 
@@ -169,6 +173,11 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
         TreeItem* parent = _tree_view->get_root();
 
         const PackedStringArray categories = item->get_spec().category.split("/");
+
+        // Don't show "Project/" top-level when dragging from pin
+        if (!_filter.context.pins.is_empty() || !_filter.target_classes.is_empty())
+            if (categories.size() >= 1 && categories[0].to_lower().match("project"))
+                continue;
 
         for (int i = 0; i < categories.size() - 1; i++)
         {
