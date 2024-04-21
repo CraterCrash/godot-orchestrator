@@ -43,6 +43,7 @@ public:
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     Object* resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    void initialize(const OScriptNodeInitContext& p_context) override;
     bool validate_node_during_build() const override;
     //~ End OScriptNode Interface
 };

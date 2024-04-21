@@ -40,7 +40,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_node(const OrchestratorG
     keywords.append_array(name_parts);
 
     OrchestratorGraphActionSpec spec;
-    spec.category = "Script/Nodes/" + p_category;
+    spec.category = (p_category.begins_with("/") ? "Project" : "Script/Nodes/") + p_category;
     spec.tooltip = node->get_tooltip_text();
     spec.text = name_parts[int(name_parts.size()) - 1].capitalize();
     spec.keywords = StringUtils::join(",", keywords);
@@ -362,6 +362,13 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
 
         const String category = vformat("%s/%s", top_category.capitalize(), fi.name);
         _register_node<OScriptNodeCallBuiltinFunction>(p_context, category, DictionaryUtils::from_method(mi));
+    }
+
+    // Autoloads
+    for (const String& class_name : OScriptLanguage::get_singleton()->get_global_constant_names())
+    {
+        String category = vformat("/Autoloads/%s", class_name);
+        _register_node<OScriptNodeAutoload>(p_context, category, DictionaryUtils::of({{ "class_name" , class_name }}));
     }
 }
 
