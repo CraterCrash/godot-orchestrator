@@ -50,6 +50,7 @@ protected:
     StringName _property_name;
     NodePath _node_path;
     Variant::Type _property_type;
+    String _property_hint;
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;

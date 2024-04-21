@@ -98,6 +98,18 @@ String OScriptNodePropertyGet::get_node_title() const
     return vformat("Get %s%s", _property_name.capitalize(), _call_mode == CALL_SELF ? " (Self)" : "");
 }
 
+StringName OScriptNodePropertyGet::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const
+{
+    if (p_pin.is_valid() && p_pin->is_output())
+    {
+        if (!_property_hint.is_empty())
+            return _property_hint;
+        if (!_base_type.is_empty())
+            return _base_type;
+    }
+    return super::resolve_type_class(p_pin);
+}
+
 OScriptNodeInstance* OScriptNodePropertyGet::instantiate(OScriptInstance* p_instance)
 {
     OScriptNodePropertyGetInstance* i = memnew(OScriptNodePropertyGetInstance);

@@ -43,6 +43,7 @@ void OScriptNodeProperty::_get_property_list(List<PropertyInfo>* r_list) const
     r_list->push_back(PropertyInfo(Variant::INT, "mode", PROPERTY_HINT_ENUM, modes, usage));
     r_list->push_back(PropertyInfo(Variant::STRING, "target_class", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::STRING, "property_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::STRING, "property_hint", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::NODE_PATH, "node_path", PROPERTY_HINT_NONE, "", usage));
 }
 
@@ -61,6 +62,11 @@ bool OScriptNodeProperty::_get(const StringName& p_name, Variant& r_value) const
     else if (p_name.match("property_name"))
     {
         r_value = _property_name;
+        return true;
+    }
+    else if (p_name.match("property_hint"))
+    {
+        r_value = _property_hint;
         return true;
     }
     else if (p_name.match("node_path"))
@@ -86,6 +92,11 @@ bool OScriptNodeProperty::_set(const StringName& p_name, const Variant& p_value)
     else if (p_name.match("property_name"))
     {
         _property_name = p_value;
+        return true;
+    }
+    else if (p_name.match("property_hint"))
+    {
+        _property_hint = p_value;
         return true;
     }
     else if (p_name.match("node_path"))
@@ -128,6 +139,8 @@ void OScriptNodeProperty::initialize(const OScriptNodeInitContext& p_context)
     else if (p_context.class_name)
     {
         _call_mode = CALL_INSTANCE;
+        _base_type = p_context.class_name.value();
+        _property_hint = pi.hint_string;
     }
     else
     {
