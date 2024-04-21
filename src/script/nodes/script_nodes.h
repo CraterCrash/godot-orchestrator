@@ -60,6 +60,9 @@
 // Math
 #include "math/operator_node.h"
 
+// Memory
+#include "memory/memory.h"
+
 // Properties
 #include "properties/property_get.h"
 #include "properties/property_set.h"
