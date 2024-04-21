@@ -885,6 +885,14 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
                 selected_nodes.push_back(other->get_script_node());
         });
 
+        if (!selected_nodes.is_empty())
+        {
+            for_each_graph_node([&](OrchestratorGraphNode* node) {
+                node->set_all_inputs_opacity(0.3f);
+                node->set_all_outputs_opacity(0.3f);
+            });
+        }
+
         List<Ref<OScriptNode>> linked_nodes;
         for (const Ref<OScriptNode>& selected : selected_nodes)
         {
@@ -940,6 +948,8 @@ void OrchestratorGraphEdit::_on_node_deselected(Node* p_node)
         {
             for_each_graph_node([&](OrchestratorGraphNode* other) {
                 other->set_modulate(Color(1, 1, 1, 1.0));
+                other->set_all_inputs_opacity();
+                other->set_all_outputs_opacity();
             });
         }
         else
