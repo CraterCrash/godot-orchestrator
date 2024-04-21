@@ -15,5 +15,7 @@
 ## Supporters
     
     Adrian D
+    Fred A
+    gumby
+    John W
     Richard A
-    John W 
