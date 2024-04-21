@@ -154,6 +154,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/function_terminator", Color(0.294, 0.0, 0.506)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/function_result", Color(1.0, 0.65, 0.4)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/math_operations", Color(0.259, 0.408, 0.384)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/memory", Color(0.351, .339, .133)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/properties", Color(.467, 0.28, 0.175)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/resources", Color(0.263, 0.275, 0.359)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/scene", Color(0.208, 0.141, 0.282)));

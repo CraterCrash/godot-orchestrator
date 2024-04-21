@@ -85,6 +85,10 @@ void register_script_node_classes()
     //~ Math
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeOperator)
 
+    //~ Memory
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeNew);
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeFree);
+
     //~ Properties
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePropertyGet)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePropertySet)
