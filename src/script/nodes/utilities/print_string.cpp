@@ -82,6 +82,7 @@ int OScriptNodePrintStringInstance::step(OScriptNodeExecutionContext& p_context)
             RichTextLabel* label = memnew(RichTextLabel);
             label->set_fit_content(true);
             label->set_use_bbcode(true);
+            label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
             container->add_child(label);
 
             label->push_color(p_context.get_input(3));
@@ -115,6 +116,7 @@ Node* OScriptNodePrintStringInstance::_get_or_create_ui_container(Node* p_root_n
         container->set_position(Vector2(10, 10));
         container->set_custom_minimum_size(Vector2(300, 100));
         container->set_name("PrintStringUI");
+        container->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
 
         // We maintain a cache of the container by scene to guarantee that if multiple PrintString
         // nodes attempt to render text, the UI will only have a single container.
