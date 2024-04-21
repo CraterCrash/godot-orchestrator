@@ -36,12 +36,6 @@ void OScriptNode::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_id"), &OScriptNode::get_id);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "id", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_id", "get_id");
 
-    const String flag_names = "None,Catalogable,Development Only,Experimental";
-    ClassDB::bind_method(D_METHOD("set_flags", "flags"), &OScriptNode::set_flags);
-    ClassDB::bind_method(D_METHOD("get_flags"), &OScriptNode::get_flags);
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, flag_names, PROPERTY_USAGE_STORAGE),
-                 "set_flags", "get_flags");
-
     ClassDB::bind_method(D_METHOD("set_size", "size"), &OScriptNode::set_size);
     ClassDB::bind_method(D_METHOD("get_size"), &OScriptNode::get_size);
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "size", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_size",
@@ -56,11 +50,6 @@ void OScriptNode::_bind_methods()
     ClassDB::bind_method(D_METHOD("_get_pin_data"), &OScriptNode::_get_pin_data);
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "pin_data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
                  "_set_pin_data", "_get_pin_data");
-
-    BIND_BITFIELD_FLAG(ScriptNodeFlags::NONE)
-    BIND_BITFIELD_FLAG(ScriptNodeFlags::CATALOGABLE)
-    BIND_BITFIELD_FLAG(ScriptNodeFlags::DEVELOPMENT_ONLY)
-    BIND_BITFIELD_FLAG(ScriptNodeFlags::EXPERIMENTAL)
 
     ADD_SIGNAL(MethodInfo("pin_connected", PropertyInfo(Variant::INT, "pin_type"), PropertyInfo(Variant::INT, "index")));
     ADD_SIGNAL(

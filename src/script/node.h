@@ -365,8 +365,6 @@ protected:
 
 };
 
-VARIANT_BITFIELD_CAST(OScriptNode::ScriptNodeFlags);
-
 #define DECLARE_SCRIPT_NODE_INSTANCE(x) /*************************************/ \
     friend class x;                                                             \
     x* _node = nullptr;                                                         \
