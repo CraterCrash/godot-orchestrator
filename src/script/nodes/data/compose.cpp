@@ -152,6 +152,16 @@ public:
                     case Variant::STRING_NAME:
                         p_context.set_output(0, VariantUtils::cast_to<StringName>(p_context.get_input(0)));
                         break;
+                    case Variant::CALLABLE:
+                    {
+                        Object* callable_object = p_context.get_input(0);
+                        if (!callable_object)
+                            callable_object = _instance->get_owner();
+
+                        Callable c(callable_object, p_context.get_input(1));
+                        p_context.set_output(0, c);
+                        break;
+                    }
                     default:
                     {
                         const String type_name = Variant::get_type_name(_target_type);
