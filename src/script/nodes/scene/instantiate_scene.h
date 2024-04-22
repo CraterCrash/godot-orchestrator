@@ -44,6 +44,7 @@ public:
     String get_icon() const override;
     void pin_default_value_changed(const Ref<OScriptNodePin>& p_pin) override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
+    Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
     //~ End OScriptNode Interface
 };

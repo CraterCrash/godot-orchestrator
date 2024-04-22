@@ -37,10 +37,12 @@ struct ResolvedType
 {
     Variant::Type type{ Variant::NIL };
     StringName class_name;
-    Object* object{ nullptr };
+    Ref<OScriptTargetObject> object;
 
     _FORCE_INLINE_ bool is_non_object_type() const { return type != Variant::NIL && type != Variant::OBJECT; }
     _FORCE_INLINE_ bool is_class_type() const { return !class_name.is_empty(); }
+    _FORCE_INLINE_ bool has_target_object() const { return !object.is_null() && object->has_target(); }
+    _FORCE_INLINE_ StringName get_target_class() const { return object->get_target_class(); }
 };
 
 /// The base implementation of the OrchestratorGraphNode's pins.

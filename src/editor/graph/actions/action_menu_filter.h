@@ -18,6 +18,8 @@
 #define ORCHESTRATOR_GRAPH_ACTION_MENU_ITEM_FILTER_H
 
 #include "action_menu_item.h"
+#include "script/target_object.h"
+
 #include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
@@ -79,7 +81,10 @@ struct OrchestratorGraphActionFilter
     Vector<StringName> target_classes;
 
     /// The target object to expressly get context details about
-    Object* target_object{ nullptr };
+    Ref<OScriptTargetObject> target_object;
+
+    _FORCE_INLINE_ bool has_target_object() const { return !target_object.is_null() && target_object->has_target(); }
+    _FORCE_INLINE_ StringName get_target_class() const { return target_object->get_target_class(); }
 };
 
 #endif  // ORCHESTRATOR_GRAPH_ACTION_MENU_ITEM_FILTER_H

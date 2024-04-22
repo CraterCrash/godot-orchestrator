@@ -382,9 +382,9 @@ void OrchestratorDefaultGraphActionRegistrar::_register_graph_items(const Orches
         return;
 
     PackedStringArray classes;
-    if (p_context.filter->target_object)
+    if (p_context.filter->has_target_object())
     {
-        classes.push_back(p_context.filter->target_object->get_class());
+        classes.push_back(p_context.filter->get_target_class());
     }
     else if (!p_context.filter->target_classes.is_empty())
     {
@@ -416,8 +416,8 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_properties(const O
                                                                    const StringName& p_class_name)
 {
     TypedArray<Dictionary> properties;
-    if (p_context.filter->target_object)
-        properties = p_context.filter->target_object->get_property_list();
+    if (p_context.filter->has_target_object())
+        properties = p_context.filter->target_object->get_target_property_list();
     else
         properties = ClassDB::class_get_property_list(p_class_name, true);
 
@@ -455,8 +455,8 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
                                                                 const StringName& p_class_name)
 {
     TypedArray<Dictionary> methods;
-    if (p_context.filter->target_object)
-        methods = p_context.filter->target_object->get_method_list();
+    if (p_context.filter->has_target_object())
+        methods = p_context.filter->target_object->get_target_method_list();
     else
         methods = ClassDB::class_get_method_list(p_class_name, true);
 
@@ -488,8 +488,8 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_signals(const Orch
                                                                 const StringName& p_class_name)
 {
     TypedArray<Dictionary> signals;
-    if (p_context.filter->target_object)
-        signals = p_context.filter->target_object->get_signal_list();
+    if (p_context.filter->has_target_object())
+        signals = p_context.filter->target_object->get_target_signal_list();
     else
         signals = ClassDB::class_get_signal_list(p_class_name, true);
 
