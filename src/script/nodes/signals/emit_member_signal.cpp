@@ -182,8 +182,8 @@ bool OScriptNodeEmitMemberSignal::validate_node_during_build() const
     }
     else
     {
-        Object* target = connections[0]->resolve_target();
-        ERR_FAIL_COND_V_MSG(!target, false, "No target object resolved for emit member signal node.");
+        Ref<OScriptTargetObject> target = connections[0]->resolve_target();
+        ERR_FAIL_COND_V_MSG(target.is_null(), false, "No target object resolved for emit member signal node.");
         ERR_FAIL_COND_V_MSG(!target->has_signal(_method.name), false, "No signal found on target with name: " + _method.name);
 
         // todo: should we check signal signatures?

@@ -130,10 +130,31 @@ StringName OScriptNodeInstantiateScene::resolve_type_class(const Ref<OScriptNode
         if (packed_scene.is_valid())
         {
             if (packed_scene->can_instantiate())
-                return packed_scene->instantiate()->get_class();
+            {
+                if (Node* node = packed_scene->instantiate())
+                {
+                    String class_name = node->get_class();
+                    memdelete(node);
+                    return class_name;
+                }
+            }
         }
     }
     return super::resolve_type_class(p_pin);
+}
+
+Ref<OScriptTargetObject> OScriptNodeInstantiateScene::resolve_target(const Ref<OScriptNodePin>& p_pin) const
+{
+    if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
+    {
+        Ref<PackedScene> packed_scene = ResourceLoader::get_singleton()->load(_scene);
+        if (packed_scene.is_valid())
+        {
+            if (packed_scene->can_instantiate())
+                return memnew(OScriptTargetObject(packed_scene->instantiate(), true));
+        }
+    }
+    return super::resolve_target(p_pin);
 }
 
 OScriptNodeInstance* OScriptNodeInstantiateScene::instantiate(OScriptInstance* p_instance)

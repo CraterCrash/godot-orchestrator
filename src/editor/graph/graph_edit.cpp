@@ -811,10 +811,10 @@ void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& 
     ResolvedType resolved_type = pin->resolve_type();
     filter.target_type = resolved_type.type;
 
-    if (resolved_type.object)
+    if (resolved_type.has_target_object())
     {
         // When a resolved object isp provided, it takes precedence
-        filter.target_classes.push_back(resolved_type.object->get_class());
+        filter.target_classes.push_back(resolved_type.get_target_class());
         filter.target_object = resolved_type.object;
         filter.use_cache = false;
         filter.context.pins.clear();
@@ -845,10 +845,10 @@ void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_
     ResolvedType resolved_type = pin->resolve_type();
     filter.target_type = resolved_type.type;
 
-    if (resolved_type.object)
+    if (resolved_type.has_target_object())
     {
         // When a resolved object is provided, it takes precedence
-        filter.target_classes.push_back(resolved_type.object->get_class());
+        filter.target_classes.push_back(resolved_type.get_target_class());
         filter.target_object = resolved_type.object;
         filter.use_cache = false;
         filter.context.pins.clear();

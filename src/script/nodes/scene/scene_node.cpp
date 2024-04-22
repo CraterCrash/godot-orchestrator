@@ -110,7 +110,7 @@ String OScriptNodeSceneNode::get_icon() const
     return "NodeInfo";
 }
 
-Object* OScriptNodeSceneNode::resolve_target(const Ref<OScriptNodePin>& p_pin) const
+Ref<OScriptTargetObject> OScriptNodeSceneNode::resolve_target(const Ref<OScriptNodePin>& p_pin) const
 {
     if (_is_in_editor() && p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
     {
@@ -119,7 +119,7 @@ Object* OScriptNodeSceneNode::resolve_target(const Ref<OScriptNodePin>& p_pin) c
         {
             Node* root = st->get_edited_scene_root();
             if (root)
-                return root->get_node_or_null(_node_path);
+                return memnew(OScriptTargetObject(root->get_node_or_null(_node_path), false));
         }
     }
     return super::resolve_target(p_pin);

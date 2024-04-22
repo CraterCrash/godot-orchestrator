@@ -22,6 +22,7 @@
 #include "language.h"
 #include "node_pin.h"
 #include "script.h"
+#include "target_object.h"
 
 #include <optional>
 
@@ -302,7 +303,7 @@ public:
     /// Resolves the target object of the specified pin
     /// @param p_pin the pin
     /// @return the resolved target object
-    virtual Object* resolve_target(const Ref<OScriptNodePin>& p_pin) const { return nullptr; }
+    virtual Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const { return {}; }
 
     /// Create a pin associated with this node.
     /// @param p_direction the pin direction, input or output
