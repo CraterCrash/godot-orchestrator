@@ -19,6 +19,7 @@
 
 #include "action.h"
 #include "common/guid.h"
+#include "target_object.h"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -258,7 +259,7 @@ public:
 
     /// Attempts to resolve the target object of this pin.
     /// @return the target object of the pin or {@code nullptr} if there is no target.
-    Object* resolve_target();
+    Ref<OScriptTargetObject> resolve_target();
 };
 
 VARIANT_BITFIELD_CAST(OScriptNodePin::Flags)

@@ -33,6 +33,7 @@ class OrchestratorGraphActionDB : public RefCounted
     StringName _graph_base_type;
     HashMap<StringName, List<Ref<OrchestratorGraphActionMenuItem>>> _object_items;
     List<Ref<OrchestratorGraphActionMenuItem>> _filtered_items;
+    bool _use_temp{ false };
 
 protected:
     /// Godot bind methods handler
@@ -50,6 +51,10 @@ public:
 
     /// Clear all persisted state
     void clear();
+
+    /// Sets whether to use the temp name
+    /// @param p_use_temp whether to use the temp name
+    void use_temp(bool p_use_temp);
 
     /// Load the database actions based on the supplied context.
     /// @param p_filter the filter

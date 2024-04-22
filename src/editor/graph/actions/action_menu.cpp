@@ -133,6 +133,11 @@ void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilt
     _collapse->set_pressed(false);
     _expand->set_pressed(true);
 
+    // Small hack to trigger clearing the temp cache when not using the cache
+    // This allows us to generate the action list once so that as the user types search
+    // items into the filter box, we do not regenerate the expensive list repeatedly.
+    _action_db.use_temp(!_filter.use_cache);
+
     _action_db.load(_filter);
     _generate_filtered_actions();
 

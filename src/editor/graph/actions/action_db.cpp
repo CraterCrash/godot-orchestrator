@@ -72,6 +72,12 @@ void OrchestratorGraphActionDB::clear()
     _object_items.clear();
 }
 
+void OrchestratorGraphActionDB::use_temp(bool p_use_temp)
+{
+    _use_temp = p_use_temp;
+    _object_items["$Temp$"] = { };
+}
+
 void OrchestratorGraphActionDB::load(const OrchestratorGraphActionFilter& p_filter)
 {
     // When base type changes, refresh entire database
@@ -84,9 +90,9 @@ void OrchestratorGraphActionDB::load(const OrchestratorGraphActionFilter& p_filt
 
     // Calculate the object name to store the items within
     StringName name = "$Default$";
-    if (p_filter.target_object)
+    if (p_filter.has_target_object())
     {
-        name = p_filter.target_object->get_class_static();
+        name = p_filter.get_target_class();
     }
     else if (p_filter.target_classes.size() == 1)
     {
@@ -99,11 +105,8 @@ void OrchestratorGraphActionDB::load(const OrchestratorGraphActionFilter& p_filt
         return;
     }
 
-    if (!p_filter.use_cache)
-    {
-        _object_items["$Temp$"] = { };
+    if (_use_temp)
         name = "$Temp$";
-    }
 
     if (_object_items.is_empty())
         _object_items[name] = { };

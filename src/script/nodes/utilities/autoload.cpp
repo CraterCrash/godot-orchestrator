@@ -114,13 +114,13 @@ StringName OScriptNodeAutoload::resolve_type_class(const Ref<OScriptNodePin>& p_
     return _autoload;
 }
 
-Object* OScriptNodeAutoload::resolve_target(const Ref<OScriptNodePin>& p_pin) const
+Ref<OScriptTargetObject> OScriptNodeAutoload::resolve_target(const Ref<OScriptNodePin>& p_pin) const
 {
     if (p_pin->is_output() && p_pin->get_pin_name().match("autoload"))
     {
         Variant value = OScriptLanguage::get_singleton()->get_any_global_constant(_autoload);
         if (value && value.get_type() == Variant::OBJECT)
-            return value;
+            return memnew(OScriptTargetObject(value, false));
     }
     return super::resolve_target(p_pin);
 }
