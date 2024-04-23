@@ -40,6 +40,7 @@ private:
     static HashMap<String, Node*> _scene_containers;
 
 public:
+    int get_working_memory_size() const override { return 1; }
     int step(OScriptNodeExecutionContext& p_context);
 
 private:
@@ -57,6 +58,21 @@ int OScriptNodePrintStringInstance::step(OScriptNodeExecutionContext& p_context)
     // When this node is executed in export builds, it does nothing.
     if (!OS::get_singleton()->has_feature("editor"))
         return 0;
+
+    if (p_context.get_step_mode() != STEP_MODE_RESUME)
+    {
+        if (Node* owner = Object::cast_to<Node>(_instance->get_owner()))
+        {
+            if (!owner->is_inside_tree())
+            {
+                Ref<OScriptState> state;
+                state.instantiate();
+                state->connect_to_signal(owner, "tree_entered", Array());
+                p_context.set_working_memory(0, state);
+                return STEP_FLAG_YIELD;
+            }
+        }
+    }
 
     // When this node is called from within a "_ready" function, it is unable to add the UI bits
     // to the scene at the scene root because the scene's root is not yet marked ready. This UI
