@@ -24,12 +24,17 @@ namespace godot
 
     namespace internal
     {
-        MethodInfo _make_method(const StringName& p_name, int32_t p_flags, Variant::Type p_rtype, const std::vector<PropertyInfo>& p_args)
+        MethodInfo _make_method(const StringName& p_name, int32_t p_flags, Variant::Type p_rtype, const std::vector<PropertyInfo>& p_args, bool p_nil_is_variant = false)
         {
+            int32_t return_flags = PROPERTY_USAGE_DEFAULT;
+            if (p_nil_is_variant)
+                return_flags |= PROPERTY_USAGE_NIL_IS_VARIANT;
+
             MethodInfo mi;
             mi.name = p_name;
             mi.flags = p_flags;
             mi.return_val.type = p_rtype;
+            mi.return_val.usage = return_flags;
             mi.arguments.insert(mi.arguments.begin(), p_args.begin(), p_args.end());
             return mi;
         }
