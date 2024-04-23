@@ -268,7 +268,18 @@ void* OScript::_instance_create(Object* p_object) const
         MutexLock lock(*_language->lock.ptr());
         _instances[p_object] = si;
     }
-    return internal::gdextension_interface_script_instance_create2(&OScriptInstance::INSTANCE_INFO, si);
+
+    void* godot_inst = internal::gdextension_interface_script_instance_create2(&OScriptInstance::INSTANCE_INFO, si);
+
+    // Dispatch the "Init Event" if its wired
+    if (has_function("_init"))
+    {
+        Variant result;
+        GDExtensionCallError err;
+        si->call("_init", nullptr, 0, &result, &err);
+    }
+
+    return godot_inst;
 }
 
 bool OScript::_instance_has(Object* p_object) const
