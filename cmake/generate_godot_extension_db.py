@@ -553,7 +553,12 @@ def write_builtin_type_methods(godot_type):
                     if len(args) > 0:
                         args += ", "
                     args += "{ " + get_variant_type(arg["type"]) + ", " + quote(arg["name"]) + " }"
-            print_indent("type.methods.push_back(_make_method(" + quote(method["name"]) + ", " + get_method_flags(method) + ", " + get_method_return_type(method) + ", { " + args + " }));")
+
+            nil_is_variant = ""
+            if "return_type" in method and method["return_type"] == "Variant":
+                nil_is_variant = ", true"
+
+            print_indent("type.methods.push_back(_make_method(" + quote(method["name"]) + ", " + get_method_flags(method) + ", " + get_method_return_type(method) + ", { " + args + " }" + nil_is_variant + "));")
 
 
 def write_builtin_types(types):

@@ -24,12 +24,17 @@ namespace godot
 
     namespace internal
     {
-        MethodInfo _make_method(const StringName& p_name, int32_t p_flags, Variant::Type p_rtype, const std::vector<PropertyInfo>& p_args)
+        MethodInfo _make_method(const StringName& p_name, int32_t p_flags, Variant::Type p_rtype, const std::vector<PropertyInfo>& p_args, bool p_nil_is_variant = false)
         {
+            int32_t return_flags = PROPERTY_USAGE_DEFAULT;
+            if (p_nil_is_variant)
+                return_flags |= PROPERTY_USAGE_NIL_IS_VARIANT;
+
             MethodInfo mi;
             mi.name = p_name;
             mi.flags = p_flags;
             mi.return_val.type = p_rtype;
+            mi.return_val.usage = return_flags;
             mi.arguments.insert(mi.arguments.begin(), p_args.begin(), p_args.end());
             return mi;
         }
@@ -1946,9 +1951,9 @@ namespace godot
 				type.methods.push_back(_make_method("distance_to", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::VECTOR3, "point" } }));
 				type.methods.push_back(_make_method("has_point", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::VECTOR3, "point" }, { Variant::FLOAT, "tolerance" } }));
 				type.methods.push_back(_make_method("project", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, { { Variant::VECTOR3, "point" } }));
-				type.methods.push_back(_make_method("intersect_3", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::PLANE, "b" }, { Variant::PLANE, "c" } }));
-				type.methods.push_back(_make_method("intersects_ray", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "dir" } }));
-				type.methods.push_back(_make_method("intersects_segment", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "to" } }));
+				type.methods.push_back(_make_method("intersect_3", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::PLANE, "b" }, { Variant::PLANE, "c" } }, true));
+				type.methods.push_back(_make_method("intersects_ray", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "dir" } }, true));
+				type.methods.push_back(_make_method("intersects_segment", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "to" } }, true));
 				ExtensionDB::_singleton->_builtin_types["Plane"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PLANE] = "Plane";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("Plane");
@@ -2055,8 +2060,8 @@ namespace godot
 				type.methods.push_back(_make_method("get_shortest_axis_index", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("get_shortest_axis_size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, {  }));
 				type.methods.push_back(_make_method("get_endpoint", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, { { Variant::INT, "idx" } }));
-				type.methods.push_back(_make_method("intersects_segment", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "to" } }));
-				type.methods.push_back(_make_method("intersects_ray", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "dir" } }));
+				type.methods.push_back(_make_method("intersects_segment", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "to" } }, true));
+				type.methods.push_back(_make_method("intersects_ray", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::VECTOR3, "from" }, { Variant::VECTOR3, "dir" } }, true));
 				ExtensionDB::_singleton->_builtin_types["AABB"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::AABB] = "AABB";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("AABB");
@@ -2685,7 +2690,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::CALLABLE, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::OBJECT, "object"), PropertyInfo(Variant::STRING_NAME, "method") } });
-				type.methods.push_back(_make_method("callv", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::ARRAY, "arguments" } }));
+				type.methods.push_back(_make_method("callv", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::ARRAY, "arguments" } }, true));
 				type.methods.push_back(_make_method("is_null", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_custom", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_standard", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
@@ -2698,7 +2703,7 @@ namespace godot
 				type.methods.push_back(_make_method("hash", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("bindv", METHOD_FLAG_NORMAL, Variant::CALLABLE, { { Variant::ARRAY, "arguments" } }));
 				type.methods.push_back(_make_method("unbind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::CALLABLE, { { Variant::INT, "argcount" } }));
-				type.methods.push_back(_make_method("call", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST | METHOD_FLAG_VARARG, Variant::NIL, {  }));
+				type.methods.push_back(_make_method("call", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST | METHOD_FLAG_VARARG, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("call_deferred", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST | METHOD_FLAG_VARARG, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("rpc", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST | METHOD_FLAG_VARARG, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("rpc_id", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST | METHOD_FLAG_VARARG, Variant::NIL, { { Variant::INT, "peer_id" } }));
@@ -2759,13 +2764,13 @@ namespace godot
 				type.methods.push_back(_make_method("merge", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::DICTIONARY, "dictionary" }, { Variant::BOOL, "overwrite" } }));
 				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "key" } }));
 				type.methods.push_back(_make_method("has_all", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::ARRAY, "keys" } }));
-				type.methods.push_back(_make_method("find_key", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "value" } }));
+				type.methods.push_back(_make_method("find_key", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "value" } }, true));
 				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::NIL, "key" } }));
 				type.methods.push_back(_make_method("hash", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("keys", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
 				type.methods.push_back(_make_method("values", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
 				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::DICTIONARY, { { Variant::BOOL, "deep" } }));
-				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "key" }, { Variant::NIL, "default" } }));
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "key" }, { Variant::NIL, "default" } }, true));
 				type.methods.push_back(_make_method("make_read_only", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("is_read_only", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				ExtensionDB::_singleton->_builtin_types["Dictionary"] = type;
@@ -2817,16 +2822,16 @@ namespace godot
 				type.methods.push_back(_make_method("remove_at", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "position" } }));
 				type.methods.push_back(_make_method("fill", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value" } }));
 				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value" } }));
-				type.methods.push_back(_make_method("front", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }));
-				type.methods.push_back(_make_method("back", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }));
-				type.methods.push_back(_make_method("pick_random", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }));
+				type.methods.push_back(_make_method("front", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
+				type.methods.push_back(_make_method("back", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
+				type.methods.push_back(_make_method("pick_random", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value" } }));
 				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "value" } }));
-				type.methods.push_back(_make_method("pop_back", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
-				type.methods.push_back(_make_method("pop_front", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
-				type.methods.push_back(_make_method("pop_at", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "position" } }));
+				type.methods.push_back(_make_method("pop_back", METHOD_FLAG_NORMAL, Variant::NIL, {  }, true));
+				type.methods.push_back(_make_method("pop_front", METHOD_FLAG_NORMAL, Variant::NIL, {  }, true));
+				type.methods.push_back(_make_method("pop_at", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "position" } }, true));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("sort_custom", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::CALLABLE, "func" } }));
 				type.methods.push_back(_make_method("shuffle", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
@@ -2837,16 +2842,16 @@ namespace godot
 				type.methods.push_back(_make_method("slice", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::INT, "begin" }, { Variant::INT, "end" }, { Variant::INT, "step" }, { Variant::BOOL, "deep" } }));
 				type.methods.push_back(_make_method("filter", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::CALLABLE, "method" } }));
 				type.methods.push_back(_make_method("map", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::CALLABLE, "method" } }));
-				type.methods.push_back(_make_method("reduce", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::CALLABLE, "method" }, { Variant::NIL, "accum" } }));
+				type.methods.push_back(_make_method("reduce", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::CALLABLE, "method" }, { Variant::NIL, "accum" } }, true));
 				type.methods.push_back(_make_method("any", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::CALLABLE, "method" } }));
 				type.methods.push_back(_make_method("all", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::CALLABLE, "method" } }));
-				type.methods.push_back(_make_method("max", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }));
-				type.methods.push_back(_make_method("min", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }));
+				type.methods.push_back(_make_method("max", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
+				type.methods.push_back(_make_method("min", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("is_typed", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_same_typed", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::ARRAY, "array" } }));
 				type.methods.push_back(_make_method("get_typed_builtin", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("get_typed_class_name", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING_NAME, {  }));
-				type.methods.push_back(_make_method("get_typed_script", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }));
+				type.methods.push_back(_make_method("get_typed_script", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("make_read_only", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("is_read_only", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				ExtensionDB::_singleton->_builtin_types["Array"] = type;
@@ -2912,7 +2917,7 @@ namespace godot
 				type.methods.push_back(_make_method("decode_float", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::INT, "byte_offset" } }));
 				type.methods.push_back(_make_method("decode_double", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::INT, "byte_offset" } }));
 				type.methods.push_back(_make_method("has_encoded_var", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::INT, "byte_offset" }, { Variant::BOOL, "allow_objects" } }));
-				type.methods.push_back(_make_method("decode_var", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::BOOL, "allow_objects" } }));
+				type.methods.push_back(_make_method("decode_var", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::BOOL, "allow_objects" } }, true));
 				type.methods.push_back(_make_method("decode_var_size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "byte_offset" }, { Variant::BOOL, "allow_objects" } }));
 				type.methods.push_back(_make_method("to_int32_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_INT32_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_int64_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_INT64_ARRAY, {  }));
