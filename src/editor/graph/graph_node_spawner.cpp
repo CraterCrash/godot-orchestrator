@@ -195,6 +195,11 @@ bool OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(const Orchestra
     bool reject_methods = p_filter.flags & OrchestratorGraphActionFilter::Filter_RejectMethods;
     bool reject_virtual = p_filter.flags & OrchestratorGraphActionFilter::Filter_RejectVirtualMethods;
 
+    // Simply do not add these virtual overrides to the UI
+    // Users should always use the non-virtual "get" and "set methods only
+    if (_method.name.match("_get") || _method.name.match("_set"))
+        return true;
+
     if (reject_methods && reject_virtual)
         return true;
 
