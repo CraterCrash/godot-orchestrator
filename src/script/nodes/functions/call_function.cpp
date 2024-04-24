@@ -33,7 +33,8 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
     Object* _owner{ nullptr };
     int _argument_count{ 0 };
     int _argument_offset{ 2 };
-    bool _pure = false;
+    bool _pure{ false };
+    bool _chained{ false };
     Array _args;
 
     int _do_pure(OScriptNodeExecutionContext& p_context) const
@@ -139,10 +140,14 @@ public:
         {
             Variant result = instance->callv(_function_name, _args);
             p_context.set_output(0, result);
+            if (_chained)
+                p_context.set_output(1, p_context.get_input(0));
         }
         else
         {
             instance->callv(_function_name, _args);
+            if (_chained)
+                p_context.set_output(0, p_context.get_input(0));
         }
         return 0;
     }
@@ -161,22 +166,22 @@ void OScriptNodeCallFunction::_bind_methods()
 
 void OScriptNodeCallFunction::_get_property_list(List<PropertyInfo>* r_list) const
 {
-    int32_t read_only_serialize = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY;
-    int32_t read_only_editor    = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_READ_ONLY;
-
     r_list->push_back(PropertyInfo(Variant::STRING, "guid", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
-    r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", read_only_editor));
-    r_list->push_back(PropertyInfo(Variant::STRING_NAME, "target_class_name", PROPERTY_HINT_NONE, "", read_only_serialize));
-    r_list->push_back(PropertyInfo(Variant::INT, "target_type", PROPERTY_HINT_NONE, "", read_only_serialize));
+    r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::STRING_NAME, "target_class_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::INT, "target_type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 
     const String flags = "Pure,Const,Is Bead,Is Self,Virtual,VarArg,Static,Object Core,Editor";
-    r_list->push_back(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, flags, read_only_serialize));
+    r_list->push_back(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, flags, PROPERTY_USAGE_STORAGE));
 
     if (_is_method_info_serialized())
         r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 
     if (_reference.method.flags & METHOD_FLAG_VARARG)
         r_list->push_back(PropertyInfo(Variant::INT, "variable_arg_count", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+
+    if (_chainable)
+        r_list->push_back(PropertyInfo(Variant::BOOL, "chain"));
 }
 
 bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) const
@@ -216,6 +221,11 @@ bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) c
         r_value = _vararg_count;
         return true;
     }
+    else if (p_name.match("chain"))
+    {
+        r_value = _chain;
+        return true;
+    }
     return false;
 }
 
@@ -253,6 +263,18 @@ bool OScriptNodeCallFunction::_set(const StringName& p_name, const Variant& p_va
         _notify_pins_changed();
         return true;
     }
+    else if (p_name.match("chain"))
+    {
+        _chain = p_value;
+        if (!_chain)
+        {
+            Ref<OScriptNodePin> pin = find_pin("return_target", PD_Output);
+            if (pin.is_valid() && pin->has_any_connections())
+                pin->unlink_all();
+        }
+        _notify_pins_changed();
+        return true;
+    }
     return false;
 }
 
@@ -264,6 +286,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
     }
 
+    _chainable = false;
     if (get_argument_offset() != 0)
     {
         Variant::Type target_type = _reference.target_type != Variant::NIL ? _reference.target_type : Variant::OBJECT;
@@ -275,6 +298,9 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
                 target->set_target_class(get_owning_script()->get_base_type());
             else
                 target->set_target_class("Object");
+
+            _chainable = true;
+            notify_property_list_changed();
         }
     }
 
@@ -325,6 +351,14 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         Ref<OScriptNodePin> rv = create_pin(PD_Output, "return_value", p_method.return_val.type);
         rv->set_flags(OScriptNodePin::Flags::DATA);
         rv->set_target_class(p_method.return_val.class_name);
+    }
+
+    if (_chainable && _chain)
+    {
+        Ref<OScriptNodePin> chain = create_pin(PD_Output, "return_target", Variant::OBJECT);
+        chain->set_flags(OScriptNodePin::Flags::DATA);
+        chain->set_label("Target");
+        chain->set_target_class(find_pin("target", PD_Input)->get_target_class());
     }
 }
 
@@ -412,6 +446,7 @@ OScriptNodeInstance* OScriptNodeCallFunction::instantiate(OScriptInstance* p_ins
     i->_reference = _reference;
     i->_function_name = _reference.name;
     i->_pure = _function_flags.has_flag(FF_PURE);
+    i->_chained = _chain;
     return i;
 }
 
