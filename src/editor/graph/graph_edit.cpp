@@ -1241,7 +1241,7 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
     HashMap<int, int> bindings;
     for (const KeyValue<int, Ref<OScriptNode>>& E : _clipboard->nodes)
     {
-        Ref<OScriptNode> node = E.value->duplicate();
+        Ref<OScriptNode> node = E.value;
 
         node->set_id(_script->get_available_id());
         node->set_position(_clipboard->positions[E.key] + position_offset);
