@@ -70,6 +70,8 @@ protected:
     BitField<FunctionFlags> _function_flags{ FF_NONE };  //! Function flags
     OScriptFunctionReference _reference;                 //! Function reference
     int _vararg_count{ 0 };                              //! Variable argument count
+    bool _chain{ false };                                //! If the node should chain function calls
+    bool _chainable{ false };                            //! Whether the node is chainable
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
