@@ -39,6 +39,7 @@ class OrchestratorSettings : public Object
     static OrchestratorSettings* _singleton;
     std::vector<Setting> _removed;
     std::vector<Setting> _settings;
+    int _builtin_order{ 1000 };
 
 public:
     OrchestratorSettings();
