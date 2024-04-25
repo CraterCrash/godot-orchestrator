@@ -16,30 +16,52 @@
 //
 #include "scene_utils.h"
 
+#include "plugin/plugin.h"
+
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/theme_db.hpp>
-#include <godot_cpp/classes/window.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
 
 namespace SceneUtils
 {
-    Ref<Texture2D> get_icon(Control* p_control, const String& p_icon_name)
+    Ref<Texture2D> _get_class_or_script_icon(const String& p_class_name, const Ref<Script>& p_script, const String& p_fallback, bool p_fallback_script_to_theme)
     {
-        if (!p_icon_name.begins_with("res://"))
-            return p_control->get_theme_icon(p_icon_name, "EditorIcons");
+        ERR_FAIL_COND_V_MSG(p_class_name.is_empty(), nullptr, "Class name cannot be empty.");
 
-        return ResourceLoader::get_singleton()->load(p_icon_name);
+        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        if (vbox->has_theme_icon(p_class_name, "EditorIcons"))
+            return vbox->get_theme_icon(p_class_name, "EditorIcons");
+
+        if (!p_fallback.is_empty() && vbox->has_theme_icon(p_fallback, "EditorIcons"))
+            return vbox->get_theme_icon(p_fallback, "EditorIcons");
+
+        if (ClassDB::class_exists(p_class_name))
+        {
+            const bool instantiable = ClassDB::can_instantiate(p_class_name);
+            if (ClassDB::is_parent_class(p_class_name, "Node"))
+                return vbox->get_theme_icon(instantiable ? "Node" : "NodeDisabled", "EditorIcons");
+            else
+                return vbox->get_theme_icon(instantiable ? "Object" : "ObjectDisabled", "EditorIcons");
+        }
+
+        return nullptr;
     }
 
-    Ref<Texture2D> get_icon(Window* p_window, const String& p_icon_name)
+    Ref<Texture2D> get_editor_icon(const String& p_icon_name)
     {
-        if (!p_icon_name.begins_with("res://"))
-            return p_window->get_theme_icon(p_icon_name, "EditorIcons");
+        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        return vbox->get_theme_icon(p_icon_name, "EditorIcons");
+    }
 
-        return ResourceLoader::get_singleton()->load(p_icon_name);
+    Ref<Texture2D> get_class_icon(const String& p_class_name, const String& p_fallback)
+    {
+        Ref<Script> script;
+        return _get_class_or_script_icon(p_class_name, script, p_fallback, true);
     }
 
     String create_wrapped_tooltip_text(const String& p_tooltip_text, int p_width)

@@ -143,7 +143,7 @@ void OrchestratorSceneTreeDialog::_populate_tree(TreeItem* p_parent, Node* p_nod
 
     TreeItem* child = p_parent->create_child();
     child->set_text(0, p_node->get_name());
-    child->set_icon(0, SceneUtils::get_icon(this, p_node->get_class()));
+    child->set_icon(0, SceneUtils::get_editor_icon(p_node->get_class()));
     child->set_metadata(0, _script_node->get_path_to(p_node));
     child->set_meta("__node", p_node);
     if (!p_node->can_process())

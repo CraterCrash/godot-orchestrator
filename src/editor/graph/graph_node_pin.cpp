@@ -365,7 +365,7 @@ TextureRect* OrchestratorGraphNodePin::_create_type_icon()
 {
     TextureRect* rect = memnew(TextureRect);
     String value_type_name = _pin->get_pin_type_name();
-    rect->set_texture(SceneUtils::get_icon(this, value_type_name));
+    rect->set_texture(SceneUtils::get_editor_icon(value_type_name));
     rect->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
 
     if (_pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
@@ -516,12 +516,12 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
     Vector<Ref<OScriptNodePin>> connections = _pin->get_connections();
     if (connections.size() <= 1)
     {
-        _context_menu->add_icon_item(SceneUtils::get_icon(this, "Unlinked"), "Break This Link", CM_BREAK_LINKS);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Unlinked"), "Break This Link", CM_BREAK_LINKS);
         _context_menu->set_item_disabled(_context_menu->get_item_index(CM_BREAK_LINKS), !has_connections);
     }
     else
     {
-        _context_menu->add_icon_item(SceneUtils::get_icon(this, "Unlinked"), "Break All Pin Links", CM_BREAK_LINKS);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Unlinked"), "Break All Pin Links", CM_BREAK_LINKS);
 
         PopupMenu* sub_menu = memnew(PopupMenu);
         sub_menu->set_name("break_pin");
@@ -551,7 +551,7 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
 
     // Documentation
     _context_menu->add_separator("Documentation");
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Help"), "View Documentation", CM_VIEW_DOCUMENTATION);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Help"), "View Documentation", CM_VIEW_DOCUMENTATION);
 
     _context_menu->set_position(get_screen_position() + (p_position * (real_t) get_graph()->get_zoom()));
     _context_menu->reset_size();

@@ -61,7 +61,7 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         hbox->add_child(_context_sensitive);
 
         _collapse = memnew(Button);
-        _collapse->set_button_icon(SceneUtils::get_icon(this, "CollapseTree"));
+        _collapse->set_button_icon(SceneUtils::get_editor_icon("CollapseTree"));
         _collapse->set_toggle_mode(true);
         _collapse->set_focus_mode(Control::FOCUS_NONE);
         _collapse->set_tooltip_text("Collapse the results tree");
@@ -69,7 +69,7 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         hbox->add_child(_collapse);
 
         _expand = memnew(Button);
-        _expand->set_button_icon(SceneUtils::get_icon(this, "ExpandTree"));
+        _expand->set_button_icon(SceneUtils::get_editor_icon("ExpandTree"));
         _expand->set_toggle_mode(true);
         _expand->set_pressed(true);
         _expand->set_focus_mode(Control::FOCUS_NONE);
@@ -160,7 +160,7 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
     _tree_view->create_item();
     _tree_view->set_columns(2);
 
-    Ref<Texture2D> broken = SceneUtils::get_icon(this, "_not_found_");
+    Ref<Texture2D> broken = SceneUtils::get_editor_icon("_not_found_");
 
     const PackedStringArray action_favorites = OrchestratorSettings::get_singleton()->get_action_favorites();
 
@@ -209,12 +209,12 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
 
                     Ref<Texture2D> icon;
                     if (categories[j] == "Integer")
-                        icon = SceneUtils::get_icon(this, "int");
+                        icon = SceneUtils::get_editor_icon("int");
                     else
-                        icon = SceneUtils::get_icon(this, categories[j]);
+                        icon = SceneUtils::get_editor_icon(categories[j]);
 
                     if (icon == broken)
-                        icon = SceneUtils::get_icon(this, "Object");
+                        icon = SceneUtils::get_editor_icon("Object");
 
                     parent->set_icon(0, icon);
                     parent->set_selectable(0, false);
@@ -226,7 +226,7 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
         TreeItem* node = _make_item(parent, item, item->get_spec().text);
 
         const bool is_favorite = action_favorites.has(item->get_spec().category);
-        node->add_button(1, SceneUtils::get_icon(this, is_favorite ? "Favorites" : "NonFavorite"));
+        node->add_button(1, SceneUtils::get_editor_icon(is_favorite ? "Favorites" : "NonFavorite"));
         node->set_tooltip_text(1, is_favorite ? "Remove action from favorites." : "Add action to favorites.");
         node->set_meta("favorite", is_favorite);
 
@@ -246,13 +246,13 @@ TreeItem* OrchestratorGraphActionMenu::_make_item(TreeItem* p_parent,
 {
     TreeItem* child = p_parent->create_child();
     child->set_text(0, p_text);
-    child->set_icon(0, SceneUtils::get_icon(this, p_menu_item->get_spec().icon));
+    child->set_icon(0, SceneUtils::get_editor_icon(p_menu_item->get_spec().icon));
     child->set_tooltip_text(0, p_menu_item->get_spec().tooltip);
     child->set_selectable(0, p_menu_item->get_handler().is_valid());
 
     child->set_text_alignment(1, HORIZONTAL_ALIGNMENT_RIGHT);
     child->set_expand_right(1, true);
-    child->set_icon(1, SceneUtils::get_icon(this, p_menu_item->get_spec().type_icon));
+    child->set_icon(1, SceneUtils::get_editor_icon(p_menu_item->get_spec().type_icon));
     child->set_tooltip_text(1, p_menu_item->get_handler().is_valid() ? p_menu_item->get_handler()->get_class() : "");
 
     child->set_meta("item", p_menu_item);
@@ -394,7 +394,7 @@ void OrchestratorGraphActionMenu::_on_tree_button_clicked(TreeItem* p_item, int 
     // No need to worry with button ids
     if (!p_item->get_meta("favorite", false))
     {
-        p_item->set_button(p_column, 0, SceneUtils::get_icon(this, "Favorites"));
+        p_item->set_button(p_column, 0, SceneUtils::get_editor_icon("Favorites"));
         p_item->set_meta("favorite", true);
 
         Ref<OrchestratorGraphActionMenuItem> menu_item = p_item->get_meta("item");
@@ -406,7 +406,7 @@ void OrchestratorGraphActionMenu::_on_tree_button_clicked(TreeItem* p_item, int 
     }
     else
     {
-        p_item->set_button(p_column, 0, SceneUtils::get_icon(this, "NonFavorite"));
+        p_item->set_button(p_column, 0, SceneUtils::get_editor_icon("NonFavorite"));
         p_item->set_meta("favorite", false);
 
         Ref<OrchestratorGraphActionMenuItem> menu_item = p_item->get_meta("item");

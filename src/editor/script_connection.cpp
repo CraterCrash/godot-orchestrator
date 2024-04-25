@@ -86,18 +86,18 @@ void OrchestratorScriptConnectionsDialog::popup_connections(const String& p_meth
             Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id()));
             TreeItem* node_item = _tree->create_item(root);
             node_item->set_text(0, source->get_name());
-            node_item->set_icon(0, SceneUtils::get_icon(parent, source->get_class()));
+            node_item->set_icon(0, SceneUtils::get_editor_icon(source->get_class()));
             node_item->set_selectable(0, false);
             node_item->set_editable(0, false);
 
             node_item->set_text(1, signal.get_name());
-            node_item->set_icon(1, SceneUtils::get_icon(parent, "Slot"));
+            node_item->set_icon(1, SceneUtils::get_editor_icon("Slot"));
             node_item->set_selectable(1, false);
             node_item->set_editable(1, false);
 
             Node* callable_node = Object::cast_to<Node>(ObjectDB::get_instance(callable.get_object_id()));
             node_item->set_text(2, callable_node->get_name());
-            node_item->set_icon(2, SceneUtils::get_icon(parent, callable_node->get_class()));
+            node_item->set_icon(2, SceneUtils::get_editor_icon(callable_node->get_class()));
             node_item->set_selectable(2, false);
             node_item->set_editable(2, false);
         }
