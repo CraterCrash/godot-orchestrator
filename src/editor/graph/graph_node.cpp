@@ -241,7 +241,7 @@ void OrchestratorGraphNode::_update_pins()
         margin->add_child(container);
 
         Button* button = memnew(Button);
-        button->set_button_icon(SceneUtils::get_icon(this, "ZoomMore"));
+        button->set_button_icon(SceneUtils::get_editor_icon("ZoomMore"));
         button->set_tooltip_text("Add new pin");
         container->add_child(button);
 
@@ -258,7 +258,7 @@ void OrchestratorGraphNode::_update_indicators()
     if (_node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::DEVELOPMENT_ONLY))
     {
         TextureRect* notification = memnew(TextureRect);
-        notification->set_texture(SceneUtils::get_icon(this, "Notification"));
+        notification->set_texture(SceneUtils::get_editor_icon("Notification"));
         notification->set_custom_minimum_size(Vector2(0, 24));
         notification->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         notification->set_tooltip_text("Node only executes during development builds, not included in exported builds.");
@@ -268,7 +268,7 @@ void OrchestratorGraphNode::_update_indicators()
     if (_node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::EXPERIMENTAL))
     {
         TextureRect* notification = memnew(TextureRect);
-        notification->set_texture(SceneUtils::get_icon(this, "NodeWarning"));
+        notification->set_texture(SceneUtils::get_editor_icon("NodeWarning"));
         notification->set_custom_minimum_size(Vector2(0, 24));
         notification->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         notification->set_tooltip_text("Node is experimental and behavior may change without notice.");
@@ -285,7 +285,7 @@ void OrchestratorGraphNode::_update_titlebar()
     {
         Ref<Texture2D> icon_texture;
         if (!_node->get_icon().is_empty())
-            icon_texture = SceneUtils::get_icon(this, _node->get_icon());
+            icon_texture = SceneUtils::get_editor_icon(_node->get_icon());
 
         TextureRect* rect = Object::cast_to<TextureRect>(titlebar->get_child(0));
         if (!rect && icon_texture.is_valid())
@@ -305,7 +305,7 @@ void OrchestratorGraphNode::_update_titlebar()
             if (!_node->get_icon().is_empty())
             {
                 // New icon cannot be changed (make it look broken)
-                rect->set_texture(SceneUtils::get_icon(this, "Unknown"));
+                rect->set_texture(SceneUtils::get_editor_icon("Unknown"));
             }
             else
             {
@@ -450,7 +450,7 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
         if (action->get_icon().is_empty())
             _context_menu->add_item(action->get_text(), node_action_id);
         else
-            _context_menu->add_icon_item(SceneUtils::get_icon(this, action->get_icon()), action->get_text(), node_action_id);
+            _context_menu->add_icon_item(SceneUtils::get_editor_icon(action->get_icon()), action->get_text(), node_action_id);
 
         node_action_id++;
     }
@@ -464,18 +464,18 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
         const String icon = vformat("Theme%sAll", is_group_selected() ? "Deselect" : "Select");
         const String text = vformat("%s Group", is_group_selected() ? "Deselect" : "Select");
         const int32_t id = is_group_selected() ? CM_DESELECT_GROUP : CM_SELECT_GROUP;
-        _context_menu->add_icon_item(SceneUtils::get_icon(this, icon), text, id);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon(icon), text, id);
     }
 
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Remove"), "Delete", CM_DELETE, KEY_DELETE);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Delete", CM_DELETE, KEY_DELETE);
     _context_menu->set_item_disabled(_context_menu->get_item_index(CM_DELETE), !_node->can_user_delete_node());
 
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "ActionCut"), "Cut", CM_CUT, Key(KEY_MASK_CTRL | KEY_X));
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "ActionCopy"), "Copy", CM_COPY, Key(KEY_MASK_CTRL | KEY_C));
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Duplicate"), "Duplicate", CM_DUPLICATE, Key(KEY_MASK_CTRL | KEY_D));
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("ActionCut"), "Cut", CM_CUT, Key(KEY_MASK_CTRL | KEY_X));
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("ActionCopy"), "Copy", CM_COPY, Key(KEY_MASK_CTRL | KEY_C));
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Duplicate"), "Duplicate", CM_DUPLICATE, Key(KEY_MASK_CTRL | KEY_D));
 
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Loop"), "Refresh Nodes", CM_REFRESH);
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Unlinked"), "Break Node Link(s)", CM_BREAK_LINKS);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Loop"), "Refresh Nodes", CM_REFRESH);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Unlinked"), "Break Node Link(s)", CM_BREAK_LINKS);
     _context_menu->set_item_disabled(_context_menu->get_item_index(CM_BREAK_LINKS), !_node->has_any_connections());
 
     if (_is_editable())
@@ -487,11 +487,11 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     // _context_menu->add_item("Add Breakpoint", CM_ADD_BREAKPOINT);
 
     _context_menu->add_separator("Documentation");
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Help"), "View Documentation", CM_VIEW_DOCUMENTATION);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Help"), "View Documentation", CM_VIEW_DOCUMENTATION);
 
     #ifdef _DEBUG
     _context_menu->add_separator("Debugging");
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Godot"), "Show details", CM_SHOW_DETAILS);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Godot"), "Show details", CM_SHOW_DETAILS);
     #endif
 
     _context_menu->set_position(get_screen_position() + (p_position * (real_t) get_graph()->get_zoom()));

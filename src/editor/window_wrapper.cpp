@@ -377,7 +377,7 @@ void OrchestratorScreenSelect::_notification(int p_what)
 
         case NOTIFICATION_THEME_CHANGED:
         {
-            set_button_icon(SceneUtils::get_icon(this, "MakeFloating"));
+            set_button_icon(SceneUtils::get_editor_icon("MakeFloating"));
             _popup_background->add_theme_stylebox_override("panel", get_theme_stylebox("PanelForeground", "EditorStyles"));
 
             const real_t popup_height = real_t(get_theme_font_size("font_size")) * 2.0;

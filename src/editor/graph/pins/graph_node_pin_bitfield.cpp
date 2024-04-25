@@ -218,7 +218,7 @@ Control* OrchestratorGraphNodePinBitField::_get_default_value_widget()
 {
     _button = memnew(Button);
     _button->set_h_size_flags(SIZE_SHRINK_BEGIN);
-    _button->set_button_icon(SceneUtils::get_icon(this, "GuiOptionArrow"));
+    _button->set_button_icon(SceneUtils::get_editor_icon("GuiOptionArrow"));
     _button->set_icon_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
     _button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinBitField::_on_show_flags));
 

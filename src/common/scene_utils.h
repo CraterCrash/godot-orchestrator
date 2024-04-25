@@ -29,25 +29,16 @@ namespace SceneUtils
 {
     /// Load an icon.
     ///
-    /// @attention This method inspects the provided icon name and if it is not referring to a
-    /// resource on the file system, it is assumed to refer to an icon in the "EditorIcons"
-    /// pack of the Editor.
-    ///
-    /// @param p_control the control to get the theme icon based on, typically "this".
-    /// @param p_icon_name the icon name or fully qualified file path
+    /// @param p_icon_name the editor icon to load
     /// @return a reference to the texture or an invalid reference if the texture isn't loaded
-    Ref<Texture2D> get_icon(Control* p_control, const String& p_icon_name);
+    Ref<Texture2D> get_editor_icon(const String& p_icon_name);
 
-    /// Load an icon.
+    /// Loads the class icon
     ///
-    /// @attention This method inspects the provided icon name and if it is not referring to a
-    /// resource on the file system, it is assumed to refer to an icon in the "EditorIcons"
-    /// pack of the Editor.
-    ///
-    /// @param p_window the window, typically "this".
-    /// @param p_icon_name the icon name or fully qualified file path
+    /// @param p_class_name the class name
+    /// @param p_fallback the fallback icon to use
     /// @return a reference to the texture or an invalid reference if the texture isn't loaded
-    Ref<Texture2D> get_icon(Window* p_window, const String& p_icon_name);
+    Ref<Texture2D> get_class_icon(const String& p_class_name, const String& p_fallback = "");
 
     /// Creates tooltip text that will automatically be wrapped at word boundaries and will not
     /// exceed the specified width. If text contains new lines, those will be preserved.
