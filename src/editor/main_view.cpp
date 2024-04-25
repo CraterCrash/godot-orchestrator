@@ -136,14 +136,14 @@ void OrchestratorMainView::_notification(int p_what)
         _help_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
         _help_menu->set_text("Help");
         _help_menu->get_popup()->clear();
-        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Online Documentation", AccelMenuIds::ONLINE_DOCUMENTATION);
-        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Community", AccelMenuIds::COMMUNITY);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Online Documentation", AccelMenuIds::ONLINE_DOCUMENTATION);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Community", AccelMenuIds::COMMUNITY);
         _help_menu->get_popup()->add_separator();
-        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Report a Bug", AccelMenuIds::GITHUB_ISSUES);
-        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "ExternalLink"), "Suggest a Feature", AccelMenuIds::GITHUB_FEATURE);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Report a Bug", AccelMenuIds::GITHUB_ISSUES);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Suggest a Feature", AccelMenuIds::GITHUB_FEATURE);
         _help_menu->get_popup()->add_separator();
         _help_menu->get_popup()->add_item("About " VERSION_NAME, AccelMenuIds::ABOUT);
-        _help_menu->get_popup()->add_icon_item(SceneUtils::get_icon(this, "Heart"), "Support " VERSION_NAME, AccelMenuIds::SUPPORT);
+        _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("Heart"), "Support " VERSION_NAME, AccelMenuIds::SUPPORT);
         _help_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         left_menu_container->add_child(_help_menu);
 
@@ -155,7 +155,7 @@ void OrchestratorMainView::_notification(int p_what)
 
         Button* open_documentation = memnew(Button);
         open_documentation->set_text("Online Docs");
-        open_documentation->set_button_icon(SceneUtils::get_icon(this, "ExternalLink"));
+        open_documentation->set_button_icon(SceneUtils::get_editor_icon("ExternalLink"));
         open_documentation->set_flat(true);
         open_documentation->set_focus_mode(FOCUS_NONE);
         open_documentation->connect(
@@ -208,7 +208,7 @@ void OrchestratorMainView::_notification(int p_what)
         LineEdit* file_filters = memnew(LineEdit);
         file_filters->set_placeholder("Filter orchestrations");
         file_filters->set_clear_button_enabled(true);
-        file_filters->set_right_icon(SceneUtils::get_icon(this, "Search"));
+        file_filters->set_right_icon(SceneUtils::get_editor_icon("Search"));
         files_container->add_child(file_filters);
 
         _file_list = memnew(ItemList);
@@ -587,7 +587,7 @@ void OrchestratorMainView::_update_files_list()
             const String full = base.is_empty() ? stem : vformat("%s/%s", base, stem);
 
             String item_text = duplicate_stems.has(stem) ? full : stem;
-            int32_t index = _file_list->add_item(item_text, SceneUtils::get_icon(this, "GDScript"));
+            int32_t index = _file_list->add_item(item_text, SceneUtils::get_editor_icon("GDScript"));
 
             if (i == _current_index)
                 _file_list->select(index);

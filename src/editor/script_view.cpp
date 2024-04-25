@@ -75,7 +75,7 @@ void OrchestratorScriptViewSection::_notification(int p_what)
         Button* add_button = memnew(Button);
         add_button->set_focus_mode(Control::FOCUS_NONE);
         add_button->connect("pressed", callable_mp(this, &OrchestratorScriptViewSection::_on_add_pressed));
-        add_button->set_button_icon(SceneUtils::get_icon(this, "Add"));
+        add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
         add_button->set_tooltip_text("Add a new " + _get_section_item_name());
         _panel_hbox->add_child(add_button);
 
@@ -181,7 +181,7 @@ void OrchestratorScriptViewSection::_clear_tree()
 void OrchestratorScriptViewSection::_update_collapse_button_icon()
 {
     const String icon_name = _expanded ? "CodeFoldDownArrow" : "CodeFoldedRightArrow";
-    _collapse_button->set_button_icon(SceneUtils::get_icon(this, icon_name));
+    _collapse_button->set_button_icon(SceneUtils::get_editor_icon(icon_name));
 }
 
 void OrchestratorScriptViewSection::_toggle()
@@ -455,16 +455,16 @@ bool OrchestratorScriptViewGraphsSection::_populate_context_menu(TreeItem* p_ite
         bool rename_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_RENAMABLE);
         bool delete_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_DELETABLE);
         _context_menu->add_item("Open Graph", CM_OPEN_GRAPH);
-        _context_menu->add_icon_item(SceneUtils::get_icon(this, "Rename"), "Rename", CM_RENAME_GRAPH);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_GRAPH);
         _context_menu->set_item_disabled(_context_menu->get_item_count() - 1, rename_disabled);
-        _context_menu->add_icon_item(SceneUtils::get_icon(this, "Remove"), "Remove", CM_REMOVE_GRAPH);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_GRAPH);
         _context_menu->set_item_disabled(_context_menu->get_item_count() - 1, delete_disabled);
     }
     else
     {
         // Graph Functions
         _context_menu->add_item("Focus", CM_FOCUS_FUNCTION);
-        _context_menu->add_icon_item(SceneUtils::get_icon(this, "Remove"), "Remove", CM_REMOVE_FUNCTION);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
     }
     return true;
 }
@@ -567,7 +567,7 @@ void OrchestratorScriptViewGraphsSection::update()
         TreeItem* item = _tree->get_root()->create_child();
         item->set_text(0, graph->get_graph_name());
         item->set_meta("__name", graph->get_graph_name()); // Used for renames
-        item->set_icon(0, SceneUtils::get_icon(this, "ClassList"));
+        item->set_icon(0, SceneUtils::get_editor_icon("ClassList"));
 
         TypedArray<int> nodes = graph->get_nodes();
         for (const String& function_name : functions)
@@ -577,10 +577,10 @@ void OrchestratorScriptViewGraphsSection::update()
             {
                 TreeItem* func = item->create_child();
                 func->set_text(0, function_name);
-                func->set_icon(0, SceneUtils::get_icon(this, "PlayStart"));
+                func->set_icon(0, SceneUtils::get_editor_icon("PlayStart"));
 
                 if (SceneUtils::has_any_signals_connected_to_function(function_name, base_type, script_nodes))
-                    func->add_button(0, SceneUtils::get_icon(this, "Slot"));
+                    func->add_button(0, SceneUtils::get_editor_icon("Slot"));
             }
         }
     }
@@ -630,7 +630,7 @@ void OrchestratorScriptViewFunctionsSection::_notification(int p_what)
         override_button->set_focus_mode(Control::FOCUS_NONE);
         override_button->connect(
             "pressed", callable_mp(this, &OrchestratorScriptViewFunctionsSection::_on_override_virtual_function));
-        override_button->set_button_icon(SceneUtils::get_icon(this, "Override"));
+        override_button->set_button_icon(SceneUtils::get_editor_icon("Override"));
         override_button->set_tooltip_text("Override a Godot virtual function");
         container->add_child(override_button);
     }
@@ -670,8 +670,8 @@ String OrchestratorScriptViewFunctionsSection::_get_remove_confirm_text(TreeItem
 bool OrchestratorScriptViewFunctionsSection::_populate_context_menu(TreeItem* p_item)
 {
     _context_menu->add_item("Open in Graph", CM_OPEN_FUNCTION_GRAPH);
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Rename"), "Rename", CM_RENAME_FUNCTION);
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Remove"), "Remove", CM_REMOVE_FUNCTION);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_FUNCTION);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
     return true;
 }
 
@@ -791,10 +791,10 @@ void OrchestratorScriptViewFunctionsSection::update()
         TreeItem* item = _tree->get_root()->create_child();
         item->set_text(0, graph->get_graph_name());
         item->set_meta("__name", graph->get_graph_name()); // Used for renames
-        item->set_icon(0, SceneUtils::get_icon(this, "MemberMethod"));
+        item->set_icon(0, SceneUtils::get_editor_icon("MemberMethod"));
 
         if (SceneUtils::has_any_signals_connected_to_function(graph->get_graph_name(), base_type, script_nodes))
-            item->add_button(0, SceneUtils::get_icon(this, "Slot"));
+            item->add_button(0, SceneUtils::get_editor_icon("Slot"));
     }
 
     if (_tree->get_root()->get_child_count() == 0)
@@ -892,9 +892,9 @@ void OrchestratorScriptViewVariablesSection::_create_item(TreeItem* p_parent, co
 
     TreeItem* item = category->create_child();
     item->set_text(0, p_variable->get_variable_name());
-    item->set_icon(0, SceneUtils::get_icon(this, "MemberProperty"));
+    item->set_icon(0, SceneUtils::get_editor_icon("MemberProperty"));
     item->set_meta("__name", p_variable->get_variable_name());
-    item->add_button(0, SceneUtils::get_icon(this, p_variable->get_variable_type_name()));
+    item->add_button(0, SceneUtils::get_editor_icon(p_variable->get_variable_type_name()));
 
     if (!p_variable->get_description().is_empty())
     {
@@ -904,18 +904,18 @@ void OrchestratorScriptViewVariablesSection::_create_item(TreeItem* p_parent, co
 
     if (p_variable->is_exported())
     {
-        item->add_button(0, SceneUtils::get_icon(this, "GuiVisibilityVisible"));
+        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityVisible"));
         item->set_button_tooltip_text(0, 1, "Variable is visible outside the orchestration.");
     }
     else
     {
-        item->add_button(0, SceneUtils::get_icon(this, "GuiVisibilityHidden"));
+        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityHidden"));
         item->set_button_tooltip_text(0, 1, "Variable is private.");
     }
 
     if (p_variable->is_exported() && p_variable->get_variable_name().begins_with("_"))
     {
-        item->add_button(0, SceneUtils::get_icon(this, "NodeWarning"));
+        item->add_button(0, SceneUtils::get_editor_icon("NodeWarning"));
         item->set_button_tooltip_text(0, 2, "Variable is exported but defined as private using underscore prefix.");
         item->set_button_disabled(0, 2, true);
     }
@@ -941,8 +941,8 @@ String OrchestratorScriptViewVariablesSection::_get_remove_confirm_text(TreeItem
 
 bool OrchestratorScriptViewVariablesSection::_populate_context_menu(TreeItem* p_item)
 {
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Rename"), "Rename", CM_RENAME_VARIABLE);
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Remove"), "Remove", CM_REMOVE_VARIABLE);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_VARIABLE);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_VARIABLE);
     return true;
 }
 
@@ -1117,8 +1117,8 @@ String OrchestratorScriptViewSignalsSection::_get_remove_confirm_text(TreeItem* 
 
 bool OrchestratorScriptViewSignalsSection::_populate_context_menu(TreeItem* p_item)
 {
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Rename"), "Rename", CM_RENAME_SIGNAL);
-    _context_menu->add_icon_item(SceneUtils::get_icon(this, "Remove"), "Remove", CM_REMOVE_SIGNAL);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_SIGNAL);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_SIGNAL);
     return true;
 }
 
@@ -1208,7 +1208,7 @@ void OrchestratorScriptViewSignalsSection::update()
             TreeItem* item = _tree->get_root()->create_child();
             item->set_text(0, signal_name);
             item->set_meta("__name", signal_name);
-            item->set_icon(0, SceneUtils::get_icon(this, "MemberSignal"));
+            item->set_icon(0, SceneUtils::get_editor_icon("MemberSignal"));
         }
     }
 
@@ -1421,7 +1421,7 @@ OrchestratorGraphEdit* OrchestratorScriptView::_get_or_create_tab(const StringNa
     if (graph->is_function())
         tab_icon = "MemberMethod";
 
-    _tabs->set_tab_icon(_get_tab_index_by_name(p_tab_name), SceneUtils::get_icon(this, tab_icon));
+    _tabs->set_tab_icon(_get_tab_index_by_name(p_tab_name), SceneUtils::get_editor_icon(tab_icon));
 
     // Setup connections
     graph->connect("nodes_changed", callable_mp(this, &OrchestratorScriptView::_on_graph_nodes_changed));

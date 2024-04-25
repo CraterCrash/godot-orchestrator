@@ -93,7 +93,7 @@ Control* OrchestratorGraphNodePinFile::_get_default_value_widget()
 
     _clear_button = memnew(Button);
     _clear_button->set_focus_mode(Control::FOCUS_NONE);
-    _clear_button->set_button_icon(SceneUtils::get_icon(this, "Reload"));
+    _clear_button->set_button_icon(SceneUtils::get_editor_icon("Reload"));
     _clear_button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinFile::_on_clear_file).bind(file_button));
     _clear_button->set_visible(file_button->get_text() != _get_default_text());
     container->add_child(_clear_button);

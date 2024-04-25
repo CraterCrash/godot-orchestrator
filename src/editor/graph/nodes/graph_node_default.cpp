@@ -142,7 +142,7 @@ void OrchestratorGraphNodeDefault::_on_row_ready(int p_row_index)
     {
         const Row& row = _pin_rows[p_row_index];
 
-        const Ref<Texture2D> invalid = SceneUtils::get_icon(this, "GuiGraphNodePort");
+        const Ref<Texture2D> invalid = SceneUtils::get_editor_icon("GuiGraphNodePort");
 
         set_slot(row.index,
                  row.left && row.left->is_connectable() && !row.left->is_hidden(),
@@ -151,8 +151,8 @@ void OrchestratorGraphNodeDefault::_on_row_ready(int p_row_index)
                  row.right && row.right->is_connectable() && !row.right->is_hidden(),
                  row.right ? row.right->get_slot_type() : 0,
                  row.right ? row.right->get_color() :Color(0, 0, 0, 1),
-                 row.left ? SceneUtils::get_icon(this, row.left->get_slot_icon_name()) : invalid,
-                 row.right ? SceneUtils::get_icon(this, row.right->get_slot_icon_name()) : invalid);
+                 row.left ? SceneUtils::get_editor_icon(row.left->get_slot_icon_name()) : invalid,
+                 row.right ? SceneUtils::get_editor_icon(row.right->get_slot_icon_name()) : invalid);
     }
 }
 
