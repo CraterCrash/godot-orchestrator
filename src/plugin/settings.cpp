@@ -227,6 +227,7 @@ void OrchestratorSettings::_initialize_settings()
         // Set these to handle reversion should a user restart the editor and revert a custom
         // setting back to its defaults, since the editor does not persist these details.
         ps->set_initial_value(key, setting.value);
+        ps->set_order(key, _builtin_order++);
         ps->add_property_info(DictionaryUtils::from_property(pi));
         ps->set_as_basic(key, true);
     }
