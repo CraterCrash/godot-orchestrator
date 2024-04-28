@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_SCENE_UTILS_H
 
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
@@ -27,6 +28,11 @@ using namespace godot;
 
 namespace SceneUtils
 {
+    /// Check whether there is an editor icon with the given name.
+    /// @param p_icon_name the editor icon to check
+    /// @return true if the icon exists; false otherwise
+    bool has_editor_icon(const String& p_icon_name);
+
     /// Load an icon.
     ///
     /// @param p_icon_name the editor icon to load
@@ -79,6 +85,9 @@ namespace SceneUtils
     /// @param p_nodes the vector of nodes
     /// @return true if the function is a target of a signal; false otherwise
     bool has_any_signals_connected_to_function(const String& p_function_name, const String& p_base_type, const Vector<Node*>& p_nodes);
+
+    // taken from VBoxContainer in the engine
+    MarginContainer* add_margin_child(Node* p_parent, const String& p_label, Control* p_control, bool p_expand = false);
 }
 
 #endif  // ORCHESTRATOR_SCENE_UTILS_H

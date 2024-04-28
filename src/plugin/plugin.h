@@ -19,6 +19,7 @@
 
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
+#include <godot_cpp/classes/editor_inspector_plugin.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
 
 using namespace godot;
@@ -39,6 +40,8 @@ class OrchestratorPlugin : public EditorPlugin
     EditorInterface& _editor;                                 //! Godot editor interface reference
     OrchestratorMainView* _main_view{ nullptr };              //! Plugin's main view
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
+    Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
+
 public:
     /// Constructor
     OrchestratorPlugin();
@@ -96,6 +99,19 @@ public:
     void _enable_plugin() override;
     void _disable_plugin() override;
     //~ End EditorPlugin interface
+
+    /// Get the editor inspector plugin by type
+    /// @return the editor inspector plugin reference or an invalid reference if not found
+    template<typename T>
+    Ref<T> get_editor_inspector_plugin()
+    {
+        for (Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
+        {
+            if (T* result = Object::cast_to<T>(plugin.ptr()))
+                return result;
+        }
+        return {};
+    }
 
 private:
     void _on_window_visibility_changed(bool p_visible);

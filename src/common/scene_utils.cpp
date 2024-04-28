@@ -21,6 +21,7 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
+#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -50,6 +51,12 @@ namespace SceneUtils
         }
 
         return nullptr;
+    }
+
+    bool has_editor_icon(const String& p_icon_name)
+    {
+        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        return vbox->has_theme_icon(p_icon_name);
     }
 
     Ref<Texture2D> get_editor_icon(const String& p_icon_name)
@@ -214,5 +221,23 @@ namespace SceneUtils
             }
         }
         return false;
+    }
+
+    MarginContainer* add_margin_child(Node* p_parent, const String& p_label, Control* p_control, bool p_expand)
+    {
+        Label* label = memnew(Label);
+        label->set_theme_type_variation("HeaderSmall");
+        label->set_text(p_label);
+        p_parent->add_child(label);
+
+        MarginContainer* mc = memnew(MarginContainer);
+        mc->add_theme_constant_override("margin_left", 0);
+        mc->add_child(p_control, true);
+        p_parent->add_child(mc);
+
+        if (p_expand)
+            mc->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+
+        return mc;
     }
 }

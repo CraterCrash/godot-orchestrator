@@ -16,6 +16,8 @@
 //
 #include "variable_set.h"
 
+#include "common/variant_utils.h"
+
 class OScriptNodeVariableSetInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeVariableSet);
@@ -25,6 +27,19 @@ public:
     int step(OScriptNodeExecutionContext& p_context) override
     {
         Variant value = p_context.get_input(0);
+
+        Variant current_value;
+        if (_instance->get_variable(_variable_name, current_value))
+        {
+            // Value is currently assigned
+            if (!Variant::can_convert(value.get_type(), current_value.get_type()))
+            {
+                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT);
+                p_context.set_invalid_argument(this, 0, value.get_type(), current_value.get_type());
+                return -1;
+            }
+        }
+
         if (!_instance->set_variable(_variable_name, value))
         {
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Variable " + _variable_name + " not found.");
@@ -54,6 +69,25 @@ void OScriptNodeVariableSet::allocate_default_pins()
 
     Ref<OScriptNodePin> value = create_pin(PD_Output, "value", _variable->get_variable_type());
     value->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::HIDE_LABEL);
+
+    if (_variable.is_valid())
+    {
+        PropertyInfo pi = _variable->get_info();
+        if (pi.hint == PROPERTY_HINT_FLAGS)
+        {
+            v->set_flags(v->get_flags() | OScriptNodePin::Flags::BITFIELD);
+            v->set_target_class(pi.class_name);
+            v->set_type(Variant::INT);
+        }
+        else if (pi.hint == PROPERTY_HINT_ENUM)
+        {
+            v->set_flags(v->get_flags() | OScriptNodePin::Flags::ENUM);
+            v->set_target_class(pi.class_name);
+            v->set_type(Variant::INT);
+        }
+        else if (!pi.hint_string.is_empty())
+            value->set_target_class(pi.hint_string);
+    }
 
     super::allocate_default_pins();
 }
