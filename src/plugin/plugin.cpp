@@ -20,6 +20,7 @@
 #include "editor/graph/graph_edit.h"
 #include "editor/main_view.h"
 #include "editor/window_wrapper.h"
+#include "plugin/inspector_plugin_variable.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/control.hpp>
@@ -54,6 +55,10 @@ void OrchestratorPlugin::_notification(int p_what)
         // Plugins only enter the tree once and this happens before the main view.
         // It's safe then to cache the plugin reference here.
         _plugin = this;
+
+        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginVariable));
+        for (const Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
+            add_inspector_plugin(plugin);
 
         // Register the plugin's icon for CreateScript Dialog
         Ref<Theme> theme = ThemeDB::get_singleton()->get_default_theme();
@@ -300,4 +305,7 @@ void OrchestratorPlugin::_on_editor_restart()
 void register_plugin_classes()
 {
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorPlugin)
+
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
 }

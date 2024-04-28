@@ -41,17 +41,34 @@ class OScriptVariable : public Resource
     String _description;          //! An optional description for the variable
     String _category;             //! Category for variables
     bool _exported{ false };      //! Whether the variable is exposed on the node
+    bool _exportable{ false };    //! Tracks whether the variable can be exported
     OScript* _script{ nullptr };  //! Owning script
+
+    String _classification;       //! Variable classification
+    int _type_category{ 0 };      //! Defaults to basic
+    Variant _type_subcategory;    //! Subcategory type
+    String _value_list;           //! Enum/Bitfield custom value list
 
 protected:
 
     //~ Begin Wrapped Interface
     void _validate_property(PropertyInfo& p_property) const;
+    bool _property_can_revert(const StringName &p_name) const;
+    bool _property_get_revert(const StringName &p_name, Variant &r_property);
     //~ End Wrapped Interface
+
+    /// Get whether the specified property is exportable.
+    /// @param p_property the property
+    /// @return true if the property can be exported, false otherwise
+    bool _is_exportable_type(const PropertyInfo& p_property) const;
 
 public:
     /// Constructor
     OScriptVariable();
+
+    /// Performs post resource initialization.
+    /// This is used to align and fix-up state across versions.
+    void post_initialize();
 
     /// Get a reference to the script that owns this variable.
     /// @return the owning script reference, should always be valid
@@ -83,6 +100,22 @@ public:
     /// @param p_category the variable's category
     void set_category(const String& p_category);
 
+    /// Get the variable's type
+    /// @return the variable type
+    String get_classification() const { return _classification; }
+
+    /// Set the variable's type
+    /// @param p_classification the variable type
+    void set_classification(const String& p_classification);
+
+    /// Get the custom value list for enum/bitfields
+    /// @return the custom value list
+    String get_custom_value_list() const { return _value_list; }
+
+    /// Sets the custom value list for enum/bitfields
+    /// @param p_value_list the custom value list
+    void set_custom_value_list(const String& p_value_list);
+
     /// Get the variable type
     /// @return the variable type
     Variant::Type get_variable_type() const { return _info.type; }
@@ -93,7 +126,7 @@ public:
 
     /// Get the variable type name
     /// @return the variable type name
-    String get_variable_type_name() const { return Variant::get_type_name(_info.type); }
+    String get_variable_type_name() const;
 
     /// Get the variable's description
     /// @return description for the variable
@@ -110,6 +143,10 @@ public:
     /// Set the variable as exported.
     /// @param p_exported true exports the variable, false otherwise
     void set_exported(bool p_exported);
+
+    /// Is the variable exportable.
+    /// @return true if the variable can be exported, false otherwise
+    bool is_exportable() const { return _is_exportable_type(_info); }
 
     /// Get the default value for the variable, if one is defined
     /// @return variable's default value

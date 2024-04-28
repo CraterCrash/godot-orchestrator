@@ -30,7 +30,7 @@ public:
         if (input.get_type() == Variant::OBJECT)
         {
             Object* object = Object::cast_to<Object>(input);
-            if (ClassDB::is_parent_class(object->get_class(), _target_class))
+            if (object && ClassDB::is_parent_class(object->get_class(), _target_class))
             {
                 p_context.set_output(0, &input);
                 return 0;

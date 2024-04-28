@@ -26,6 +26,8 @@
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
+#include "editor/search/search_dialog.h"
+#include "editor/search/variable_classification_dialog.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
 #include "main_view.h"
@@ -34,6 +36,11 @@
 
 void register_editor_classes()
 {
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem);
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorVariableTypeSearchDialog)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
+
     // Action components
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionDB)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenu)
