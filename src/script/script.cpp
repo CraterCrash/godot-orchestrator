@@ -88,6 +88,9 @@ void OScript::_bind_methods()
 
 void OScript::post_initialize()
 {
+    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
+        E.value->post_initialize();
+
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
         E.value->post_initialize();
 

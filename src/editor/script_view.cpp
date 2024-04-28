@@ -14,15 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "script_view.h"
+
 #include "api/extension_db.h"
 #include "common/scene_utils.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/main_view.h"
+#include "plugin/inspector_plugin_variable.h"
 #include "plugin/plugin.h"
 #include "script/nodes/functions/event.h"
 #include "script/nodes/functions/function_entry.h"
 #include "script_connections.h"
-#include "script_view.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
@@ -899,7 +901,16 @@ void OrchestratorScriptViewVariablesSection::_create_item(TreeItem* p_parent, co
     item->set_text(0, p_variable->get_variable_name());
     item->set_icon(0, SceneUtils::get_editor_icon("MemberProperty"));
     item->set_meta("__name", p_variable->get_variable_name());
-    item->add_button(0, SceneUtils::get_editor_icon(p_variable->get_variable_type_name()));
+
+    if (p_variable->is_exported() && p_variable->get_variable_name().begins_with("_"))
+    {
+        int32_t index = item->get_button_count(0);
+        item->add_button(0, SceneUtils::get_editor_icon("NodeWarning"), 1);
+        item->set_button_tooltip_text(0, index, "Variable is exported but defined as private using underscore prefix.");
+        item->set_button_disabled(0, index, true);
+    }
+
+    item->add_button(0, SceneUtils::get_editor_icon(p_variable->get_variable_type_name()), 2);
 
     if (!p_variable->get_description().is_empty())
     {
@@ -909,20 +920,21 @@ void OrchestratorScriptViewVariablesSection::_create_item(TreeItem* p_parent, co
 
     if (p_variable->is_exported())
     {
-        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityVisible"));
-        item->set_button_tooltip_text(0, 1, "Variable is visible outside the orchestration.");
+        int32_t index = item->get_button_count(0);
+        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityVisible"), 3);
+        item->set_button_tooltip_text(0, index, "Variable is visible outside the orchestration.");
+        item->set_button_disabled(0, index, false);
     }
     else
     {
-        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityHidden"));
-        item->set_button_tooltip_text(0, 1, "Variable is private.");
-    }
+        String tooltip = "Variable is private.";
+        if (!p_variable->is_exportable())
+            tooltip += "\nType cannot be exported.";
 
-    if (p_variable->is_exported() && p_variable->get_variable_name().begins_with("_"))
-    {
-        item->add_button(0, SceneUtils::get_editor_icon("NodeWarning"));
-        item->set_button_tooltip_text(0, 2, "Variable is exported but defined as private using underscore prefix.");
-        item->set_button_disabled(0, 2, true);
+        int32_t index = item->get_button_count(0);
+        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityHidden"), 3);
+        item->set_button_tooltip_text(0, index, tooltip);
+        item->set_button_disabled(0, index, !p_variable->is_exportable());
     }
 }
 
@@ -1007,6 +1019,33 @@ void OrchestratorScriptViewVariablesSection::_handle_remove(TreeItem* p_item)
     const String variable_name = p_item->get_text(0);
     _script->remove_variable(variable_name);
     update();
+}
+
+void OrchestratorScriptViewVariablesSection::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
+{
+    Ref<OScriptVariable> variable = _script->get_variable(p_item->get_text(0));
+    if (!variable.is_valid())
+        return;
+
+    _tree->set_selected(p_item, 0);
+
+    // id 1 => warning
+
+    if (p_column == 0 && p_id == 2)
+    {
+        // Type clicked
+        Ref<OrchestratorEditorInspectorPluginVariable> plugin = OrchestratorPlugin::get_singleton()
+            ->get_editor_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
+
+        if (plugin.is_valid())
+            plugin->edit_classification(variable.ptr());
+    }
+    else if (p_column == 0 && p_id == 3)
+    {
+        // Visibility changed on variable
+        variable->set_exported(!variable->is_exported());
+        update();
+    }
 }
 
 Dictionary OrchestratorScriptViewVariablesSection::_handle_drag_data(const Vector2& p_position)
