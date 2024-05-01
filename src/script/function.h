@@ -51,6 +51,7 @@ class OScriptFunction : public Resource
     bool _user_defined{ false };  //! Whether function is user-defined
     int _owning_node_id{ -1 };    //! Owning node id
     OScript* _script{ nullptr };  //! Owning script
+    bool _returns_value{ false }; //! Whether the function returns a value
 
 protected:
 
@@ -150,6 +151,10 @@ public:
     /// Set the return value type for user-defined functions. Built-in functions act as a no-op.
     /// @param p_type the new return value type
     void set_return_type(Variant::Type p_type);
+
+    /// Sets whether the function has a return value
+    /// @param p_has_return value true if the function has a return value, false otherwise
+    void set_has_return_value(bool p_has_return_value);
 
     /// Helper method to construct a OScriptFunction from a Godot MethodInfo struct.
     /// @param p_script the script that will own the function

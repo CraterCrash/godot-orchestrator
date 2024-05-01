@@ -27,6 +27,18 @@ namespace MethodUtils
     /// @param p_method the Godot method info structure
     /// @return <code>true</code> if the method returns a value; <code>false</code> otherwise
     bool has_return_value(const MethodInfo& p_method);
+
+    /// Sets the method to not return to value.
+    /// @param p_method the method to modify
+    void set_no_return_value(MethodInfo& p_method);
+
+    /// Sets the method to return a value
+    /// @param p_method the method to modify
+    void set_return_value(MethodInfo& p_method);
+
+    /// Sets the method to return the specified type
+    /// @param p_method the method to modify
+    void set_return_value_type(MethodInfo& p_method, Variant::Type p_type);
 }
 
 #endif // ORCHESTRATOR_METHOD_UTILS_H

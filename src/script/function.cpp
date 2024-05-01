@@ -17,6 +17,7 @@
 #include "function.h"
 
 #include "common/dictionary_utils.h"
+#include "common/method_utils.h"
 #include "script/script.h"
 
 void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const
@@ -63,6 +64,7 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
     else if (p_name.match("method"))
     {
         _method = DictionaryUtils::to_method(p_value);
+        _returns_value = MethodUtils::has_return_value(_method);
         result = true;
     }
     else if (p_name.match("id"))
@@ -193,7 +195,7 @@ void OScriptFunction::set_argument_name(size_t p_index, const StringName& p_name
 
 bool OScriptFunction::has_return_type() const
 {
-    return _method.return_val.type != Variant::NIL;
+    return _returns_value;
 }
 
 Variant::Type OScriptFunction::get_return_type() const
@@ -203,9 +205,27 @@ Variant::Type OScriptFunction::get_return_type() const
 
 void OScriptFunction::set_return_type(Variant::Type p_type)
 {
-    if (_user_defined)
+    if (_user_defined && _method.return_val.type != p_type)
     {
-        _method.return_val.type = p_type;
+        if (_returns_value)
+            MethodUtils::set_return_value_type(_method, p_type);
+        else
+            MethodUtils::set_no_return_value(_method);
+
+        emit_changed();
+    }
+}
+
+void OScriptFunction::set_has_return_value(bool p_has_return_value)
+{
+    if (_returns_value != p_has_return_value)
+    {
+        if (p_has_return_value)
+            MethodUtils::set_return_value(_method);
+        else
+            MethodUtils::set_no_return_value(_method);
+
+        _returns_value = p_has_return_value;
         emit_changed();
     }
 }
