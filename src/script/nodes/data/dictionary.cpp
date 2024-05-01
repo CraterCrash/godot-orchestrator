@@ -38,6 +38,36 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class OScriptNodeDictionarySetInstance : public OScriptNodeInstance
+{
+    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDictionarySet);
+
+public:
+    int step(OScriptNodeExecutionContext& p_context) override
+    {
+        Dictionary dict = p_context.get_input(0);
+
+        Variant oldValue;
+        bool replaced = false;
+
+        Variant key = p_context.get_input(1);
+        if (dict.has(key))
+        {
+            oldValue = dict[key];
+            replaced = true;
+        }
+        dict[key] = p_context.get_input(2);
+
+        p_context.set_output(0, dict);
+        p_context.set_output(1, replaced);
+        p_context.set_output(2, oldValue);
+
+        return 0;
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void OScriptNodeMakeDictionary::post_initialize()
 {
     _element_count = find_pins(PD_Input).size() / 2;
@@ -130,4 +160,47 @@ void OScriptNodeMakeDictionary::remove_dynamic_pin(const Ref<OScriptNodePin>& p_
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeDictionarySet::post_initialize()
+{
+    super::post_initialize();
+}
+
+void OScriptNodeDictionarySet::allocate_default_pins()
+{
+    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, "target", Variant::DICTIONARY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, "key", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, "value", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+
+    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Output, "return_value", Variant::DICTIONARY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, "replaced", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, "old_value", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+
+    super::allocate_default_pins();
+}
+
+String OScriptNodeDictionarySet::get_tooltip_text() const
+{
+    return "Set a dictionary key/value pair.";
+}
+
+String OScriptNodeDictionarySet::get_node_title() const
+{
+    return "Set Dictionary Item";
+}
+
+String OScriptNodeDictionarySet::get_icon() const
+{
+    return "Dictionary";
+}
+
+OScriptNodeInstance* OScriptNodeDictionarySet::instantiate(OScriptInstance* p_instance)
+{
+    OScriptNodeDictionarySetInstance* i = memnew(OScriptNodeDictionarySetInstance);
+    i->_node = this;
+    i->_instance = p_instance;
+    return i;
+}
