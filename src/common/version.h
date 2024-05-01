@@ -19,6 +19,8 @@
 
 #include "version.gen.h"
 
+#include <godot_cpp/core/version.hpp>
+
 // Orchestrator versions are of the form <major>.<minor> for the initial release,
 // and then <major>.<minor>.<maintenance> for subsequent maintenance releases where the
 // <maintenance> is not equal-to 0.
@@ -59,5 +61,10 @@
 
 // Git commit hash, generated at build time in "version_hash.gen.cpp"
 // extern const char *const VERSION_HASH;
+
+// Version number encoded as a hexadecimal int with one byte for each nuber,
+// for easy comparison from code.
+// Exmaple: 2.1.4 will be 0x020104
+#define GODOT_VERSION 0x10000 * GODOT_VERSION_MAJOR + 0x100 * GODOT_VERSION_MINOR + GODOT_VERSION_PATCH
 
 #endif  // ORCHESTRATOR_VERSION_H
