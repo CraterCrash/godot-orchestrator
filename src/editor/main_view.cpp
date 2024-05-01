@@ -68,6 +68,10 @@ void OrchestratorMainView::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        // Load the recent files
+        const Ref<ConfigFile> metadata = _plugin->get_metadata();
+        _recent_files = metadata->get_value("recent_files", "orchestrations", {});
+
         set_anchors_preset(PRESET_FULL_RECT);
         set_h_size_flags(SIZE_EXPAND_FILL);
         set_v_size_flags(SIZE_EXPAND_FILL);
@@ -103,6 +107,15 @@ void OrchestratorMainView::_notification(int p_what)
         _file_menu->get_popup()->clear();
         _file_menu->get_popup()->add_item("New Orchestration...", AccelMenuIds::NEW, SKEY(KEY_MASK_CTRL, KEY_N));
         _file_menu->get_popup()->add_item("Open...", AccelMenuIds::OPEN);
+
+        _recent_history = memnew(PopupMenu);
+        _recent_history->set_name("OrchestratorRecentHistory");
+        _recent_history->connect("index_pressed", callable_mp(this, &OrchestratorMainView::_on_recent_history_selected));
+        _file_menu->get_popup()->add_child(_recent_history);
+
+        _file_menu->get_popup()->add_submenu_item("Open Recent", _recent_history->get_name(), AccelMenuIds::OPEN_RECENT);
+        _update_recent_history();
+
         _file_menu->get_popup()->add_separator();
         _file_menu->get_popup()->add_item("Save", AccelMenuIds::SAVE, SKEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_S));
         _file_menu->get_popup()->add_item("Save As...", AccelMenuIds::SAVE_AS);
@@ -617,6 +630,30 @@ void OrchestratorMainView::_update_files_list()
     }
 }
 
+void OrchestratorMainView::_update_recent_history()
+{
+    _recent_history->clear();
+
+    for (const String& recent : _recent_files)
+        _recent_history->add_item(recent.replace("res://", ""));
+
+    _recent_history->add_separator();
+    _recent_history->add_item("Clear Recent Files");
+
+    if (_recent_files.is_empty())
+        _recent_history->set_item_disabled(1, true);
+}
+
+void OrchestratorMainView::_save_recent_history()
+{
+    // Only save the last 10
+    _recent_files = _recent_files.slice(0, 10);
+
+    Ref<ConfigFile> metadata = _plugin->get_metadata();
+    metadata->set_value("recent_files", "orchestrations", _recent_files);
+    _plugin->save_metadata(metadata);
+}
+
 void OrchestratorMainView::_navigate_to_current_path()
 {
     if (_has_open_script())
@@ -637,6 +674,14 @@ void OrchestratorMainView::_show_script_editor_view(const String& p_file_name)
 
     _current_index = _get_script_file_index_by_file_name(p_file_name);
     _script_files[_current_index].editor->show();
+
+    if (_recent_files.has(p_file_name))
+        _recent_files.remove_at(_recent_files.find(p_file_name));
+
+    _recent_files.insert(0, p_file_name);
+
+    _save_recent_history();
+    _update_recent_history();
 }
 
 void OrchestratorMainView::_on_prepare_file_menu()
@@ -891,5 +936,22 @@ void OrchestratorMainView::_on_folder_removed(const String& p_folder_name)
             continue;
         }
         i++;
+    }
+}
+
+void OrchestratorMainView::_on_recent_history_selected(int p_index)
+{
+    if (p_index == _recent_history->get_item_count() - 1)
+    {
+        // Clear history recent
+        _recent_files.clear();
+
+        _save_recent_history();
+        _update_recent_history();
+    }
+    else
+    {
+        _show_script_editor_view(_recent_files[p_index]);
+        _update_files_list();
     }
 }

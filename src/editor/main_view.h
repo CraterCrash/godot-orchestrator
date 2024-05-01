@@ -40,6 +40,7 @@ namespace godot
     class ItemList;
     class LineEdit;
     class MenuButton;
+    class PopupMenu;
     class Script;
     class ScriptCreateDialog;
 }
@@ -54,6 +55,7 @@ private:
     {
         NEW,
         OPEN,
+        OPEN_RECENT,
         SAVE,
         SAVE_AS,
         SAVE_ALL,
@@ -95,12 +97,14 @@ private:
     Control* _updater{ nullptr };                    //! Updater widget
     ConfirmationDialog* _close_confirm{ nullptr };   //! Confirmation dialog
     ConfirmationDialog* _goto_dialog{ nullptr };     //! Goto node dialog
+    PopupMenu* _recent_history{ nullptr };           //! Recent history
     List<ScriptFile> _script_close_queue;            //! Queue of scripts to be removed
     OrchestratorPlugin* _plugin{ nullptr };          //! Orchestrator plugin
     bool _floating{ false };                         //! Whether this window is floating
     Control* _select_separator{ nullptr };           //! Screen selection separator
     OrchestratorScreenSelect* _select{ nullptr };    //! Screen selection
     OrchestratorWindowWrapper* _wrapper{ nullptr };  //! Window wrapper
+    PackedStringArray _recent_files;                 //! Recent files list
 
     static void _bind_methods();
     OrchestratorMainView() = default;
@@ -179,6 +183,12 @@ private:
     /// Dispatches an update to the files list
     void _update_files_list();
 
+    /// Updates the reecnt history
+    void _update_recent_history();
+
+    /// Saves the recent history to disk
+    void _save_recent_history();
+
     /// Navigate to the current file in the FileSystemDock
     void _navigate_to_current_path();
 
@@ -252,6 +262,10 @@ private:
     /// Dispatched when a folder is removed from the project
     /// @param p_folder_name the folder name
     void _on_folder_removed(const String& p_folder_name);
+
+    /// When a recent history item is selected
+    /// @param p_index the selected index
+    void _on_recent_history_selected(int p_index);
 };
 
 #endif  // ORCHESTRATOR_MAIN_VIEW_H

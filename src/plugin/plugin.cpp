@@ -25,11 +25,12 @@
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/theme.hpp>
+#include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
@@ -177,6 +178,25 @@ bool OrchestratorPlugin::restore_windows_on_load()
 Ref<Texture2D> OrchestratorPlugin::get_plugin_icon_hires() const
 {
     return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg");
+}
+
+Ref<ConfigFile> OrchestratorPlugin::get_metadata()
+{
+    const String file = get_editor_interface()->get_editor_paths()->get_project_settings_dir()
+        .path_join("orchestrator_metadata.cfg");
+
+    Ref<ConfigFile> metadata(memnew(ConfigFile));
+    metadata->load(file);
+
+    return metadata;
+}
+
+void OrchestratorPlugin::save_metadata(const Ref<ConfigFile>& p_metadata)
+{
+    const String file = get_editor_interface()->get_editor_paths()->get_project_settings_dir()
+            .path_join("orchestrator_metadata.cfg");
+
+    p_metadata->save(file);
 }
 
 void OrchestratorPlugin::request_editor_restart()

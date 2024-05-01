@@ -73,6 +73,14 @@ public:
     /// @return high-res texture
     Ref<Texture2D> get_plugin_icon_hires() const;
 
+    /// Get the plugin's editor metadata configuration
+    /// @return the metadata configuration file
+    Ref<ConfigFile> get_metadata();
+
+    /// Saves the metadata
+    /// @param p_metadata the metadata to save
+    void save_metadata(const Ref<ConfigFile>& p_metadata);
+
     //~ Begin EditorPlugin interface
     String get_plugin_version() const;
     void _edit(Object* p_object) override;
