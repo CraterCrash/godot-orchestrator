@@ -32,4 +32,26 @@ namespace MethodUtils
         // No return value
         return false;
     }
+
+    void set_no_return_value(MethodInfo& p_method)
+    {
+        p_method.return_val.type = Variant::NIL;
+        p_method.return_val.usage &= ~PROPERTY_USAGE_NIL_IS_VARIANT;
+    }
+
+    void set_return_value(MethodInfo& p_method)
+    {
+        // If non-NIL type, already returns a value.
+        if (p_method.return_val.type == Variant::NIL)
+            p_method.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+    }
+
+    void set_return_value_type(MethodInfo& p_method, Variant::Type p_type)
+    {
+        p_method.return_val.type = p_type;
+        if (p_type != Variant::NIL)
+            p_method.return_val.usage &= ~PROPERTY_USAGE_NIL_IS_VARIANT;
+        else
+            p_method.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+    }
 }

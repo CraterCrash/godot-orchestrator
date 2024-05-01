@@ -162,7 +162,7 @@ bool OScriptNodeFunctionTerminator::_set(const StringName& p_name, const Variant
         if (function.is_valid() && function->is_user_defined())
         {
             _return_value = p_value;
-            function->set_return_type(_return_value ? Variant::BOOL : Variant::NIL);
+            function->set_has_return_value(_return_value);
             notify_property_list_changed();
             return true;
         }
