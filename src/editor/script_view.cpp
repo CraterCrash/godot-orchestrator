@@ -1360,6 +1360,11 @@ void OrchestratorScriptView::apply_changes()
         node->post_save();
 }
 
+void OrchestratorScriptView::rename(const String& p_new_file)
+{
+    _script->set_path(p_new_file);
+}
+
 bool OrchestratorScriptView::save_as(const String& p_new_file)
 {
     if (ResourceSaver::get_singleton()->save(_script, p_new_file) == OK)
