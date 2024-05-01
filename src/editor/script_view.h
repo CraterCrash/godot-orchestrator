@@ -493,6 +493,10 @@ public:
     /// Requests that any pending changes be flushed to the script.
     void apply_changes();
 
+    /// Renames the script resource.
+    /// @param p_new_file new file name
+    void rename(const String& p_new_file);
+
     /// Save the script in the editor with the new file name.
     /// @param p_new_file the new file name
     /// @return true if successful, false otherwise.
