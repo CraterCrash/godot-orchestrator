@@ -283,9 +283,22 @@ void OrchestratorMainView::_notification(int p_what)
             if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
                 scene_tabs->connect("tab_changed", callable_mp(this, &OrchestratorMainView::_on_scene_tab_changed));
         }
+
+        FileSystemDock* dock = _plugin->get_editor_interface()->get_file_system_dock();
+        dock->connect("file_removed", callable_mp(this, &OrchestratorMainView::_on_file_removed));
+        dock->connect("folder_removed", callable_mp(this, &OrchestratorMainView::_on_folder_removed));
+        dock->connect("files_moved", callable_mp(this, &OrchestratorMainView::_on_files_moved));
     }
     else if (p_what == NOTIFICATION_EXIT_TREE)
     {
+        FileSystemDock* dock = _plugin->get_editor_interface()->get_file_system_dock();
+        if (dock->is_connected("file_removed", callable_mp(this, &OrchestratorMainView::_on_file_removed)))
+            dock->disconnect("file_removed", callable_mp(this, &OrchestratorMainView::_on_file_removed));
+        if (dock->is_connected("folder_removed", callable_mp(this, &OrchestratorMainView::_on_folder_removed)))
+            dock->disconnect("folder_removed", callable_mp(this, &OrchestratorMainView::_on_folder_removed));
+        if (dock->is_connected("files_moved", callable_mp(this, &OrchestratorMainView::_on_files_moved)))
+            dock->disconnect("files_moved", callable_mp(this, &OrchestratorMainView::_on_files_moved));
+
         if (Node* editor_node = get_tree()->get_root()->get_child(0))
         {
             if (Node* scene_tabs = editor_node->find_child("*EditorSceneTabs*", true, false))
@@ -457,37 +470,46 @@ void OrchestratorMainView::_save_all_scripts()
 
 void OrchestratorMainView::_close_script(bool p_save)
 {
-    if (_has_open_script())
+    _close_script(_current_index, p_save);
+}
+
+void OrchestratorMainView::_close_script(int p_index, bool p_save)
+{
+    if (!_has_open_script())
+        return;
+
+    if (p_index >= _script_files.size() || p_index < 0)
+        return;
+
+    const ScriptFile& file = _script_files[p_index];
+
+    if (p_save)
+        file.editor->apply_changes();
+
+    // Hide the editor and remove it
+    file.editor->queue_free();
+
+    _script_files.remove_at(p_index);
+
+    if (_script_files.size() > 0) // Other files remove
     {
-        // Get the current open file
-        const ScriptFile& file = _script_files[_current_index];
+        // If current index is the file that was closed, drop by 1.
+        if (_current_index == p_index)
+            _current_index--;
 
-        if (p_save)
-            file.editor->apply_changes();
+        if (p_index >= _script_files.size())
+            p_index--;
 
-        // Hide the current editor and remove it
-        file.editor->queue_free();
-
-        // Remove the entry from the list
-        _script_files.remove_at(_current_index);
-
-        if (_script_files.size() > 0)
-        {
-            // In this case we removed the last entry, go the one previous
-            if (_current_index == _script_files.size())
-                _current_index--;
-
-            const ScriptFile& new_file = _script_files[_current_index];
-            _show_script_editor_view(new_file.file_name);
-        }
-        else
-        {
-            // There are no files left, set to -1
-            _current_index = -1;
-        }
-
-        _update_files_list();
+        const ScriptFile& other = _script_files[p_index];
+        _show_script_editor_view(other.file_name);
     }
+    else
+    {
+        // No more files are in the view.
+        _current_index = -1;
+    }
+
+    _update_files_list();
 }
 
 void OrchestratorMainView::_close_all_scripts()
@@ -828,5 +850,46 @@ void OrchestratorMainView::_on_scene_tab_changed(int p_tab_index)
                 }
             }
         }
+    }
+}
+
+void OrchestratorMainView::_on_file_removed(const String& p_file_name)
+{
+    for (int i = 0; i < _script_files.size(); i++)
+    {
+        const ScriptFile& file = _script_files[i];
+        if (file.file_name.match(p_file_name))
+        {
+            _close_script(i, false);
+            break;
+        }
+    }
+}
+
+void OrchestratorMainView::_on_files_moved(const String& p_old_name, const String& p_new_name)
+{
+    for (int i = 0; i < _script_files.size(); i++)
+    {
+        if (_script_files[i].file_name.match(p_old_name))
+        {
+            _script_files.write[i].file_name = p_new_name;
+            _script_files[i].editor->rename(p_new_name);
+            _update_files_list();
+            break;
+        }
+    }
+}
+
+void OrchestratorMainView::_on_folder_removed(const String& p_folder_name)
+{
+    for (int i = 0; i < _script_files.size(); )
+    {
+        const ScriptFile& file = _script_files[i];
+        if (file.file_name.begins_with(p_folder_name))
+        {
+            _close_script(i, false);
+            continue;
+        }
+        i++;
     }
 }

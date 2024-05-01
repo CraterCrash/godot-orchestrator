@@ -159,6 +159,11 @@ private:
     /// @param p_save whether the contents are saved or discarded
     void _close_script(bool p_save = true);
 
+    /// Closes the script at the specified index
+    /// @param p_index the index of the script in the file array
+    /// @param p_save whether the contents are saved or discarded
+    void _close_script(int p_index, bool p_save = true);
+
     /// Closes all opened scripts
     void _close_all_scripts();
 
@@ -234,6 +239,19 @@ private:
     /// Dispatched when the user changes scene tabs.
     /// @param p_tab_index the new tab index that gained focus
     void _on_scene_tab_changed(int p_tab_index);
+
+    /// Dispatched when a file is removed from the project
+    /// @param p_file_name the file name
+    void _on_file_removed(const String& p_file_name);
+
+    /// Dispatched when a file is moved.
+    /// @param p_old_name the old file name
+    /// @param p_new_name the new file name
+    void _on_files_moved(const String& p_old_name, const String& p_new_name);
+
+    /// Dispatched when a folder is removed from the project
+    /// @param p_folder_name the folder name
+    void _on_folder_removed(const String& p_folder_name);
 };
 
 #endif  // ORCHESTRATOR_MAIN_VIEW_H
