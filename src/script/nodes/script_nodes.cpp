@@ -48,6 +48,7 @@ void register_script_node_classes()
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCompose)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeComposeFrom)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDecompose)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDictionarySet)
 
     //~ Dialogue
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDialogueChoice)

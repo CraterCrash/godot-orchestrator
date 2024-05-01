@@ -48,4 +48,21 @@ public:
 
 };
 
+/// A node that compliments the Dictionary "Get" method to set a value in the dictionary.
+class OScriptNodeDictionarySet : public OScriptNode
+{
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeDictionarySet, OScriptNode);
+
+public:
+    //~ Begin OScriptNode Interface
+    void post_initialize() override;
+    void allocate_default_pins() override;
+    String get_tooltip_text() const override;
+    String get_node_title() const override;
+    String get_node_title_color_name() const override { return "function_call"; }
+    String get_icon() const override;
+    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    //~ End OScriptNode Interface
+};
+
 #endif // ORCHESTRATOR_SCRIPT_NODE_DICTIONARIES_H_

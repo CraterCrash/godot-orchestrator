@@ -167,6 +167,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     _register_node<OScriptNodeArrayRemoveIndex>(p_context, "Array/remove_element_by_index");
     _register_node<OScriptNodeMakeArray>(p_context, "Array/make_array");
     _register_node<OScriptNodeMakeDictionary>(p_context, "Dictionary/make_dictionary");
+    _register_node<OScriptNodeDictionarySet>(p_context, "Dictionary/set");
 
     // Dialogue
     _register_node<OScriptNodeDialogueChoice>(p_context, "Dialogue/choice");
