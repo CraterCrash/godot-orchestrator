@@ -59,6 +59,16 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeForEach::post_initialize()
+{
+    // Automatically coerces old element pins to using NIL for Any rather than OBJECT
+    Ref<OScriptNodePin> element = find_pin("element", PD_Output);
+    if (element.is_valid() && element->get_type() == Variant::OBJECT)
+        element->set_type(Variant::NIL);
+
+    super::post_initialize();
+}
+
 void OScriptNodeForEach::allocate_default_pins()
 {
     create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
@@ -68,7 +78,7 @@ void OScriptNodeForEach::allocate_default_pins()
         create_pin(PD_Input, "break")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
 
     create_pin(PD_Output, "loop_body")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-    create_pin(PD_Output, "element", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, "element", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Output, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Output, "completed")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
 }
