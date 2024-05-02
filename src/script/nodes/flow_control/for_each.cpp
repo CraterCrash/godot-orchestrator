@@ -59,6 +59,33 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeForEach::_get_property_list(List<PropertyInfo>* r_list) const
+{
+    r_list->push_back(PropertyInfo(Variant::BOOL, "with_break", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+}
+
+bool OScriptNodeForEach::_get(const StringName& p_name, Variant& r_value) const
+{
+    if (p_name.match("with_break"))
+    {
+        r_value = _with_break;
+        return true;
+    }
+    return false;
+}
+
+bool OScriptNodeForEach::_set(const StringName& p_name, const Variant& p_value)
+{
+    if (p_name.match("with_break"))
+    {
+        _with_break = p_value;
+        _notify_pins_changed();
+        return true;
+    }
+    return false;
+}
+
+
 void OScriptNodeForEach::post_initialize()
 {
     // Automatically coerces old element pins to using NIL for Any rather than OBJECT
