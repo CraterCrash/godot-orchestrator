@@ -28,6 +28,12 @@ class OScriptNodeForEach : public OScriptNode
 protected:
     bool _with_break{ false };  //! Whether break is enabled
 
+    //~ Begin Wrapped Interface
+    void _get_property_list(List<PropertyInfo>* r_list) const;
+    bool _get(const StringName& p_name, Variant& r_value) const;
+    bool _set(const StringName& p_name, const Variant& p_value);
+    //~ End Wrapped Interface
+
     /// Set whether the break pin is used.
     /// @param p_break_status true if the break pin is visible, false otherwise
     void _set_with_break(bool p_break_status);
