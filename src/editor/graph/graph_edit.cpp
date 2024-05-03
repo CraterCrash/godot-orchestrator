@@ -552,7 +552,18 @@ void OrchestratorGraphEdit::_synchronize_graph_with_script(bool p_apply_position
 
     Array nodes = _script_graph->get_nodes();
     for (int i = 0; i < nodes.size(); i++)
-        _synchronize_graph_node(_script->get_node(nodes[i]));
+    {
+        const Ref<OScriptNode> node = _script->get_node(nodes[i]);
+        if (!node.is_valid())
+        {
+            ERR_PRINT(vformat("Graph %s has node with id %d, but node is not found in the script metadata.",
+                _script_graph->get_graph_name(), nodes[i]));
+
+            _script_graph->remove_node(nodes[i]);
+            continue;
+        }
+        _synchronize_graph_node(node);
+    }
 
     _synchronize_graph_connections_with_script();
 
@@ -585,6 +596,9 @@ void OrchestratorGraphEdit::_synchronize_graph_connections_with_script()
 
 void OrchestratorGraphEdit::_synchronize_graph_node(Ref<OScriptNode> p_node)
 {
+    if (!p_node.is_valid())
+        return;
+
     const String node_id = itos(p_node->get_id());
     if (!has_node(node_id))
     {
@@ -1175,6 +1189,11 @@ void OrchestratorGraphEdit::_on_duplicate_nodes_request()
     for (const int node_id : duplications)
     {
         Ref<OScriptNode> node = _script->get_node(node_id);
+        if (!node.is_valid())
+        {
+            ERR_PRINT("Cannot duplicate node with id " + itos(node_id));
+            continue;
+        }
 
         // Duplicate sub-resources to handle copying pins
         Ref<OScriptNode> duplicate = node->duplicate(true);
