@@ -50,6 +50,7 @@
 #include "functions/call_builtin_function.h"
 #include "functions/call_member_function.h"
 #include "functions/call_script_function.h"
+#include "functions/call_static_function.h"
 #include "functions/function_entry.h"
 #include "functions/function_result.h"
 #include "functions/event.h"

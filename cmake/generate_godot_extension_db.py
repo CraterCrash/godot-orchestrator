@@ -311,7 +311,8 @@ def create_structs():
 
     print_indent("/// Describes a Godot Class")
     print_struct("ClassInfo", ["StringName name",
-                               "Vector<StringName> bitfield_enums"])
+                               "Vector<StringName> bitfield_enums",
+                               "HashMap<StringName, int64_t> static_function_hashes"])
     indent_pop()
 
 
@@ -399,6 +400,9 @@ def create_db_header():
     print_indent("static FunctionInfo get_function(const StringName& p_name);")
     print_indent("")
     print_indent("static bool is_class_enum_bitfield(const StringName& p_class_name, const String& p_enum_name);")
+    print_indent("")
+    print_indent("static PackedStringArray get_static_function_names(const StringName& p_class_name);")
+    print_indent("static int64_t get_static_function_hash(const StringName& p_class_name, const StringName& p_function_name);")
     indent_pop()
     print_indent("};")
     print_indent("")
@@ -622,17 +626,31 @@ def write_class_details(classes):
     print_indent("// This currently only loads classes that have bitfield enums; use ClassDB otherwise.")
     print_indent("// Can eventually be replaced by: https://github.com/godotengine/godot/pull/90368")
     for clazz in classes:
+        class_output = False
+        if 'methods' in clazz:
+            for method in clazz["methods"]:
+                if method["is_static"]:
+                    if not class_output:
+                        print_indent("")
+                        print_indent("// " + clazz["name"])
+                        print_indent(DB + "_classes[" + quote(clazz["name"]) + "].name = " + quote(clazz["name"]) + ";")
+                        class_output = True
+                    print_indent(DB + "_classes[" + quote(clazz["name"]) + "].static_function_hashes[" + quote(method["name"]) + "] = " + str(method["hash"]) + ";")
+
         enum_names = []
         if 'enums' in clazz:
             for enum in clazz["enums"]:
                 if enum["is_bitfield"]:
                     enum_names.append(enum["name"])
         if enum_names:
-            print_indent("")
-            print_indent("// " + clazz["name"])
-            print_indent(DB + "_classes[" + quote(clazz["name"]) + "].name = " + quote(clazz["name"]) + ";")
+            if not class_output:
+                print_indent("")
+                print_indent("// " + clazz["name"])
+                print_indent(DB + "_classes[" + quote(clazz["name"]) + "].name = " + quote(clazz["name"]) + ";")
             for enum_name in enum_names:
                 print_indent(DB + "_classes[" + quote(clazz["name"]) + "].bitfield_enums.push_back(" + quote(enum_name) + ");")
+
+
     indent_pop()
 
 def create_cpp():

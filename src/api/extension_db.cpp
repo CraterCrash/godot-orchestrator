@@ -4517,21 +4517,108 @@ namespace godot
 			// This currently only loads classes that have bitfield enums; use ClassDB otherwise.
 			// Can eventually be replaced by: https://github.com/godotengine/godot/pull/90368
 			
+			// AudioStreamOggVorbis
+			ExtensionDB::_singleton->_classes["AudioStreamOggVorbis"].name = "AudioStreamOggVorbis";
+			ExtensionDB::_singleton->_classes["AudioStreamOggVorbis"].static_function_hashes["load_from_buffer"] = 354904730;
+			ExtensionDB::_singleton->_classes["AudioStreamOggVorbis"].static_function_hashes["load_from_file"] = 797568536;
+			
 			// Control
 			ExtensionDB::_singleton->_classes["Control"].name = "Control";
 			ExtensionDB::_singleton->_classes["Control"].bitfield_enums.push_back("SizeFlags");
 			
+			// DirAccess
+			ExtensionDB::_singleton->_classes["DirAccess"].name = "DirAccess";
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["open"] = 1923528528;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_open_error"] = 166280745;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_files_at"] = 3538744774;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_directories_at"] = 3538744774;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_drive_count"] = 2455072627;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_drive_name"] = 990163283;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["make_dir_absolute"] = 166001499;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["make_dir_recursive_absolute"] = 166001499;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["dir_exists_absolute"] = 2323990056;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["copy_absolute"] = 1063198817;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["rename_absolute"] = 852856452;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["remove_absolute"] = 166001499;
+			
 			// FileAccess
 			ExtensionDB::_singleton->_classes["FileAccess"].name = "FileAccess";
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open"] = 1247358404;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open_encrypted"] = 1482131466;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open_encrypted_with_pass"] = 790283377;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open_compressed"] = 3686439335;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_open_error"] = 166280745;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_file_as_bytes"] = 659035735;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_file_as_string"] = 1703090593;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_md5"] = 1703090593;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_sha256"] = 1703090593;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["file_exists"] = 2323990056;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_modified_time"] = 1597066294;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_unix_permissions"] = 524341837;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["set_unix_permissions"] = 846038644;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_hidden_attribute"] = 2323990056;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["set_hidden_attribute"] = 2892558115;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["set_read_only_attribute"] = 2892558115;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_read_only_attribute"] = 2323990056;
 			ExtensionDB::_singleton->_classes["FileAccess"].bitfield_enums.push_back("UnixPermissionFlags");
+			
+			// GLTFCamera
+			ExtensionDB::_singleton->_classes["GLTFCamera"].name = "GLTFCamera";
+			ExtensionDB::_singleton->_classes["GLTFCamera"].static_function_hashes["from_node"] = 237784;
+			ExtensionDB::_singleton->_classes["GLTFCamera"].static_function_hashes["from_dictionary"] = 2495512509;
+			
+			// GLTFDocument
+			ExtensionDB::_singleton->_classes["GLTFDocument"].name = "GLTFDocument";
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["register_gltf_document_extension"] = 3752678331;
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["unregister_gltf_document_extension"] = 2684415758;
+			
+			// GLTFLight
+			ExtensionDB::_singleton->_classes["GLTFLight"].name = "GLTFLight";
+			ExtensionDB::_singleton->_classes["GLTFLight"].static_function_hashes["from_node"] = 3907677874;
+			ExtensionDB::_singleton->_classes["GLTFLight"].static_function_hashes["from_dictionary"] = 4057087208;
+			
+			// GLTFPhysicsBody
+			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].name = "GLTFPhysicsBody";
+			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].static_function_hashes["from_node"] = 420544174;
+			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].static_function_hashes["from_dictionary"] = 1177544336;
+			
+			// GLTFPhysicsShape
+			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].name = "GLTFPhysicsShape";
+			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_node"] = 3613751275;
+			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_dictionary"] = 2390691823;
+			
+			// Image
+			ExtensionDB::_singleton->_classes["Image"].name = "Image";
+			ExtensionDB::_singleton->_classes["Image"].static_function_hashes["create"] = 986942177;
+			ExtensionDB::_singleton->_classes["Image"].static_function_hashes["create_from_data"] = 299398494;
+			ExtensionDB::_singleton->_classes["Image"].static_function_hashes["load_from_file"] = 736337515;
 			
 			// ImageFormatLoader
 			ExtensionDB::_singleton->_classes["ImageFormatLoader"].name = "ImageFormatLoader";
 			ExtensionDB::_singleton->_classes["ImageFormatLoader"].bitfield_enums.push_back("LoaderFlags");
 			
+			// ImageTexture
+			ExtensionDB::_singleton->_classes["ImageTexture"].name = "ImageTexture";
+			ExtensionDB::_singleton->_classes["ImageTexture"].static_function_hashes["create_from_image"] = 2775144163;
+			
+			// JSON
+			ExtensionDB::_singleton->_classes["JSON"].name = "JSON";
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["stringify"] = 462733549;
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["parse_string"] = 309047738;
+			
 			// Mesh
 			ExtensionDB::_singleton->_classes["Mesh"].name = "Mesh";
 			ExtensionDB::_singleton->_classes["Mesh"].bitfield_enums.push_back("ArrayFormat");
+			
+			// MovieWriter
+			ExtensionDB::_singleton->_classes["MovieWriter"].name = "MovieWriter";
+			ExtensionDB::_singleton->_classes["MovieWriter"].static_function_hashes["add_writer"] = 4023702871;
+			
+			// MultiplayerAPI
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].name = "MultiplayerAPI";
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["set_default_interface"] = 3304788590;
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["get_default_interface"] = 2737447660;
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["create_default_interface"] = 3294156723;
 			
 			// NavigationPathQueryParameters2D
 			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters2D"].name = "NavigationPathQueryParameters2D";
@@ -4543,11 +4630,37 @@ namespace godot
 			
 			// Node
 			ExtensionDB::_singleton->_classes["Node"].name = "Node";
+			ExtensionDB::_singleton->_classes["Node"].static_function_hashes["print_orphan_nodes"] = 3218959716;
 			ExtensionDB::_singleton->_classes["Node"].bitfield_enums.push_back("ProcessThreadMessages");
+			
+			// OpenXRAPIExtension
+			ExtensionDB::_singleton->_classes["OpenXRAPIExtension"].name = "OpenXRAPIExtension";
+			ExtensionDB::_singleton->_classes["OpenXRAPIExtension"].static_function_hashes["openxr_is_enabled"] = 2703660260;
 			
 			// OpenXRInterface
 			ExtensionDB::_singleton->_classes["OpenXRInterface"].name = "OpenXRInterface";
 			ExtensionDB::_singleton->_classes["OpenXRInterface"].bitfield_enums.push_back("HandJointFlags");
+			
+			// PathFollow3D
+			ExtensionDB::_singleton->_classes["PathFollow3D"].name = "PathFollow3D";
+			ExtensionDB::_singleton->_classes["PathFollow3D"].static_function_hashes["correct_posture"] = 2686588690;
+			
+			// PhysicsRayQueryParameters2D
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters2D"].name = "PhysicsRayQueryParameters2D";
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters2D"].static_function_hashes["create"] = 3196569324;
+			
+			// PhysicsRayQueryParameters3D
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters3D"].name = "PhysicsRayQueryParameters3D";
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters3D"].static_function_hashes["create"] = 3110599579;
+			
+			// PortableCompressedTexture2D
+			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].name = "PortableCompressedTexture2D";
+			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].static_function_hashes["set_keep_all_compressed_buffers"] = 2586408642;
+			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].static_function_hashes["is_keeping_all_compressed_buffers"] = 2240911060;
+			
+			// RegEx
+			ExtensionDB::_singleton->_classes["RegEx"].name = "RegEx";
+			ExtensionDB::_singleton->_classes["RegEx"].static_function_hashes["create_from_string"] = 2150300909;
 			
 			// RenderingDevice
 			ExtensionDB::_singleton->_classes["RenderingDevice"].name = "RenderingDevice";
@@ -4560,6 +4673,11 @@ namespace godot
 			ExtensionDB::_singleton->_classes["RenderingServer"].name = "RenderingServer";
 			ExtensionDB::_singleton->_classes["RenderingServer"].bitfield_enums.push_back("ArrayFormat");
 			
+			// ResourceImporterOggVorbis
+			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].name = "ResourceImporterOggVorbis";
+			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].static_function_hashes["load_from_buffer"] = 354904730;
+			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].static_function_hashes["load_from_file"] = 797568536;
+			
 			// ResourceSaver
 			ExtensionDB::_singleton->_classes["ResourceSaver"].name = "ResourceSaver";
 			ExtensionDB::_singleton->_classes["ResourceSaver"].bitfield_enums.push_back("SaverFlags");
@@ -4568,6 +4686,12 @@ namespace godot
 			ExtensionDB::_singleton->_classes["RichTextLabel"].name = "RichTextLabel";
 			ExtensionDB::_singleton->_classes["RichTextLabel"].bitfield_enums.push_back("ImageUpdateMask");
 			
+			// TLSOptions
+			ExtensionDB::_singleton->_classes["TLSOptions"].name = "TLSOptions";
+			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["client"] = 3565000357;
+			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["client_unsafe"] = 2090251749;
+			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["server"] = 36969539;
+			
 			// TextServer
 			ExtensionDB::_singleton->_classes["TextServer"].name = "TextServer";
 			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("JustificationFlag");
@@ -4575,6 +4699,18 @@ namespace godot
 			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("TextOverrunFlag");
 			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("GraphemeFlag");
 			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("FontStyle");
+			
+			// Thread
+			ExtensionDB::_singleton->_classes["Thread"].name = "Thread";
+			ExtensionDB::_singleton->_classes["Thread"].static_function_hashes["set_thread_safety_checks_enabled"] = 2586408642;
+			
+			// Tween
+			ExtensionDB::_singleton->_classes["Tween"].name = "Tween";
+			ExtensionDB::_singleton->_classes["Tween"].static_function_hashes["interpolate_value"] = 3452526450;
+			
+			// WebRTCPeerConnection
+			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].name = "WebRTCPeerConnection";
+			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].static_function_hashes["set_default_extension"] = 3304788590;
 		}
 		
 		void ExtensionDBLoader::prime()
@@ -4655,6 +4791,27 @@ namespace godot
         if (ExtensionDB::_singleton->_classes.has(p_class_name))
             return ExtensionDB::_singleton->_classes[p_class_name].bitfield_enums.has(p_enum_name);
         return false;
+    }
+
+    PackedStringArray ExtensionDB::get_static_function_names(const StringName& p_class_name)
+    {
+        PackedStringArray values;
+        if (ExtensionDB::_singleton->_classes.has(p_class_name))
+        {
+            for (const KeyValue<StringName, int64_t>& E : ExtensionDB::_singleton->_classes[p_class_name].static_function_hashes)
+                values.push_back(E.key);
+        }
+        return values;
+    }
+
+    int64_t ExtensionDB::get_static_function_hash(const StringName& p_class_name, const StringName& p_function_name)
+    {
+        if (ExtensionDB::_singleton->_classes.has(p_class_name))
+        {
+            if (ExtensionDB::_singleton->_classes[p_class_name].static_function_hashes.has(p_function_name))
+                return ExtensionDB::_singleton->_classes[p_class_name].static_function_hashes[p_function_name];
+        }
+        return 0;
     }
 }
 

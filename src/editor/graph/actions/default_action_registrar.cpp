@@ -237,6 +237,17 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     const Dictionary object_type_dict = DictionaryUtils::of({ { "type", Variant::OBJECT } });
     _register_node<OScriptNodeLocalVariable>(p_context, lv_object_name, object_type_dict);
 
+    // Static Function Calls
+    for (const String& class_name : ClassDB::get_class_list())
+    {
+        for (const String& function_name : ExtensionDB::get_static_function_names(class_name))
+        {
+            const String category = vformat("%s/call_%s", class_name, function_name);
+            _register_node<OScriptNodeCallStaticFunction>(p_context, category,
+                DictionaryUtils::of({ { "class_name", class_name }, { "method_name", function_name } }));;
+        }
+    }
+
     // Builtin Types
     for (const String& type_name : ExtensionDB::get_builtin_type_names())
     {

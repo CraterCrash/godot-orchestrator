@@ -170,5 +170,26 @@ namespace godot
             return ExtensionDB::_singleton->_classes[p_class_name].bitfield_enums.has(p_enum_name);
         return false;
     }
+
+    PackedStringArray ExtensionDB::get_static_function_names(const StringName& p_class_name)
+    {
+        PackedStringArray values;
+        if (ExtensionDB::_singleton->_classes.has(p_class_name))
+        {
+            for (const KeyValue<StringName, int64_t>& E : ExtensionDB::_singleton->_classes[p_class_name].static_function_hashes)
+                values.push_back(E.key);
+        }
+        return values;
+    }
+
+    int64_t ExtensionDB::get_static_function_hash(const StringName& p_class_name, const StringName& p_function_name)
+    {
+        if (ExtensionDB::_singleton->_classes.has(p_class_name))
+        {
+            if (ExtensionDB::_singleton->_classes[p_class_name].static_function_hashes.has(p_function_name))
+                return ExtensionDB::_singleton->_classes[p_class_name].static_function_hashes[p_function_name];
+        }
+        return 0;
+    }
 }
 
