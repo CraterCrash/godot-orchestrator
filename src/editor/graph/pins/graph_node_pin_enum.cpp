@@ -20,7 +20,6 @@
 
 #include <godot_cpp/classes/option_button.hpp>
 
-
 OrchestratorGraphNodePinEnum::OrchestratorGraphNodePinEnum(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
 {
@@ -33,12 +32,27 @@ void OrchestratorGraphNodePinEnum::_bind_methods()
 void OrchestratorGraphNodePinEnum::_on_item_selected(int p_index, OptionButton* p_button)
 {
     const String enum_class = _pin->get_target_class();
-    if (ExtensionDB::get_global_enum_names().has(enum_class))
+    if (!enum_class.is_empty())
     {
-        const EnumInfo& ei = ExtensionDB::get_global_enum(enum_class);
-        _pin->set_default_value(ei.values[p_index].value);
-        p_button->release_focus();
+        Variant new_value = _pin->get_effective_default_value();
+        if (enum_class.contains("."))
+        {
+            const int64_t dot = enum_class.find(".");
+            const String class_name = enum_class.substr(0, dot);
+            const String enum_name  = enum_class.substr(dot + 1);
+
+            const PackedStringArray enum_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
+            new_value = ClassDB::class_get_integer_constant(class_name, enum_values[p_index]);
+        }
+        else if (ExtensionDB::get_global_enum_names().has(enum_class))
+        {
+            const EnumInfo& ei = ExtensionDB::get_global_enum(enum_class);
+            new_value = ei.values[p_index].value;
+        }
+        _pin->set_default_value(new_value);
     }
+
+    p_button->release_focus();
 }
 
 Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
@@ -53,7 +67,7 @@ Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
     {
         if (target_enum_class.contains("."))
         {
-            const int dot = target_enum_class.find(".");
+            const int64_t dot = target_enum_class.find(".");
             const String class_name = target_enum_class.substr(0, dot);
             const String enum_name  = target_enum_class.substr(dot + 1);
             const PackedStringArray enum_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
@@ -61,8 +75,9 @@ Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
             int index = 0;
             for (const String& enum_value : enum_values)
             {
+                int64_t enum_constant_value = ClassDB::class_get_integer_constant(class_name, enum_value);
                 button->add_item(enum_value);
-                if (effective_default == index)
+                if (effective_default == enum_constant_value)
                     button->select(button->get_item_count() - 1);
 
                 index++;
