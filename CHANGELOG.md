@@ -1,5 +1,54 @@
 # CHANGELOG
 
+## [2.0.1.stable](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.1.stable) - 2024-05-03
+
+- [9291ed1](http://github.com/Vahera/godot-orchestrator/commit/9291ed177e991ba31fc46df9f5daad3e97ec6d18) - GH-284 Add support for static functions
+- [a3ff06a](http://github.com/Vahera/godot-orchestrator/commit/a3ff06a5af085a6957c1c71405035f05023333b2) - GH-321 Persist `For Each` node's "with break" status
+- [996261a](http://github.com/Vahera/godot-orchestrator/commit/996261a4cc8014b9d284efe8b8b3733fed5288aa) - GH-323 Fix persisting enum default value choices
+- [0add2f9](http://github.com/Vahera/godot-orchestrator/commit/0add2f9e5d21491493b006e2b252cdd3acbeeccf) - GH-315 Have `For Each` set Element as `Any`
+- [2a4f031](http://github.com/Vahera/godot-orchestrator/commit/2a4f031038621bad9a5240079c14e89bad5195ba) - GH-318 Add `Dictionary Set` node
+- [9229c22](http://github.com/Vahera/godot-orchestrator/commit/9229c228dcf770a650c377639c5fb27cb79adee2) - GH-313 Add Godot version compile-time constant
+- [f140748](http://github.com/Vahera/godot-orchestrator/commit/f1407482e991584a403f056aa1c58f8c8308dda8) - GH-304 Track recently accessed orchestrations
+- [4941e51](http://github.com/Vahera/godot-orchestrator/commit/4941e51187e3c7e2eb8b084db61b13fe2a4f8027) - GH-310 Support file/folder removed and files moved signals
+- [157a8ca](http://github.com/Vahera/godot-orchestrator/commit/157a8ca22f9a682bd0728a030eaab520ddfec68f) - GH-306 Refactor `MethodUtils`
+- [d9b97d2](http://github.com/Vahera/godot-orchestrator/commit/d9b97d2f2eba011cbf13beb683d15958c1e1ea11) - GH-306 Fix functions to return Any types
+- [75e8bfe](http://github.com/Vahera/godot-orchestrator/commit/75e8bfef988e7afdc4134ab8de26c9e72ffe0ff4) - GH-287 Always call "Init" event if its wired
+- [e0c27f4](http://github.com/Vahera/godot-orchestrator/commit/e0c27f405e4e588736c95fd4161a2f0d1cbb4df3) - GH-283 Support method chaining
+- [2b554f5](http://github.com/Vahera/godot-orchestrator/commit/2b554f52528112c270dbbd1ba935ae8bd7a87fe0) - GH-289 Fix built-in methods using PROPERTY_USAGE_NIL_IS_VARIANT
+- [59eb2d5](http://github.com/Vahera/godot-orchestrator/commit/59eb2d555da2c85f850a9439e4bcf317d0e0eca9) - GH-282 Explicitly filter `_get` and `_set` methods
+- [abcf277](http://github.com/Vahera/godot-orchestrator/commit/abcf277fde8a8a26e524e70616eb64278b508f4d) - GH-297 Preserve setting order when setting is modified
+- [0e27325](http://github.com/Vahera/godot-orchestrator/commit/0e2732551f8cad543e2f698072d0e713f30525c9) - Fix comparison signed/unsigned mismatch
+- [465fd11](http://github.com/Vahera/godot-orchestrator/commit/465fd119421399543dacf464b0ca45ed4a1b17bf) - GH-272 Remove obsolete documentation
+- [1279406](http://github.com/Vahera/godot-orchestrator/commit/1279406b1826fbeccf5b9ef182709e8a0c8335a5) - Rework editor icon lookups
+- [2c21080](http://github.com/Vahera/godot-orchestrator/commit/2c21080ee61e467ef71914987d41ab52e7199055) - GH-206 Correctly generates action items for instantiated scenes
+- [6afd3fa](http://github.com/Vahera/godot-orchestrator/commit/6afd3fad145e50a5f7c9856c457f63aff84433c5) - GH-205 Dim wires when using `highlight_selected_connections`
+- [ea83482](http://github.com/Vahera/godot-orchestrator/commit/ea83482d1341f545f726641f7ce806fe6ecf32aa) - GH-248 Construct `Callable` with correct target reference
+- [8f0cc53](http://github.com/Vahera/godot-orchestrator/commit/8f0cc53db1398efdf560da78828d511a50c13c39) - GH-273 Force `PrintStringUI` to ignore mouse events
+- [599e925](http://github.com/Vahera/godot-orchestrator/commit/599e9255fe611b781522831393048ff58cd4b60b) - GH-254 Fix emitting non-Orchestrator based signals
+- [9f5e025](http://github.com/Vahera/godot-orchestrator/commit/9f5e0252a7addfacadff6985408255e3e6050c6b) - GH-238 Rework/Improve Bitfield pin value rendering
+- [cd59f49](http://github.com/Vahera/godot-orchestrator/commit/cd59f49034b928946d04beeec11148c3abf1ecee) - GH-265 Support Object `new()` and `free()` nodes
+- [ccecadb](http://github.com/Vahera/godot-orchestrator/commit/ccecadb65dc35db6cdec6d7d29837d660366131b) - GH-266 Correctly resolve property class actions
+- [cc6ee3f](http://github.com/Vahera/godot-orchestrator/commit/cc6ee3ff845b730d1ed33f9b9f914c4d26bc00b3) - GH-253 Include registered autoloads in all actions menu
+- [ddde63c](http://github.com/Vahera/godot-orchestrator/commit/ddde63c8cfc64baa2817dac421635faf66c9cdf0) - GH-268 Do not serialize OScriptNode flags
+- [a8aed0b](http://github.com/Vahera/godot-orchestrator/commit/a8aed0b18b16e263f5dfc4eb8d5b0f96e2e85a2b) - Don't use bitwise `&` operator, use correct operator
+- [9a69d91](http://github.com/Vahera/godot-orchestrator/commit/9a69d91ab5ee7b634126894bb2e547a4b27575cb) - Don't make unnecessary copies of OScriptGraph
+- [51b3b71](http://github.com/Vahera/godot-orchestrator/commit/51b3b7155f7a26b44ff3b61a61805e4bb8e93708) - [ci] Android artifacts use 'lib' prefix
+- [081c653](http://github.com/Vahera/godot-orchestrator/commit/081c6536b2a62789489947174a417a18e16a59fe) - [ci] Disable debug builds
+- [0d6d8c1](http://github.com/Vahera/godot-orchestrator/commit/0d6d8c11ee96b601ebabfba7cfbc258ba5c66cef) - [ci] Add android build
+- [051dc79](http://github.com/Vahera/godot-orchestrator/commit/051dc79ba66c78c290150b9c9c45d8c962195442) - GH-245 Force `ExtensionDB` generator to use LF line endings
+- [fca96a1](http://github.com/Vahera/godot-orchestrator/commit/fca96a1fca66d0bc2b7e1bacce129867d74a04a4) - GH-239 Provide `ExtensionDB::is_class_enum_bitfield` look-up
+- [c462a4d](http://github.com/Vahera/godot-orchestrator/commit/c462a4d12a4864e596a188a9ef9b2770e9ca6dc1) - GH-237 Render @GlobalScope and class-scope bitfields uniformly
+- [d8731c1](http://github.com/Vahera/godot-orchestrator/commit/d8731c1578c394b3d17b179830ea34d970b4d677) - GH-240 Standardize Method return value check
+- [adf8b73](http://github.com/Vahera/godot-orchestrator/commit/adf8b73e07d698060ad7113ff6d25235d91b3ec9) - GH-217 Guard against nullptr
+- [d746c9b](http://github.com/Vahera/godot-orchestrator/commit/d746c9bf89b407ab2c80146c344f54bcbbadde5a) - GH-217 Add signal connection indicator for user-defined functions
+- [bae4ad1](http://github.com/Vahera/godot-orchestrator/commit/bae4ad132bf1504a9f3f16ea39ba52e204a34ac1) - GH-232 Remove superfluous warnings saving callable/signal types
+- [efeef90](http://github.com/Vahera/godot-orchestrator/commit/efeef9084e22939496c746ce7c6016f92c6591d8) - GH-230 Reconstruct existing node on sync request
+- [5a2eb40](http://github.com/Vahera/godot-orchestrator/commit/5a2eb40ab179b815ea068c7fd9ee4417ff0b7016) - GH-222 Allow some constant/singleton names be searchable
+- [c876ac2](http://github.com/Vahera/godot-orchestrator/commit/c876ac2b8203368229a1cda0c4e873ce619c5c68) - GH-227 Correctly encode Godot vararg built-in functions
+- [138b3f2](http://github.com/Vahera/godot-orchestrator/commit/138b3f29c403a596d4bb3f406cebc0178dabba45) - GH-207 Change orchestration view based on active root scene node
+- [9f42108](http://github.com/Vahera/godot-orchestrator/commit/9f4210813fb6739e29800dd1159496717d6f5e0e) - GH-204 Spawn override function at center of view
+- [664cc45](http://github.com/Vahera/godot-orchestrator/commit/664cc4524ef73c4188c10df1b100d0fc4a7f9c7e) - GH-215 Initially set function arguments to default values
+
 ## [2.0.stable](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.0.stable) - 2024-03-30
 
 - [280aadc](http://github.com/Vahera/godot-orchestrator/commit/280aadcb5c592722e52718af4bb247c249dc5a57) - GH-202 Fix disconnect error on `tab_changed` signal
