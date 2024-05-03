@@ -9,7 +9,6 @@ on:
       target_sha:
         description: 'Target sha'
         required: true
-        default: ${{ GITHUB_SHA }}
 
 jobs:
   script:
