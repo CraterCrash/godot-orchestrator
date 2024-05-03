@@ -104,6 +104,7 @@ namespace godot
 	{
 		StringName name;
 		Vector<StringName> bitfield_enums;
+		HashMap<StringName, int64_t> static_function_hashes;
 	};
 	
 	namespace internal
@@ -175,6 +176,9 @@ namespace godot
 		static FunctionInfo get_function(const StringName& p_name);
 		
 		static bool is_class_enum_bitfield(const StringName& p_class_name, const String& p_enum_name);
+		
+		static PackedStringArray get_static_function_names(const StringName& p_class_name);
+		static int64_t get_static_function_hash(const StringName& p_class_name, const StringName& p_function_name);
 	};
 	
 }
