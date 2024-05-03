@@ -2,6 +2,14 @@ name: Generate Change Log
 
 on:
   workflow_dispatch:
+    inputs:
+      last_release:
+        description: 'Last release tag'
+        required: true
+      target_sha:
+        description: 'Target sha'
+        required: true
+        default: ${{ GITHUB_SHA }}
 
 jobs:
   script:
@@ -16,6 +24,8 @@ jobs:
         uses: metcalfc/changelog-generator@v4.3.1
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
+          head-ref: ${{ github.event.inputs.target_sha }}
+          base-ref: ${{ github.event.inputs.last_release }}
 
       - name: Get the changelog
         run: |
