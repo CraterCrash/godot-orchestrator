@@ -13,7 +13,9 @@
     None currently, become one! <https://patreon.com/vahera>
 
 ## Supporters
-    
+
     Adrian D
+    Fred A
+    gumby
+    John W
     Richard A
-    John W 
