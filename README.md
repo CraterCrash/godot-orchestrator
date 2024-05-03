@@ -14,13 +14,13 @@ Whether you are an experienced Godot veteran or an aspiring developer eager to g
 
 The following screenshots only scratch the surface of what the plug-in offers out of the box, with much more in future builds.
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/c719ad98-af14-45a3-5578-df9741fa9800/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/f1f2e971-aa40-485e-19e2-9ba8834cb500/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/77ac98c5-8924-49f7-82bb-554494f4b000/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/4c99bdef-ed17-46b4-bcad-e71d3ddb7700/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/cd39ee8b-78de-48c5-4023-c9628161dc00/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/db3d458e-3bfd-4e15-ea71-cc75dbb90e00/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/1595b7f1-5a6d-4a76-21c0-646623112300/public)
+![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/b5ca95e3-1a3c-4376-dacb-df463ef3fa00/public)
 
 ## 🚀 Features
 
@@ -36,7 +36,7 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 
 ## 📑 Documentation
 
-For complete documentation, see https://www.vahera.com/docs.
+For complete documentation, see https://docs.vahera.com/orchestrator.
 
 ## 🗒️ Changelog
 
