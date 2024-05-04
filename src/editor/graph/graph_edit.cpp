@@ -32,10 +32,12 @@
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
+#include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script_editor.hpp>
+#include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/tween.hpp>
 
 OrchestratorGraphEdit::Clipboard* OrchestratorGraphEdit::_clipboard = nullptr;
@@ -150,6 +152,20 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _drag_hint_timer->connect("timeout", callable_mp(this, &OrchestratorGraphEdit::_hide_drag_hint));
         add_child(_drag_hint_timer);
 
+        #if GODOT_VERSION >= 0x040300
+        _grid_pattern = memnew(OptionButton);
+        _grid_pattern->add_item("Lines");
+        _grid_pattern->set_item_metadata(0, GRID_PATTERN_LINES);
+        _grid_pattern->add_item("Dots");
+        _grid_pattern->set_item_metadata(1, GRID_PATTERN_DOTS);
+        _grid_pattern->connect("item_selected", callable_mp(this, &OrchestratorGraphEdit::_on_grid_style_selected));
+        get_menu_hbox()->add_child(_grid_pattern);
+        get_menu_hbox()->move_child(_grid_pattern, 5);
+        get_menu_hbox()->get_child(4)->connect("toggled", callable_mp(this, &OrchestratorGraphEdit::_on_show_grid));
+
+        set_grid_pattern(GRID_PATTERN_LINES);
+        #endif
+
         Button* show_script_details = memnew(Button);
         show_script_details->set_text("Script Details");
         show_script_details->set_tooltip_text("Shows script details in the Inspector");
@@ -163,6 +179,18 @@ void OrchestratorGraphEdit::_notification(int p_what)
         validate_and_build->set_focus_mode(Control::FOCUS_NONE);
         validate_and_build->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_validate_and_build));
         get_menu_hbox()->add_child(validate_and_build);
+
+        if (PanelContainer* pc = Object::cast_to<PanelContainer>(get_menu_hbox()->get_parent()))
+        {
+            Ref<StyleBoxFlat> hbox_panel = pc->get_theme_stylebox("panel")->duplicate();
+            hbox_panel->set_shadow_size(1);
+            hbox_panel->set_shadow_offset(Vector2(2.f, 2.f));
+            hbox_panel->set_bg_color(hbox_panel->get_bg_color() + Color(0, 0, 0, .3));
+            hbox_panel->set_border_width(SIDE_LEFT, 1);
+            hbox_panel->set_border_width(SIDE_TOP, 1);
+            hbox_panel->set_border_color(hbox_panel->get_shadow_color());
+            pc->add_theme_stylebox_override("panel", hbox_panel);
+        }
 
         _confirm_window = memnew(ConfirmationDialog);
         _confirm_window->set_hide_on_ok(true);
@@ -1286,3 +1314,16 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
             node->set_selected(true);
     }
 }
+
+#if GODOT_VERSION >= 0x040300
+void OrchestratorGraphEdit::_on_show_grid(bool p_current_state)
+{
+    _grid_pattern->set_disabled(!p_current_state);
+}
+
+void OrchestratorGraphEdit::_on_grid_style_selected(int p_index)
+{
+    const GridPattern pattern = static_cast<GridPattern>(int(_grid_pattern->get_item_metadata(p_index)));
+    set_grid_pattern(pattern);
+}
+#endif
