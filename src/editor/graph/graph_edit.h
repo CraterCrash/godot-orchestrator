@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_GRAPH_EDIT_H
 
 #include "actions/action_menu.h"
+#include "common/version.h"
 #include "graph_node.h"
 
 #include <functional>
@@ -25,6 +26,7 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
 #include <godot_cpp/classes/input_event.hpp>
+#include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/timer.hpp>
 
 using namespace godot;
@@ -99,6 +101,9 @@ class OrchestratorGraphEdit : public GraphEdit
 
     static Clipboard* _clipboard;
 
+    #if GODOT_VERSION >= 0x040300
+    OptionButton* _grid_pattern{ nullptr };                //! Grid pattern option button
+    #endif
     Ref<OScript> _script;                                  //! The underlying orchestration script
     Ref<OScriptGraph> _script_graph;                       //! The underlying orchestration script graph
     OrchestratorGraphActionMenu* _action_menu{ nullptr };  //! Actions menu
@@ -344,6 +349,16 @@ private:
 
     /// Dispatched when the user pressed {@code Ctrl+V} to paste nodes onto the graph.
     void _on_paste_nodes_request();
+
+    #if GODOT_VERSION >= 0x040300
+    /// Dispatched when the grid state is changed
+    /// @param p_current_state the current state of the grid
+    void _on_show_grid(bool p_current_state);
+
+    /// Dispatched when a grid style option is selected
+    /// @param p_index the selected item index
+    void _on_grid_style_selected(int p_index);
+    #endif
 };
 
 #endif  // ORCHESTRATOR_GRAPH_EDIT_H
