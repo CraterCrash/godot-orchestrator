@@ -25,8 +25,12 @@ class OScriptNodeSelf : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSelf, OScriptNode);
 
+    void _on_script_changed();
+
 public:
     //~ Begin OScriptNode Interface
+    void post_initialize() override;
+    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
