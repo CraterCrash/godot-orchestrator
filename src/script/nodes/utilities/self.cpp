@@ -16,6 +16,8 @@
 //
 #include "self.h"
 
+#include "common/version.h"
+
 class OScriptNodeSelfInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSelf);
@@ -59,6 +61,15 @@ String OScriptNodeSelf::get_tooltip_text() const
 String OScriptNodeSelf::get_node_title() const
 {
     return "Get self";
+}
+
+String OScriptNodeSelf::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class:%s", _script->get_base_type());
+    #else
+    return super::get_help_topic();
+    #endif
 }
 
 String OScriptNodeSelf::get_icon() const

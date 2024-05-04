@@ -39,6 +39,12 @@ namespace MethodUtils
     /// Sets the method to return the specified type
     /// @param p_method the method to modify
     void set_return_value_type(MethodInfo& p_method, Variant::Type p_type);
+
+    /// Starts looking for the method in the specified class, and then in its parent classes.
+    /// @param p_class_name the name of the class to start the search
+    /// @param p_method_name the name of the method to search for
+    /// @return the class that contains the method, or an empty string if the method is not found
+    String get_method_class(const String& p_class_name, const String& p_method_name);
 }
 
 #endif // ORCHESTRATOR_METHOD_UTILS_H

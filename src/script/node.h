@@ -305,6 +305,10 @@ public:
     /// @return the resolved target object
     virtual Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const { return {}; }
 
+    /// Get the help topic when viewing the node's documentation.
+    /// @return the Godot help topic
+    virtual String get_help_topic() const;
+
     /// Create a pin associated with this node.
     /// @param p_direction the pin direction, input or output
     /// @param p_name the pin name

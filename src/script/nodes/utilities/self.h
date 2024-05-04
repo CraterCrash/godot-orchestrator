@@ -35,6 +35,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "variable"; }
+    String get_help_topic() const override;
     bool should_draw_as_bead() const override { return true; }
     String get_icon() const override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;

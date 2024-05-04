@@ -17,6 +17,7 @@
 #include "node.h"
 
 #include "common/variant_utils.h"
+#include "common/version.h"
 #include "script.h"
 
 #include <godot_cpp/classes/os.hpp>
@@ -210,6 +211,15 @@ void OScriptNode::initialize(const OScriptNodeInitContext& p_context)
 {
     _initialized = true;
     allocate_default_pins();
+}
+
+String OScriptNode::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class:%s", get_class());
+    #else
+    return get_class();
+    #endif
 }
 
 Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, const String& p_name, Variant::Type p_type,

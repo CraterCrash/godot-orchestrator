@@ -46,6 +46,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "events"; }
+    String get_help_topic() const override;
     bool can_inspect_node_properties() const override { return true; }
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     //~ End OScriptNode Interface

@@ -627,7 +627,7 @@ void OrchestratorGraphNodePin::_on_context_menu_selection(int p_id)
         }
         case CM_VIEW_DOCUMENTATION:
         {
-            get_graph()->goto_class_help(get_graph_node()->get_script_node()->get_class());
+            get_graph()->goto_class_help(get_graph_node()->get_script_node()->get_help_topic());
             break;
         }
         case CM_REMOVE:
