@@ -30,6 +30,22 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeSelf::post_initialize()
+{
+    if (_is_in_editor() && _script)
+        _script->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+
+    super::post_initialize();
+}
+
+void OScriptNodeSelf::post_placed_new_node()
+{
+    if (_is_in_editor() && _script)
+        _script->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+
+    super::post_placed_new_node();
+}
+
 void OScriptNodeSelf::allocate_default_pins()
 {
     create_pin(PD_Output, "self", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
@@ -47,7 +63,10 @@ String OScriptNodeSelf::get_node_title() const
 
 String OScriptNodeSelf::get_icon() const
 {
-    return OScriptLanguage::ICON;
+    if (_script)
+        return _script->get_base_type();
+
+    return super::get_icon();
 }
 
 OScriptNodeInstance* OScriptNodeSelf::instantiate(OScriptInstance* p_instance)
@@ -56,4 +75,9 @@ OScriptNodeInstance* OScriptNodeSelf::instantiate(OScriptInstance* p_instance)
     i->_node = this;
     i->_instance = p_instance;
     return i;
+}
+
+void OScriptNodeSelf::_on_script_changed()
+{
+    _notify_pins_changed();
 }
