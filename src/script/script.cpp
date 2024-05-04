@@ -488,7 +488,11 @@ StringName OScript::get_base_type() const
 
 void OScript::set_base_type(const StringName& p_base_type)
 {
-    _base_type = p_base_type;
+    if (!_base_type.match(p_base_type))
+    {
+        _base_type = p_base_type;
+        emit_changed();
+    }
 }
 
 bool OScript::is_edited() const
