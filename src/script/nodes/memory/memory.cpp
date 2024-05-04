@@ -16,6 +16,8 @@
 //
 #include "script/nodes/memory/memory.h"
 
+#include "common/version.h"
+
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
 
@@ -127,6 +129,15 @@ String OScriptNodeNew::get_tooltip_text() const
 String OScriptNodeNew::get_node_title() const
 {
     return _class_name.is_empty() ? "Create instance" : vformat("Create a %s", _class_name);
+}
+
+String OScriptNodeNew::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class:%s", _class_name);
+    #else
+    return super::get_help_topic();
+    #endif
 }
 
 String OScriptNodeNew::get_icon() const

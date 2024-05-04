@@ -41,6 +41,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "memory"; }
+    String get_help_topic() const override;
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override { return _class_name; }
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;

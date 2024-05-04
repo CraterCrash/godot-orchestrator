@@ -39,6 +39,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "variable"; }
+    String get_help_topic() const override;
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;

@@ -18,6 +18,7 @@
 
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "common/version.h"
 #include "api/extension_db.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -176,6 +177,15 @@ String OScriptNodeGlobalConstant::get_node_title() const
     return "Global Constant";
 }
 
+String OScriptNodeGlobalConstant::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class_constant:@GlobalScope:%s", _constant_name);
+    #else
+    return super::get_help_topic();
+    #endif
+}
+
 String OScriptNodeGlobalConstant::get_icon() const
 {
     return "MemberConstant";
@@ -256,6 +266,17 @@ String OScriptNodeMathConstant::get_tooltip_text() const
 String OScriptNodeMathConstant::get_node_title() const
 {
     return "Math Constant";
+}
+
+String OScriptNodeMathConstant::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    // todo: some math constants are not exposed to the documentation, i.e. "One"
+    //       check if these can be exposed via OScriptLanguage instead?
+    return vformat("class_constant:@GDScript:%s", _constant_name);
+    #else
+    return super::get_help_topic();
+    #endif
 }
 
 String OScriptNodeMathConstant::get_icon() const
@@ -384,6 +405,15 @@ String OScriptNodeTypeConstant::get_node_title() const
     return "Type Constant";
 }
 
+String OScriptNodeTypeConstant::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class_constant:%s:%s", Variant::get_type_name(_type), _constant_name);
+    #else
+    return super::get_help_topic();
+    #endif
+}
+
 String OScriptNodeTypeConstant::get_icon() const
 {
     return "MemberConstant";
@@ -492,6 +522,21 @@ String OScriptNodeClassConstantBase::get_tooltip_text() const
 String OScriptNodeClassConstantBase::get_node_title() const
 {
     return "Class Constant";
+}
+
+String OScriptNodeClassConstantBase::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    String class_name = _class_name;
+    while (!class_name.is_empty())
+    {
+        PackedStringArray values = ClassDB::class_get_integer_constant_list(class_name, true);
+        if (values.has(_constant_name))
+            return vformat("class_constant:%s:%s", class_name, _constant_name);
+        class_name = ClassDB::get_parent_class(class_name);
+    }
+    #endif
+    return super::get_help_topic();
 }
 
 String OScriptNodeClassConstantBase::get_icon() const

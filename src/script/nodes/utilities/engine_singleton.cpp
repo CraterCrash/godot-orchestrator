@@ -17,6 +17,7 @@
 #include "engine_singleton.h"
 
 #include "common/string_utils.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/engine.hpp>
 
@@ -79,6 +80,15 @@ String OScriptNodeEngineSingleton::get_tooltip_text() const
 String OScriptNodeEngineSingleton::get_node_title() const
 {
     return vformat("Get %s", _singleton);
+}
+
+String OScriptNodeEngineSingleton::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class:%s", _singleton);
+    #else
+    return super::get_help_topic();
+    #endif
 }
 
 String OScriptNodeEngineSingleton::get_icon() const

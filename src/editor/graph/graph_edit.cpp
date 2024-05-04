@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
+#include "common/version.h"
 #include "editor/graph/factories/graph_node_factory.h"
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
@@ -278,8 +279,12 @@ void OrchestratorGraphEdit::spawn_node(const Ref<OScriptNode>& p_node, const Vec
 
 void OrchestratorGraphEdit::goto_class_help(const String& p_class_name)
 {
+    #if GODOT_VERSION >= 0x040300
+    _plugin->get_editor_interface()->get_script_editor()->goto_help(p_class_name);
+    #else
     _plugin->get_editor_interface()->set_main_screen_editor("Script");
     _plugin->get_editor_interface()->get_script_editor()->call("_help_class_open", p_class_name);
+    #endif
 }
 
 void OrchestratorGraphEdit::for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func)

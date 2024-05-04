@@ -20,6 +20,7 @@
 #include "common/scene_utils.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
+#include "plugin/plugin.h"
 #include "plugin/settings.h"
 #include "script/nodes/editable_pin_node.h"
 #include "script/nodes/functions/call_function.h"
@@ -32,6 +33,7 @@
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
+#include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 
@@ -652,7 +654,7 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             }
             case CM_VIEW_DOCUMENTATION:
             {
-                get_graph()->goto_class_help(_node->get_class());
+                get_graph()->goto_class_help(_node->get_help_topic());
                 break;
             }
             case CM_SELECT_GROUP:

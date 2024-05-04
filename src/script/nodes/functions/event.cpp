@@ -16,7 +16,9 @@
 //
 #include "event.h"
 
+#include "common/method_utils.h"
 #include "common/variant_utils.h"
+#include "common/version.h"
 #include "script/script.h"
 
 String OScriptNodeEvent::get_tooltip_text() const
@@ -33,6 +35,19 @@ String OScriptNodeEvent::get_node_title() const
         return vformat("%s Event", _function->get_function_name().capitalize());
 
     return super::get_node_title();
+}
+
+String OScriptNodeEvent::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    if (_function.is_valid())
+    {
+        class String class_name = MethodUtils::get_method_class(_script->get_base_type(), _function->get_function_name());
+        if (!class_name.is_empty())
+            return vformat("class_method:%s:%s", class_name, _function->get_function_name());
+    }
+    #endif
+    return super::get_help_topic();
 }
 
 StringName OScriptNodeEvent::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const

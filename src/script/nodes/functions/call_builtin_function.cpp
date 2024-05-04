@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/version.h"
 
 OScriptNodeCallBuiltinFunction::OScriptNodeCallBuiltinFunction()
 {
@@ -48,6 +49,15 @@ String OScriptNodeCallBuiltinFunction::get_tooltip_text() const
 String OScriptNodeCallBuiltinFunction::get_node_title() const
 {
     return vformat("Call %s", _reference.method.name.capitalize());
+}
+
+String OScriptNodeCallBuiltinFunction::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class_method:@GlobalScope:%s", _reference.method.name);
+    #else
+    return super::get_help_topic();
+    #endif
 }
 
 void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_context)

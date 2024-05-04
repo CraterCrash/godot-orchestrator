@@ -16,6 +16,8 @@
 //
 #include "common/method_utils.h"
 
+#include <godot_cpp/core/class_db.hpp>
+
 namespace MethodUtils
 {
     bool has_return_value(const MethodInfo& p_method)
@@ -51,5 +53,22 @@ namespace MethodUtils
     {
         p_method.return_val.type = p_type;
         set_return_value(p_method);
+    }
+
+    String get_method_class(const String& p_class_name, const String& p_method_name)
+    {
+        String class_name = p_class_name;
+        while (!class_name.is_empty())
+        {
+            TypedArray<Dictionary> methods = ClassDB::class_get_method_list(class_name, true);
+            for (int i = 0; i < methods.size(); i++)
+            {
+                const Dictionary& method = methods[i];
+                if (p_method_name.match(method["name"]))
+                    return class_name;
+            }
+            class_name = ClassDB::get_parent_class(class_name);
+        }
+        return {};
     }
 }

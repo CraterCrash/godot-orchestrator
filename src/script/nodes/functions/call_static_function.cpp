@@ -19,6 +19,7 @@
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/version.h"
 
 class OScriptNodeCallStaticFunctionInstance : public OScriptNodeInstance
 {
@@ -212,6 +213,16 @@ String OScriptNodeCallStaticFunction::get_node_title() const
         return vformat("Call Static %s.%s", _class_name, _method_name);
 
     return "Call Static Function";
+}
+
+String OScriptNodeCallStaticFunction::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    const String class_name = MethodUtils::get_method_class(_class_name, _method_name);
+    if (!class_name.is_empty())
+        return vformat("class_method:%s:%s", class_name, _method_name);
+    #endif
+    return super::get_help_topic();
 }
 
 bool OScriptNodeCallStaticFunction::validate_node_during_build() const
