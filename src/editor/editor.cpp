@@ -17,6 +17,12 @@
 #include "editor.h"
 
 #include "about_dialog.h"
+#include "editor/component_panels/component_panel.h"
+#include "editor/component_panels/functions_panel.h"
+#include "editor/component_panels/graphs_panel.h"
+#include "editor/component_panels/macros_panel.h"
+#include "editor/component_panels/signals_panel.h"
+#include "editor/component_panels/variables_panel.h"
 #include "editor/getting_started.h"
 #include "editor/graph/actions/action_menu.h"
 #include "editor/graph/actions/default_action_registrar.h"
@@ -74,12 +80,12 @@ void register_editor_classes()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGettingStarted)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptConnectionsDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptView)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewSection)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewGraphsSection)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewFunctionsSection)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewMacrosSection)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewVariablesSection)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewSignalsSection)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptComponentPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptFunctionsComponentPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptGraphsComponentPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptMacrosComponentPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptSignalsComponentPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptVariablesComponentPanel)
 
     // Graph Classes
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphEdit)

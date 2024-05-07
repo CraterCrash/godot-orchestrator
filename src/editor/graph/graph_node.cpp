@@ -24,6 +24,7 @@
 #include "plugin/settings.h"
 #include "script/nodes/editable_pin_node.h"
 #include "script/nodes/functions/call_function.h"
+#include "script/nodes/functions/call_script_function.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -436,6 +437,15 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     if (_is_editable())
         _context_menu->add_item("Add Option Pin", CM_ADD_OPTION_PIN);
 
+    _context_menu->add_separator("Organization");
+    _context_menu->add_item("Expand Node", CM_EXPAND_NODE);
+    _context_menu->add_item("Collapse to Function", CM_COLLAPSE_FUNCTION);
+
+    Ref<OScriptNodeCallScriptFunction> call_script_function = _node;
+    if (!call_script_function.is_valid())
+        _context_menu->set_item_disabled(_context_menu->get_item_index(CM_EXPAND_NODE), true);
+
+
     // todo: support breakpoints (See Trello)
     // _context_menu->add_separator("Breakpoints");
     // _context_menu->add_item("Toggle Breakpoint", CM_TOGGLE_BREAKPOINT, KEY_F9);
@@ -456,11 +466,7 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
 
 void OrchestratorGraphNode::_simulate_action_pressed(const String& p_action_name)
 {
-    Ref<InputEventAction> action = memnew(InputEventAction());
-    action->set_action(p_action_name);
-    action->set_pressed(true);
-
-    Input::get_singleton()->parse_input_event(action);
+    get_graph()->execute_action(p_action_name);
 }
 
 void OrchestratorGraphNode::_on_changed()
@@ -628,6 +634,16 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             case CM_ADD_OPTION_PIN:
             {
                 _add_option_pin();
+                break;
+            }
+            case CM_COLLAPSE_FUNCTION:
+            {
+                get_graph()->emit_signal("collapse_selected_to_function");
+                break;
+            }
+            case CM_EXPAND_NODE:
+            {
+                get_graph()->emit_signal("expand_node", _node->get_id());
                 break;
             }
             #ifdef _DEBUG

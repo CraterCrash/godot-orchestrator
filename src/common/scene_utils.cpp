@@ -46,8 +46,8 @@ namespace SceneUtils
             const bool instantiable = ClassDB::can_instantiate(p_class_name);
             if (ClassDB::is_parent_class(p_class_name, "Node"))
                 return vbox->get_theme_icon(instantiable ? "Node" : "NodeDisabled", "EditorIcons");
-            else
-                return vbox->get_theme_icon(instantiable ? "Object" : "ObjectDisabled", "EditorIcons");
+
+            return vbox->get_theme_icon(instantiable ? "Object" : "ObjectDisabled", "EditorIcons");
         }
 
         return nullptr;
@@ -63,6 +63,12 @@ namespace SceneUtils
     {
         VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
         return vbox->get_theme_icon(p_icon_name, "EditorIcons");
+    }
+
+    Ref<StyleBox> get_editor_style(const String& p_style_name)
+    {
+        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        return vbox->get_theme_stylebox(p_style_name, "EditorStyles");
     }
 
     Ref<Font> get_editor_font(const String& p_font_name)

@@ -25,7 +25,6 @@
 #include <godot_cpp/classes/curve2d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
-#include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/timer.hpp>
 
@@ -159,6 +158,9 @@ public:
     /// Clear all selected nodes
     void clear_selection();
 
+    Vector<OrchestratorGraphNode*> get_selected_nodes();
+    Vector<Ref<OScriptNode>> get_selected_script_nodes();
+
     /// Causes the graph to tween focus the specified node in the graph.
     /// @param p_node_id the node's unique id
     /// @param p_animated whether to animate the movement, enabled by default
@@ -189,6 +191,8 @@ public:
     /// Perform an action for each graph node
     /// @param p_func the lambda to be applied
     void for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func);
+
+    void execute_action(const String& p_action_name);
 
     //~ GraphEdit overrides
     bool _can_drop_data(const Vector2& p_position, const Variant& p_data) const override;
@@ -250,11 +254,6 @@ private:
     /// Update the saved mouse position
     /// @param p_position the position
     void _update_saved_mouse_position(const Vector2& p_position);
-
-    /// Returns whether the specified node can be duplicated.
-    /// @param p_node the node
-    /// @return true if the node can be duplicated, false otherwise
-    bool _can_duplicate_node(OrchestratorGraphNode* p_node) const;
 
     /// Displays the drag status hint
     /// @param p_message the hint message

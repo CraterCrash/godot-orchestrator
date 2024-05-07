@@ -39,7 +39,6 @@
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
-#include <godot_cpp/classes/menu_bar.hpp>
 #include <godot_cpp/classes/menu_button.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/option_button.hpp>
@@ -69,6 +68,8 @@ void OrchestratorMainView::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        add_theme_stylebox_override("panel", SceneUtils::get_editor_style("ScriptEditorPanel"));
+
         // Load the recent files
         const Ref<ConfigFile> metadata = _plugin->get_metadata();
         _recent_files = metadata->get_value("recent_files", "orchestrations", {});
@@ -77,30 +78,15 @@ void OrchestratorMainView::_notification(int p_what)
         set_h_size_flags(SIZE_EXPAND_FILL);
         set_v_size_flags(SIZE_EXPAND_FILL);
 
-        MarginContainer* margin = memnew(MarginContainer);
-        margin->set_anchors_preset(PRESET_FULL_RECT);
-        margin->add_theme_constant_override("margin_left", 4);
-        margin->add_theme_constant_override("margin_top", 0);
-        margin->add_theme_constant_override("margin_right", 5);
-        margin->add_theme_constant_override("margin_bottom", 5);
-        add_child(margin);
-
         VBoxContainer* vbox = memnew(VBoxContainer);
-        vbox->add_theme_constant_override("separation", 0);
-        margin->add_child(vbox);
+        add_child(vbox);
 
         HBoxContainer* toolbar = memnew(HBoxContainer);
-        toolbar->set_custom_minimum_size(Vector2i(0, 32.0 * _plugin->get_editor_interface()->get_editor_scale()));
-        toolbar->add_theme_constant_override("separation", 0);
         vbox->add_child(toolbar);
 
-        MenuBar* left_menu = memnew(MenuBar);
+        HBoxContainer* left_menu = memnew(HBoxContainer);
         left_menu->set_h_size_flags(SIZE_EXPAND_FILL);
         toolbar->add_child(left_menu);
-
-        HBoxContainer* left_menu_container = memnew(HBoxContainer);
-        left_menu_container->add_theme_constant_override("separation", 0);
-        left_menu->add_child(left_menu_container);
 
         _file_menu = memnew(MenuButton);
         _file_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
@@ -135,7 +121,7 @@ void OrchestratorMainView::_notification(int p_what)
         _file_menu->get_popup()->connect("about_to_popup",
                                          callable_mp(this, &OrchestratorMainView::_on_prepare_file_menu));
         _file_menu->get_popup()->connect("popup_hide", callable_mp(this, &OrchestratorMainView::_on_file_menu_closed));
-        left_menu_container->add_child(_file_menu);
+        left_menu->add_child(_file_menu);
 
         _goto_menu = memnew(MenuButton);
         _goto_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
@@ -144,7 +130,7 @@ void OrchestratorMainView::_notification(int p_what)
         _goto_menu->get_popup()->add_item("Goto Node", AccelMenuIds::GOTO_NODE, SKEY(KEY_MASK_CTRL, KEY_L));
         _goto_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         _goto_menu->get_popup()->connect("about_to_popup", callable_mp(this, &OrchestratorMainView::_on_prepare_goto_menu));
-        left_menu_container->add_child(_goto_menu);
+        left_menu->add_child(_goto_menu);
 
         _help_menu = memnew(MenuButton);
         _help_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
@@ -159,7 +145,7 @@ void OrchestratorMainView::_notification(int p_what)
         _help_menu->get_popup()->add_item("About " VERSION_NAME, AccelMenuIds::ABOUT);
         _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("Heart"), "Support " VERSION_NAME, AccelMenuIds::SUPPORT);
         _help_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
-        left_menu_container->add_child(_help_menu);
+        left_menu->add_child(_help_menu);
 
         HBoxContainer* right_menu_container = memnew(HBoxContainer);
         right_menu_container->add_theme_constant_override("separation", 0);

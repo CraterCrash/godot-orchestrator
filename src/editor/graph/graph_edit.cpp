@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
 #include "common/scene_utils.h"
+#include "common/name_utils.h"
 #include "common/version.h"
 #include "editor/graph/factories/graph_node_factory.h"
 #include "editor/graph/graph_node_pin.h"
@@ -33,6 +34,7 @@
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/input.hpp>
+#include <godot_cpp/classes/input_event_action.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -247,6 +249,8 @@ void OrchestratorGraphEdit::_bind_methods()
 
     ADD_SIGNAL(MethodInfo("nodes_changed"));
     ADD_SIGNAL(MethodInfo("focus_requested", PropertyInfo(Variant::OBJECT, "target")));
+    ADD_SIGNAL(MethodInfo("collapse_selected_to_function"));
+    ADD_SIGNAL(MethodInfo("expand_node", PropertyInfo(Variant::INT, "node_id")));
 }
 
 void OrchestratorGraphEdit::clear_selection()
@@ -257,6 +261,26 @@ void OrchestratorGraphEdit::clear_selection()
         if (node->is_selected())
             node->set_selected(false);
     });
+}
+
+Vector<OrchestratorGraphNode*> OrchestratorGraphEdit::get_selected_nodes()
+{
+    Vector<OrchestratorGraphNode*> selected;
+    for_each_graph_node([&](OrchestratorGraphNode* node) {
+        if (node->is_selected())
+            selected.push_back(node);
+    });
+    return selected;
+}
+
+Vector<Ref<OScriptNode>> OrchestratorGraphEdit::get_selected_script_nodes()
+{
+    Vector<Ref<OScriptNode>> selected;
+    for_each_graph_node([&](OrchestratorGraphNode* node) {
+        if (node->is_selected())
+            selected.push_back(node->get_script_node());
+    });
+    return selected;
 }
 
 void OrchestratorGraphEdit::focus_node(int p_node_id)
@@ -331,6 +355,15 @@ void OrchestratorGraphEdit::for_each_graph_node(std::function<void(OrchestratorG
         if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
             p_func(node);
     }
+}
+
+void OrchestratorGraphEdit::execute_action(const String& p_action_name)
+{
+    Ref<InputEventAction> action = memnew(InputEventAction);
+    action->set_action(p_action_name);
+    action->set_pressed(true);
+
+    Input::get_singleton()->parse_input_event(action);
 }
 
 bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Variant& p_data) const
@@ -743,16 +776,6 @@ void OrchestratorGraphEdit::_show_action_menu(const Vector2& p_position, const O
 void OrchestratorGraphEdit::_update_saved_mouse_position(const Vector2& p_position)
 {
     _saved_mouse_position = (p_position + get_scroll_offset()) / get_zoom();
-}
-
-bool OrchestratorGraphEdit::_can_duplicate_node(OrchestratorGraphNode* p_node) const
-{
-    Ref<OScriptNode> node = p_node->get_script_node();
-    Ref<OScriptNodeEvent> event = node;
-    Ref<OScriptNodeFunctionEntry> function_entry = node;
-    Ref<OScriptNodeFunctionResult> function_result = node;
-    Ref<OScriptNodeLocalVariable> local_variable = node;
-    return !event.is_valid() && !function_entry.is_valid() && !function_result.is_valid() && !local_variable.is_valid();
 }
 
 void OrchestratorGraphEdit::_show_drag_hint(const godot::String& p_message) const
@@ -1218,7 +1241,7 @@ void OrchestratorGraphEdit::_on_copy_nodes_request()
         {
             Ref<OScriptNode> script_node = node->get_script_node();
 
-            if (!_can_duplicate_node(node))
+            if (!script_node->can_duplicate())
             {
                 WARN_PRINT_ONCE_ED("There are some nodes that cannot be copied, they were not placed on the clipboard.");
                 return;
@@ -1242,7 +1265,7 @@ void OrchestratorGraphEdit::_on_duplicate_nodes_request()
     for_each_graph_node([&](OrchestratorGraphNode* node) {
         if (node->is_selected())
         {
-            if (!_can_duplicate_node(node))
+            if (!node->get_script_node()->can_duplicate())
             {
                 WARN_PRINT_ONCE_ED("There are some nodes that cannot be copied, they were not placed on the clipboard.");
                 return;

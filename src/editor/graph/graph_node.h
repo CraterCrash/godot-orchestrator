@@ -58,6 +58,8 @@ private:
         CM_TOGGLE_BREAKPOINT,
         CM_ADD_BREAKPOINT,
         CM_VIEW_DOCUMENTATION,
+        CM_COLLAPSE_FUNCTION,
+        CM_EXPAND_NODE,
         CM_RESIZABLE,
         #ifdef _DEBUG
         CM_SHOW_DETAILS = 999,

@@ -47,6 +47,7 @@ public:
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     void post_placed_new_node() override;
     bool can_user_delete_node() const override;
+    bool can_duplicate() const override { return false; }
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
     //~ End OScriptNode Interface
 

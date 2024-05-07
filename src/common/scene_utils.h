@@ -22,6 +22,7 @@
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/script.hpp>
+#include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
@@ -39,6 +40,11 @@ namespace SceneUtils
     /// @param p_icon_name the editor icon to load
     /// @return a reference to the texture or an invalid reference if the texture isn't loaded
     Ref<Texture2D> get_editor_icon(const String& p_icon_name);
+
+    /// Gets an editor style by name
+    /// @param p_style_name the style name
+    /// @return a reference to the editor stylebox or an invalid reference if not found
+    Ref<StyleBox> get_editor_style(const String& p_style_name);
 
     /// Get an editor font
     /// @param p_font_name the font name
