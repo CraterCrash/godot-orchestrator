@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "nodes/functions/function_result.h"
 #include "script/script.h"
 
 void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const
@@ -131,6 +132,38 @@ int OScriptFunction::get_owning_node_id() const
 Ref<OScriptNode> OScriptFunction::get_owning_node() const
 {
     return _script->get_node(_owning_node_id);
+}
+
+Ref<OScriptNode> OScriptFunction::get_return_node() const
+{
+    const Vector<Ref<OScriptNode>> nodes = get_return_nodes();
+    return nodes.is_empty() ? Ref<OScriptNode>() : nodes[0];
+}
+
+Vector<Ref<OScriptNode>> OScriptFunction::get_return_nodes() const
+{
+    Vector<Ref<OScriptNode>> results;
+
+    const Ref<OScriptGraph> graph = get_function_graph();
+    if (graph.is_valid())
+    {
+        TypedArray<int> nodes = graph->get_nodes();
+        for (int i = 0; i < nodes.size(); i++)
+        {
+            const Ref<OScriptNodeFunctionResult> result = _script->get_node(nodes[i]);
+            if (result.is_valid())
+                results.push_back(result);
+        }
+    }
+    return results;
+}
+
+Ref<OScriptGraph> OScriptFunction::get_function_graph() const
+{
+    if (_script->has_graph(get_function_name()))
+        return _script->get_graph(get_function_name());
+
+    return {};
 }
 
 Dictionary OScriptFunction::to_dict() const

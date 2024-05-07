@@ -40,7 +40,9 @@ void OScriptNodeCallScriptFunction::post_initialize()
             _function_flags.set_flag(FF_IS_SELF);
             if (_is_in_editor())
             {
-                _function->connect("changed", callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed));
+                Callable callable = callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed);
+                if (!_function->is_connected("changed", callable))
+                    _function->connect("changed", callable);
             }
         }
     }
@@ -51,7 +53,11 @@ void OScriptNodeCallScriptFunction::post_placed_new_node()
 {
     super::post_placed_new_node();
     if (_function.is_valid() && _is_in_editor())
-        _function->connect("changed", callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed));
+    {
+        Callable callable = callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed);
+        if (!_function->is_connected("changed", callable))
+            _function->connect("changed", callable);
+    }
 }
 
 String OScriptNodeCallScriptFunction::get_tooltip_text() const

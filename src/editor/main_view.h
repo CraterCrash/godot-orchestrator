@@ -19,6 +19,7 @@
 
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
@@ -47,9 +48,9 @@ namespace godot
 }
 
 /// The plug-in main window
-class OrchestratorMainView : public Control
+class OrchestratorMainView : public PanelContainer
 {
-    GDCLASS(OrchestratorMainView, Control);
+    GDCLASS(OrchestratorMainView, PanelContainer);
 
 private:
     enum AccelMenuIds
