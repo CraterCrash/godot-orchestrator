@@ -17,1339 +17,393 @@
 #include "script_view.h"
 
 #include "api/extension_db.h"
+#include "common/callable_lambda.h"
+#include "common/name_utils.h"
 #include "common/scene_utils.h"
+#include "editor/component_panels/component_panel.h"
+#include "editor/component_panels/functions_panel.h"
+#include "editor/component_panels/graphs_panel.h"
+#include "editor/component_panels/macros_panel.h"
+#include "editor/component_panels/signals_panel.h"
+#include "editor/component_panels/variables_panel.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/main_view.h"
-#include "plugin/inspector_plugin_variable.h"
-#include "plugin/plugin.h"
+#include "script/nodes/functions/call_script_function.h"
 #include "script/nodes/functions/event.h"
 #include "script/nodes/functions/function_entry.h"
-#include "script_connections.h"
+#include "script/nodes/functions/function_result.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/os.hpp>
-#include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
-#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
-#include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/window.hpp>
-#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
-OrchestratorScriptViewSection::OrchestratorScriptViewSection(const String& p_section_name)
+Ref<OScriptFunction> OrchestratorScriptView::_create_new_function(const String& p_name, bool p_add_return_node)
 {
-    _section_name = p_section_name;
-}
+    ERR_FAIL_COND_V_MSG(_script->has_graph(p_name), {}, "Script already has graph named " + p_name);
 
-void OrchestratorScriptViewSection::_bind_methods()
-{
-    ADD_SIGNAL(MethodInfo("scroll_to_item", PropertyInfo(Variant::OBJECT, "item")));
-}
+    Ref<OScriptGraph> graph = _script->create_graph(p_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
+    ERR_FAIL_COND_V_MSG(!graph.is_valid(), {}, "Failed to create new function graph named " + p_name);
 
-void OrchestratorScriptViewSection::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_READY)
-    {
-        set_v_size_flags(Control::SIZE_SHRINK_BEGIN);
-        set_h_size_flags(Control::SIZE_EXPAND_FILL);
-        add_theme_constant_override("separation", 0);
-        set_custom_minimum_size(Vector2i(300, 0));
-
-        _panel_hbox = memnew(HBoxContainer);
-        _panel_hbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-        _panel_hbox->set_tooltip_text(SceneUtils::create_wrapped_tooltip_text(_get_tooltip_text()));
-
-        _collapse_button = memnew(Button);
-        _collapse_button->set_focus_mode(Control::FOCUS_NONE);
-        _collapse_button->set_flat(true);
-        _collapse_button->connect("pressed", callable_mp(this, &OrchestratorScriptViewSection::_toggle));
-        _update_collapse_button_icon();
-        _panel_hbox->add_child(_collapse_button);
-
-        Label* label = memnew(Label);
-        label->set_text(_section_name);
-        label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-        _panel_hbox->add_child(label);
-
-        Button* add_button = memnew(Button);
-        add_button->set_focus_mode(Control::FOCUS_NONE);
-        add_button->connect("pressed", callable_mp(this, &OrchestratorScriptViewSection::_on_add_pressed));
-        add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
-        add_button->set_tooltip_text("Add a new " + _get_section_item_name());
-        _panel_hbox->add_child(add_button);
-
-        _panel = memnew(PanelContainer);
-        _panel->set_mouse_filter(Control::MOUSE_FILTER_PASS);
-        _panel->add_child(_panel_hbox);
-        add_child(_panel);
-
-        _tree = memnew(Tree);
-        _tree->set_columns(1);
-        _tree->set_allow_rmb_select(true);
-        _tree->set_select_mode(Tree::SELECT_ROW);
-        _tree->set_h_scroll_enabled(false);
-        _tree->set_v_scroll_enabled(false);
-        _tree->set_custom_minimum_size(Vector2i(300, 40));
-        _tree->set_v_size_flags(SIZE_FILL);
-        _tree->set_hide_root(true);
-        _tree->set_focus_mode(Control::FOCUS_NONE);
-        _tree->set_drag_forwarding(callable_mp(this, &OrchestratorScriptViewSection::_on_tree_drag_data), Callable(), Callable());
-        _tree->connect("item_activated", callable_mp(this, &OrchestratorScriptViewSection::_on_item_activated));
-        _tree->connect("item_edited", callable_mp(this, &OrchestratorScriptViewSection::_on_item_edited));
-        _tree->connect("item_selected", callable_mp(this, &OrchestratorScriptViewSection::_on_item_selected));
-        _tree->connect("item_mouse_selected", callable_mp(this, &OrchestratorScriptViewSection::_on_item_mouse_selected));
-        _tree->connect("item_collapsed", callable_mp(this, &OrchestratorScriptViewSection::_on_item_collapsed));
-        _tree->connect("button_clicked", callable_mp(this, &OrchestratorScriptViewSection::_on_button_clicked));
-        _tree->create_item()->set_text(0, "Root"); // creates the root item
-        add_child(_tree);
-
-        _context_menu = memnew(PopupMenu);
-        _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorScriptViewSection::_on_menu_id_pressed));
-        add_child(_context_menu);
-
-        _confirm = memnew(ConfirmationDialog);
-        _confirm->set_title("Please confirm...");
-        _confirm->connect("confirmed", callable_mp(this, &OrchestratorScriptViewSection::_on_remove_confirmed));
-        add_child(_confirm);
-
-        _notify = memnew(AcceptDialog);
-        _notify->set_title("Message");
-        add_child(_notify);
-    }
-    else if (p_what == NOTIFICATION_THEME_CHANGED)
-    {
-        _theme_changing = true;
-        callable_mp(this, &OrchestratorScriptViewSection::_update_theme).call_deferred();
-    }
-}
-
-void OrchestratorScriptViewSection::_gui_input(const Ref<godot::InputEvent>& p_event)
-{
-    Ref<InputEventMouseButton> mb = p_event;
-    if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_LEFT)
-    {
-        _toggle();
-        get_viewport()->set_input_as_handled();
-    }
-}
-
-void OrchestratorScriptViewSection::update()
-{
-    if (_expanded)
-    {
-        // A simple hack to redraw the tree based on content height
-        _tree->set_visible(false);
-        _tree->set_visible(true);
-    }
-}
-
-void OrchestratorScriptViewSection::_update_theme()
-{
-    if (!_theme_changing)
-        return;
-
-    Ref<Theme> theme = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_theme();
-    if (theme.is_valid() && _panel)
-    {
-        Ref<StyleBoxFlat> sb = theme->get_stylebox("panel", "ItemList")->duplicate();
-        sb->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
-        sb->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
-        _panel->add_theme_stylebox_override("panel", sb);
-    }
-
-    Ref<StyleBoxFlat> sb = _tree->get_theme_stylebox("panel");
-    if (sb.is_valid())
-    {
-        Ref<StyleBoxFlat> new_style = sb->duplicate();
-        new_style->set_corner_radius(CORNER_TOP_LEFT, 0);
-        new_style->set_corner_radius(CORNER_TOP_RIGHT, 0);
-        _tree->add_theme_stylebox_override("panel", new_style);
-    }
-
-    queue_redraw();
-
-    _theme_changing = false;
-}
-
-void OrchestratorScriptViewSection::_clear_tree()
-{
-    _tree->clear();
-    _tree->create_item();
-}
-
-void OrchestratorScriptViewSection::_update_collapse_button_icon()
-{
-    const String icon_name = _expanded ? "CodeFoldDownArrow" : "CodeFoldedRightArrow";
-    _collapse_button->set_button_icon(SceneUtils::get_editor_icon(icon_name));
-}
-
-void OrchestratorScriptViewSection::_toggle()
-{
-    _expanded = !_expanded;
-    _update_collapse_button_icon();
-    _tree->set_visible(_expanded);
-}
-
-void OrchestratorScriptViewSection::_show_notification(const String& p_message)
-{
-    _notify->set_text(p_message);
-    _notify->reset_size();
-    _notify->popup_centered();
-}
-
-void OrchestratorScriptViewSection::_confirm_removal(TreeItem* p_item)
-{
-    _confirm->set_text(_get_remove_confirm_text(p_item));
-    _confirm->reset_size();
-    _confirm->popup_centered();
-}
-
-String OrchestratorScriptViewSection::_create_unique_name_with_prefix(const String& p_prefix)
-{
-    const PackedStringArray child_names = _get_existing_names();
-    if (!child_names.has(p_prefix))
-        return p_prefix;
-
-    for (int i = 0; i < std::numeric_limits<int>::max(); i++)
-    {
-        const String name = vformat("%s_%s", p_prefix, i);
-        if (child_names.has(name))
-            continue;
-
-        return name;
-    }
-
-    return {};
-}
-
-bool OrchestratorScriptViewSection::_find_child_and_activate(const String& p_name, bool p_edit)
-{
-    TreeItem* root = _tree->get_root();
-
-    for (int i = 0; i < root->get_child_count(); i++)
-    {
-        if (TreeItem* child = Object::cast_to<TreeItem>(root->get_child(i)))
-        {
-            if (child->get_text(0).match(p_name))
-            {
-                emit_signal("scroll_to_item", child);
-                _tree->call_deferred("set_selected", child, 0);
-
-                if (p_edit)
-                {
-                    Ref<SceneTreeTimer> timer = get_tree()->create_timer(0.1f);
-                    if (timer.is_valid())
-                        timer->connect("timeout", callable_mp(_tree, &Tree::edit_selected).bind(true));
-                }
-
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-HBoxContainer* OrchestratorScriptViewSection::_get_panel_hbox()
-{
-    return _panel_hbox;
-}
-
-void OrchestratorScriptViewSection::_on_add_pressed()
-{
-    _handle_add_new_item();
-}
-
-void OrchestratorScriptViewSection::_on_item_activated()
-{
-    TreeItem* item = _tree->get_selected();
-    ERR_FAIL_COND_MSG(!item, "Cannot activate when no item selected");
-
-    _handle_item_activated(item);
-}
-
-void OrchestratorScriptViewSection::_on_item_edited()
-{
-    TreeItem* item = _tree->get_selected();
-    ERR_FAIL_COND_MSG(!item, "Cannot edit item when no item selected");
-
-    const String old_name = item->get_meta("__name");
-    const String new_name = item->get_text(0);
-
-    // Nothing to edit if they're identical
-    if (old_name.match(new_name))
-        return;
-
-    _handle_item_renamed(old_name, new_name);
-}
-
-void OrchestratorScriptViewSection::_on_item_selected()
-{
-    _handle_item_selected();
-}
-
-void OrchestratorScriptViewSection::_on_item_mouse_selected(const godot::Vector2& p_position, int p_button)
-{
-    if (p_button != MouseButton::MOUSE_BUTTON_RIGHT)
-        return;
-
-    TreeItem* item = _tree->get_selected();
-    if (!item)
-        return;
-
-    _context_menu->clear();
-    _context_menu->reset_size();
-
-    if (_populate_context_menu(item))
-    {
-        _context_menu->set_position(_tree->get_screen_position() + p_position);
-        _context_menu->reset_size();
-        _context_menu->popup();
-    }
-}
-
-void OrchestratorScriptViewSection::_on_item_collapsed(TreeItem* p_item)
-{
-    if (_expanded)
-    {
-        _tree->set_visible(false);
-        _tree->set_visible(true);
-    }
-}
-
-void OrchestratorScriptViewSection::_on_menu_id_pressed(int p_id)
-{
-    _handle_context_menu(p_id);
-}
-
-void OrchestratorScriptViewSection::_on_remove_confirmed()
-{
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->inspect_object(nullptr);
-    _handle_remove(_tree->get_selected());
-}
-
-void OrchestratorScriptViewSection::_on_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
-{
-    _handle_button_clicked(p_item, p_column, p_id, p_mouse_button);
-}
-
-Variant OrchestratorScriptViewSection::_on_tree_drag_data(const Vector2& p_position)
-{
-    const Dictionary data = _handle_drag_data(p_position);
-    if (data.keys().is_empty())
-        return {};
-
-    PanelContainer* container = memnew(PanelContainer);
-    container->set_anchors_preset(Control::PRESET_TOP_LEFT);
-    container->set_v_size_flags(Control::SIZE_SHRINK_BEGIN);
-
-    HBoxContainer* hbc = memnew(HBoxContainer);
-    hbc->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-    container->add_child(hbc);
-
-    TextureRect* rect = memnew(TextureRect);
-    rect->set_texture(_tree->get_selected()->get_icon(0));
-    rect->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
-    rect->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
-    rect->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-    hbc->add_child(rect);
-
-    Label* label = memnew(Label);
-    label->set_text(_tree->get_selected()->get_text(0));
-    hbc->add_child(label);
-
-    set_drag_preview(container);
-    return data;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-OrchestratorScriptViewGraphsSection::OrchestratorScriptViewGraphsSection(const Ref<OScript>& p_script)
-    : OrchestratorScriptViewSection("Graphs")
-    , _script(p_script)
-{
-}
-
-void OrchestratorScriptViewGraphsSection::_bind_methods()
-{
-    ADD_SIGNAL(MethodInfo("show_graph_requested",
-                          PropertyInfo(Variant::STRING, "graph_name")));
-    ADD_SIGNAL(MethodInfo("close_graph_requested",
-                          PropertyInfo(Variant::STRING, "graph_name")));
-    ADD_SIGNAL(MethodInfo("graph_renamed",
-                          PropertyInfo(Variant::STRING, "old_name"),
-                          PropertyInfo(Variant::STRING, "new_name")));
-    ADD_SIGNAL(MethodInfo("focus_node_requested",
-                          PropertyInfo(Variant::STRING, "graph_name"),
-                          PropertyInfo(Variant::INT, "node_id")));
-}
-
-void OrchestratorScriptViewGraphsSection::_show_graph_item(TreeItem* p_item)
-{
-    const String graph_name = p_item->get_text(0);
-
-    // Graph
-    emit_signal("show_graph_requested", graph_name);
-    _tree->deselect_all();
-}
-
-void OrchestratorScriptViewGraphsSection::_focus_graph_function(TreeItem* p_item)
-{
-    const String graph_name = p_item->get_parent()->get_text(0);
-    const int node_id = _script->get_function_node_id(p_item->get_text(0));
-
-    // Specific event node
-    emit_signal("focus_node_requested", graph_name, node_id);
-    _tree->deselect_all();
-}
-
-void OrchestratorScriptViewGraphsSection::_remove_graph(TreeItem* p_item)
-{
-    const String graph_name = p_item->get_text(0);
-    emit_signal("close_graph_requested", graph_name);
-
-    _script->remove_graph(graph_name);
-    update();
-}
-
-void OrchestratorScriptViewGraphsSection::_remove_graph_function(TreeItem* p_item)
-{
-    const String function_name = p_item->get_text(0);
-
-    _script->remove_function(function_name);
-    update();
-}
-
-PackedStringArray OrchestratorScriptViewGraphsSection::_get_existing_names() const
-{
-    PackedStringArray result;
-    for (const Ref<OScriptGraph>& graph : _script->get_graphs())
-        result.push_back(graph->get_graph_name());
-    return result;
-}
-
-String OrchestratorScriptViewGraphsSection::_get_tooltip_text() const
-{
-    return "A graph allows you to place many types of nodes to create various behaviors. "
-           "Event graphs are flexible and can control multiple event nodes that start execution, "
-           "nodes that may take time, react to signals, or call functions and macro nodes.\n\n"
-           "While there is always one event graph called \"EventGraph\", you can create new "
-           "event graphs to better help organize event logic.";
-}
-
-String OrchestratorScriptViewGraphsSection::_get_remove_confirm_text(TreeItem* p_item) const
-{
-    // Only confirm graphs, not event functions
-    if (p_item->get_parent() == _tree->get_root())
-        return "Removing a graph removes all nodes within the graph.\nDo you want to continue?";
-
-    return OrchestratorScriptViewSection::_get_remove_confirm_text(p_item);
-}
-
-bool OrchestratorScriptViewGraphsSection::_populate_context_menu(TreeItem* p_item)
-{
-    if (p_item->get_parent() == _tree->get_root())
-    {
-        // Graph
-        Ref<OScriptGraph> graph = _script->get_graph(p_item->get_text(0));
-        bool rename_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_RENAMABLE);
-        bool delete_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_DELETABLE);
-        _context_menu->add_item("Open Graph", CM_OPEN_GRAPH);
-        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_GRAPH);
-        _context_menu->set_item_disabled(_context_menu->get_item_count() - 1, rename_disabled);
-        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_GRAPH);
-        _context_menu->set_item_disabled(_context_menu->get_item_count() - 1, delete_disabled);
-    }
-    else
-    {
-        // Graph Functions
-        _context_menu->add_item("Focus", CM_FOCUS_FUNCTION);
-        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
-    }
-    return true;
-}
-
-void OrchestratorScriptViewGraphsSection::_handle_context_menu(int p_id)
-{
-    switch (p_id)
-    {
-        case CM_OPEN_GRAPH:
-            _show_graph_item(_tree->get_selected());
-            break;
-        case CM_RENAME_GRAPH:
-            _tree->edit_selected(true);
-            break;
-        case CM_REMOVE_GRAPH:
-            _confirm_removal(_tree->get_selected());
-            break;
-        case CM_FOCUS_FUNCTION:
-            _focus_graph_function(_tree->get_selected());
-            break;
-        case CM_REMOVE_FUNCTION:
-            _remove_graph_function(_tree->get_selected());
-            break;
-    }
-}
-
-void OrchestratorScriptViewGraphsSection::_handle_add_new_item()
-{
-    const String name = _create_unique_name_with_prefix("NewEventGraph");
-
-    // Add the new graph and update the components display
-    int flags = OScriptGraph::GF_EVENT | OScriptGraph::GF_DEFAULT;
-    Ref<OScriptGraph> graph = _script->create_graph(name, flags);
-
-    update();
-
-    _find_child_and_activate(name);
-}
-
-void OrchestratorScriptViewGraphsSection::_handle_item_activated(TreeItem* p_item)
-{
-    if (p_item->get_parent() == _tree->get_root())
-        _show_graph_item(p_item);
-    else
-        _focus_graph_function(p_item);
-}
-
-void OrchestratorScriptViewGraphsSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
-{
-    if (_get_existing_names().has(p_new_name))
-    {
-        _show_notification("A graph with the name '" + p_new_name + "' already exists.");
-        return;
-    }
-
-    _script->rename_graph(p_old_name, p_new_name);
-    emit_signal("graph_renamed", p_old_name, p_new_name);
-
-    update();
-}
-
-void OrchestratorScriptViewGraphsSection::_handle_remove(TreeItem* p_item)
-{
-    if (p_item->get_parent() == _tree->get_root())
-        _remove_graph(p_item);
-}
-
-void OrchestratorScriptViewGraphsSection::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
-                                                                 int p_mouse_button)
-{
-    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
-
-    OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
-    add_child(dialog);
-    dialog->popup_connections(p_item->get_text(0), nodes);
-}
-
-void OrchestratorScriptViewGraphsSection::update()
-{
-    _clear_tree();
-
-    Vector<Ref<OScriptGraph>> graphs = _script->get_graphs();
-    if (graphs.is_empty())
-    {
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, "No graphs defined");
-        item->set_selectable(0, false);
-        return;
-    }
-
-    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
-    const String base_type = _script->get_instance_base_type();
-
-    const PackedStringArray functions = _script->get_function_names();
-    for (const Ref<OScriptGraph>& graph : graphs)
-    {
-        if (!(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_EVENT)))
-            continue;
-
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, graph->get_graph_name());
-        item->set_meta("__name", graph->get_graph_name()); // Used for renames
-        item->set_icon(0, SceneUtils::get_editor_icon("ClassList"));
-
-        TypedArray<int> nodes = graph->get_nodes();
-        for (const String& function_name : functions)
-        {
-            int function_id = _script->get_function_node_id(function_name);
-            if (nodes.has(function_id))
-            {
-                TreeItem* func = item->create_child();
-                func->set_text(0, function_name);
-                func->set_icon(0, SceneUtils::get_editor_icon("PlayStart"));
-
-                if (SceneUtils::has_any_signals_connected_to_function(function_name, base_type, script_nodes))
-                    func->add_button(0, SceneUtils::get_editor_icon("Slot"));
-            }
-        }
-    }
-
-    OrchestratorScriptViewSection::update();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-OrchestratorScriptViewFunctionsSection::OrchestratorScriptViewFunctionsSection(const Ref<OScript>& p_script)
-    : OrchestratorScriptViewSection("Functions")
-    , _script(p_script)
-{
-}
-
-void OrchestratorScriptViewFunctionsSection::_bind_methods()
-{
-    ADD_SIGNAL(MethodInfo("show_graph_requested",
-                          PropertyInfo(Variant::STRING, "graph_name")));
-    ADD_SIGNAL(MethodInfo("close_graph_requested",
-                          PropertyInfo(Variant::STRING, "graph_name")));
-    ADD_SIGNAL(MethodInfo("graph_renamed",
-                          PropertyInfo(Variant::STRING, "old_name"),
-                          PropertyInfo(Variant::STRING, "new_name")));
-    ADD_SIGNAL(MethodInfo("focus_node_requested",
-                          PropertyInfo(Variant::STRING, "graph_name"),
-                          PropertyInfo(Variant::INT, "node_id")));
-    ADD_SIGNAL(MethodInfo("override_function_requested"));
-}
-
-
-void OrchestratorScriptViewFunctionsSection::_on_override_virtual_function()
-{
-    emit_signal("override_function_requested");
-}
-
-void OrchestratorScriptViewFunctionsSection::_notification(int p_what)
-{
-    // Godot does not dispatch to parent (shrugs)
-    OrchestratorScriptViewSection::_notification(p_what);
-
-    if (p_what == NOTIFICATION_READY)
-    {
-        HBoxContainer* container = _get_panel_hbox();
-
-        Button* override_button = memnew(Button);
-        override_button->set_focus_mode(Control::FOCUS_NONE);
-        override_button->connect(
-            "pressed", callable_mp(this, &OrchestratorScriptViewFunctionsSection::_on_override_virtual_function));
-        override_button->set_button_icon(SceneUtils::get_editor_icon("Override"));
-        override_button->set_tooltip_text("Override a Godot virtual function");
-        container->add_child(override_button);
-    }
-}
-
-void OrchestratorScriptViewFunctionsSection::_show_function_graph(TreeItem* p_item)
-{
-    // Function name and graph names are synonymous
-    const String function_name = p_item->get_text(0);
-    emit_signal("show_graph_requested", function_name);
-    emit_signal("focus_node_requested", function_name, _script->get_function_node_id(function_name));
-    _tree->deselect_all();
-}
-
-PackedStringArray OrchestratorScriptViewFunctionsSection::_get_existing_names() const
-{
-    return _script->get_function_names();
-}
-
-String OrchestratorScriptViewFunctionsSection::_get_tooltip_text() const
-{
-    return "A function graph allows the encapsulation of functionality for re-use. Function graphs have "
-           "a single input with an optional output node. Function graphs have a single execution pin "
-           "with multiple input data pins and the result node may return a maximum of one data value to "
-           "the caller.\n\n"
-           "Functions can be called by selecting the action in the action menu or by dragging the "
-           "function from this component view onto the graph area.";
-}
-
-String OrchestratorScriptViewFunctionsSection::_get_remove_confirm_text(TreeItem* p_item) const
-{
-    return "Removing a function removes all nodes that participate in the function and any nodes\n"
-           "that call that function from the event graphs.\n"
-           "Do you want to continue?";
-}
-
-bool OrchestratorScriptViewFunctionsSection::_populate_context_menu(TreeItem* p_item)
-{
-    _context_menu->add_item("Open in Graph", CM_OPEN_FUNCTION_GRAPH);
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_FUNCTION);
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
-    return true;
-}
-
-void OrchestratorScriptViewFunctionsSection::_handle_context_menu(int p_id)
-{
-    switch (p_id)
-    {
-        case CM_OPEN_FUNCTION_GRAPH:
-            _show_function_graph(_tree->get_selected());
-            break;
-        case CM_RENAME_FUNCTION:
-            _tree->edit_selected(true);
-            break;
-        case CM_REMOVE_FUNCTION:
-            _confirm_removal(_tree->get_selected());
-            break;
-    }
-}
-
-void OrchestratorScriptViewFunctionsSection::_handle_add_new_item()
-{
-    const String name = _create_unique_name_with_prefix("NewFunction");
-
-    // User-defined functions are also graphs
-    int flags = OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT;
-    Ref<OScriptGraph> graph = _script->create_graph(name, flags);
-
-    // Create the node
     OScriptLanguage* language = OScriptLanguage::get_singleton();
-    Ref<OScriptNode> node = language->create_node_from_type<OScriptNodeFunctionEntry>(_script);
+    Ref<OScriptNodeFunctionEntry> entry = language->create_node_from_type<OScriptNodeFunctionEntry>(_script);
+    if (!entry.is_valid())
+    {
+        _script->remove_graph(graph->get_graph_name());
+        ERR_FAIL_V_MSG({}, "Failed to create function entry node for function " + p_name);
+    }
 
-    // Create method information details
     MethodInfo mi;
-    mi.name = name;
+    mi.name = p_name;
+    mi.flags = METHOD_FLAG_NORMAL;
+    mi.return_val.type = Variant::NIL;
+    mi.return_val.hint = PROPERTY_HINT_NONE;
+    mi.return_val.usage = PROPERTY_USAGE_DEFAULT;
 
-    // Initialize the node and register it with the script
     OScriptNodeInitContext context;
     context.method = mi;
-    node->initialize(context);
+    entry->initialize(context);
 
-    _script->add_node(graph, node);
-    node->post_placed_new_node();
+    _script->add_node(graph, entry);
+    entry->post_placed_new_node();
 
-    // Link the node to the graph
-    graph->add_function(node->get_id());
-    graph->add_node(node->get_id());
+    graph->add_function(entry->get_id());
+    graph->add_node(entry->get_id());
 
-    update();
-
-    _find_child_and_activate(name);
-}
-
-void OrchestratorScriptViewFunctionsSection::_handle_item_activated(TreeItem* p_item)
-{
-    _show_function_graph(p_item);
-}
-
-void OrchestratorScriptViewFunctionsSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
-{
-    if (_get_existing_names().has(p_new_name))
+    if (p_add_return_node)
     {
-        _show_notification("A function with the name '" + p_new_name + "' already exists.");
-        return;
-    }
-
-    _script->rename_function(p_old_name, p_new_name);
-    emit_signal("graph_renamed", p_old_name, p_new_name);
-
-    update();
-}
-
-void OrchestratorScriptViewFunctionsSection::_handle_remove(TreeItem* p_item)
-{
-    // Function name and graph names are synonymous
-    const String function_name = p_item->get_text(0);
-    emit_signal("close_graph_requested", function_name);
-
-    _script->remove_function(function_name);
-    update();
-}
-
-void OrchestratorScriptViewFunctionsSection::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
-                                                                    int p_mouse_button)
-{
-    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
-
-    OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
-    add_child(dialog);
-    dialog->popup_connections(p_item->get_text(0), nodes);
-}
-
-Dictionary OrchestratorScriptViewFunctionsSection::_handle_drag_data(const Vector2& p_position)
-{
-    Dictionary data;
-
-    TreeItem* selected = _tree->get_selected();
-    if (selected)
-    {
-        data["type"] = "function";
-        data["functions"] = Array::make(selected->get_text(0));
-    }
-    return data;
-}
-
-void OrchestratorScriptViewFunctionsSection::update()
-{
-    _clear_tree();
-
-    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
-    const String base_type = _script->get_instance_base_type();
-
-    for (const Ref<OScriptGraph>& graph : _script->get_graphs())
-    {
-        if (!(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION)))
-            continue;
-
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, graph->get_graph_name());
-        item->set_meta("__name", graph->get_graph_name()); // Used for renames
-        item->set_icon(0, SceneUtils::get_editor_icon("MemberMethod"));
-
-        if (SceneUtils::has_any_signals_connected_to_function(graph->get_graph_name(), base_type, script_nodes))
-            item->add_button(0, SceneUtils::get_editor_icon("Slot"));
-    }
-
-    if (_tree->get_root()->get_child_count() == 0)
-    {
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, "No functions defined");
-        item->set_selectable(0, false);
-        return;
-    }
-
-    OrchestratorScriptViewSection::update();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-OrchestratorScriptViewMacrosSection::OrchestratorScriptViewMacrosSection(const Ref<OScript>& p_script)
-    : OrchestratorScriptViewSection("Macros")
-    , _script(p_script)
-{
-}
-
-String OrchestratorScriptViewMacrosSection::_get_tooltip_text() const
-{
-    return "A macro graph allows for the encapsulation of functionality for re-use. Macros have both a "
-           "singular input and output node, but these nodes can have as many input or output data "
-           "values needed for logic. Macros can contain nodes that take time, such as delays, but are "
-           "not permitted to contain event nodes, such as a node that reacts to '_ready'.\n\n"
-           "This feature is currently disabled and will be available in a future release.";
-}
-
-void OrchestratorScriptViewMacrosSection::_notification(int p_what)
-{
-    // Godot does not dispatch to parent (shrugs)
-    OrchestratorScriptViewSection::_notification(p_what);
-
-    if (p_what == NOTIFICATION_READY)
-    {
-        HBoxContainer* container = _get_panel_hbox();
-
-        Button* button = Object::cast_to<Button>(container->get_child(-1));
-        if (button)
-            button->set_disabled(true);
-    }
-}
-
-void OrchestratorScriptViewMacrosSection::update()
-{
-    if (_tree->get_root()->get_child_count() == 0)
-    {
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, "No macros defined");
-        item->set_selectable(0, false);
-        return;
-    }
-
-    OrchestratorScriptViewSection::update();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-OrchestratorScriptViewVariablesSection::OrchestratorScriptViewVariablesSection(const Ref<OScript>& p_script)
-    : OrchestratorScriptViewSection("Variables")
-    , _script(p_script)
-{
-}
-
-void OrchestratorScriptViewVariablesSection::_on_variable_changed()
-{
-    update();
-}
-
-void OrchestratorScriptViewVariablesSection::_create_item(TreeItem* p_parent, const Ref<OScriptVariable>& p_variable)
-{
-    TreeItem* category = nullptr;
-    for (TreeItem* child = p_parent->get_first_child(); child; child = child->get_next())
-    {
-        if (child->get_text(0).match(p_variable->get_category()))
+        Ref<OScriptNodeFunctionResult> result = language->create_node_from_type<OScriptNodeFunctionResult>(_script);
+        if (result.is_valid())
         {
-            category = child;
-            break;
+            result->set_position(entry->get_position() + Vector2(300, 0));
+            result->initialize(context);
+
+            _script->add_node(graph, result);
+            result->post_placed_new_node();
+
+            graph->add_node(result->get_id());
+        }
+        else
+        {
+            ERR_PRINT("Failed to spawn a result node for function " + p_name);
         }
     }
 
-    if (p_variable->is_grouped_by_category())
+    _functions->update();
+
+    return entry->get_function();
+}
+
+void OrchestratorScriptView::_resolve_node_set_connections(const Vector<Ref<OScriptNode>>& p_nodes, NodeSetConnections& r_connections)
+{
+    // Create a map of the nodes
+    HashMap<int, Ref<OScriptNode>> node_map;
+    for (const Ref<OScriptNode>& node : p_nodes)
     {
-        if (!category)
+        node_map[node->get_id()] = node;
+
+        const Vector<Ref<OScriptNodePin>> inputs = node->find_pins(PD_Input);
+        for (const Ref<OScriptNodePin>& input : inputs)
         {
-            category = p_parent->create_child();
-            category->set_text(0, p_variable->get_category());
-            category->set_selectable(0, false);
-        }
-    }
-    else
-        category = p_parent;
-
-    TreeItem* item = category->create_child();
-    item->set_text(0, p_variable->get_variable_name());
-    item->set_icon(0, SceneUtils::get_editor_icon("MemberProperty"));
-    item->set_meta("__name", p_variable->get_variable_name());
-
-    if (p_variable->is_exported() && p_variable->get_variable_name().begins_with("_"))
-    {
-        int32_t index = item->get_button_count(0);
-        item->add_button(0, SceneUtils::get_editor_icon("NodeWarning"), 1);
-        item->set_button_tooltip_text(0, index, "Variable is exported but defined as private using underscore prefix.");
-        item->set_button_disabled(0, index, true);
-    }
-
-    item->add_button(0, SceneUtils::get_editor_icon(p_variable->get_variable_type_name()), 2);
-
-    if (!p_variable->get_description().is_empty())
-    {
-        const String tooltip = p_variable->get_variable_name() + "\n\n" + p_variable->get_description();
-        item->set_tooltip_text(0, SceneUtils::create_wrapped_tooltip_text(tooltip));
-    }
-
-    if (p_variable->is_exported())
-    {
-        int32_t index = item->get_button_count(0);
-        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityVisible"), 3);
-        item->set_button_tooltip_text(0, index, "Variable is visible outside the orchestration.");
-        item->set_button_disabled(0, index, false);
-    }
-    else
-    {
-        String tooltip = "Variable is private.";
-        if (!p_variable->is_exportable())
-            tooltip += "\nType cannot be exported.";
-
-        int32_t index = item->get_button_count(0);
-        item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityHidden"), 3);
-        item->set_button_tooltip_text(0, index, tooltip);
-        item->set_button_disabled(0, index, !p_variable->is_exportable());
-    }
-}
-
-PackedStringArray OrchestratorScriptViewVariablesSection::_get_existing_names() const
-{
-    return _script->get_variable_names();
-}
-
-String OrchestratorScriptViewVariablesSection::_get_tooltip_text() const
-{
-    return "A variable represents some data that will be stored and managed by the orchestration.\n\n"
-           "Drag a variable from the component view onto the graph area to select whether to create "
-           "a get/set node or use the action menu to find the get/set option for the variable.\n\n"
-           "Selecting a variable in the component view displays the variable details in the inspector.";
-}
-
-String OrchestratorScriptViewVariablesSection::_get_remove_confirm_text(TreeItem* p_item) const
-{
-    return "Removing a variable will remove all nodes that get or set the variable.\nDo you want to continue?";
-}
-
-bool OrchestratorScriptViewVariablesSection::_populate_context_menu(TreeItem* p_item)
-{
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_VARIABLE);
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_VARIABLE);
-    return true;
-}
-
-void OrchestratorScriptViewVariablesSection::_handle_context_menu(int p_id)
-{
-    switch (p_id)
-    {
-        case CM_RENAME_VARIABLE:
-            _tree->edit_selected(true);
-            break;
-        case CM_REMOVE_VARIABLE:
-            _confirm_removal(_tree->get_selected());
-            break;
-    }
-}
-
-void OrchestratorScriptViewVariablesSection::_handle_add_new_item()
-{
-    const String name = _create_unique_name_with_prefix("NewVar");
-
-    // Add the new variable and update the components display
-    _script->create_variable(name);
-
-    update();
-
-    _find_child_and_activate(name);
-}
-
-void OrchestratorScriptViewVariablesSection::_handle_item_selected()
-{
-    TreeItem* item = _tree->get_selected();
-
-    Ref<OScriptVariable> variable = _script->get_variable(item->get_text(0));
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(variable);
-}
-
-void OrchestratorScriptViewVariablesSection::_handle_item_activated(TreeItem* p_item)
-{
-    Ref<OScriptVariable> variable = _script->get_variable(p_item->get_text(0));
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(variable);
-}
-
-void OrchestratorScriptViewVariablesSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
-{
-    if (_get_existing_names().has(p_new_name))
-    {
-        _show_notification("A variable with the name '" + p_new_name + "' already exists.");
-        return;
-    }
-
-    _script->rename_variable(p_old_name, p_new_name);
-    update();
-}
-
-void OrchestratorScriptViewVariablesSection::_handle_remove(TreeItem* p_item)
-{
-    const String variable_name = p_item->get_text(0);
-    _script->remove_variable(variable_name);
-    update();
-}
-
-void OrchestratorScriptViewVariablesSection::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
-{
-    Ref<OScriptVariable> variable = _script->get_variable(p_item->get_text(0));
-    if (!variable.is_valid())
-        return;
-
-    _tree->set_selected(p_item, 0);
-
-    // id 1 => warning
-
-    if (p_column == 0 && p_id == 2)
-    {
-        // Type clicked
-        Ref<OrchestratorEditorInspectorPluginVariable> plugin = OrchestratorPlugin::get_singleton()
-            ->get_editor_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
-
-        if (plugin.is_valid())
-            plugin->edit_classification(variable.ptr());
-    }
-    else if (p_column == 0 && p_id == 3)
-    {
-        // Visibility changed on variable
-        variable->set_exported(!variable->is_exported());
-        update();
-    }
-}
-
-Dictionary OrchestratorScriptViewVariablesSection::_handle_drag_data(const Vector2& p_position)
-{
-    Dictionary data;
-
-    TreeItem* selected = _tree->get_selected();
-    if (selected)
-    {
-        data["type"] = "variable";
-        data["variables"] = Array::make(selected->get_text(0));
-    }
-    return data;
-}
-
-void OrchestratorScriptViewVariablesSection::update()
-{
-    _clear_tree();
-
-    PackedStringArray variable_names = _script->get_variable_names();
-    if (!variable_names.is_empty())
-    {
-        HashMap<String, Ref<OScriptVariable>> categorized;
-        HashMap<String, Ref<OScriptVariable>> uncategorized;
-        HashMap<String, String> categorized_names;
-        for (const String& variable_name : variable_names)
-        {
-            Ref<OScriptVariable> variable = _script->get_variable(variable_name);
-            if (variable->is_grouped_by_category())
+            for (const Ref<OScriptNodePin>& E : input->get_connections())
             {
-                const String category = variable->get_category().to_lower();
-                const String sort_name = vformat("%s/%s", category, variable_name.to_lower());
-
-                categorized[variable_name] = variable;
-                categorized_names[sort_name] = variable_name;
+                if (!p_nodes.has(E->get_owning_node()))
+                {
+                    if (input->is_execution())
+                        r_connections.input_executions++;
+                    else
+                        r_connections.input_data++;
+                }
             }
-            else
-                uncategorized[variable_name] = variable;
         }
 
-        // Sort categorized
-        PackedStringArray sorted_categorized_names;
-        for (const KeyValue<String, String>& E : categorized_names)
-            sorted_categorized_names.push_back(E.key);
-        sorted_categorized_names.sort();
-
-        // Sort uncategorized
-        PackedStringArray sorted_uncategorized_names;
-        for (const KeyValue<String, Ref<OScriptVariable>>& E : uncategorized)
-            sorted_uncategorized_names.push_back(E.key);
-        sorted_uncategorized_names.sort();
-
-        auto callable = callable_mp(this, &OrchestratorScriptViewVariablesSection::_on_variable_changed);
-
-        TreeItem* root = _tree->get_root();
-        for (const String& sort_categorized_name : sorted_categorized_names)
+        const Vector<Ref<OScriptNodePin>> outputs = node->find_pins(PD_Output);
+        for (const Ref<OScriptNodePin>& output : outputs)
         {
-            const String variable_name = categorized_names[sort_categorized_name];
-            const Ref<OScriptVariable>& variable = categorized[variable_name];
-
-            if (variable.is_valid() && !variable->is_connected("changed", callable))
-                variable->connect("changed", callable);
-
-            _create_item(root, variable);
+            for (const Ref<OScriptNodePin>& E : output->get_connections())
+            {
+                if (!p_nodes.has(E->get_owning_node()))
+                {
+                    if (output->is_execution())
+                        r_connections.output_executions++;
+                    else
+                        r_connections.output_data++;
+                }
+            }
         }
+    }
 
-        for (const String& sort_uncategorized_name : sorted_uncategorized_names)
+    for (const OScriptConnection& E : _script->get_connections())
+    {
+        if (node_map.has(E.from_node) && node_map.has(E.to_node))
+            r_connections.connections.insert(E);
+
+        if (!node_map.has(E.from_node) && node_map.has(E.to_node))
+            r_connections.inputs.insert(E);
+
+        if (node_map.has(E.from_node) && !node_map.has(E.to_node))
+            r_connections.outputs.insert(E);
+    }
+}
+
+Rect2 OrchestratorScriptView::_get_node_set_rect(const Vector<Ref<OScriptNode>>& p_nodes) const
+{
+    if (p_nodes.is_empty())
+        return {};
+
+    Rect2 area(p_nodes[0]->get_position(), Vector2());
+    for (const Ref<OScriptNode>& E : p_nodes)
+        area.expand_to(E->get_position());
+    return area;
+}
+
+void OrchestratorScriptView::_move_nodes(const Vector<Ref<OScriptNode>>& p_nodes, const Ref<OScriptGraph>& p_source,
+                                         const Ref<OScriptGraph>& p_target)
+{
+    for (const Ref<OScriptNode>& E : p_nodes)
+    {
+        p_source->remove_node(E->get_id());
+        p_target->add_node(E->get_id());
+    }
+}
+
+void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdit* p_graph)
+{
+    Vector<Ref<OScriptNode>> selected = p_graph->get_selected_script_nodes();
+    if (selected.is_empty())
+        return;
+
+    for (const Ref<OScriptNode>& node : selected)
+    {
+        if (!node->can_duplicate())
+            ERR_FAIL_MSG("Cannot collapse because node " + itos(node->get_id()) + " cannot be duplicated.");
+    }
+
+    // Capture connections based on the selected nodes
+    NodeSetConnections connections;
+    _resolve_node_set_connections(selected, connections);
+
+    ERR_FAIL_COND_EDMSG(connections.input_executions > 1, "Cannot collapse to function with more than one external input execution wire.");
+    ERR_FAIL_COND_EDMSG(connections.output_executions > 1, "Cannot collapse to function with more than one external output execution wire.");
+    ERR_FAIL_COND_EDMSG(connections.outputs.size() > 2, "Cannot output more than one execution and one data pin.");
+
+    const String new_function_name = NameUtils::create_unique_name("NewFunction", _script->get_function_names());
+    Ref<OScriptFunction> function = _create_new_function(new_function_name, true);
+    if (!function.is_valid())
+        return;
+
+    const Ref<OScriptGraph> target_graph = function->get_function_graph();
+
+    // Calculate the area of the original nodes
+    const Rect2 area = _get_node_set_rect(selected);
+
+    // Move node between the two graphs
+    _move_nodes(selected, p_graph->get_owning_graph(), target_graph);
+
+    OScriptLanguage* language = OScriptLanguage::get_singleton();
+    Ref<OScriptNode> call_node = language->create_node_from_type<OScriptNodeCallScriptFunction>(_script);
+
+    OScriptNodeInitContext context;
+    context.method = function->get_method_info();
+    call_node->initialize(context);
+
+    call_node->set_position(area.get_center());
+    _script->add_node(p_graph->get_owning_graph(), call_node);
+    call_node->post_placed_new_node();
+
+    p_graph->get_owning_graph()->add_node(call_node->get_id());
+
+    const Ref<OScriptNodeFunctionEntry> entry = _script->get_node(function->get_owning_node_id());
+    const Ref<OScriptNodeFunctionResult> result = function->get_return_node();
+
+    int input_index = 1;
+    int call_input_index = 1;
+    bool input_execution_wired = false;
+    bool call_execution_wired = false;
+    bool entry_positioned = false;
+    for (const OScriptConnection& E : connections.inputs)
+    {
+        // The exterior node connected to the selected node
+        const Ref<OScriptNode> source = _script->get_node(E.from_node);
+        const Ref<OScriptNodePin> source_pin = source->find_pins(PD_Output)[E.from_port];
+        if (source_pin->is_execution() && !call_execution_wired)
         {
-            const Ref<OScriptVariable>& variable = uncategorized[sort_uncategorized_name];
-            if (variable.is_valid() && !variable->is_connected("changed", callable))
-                variable->connect("changed", callable);
-
-            _create_item(root, variable);
+            _script->connect_nodes(E.from_node, E.from_port, call_node->get_id(), 0);
+            call_execution_wired = true;
         }
-    }
-
-    if (_tree->get_root()->get_child_count() == 0)
-    {
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, "No variables defined");
-        item->set_selectable(0, false);
-        return;
-    }
-
-    OrchestratorScriptViewSection::update();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-OrchestratorScriptViewSignalsSection::OrchestratorScriptViewSignalsSection(const Ref<OScript>& p_script)
-    : OrchestratorScriptViewSection("Signals")
-    , _script(p_script)
-{
-}
-
-PackedStringArray OrchestratorScriptViewSignalsSection::_get_existing_names() const
-{
-    return _script->get_custom_signal_names();
-}
-
-String OrchestratorScriptViewSignalsSection::_get_tooltip_text() const
-{
-    return "A signal is used to send a notification synchronously to any number of observers that have "
-           "connected to the defined signal on the orchestration. Signals allow for a variable number "
-           "of arguments to be passed to the observer.\n\n"
-           "Selecting a signal in the component view displays the signal details in the inspector.";
-}
-
-String OrchestratorScriptViewSignalsSection::_get_remove_confirm_text(TreeItem* p_item) const
-{
-    return "Removing a signal will remove all nodes that emit the signal.\nDo you want to continue?";
-}
-
-bool OrchestratorScriptViewSignalsSection::_populate_context_menu(TreeItem* p_item)
-{
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_SIGNAL);
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_SIGNAL);
-    return true;
-}
-
-void OrchestratorScriptViewSignalsSection::_handle_context_menu(int p_id)
-{
-    switch (p_id)
-    {
-        case CM_RENAME_SIGNAL:
-            _tree->edit_selected(true);
-            break;
-        case CM_REMOVE_SIGNAL:
-            _confirm_removal(_tree->get_selected());
-            break;
-    }
-}
-
-void OrchestratorScriptViewSignalsSection::_handle_add_new_item()
-{
-    const String name = _create_unique_name_with_prefix("NewSignal");
-
-    // Add the new signal and update the components display
-    _script->create_custom_signal(name);
-
-    update();
-
-    _find_child_and_activate(name);
-}
-
-void OrchestratorScriptViewSignalsSection::_handle_item_selected()
-{
-    TreeItem* item = _tree->get_selected();
-
-    Ref<OScriptSignal> signal = _script->get_custom_signal(item->get_text(0));
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
-}
-
-void OrchestratorScriptViewSignalsSection::_handle_item_activated(TreeItem* p_item)
-{
-    Ref<OScriptSignal> signal = _script->get_custom_signal(p_item->get_text(0));
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
-}
-
-void OrchestratorScriptViewSignalsSection::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
-{
-    if (_get_existing_names().has(p_new_name))
-    {
-        _show_notification("A signal with the name '" + p_new_name + "' already exists.");
-        return;
-    }
-
-    _script->rename_custom_user_signal(p_old_name, p_new_name);
-    update();
-}
-
-void OrchestratorScriptViewSignalsSection::_handle_remove(TreeItem* p_item)
-{
-    const String signal_name = p_item->get_text(0);
-    _script->remove_custom_signal(signal_name);
-    update();
-}
-
-Dictionary OrchestratorScriptViewSignalsSection::_handle_drag_data(const Vector2& p_position)
-{
-    Dictionary data;
-
-    TreeItem* selected = _tree->get_selected();
-    if (selected)
-    {
-        data["type"] = "signal";
-        data["signals"] = Array::make(selected->get_text(0));
-    }
-    return data;
-}
-
-void OrchestratorScriptViewSignalsSection::update()
-{
-    _clear_tree();
-
-    PackedStringArray signal_names = _script->get_custom_signal_names();
-    if (!signal_names.is_empty())
-    {
-        signal_names.sort();
-        for (const String& signal_name : signal_names)
+        else if (!source_pin->is_execution())
         {
-            Ref<OScriptSignal> signal = _script->get_custom_signal(signal_name);
+            _script->connect_nodes(E.from_node, E.from_port, call_node->get_id(), call_input_index++);
+        }
 
-            TreeItem* item = _tree->get_root()->create_child();
-            item->set_text(0, signal_name);
-            item->set_meta("__name", signal_name);
-            item->set_icon(0, SceneUtils::get_editor_icon("MemberSignal"));
+        // The selected node that is connected from the outside
+        const Ref<OScriptNode> target = _script->get_node(E.to_node);
+        const Ref<OScriptNodePin> target_pin = target->find_pins(PD_Input)[E.to_port];
+
+        if (!entry_positioned)
+        {
+            entry->set_position(target->get_position() - Vector2(250, 0));
+            entry->emit_changed();
+            entry_positioned = true;
+        }
+
+        if (!target_pin->is_execution())
+        {
+            const size_t size = function->get_argument_count() + 1;
+            function->resize_argument_list(size);
+            function->set_argument_name(size - 1, target_pin->get_pin_name());
+            function->set_argument_type(size - 1, target_pin->get_type());
+
+            // Wire entry data output to this connection
+            _script->connect_nodes(entry->get_id(), input_index++, E.to_node, E.to_port);
+        }
+        else if (!input_execution_wired)
+        {
+            // Wire entry execution output to this connection
+            _script->connect_nodes(entry->get_id(), 0, E.to_node, E.to_port);
+            input_execution_wired = true;
         }
     }
 
-    if (_tree->get_root()->get_child_count() == 0)
+    if(result.is_valid())
     {
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, "No signals defined");
-        item->set_selectable(0, false);
+        bool output_execution_wired = false;
+        bool output_data_wired = false;
+        bool positioned = false;
+        for (const OScriptConnection& E : connections.outputs)
+        {
+            // The selected node that is connected from the ouside world
+            const Ref<OScriptNode> source = _script->get_node(E.from_node);
+            const Ref<OScriptNodePin> source_pin = source->find_pins(PD_Output)[E.from_port];
+
+            if (!positioned)
+            {
+                result->set_position(source->get_position() + Vector2(250, 0));
+                result->emit_changed();
+                positioned = true;
+            }
+
+            if (source_pin->is_execution() && !output_execution_wired) // Connect execution
+            {
+                _script->connect_nodes(E.from_node, E.from_port, result->get_id(), 0);
+                output_execution_wired = true;
+            }
+            else if (!source_pin->is_execution() && !output_data_wired) // Connect data
+            {
+                function->set_has_return_value(true);
+                function->set_return_type(source_pin->get_type());
+
+                _script->connect_nodes(E.from_node, E.from_port, result->get_id(), 1);
+                output_data_wired = true;
+            }
+        }
+
+        const Ref<OScriptNodePin> result_exec = result->find_pin(0, PD_Input);
+        if (result_exec.is_valid() && !result_exec->has_any_connections())
+        {
+            const Ref<OScriptNodePin> entry_exec = entry->find_pin(0, PD_Output);
+            if (entry_exec.is_valid() && !entry_exec->has_any_connections())
+            {
+                entry_exec->link(result_exec);
+                if (entry->find_pins(PD_Output).size() == 1)
+                {
+                    entry->set_position(result->get_position() - Vector2(250, 0));
+                    entry->emit_changed();
+                }
+            }
+        }
+    }
+
+    // Wire call node
+    int call_output_index = 1;
+    call_execution_wired = false;
+    for (const OScriptConnection& E : connections.outputs)
+    {
+        // The exterior node connected to the selected node
+        const Ref<OScriptNode> target = _script->get_node(E.to_node);
+        const Ref<OScriptNodePin> target_pin = target->find_pins(PD_Input)[E.to_port];
+        if (target_pin->is_execution() && !call_execution_wired)
+        {
+            _script->connect_nodes(call_node->get_id(), 0, E.to_node, E.to_port);
+            call_execution_wired = true;
+        }
+        else if (!target_pin->is_execution())
+        {
+            _script->connect_nodes(call_node->get_id(), call_output_index++, E.to_node, E.to_port);
+        }
+    }
+
+    call_node->emit_changed();
+
+    _functions->find_and_edit(function->get_function_name());
+}
+
+void OrchestratorScriptView::_expand_node(int p_node_id, OrchestratorGraphEdit* p_graph)
+{
+    const Ref<OScriptNodeCallScriptFunction> call_node = _script->get_node(p_node_id);
+    if (!call_node.is_valid())
         return;
-    }
 
-    OrchestratorScriptViewSection::update();
-}
+    const Ref<OScriptFunction> function = call_node->get_function();
+    if (!function.is_valid())
+        return;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    const Ref<OScriptGraph> function_graph = function->get_function_graph();
 
-OrchestratorScriptView::OrchestratorScriptView(OrchestratorPlugin* p_plugin, OrchestratorMainView* p_main_view, const Ref<OScript>& p_script)
-{
-    _plugin = p_plugin;
-    _main_view = p_main_view;
-    _script = p_script;
-
-    // When scripts are first opened, this adds the event graph if it doesn't exist.
-    // This graph cannot be renamed or deleted.
-    if (!_script->has_graph("EventGraph"))
-        _script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
-
-    set_v_size_flags(SIZE_EXPAND_FILL);
-    set_h_size_flags(SIZE_EXPAND_FILL);
-}
-
-void OrchestratorScriptView::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_READY)
+    Vector<Ref<OScriptNode>> selected;
+    TypedArray<int> graph_nodes = function_graph->get_nodes();
+    for (int i = 0; i < graph_nodes.size(); i++)
     {
-        _main_view->connect("toggle_component_panel", callable_mp(this, &OrchestratorScriptView::_on_toggle_component_panel));
-
-        Node* editor_node = get_tree()->get_root()->get_child(0);
-        editor_node->connect("script_add_function_request", callable_mp(this, &OrchestratorScriptView::_add_callback));
-
-        VBoxContainer* panel = memnew(VBoxContainer);
-        panel->set_h_size_flags(SIZE_EXPAND_FILL);
-        add_child(panel);
-
-        MarginContainer* margin = memnew(MarginContainer);
-        margin->set_v_size_flags(SIZE_EXPAND_FILL);
-        panel->add_child(margin);
-
-        _tabs = memnew(TabContainer);
-        _tabs->get_tab_bar()->set_tab_close_display_policy(TabBar::CLOSE_BUTTON_SHOW_ACTIVE_ONLY);
-        _tabs->get_tab_bar()->connect("tab_close_pressed",
-                                      callable_mp(this, &OrchestratorScriptView::_on_close_tab_requested));
-        margin->add_child(_tabs);
-
-        _scroll_container = memnew(ScrollContainer);
-        _scroll_container->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
-        _scroll_container->set_vertical_scroll_mode(ScrollContainer::SCROLL_MODE_AUTO);
-        add_child(_scroll_container);
-
-        VBoxContainer* vbox = memnew(VBoxContainer);
-        vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-        _scroll_container->add_child(vbox);
-
-        _graphs = memnew(OrchestratorScriptViewGraphsSection(_script));
-        _graphs->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_show_graph));
-        _graphs->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_close_graph));
-        _graphs->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
-        _graphs->connect("graph_renamed", callable_mp(this, &OrchestratorScriptView::_on_graph_renamed));
-        _graphs->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
-        vbox->add_child(_graphs);
-
-        _functions = memnew(OrchestratorScriptViewFunctionsSection(_script));
-        _functions->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_show_graph));
-        _functions->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_close_graph));
-        _functions->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
-        _functions->connect("override_function_requested", callable_mp(this, &OrchestratorScriptView::_on_override_function));
-        _functions->connect("graph_renamed", callable_mp(this, &OrchestratorScriptView::_on_graph_renamed));
-        _functions->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
-        vbox->add_child(_functions);
-
-        _macros = memnew(OrchestratorScriptViewMacrosSection(_script));
-        _macros->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
-        vbox->add_child(_macros);
-
-        _variables = memnew(OrchestratorScriptViewVariablesSection(_script));
-        _variables->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
-        vbox->add_child(_variables);
-
-        _signals = memnew(OrchestratorScriptViewSignalsSection(_script));
-        _signals->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
-        vbox->add_child(_signals);
-
-        // The base event graph tab
-        _event_graph = _get_or_create_tab("EventGraph");
-
-        _update_components();
+        Ref<OScriptNode> graph_node = _script->get_node(graph_nodes[i]);
+        Ref<OScriptNodeFunctionEntry> entry = graph_node;
+        Ref<OScriptNodeFunctionResult> result = graph_node;
+        if (!entry.is_valid() && !result.is_valid() && graph_node->can_duplicate())
+            selected.push_back(graph_node);
     }
+
+    if (selected.is_empty())
+        return;
+
+    const Rect2 area = _get_node_set_rect(selected);
+    const Vector2 pos_delta = call_node->get_position() - area.get_center();
+
+    HashMap<int, int> node_remap;
+    for (const Ref<OScriptNode>& node : selected)
+    {
+        Ref<OScriptNode> new_node = node->duplicate(true);
+        new_node->set_id(_script->get_available_id());
+        new_node->set_position(node->get_position() + pos_delta);
+        new_node->set_owning_script(_script.ptr());
+        new_node->post_initialize();
+
+        _script->add_node(p_graph->get_owning_graph(), new_node);
+
+        new_node->post_placed_new_node();
+
+        // Record mapping between old and new nodes
+        node_remap[node->get_id()] = new_node->get_id();
+    }
+
+    // Record connections
+    NodeSetConnections connections;
+    _resolve_node_set_connections(selected, connections);
+
+    // Reapply connections among pasted nodes
+    for (const OScriptConnection& E : connections.connections)
+        _script->connect_nodes(node_remap[E.from_node], E.from_port, node_remap[E.to_node], E.to_port);
+
+    // Remove call node
+    p_graph->get_owning_graph()->remove_node(call_node->get_id());
+    _script->remove_node(call_node->get_id());
 }
 
 void OrchestratorScriptView::goto_node(int p_node_id)
@@ -1480,6 +534,8 @@ OrchestratorGraphEdit* OrchestratorScriptView::_get_or_create_tab(const StringNa
     // Setup connections
     graph->connect("nodes_changed", callable_mp(this, &OrchestratorScriptView::_on_graph_nodes_changed));
     graph->connect("focus_requested", callable_mp(this, &OrchestratorScriptView::_on_graph_focus_requested));
+    graph->connect("collapse_selected_to_function", callable_mp(this, &OrchestratorScriptView::_collapse_selected_to_function).bind(graph));
+    graph->connect("expand_node", callable_mp(this, &OrchestratorScriptView::_expand_node).bind(graph));
 
     if (p_focus)
         _tabs->get_tab_bar()->set_current_tab(_tabs->get_tab_count() - 1);
@@ -1639,4 +695,86 @@ void OrchestratorScriptView::_add_callback(Object* p_object, const String& p_fun
 
         editor_graph->focus_node(node->get_id());
     }
+}
+
+void OrchestratorScriptView::_notification(int p_what)
+{
+    if (p_what == NOTIFICATION_READY)
+    {
+        _main_view->connect("toggle_component_panel", callable_mp(this, &OrchestratorScriptView::_on_toggle_component_panel));
+
+        Node* editor_node = get_tree()->get_root()->get_child(0);
+        editor_node->connect("script_add_function_request", callable_mp(this, &OrchestratorScriptView::_add_callback));
+
+        VBoxContainer* panel = memnew(VBoxContainer);
+        panel->set_h_size_flags(SIZE_EXPAND_FILL);
+        add_child(panel);
+
+        MarginContainer* margin = memnew(MarginContainer);
+        margin->set_v_size_flags(SIZE_EXPAND_FILL);
+        panel->add_child(margin);
+
+        _tabs = memnew(TabContainer);
+        _tabs->get_tab_bar()->set_tab_close_display_policy(TabBar::CLOSE_BUTTON_SHOW_ACTIVE_ONLY);
+        _tabs->get_tab_bar()->connect("tab_close_pressed", callable_mp(this, &OrchestratorScriptView::_on_close_tab_requested));
+        margin->add_child(_tabs);
+
+        _scroll_container = memnew(ScrollContainer);
+        _scroll_container->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
+        _scroll_container->set_vertical_scroll_mode(ScrollContainer::SCROLL_MODE_AUTO);
+        add_child(_scroll_container);
+
+        VBoxContainer* vbox = memnew(VBoxContainer);
+        vbox->set_h_size_flags(SIZE_EXPAND_FILL);
+        _scroll_container->add_child(vbox);
+
+        _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_script));
+        _graphs->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_show_graph));
+        _graphs->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_close_graph));
+        _graphs->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
+        _graphs->connect("graph_renamed", callable_mp(this, &OrchestratorScriptView::_on_graph_renamed));
+        _graphs->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
+        vbox->add_child(_graphs);
+
+        _functions = memnew(OrchestratorScriptFunctionsComponentPanel(_script, this));
+        _functions->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_show_graph));
+        _functions->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_close_graph));
+        _functions->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
+        _functions->connect("override_function_requested", callable_mp(this, &OrchestratorScriptView::_on_override_function));
+        _functions->connect("graph_renamed", callable_mp(this, &OrchestratorScriptView::_on_graph_renamed));
+        _functions->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
+        vbox->add_child(_functions);
+
+        _macros = memnew(OrchestratorScriptMacrosComponentPanel(_script));
+        _macros->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
+        vbox->add_child(_macros);
+
+        _variables = memnew(OrchestratorScriptVariablesComponentPanel(_script));
+        _variables->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
+        vbox->add_child(_variables);
+
+        _signals = memnew(OrchestratorScriptSignalsComponentPanel(_script));
+        _signals->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
+        vbox->add_child(_signals);
+
+        // The base event graph tab
+        _event_graph = _get_or_create_tab("EventGraph");
+
+        _update_components();
+    }
+}
+
+OrchestratorScriptView::OrchestratorScriptView(OrchestratorPlugin* p_plugin, OrchestratorMainView* p_main_view, const Ref<OScript>& p_script)
+{
+    _plugin = p_plugin;
+    _main_view = p_main_view;
+    _script = p_script;
+
+    // When scripts are first opened, this adds the event graph if it doesn't exist.
+    // This graph cannot be renamed or deleted.
+    if (!_script->has_graph("EventGraph"))
+        _script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+
+    set_v_size_flags(SIZE_EXPAND_FILL);
+    set_h_size_flags(SIZE_EXPAND_FILL);
 }

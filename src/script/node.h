@@ -352,6 +352,10 @@ public:
     /// @param p_pin the pin that was disconnected
     virtual void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin);
 
+    /// Returns whether the node can be duplicated
+    /// @return if the node can be duplicated
+    virtual bool can_duplicate() const { return true; }
+
 protected:
 
     /// Notify that node pins have been changed.

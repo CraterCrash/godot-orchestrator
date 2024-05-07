@@ -41,6 +41,7 @@ public:
     String get_tooltip_text() const override;
     void post_paste_node() override;
     bool draw_node_as_entry() const override { return true; }
+    bool can_duplicate() const override { return false; }
     bool can_create_user_defined_pin(EPinDirection p_direction, String& r_message) override;
     OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
     void initialize(const OScriptNodeInitContext& p_context) override;

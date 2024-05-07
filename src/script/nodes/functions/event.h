@@ -47,6 +47,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "events"; }
     bool can_inspect_node_properties() const override { return true; }
+    bool can_duplicate() const override { return false; }
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     //~ End OScriptNode Interface
 

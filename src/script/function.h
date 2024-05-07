@@ -28,6 +28,7 @@ using namespace godot;
 
 /// Forward declarations
 class OScript;
+class OScriptGraph;
 class OScriptNode;
 
 /// An OrchestratorScript function resource
@@ -103,6 +104,18 @@ public:
     ///
     /// @return the owning script node reference, should always be valid.
     Ref<OScriptNode> get_owning_node() const;
+
+    /// Get the function's first return node, if any exist.
+    /// @return the first return node, or an invalid reference if none exist
+    Ref<OScriptNode> get_return_node() const;
+
+    /// Get the function's return nodes, if any exist
+    /// @return a vector of return nodes, may be empty
+    Vector<Ref<OScriptNode>> get_return_nodes() const;
+
+    /// Get the function graph
+    /// @return the graph this function is associated with
+    Ref<OScriptGraph> get_function_graph() const;
 
     /// Return the function definition as a Dictionary that contains a MethodInfo definition.
     /// In addition, the dictionary will include two custom properties,  "_oscript_guid" and
