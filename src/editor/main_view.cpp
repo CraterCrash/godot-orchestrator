@@ -22,6 +22,7 @@
 #include "editor/graph/graph_edit.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
+#include "getting_started.h"
 #include "plugin/plugin.h"
 #include "plugin/settings.h"
 #include "script/language.h"
@@ -236,8 +237,13 @@ void OrchestratorMainView::_notification(int p_what)
 
         _script_editor_container = memnew(VBoxContainer);
         _script_editor_container->set_v_size_flags(SIZE_EXPAND_FILL);
+        _script_editor_container->set_visible(false);
 
-        main_view_container->add_child(_script_editor_container);
+        _landing = memnew(OrchestratorGettingStarted);
+        main_view_container->add_child(_landing);
+        _landing->connect("create_requested", callable_mp(this, &OrchestratorMainView::_on_menu_option).bind(NEW));
+        _landing->connect("open_requested", callable_mp(this, &OrchestratorMainView::_on_menu_option).bind(OPEN));
+        _landing->connect("documentation_requested", callable_mp(this, &OrchestratorMainView::_on_menu_option).bind(ONLINE_DOCUMENTATION));
 
         _about_window = memnew(OrchestratorAboutDialog);
         add_child(_about_window);
@@ -425,6 +431,9 @@ void OrchestratorMainView::_open_script(const Ref<OScript>& p_script)
         return;
     }
 
+    _landing->hide();
+    _script_editor_container->show();
+
     // Before we open the new file, an existing editors need to be hidden.
     // Unlike GDScript, we don't use tabs but rather control which editor is visible manually.
     for (const ScriptFile& file : _script_files)
@@ -520,6 +529,9 @@ void OrchestratorMainView::_close_script(int p_index, bool p_save)
     {
         // No more files are in the view.
         _current_index = -1;
+
+        _script_editor_container->hide();
+        _landing->show();
     }
 
     _update_files_list();
