@@ -116,6 +116,7 @@ class OrchestratorGraphEdit : public GraphEdit
     Label* _drag_hint{ nullptr };                          //! Displays the drag status at the bottom of the graph
     Timer* _drag_hint_timer{ nullptr };                    //! Timer for drag hint messages
     Timer* _theme_update_timer{ nullptr };
+    Button* _base_type_button{ nullptr };
     OrchestratorGraphEdit() = default;
 
 protected:
@@ -352,6 +353,9 @@ private:
 
     /// Dispatched when the user pressed {@code Ctrl+V} to paste nodes onto the graph.
     void _on_paste_nodes_request();
+
+    /// Dispatched when the script is changed
+    void _on_script_changed();
 
     #if GODOT_VERSION >= 0x040300
     /// Dispatched when the grid state is changed

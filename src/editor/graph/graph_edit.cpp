@@ -18,8 +18,8 @@
 
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
-#include "common/scene_utils.h"
 #include "common/name_utils.h"
+#include "common/scene_utils.h"
 #include "common/version.h"
 #include "editor/graph/factories/graph_node_factory.h"
 #include "editor/graph/graph_node_pin.h"
@@ -33,6 +33,7 @@
 
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_action.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
@@ -44,6 +45,7 @@
 #include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/tween.hpp>
+#include <godot_cpp/classes/v_separator.hpp>
 
 OrchestratorGraphEdit::Clipboard* OrchestratorGraphEdit::_clipboard = nullptr;
 
@@ -132,6 +134,9 @@ void OrchestratorGraphEdit::_notification(int p_what)
     {
         _update_theme();
 
+        get_menu_hbox()->add_child(memnew(VSeparator));
+        get_menu_hbox()->move_child(get_menu_hbox()->get_child(-1), 4);
+
         _drag_hint = memnew(Label);
         _drag_hint->set_anchor_and_offset(SIDE_TOP, ANCHOR_END, 0);
         _drag_hint->set_anchor_and_offset(SIDE_BOTTOM, ANCHOR_END, -50);
@@ -178,31 +183,22 @@ void OrchestratorGraphEdit::_notification(int p_what)
         set_grid_pattern(GRID_PATTERN_LINES);
         #endif
 
-        Button* show_script_details = memnew(Button);
-        show_script_details->set_text("Script Details");
-        show_script_details->set_tooltip_text("Shows script details in the Inspector");
-        show_script_details->set_focus_mode(Control::FOCUS_NONE);
-        show_script_details->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_inspect_script));
-        get_menu_hbox()->add_child(show_script_details);
+        get_menu_hbox()->add_child(memnew(VSeparator));
+
+        _base_type_button = memnew(Button);
+        _base_type_button->set_tooltip_text("Adjust the base type of the orchestration");
+        _base_type_button->set_focus_mode(FOCUS_NONE);
+        _base_type_button->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_inspect_script));
+        _on_script_changed();
+        get_menu_hbox()->add_child(_base_type_button);
 
         Button* validate_and_build = memnew(Button);
         validate_and_build->set_text("Validate");
+        validate_and_build->set_button_icon(SceneUtils::get_editor_icon("TransitionSyncAuto"));
         validate_and_build->set_tooltip_text("Validates the script for errors");
-        validate_and_build->set_focus_mode(Control::FOCUS_NONE);
+        validate_and_build->set_focus_mode(FOCUS_NONE);
         validate_and_build->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_validate_and_build));
         get_menu_hbox()->add_child(validate_and_build);
-
-        if (PanelContainer* pc = Object::cast_to<PanelContainer>(get_menu_hbox()->get_parent()))
-        {
-            Ref<StyleBoxFlat> hbox_panel = pc->get_theme_stylebox("panel")->duplicate();
-            hbox_panel->set_shadow_size(1);
-            hbox_panel->set_shadow_offset(Vector2(2.f, 2.f));
-            hbox_panel->set_bg_color(hbox_panel->get_bg_color() + Color(0, 0, 0, .3));
-            hbox_panel->set_border_width(SIDE_LEFT, 1);
-            hbox_panel->set_border_width(SIDE_TOP, 1);
-            hbox_panel->set_border_color(hbox_panel->get_shadow_color());
-            pc->add_theme_stylebox_override("panel", hbox_panel);
-        }
 
         _confirm_window = memnew(ConfirmationDialog);
         _confirm_window->set_hide_on_ok(true);
@@ -211,6 +207,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
         add_child(_confirm_window);
 
         _script->connect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
+        _script->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
         _script_graph->connect("node_added", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_added));
         _script_graph->connect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
 
@@ -240,6 +237,21 @@ void OrchestratorGraphEdit::_notification(int p_what)
 
         _synchronize_graph_with_script(_deferred_tween_node == -1);
         _focus_node(_deferred_tween_node);
+    }
+    else if (p_what == NOTIFICATION_THEME_CHANGED)
+    {
+        if (PanelContainer* pc = Object::cast_to<PanelContainer>(get_menu_hbox()->get_parent()))
+        {
+            // Refreshes the panel changes on theme adjustments
+            Ref<StyleBoxFlat> hbox_panel = pc->get_theme_stylebox("panel")->duplicate();
+            hbox_panel->set_shadow_size(1);
+            hbox_panel->set_shadow_offset(Vector2(2.f, 2.f));
+            hbox_panel->set_bg_color(hbox_panel->get_bg_color() + Color(0, 0, 0, .3));
+            hbox_panel->set_border_width(SIDE_LEFT, 1);
+            hbox_panel->set_border_width(SIDE_TOP, 1);
+            hbox_panel->set_border_color(hbox_panel->get_shadow_color());
+            pc->add_theme_stylebox_override("panel", hbox_panel);
+        }
     }
 }
 
@@ -1214,6 +1226,22 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
 void OrchestratorGraphEdit::_on_inspect_script()
 {
     _plugin->get_editor_interface()->inspect_object(_script.ptr());
+
+    EditorInspector* inspector = _plugin->get_editor_interface()->get_inspector();
+
+    TypedArray<Node> fields = inspector->find_children("*", "EditorPropertyClassName", true, false);
+    if (!fields.is_empty())
+    {
+        if (Node* node = Object::cast_to<Node>(fields[0]))
+        {
+            TypedArray<Button> buttons = node->find_children("*", "Button", true, false);
+            if (!buttons.is_empty())
+            {
+                if (Button* button = Object::cast_to<Button>(buttons[0]))
+                    button->emit_signal("pressed");
+            }
+        }
+    }
 }
 
 void OrchestratorGraphEdit::_on_validate_and_build()
@@ -1378,6 +1406,12 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
         if (OrchestratorGraphNode* node = _get_node_by_id(selected_id))
             node->set_selected(true);
     }
+}
+
+void OrchestratorGraphEdit::_on_script_changed()
+{
+    _base_type_button->set_button_icon(SceneUtils::get_editor_icon(_script->get_base_type()));
+    _base_type_button->set_text(vformat("Base Type: %s", _script->get_base_type()));
 }
 
 #if GODOT_VERSION >= 0x040300
