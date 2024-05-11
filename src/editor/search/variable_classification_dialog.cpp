@@ -21,6 +21,7 @@
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "plugin/plugin.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -381,6 +382,19 @@ bool OrchestratorVariableTypeSearchDialog::_is_filtered(const Ref<SearchItem>& p
             break;
     }
     return true;
+}
+
+int OrchestratorVariableTypeSearchDialog::_get_default_filter() const
+{
+    Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
+    return metadata->get_value("variable_type_search", "filter", 0);
+}
+
+void OrchestratorVariableTypeSearchDialog::_filter_type_changed(int p_index)
+{
+    Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
+    metadata->set_value("variable_type_search", "filter", p_index);
+    OrchestratorPlugin::get_singleton()->save_metadata(metadata);
 }
 
 String OrchestratorVariableTypeSearchDialog::get_selected_type() const

@@ -124,6 +124,14 @@ protected:
     /// @return the possible filters
     virtual Vector<FilterOption> _get_filters() const { return {}; }
 
+    /// Get the default filter choice, defaults to first item
+    /// @return the default filter choice
+    virtual int _get_default_filter() const { return 0; }
+
+    /// Called when the user changes the filter type
+    /// @param p_index the selected item index
+    virtual void _filter_type_changed(int p_index) { }
+
     /// Check whether the search item is to be filtered beyond the normal score calculation.
     /// @param p_item the search item
     /// @param p_text the search text
