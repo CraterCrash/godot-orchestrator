@@ -61,6 +61,8 @@ protected:
     void _save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) override;
     Vector<FilterOption> _get_filters() const override;
     bool _is_filtered(const Ref<SearchItem>& p_item, const String& p_text) const override;
+    int _get_default_filter() const override;
+    void _filter_type_changed(int p_index) override;
     //~ End OrchestratorEditorSearchDialog Interface
 
     /// Creates the class hieararchy path, i.e. "Parent/Child/GrandChild"
