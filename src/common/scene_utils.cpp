@@ -22,8 +22,8 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/label.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
@@ -63,6 +63,18 @@ namespace SceneUtils
     {
         VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
         return vbox->get_theme_icon(p_icon_name, "EditorIcons");
+    }
+
+    Ref<Font> get_editor_font(const String& p_font_name)
+    {
+        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        return vbox->get_theme_font(p_font_name, "EditorFonts");
+    }
+
+    Ref<StyleBox> get_editor_stylebox(const String& p_stylebox_name, const String& p_class_name)
+    {
+        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        return vbox->get_theme_stylebox(p_stylebox_name, p_class_name);
     }
 
     Ref<Texture2D> get_class_icon(const String& p_class_name, const String& p_fallback)

@@ -177,3 +177,15 @@ OrchestratorGraphNodePin* OrchestratorGraphNodeDefault::get_output_pin(int p_por
     ERR_FAIL_COND_V_MSG(p_port >= int(_pin_rows.size()), nullptr, "Failed to find row for slot " + itos(p_port));
     return _pin_rows[get_output_port_slot(p_port)].right;
 }
+
+void OrchestratorGraphNodeDefault::show_icons(bool p_visible)
+{
+    for (const KeyValue<int, Row>& E : _pin_rows)
+    {
+        if (E.value.left)
+            E.value.left->show_icon(p_visible);
+
+        if (E.value.right)
+            E.value.right->show_icon(p_visible);
+    }
+}

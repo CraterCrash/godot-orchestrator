@@ -68,11 +68,11 @@ void OrchestratorGraphNodeComment::_update_pins()
         }
     }
 
-    Ref<StyleBoxFlat> panel = get_theme_stylebox("panel");
+    Ref<StyleBoxFlat> panel = get_theme_stylebox("panel")->duplicate(true);
     panel->set_bg_color(_comment_node->get_background_color());
     add_theme_stylebox_override("panel", panel);
 
-    Ref<StyleBoxFlat> panel_selected = get_theme_stylebox("panel_selected");
+    Ref<StyleBoxFlat> panel_selected = get_theme_stylebox("panel_selected")->duplicate(true);
     panel_selected->set_bg_color(_comment_node->get_background_color());
     add_theme_stylebox_override("panel_selected", panel_selected);
 
