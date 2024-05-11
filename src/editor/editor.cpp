@@ -17,6 +17,7 @@
 #include "editor.h"
 
 #include "about_dialog.h"
+#include "editor/getting_started.h"
 #include "editor/graph/actions/action_menu.h"
 #include "editor/graph/actions/default_action_registrar.h"
 #include "editor/graph/graph_edit.h"
@@ -70,6 +71,7 @@ void register_editor_classes()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScreenSelect)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorWindowWrapper)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorMainView)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGettingStarted)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptConnectionsDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptView)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptViewSection)

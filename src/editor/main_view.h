@@ -27,6 +27,7 @@ using namespace godot;
 /// Forward declarations
 class OrchestratorPlugin;
 class OScript;
+class OrchestratorGettingStarted;
 class OrchestratorScreenSelect;
 class OrchestratorScriptView;
 class OrchestratorWindowWrapper;
@@ -104,6 +105,7 @@ private:
     Control* _select_separator{ nullptr };           //! Screen selection separator
     OrchestratorScreenSelect* _select{ nullptr };    //! Screen selection
     OrchestratorWindowWrapper* _wrapper{ nullptr };  //! Window wrapper
+    OrchestratorGettingStarted* _landing{ nullptr }; //! Landing page
     PackedStringArray _recent_files;                 //! Recent files list
 
     static void _bind_methods();
