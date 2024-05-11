@@ -33,7 +33,6 @@
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
-#include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 
@@ -44,7 +43,7 @@ OrchestratorGraphNode::OrchestratorGraphNode(OrchestratorGraphEdit* p_graph, con
 
     // Setup defaults
     set_name(itos(_node->get_id()));
-    set_resizable(true);
+    set_resizable(OrchestratorSettings::get_singleton()->get_setting("ui/nodes/resizable_by_default", false));
     set_h_size_flags(SIZE_EXPAND_FILL);
     set_v_size_flags(SIZE_EXPAND_FILL);
     set_meta("__script_node", p_node);
@@ -330,63 +329,16 @@ void OrchestratorGraphNode::_update_titlebar()
 
 void OrchestratorGraphNode::_update_styles()
 {
-    const String color_name = _node->get_node_title_color_name();
-    if (!color_name.is_empty())
+    Ref<OrchestratorThemeCache> cache = OrchestratorPlugin::get_singleton()->get_theme_cache();
+    if (cache.is_valid())
     {
-        OrchestratorSettings* os = OrchestratorSettings::get_singleton();
-        const String key = vformat("ui/node_colors/%s", color_name);
-        if (os->has_setting(key))
-        {
-            Color color = os->get_setting(key);
-
-            Ref<StyleBoxFlat> panel = get_theme_stylebox("panel");
-            if (panel.is_valid())
-            {
-                Ref<StyleBoxFlat> new_panel = panel->duplicate(true);
-                if (new_panel.is_valid())
-                {
-                    new_panel->set_border_color(Color(0.f, 0.f, 0.f));
-                    new_panel->set_border_width_all(2);
-                    new_panel->set_border_width(Side::SIDE_TOP, 0);
-                    new_panel->set_content_margin_all(2);
-                    new_panel->set_content_margin(Side::SIDE_BOTTOM, 6);
-                    add_theme_stylebox_override("panel", new_panel);
-
-                    Ref<StyleBoxFlat> panel_selected = new_panel->duplicate();
-                    if (panel_selected.is_valid())
-                    {
-                        panel_selected->set_border_color(_get_selection_color());
-                        add_theme_stylebox_override("panel_selected", panel_selected);
-                    }
-                }
-            }
-
-            Ref<StyleBoxFlat> titlebar = get_theme_stylebox("titlebar");
-            if (titlebar.is_valid())
-            {
-                Ref<StyleBoxFlat> new_titlebar = titlebar->duplicate(true);
-                if (new_titlebar.is_valid())
-                {
-                    new_titlebar->set_bg_color(color);
-                    new_titlebar->set_border_width_all(2);
-                    new_titlebar->set_border_width(Side::SIDE_BOTTOM, 0);
-
-                    new_titlebar->set_content_margin_all(4);
-                    new_titlebar->set_content_margin(Side::SIDE_LEFT, 12);
-                    new_titlebar->set_content_margin(Side::SIDE_RIGHT, 12);
-                    new_titlebar->set_border_color(color);
-
-                    add_theme_stylebox_override("titlebar", new_titlebar);
-
-                    Ref<StyleBoxFlat> titlebar_selected = new_titlebar->duplicate();
-                    if (titlebar_selected.is_valid())
-                    {
-                        titlebar_selected->set_border_color(_get_selection_color());
-                        add_theme_stylebox_override("titlebar_selected", titlebar_selected);
-                    }
-                }
-            }
-        }
+        const String type_name = vformat("GraphNode_%s", _node->get_node_title_color_name());
+        begin_bulk_theme_override();
+        add_theme_stylebox_override("panel", cache->get_theme_stylebox("panel", "GraphNode"));
+        add_theme_stylebox_override("panel_selected", cache->get_theme_stylebox("panel_selected", "GraphNode"));
+        add_theme_stylebox_override("titlebar", cache->get_theme_stylebox("titlebar", type_name));
+        add_theme_stylebox_override("titlebar_selected", cache->get_theme_stylebox("titlebar_selected", type_name));
+        end_bulk_theme_override();
     }
 }
 
@@ -475,6 +427,7 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("ActionCut"), "Cut", CM_CUT, Key(KEY_MASK_CTRL | KEY_X));
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("ActionCopy"), "Copy", CM_COPY, Key(KEY_MASK_CTRL | KEY_C));
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Duplicate"), "Duplicate", CM_DUPLICATE, Key(KEY_MASK_CTRL | KEY_D));
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("DistractionFree"), "Toggle Resizer", CM_RESIZABLE);
 
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Loop"), "Refresh Nodes", CM_REFRESH);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Unlinked"), "Break Node Link(s)", CM_BREAK_LINKS);
@@ -655,6 +608,11 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             case CM_VIEW_DOCUMENTATION:
             {
                 get_graph()->goto_class_help(_node->get_help_topic());
+                break;
+            }
+            case CM_RESIZABLE:
+            {
+                set_resizable(!is_resizable());
                 break;
             }
             case CM_SELECT_GROUP:

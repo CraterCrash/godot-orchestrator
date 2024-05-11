@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_PLUGIN_H
 #define ORCHESTRATOR_PLUGIN_H
 
+#include "plugin/theme_cache.h"
+
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
@@ -41,6 +43,7 @@ class OrchestratorPlugin : public EditorPlugin
     OrchestratorMainView* _main_view{ nullptr };              //! Plugin's main view
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
+    Ref<OrchestratorThemeCache> _theme_cache;
 
 public:
     /// Constructor
@@ -83,6 +86,8 @@ public:
     /// Saves the metadata
     /// @param p_metadata the metadata to save
     void save_metadata(const Ref<ConfigFile>& p_metadata);
+
+    Ref<OrchestratorThemeCache> get_theme_cache() { return _theme_cache; }
 
     //~ Begin EditorPlugin interface
     String get_plugin_version() const;

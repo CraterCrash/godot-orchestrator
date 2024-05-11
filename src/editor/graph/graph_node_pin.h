@@ -72,6 +72,7 @@ protected:
     };
 
     OrchestratorGraphNode* _node{ nullptr };    //! The owning node
+    TextureRect* _icon{ nullptr };              //! The pin's icon
     Control* _default_value{ nullptr };         //! The default value control
     PopupMenu* _context_menu{ nullptr };        //! The context menu
     Ref<OScriptNodePin> _pin;                   //! The script pin reference
@@ -197,6 +198,10 @@ public:
     /// @param p_visible whether the control is visible
     void set_default_value_control_visibility(bool p_visible);
 
+    /// Whether the icons are shown
+    /// @param p_visible whether to show the icon
+    void show_icon(bool p_visible);
+
 private:
 
     void _select_nodes_for_pin(const Ref<OScriptNodePin>& p_pin);
@@ -213,8 +218,9 @@ private:
     String _create_promoted_variable_name();
 
     /// Creates the pin's rendered icon
+    /// @param p_visible whether the icon is visible
     /// @return the icon texture rect
-    TextureRect* _create_type_icon();
+    TextureRect* _create_type_icon(bool p_visible);
 
     /// Creates the pin's label
     /// @return the label

@@ -125,6 +125,9 @@ void OrchestratorSettings::_register_deprecated_settings()
     _removed.emplace_back(COLOR_NO_ALPHA_SETTING("nodes/colors/terminal", Color(0.2706, 0.3686, 0.4314)));
     _removed.emplace_back(COLOR_NO_ALPHA_SETTING("nodes/colors/utility", Color(0.5765, 0.1686, 0.4275)));
     _removed.emplace_back(COLOR_NO_ALPHA_SETTING("nodes/colors/custom", Color(0.47, 0.27, 0.20)));
+
+    // Deprecated with Orchestrator v2
+    _removed.emplace_back(BOOL_SETTING("ui/nodes/show_conversion_nodes", false));
 }
 
 void OrchestratorSettings::_register_settings()
@@ -140,9 +143,15 @@ void OrchestratorSettings::_register_settings()
 
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
 
+    _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
+
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
-    _settings.emplace_back(BOOL_SETTING("ui/nodes/show_conversion_nodes", false));
+    _settings.emplace_back(BOOL_SETTING("ui/nodes/resizable_by_default", false));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/highlight_selected_connections", false));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/background_color", Color::html("#191d23")));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/border_color", Color(0.059f, 0.067f, 0.082f)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/border_selected_color", Color(0.68f, 0.44f, 0.09f)));
+    _settings.emplace_back(RANGE_SETTING("ui/nodes/border_width", "0,8,1", 2));
 
     // Nodes
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/constants_and_literals", Color(0.271, 0.392, 0.2)));

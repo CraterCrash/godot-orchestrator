@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_SCENE_UTILS_H
 
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -38,6 +39,15 @@ namespace SceneUtils
     /// @param p_icon_name the editor icon to load
     /// @return a reference to the texture or an invalid reference if the texture isn't loaded
     Ref<Texture2D> get_editor_icon(const String& p_icon_name);
+
+    /// Get an editor font
+    /// @param p_font_name the font name
+    /// @return the font reference or an invalid reference if the font isn't found
+    Ref<Font> get_editor_font(const String& p_font_name);
+
+    /// Get an editor stylebox
+    /// @return the stylebox or an invalid reference if it wasn't found
+    Ref<StyleBox> get_editor_stylebox(const String& p_stylebox_name, const String& p_class_type);
 
     /// Loads the class icon
     ///

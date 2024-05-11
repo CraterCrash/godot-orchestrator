@@ -28,6 +28,7 @@ class OrchestratorSettings : public Object
 
     static void _bind_methods() {}
 
+public:
     struct Setting
     {
         PropertyInfo info;
@@ -36,6 +37,7 @@ class OrchestratorSettings : public Object
         explicit Setting(const PropertyInfo& p_info, const Variant& p_value) : info(p_info), value(p_value) {}
     };
 
+private:
     static OrchestratorSettings* _singleton;
     std::vector<Setting> _removed;
     std::vector<Setting> _settings;
@@ -69,6 +71,8 @@ public:
     /// Removes an action category favorite.
     /// @param p_action_name the action category to be removed
     void remove_action_favorite(const String& p_action_name);
+
+    const std::vector<Setting>& get_settings() const { return _settings; }
 
 private:
 
