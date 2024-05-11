@@ -67,8 +67,6 @@ void OrchestratorScriptConnectionsDialog::popup_connections(const String& p_meth
     _method->set_text(p_method);
     _tree->clear();
 
-    Control* parent = Object::cast_to<Control>(get_parent());
-
     TreeItem* root = _tree->create_item();
     for (int i = 0; i < p_nodes.size(); i++)
     {
