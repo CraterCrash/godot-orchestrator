@@ -186,6 +186,11 @@ void OrchestratorEditorSearchDialog::_notification(int p_what)
         disconnect("confirmed", callable_mp(this, &OrchestratorEditorSearchDialog::_on_confirmed));
         disconnect("canceled", callable_mp(this, &OrchestratorEditorSearchDialog::_on_canceled));
     }
+    else if (p_what == NOTIFICATION_READY)
+    {
+        if (_filters)
+            _filters->select(_get_default_filter());
+    }
     else if (p_what == NOTIFICATION_VISIBILITY_CHANGED)
     {
         if (is_visible())
@@ -467,9 +472,6 @@ void OrchestratorEditorSearchDialog::popup_create(bool p_dont_clear, bool p_repl
 {
     _search_items = _get_search_items();
 
-    if (_filters)
-        _filters->select(0);
-
     Ref<SearchItem> initial_item = _get_search_item_by_name(p_current_type);
     String search_value = initial_item.is_valid() ? initial_item->text : p_current_type;
 
@@ -632,5 +634,6 @@ void OrchestratorEditorSearchDialog::_on_item_selected()
 
 void OrchestratorEditorSearchDialog::_on_filter_selected(int p_index)
 {
+    _filter_type_changed(p_index);
     _update_search();
 }
