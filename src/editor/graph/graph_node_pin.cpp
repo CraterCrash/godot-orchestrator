@@ -222,6 +222,12 @@ void OrchestratorGraphNodePin::set_default_value_control_visibility(bool p_visib
         _default_value->set_visible(p_visible);
 }
 
+void OrchestratorGraphNodePin::show_icon(bool p_visible)
+{
+    if (_icon)
+        _icon->set_visible(p_visible);
+}
+
 void OrchestratorGraphNodePin::_remove_editable_pin()
 {
     Ref<OScriptEditablePinNode> editable = _node->get_script_node();
@@ -307,8 +313,8 @@ void OrchestratorGraphNodePin::_create_widgets()
             HBoxContainer* row0 = memnew(HBoxContainer);
             vbox->add_child(row0);
 
-            if (!is_execution() && show_icons)
-                row0->add_child(_create_type_icon());
+            if (!is_execution())
+                row0->add_child(_create_type_icon(true));
 
             Label* label = _create_label();
             label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
@@ -328,8 +334,8 @@ void OrchestratorGraphNodePin::_create_widgets()
         }
         else
         {
-            if (!is_execution() && show_icons)
-                add_child(_create_type_icon());
+            if (!is_execution())
+                add_child(_create_type_icon(show_icons));
 
             Label* label = _create_label();
             label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
@@ -356,22 +362,22 @@ void OrchestratorGraphNodePin::_create_widgets()
         label->set_v_size_flags(SIZE_SHRINK_CENTER);
         add_child(label);
 
-        if (!is_execution() && show_icons)
-            add_child(_create_type_icon());
+        if (!is_execution())
+            add_child(_create_type_icon(show_icons));
     }
 }
 
-TextureRect* OrchestratorGraphNodePin::_create_type_icon()
+TextureRect* OrchestratorGraphNodePin::_create_type_icon(bool p_visible)
 {
-    TextureRect* rect = memnew(TextureRect);
+    _icon = memnew(TextureRect);
     String value_type_name = _pin->get_pin_type_name();
-    rect->set_texture(SceneUtils::get_editor_icon(value_type_name));
-    rect->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+    _icon->set_texture(SceneUtils::get_editor_icon(value_type_name));
+    _icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
 
-    if (_pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
-        rect->set_visible(false);
+    if (_pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN) || !p_visible)
+        _icon->set_visible(false);
 
-    return rect;
+    return _icon;
 }
 
 Label* OrchestratorGraphNodePin::_create_label()

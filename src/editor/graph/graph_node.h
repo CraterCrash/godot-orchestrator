@@ -58,6 +58,7 @@ private:
         CM_TOGGLE_BREAKPOINT,
         CM_ADD_BREAKPOINT,
         CM_VIEW_DOCUMENTATION,
+        CM_RESIZABLE,
         #ifdef _DEBUG
         CM_SHOW_DETAILS = 999,
         #endif
@@ -141,6 +142,9 @@ public:
 
     /// Unlinks all connections to all pins on this node
     void unlink_all();
+
+    /// Set whether node icons are shown
+    virtual void show_icons(bool p_show_icons) { }
 
     /// Get a list of nodes within this node's global rect.
     List<OrchestratorGraphNode*> get_nodes_within_global_rect();

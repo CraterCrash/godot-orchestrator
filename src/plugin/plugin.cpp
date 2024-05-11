@@ -77,6 +77,8 @@ void OrchestratorPlugin::_notification(int p_what)
         _window_wrapper->hide();
         _window_wrapper->connect("window_visibility_changed", callable_mp(this, &OrchestratorPlugin::_on_window_visibility_changed));
 
+        _theme_cache.instantiate();
+
         _make_visible(false);
     }
     else if (p_what == NOTIFICATION_EXIT_TREE)
@@ -308,4 +310,5 @@ void register_plugin_classes()
 
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)
 }

@@ -116,6 +116,7 @@ class OrchestratorGraphEdit : public GraphEdit
     Control* _status{ nullptr };                           //! Displays status in the center of graphs
     Label* _drag_hint{ nullptr };                          //! Displays the drag status at the bottom of the graph
     Timer* _drag_hint_timer{ nullptr };                    //! Timer for drag hint messages
+    Timer* _theme_update_timer{ nullptr };
     OrchestratorGraphEdit() = default;
 
 protected:
@@ -196,6 +197,9 @@ public:
     //~ End GraphEdit overrides
 
 private:
+    /// Updates the GraphEdit theme
+    void _update_theme();
+
     /// Moves the center of the graph to the node, optionally animating the movement.
     /// @param p_node_id the node's unique id, should be greater or equal-to 0.
     /// @param p_animated whether to animate the movement, enabled by default.

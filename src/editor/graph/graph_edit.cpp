@@ -18,6 +18,8 @@
 
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
+#include "common/scene_utils.h"
+#include "common/version.h"
 #include "editor/graph/factories/graph_node_factory.h"
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
@@ -38,6 +40,7 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
+#include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/tween.hpp>
 
 OrchestratorGraphEdit::Clipboard* OrchestratorGraphEdit::_clipboard = nullptr;
@@ -85,7 +88,7 @@ EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
 OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<OScript> p_script, const String& p_name)
 {
     set_name(p_name);
-    set_minimap_enabled(false);
+    set_minimap_enabled(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_minimap", false));
     set_right_disconnects(true);
     set_show_arrange_button(false);
 
@@ -125,6 +128,8 @@ void OrchestratorGraphEdit::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        _update_theme();
+
         _drag_hint = memnew(Label);
         _drag_hint->set_anchor_and_offset(SIDE_TOP, ANCHOR_END, 0);
         _drag_hint->set_anchor_and_offset(SIDE_BOTTOM, ANCHOR_END, -50);
@@ -151,6 +156,11 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _drag_hint_timer->set_wait_time(5);
         _drag_hint_timer->connect("timeout", callable_mp(this, &OrchestratorGraphEdit::_hide_drag_hint));
         add_child(_drag_hint_timer);
+
+        _theme_update_timer = memnew(Timer);
+        _theme_update_timer->set_wait_time(.5);
+        _theme_update_timer->set_one_shot(true);
+        add_child(_theme_update_timer);
 
         #if GODOT_VERSION >= 0x040300
         _grid_pattern = memnew(OptionButton);
@@ -497,6 +507,20 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             spawn_node(node, _saved_mouse_position);
         }
     }
+}
+
+void OrchestratorGraphEdit::_update_theme()
+{
+    Ref<Font> label_font = SceneUtils::get_editor_font("main_msdf");
+    Ref<Font> label_bold_font = SceneUtils::get_editor_font("main_bold_msdf");
+
+    Ref<Theme> theme(memnew(Theme));
+    theme->set_font("font", "Label", label_font);
+    theme->set_font("font", "GraphNodeTitleLabel", label_bold_font);
+    theme->set_font("font", "LineEdit", label_font);
+    theme->set_font("font", "Button", label_font);
+
+    set_theme(theme);
 }
 
 void OrchestratorGraphEdit::_focus_node(int p_node_id, bool p_animated)
@@ -1143,7 +1167,21 @@ void OrchestratorGraphEdit::_on_context_menu_selection(int p_id)
 
 void OrchestratorGraphEdit::_on_project_settings_changed()
 {
-    _synchronize_graph_with_script();
+    if (_theme_update_timer->is_stopped())
+    {
+        _theme_update_timer->start();
+
+        OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+        bool show_icons = os->get_setting("ui/nodes/show_type_icons", true);
+        bool node_resizable = os->get_setting("ui/nodes/resizable_by_default", false);
+
+        set_minimap_enabled(os->get_setting("ui/graph/show_minimap", false));
+
+        for_each_graph_node([&](OrchestratorGraphNode* node) {
+            node->show_icons(show_icons);
+            node->set_resizable(node_resizable);
+        });
+    }
 }
 
 void OrchestratorGraphEdit::_on_inspect_script()
