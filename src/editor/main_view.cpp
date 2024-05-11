@@ -238,6 +238,7 @@ void OrchestratorMainView::_notification(int p_what)
         _script_editor_container = memnew(VBoxContainer);
         _script_editor_container->set_v_size_flags(SIZE_EXPAND_FILL);
         _script_editor_container->set_visible(false);
+        main_view_container->add_child(_script_editor_container);
 
         _landing = memnew(OrchestratorGettingStarted);
         main_view_container->add_child(_landing);
