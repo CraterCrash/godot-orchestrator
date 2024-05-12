@@ -30,7 +30,7 @@ public:
         // Break triggers node input port 1, check if that caused the step
         // If so we're done and we should exit.
         if (p_context.get_current_node_port() == 1)
-            return 1;
+            return 2;
 
         if (p_context.get_step_mode() == STEP_MODE_BEGIN)
             p_context.set_working_memory(0, 0);
@@ -93,6 +93,10 @@ void OScriptNodeForEach::post_initialize()
     if (element.is_valid() && element->get_type() == Variant::OBJECT)
         element->set_type(Variant::NIL);
 
+    // Automatically adjusts old nodes to having the new aborted node layout
+    if (_with_break && !find_pin("aborted", PD_Output).is_valid())
+        reconstruct_node();
+
     super::post_initialize();
 }
 
@@ -108,6 +112,9 @@ void OScriptNodeForEach::allocate_default_pins()
     create_pin(PD_Output, "element", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Output, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Output, "completed")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+
+    if (_with_break)
+        create_pin(PD_Output, "aborted")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
 }
 
 String OScriptNodeForEach::get_tooltip_text() const
