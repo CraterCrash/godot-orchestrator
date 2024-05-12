@@ -30,7 +30,7 @@ public:
         // Break triggers node input port 1, check if that caused the step
         // If so we're done and we should exit.
         if (p_context.get_current_node_port() == 1)
-            return 1;
+            return 2;
 
         if (p_context.get_step_mode() == STEP_MODE_BEGIN)
             p_context.set_working_memory(0, p_context.get_input(0));
@@ -99,6 +99,9 @@ bool OScriptNodeForLoop::_set(const StringName& p_name, const Variant& p_value)
 
 void OScriptNodeForLoop::post_initialize()
 {
+    if (_with_break && !find_pin("aborted", PD_Output).is_valid())
+        reconstruct_node();
+
     super::post_initialize();
 }
 
@@ -129,6 +132,9 @@ void OScriptNodeForLoop::allocate_default_pins()
     create_pin(PD_Output, "loop_body")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
     create_pin(PD_Output, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL);
     create_pin(PD_Output, "completed")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::SHOW_LABEL);
+
+    if (_with_break)
+        create_pin(PD_Output, "aborted")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::SHOW_LABEL);
 
     super::allocate_default_pins();
 }
