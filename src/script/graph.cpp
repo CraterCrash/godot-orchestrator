@@ -51,8 +51,38 @@ void OScriptGraph::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_functions"), &OScriptGraph::get_functions);
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "functions"), "set_functions", "get_functions");
 
+    ClassDB::bind_method(D_METHOD("_set_knots", "knots"), &OScriptGraph::_set_knots);
+    ClassDB::bind_method(D_METHOD("_get_knots"), &OScriptGraph::_get_knots);
+    ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "knots"), "_set_knots", "_get_knots");
+
     ADD_SIGNAL(MethodInfo("node_added", PropertyInfo(Variant::INT, "node_id")));
     ADD_SIGNAL(MethodInfo("node_removed", PropertyInfo(Variant::INT, "node_id")));
+    ADD_SIGNAL(MethodInfo("knots_updated"));
+}
+
+TypedArray<Dictionary> OScriptGraph::_get_knots() const
+{
+    TypedArray<Dictionary> results;
+    for (const KeyValue<uint64_t, PackedVector2Array>& E : _knots)
+    {
+        Dictionary data;
+        data["id"] = E.key;
+        data["points"] = E.value;
+        results.push_back(data);
+    }
+    return results;
+}
+
+void OScriptGraph::_set_knots(const TypedArray<Dictionary>& p_knots)
+{
+    _knots.clear();
+    for (int i = 0; i < p_knots.size(); i++)
+    {
+        const Dictionary& data = p_knots[i];
+        const uint64_t id = data["id"];
+        const PackedVector2Array points = data["points"];
+        _knots[id] = points;
+    }
 }
 
 OScript* OScriptGraph::get_owning_script() const
@@ -175,4 +205,15 @@ void OScriptGraph::add_function(int p_node_id)
 void OScriptGraph::remove_function(int p_node_id)
 {
     _functions.erase(p_node_id);
+}
+
+const HashMap<uint64_t, PackedVector2Array>& OScriptGraph::get_knots() const
+{
+    return _knots;
+}
+
+void OScriptGraph::set_knots(const HashMap<uint64_t, PackedVector2Array>& p_knots)
+{
+    _knots = p_knots;
+    emit_signal("knots_updated");
 }

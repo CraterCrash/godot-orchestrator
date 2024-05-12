@@ -62,8 +62,19 @@ struct OScriptConnection
     // Default constructor that assigns all bits to zero.
     OScriptConnection() : from_node(0), from_port(0), to_node(0), to_port(0) {}
 
+    // Constructor for explicit id
+    explicit OScriptConnection(uint64_t p_id) : id(p_id) {}
+
     // Needed for associative containers, i.e. RBSet
     bool operator<(const OScriptConnection& p_connection) const { return id < p_connection.id; }
+
+    //~ Begin Serialization Helpers
+    static OScriptConnection from_dict(const Dictionary& p_dict);
+    Dictionary to_dict() const;
+    //~ End Serialization Helpers
+
+    /// Get the connection as a formatted string
+    String to_string() const { return vformat("%d:%d to %d:%d", from_node, from_port, to_node, to_port); }
 };
 
 /// Defines the script extension for Orchestrations.

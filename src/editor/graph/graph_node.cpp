@@ -531,6 +531,29 @@ List<OrchestratorGraphNode*> OrchestratorGraphNode::get_nodes_within_global_rect
     return results;
 }
 
+int32_t OrchestratorGraphNode::get_port_at_position(const Vector2& p_position, EPinDirection p_direction)
+{
+    if (p_direction == PD_Input)
+    {
+        Vector2 adjusted = p_position - get_position_offset();
+        for (int i = 0; i < get_input_port_count(); i++)
+        {
+            if (get_input_port_position(i) == adjusted)
+                return i;
+        }
+    }
+    else if (p_direction == PD_Output)
+    {
+        Vector2 adjusted = p_position - get_position_offset();
+        for (int i = 0; i < get_output_port_count(); i++)
+        {
+            if (get_output_port_position(i) == adjusted)
+                return i;
+        }
+    }
+    return -1;
+}
+
 void OrchestratorGraphNode::_on_node_moved([[maybe_unused]] Vector2 p_old_pos, Vector2 p_new_pos)
 {
     _node->set_position(p_new_pos);

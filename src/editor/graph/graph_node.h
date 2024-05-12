@@ -151,6 +151,12 @@ public:
     /// Get a list of nodes within this node's global rect.
     List<OrchestratorGraphNode*> get_nodes_within_global_rect();
 
+    /// Get the specified point index at the given position and direction
+    /// @param p_position the position
+    /// @param p_direction the direction
+    /// @return the point index
+    int32_t get_port_at_position(const Vector2& p_position, EPinDirection p_direction);
+
     // Group API
 
     virtual bool is_groupable() const { return false; }
