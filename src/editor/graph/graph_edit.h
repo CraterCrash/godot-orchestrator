@@ -22,10 +22,12 @@
 #include "graph_node.h"
 
 #include <functional>
+
 #include <godot_cpp/classes/curve2d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
 #include <godot_cpp/classes/option_button.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/timer.hpp>
 
 using namespace godot;
@@ -33,7 +35,17 @@ using namespace godot;
 // Forward declarations
 class OScript;
 class OScriptNode;
+class OrchestratorGraphKnot;
 class OrchestratorPlugin;
+
+/// Helper class for storing a reference to a position for the knot in the graph
+class OrchestratorKnotPoint : public RefCounted
+{
+    GDCLASS(OrchestratorKnotPoint, RefCounted);
+    static void _bind_methods() {}
+public:
+    Vector2 point; //! The knot position
+};
 
 /// A custom implementation of the Godot GraphEdit class that provides a node-based
 /// workspace for editing Orchestrations.
@@ -48,6 +60,8 @@ class OrchestratorPlugin;
 class OrchestratorGraphEdit : public GraphEdit
 {
     GDCLASS(OrchestratorGraphEdit, GraphEdit);
+
+    typedef OrchestratorKnotPoint KnotPoint;
 
     enum ContextMenuIds
     {
@@ -117,6 +131,9 @@ class OrchestratorGraphEdit : public GraphEdit
     Timer* _drag_hint_timer{ nullptr };                    //! Timer for drag hint messages
     Timer* _theme_update_timer{ nullptr };
     Button* _base_type_button{ nullptr };
+    Dictionary _hovered_connection;                        //! Hovered connection details
+    HashMap<uint64_t, Vector<Ref<KnotPoint>>> _knots;      //! Knots for each graph connection
+
     OrchestratorGraphEdit() = default;
 
 protected:
@@ -193,15 +210,50 @@ public:
     /// @param p_func the lambda to be applied
     void for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func);
 
+    /// Execute the specified action
+    /// @param p_action_name the action to execute
     void execute_action(const String& p_action_name);
 
+    #if GODOT_VERSION < 0x040300
+    /// Backport of Godot 4.3's get_closest_connection_at_point
+    /// @param p_position the mouse position
+    /// @param p_max_distance the max distance to calculate against
+    /// @return the connection closest to the point
+    Dictionary get_closest_connection_at_point(const Vector2& p_position, float p_max_distance = 4.0f);
+    #endif
+
+    /// Find the closest curve segment that has the specified point
+    /// @param p_points the curve points to inspect
+    /// @param p_point the point to locate
+    /// @return the curve segment where the point exists
+    int find_segment_with_closest_containing_point(const PackedVector2Array& p_points, const Vector2& p_point);
+
     //~ GraphEdit overrides
+    void _gui_input(const Ref<InputEvent>& p_event) override;
     bool _can_drop_data(const Vector2& p_position, const Variant& p_data) const override;
     void _drop_data(const Vector2& p_position, const Variant& p_data) override;
     bool _is_node_hover_valid(const StringName& p_from, int p_from_port, const StringName& p_to, int p_to_port) override;
+    PackedVector2Array _get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const override;
     //~ End GraphEdit overrides
 
 private:
+    /// Caches the graph knots for use.
+    /// Copies the knot data from the OScriptGraph to this GraphEdit instance.
+    void _cache_connection_knots();
+
+    /// Stores the cached graph knots data from this GraphEdit to the OScriptGraph.
+    void _store_connection_knots();
+
+    /// Get all knot points for the specified connection.
+    /// @param p_connection the connection
+    /// @return array of connection knot points, may be empty if no knots are defined
+    PackedVector2Array _get_connection_knot_points(const OScriptConnection& p_connection) const;
+
+    /// Creates a connection wire knot
+    /// @param p_connection the connection
+    /// @param p_position the position to created the knot
+    void _create_connection_knot(const Dictionary& p_connection, const Vector2& p_position);
+
     /// Updates the GraphEdit theme
     void _update_theme();
 
@@ -215,10 +267,11 @@ private:
     /// @return the graph node or nullptr if not found
     OrchestratorGraphNode* _get_node_by_id(int p_id);
 
-    /// Get a specific script graph node by its name
-    /// @param p_name the node name
-    /// @return the graph node or nullptr if not found
-    OrchestratorGraphNode* _get_node_by_name(const StringName& p_name);
+    /// Get a specific child node by its name.
+    /// @param p_name the name of the child
+    /// @return the child instance if found and if the child with the name is of type T; otherwise null.
+    template<typename T>
+    T* _get_by_name(const StringName& p_name) { return Object::cast_to<T>(get_node_or_null(NodePath(p_name))); }
 
     /// Helper method that removes all nodes from the graph.
     /// This can be useful when a full resync of the graph is needed.
@@ -234,6 +287,9 @@ private:
     /// This removes all connections in the graph and redraws them based
     /// on the state in the associated script, leaving the nodes as-is.
     void _synchronize_graph_connections_with_script();
+
+    /// Synchronizes the graph knots
+    void _synchronize_graph_knots();
 
     /// Updates only the specific graph node
     /// @param p_node the node to update.
