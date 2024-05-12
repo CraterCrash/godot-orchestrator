@@ -16,12 +16,14 @@
 //
 #include "graph_edit.h"
 
+#include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
 #include "common/version.h"
 #include "editor/graph/factories/graph_node_factory.h"
+#include "editor/graph/graph_knot.h"
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
@@ -34,8 +36,11 @@
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
+#include <godot_cpp/classes/geometry2d.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_action.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/input_event_mouse_motion.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -100,6 +105,8 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<O
 
     _script = p_script;
     _script_graph = _script->get_graph(p_name);
+
+    _cache_connection_knots();
 
     // Add action menu
     _action_menu = memnew(OrchestratorGraphActionMenu(this));
@@ -237,6 +244,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
 
         _synchronize_graph_with_script(_deferred_tween_node == -1);
         _focus_node(_deferred_tween_node);
+        callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots).call_deferred();
     }
     else if (p_what == NOTIFICATION_THEME_CHANGED)
     {
@@ -313,6 +321,7 @@ void OrchestratorGraphEdit::apply_changes()
     // During save update the graph-specific data points
     _script_graph->set_viewport_offset(get_scroll_offset());
     _script_graph->set_viewport_zoom(get_zoom());
+    _store_connection_knots();
 }
 
 void OrchestratorGraphEdit::post_apply_changes()
@@ -378,6 +387,142 @@ void OrchestratorGraphEdit::execute_action(const String& p_action_name)
     Input::get_singleton()->parse_input_event(action);
 }
 
+#if GODOT_VERSION < 0x040300
+
+static Vector2 get_closest_point_to_segment(const Vector2& p_point, const Vector2* p_segment)
+{
+    Vector2 p = p_point - p_segment[0];
+    Vector2 n = p_segment[1] - p_segment[0];
+    real_t l2 = n.length_squared();
+
+    if (l2 < 1e-20f)
+        return p_segment[0]; // Both points are the same, just give any.
+
+    real_t d = n.dot(p) / l2;
+
+    if (d <= 0.0f)
+        return p_segment[0]; // Before first point.
+    else if (d >= 1.0f)
+        return p_segment[1]; // After first point.
+    else
+        return p_segment[0] + n * d; // Inside.
+}
+
+static float get_distance_to_segment(const Vector2& p_point, const Vector2* p_segment)
+{
+    return p_point.distance_to(get_closest_point_to_segment(p_point, p_segment));
+}
+
+Dictionary OrchestratorGraphEdit::get_closest_connection_at_point(const Vector2& p_position, float p_max_distance)
+{
+    Vector2 transformed_point = p_position + get_scroll_offset();
+
+    Dictionary closest_connection;
+    float closest_distance = p_max_distance;
+
+    TypedArray<Dictionary> connections = get_connection_list();
+    for (int i = 0; i < connections.size(); i++)
+    {
+        const Dictionary& connection = connections[i];
+
+        OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(String(connection["from_node"]));
+        if (!source)
+            continue;
+
+        OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(String(connection["to_node"]));
+        if (!target)
+            continue;
+
+        // What is cached
+        Vector2 from_pos = source->get_output_port_position(int32_t(connection["from_port"])) + source->get_position_offset();
+        Vector2 to_pos = target->get_input_port_position(int32_t(connection["to_port"])) + target->get_position_offset();
+
+        PackedVector2Array points = get_connection_line(from_pos * get_zoom(), to_pos * get_zoom());
+        if (points.is_empty())
+            continue;
+
+        Rect2 aabb(points[0], Vector2());
+        for (int j = 0; j < points.size(); j++)
+            aabb = aabb.expand(points[j]);
+        aabb.grow_by(get_connection_lines_thickness() * 0.5);
+
+        if (aabb.distance_to(transformed_point) > p_max_distance)
+            continue;
+
+        for (int j = 0; j < points.size(); j++)
+        {
+            float distance = get_distance_to_segment(transformed_point, &points[j]);
+            if (distance <= get_connection_lines_thickness() * 0.5 + p_max_distance && distance< closest_distance)
+            {
+                closest_distance = distance;
+                closest_connection = connection;
+            }
+        }
+    }
+    return closest_connection;
+}
+#endif
+
+int OrchestratorGraphEdit::find_segment_with_closest_containing_point(const PackedVector2Array& p_array, const Vector2& p_point)
+{
+    float min_distance = INFINITY;
+    int index = -1;
+
+    for (int i = 0; i < p_array.size() - 1; i++)
+    {
+        const Vector2& p1 = p_array[i];
+        const Vector2& p2 = p_array[i + 1];
+
+        Vector2 line_vector = p2 - p1;
+        Vector2 point_vector = p_point - p1;
+
+        float line_length = line_vector.length();
+        Vector2 line_unit_vector = line_vector / line_length;
+        Vector2 point_vec_scaled = point_vector * (1.0 / line_length);
+
+        const float t = line_unit_vector.dot(point_vec_scaled);
+        Vector2 nearest = Math::clamp(t, 0.0f, 1.0f) * line_vector;
+
+        const float distance = (p1 + nearest - p_point).length();
+        if (distance < min_distance)
+        {
+            min_distance = distance;
+            index = i;
+        }
+    }
+    return index;
+}
+
+void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
+{
+    GraphEdit::_gui_input(p_event);
+
+    Ref<InputEventMouseMotion> mm = p_event;
+    if (mm.is_valid())
+    {
+        _hovered_connection = get_closest_connection_at_point(mm->get_position());
+        if (!_hovered_connection.is_empty())
+        {
+            _show_drag_hint("Use Ctrl+LMB to add a knot to the connection.\n"
+                "Hover over an existing knot and pressing Ctrl+LMB will remove it.");
+        }
+    }
+
+    Ref<InputEventMouseButton> mb = p_event;
+    if (mb.is_valid())
+    {
+        if (mb->get_button_index() == MOUSE_BUTTON_LEFT && mb->is_pressed())
+        {
+            if (mb->get_modifiers_mask().has_flag(KEY_MASK_CTRL))
+            {
+                // CTRL+LMB adds a knot to the connection that can then be moved.
+                if (!_hovered_connection.is_empty())
+                    _create_connection_knot(_hovered_connection, mb->get_position());
+            }
+        }
+    }
+}
+
 bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Variant& p_data) const
 {
     if (p_data.get_type() != Variant::DICTIONARY)
@@ -400,7 +545,7 @@ bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Vari
     if (allowed_types.has(type))
     {
         if (type == "variable")
-            _show_drag_hint("Hint: Use Ctrl to drop a Setter, Shift to drop a Getter");
+            _show_drag_hint("Use Ctrl to drop a Setter, Shift to drop a Getter");
 
         return true;
     }
@@ -558,6 +703,82 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
     }
 }
 
+void OrchestratorGraphEdit::_cache_connection_knots()
+{
+    for (const KeyValue<uint64_t, PackedVector2Array>& E : _script_graph->get_knots())
+    {
+        Vector<Ref<KnotPoint>> points;
+        for (const Vector2& point : E.value)
+        {
+            Ref<KnotPoint> knot(memnew(KnotPoint));
+            knot->point = point;
+            points.push_back(knot);
+        }
+        _knots[E.key] = points;
+    }
+}
+
+void OrchestratorGraphEdit::_store_connection_knots()
+{
+    HashMap<uint64_t, PackedVector2Array> knots;
+    for (const KeyValue<uint64_t, Vector<Ref<KnotPoint>>>& E : _knots)
+    {
+        PackedVector2Array array;
+        for (int i = 0; i < E.value.size(); i++)
+            array.push_back(E.value[i]->point);
+
+        knots[E.key] = array;
+    }
+    _script_graph->set_knots(knots);
+}
+
+PackedVector2Array OrchestratorGraphEdit::_get_connection_knot_points(const OScriptConnection& p_connection) const
+{
+    PackedVector2Array array;
+    if (_knots.has(p_connection.id))
+    {
+        const Vector<Ref<KnotPoint>>& points = _knots[p_connection.id];
+        for (int i = 0; i < points.size(); i++)
+            array.push_back(points[i]->point);
+    }
+    return array;
+}
+
+void OrchestratorGraphEdit::_create_connection_knot(const Dictionary& p_connection, const Vector2& p_position)
+{
+    const Vector2 position = p_position / get_zoom();
+    const Vector2 transformed_position = position + get_scroll_offset();
+
+    const OScriptConnection connection = OScriptConnection::from_dict(p_connection);
+    const PackedVector2Array knot_points = _get_connection_knot_points(connection);
+
+    OrchestratorGraphNode* source = _get_node_by_id(connection.from_node);
+    OrchestratorGraphNode* target = _get_node_by_id(connection.to_node);
+    if (!source || !target)
+        return;
+
+    const Vector2 from_position = source->get_output_port_position(connection.from_port) + source->get_position_offset();
+    const Vector2 to_position = target->get_input_port_position(connection.to_port) + target->get_position_offset();
+
+    PackedVector2Array points;
+    points.push_back(from_position);
+    points.append_array(knot_points);
+    points.push_back(to_position);
+
+    const int closest_segment = find_segment_with_closest_containing_point(points, transformed_position);
+
+    if (!_knots.has(connection.id))
+        _knots[connection.id] = Vector<Ref<KnotPoint>>();
+
+    Ref<KnotPoint> point(memnew(KnotPoint));
+    point->point = transformed_position;
+
+    _knots[connection.id].insert(closest_segment, point);
+
+    _store_connection_knots();
+    _synchronize_graph_knots();
+}
+
 void OrchestratorGraphEdit::_update_theme()
 {
     Ref<Font> label_font = SceneUtils::get_editor_font("main_msdf");
@@ -609,9 +830,9 @@ void OrchestratorGraphEdit::_focus_node(int p_node_id, bool p_animated)
 
 bool OrchestratorGraphEdit::_is_node_hover_valid(const StringName& p_from, int p_from_port, const StringName& p_to, int p_to_port)
 {
-    if (OrchestratorGraphNode* source = _get_node_by_name(p_from))
+    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from))
     {
-        if (OrchestratorGraphNode* target = _get_node_by_name(p_to))
+        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_to))
         {
             OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_from_port);
             OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_to_port);
@@ -622,14 +843,73 @@ bool OrchestratorGraphEdit::_is_node_hover_valid(const StringName& p_from, int p
     return false;
 }
 
-OrchestratorGraphNode* OrchestratorGraphEdit::_get_node_by_id(int p_id)
+PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const
 {
-    return _get_node_by_name(itos(p_id));
+    // Calculate the from node and port from the from position
+    int from_node = -1;
+    int32_t from_port = -1;
+    for (int i = 0; i < get_child_count() && from_port == -1; i++)
+    {
+        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
+        {
+            from_port = node->get_port_at_position(p_from_position, PD_Output);
+            from_node = node->get_script_node_id();
+        }
+    }
+
+    // Calculate the to node and port from the to position
+    int to_node = -1;
+    int32_t to_port = -1;
+    for (int i = 0; i < get_child_count() && to_port == -1; i++)
+    {
+        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
+        {
+            to_port = node->get_port_at_position(p_to_position, PD_Input);
+            to_node = node->get_script_node_id();
+        }
+    }
+
+    // Create array of points from the from position to the to position, including all existing knots
+    PackedVector2Array points;
+    points.push_back(p_from_position);
+    if (from_port != -1 && to_port != -1)
+    {
+        OScriptConnection c;
+        c.from_node = from_node;
+        c.from_port = from_port;
+        c.to_node = to_node;
+        c.to_port = to_port;
+
+        points.append_array(_get_connection_knot_points(c));
+    }
+    points.push_back(p_to_position);
+
+    // For all points, calculate the bezier curve from point to point
+    PackedVector2Array curve_points;
+    for (int i = 0; i < points.size() - 1; i++)
+    {
+        float x_diff = (points[i].x - points[i+1].x);
+        float cp_offset = x_diff * get_connection_lines_curvature();
+        if (x_diff < 0)
+            cp_offset *= -1;
+
+        Curve2D curve;
+        curve.add_point(points[i]);
+        curve.set_point_out(0, Vector2(cp_offset, 0));
+        curve.add_point(points[i + 1]);
+        curve.set_point_in(1, Vector2(-cp_offset, 0));
+
+        if (get_connection_lines_curvature() > 0)
+            curve_points.append_array(curve.tessellate(5, 2.0));
+        else
+            curve_points.append_array(curve.tessellate(1));
+    }
+    return curve_points;
 }
 
-OrchestratorGraphNode* OrchestratorGraphEdit::_get_node_by_name(const StringName& p_name)
+OrchestratorGraphNode* OrchestratorGraphEdit::_get_node_by_id(int p_id)
 {
-    return Object::cast_to<OrchestratorGraphNode>(get_node_or_null(NodePath(p_name)));
+    return _get_by_name<OrchestratorGraphNode>(itos(p_id));
 }
 
 void OrchestratorGraphEdit::_remove_all_nodes()
@@ -692,6 +972,51 @@ void OrchestratorGraphEdit::_synchronize_graph_connections_with_script()
             continue;
 
         connect_node(itos(E.from_node), E.from_port, itos(E.to_node), E.to_port);
+    }
+}
+
+void OrchestratorGraphEdit::_synchronize_graph_knots()
+{
+    // Remove all nodes from the graph.
+    List<GraphElement*> removables;
+    for (int i = 0; i < get_child_count(); i++)
+    {
+        if (OrchestratorGraphKnot* knot = Object::cast_to<OrchestratorGraphKnot>(get_child(i)))
+            removables.push_back(knot);
+    }
+
+    for (GraphElement* knot : removables)
+    {
+        remove_child(knot);
+        knot->queue_free();
+    }
+
+    for (const KeyValue<uint64_t, Vector<Ref<KnotPoint>>>& E : _knots)
+    {
+        OScriptConnection connection(E.key);
+
+        OrchestratorGraphNode* source = _get_node_by_id(connection.from_node);
+        if (!source)
+            continue;
+
+        for (int i = 0; i < E.value.size(); i++)
+        {
+            const Ref<KnotPoint>& point = E.value[i];
+
+            OrchestratorGraphKnot* graph_knot = memnew(OrchestratorGraphKnot);
+            graph_knot->set_owning_script(_script);
+            graph_knot->set_connection(connection);
+            graph_knot->set_knot(point);
+            graph_knot->set_color(source->get_output_port_color(connection.from_port));
+            add_child(graph_knot);
+
+            graph_knot->connect("knot_position_changed", callable_mp_lambda(this, [&](const Vector2& position) {
+                _synchronize_graph_connections_with_script();
+            }));
+            graph_knot->connect("knot_delete_requested", callable_mp_lambda(this, [&](const String& name) {
+               _on_delete_nodes_requested(Array::make(name));
+            }));
+        }
     }
 }
 
@@ -792,7 +1117,11 @@ void OrchestratorGraphEdit::_update_saved_mouse_position(const Vector2& p_positi
 
 void OrchestratorGraphEdit::_show_drag_hint(const godot::String& p_message) const
 {
-    _drag_hint->set_text(p_message);
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    if (!os->get_setting("ui/graph/show_overlay_action_tooltips", true))
+        return;
+
+    _drag_hint->set_text("Hint:\n" + p_message);
     _drag_hint->show();
     _drag_hint_timer->start();
 }
@@ -806,7 +1135,7 @@ void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from
 {
     _drag_context.start_drag(p_from, p_from_port, p_output);
 
-    if (OrchestratorGraphNode* source = _get_node_by_name(p_from))
+    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from))
     {
         if (p_output)
         {
@@ -867,9 +1196,9 @@ void OrchestratorGraphEdit::_on_connection(const StringName& p_from_node, int p_
 {
     _drag_context.reset();
 
-    if (OrchestratorGraphNode* source = _get_node_by_name(p_from_node))
+    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from_node))
     {
-        if (OrchestratorGraphNode* target = _get_node_by_name(p_to_node))
+        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_to_node))
         {
             OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_from_port);
             OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_to_port);
@@ -885,9 +1214,9 @@ void OrchestratorGraphEdit::_on_connection(const StringName& p_from_node, int p_
 void OrchestratorGraphEdit::_on_disconnection(const StringName& p_from_node, int p_from_port, const StringName& p_to_node,
                                     int p_to_port)
 {
-    if (OrchestratorGraphNode* source = _get_node_by_name(p_from_node))
+    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from_node))
     {
-        if (OrchestratorGraphNode* target = _get_node_by_name(p_to_node))
+        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_to_node))
         {
             OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_from_port);
             OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_to_port);
@@ -902,7 +1231,7 @@ void OrchestratorGraphEdit::_on_disconnection(const StringName& p_from_node, int
 
 void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& p_to_node, int p_to_port, const Vector2& p_position)
 {
-    OrchestratorGraphNode* node = _get_node_by_name(p_to_node);
+    OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(p_to_node);
     ERR_FAIL_COND_MSG(!node, "Unable to find graph node with name " + p_to_node);
 
     OrchestratorGraphNodePin* pin = node->get_input_pin(p_to_port);
@@ -936,7 +1265,7 @@ void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& 
 void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_from_node, int p_from_port,
                                                   const Vector2& p_position)
 {
-    OrchestratorGraphNode* node = _get_node_by_name(p_from_node);
+    OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(p_from_node);
     ERR_FAIL_COND_MSG(!node, "Unable to find graph node with name " + p_from_node);
 
     OrchestratorGraphNodePin* pin = node->get_output_pin(p_from_port);
@@ -992,9 +1321,9 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
 
         if (!selected_nodes.is_empty())
         {
-            for_each_graph_node([&](OrchestratorGraphNode* node) {
-                node->set_all_inputs_opacity(0.3f);
-                node->set_all_outputs_opacity(0.3f);
+            for_each_graph_node([&](OrchestratorGraphNode* loop_node) {
+                loop_node->set_all_inputs_opacity(0.3f);
+                loop_node->set_all_outputs_opacity(0.3f);
             });
         }
 
@@ -1086,7 +1415,7 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
 {
     for (const String& node_name : p_node_names)
     {
-        if (OrchestratorGraphNode* node = _get_node_by_name(node_name))
+        if (OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(node_name))
         {
             if (!node->get_script_node()->can_user_delete_node())
             {
@@ -1094,7 +1423,7 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
                     "It may be that this node represents a function entry or some other node type that requires "
                     "deletion via the component menu instead.";
 
-                _confirm_window->set_initial_position(godot::Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
+                _confirm_window->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
                 _confirm_window->set_text(vformat(message, node->get_script_node_id(), node->get_title().strip_edges()));
                 _confirm_window->set_title("Delete canceled");
                 _confirm_window->reset_size();
@@ -1104,9 +1433,26 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
         }
     }
 
+    PackedStringArray knot_names;
+
     for (const String& node_name : p_node_names)
     {
-        OrchestratorGraphNode* node = _get_node_by_name(node_name);
+        if (OrchestratorGraphKnot* knot = _get_by_name<OrchestratorGraphKnot>(node_name))
+        {
+            knot_names.push_back(node_name);
+
+            if (knot->is_selected())
+                knot->set_selected(false);
+
+            const OScriptConnection connection = knot->get_connection();
+            if (_knots.has(connection.id))
+                _knots[connection.id].erase(knot->get_knot());
+
+            knot->queue_free();
+            continue;
+        }
+
+        OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(node_name);
         if (!node)
         {
             ERR_PRINT("Cannot find node with name " + node_name + " to delete");
@@ -1122,6 +1468,9 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
 
     if (!p_node_names.is_empty())
         emit_signal("nodes_changed");
+
+    if (!knot_names.is_empty())
+        _synchronize_graph_connections_with_script();
 }
 
 void OrchestratorGraphEdit::_on_right_mouse_clicked(const Vector2& p_position)

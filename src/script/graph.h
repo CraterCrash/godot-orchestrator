@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_SCRIPT_GRAPH_H
 
 #include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/rb_set.hpp>
 
 using namespace godot;
@@ -50,16 +51,21 @@ public:
     };
 
 private:
-    OScript* _script{ nullptr };       //! Owning script
-    StringName _name;                  //! Unique name for this graph
-    Vector2 _offset;                   //! Viewport offset
-    double _zoom{ 1.f };               //! Viewport zoom
-    BitField<GraphFlags> _flags{ 0 };  //! Flags
-    RBSet<int> _nodes;                 //! Set of node ids that participate in this graph
-    RBSet<int> _functions;             //! Set of node ids that represent entry points or functions
+    OScript* _script{ nullptr };                   //! Owning script
+    StringName _name;                              //! Unique name for this graph
+    Vector2 _offset;                               //! Viewport offset
+    double _zoom{ 1.f };                           //! Viewport zoom
+    BitField<GraphFlags> _flags{ 0 };              //! Flags
+    RBSet<int> _nodes;                             //! Set of node ids that participate in this graph
+    RBSet<int> _functions;                         //! Set of node ids that represent entry points or functions
+    HashMap<uint64_t, PackedVector2Array> _knots;  //! Knots for each graph connection
+
+    //~ Begin Serialization
+    TypedArray<Dictionary> _get_knots() const;
+    void _set_knots(const TypedArray<Dictionary>& p_knots);
+    //~ End Serialization
 
 public:
-
     /// Get the owning Orchestrator script
     /// @return the orchestrator script
     OScript* get_owning_script() const;
@@ -141,6 +147,13 @@ public:
     /// @param p_functions array of function node ids that are part of this graph
     void set_functions(const TypedArray<int>& p_functions);
 
+    /// Get an immutable map of knots for this graph's connections.
+    /// @return knot map
+    const HashMap<uint64_t, PackedVector2Array>& get_knots() const;
+
+    /// Sets the knot map for this graph's connections
+    /// @param p_knots the knot map
+    void set_knots(const HashMap<uint64_t, PackedVector2Array>& p_knots);
 };
 
 VARIANT_BITFIELD_CAST(OScriptGraph::GraphFlags)

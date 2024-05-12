@@ -144,6 +144,8 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
 
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
+    _settings.emplace_back(BOOL_SETTING("ui/graph/show_overlay_action_tooltips", true));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f)));
 
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/resizable_by_default", false));

@@ -30,6 +30,26 @@
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+OScriptConnection OScriptConnection::from_dict(const Dictionary& p_dict)
+{
+    OScriptConnection conn;
+    conn.from_node = StringName(p_dict["from_node"]).to_int();
+    conn.from_port = p_dict["from_port"];
+    conn.to_node = StringName(p_dict["to_node"]).to_int();
+    conn.to_port = p_dict["to_port"];
+    return conn;
+}
+
+Dictionary OScriptConnection::to_dict() const
+{
+    Dictionary d;
+    d["from_node"] = StringName(itos(from_node));
+    d["from_port"] = from_port;
+    d["to_node"] = StringName(itos(to_node));
+    d["to_port"] = to_port;
+    return d;
+}
+
 OScript::OScript()
     : _valid(true)
     , _base_type("Object")

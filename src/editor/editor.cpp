@@ -37,6 +37,7 @@
 #include "editor/search/variable_classification_dialog.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
+#include "graph/graph_knot.h"
 #include "main_view.h"
 #include "script_connections.h"
 #include "script_view.h"
@@ -91,10 +92,12 @@ void register_editor_classes()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphEdit)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNode)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePin)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorKnotPoint)
 
     // Graph Node Type
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodeDefault)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodeComment)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphKnot)
 
     // Pin Helpers
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSceneTreeDialog)
