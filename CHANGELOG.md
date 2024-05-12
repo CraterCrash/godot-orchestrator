@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## [2.1.dev2](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.dev2) - 2024-05-12
+
+- [0aada9d](http://github.com/Vahera/godot-orchestrator/commit/0aada9d8bb379748f9e73745c11bb94ff778f035) - GH-78 Support graph connection wire knots
+- [aa7daa0](http://github.com/Vahera/godot-orchestrator/commit/aa7daa021156599ddc1635b128a05ab26a8a8e99) - GH-347 Improve base type indicator on graph toolbar
+- [e950b60](http://github.com/Vahera/godot-orchestrator/commit/e950b609c2a8f5789090cfda17dc2078cc0e8799) - Remove unused assignment
+- [50fcd4d](http://github.com/Vahera/godot-orchestrator/commit/50fcd4dfc43b011b7bb968de4a508adde55d1b72) - GH-156 Collapse nodes to function and expand node feature
+- [234b209](http://github.com/Vahera/godot-orchestrator/commit/234b209bd166e2d5081326951438862cc3ef4a87) - GH-339 Retain/store variable type filter across popup/restarts
+- [78a75fe](http://github.com/Vahera/godot-orchestrator/commit/78a75fea206861931146e9e5ae224633b6e5a21c) - GH-345 Fix regression
+- [6eb9d2a](http://github.com/Vahera/godot-orchestrator/commit/6eb9d2ab82f41dd2af334e4d82bf5fc786c705a1) - GH-343 Improve node styles, fidelity, and usability
+- [677a920](http://github.com/Vahera/godot-orchestrator/commit/677a920b95fe51c5bd727da91654ddf2c1a3e232) - GH-345 Add landing page to main view
+- [44c7055](http://github.com/Vahera/godot-orchestrator/commit/44c7055c85b06040addcdb453d4691a8e2ac417e) - GH-301 Support class/enum/bitfield based variables
+- [d7df658](http://github.com/Vahera/godot-orchestrator/commit/d7df658a4113e0acb278a9e37cbdad54d867d16c) - GH-242 Add impl for ScriptLanguageExtension::_preferred_file_name_casing
+- [49b21a5](http://github.com/Vahera/godot-orchestrator/commit/49b21a5fbe218f2e44accfeaa813a1f8b7f368e4) - GH-221 View doc jump to class/constant/method Godot doc
+- [3896d22](http://github.com/Vahera/godot-orchestrator/commit/3896d22be7e9934f70270a7f2addabff7ddd106c) - GH-330 Fix Self node broken icon
+- [340c512](http://github.com/Vahera/godot-orchestrator/commit/340c512a946e40df799bb9a2bcda3dbf7766d388) - GH-333 Implement GridPattern support for Godot 4.3
+- [692d3b2](http://github.com/Vahera/godot-orchestrator/commit/692d3b2217a479ec65f5868f9a1d0cce59f3170c) - GH-76 Add scroll to item signal
+- [d0c5e5d](http://github.com/Vahera/godot-orchestrator/commit/d0c5e5d5049056089d5dbfdcf5f926d5c8f25396) - GH-327 Fix editor crash on invalid reference
+- [671ba65](http://github.com/Vahera/godot-orchestrator/commit/671ba65e26c65aca7161864abb6229ad9d1cd992) - [ci] Fix workflow
+- [ead3e5f](http://github.com/Vahera/godot-orchestrator/commit/ead3e5f72a09318edf7fe075ce5ced2f7e0528ba) - [ci] Add arguments to change-log workflow
+- [b9317fe](http://github.com/Vahera/godot-orchestrator/commit/b9317fed34778e93b965cbe558a17f1d74b98928) - GH-284 Add support for static functions
+- [9a97c2a](http://github.com/Vahera/godot-orchestrator/commit/9a97c2ab42a7dab32646c8047723eb354b399750) - GH-321 Persist `For Each` node's "with break" status
+- [1f82cf0](http://github.com/Vahera/godot-orchestrator/commit/1f82cf0efcd352fe360a1eede7c06687f4c5e28f) - GH-323 Fix persisting enum default value choices
+- [c0289a7](http://github.com/Vahera/godot-orchestrator/commit/c0289a7af4c03e984cc885e14b1289d2ab397829) - GH-315 Have `For Each` set Element as `Any`
+- [79e3a90](http://github.com/Vahera/godot-orchestrator/commit/79e3a908afdc5df24d85665316eee7aac6126680) - GH-318 Add `Dictionary Set` node
+- [2d45ebc](http://github.com/Vahera/godot-orchestrator/commit/2d45ebc78ba41a413e96267646d9562b4a3860f7) - GH-313 Add Godot version compile-time constant
+- [5f06fc6](http://github.com/Vahera/godot-orchestrator/commit/5f06fc6deb62bb49757f3e7c38307397a209f593) - GH-304 Track recently accessed orchestrations
+- [7621afe](http://github.com/Vahera/godot-orchestrator/commit/7621afee3fc70e2b3e849d3d042978ab052f4a31) - GH-310 Support file/folder removed and files moved signals
+- [cf3a2f7](http://github.com/Vahera/godot-orchestrator/commit/cf3a2f714bdc37a089543683aea6d8711519a235) - GH-306 Refactor `MethodUtils`
+- [75726ee](http://github.com/Vahera/godot-orchestrator/commit/75726ee59bb05798fdd711d5d26fc1609b87d2d1) - GH-306 Fix functions to return Any types
+- [07c3305](http://github.com/Vahera/godot-orchestrator/commit/07c3305d5c35bb8cb0d75210001f650cace7f9f6) - GH-287 Always call "Init" event if its wired
+- [43f7f48](http://github.com/Vahera/godot-orchestrator/commit/43f7f48e1f06a0dffaa1ca12ef6758afbc937e83) - GH-283 Support method chaining
+- [766bc0a](http://github.com/Vahera/godot-orchestrator/commit/766bc0a94bfc64c0d3214669810e19bd1b7db0c1) - GH-289 Fix built-in methods using PROPERTY_USAGE_NIL_IS_VARIANT
+- [0ea31d1](http://github.com/Vahera/godot-orchestrator/commit/0ea31d1db861720d22b1a687464f3c7244cb7b41) - GH-282 Explicitly filter `_get` and `_set` methods
+- [35a6b7e](http://github.com/Vahera/godot-orchestrator/commit/35a6b7ebc7d9090ebcf09bbf04ec7ea1ff05eb21) - GH-297 Preserve setting order when setting is modified
+- [037ec30](http://github.com/Vahera/godot-orchestrator/commit/037ec302e0265b9ae4afd98de21e9d4cf3750d45) - Fix comparison signed/unsigned mismatch
+- [229e723](http://github.com/Vahera/godot-orchestrator/commit/229e7238afdd9a701ddf8a602489171aacc69ace) - GH-272 Remove obsolete documentation
+- [7602de2](http://github.com/Vahera/godot-orchestrator/commit/7602de28930113fed0133fc5ac5b8158dcb8f3ff) - Rework editor icon lookups
+
 ## [2.1.dev1](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.dev1) - 2024-04-22
 
 - [3508d11](http://github.com/Vahera/godot-orchestrator/commit/3508d1170fb363802ac71e6895e1b0a6fa26fb57) - GH-206 Correctly generates action items for instantiated scenes
