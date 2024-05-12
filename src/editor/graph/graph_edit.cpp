@@ -893,6 +893,11 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
         if (x_diff < 0)
             cp_offset *= -1;
 
+        // Apply curvature only between start and first knot, and last knot and the end positions
+        // Any additional knots will be drawn without curvature, then allowing for 90-degree angles
+        if (i > 0 && i < (points.size() - 2))
+            cp_offset = 0;
+
         Curve2D curve;
         curve.add_point(points[i]);
         curve.set_point_out(0, Vector2(cp_offset, 0));
