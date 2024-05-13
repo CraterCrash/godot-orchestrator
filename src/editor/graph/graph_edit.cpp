@@ -96,6 +96,8 @@ EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
 
 OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<OScript> p_script, const String& p_name)
 {
+    internal::gdextension_interface_get_godot_version(&_version);
+
     set_name(p_name);
     set_minimap_enabled(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_minimap", false));
     set_right_disconnects(true);
@@ -846,6 +848,18 @@ bool OrchestratorGraphEdit::_is_node_hover_valid(const StringName& p_from, int p
 
 PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const
 {
+    Vector2 from_position = p_from_position;
+    Vector2 to_position = p_to_position;
+
+    // Godot 4.2 does not provide the from/to position affected by the zoom level
+    // Godot 4.3 does provide the values multiplied by the zoom level.
+    // Unify this here
+    if (_version.major == 4 && _version.minor < 3)
+    {
+        from_position = from_position * get_zoom();
+        to_position = to_position * get_zoom();
+    }
+
     // Calculate the from node and port from the from position
     int from_node = -1;
     int32_t from_port = -1;
@@ -853,7 +867,7 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
     {
         if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
         {
-            from_port = node->get_port_at_position(p_from_position / get_zoom(), PD_Output);
+            from_port = node->get_port_at_position(from_position / get_zoom(), PD_Output);
             if (from_port != -1)
                 from_node = node->get_script_node_id();
         }
@@ -866,7 +880,7 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
     {
         if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
         {
-            to_port = node->get_port_at_position(p_to_position / get_zoom(), PD_Input);
+            to_port = node->get_port_at_position(to_position / get_zoom(), PD_Input);
             if (to_port != -1)
                 to_node = node->get_script_node_id();
         }
@@ -884,8 +898,16 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
         c.to_port = to_port;
 
         const PackedVector2Array knot_points = _get_connection_knot_points(c);
-        for (const Vector2& knot_point : knot_points)
-            points.append(knot_point * get_zoom());
+        if (_version.major == 4 && _version.minor < 3)
+        {
+            for (const Vector2& knot_point : knot_points)
+                points.append(knot_point);
+        }
+        else
+        {
+            for (const Vector2& knot_point : knot_points)
+                points.append(knot_point * get_zoom());
+        }
     }
     points.push_back(p_to_position);
 
