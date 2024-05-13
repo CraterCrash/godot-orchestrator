@@ -746,8 +746,9 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_knot_points(const OScr
 
 void OrchestratorGraphEdit::_create_connection_knot(const Dictionary& p_connection, const Vector2& p_position)
 {
+    // Knots should be stored within any zoom applied.
     const Vector2 position = p_position / get_zoom();
-    const Vector2 transformed_position = position + get_scroll_offset();
+    const Vector2 transformed_position = position + (get_scroll_offset() / get_zoom());
 
     const OScriptConnection connection = OScriptConnection::from_dict(p_connection);
     const PackedVector2Array knot_points = _get_connection_knot_points(connection);
@@ -757,8 +758,8 @@ void OrchestratorGraphEdit::_create_connection_knot(const Dictionary& p_connecti
     if (!source || !target)
         return;
 
-    const Vector2 from_position = source->get_output_port_position(connection.from_port) + source->get_position_offset();
-    const Vector2 to_position = target->get_input_port_position(connection.to_port) + target->get_position_offset();
+    const Vector2 from_position = source->get_output_port_position(connection.from_port) + (source->get_position_offset() / get_zoom());
+    const Vector2 to_position = target->get_input_port_position(connection.to_port) + (target->get_position_offset() / get_zoom());
 
     PackedVector2Array points;
     points.push_back(from_position);
@@ -852,8 +853,9 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
     {
         if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
         {
-            from_port = node->get_port_at_position(p_from_position, PD_Output);
-            from_node = node->get_script_node_id();
+            from_port = node->get_port_at_position(p_from_position / get_zoom(), PD_Output);
+            if (from_port != -1)
+                from_node = node->get_script_node_id();
         }
     }
 
@@ -864,8 +866,9 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
     {
         if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
         {
-            to_port = node->get_port_at_position(p_to_position, PD_Input);
-            to_node = node->get_script_node_id();
+            to_port = node->get_port_at_position(p_to_position / get_zoom(), PD_Input);
+            if (to_port != -1)
+                to_node = node->get_script_node_id();
         }
     }
 
@@ -880,7 +883,9 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
         c.to_node = to_node;
         c.to_port = to_port;
 
-        points.append_array(_get_connection_knot_points(c));
+        const PackedVector2Array knot_points = _get_connection_knot_points(c);
+        for (const Vector2& knot_point : knot_points)
+            points.append(knot_point * get_zoom());
     }
     points.push_back(p_to_position);
 

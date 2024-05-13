@@ -535,19 +535,21 @@ int32_t OrchestratorGraphNode::get_port_at_position(const Vector2& p_position, E
 {
     if (p_direction == PD_Input)
     {
-        Vector2 adjusted = p_position - get_position_offset();
+        const Vector2 position = p_position - get_position_offset();
+        const Rect2 zone = Rect2(position - Vector2(1,1), Vector2(2,2)); // Fake hotsize
         for (int i = 0; i < get_input_port_count(); i++)
         {
-            if (get_input_port_position(i) == adjusted)
+            if (zone.has_point(get_input_port_position(i)))
                 return i;
         }
     }
     else if (p_direction == PD_Output)
     {
-        Vector2 adjusted = p_position - get_position_offset();
+        const Vector2 position = p_position - get_position_offset();
+        const Rect2 zone = Rect2(position - Vector2(1,1), Vector2(2,2)); // Fake hotzone
         for (int i = 0; i < get_output_port_count(); i++)
         {
-            if (get_output_port_position(i) == adjusted)
+            if (zone.has_point(get_output_port_position(i)))
                 return i;
         }
     }
