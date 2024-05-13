@@ -133,6 +133,7 @@ class OrchestratorGraphEdit : public GraphEdit
     Button* _base_type_button{ nullptr };
     Dictionary _hovered_connection;                        //! Hovered connection details
     HashMap<uint64_t, Vector<Ref<KnotPoint>>> _knots;      //! Knots for each graph connection
+    GDExtensionGodotVersion _version;                      //! Godot version
 
     OrchestratorGraphEdit() = default;
 
