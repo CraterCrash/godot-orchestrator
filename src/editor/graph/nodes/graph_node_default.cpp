@@ -17,7 +17,7 @@
 #include "graph_node_default.h"
 
 #include "common/scene_utils.h"
-#include "editor/graph/factories/graph_node_pin_factory.h"
+#include "editor/graph/pins/graph_node_pin_factory.h"
 
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>

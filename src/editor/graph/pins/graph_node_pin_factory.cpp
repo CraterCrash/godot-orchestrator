@@ -17,8 +17,40 @@
 #include "graph_node_pin_factory.h"
 
 #include "editor/graph/pins/graph_node_pins.h"
+#include "script/nodes/functions/call_function.h"
+#include "script/nodes/functions/call_member_function.h"
 
-OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::create_pin(OrchestratorGraphNode* p_node, Ref<OScriptNodePin> p_pin)
+#include <godot_cpp/classes/input.hpp>
+
+OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::_resolve_string_based_pin(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
+{
+    static PackedStringArray input_event_names = Array::make("is_action_pressed", "is_action_released",
+        "is_action", "get_action_strength");
+
+    static PackedStringArray input_names = Array::make("action_press", "action_release", "get_action_raw_strength",
+        "get_action_strength", "is_action_just_pressed", "is_action_just_released", "is_action_pressed");
+
+    if (OScriptNodeCallMemberFunction* cmf = Object::cast_to<OScriptNodeCallMemberFunction>(p_pin->get_owning_node()))
+    {
+        const String target_class_name = cmf->get_target_class();
+        if (InputEvent::get_class_static().match(target_class_name))
+        {
+            const MethodInfo& mi = cmf->get_function();
+            if (input_event_names.has(mi.name) && p_pin->get_pin_name().match("action"))
+                return memnew(OrchestratorGraphNodePinInputAction(p_node, p_pin));
+        }
+        else if (Input::get_class_static().match(target_class_name))
+        {
+            const MethodInfo& mi = cmf->get_function();
+            if (input_names.has(mi.name) && p_pin->get_pin_name().match("action"))
+                return memnew(OrchestratorGraphNodePinInputAction(p_node, p_pin));
+        }
+    }
+
+    return memnew(OrchestratorGraphNodePinString(p_node, p_pin));
+}
+
+OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::create_pin(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
 {
     if (p_pin->get_flags().has_flag(OScriptNodePin::Flags::EXECUTION))
         return memnew(OrchestratorGraphNodePinExec(p_node, p_pin));
@@ -36,7 +68,7 @@ OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::create_pin(Orchestrat
     {
         case Variant::STRING:
         case Variant::STRING_NAME:
-            return memnew(OrchestratorGraphNodePinString(p_node, p_pin));
+            return _resolve_string_based_pin(p_node, p_pin);
 
         case Variant::FLOAT:
         case Variant::INT:

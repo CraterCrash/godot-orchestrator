@@ -82,3 +82,25 @@ void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_c
 
     super::initialize(p_context);
 }
+
+void OScriptNodeCallMemberFunction::on_pin_connected(const Ref<OScriptNodePin>& p_pin)
+{
+    if (p_pin->get_pin_name().match("target"))
+    {
+        _function_flags = int64_t(_function_flags) & ~FF_IS_SELF;
+
+        const Ref<OScriptNodePin> supplier = p_pin->get_connections()[0];
+        const String target_class = supplier->get_owning_node()->resolve_type_class(supplier);
+        _reference.target_class_name = target_class;
+    }
+}
+
+void OScriptNodeCallMemberFunction::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin)
+{
+    if (p_pin->get_pin_name().match("target"))
+    {
+        _function_flags.set_flag(FF_IS_SELF);
+        _reference.target_class_name = get_owning_script()->get_base_type();
+    }
+    reconstruct_node();
+}
