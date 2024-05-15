@@ -37,7 +37,18 @@ public:
     String get_node_title_color_name() const override { return "function_call"; }
     String get_help_topic() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
+    void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
+
+    /// Get the target function class
+    /// @return the target function class
+    String get_target_class() const { return _reference.target_class_name; }
+
+    /// Get the Godot function reference
+    /// @return the function reference
+    const MethodInfo& get_function() const { return _reference.method; }
+
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_CALL_MEMBER_FUNCTION_H

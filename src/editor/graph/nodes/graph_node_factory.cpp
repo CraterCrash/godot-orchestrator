@@ -16,8 +16,8 @@
 //
 #include "graph_node_factory.h"
 
-#include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/nodes/graph_node_comment.h"
+#include "editor/graph/nodes/graph_node_default.h"
 
 OrchestratorGraphNode* OrchestratorGraphNodeFactory::create_node(OrchestratorGraphEdit* p_graph, const Ref<OScriptNode>& p_node)
 {
