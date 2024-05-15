@@ -25,13 +25,18 @@ class OrchestratorGraphNodePinFactory
     // Intentionally private
     OrchestratorGraphNodePinFactory() = default;
 
+    /// Resolves the string-based pin type
+    /// @param p_node the graph node that will own the pin
+    /// @param p_pin the pin to create a rendering widget for
+    static OrchestratorGraphNodePin* _resolve_string_based_pin(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);
+
 public:
 
     /// Creates the appropriate OrchestratorGraphNodePin implementation for the given node and pin.
     /// @param p_node the graph node that will own the pin
     /// @param p_pin the orchestration script pin reference
     /// @return the orchestration graph node pin instance, never null
-    static OrchestratorGraphNodePin* create_pin(OrchestratorGraphNode* p_node, Ref<OScriptNodePin> p_pin);
+    static OrchestratorGraphNodePin* create_pin(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);
 };
 
 #endif  // ORCHESTRATOR_GRAPH_NODE_PIN_FACTORY_H
