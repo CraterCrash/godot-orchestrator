@@ -243,7 +243,7 @@ void OrchestratorScriptVariablesComponentPanel::update()
             sorted_uncategorized_names.push_back(E.key);
         sorted_uncategorized_names.sort();
 
-        auto callable = callable_mp_lambda(this, [=]{ update(); });
+        auto callable = callable_mp_lambda(this, [=, this]{ update(); });
 
         TreeItem* root = _tree->get_root();
         for (const String& sort_categorized_name : sorted_categorized_names)
