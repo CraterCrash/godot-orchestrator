@@ -16,6 +16,8 @@
 //
 #include "graph.h"
 
+#include "script.h"
+
 #include <godot_cpp/variant/utility_functions.hpp>
 
 void OScriptGraph::_bind_methods()
@@ -177,6 +179,22 @@ void OScriptGraph::add_node(int p_node_id)
 void OScriptGraph::remove_node(int p_node_id)
 {
     _nodes.erase(p_node_id);
+
+    HashSet<uint64_t> connection_ids;
+    for (const KeyValue<uint64_t, PackedVector2Array>& E : _knots)
+    {
+        OScriptConnection C(E.key);
+        if (C.is_linked_to(p_node_id))
+            connection_ids.insert(C.id);
+    }
+
+    if (!connection_ids.is_empty())
+    {
+        for (const uint64_t& connection_id : connection_ids)
+            _knots.erase(connection_id);
+        emit_signal("knots_updated");
+    }
+
     emit_signal("node_removed", p_node_id);
 }
 
@@ -215,5 +233,11 @@ const HashMap<uint64_t, PackedVector2Array>& OScriptGraph::get_knots() const
 void OScriptGraph::set_knots(const HashMap<uint64_t, PackedVector2Array>& p_knots)
 {
     _knots = p_knots;
+    emit_signal("knots_updated");
+}
+
+void OScriptGraph::remove_connection_knot(uint64_t p_connection_id)
+{
+    _knots.erase(p_connection_id);
     emit_signal("knots_updated");
 }

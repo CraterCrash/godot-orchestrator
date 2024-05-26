@@ -134,6 +134,7 @@ class OrchestratorGraphEdit : public GraphEdit
     Dictionary _hovered_connection;                        //! Hovered connection details
     HashMap<uint64_t, Vector<Ref<KnotPoint>>> _knots;      //! Knots for each graph connection
     GDExtensionGodotVersion _version;                      //! Godot version
+    bool _is_43p{ false };                                 //! Is Godot 4.3+
 
     OrchestratorGraphEdit() = default;
 
@@ -223,12 +224,6 @@ public:
     Dictionary get_closest_connection_at_point(const Vector2& p_position, float p_max_distance = 4.0f);
     #endif
 
-    /// Find the closest curve segment that has the specified point
-    /// @param p_points the curve points to inspect
-    /// @param p_point the point to locate
-    /// @return the curve segment where the point exists
-    int find_segment_with_closest_containing_point(const PackedVector2Array& p_points, const Vector2& p_point);
-
     //~ GraphEdit overrides
     void _gui_input(const Ref<InputEvent>& p_event) override;
     bool _can_drop_data(const Vector2& p_position, const Variant& p_data) const override;
@@ -245,10 +240,23 @@ private:
     /// Stores the cached graph knots data from this GraphEdit to the OScriptGraph.
     void _store_connection_knots();
 
+    /// Get the connection for the specified points
+    /// @param p_from_position the from position
+    /// @param p_to_position the to position
+    /// @param r_connection the connection
+    /// @return true if a connection was resolved, false otherwise
+    bool _get_connection_for_points(const Vector2& p_from_position, const Vector2& p_to_position, OScriptConnection& r_connection) const;
+
+    /// Calculate the connection curves
+    /// @param p_points the points
+    /// @return vector of Curve2D resources
+    Vector<Ref<Curve2D>> _get_connection_curves(const PackedVector2Array& p_points) const;
+
     /// Get all knot points for the specified connection.
     /// @param p_connection the connection
+    /// @param p_apply_zoom mutate the knot points by the current zoom factor, defaults to false
     /// @return array of connection knot points, may be empty if no knots are defined
-    PackedVector2Array _get_connection_knot_points(const OScriptConnection& p_connection) const;
+    PackedVector2Array _get_connection_knot_points(const OScriptConnection& p_connection, bool p_apply_zoom = false) const;
 
     /// Creates a connection wire knot
     /// @param p_connection the connection

@@ -154,6 +154,9 @@ public:
     /// Sets the knot map for this graph's connections
     /// @param p_knots the knot map
     void set_knots(const HashMap<uint64_t, PackedVector2Array>& p_knots);
+
+    /// Remove connection knots for connection
+    void remove_connection_knot(uint64_t p_connection_id);
 };
 
 VARIANT_BITFIELD_CAST(OScriptGraph::GraphFlags)
