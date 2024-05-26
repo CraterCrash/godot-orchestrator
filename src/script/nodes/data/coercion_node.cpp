@@ -43,7 +43,7 @@ void OScriptNodeCoercion::post_initialize()
     _add_source_target_listeners();
 
     Ref<OScriptNodePin> input = _get_input_pin();
-    if (!input.is_valid())
+    if (input.is_valid())
         _left = input->get_type();
 
     Ref<OScriptNodePin> output = _get_output_pin();

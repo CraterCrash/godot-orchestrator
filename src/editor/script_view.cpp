@@ -185,7 +185,9 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
     for (const Ref<OScriptNode>& node : selected)
     {
         if (!node->can_duplicate())
+        {
             ERR_FAIL_MSG("Cannot collapse because node " + itos(node->get_id()) + " cannot be duplicated.");
+        }
     }
 
     // Capture connections based on the selected nodes

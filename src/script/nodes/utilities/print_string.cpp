@@ -41,7 +41,7 @@ private:
 
 public:
     int get_working_memory_size() const override { return 1; }
-    int step(OScriptNodeExecutionContext& p_context);
+    int step(OScriptNodeExecutionContext& p_context) override;
 
 private:
     Node* _get_or_create_ui_container(Node* p_root_node);

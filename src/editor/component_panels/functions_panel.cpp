@@ -200,7 +200,7 @@ void OrchestratorScriptFunctionsComponentPanel::_notification(int p_what)
         override_button->set_tooltip_text("Override a Godot virtual function");
         container->add_child(override_button);
 
-        override_button->connect("pressed", callable_mp_lambda(this, [=] { emit_signal("override_function_requested"); }));
+        override_button->connect("pressed", callable_mp_lambda(this, [=, this] { emit_signal("override_function_requested"); }));
     }
 }
 

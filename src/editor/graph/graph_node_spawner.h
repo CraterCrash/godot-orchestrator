@@ -200,11 +200,10 @@ protected:
     OrchestratorGraphNodeSpawnerEmitMemberSignal() = default;
 
     StringName _target_class;
-    MethodInfo _method;
 
 public:
     OrchestratorGraphNodeSpawnerEmitMemberSignal(const MethodInfo& p_method, const StringName& p_target_class)
-        : _method(p_method)
+        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method)
         , _target_class(p_target_class)
     {
     }
