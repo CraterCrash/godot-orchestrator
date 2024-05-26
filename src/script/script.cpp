@@ -581,7 +581,7 @@ void OScript::remove_node(int p_node_id)
 
     List<OScriptConnection> removals;
     for (const OScriptConnection& connection : _connections)
-        if (connection.from_node == p_node_id || connection.to_node == p_node_id)
+        if (connection.is_linked_to(p_node_id))
             removals.push_back(connection);
 
     if (!removals.is_empty())
@@ -650,6 +650,10 @@ void OScript::disconnect_nodes(int p_source_id, int p_source_port, int p_target_
     ERR_FAIL_COND(!_connections.has(connection));
     _connections.erase(connection);
 
+    for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
+        if (E.value->has_node(p_source_id) || E.value->has_node(p_target_id))
+            E.value->remove_connection_knot(connection.id);
+
     emit_signal("connections_changed", "disconnect_nodes");
 }
 
@@ -694,8 +698,6 @@ Vector<Ref<OScriptNodePin>> OScript::get_connections(const OScriptNodePin* p_pin
 
 void OScript::adjust_connections(const OScriptNode* p_node, int p_offset, int p_adjustment, EPinDirection p_dir)
 {
-    printf("adjust_connections - %d %d\n", p_offset, p_adjustment);
-
     // NOTE:
     // The RBSet maintains search criteria order based on the calculation of Connection::operator< and
     // when we modify the port adjustments here, that invalidates the criteria, which will lead to a
