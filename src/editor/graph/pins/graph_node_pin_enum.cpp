@@ -72,15 +72,12 @@ Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
             const String enum_name  = target_enum_class.substr(dot + 1);
             const PackedStringArray enum_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
 
-            int index = 0;
             for (const String& enum_value : enum_values)
             {
                 int64_t enum_constant_value = ClassDB::class_get_integer_constant(class_name, enum_value);
                 button->add_item(enum_value);
                 if (effective_default == enum_constant_value)
                     button->select(button->get_item_count() - 1);
-
-                index++;
             }
         }
         else if (ExtensionDB::get_global_enum_names().has(target_enum_class))

@@ -34,7 +34,7 @@ Control* OrchestratorGraphNodePinObject::_get_default_value_widget()
     // In these cases, we should not render the "(self)" label.
     if (OScriptNode* node = _pin->get_owning_node())
     {
-        if (OScriptNodeCallFunction* call_function = Object::cast_to<OScriptNodeCallFunction>(node))
+        if (Object::cast_to<OScriptNodeCallFunction>(node))
         {
             if (!_pin->get_pin_name().match("target"))
                 return nullptr;
