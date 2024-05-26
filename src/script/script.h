@@ -73,6 +73,11 @@ struct OScriptConnection
     Dictionary to_dict() const;
     //~ End Serialization Helpers
 
+    /// Return whether this connection is linked to the specified node id
+    /// @param p_id the node id
+    /// @return true if the connection is linked to the node on either end, false otherwise
+    bool is_linked_to(uint64_t p_id) const { return from_node == p_id || to_node == p_id; }
+
     /// Get the connection as a formatted string
     String to_string() const { return vformat("%d:%d to %d:%d", from_node, from_port, to_node, to_port); }
 };

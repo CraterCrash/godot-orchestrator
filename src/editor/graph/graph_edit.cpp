@@ -97,6 +97,7 @@ EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
 OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<OScript> p_script, const String& p_name)
 {
     internal::gdextension_interface_get_godot_version(&_version);
+    _is_43p = _version.major == 4 && _version.minor >= 3;
 
     set_name(p_name);
     set_minimap_enabled(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_minimap", false));
@@ -219,6 +220,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _script->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
         _script_graph->connect("node_added", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_added));
         _script_graph->connect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
+        _script_graph->connect("knots_updated", callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots));
 
         // Wire up action menu
         _action_menu->connect("canceled", callable_mp(this, &OrchestratorGraphEdit::_on_action_menu_cancelled));
@@ -439,9 +441,23 @@ Dictionary OrchestratorGraphEdit::get_closest_connection_at_point(const Vector2&
         Vector2 from_pos = source->get_output_port_position(int32_t(connection["from_port"])) + source->get_position_offset();
         Vector2 to_pos = target->get_input_port_position(int32_t(connection["to_port"])) + target->get_position_offset();
 
-        PackedVector2Array points = get_connection_line(from_pos * get_zoom(), to_pos * get_zoom());
+        if (_is_43p)
+        {
+            from_pos *= get_zoom();
+            to_pos *= get_zoom();
+        }
+
+        // This function is called during both draw and this logic, and so the results need to be handled
+        // differently based on the context of the call in Godot 4.2.
+        PackedVector2Array points = get_connection_line(from_pos, to_pos);
         if (points.is_empty())
             continue;
+
+        if (!_is_43p)
+        {
+            for (int j = 0; j < points.size(); j++)
+                points[j] *= get_zoom();
+        }
 
         Rect2 aabb(points[0], Vector2());
         for (int j = 0; j < points.size(); j++)
@@ -454,7 +470,7 @@ Dictionary OrchestratorGraphEdit::get_closest_connection_at_point(const Vector2&
         for (int j = 0; j < points.size(); j++)
         {
             float distance = get_distance_to_segment(transformed_point, &points[j]);
-            if (distance <= get_connection_lines_thickness() * 0.5 + p_max_distance && distance< closest_distance)
+            if (distance <= get_connection_lines_thickness() * 0.5 + p_max_distance && distance < closest_distance)
             {
                 closest_distance = distance;
                 closest_connection = connection;
@@ -465,38 +481,26 @@ Dictionary OrchestratorGraphEdit::get_closest_connection_at_point(const Vector2&
 }
 #endif
 
-int OrchestratorGraphEdit::find_segment_with_closest_containing_point(const PackedVector2Array& p_array, const Vector2& p_point)
-{
-    float min_distance = INFINITY;
-    int index = -1;
-
-    for (int i = 0; i < p_array.size() - 1; i++)
-    {
-        const Vector2& p1 = p_array[i];
-        const Vector2& p2 = p_array[i + 1];
-
-        Vector2 line_vector = p2 - p1;
-        Vector2 point_vector = p_point - p1;
-
-        float line_length = line_vector.length();
-        Vector2 line_unit_vector = line_vector / line_length;
-        Vector2 point_vec_scaled = point_vector * (1.0 / line_length);
-
-        const float t = line_unit_vector.dot(point_vec_scaled);
-        Vector2 nearest = Math::clamp(t, 0.0f, 1.0f) * line_vector;
-
-        const float distance = (p1 + nearest - p_point).length();
-        if (distance < min_distance)
-        {
-            min_distance = distance;
-            index = i;
-        }
-    }
-    return index;
-}
-
 void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
 {
+    // In Godot 4.2, the UI delete events only apply to GraphNode and not GraphElement objects
+    if (!_is_43p)
+    {
+        if (p_event->is_pressed() && p_event->is_action_pressed("ui_graph_delete", true))
+        {
+            TypedArray<StringName> nodes;
+            for (int i = 0; i < get_child_count(); i++)
+            {
+                OrchestratorGraphKnot* knot = Object::cast_to<OrchestratorGraphKnot>(get_child(i));
+                if (!knot || !knot->is_selected())
+                    continue;
+
+                nodes.push_back(knot->get_name());
+            }
+            emit_signal("delete_nodes_request", nodes);
+        }
+    }
+
     GraphEdit::_gui_input(p_event);
 
     Ref<InputEventMouseMotion> mm = p_event;
@@ -707,6 +711,7 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
 
 void OrchestratorGraphEdit::_cache_connection_knots()
 {
+    _knots.clear();
     for (const KeyValue<uint64_t, PackedVector2Array>& E : _script_graph->get_knots())
     {
         Vector<Ref<KnotPoint>> points;
@@ -725,6 +730,14 @@ void OrchestratorGraphEdit::_store_connection_knots()
     HashMap<uint64_t, PackedVector2Array> knots;
     for (const KeyValue<uint64_t, Vector<Ref<KnotPoint>>>& E : _knots)
     {
+        // Ensure that if the connection is no longer valid, the knot is not stored.
+        const OScriptConnection C(E.key);
+        if (!is_node_connected(itos(C.from_node), C.from_port, itos(C.to_node), C.to_port))
+        {
+            WARN_PRINT("Orphan knot for connection " + C.to_string() + " removed.");
+            continue;
+        }
+
         PackedVector2Array array;
         for (int i = 0; i < E.value.size(); i++)
             array.push_back(E.value[i]->point);
@@ -734,14 +747,14 @@ void OrchestratorGraphEdit::_store_connection_knots()
     _script_graph->set_knots(knots);
 }
 
-PackedVector2Array OrchestratorGraphEdit::_get_connection_knot_points(const OScriptConnection& p_connection) const
+PackedVector2Array OrchestratorGraphEdit::_get_connection_knot_points(const OScriptConnection& p_connection, bool p_apply_zoom) const
 {
     PackedVector2Array array;
     if (_knots.has(p_connection.id))
     {
         const Vector<Ref<KnotPoint>>& points = _knots[p_connection.id];
         for (int i = 0; i < points.size(); i++)
-            array.push_back(points[i]->point);
+            array.push_back(points[i]->point * (p_apply_zoom ? get_zoom() : 1.0));
     }
     return array;
 }
@@ -760,26 +773,45 @@ void OrchestratorGraphEdit::_create_connection_knot(const Dictionary& p_connecti
     if (!source || !target)
         return;
 
-    const Vector2 from_position = source->get_output_port_position(connection.from_port) + (source->get_position_offset() / get_zoom());
-    const Vector2 to_position = target->get_input_port_position(connection.to_port) + (target->get_position_offset() / get_zoom());
-
     PackedVector2Array points;
+    int knot_position = 0;
+
+    const Vector2 from_position = source->get_output_port_position(connection.from_port) + source->get_position_offset();
+    const Vector2 to_position = source->get_input_port_position(connection.to_port) + target->get_position_offset();
+
     points.push_back(from_position);
     points.append_array(knot_points);
     points.push_back(to_position);
 
-    const int closest_segment = find_segment_with_closest_containing_point(points, transformed_position);
+    Vector<Ref<Curve2D>> curves = _get_connection_curves(points);
+
+    float closest_distance = INFINITY;
+    for (int i = 0; i < curves.size(); i++)
+    {
+        const Ref<Curve2D>& curve = curves[i];
+
+        const Vector2 closest_point = curve->get_closest_point(transformed_position);
+        float distance = closest_point.distance_to(transformed_position);
+        if (distance < closest_distance)
+        {
+            closest_distance = distance;
+            knot_position = i;
+        }
+    }
 
     if (!_knots.has(connection.id))
         _knots[connection.id] = Vector<Ref<KnotPoint>>();
 
-    Ref<KnotPoint> point(memnew(KnotPoint));
-    point->point = transformed_position;
+    Ref<KnotPoint> knot(memnew(KnotPoint));
+    knot->point = transformed_position;
 
-    _knots[connection.id].insert(closest_segment, point);
+    _knots[connection.id].insert(knot_position, knot);
 
     _store_connection_knots();
     _synchronize_graph_knots();
+
+    if (_is_43p)
+        _synchronize_graph_connections_with_script();
 }
 
 void OrchestratorGraphEdit::_update_theme()
@@ -848,17 +880,38 @@ bool OrchestratorGraphEdit::_is_node_hover_valid(const StringName& p_from, int p
 
 PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const
 {
-    Vector2 from_position = p_from_position;
-    Vector2 to_position = p_to_position;
+    // Create array of points from the from position to the to position, including all existing knots
+    PackedVector2Array points;
+    points.push_back(p_from_position);
 
-    // Godot 4.2 does not provide the from/to position affected by the zoom level
-    // Godot 4.3 does provide the values multiplied by the zoom level.
-    // Unify this here
-    if (_version.major == 4 && _version.minor < 3)
+    OScriptConnection c;
+    if (_get_connection_for_points(p_from_position, p_to_position, c))
+        points.append_array(_get_connection_knot_points(c, _is_43p));
+
+    points.push_back(p_to_position);
+
+    const Vector<Ref<Curve2D>> curves = _get_connection_curves(points);
+
+    PackedVector2Array curve_points;
+    for (const Ref<Curve2D>& curve : curves)
     {
-        from_position = from_position * get_zoom();
-        to_position = to_position * get_zoom();
+        if (get_connection_lines_curvature() > 0)
+            curve_points.append_array(curve->tessellate(5, 2.0));
+        else
+            curve_points.append_array(curve->tessellate(1));
     }
+
+    return curve_points;
+}
+
+bool OrchestratorGraphEdit::_get_connection_for_points(const Vector2& p_from_position,
+                                                       const Vector2& p_to_position,
+                                                       OScriptConnection& r_connection) const
+{
+    // Godot 4.2 does not provide the from/to position affected by zoom when this method is called for drawing
+    // Godot 4.3 does provide the values multipled by the zoom regardless, so we need to handle that here.
+    Vector2 from_position = p_from_position * (_is_43p ? 1.0 : get_zoom());
+    Vector2 to_position = p_to_position * (_is_43p ? 1.0 : get_zoom());
 
     // Calculate the from node and port from the from position
     int from_node = -1;
@@ -887,56 +940,43 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
     }
 
     // Create array of points from the from position to the to position, including all existing knots
-    PackedVector2Array points;
-    points.push_back(p_from_position);
     if (from_port != -1 && to_port != -1)
     {
-        OScriptConnection c;
-        c.from_node = from_node;
-        c.from_port = from_port;
-        c.to_node = to_node;
-        c.to_port = to_port;
-
-        const PackedVector2Array knot_points = _get_connection_knot_points(c);
-        if (_version.major == 4 && _version.minor < 3)
-        {
-            for (const Vector2& knot_point : knot_points)
-                points.append(knot_point);
-        }
-        else
-        {
-            for (const Vector2& knot_point : knot_points)
-                points.append(knot_point * get_zoom());
-        }
+        r_connection.from_node = from_node;
+        r_connection.from_port = from_port;
+        r_connection.to_node = to_node;
+        r_connection.to_port = to_port;
+        return true;
     }
-    points.push_back(p_to_position);
 
-    // For all points, calculate the bezier curve from point to point
-    PackedVector2Array curve_points;
-    for (int i = 0; i < points.size() - 1; i++)
+    return false;
+}
+
+Vector<Ref<Curve2D>> OrchestratorGraphEdit::_get_connection_curves(const PackedVector2Array& p_points) const
+{
+    Vector<Ref<Curve2D>> curves;
+
+    // For all points calculate the curve from point to point
+    for (int i = 0; i < p_points.size() - 1; i++)
     {
-        float x_diff = (points[i].x - points[i+1].x);
-        float cp_offset = x_diff * get_connection_lines_curvature();
-        if (x_diff < 0)
+        float xdiff = (p_points[i].x - p_points[i + 1].x);
+        float cp_offset = xdiff * get_connection_lines_curvature();
+        if (xdiff < 0)
             cp_offset *= -1;
 
-        // Apply curvature only between start and first knot, and last knot and the end positions
-        // Any additional knots will be drawn without curvature, then allowing for 90-degree angles
-        if (i > 0 && i < (points.size() - 2))
+        // Curvature is only applied between the first two points and last two points.
+        if (i > 0 && i < (p_points.size() - 2))
             cp_offset = 0;
 
-        Curve2D curve;
-        curve.add_point(points[i]);
-        curve.set_point_out(0, Vector2(cp_offset, 0));
-        curve.add_point(points[i + 1]);
-        curve.set_point_in(1, Vector2(-cp_offset, 0));
-
-        if (get_connection_lines_curvature() > 0)
-            curve_points.append_array(curve.tessellate(5, 2.0));
-        else
-            curve_points.append_array(curve.tessellate(1));
+        Ref<Curve2D> curve(memnew(Curve2D));
+        curve->add_point(p_points[i]);
+        curve->set_point_out(0, Vector2(cp_offset, 0));
+        curve->add_point(p_points[i + 1]);
+        curve->set_point_in(1, Vector2(-cp_offset, 0));
+        curves.append(curve);
     }
-    return curve_points;
+
+    return curves;
 }
 
 OrchestratorGraphNode* OrchestratorGraphEdit::_get_node_by_id(int p_id)
@@ -1022,6 +1062,8 @@ void OrchestratorGraphEdit::_synchronize_graph_knots()
         remove_child(knot);
         knot->queue_free();
     }
+
+    _cache_connection_knots();
 
     for (const KeyValue<uint64_t, Vector<Ref<KnotPoint>>>& E : _knots)
     {
