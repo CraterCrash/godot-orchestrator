@@ -1170,6 +1170,9 @@ void OrchestratorGraphEdit::_hide_drag_hint()
 
 void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from, int p_from_port, bool p_output)
 {
+    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+    const bool flow_disconnect_on_drag = os->get_setting("ui/graph/disconnect_control_flow_when_dragged", true);
+
     _drag_context.start_drag(p_from, p_from_port, p_output);
 
     if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from))
@@ -1178,6 +1181,9 @@ void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from
         {
             // From port is an output
             OrchestratorGraphNodePin* pin = source->get_output_pin(p_from_port);
+            if (pin && pin->is_execution() && flow_disconnect_on_drag)
+                pin->unlink_all();
+
             for_each_graph_node([&](OrchestratorGraphNode* node) {
                 node->set_inputs_for_accept_opacity(0.3f, pin);
                 node->set_all_outputs_opacity(0.3f);
