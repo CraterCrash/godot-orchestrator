@@ -178,7 +178,12 @@ public:
     /// Clear all selected nodes
     void clear_selection();
 
+    /// Get a list of selected graph nodes
+    /// @return collection of selected graph nodes
     Vector<OrchestratorGraphNode*> get_selected_nodes();
+
+    /// Get a list of selected script nodes
+    /// @return collection of selected script nodes
     Vector<Ref<OScriptNode>> get_selected_script_nodes();
 
     /// Causes the graph to tween focus the specified node in the graph.
@@ -212,6 +217,10 @@ public:
     /// @param p_func the lambda to be applied
     void for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func);
 
+    /// Perform an action for each graph knot
+    /// @param p_func the lambda to the applied
+    void for_each_graph_knot(std::function<void(OrchestratorGraphKnot*)> p_func);
+
     /// Execute the specified action
     /// @param p_action_name the action to execute
     void execute_action(const String& p_action_name);
@@ -233,6 +242,15 @@ public:
     //~ End GraphEdit overrides
 
 private:
+    /// Return whether to highlight selected connections
+    /// @return true if nodes connected to selected nodes should be highlighted
+    bool highlight_selected_connections() const;
+
+    /// Retrieve a collection of all linked script nodes
+    /// @param p_selected collection of selected nodes to get links
+    /// @return collection of linked nodes to the selected nodes
+    Vector<Ref<OScriptNode>> _get_linked_script_nodes(const Vector<Ref<OScriptNode>>& p_selected);
+
     /// Caches the graph knots for use.
     /// Copies the knot data from the OScriptGraph to this GraphEdit instance.
     void _cache_connection_knots();

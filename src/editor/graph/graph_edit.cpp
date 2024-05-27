@@ -382,6 +382,15 @@ void OrchestratorGraphEdit::for_each_graph_node(std::function<void(OrchestratorG
     }
 }
 
+void OrchestratorGraphEdit::for_each_graph_knot(std::function<void(OrchestratorGraphKnot*)> p_func)
+{
+    for (int i = 0; i < get_child_count(); i++)
+    {
+        if (OrchestratorGraphKnot* knot = Object::cast_to<OrchestratorGraphKnot>(get_child(i)))
+            p_func(knot);
+    }
+}
+
 void OrchestratorGraphEdit::execute_action(const String& p_action_name)
 {
     Ref<InputEventAction> action = memnew(InputEventAction);
@@ -709,6 +718,29 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
     }
 }
 
+bool OrchestratorGraphEdit::highlight_selected_connections() const
+{
+    return OrchestratorSettings::get_singleton()->get_setting("ui/nodes/highlight_selected_connections", false);
+}
+
+Vector<Ref<OScriptNode>> OrchestratorGraphEdit::_get_linked_script_nodes(const Vector<Ref<OScriptNode>>& p_selected)
+{
+    Vector<Ref<OScriptNode>> linked;
+    for(const Ref<OScriptNode>& selected : p_selected)
+    {
+        for (const Ref<OScriptNodePin>& pin : selected->get_all_pins())
+        {
+            for (const Ref<OScriptNodePin>& connection : pin->get_connections())
+            {
+                const Ref<OScriptNode> node = connection->get_owning_node();
+                if (!p_selected.has(node) && !linked.has(node))
+                    linked.push_back(node);
+            }
+        }
+    }
+    return linked;
+}
+
 void OrchestratorGraphEdit::_cache_connection_knots()
 {
     _knots.clear();
@@ -761,6 +793,10 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_knot_points(const OScr
 
 void OrchestratorGraphEdit::_create_connection_knot(const Dictionary& p_connection, const Vector2& p_position)
 {
+    // Deselect all nodes
+    for (OrchestratorGraphNode* node : get_selected_nodes())
+        node->set_selected(false);
+
     // Knots should be stored within any zoom applied.
     const Vector2 position = p_position / get_zoom();
     const Vector2 transformed_position = position + (get_scroll_offset() / get_zoom());
@@ -1073,6 +1109,8 @@ void OrchestratorGraphEdit::_synchronize_graph_knots()
         if (!source)
             continue;
 
+        Color color = source->get_output_port_color(connection.from_port);
+
         for (int i = 0; i < E.value.size(); i++)
         {
             const Ref<KnotPoint>& point = E.value[i];
@@ -1081,7 +1119,7 @@ void OrchestratorGraphEdit::_synchronize_graph_knots()
             graph_knot->set_owning_script(_script);
             graph_knot->set_connection(connection);
             graph_knot->set_knot(point);
-            graph_knot->set_color(source->get_output_port_color(connection.from_port));
+            graph_knot->set_color(color);
             add_child(graph_knot);
 
             graph_knot->connect("knot_position_changed", callable_mp_lambda(this, [&](const Vector2& position) {
@@ -1372,9 +1410,6 @@ void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_
 
 void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
 {
-    if (!p_node)
-        return;
-
     OrchestratorGraphNode* graph_node = Object::cast_to<OrchestratorGraphNode>(p_node);
     if (!graph_node)
         return;
@@ -1383,43 +1418,48 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
     if (node.is_null())
         return;
 
-    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
-    if (os->get_setting("ui/nodes/highlight_selected_connections", false))
+    if (highlight_selected_connections())
     {
-        // Get list of all selected nodes
-        List<Ref<OScriptNode>> selected_nodes;
-        for_each_graph_node([&](OrchestratorGraphNode* other) {
-            if (other && other->is_selected())
-                selected_nodes.push_back(other->get_script_node());
-        });
-
+        Vector<Ref<OScriptNode>> selected_nodes = get_selected_script_nodes();
         if (!selected_nodes.is_empty())
         {
-            for_each_graph_node([&](OrchestratorGraphNode* loop_node) {
-                loop_node->set_all_inputs_opacity(0.3f);
-                loop_node->set_all_outputs_opacity(0.3f);
+            // For each graph node, dim connection pins and wires
+            for_each_graph_node([&](OrchestratorGraphNode* gn) {
+                gn->set_all_inputs_opacity(0.3f);
+                gn->set_all_outputs_opacity(0.3f);
+            });
+
+            // For all knots, dim them.
+            for_each_graph_knot([&](OrchestratorGraphKnot* gk) {
+                gk->set_modulate(Color(1, 1, 1, 0.3f));
+            });
+
+            // Get collection of all nodes linked to the selected nodes
+            const Vector<Ref<OScriptNode>> linked_nodes = _get_linked_script_nodes(selected_nodes);
+
+            // For each graph node selected, dim non-connected nodes
+            for_each_graph_node([&](OrchestratorGraphNode* gn) {
+                // Initially set each node dimmed
+                gn->set_modulate(Color(1, 1, 1, 0.5));
+
+                // If linked, undim
+                if (selected_nodes.has(gn->get_script_node()) || linked_nodes.has(gn->get_script_node()))
+                    gn->set_modulate(Color(1, 1, 1, 1));
             });
         }
-
-        List<Ref<OScriptNode>> linked_nodes;
-        for (const Ref<OScriptNode>& selected : selected_nodes)
+        else
         {
-            Vector<Ref<OScriptNodePin>> pins = selected->get_all_pins();
-            for (const Ref<OScriptNodePin>& pin : pins)
-            {
-                const Vector<Ref<OScriptNodePin>> connections = pin->get_connections();
-                for (const Ref<OScriptNodePin>& connection : connections)
-                {
-                    if (!selected_nodes.find(connection->get_owning_node()))
-                        linked_nodes.push_back(connection->get_owning_node());
-                }
-            }
+            // For each graph node, undim connection pins and wires
+            for_each_graph_node([&](OrchestratorGraphNode* gn) {
+                gn->set_all_inputs_opacity();
+                gn->set_all_outputs_opacity();
+            });
+
+            // For all knots, undim them.
+            for_each_graph_knot([&](OrchestratorGraphKnot* gk) {
+                gk->set_modulate(Color(1, 1, 1, 1));
+            });
         }
-        for_each_graph_node([&](OrchestratorGraphNode* other) {
-            other->set_modulate(Color(1, 1, 1, 0.5));
-            if (selected_nodes.find(other->get_script_node()) || linked_nodes.find(other->get_script_node()))
-                other->set_modulate(Color(1, 1, 1, 1));
-        });
     }
 
     if (!node->can_inspect_node_properties())
@@ -1440,46 +1480,40 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
 
 void OrchestratorGraphEdit::_on_node_deselected(Node* p_node)
 {
+    OrchestratorGraphNode* graph_node = Object::cast_to<OrchestratorGraphNode>(p_node);
+    if (!graph_node)
+        return;
+
     _plugin->get_editor_interface()->inspect_object(nullptr);
 
-    OrchestratorSettings* os = OrchestratorSettings::get_singleton();
-    if (os->get_setting("ui/nodes/highlight_selected_connections", false))
+    if (highlight_selected_connections())
     {
-        // Get list of all selected nodes
-        List<Ref<OScriptNode>> selected_nodes;
-        for_each_graph_node([&](OrchestratorGraphNode* other) {
-            if (other && other->is_selected())
-                selected_nodes.push_back(other->get_script_node());
-        });
-
+        Vector<Ref<OScriptNode>> selected_nodes = get_selected_script_nodes();
         if (selected_nodes.is_empty())
         {
-            for_each_graph_node([&](OrchestratorGraphNode* other) {
-                other->set_modulate(Color(1, 1, 1, 1.0));
-                other->set_all_inputs_opacity();
-                other->set_all_outputs_opacity();
+            // For all graph nodes, undim them, their pins and connection wires
+            for_each_graph_node([&](OrchestratorGraphNode* gn) {
+                gn->set_modulate(Color(1, 1, 1, 1));
+                gn->set_all_inputs_opacity();
+                gn->set_all_outputs_opacity();
+            });
+
+            // For all knots, undim them.
+            for_each_graph_knot([&](OrchestratorGraphKnot* gk) {
+                gk->set_modulate(Color(1, 1, 1, 1));
             });
         }
         else
         {
-            List<Ref<OScriptNode>> linked_nodes;
-            for (const Ref<OScriptNode>& selected : selected_nodes)
-            {
-                Vector<Ref<OScriptNodePin>> pins = selected->get_all_pins();
-                for (const Ref<OScriptNodePin>& pin : pins)
-                {
-                    const Vector<Ref<OScriptNodePin>> connections = pin->get_connections();
-                    for (const Ref<OScriptNodePin>& connection : connections)
-                    {
-                        if (!selected_nodes.find(connection->get_owning_node()))
-                            linked_nodes.push_back(connection->get_owning_node());
-                    }
-                }
-            }
-            for_each_graph_node([&](OrchestratorGraphNode* other) {
-                other->set_modulate(Color(1, 1, 1, 0.5));
-                if (selected_nodes.find(other->get_script_node()) || linked_nodes.find(other->get_script_node()))
-                    other->set_modulate(Color(1, 1, 1, 1));
+            const Vector<Ref<OScriptNode>> linked_nodes = _get_linked_script_nodes(selected_nodes);
+            // For each graph node selected, dim non-connected nodes
+            for_each_graph_node([&](OrchestratorGraphNode* gn) {
+                // Initially set each node dimmed
+                gn->set_modulate(Color(1, 1, 1, 0.5));
+
+                // If linked, undim
+                if (selected_nodes.has(gn->get_script_node()) || linked_nodes.has(gn->get_script_node()))
+                    gn->set_modulate(Color(1, 1, 1, 1));
             });
         }
     }
