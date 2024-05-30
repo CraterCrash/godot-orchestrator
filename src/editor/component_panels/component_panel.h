@@ -51,6 +51,7 @@ protected:
     HBoxContainer* _panel_hbox{ nullptr };    //! Panel HBox container
     Tree* _tree{ nullptr };                   //! The tree list
     Button* _collapse_button{ nullptr };      //! The collapse button
+    Button* _add_button{ nullptr };           //! Add button
     PopupMenu* _context_menu{ nullptr };      //! Context menu
     ConfirmationDialog* _confirm{ nullptr };  //! Confirmation dialog
     AcceptDialog* _notify{ nullptr };         //! Notification dialog

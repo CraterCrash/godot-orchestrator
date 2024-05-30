@@ -161,16 +161,18 @@ void OrchestratorScriptComponentPanel::_update_theme()
         }
     }
 
-    Ref<StyleBoxFlat> sb = _tree->get_theme_stylebox("panel");
-    if (sb.is_valid())
+    if (theme.is_valid() && _tree)
     {
-        Ref<StyleBoxFlat> new_style = sb->duplicate();
-        new_style->set_corner_radius(CORNER_TOP_LEFT, 0);
-        new_style->set_corner_radius(CORNER_TOP_RIGHT, 0);
-        _tree->add_theme_stylebox_override("panel", new_style);
+        Ref<StyleBoxFlat> sb = theme->get_stylebox("panel", "Tree")->duplicate();
+        sb->set_corner_radius(CORNER_TOP_LEFT, 0);
+        sb->set_corner_radius(CORNER_TOP_RIGHT, 0);
+        _tree->add_theme_stylebox_override("panel", sb);
     }
 
-    queue_redraw();
+    _add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
+    _update_collapse_button_icon();
+
+    update();
 
     _theme_changing = false;
 }
@@ -183,7 +185,7 @@ void OrchestratorScriptComponentPanel::_clear_tree()
 
 void OrchestratorScriptComponentPanel::_update_collapse_button_icon()
 {
-    const String icon_name = _expanded ? "CodeFoldDownArrow" : "CodeFoldedRightArrow";
+    const String icon_name = _expanded ? "GuiTreeArrowDown" : "GuiTreeArrowRight";
     _collapse_button->set_button_icon(SceneUtils::get_editor_icon(icon_name));
 }
 
@@ -279,11 +281,11 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
         label->set_h_size_flags(SIZE_EXPAND_FILL);
         _panel_hbox->add_child(label);
 
-        Button* add_button = memnew(Button);
-        add_button->set_focus_mode(FOCUS_NONE);
-        add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
-        add_button->set_tooltip_text("Add a new " + _get_item_name());
-        _panel_hbox->add_child(add_button);
+        _add_button = memnew(Button);
+        _add_button->set_focus_mode(FOCUS_NONE);
+        _add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
+        _add_button->set_tooltip_text("Add a new " + _get_item_name());
+        _panel_hbox->add_child(_add_button);
 
         _panel = memnew(PanelContainer);
         _panel->set_mouse_filter(MOUSE_FILTER_PASS);
@@ -317,7 +319,7 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
 
         // Connections
         _collapse_button->connect("pressed", callable_mp(this, &OrchestratorScriptComponentPanel::_toggle));
-        add_button->connect("pressed", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_add_item));
+        _add_button->connect("pressed", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_add_item));
         _tree->connect("item_activated", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_item_activated));
         _tree->connect("item_edited", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_item_edited));
         _tree->connect("item_selected", callable_mp_lambda(this, [&] { _handle_item_selected(); }));

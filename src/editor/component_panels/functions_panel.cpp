@@ -209,13 +209,18 @@ void OrchestratorScriptFunctionsComponentPanel::_notification(int p_what)
     {
         HBoxContainer* container = _get_panel_hbox();
 
-        Button* override_button = memnew(Button);
-        override_button->set_focus_mode(FOCUS_NONE);
-        override_button->set_button_icon(SceneUtils::get_editor_icon("Override"));
-        override_button->set_tooltip_text("Override a Godot virtual function");
-        container->add_child(override_button);
+        _override_button = memnew(Button);
+        _override_button->set_focus_mode(FOCUS_NONE);
+        _override_button->set_button_icon(SceneUtils::get_editor_icon("Override"));
+        _override_button->set_tooltip_text("Override a Godot virtual function");
+        container->add_child(_override_button);
 
-        override_button->connect("pressed", callable_mp_lambda(this, [=, this] { emit_signal("override_function_requested"); }));
+        _override_button->connect("pressed", callable_mp_lambda(this, [=, this] { emit_signal("override_function_requested"); }));
+    }
+    else if (p_what == NOTIFICATION_THEME_CHANGED)
+    {
+        if (_override_button)
+            _override_button->set_button_icon(SceneUtils::get_editor_icon("Override"));
     }
 }
 

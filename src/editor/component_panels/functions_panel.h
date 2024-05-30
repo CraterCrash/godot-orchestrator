@@ -34,6 +34,7 @@ class OrchestratorScriptFunctionsComponentPanel : public OrchestratorScriptCompo
     };
 
     OrchestratorScriptView* _view;
+    Button* _override_button{ nullptr };
 
 protected:
     //~ Begin OrchestratorScriptComponentPanel Interface
