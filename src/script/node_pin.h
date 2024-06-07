@@ -17,9 +17,8 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_PIN_H
 #define ORCHESTRATOR_SCRIPT_NODE_PIN_H
 
-#include "action.h"
 #include "common/guid.h"
-#include "target_object.h"
+#include "script/target_object.h"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -49,6 +48,8 @@ VARIANT_ENUM_CAST(EPinDirection)
 /// to centralize behaviors around pins and their connections.
 class OScriptNodePin : public Resource
 {
+    friend class OScriptNode;
+
     GDCLASS(OScriptNodePin, Resource);
 
 public:
@@ -83,8 +84,6 @@ public:
     };
 
 private:
-    friend class OScriptNode;
-
     StringName _pin_name;                      //! The pin's name, must be unique.
     Variant::Type _type{ Variant::NIL };       //! The type associated with the pin
     String _target_class;                      //! The target class associated with the pin
@@ -111,10 +110,6 @@ protected:
     Dictionary _save();
 
     Vector2 _calculate_midpoint_between_nodes(const Ref<OScriptNode>& p_source, const Ref<OScriptNode>& p_target) const;
-
-    /// Creates an intermediate node
-    /// @return the constructed intermediate node
-    Ref<OScriptNode> _create_intermediate_node(Variant::Type p_source_type, Variant::Type p_target_type) const;
 
 public:
 

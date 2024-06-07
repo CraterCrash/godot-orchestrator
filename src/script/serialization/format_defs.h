@@ -14,10 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_H
-#define ORCHESTRATOR_EDITOR_H
+#ifndef ORCHESTRATOR_SERIALIZATION_FORMAT_DEFS_H
+#define ORCHESTRATOR_SERIALIZATION_FORMAT_DEFS_H
 
-/// Registers editor classes with the Godot engine
-void register_editor_classes();
+#define ORCHESTRATOR_SCRIPT_EXTENSION           "os"
+#define ORCHESTRATOR_SCRIPT_QUALIFIED_EXTENSION ".os"
+#define ORCHESTRATOR_SCRIPT_TYPE                "OScript"
 
-#endif  // ORCHESTRATOR_EDITOR_H
+#endif  // ORCHESTRATOR_SERIALIZATION_FORMAT_DEFS_H

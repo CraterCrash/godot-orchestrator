@@ -60,7 +60,7 @@ void OScriptNodeVariable::post_initialize()
 {
     if (!_variable_name.is_empty())
     {
-        _variable = get_owning_script()->get_variable(_variable_name);
+        _variable = get_orchestration()->get_variable(_variable_name);
         if (_variable.is_valid() && _is_in_editor())
             _variable->connect("changed", callable_mp(this, &OScriptNodeVariable::_on_variable_changed));
     }
@@ -77,7 +77,7 @@ void OScriptNodeVariable::initialize(const OScriptNodeInitContext& p_context)
     ERR_FAIL_COND_MSG(!p_context.variable_name, "Failed to initialize Variable without a variable name");
 
     _variable_name = p_context.variable_name.value();
-    _variable = get_owning_script()->get_variable(_variable_name);
+    _variable = get_orchestration()->get_variable(_variable_name);
 
     if (_variable.is_valid() && _is_in_editor())
         _variable->connect("changed", callable_mp(this, &OScriptNodeVariable::_on_variable_changed));

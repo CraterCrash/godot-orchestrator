@@ -14,11 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "graph.h"
+#include "script/graph.h"
 
-#include "script.h"
+#include "script/nodes/functions/event.h"
+#include "script/nodes/functions/function_entry.h"
+#include "script/nodes/functions/function_terminator.h"
+#include "script/script.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 
 void OScriptGraph::_bind_methods()
 {
@@ -45,13 +49,13 @@ void OScriptGraph::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_flags"), &OScriptGraph::get_flags);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "flags"), "set_flags", "get_flags");
 
-    ClassDB::bind_method(D_METHOD("set_nodes", "nodes"), &OScriptGraph::set_nodes);
-    ClassDB::bind_method(D_METHOD("get_nodes"), &OScriptGraph::get_nodes);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "nodes"), "set_nodes", "get_nodes");
+    ClassDB::bind_method(D_METHOD("_set_nodes", "nodes"), &OScriptGraph::_set_nodes);
+    ClassDB::bind_method(D_METHOD("_get_nodes"), &OScriptGraph::_get_nodes);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "nodes"), "_set_nodes", "_get_nodes");
 
-    ClassDB::bind_method(D_METHOD("set_functions", "functions"), &OScriptGraph::set_functions);
-    ClassDB::bind_method(D_METHOD("get_functions"), &OScriptGraph::get_functions);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "functions"), "set_functions", "get_functions");
+    ClassDB::bind_method(D_METHOD("_set_functions", "functions"), &OScriptGraph::_set_functions);
+    ClassDB::bind_method(D_METHOD("_get_functions"), &OScriptGraph::_get_functions);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "functions"), "_set_functions", "_get_functions");
 
     ClassDB::bind_method(D_METHOD("_set_knots", "knots"), &OScriptGraph::_set_knots);
     ClassDB::bind_method(D_METHOD("_get_knots"), &OScriptGraph::_get_knots);
@@ -60,6 +64,22 @@ void OScriptGraph::_bind_methods()
     ADD_SIGNAL(MethodInfo("node_added", PropertyInfo(Variant::INT, "node_id")));
     ADD_SIGNAL(MethodInfo("node_removed", PropertyInfo(Variant::INT, "node_id")));
     ADD_SIGNAL(MethodInfo("knots_updated"));
+}
+
+TypedArray<int> OScriptGraph::_get_nodes() const
+{
+    TypedArray<int> nodes;
+    for (const int &node_id : _nodes)
+        nodes.push_back(node_id);
+    return nodes;
+}
+
+void OScriptGraph::_set_nodes(const TypedArray<int>& p_nodes)
+{
+    _nodes.clear();
+    for (int i = 0; i < p_nodes.size(); i++)
+        _nodes.insert(p_nodes[i]);
+    emit_changed();
 }
 
 TypedArray<Dictionary> OScriptGraph::_get_knots() const
@@ -87,14 +107,98 @@ void OScriptGraph::_set_knots(const TypedArray<Dictionary>& p_knots)
     }
 }
 
-OScript* OScriptGraph::get_owning_script() const
+TypedArray<int> OScriptGraph::_get_functions() const
 {
-    return _script;
+    TypedArray<int> functions;
+    for (const int &function_node_id : _functions)
+        functions.push_back(function_node_id);
+    return functions;
 }
 
-void OScriptGraph::set_owning_script(OScript* p_script)
+void OScriptGraph::_set_functions(const TypedArray<int>& p_functions)
 {
-    _script = p_script;
+    _functions.clear();
+    for (int i = 0; i < p_functions.size(); i++)
+        _functions.insert(p_functions[i]);
+
+    emit_changed();
+}
+
+void OScriptGraph::_initialize_node(const Ref<OScriptNode>& p_node, const OScriptNodeInitContext& p_context, const Vector2& p_position)
+{
+    p_node->initialize(p_context);
+
+    if (p_position != Vector2())
+        p_node->set_position(p_position);
+
+    _orchestration->add_node(this, p_node);
+
+    p_node->post_placed_new_node();
+
+    add_node(p_node);
+}
+
+void OScriptGraph::_remove_node(int p_node_id)
+{
+    _nodes.erase(p_node_id);
+
+    HashSet<uint64_t> connection_ids;
+    for (const KeyValue<uint64_t, PackedVector2Array>& E : _knots)
+    {
+        OScriptConnection C(E.key);
+        if (C.is_linked_to(p_node_id))
+            connection_ids.insert(C.id);
+    }
+
+    if (!connection_ids.is_empty())
+    {
+        for (const uint64_t& connection_id : connection_ids)
+            _knots.erase(connection_id);
+        emit_signal("knots_updated");
+    }
+
+    if (_functions.has(p_node_id))
+        _functions.erase(p_node_id);
+
+    emit_signal("node_removed", p_node_id);
+}
+
+void OScriptGraph::post_initialize()
+{
+    // OScriptNodeEvent nodes were not being registered with OScriptGraph properly for overrides
+    for (const int node_id : _nodes)
+    {
+        Ref<OScriptNodeEvent> event = _orchestration->get_node(node_id);
+        if (event.is_valid() && !_functions.has(node_id))
+        {
+            WARN_PRINT(vformat(
+                "Script '%s': Migrating registration in graph %s for node ID %d.",
+                _orchestration->get_self()->get_path(), get_graph_name(), node_id));
+
+            _functions.insert(node_id);
+        }
+    }
+
+    // Fixup and function node references that are invalid
+    RBSet<int>::Iterator iterator = _functions.begin();
+    while (iterator != _functions.end())
+    {
+        const int function_id = *iterator;
+        if (!_orchestration->_nodes.has(function_id))
+        {
+            WARN_PRINT(vformat(
+                "Script '%s': Removed orphan function reference found in graph %s for node ID %d.",
+                _orchestration->get_self()->get_path(), get_graph_name(), function_id));
+
+            _functions.erase(function_id);
+        }
+        ++iterator;
+    }
+}
+
+Orchestration* OScriptGraph::get_orchestration() const
+{
+    return _orchestration;
 }
 
 StringName OScriptGraph::get_graph_name() const
@@ -153,76 +257,159 @@ void OScriptGraph::set_flags(BitField<GraphFlags> p_flags)
     }
 }
 
-TypedArray<int> OScriptGraph::get_nodes() const
+void OScriptGraph::sanitize_nodes()
 {
-    TypedArray<int> nodes;
-    for (const int &node_id : _nodes)
-        nodes.push_back(node_id);
+    List<int> remove_queue;
+    for (const int node_id : _nodes)
+    {
+        const Ref<OScriptNode> node = _orchestration->get_node(node_id);
+        if (!node.is_valid())
+        {
+            ERR_PRINT(
+                vformat("Graph %s has node with id %d, but node is not found in the script metadata.",
+                    get_graph_name(), node_id));
+            remove_queue.push_back(node_id);
+        }
+    }
+
+    while (!remove_queue.is_empty())
+    {
+        _nodes.erase(remove_queue.front()->get());
+        remove_queue.pop_front();
+    }
+}
+
+Vector<Ref<OScriptNode>> OScriptGraph::get_nodes() const
+{
+    List<int> removals;
+
+    Vector<Ref<OScriptNode>> nodes;
+    for (const int node_id : _nodes)
+    {
+        Ref<OScriptNode> node = _orchestration->get_node(node_id);
+        if (node.is_valid())
+            nodes.push_back(_orchestration->get_node(node_id));
+    }
     return nodes;
 }
 
-void OScriptGraph::set_nodes(const TypedArray<int>& p_nodes)
+RBSet<OScriptConnection> OScriptGraph::get_connections() const
 {
-    _nodes.clear();
-    for (int i = 0; i < p_nodes.size(); i++)
-        _nodes.insert(p_nodes[i]);
-
-    emit_changed();
-}
-
-void OScriptGraph::add_node(int p_node_id)
-{
-    _nodes.insert(p_node_id);
-    emit_signal("node_added", p_node_id);
-}
-
-void OScriptGraph::remove_node(int p_node_id)
-{
-    _nodes.erase(p_node_id);
-
-    HashSet<uint64_t> connection_ids;
-    for (const KeyValue<uint64_t, PackedVector2Array>& E : _knots)
+    RBSet<OScriptConnection> connections;
+    for (const OScriptConnection& E : _orchestration->get_connections())
     {
-        OScriptConnection C(E.key);
-        if (C.is_linked_to(p_node_id))
-            connection_ids.insert(C.id);
+        if (_nodes.has(E.from_node) | _nodes.has(E.to_node))
+            connections.insert(E);
+    }
+    return connections;
+}
+
+void OScriptGraph::link(int p_source_id, int p_source_port, int p_target_id, int p_target_port)
+{
+    _orchestration->_connect_nodes(p_source_id, p_source_port, p_target_id, p_target_port);
+}
+
+void OScriptGraph::unlink(int p_source_id, int p_source_port, int p_target_id, int p_target_port)
+{
+    _orchestration->_disconnect_nodes(p_source_id, p_source_port, p_target_id, p_target_port);
+}
+
+Ref<OScriptNode> OScriptGraph::get_node(int p_node_id) const
+{
+    return _orchestration->get_node(p_node_id);
+}
+
+void OScriptGraph::add_node(const Ref<OScriptNode>& p_node)
+{
+    _nodes.insert(p_node->get_id());
+
+    // script_view#_create_new_function
+    const Ref<OScriptNodeFunctionEntry> function_entry = p_node;
+    if (function_entry.is_valid() && _flags.has_flag(GF_FUNCTION) && !_functions.has(p_node->get_id()))
+        _functions.insert(p_node->get_id());
+
+    // script_view#_add_callback
+    const Ref<OScriptNodeEvent> event_entry = p_node;
+    if (event_entry.is_valid() && _flags.has_flag(GF_EVENT) && !_functions.has(p_node->get_id()))
+        _functions.insert(p_node->get_id());
+
+    emit_signal("node_added", p_node->get_id());
+}
+
+void OScriptGraph::remove_node(const Ref<OScriptNode>& p_node)
+{
+    _remove_node(p_node->get_id());
+}
+
+void OScriptGraph::remove_all_nodes()
+{
+    while (!_nodes.is_empty())
+    {
+        // todo: handle this better
+        const int node_id = _nodes.front()->get();
+        _remove_node(node_id);
+        _orchestration->remove_node(node_id);
+    }
+}
+
+void OScriptGraph::move_node_to(const Ref<OScriptNode>& p_node, const Ref<OScriptGraph>& p_target)
+{
+    remove_node(p_node);
+    p_target->add_node(p_node);
+}
+
+Ref<OScriptNode> OScriptGraph::duplicate_node(int p_node_id, const Vector2& p_delta, bool p_duplicate_resources)
+{
+    const Ref<OScriptNode> node = get_node(p_node_id);
+    if (!node.is_valid())
+    {
+        ERR_PRINT("Cannot duplicate node with id " + itos(p_node_id));
+        return nullptr;
     }
 
-    if (!connection_ids.is_empty())
-    {
-        for (const uint64_t& connection_id : connection_ids)
-            _knots.erase(connection_id);
-        emit_signal("knots_updated");
-    }
+    // Duplicate node
+    Ref<OScriptNode> duplicate = node->duplicate(p_duplicate_resources);
 
-    emit_signal("node_removed", p_node_id);
+    // Initialize the duplicate node
+    // While the ID and Position are obvious, the other two maybe are not.
+    // Setting OScript is necessary because the OScript pointer is not stored/persisted.
+    // Additionally, there are other node properties that are maybe references to other objects or data
+    // that is post-processed after placement but before rendering, and this allows this step to handle
+    // that cleanly.
+    duplicate->set_id(_orchestration->get_available_id());
+    duplicate->set_position(node->get_position() + p_delta);
+    duplicate->set_orchestration(_orchestration);
+    duplicate->post_initialize();
+
+    _orchestration->add_node(this, duplicate);
+    duplicate->post_placed_new_node();
+
+    return duplicate;
 }
 
-TypedArray<int> OScriptGraph::get_functions() const
+Ref<OScriptNode> OScriptGraph::paste_node(const Ref<OScriptNode>& p_node, const Vector2& p_position)
 {
-    TypedArray<int> functions;
-    for (const int &function_node_id : _functions)
-        functions.push_back(function_node_id);
+    p_node->set_id(_orchestration->get_available_id());
+    p_node->set_position(p_position);
+    p_node->set_orchestration(_orchestration);
+    p_node->post_initialize();
+
+    _orchestration->add_node(this, p_node);
+    p_node->post_placed_new_node();
+
+    return p_node;
+}
+
+Vector<Ref<OScriptFunction>> OScriptGraph::get_functions() const
+{
+    Vector<Ref<OScriptFunction>> functions;
+    for (int function_id : _functions)
+    {
+        Ref<OScriptNodeFunctionTerminator> term = _orchestration->get_node(function_id);
+        if (term.is_valid() && !functions.has(term->get_function()))
+            functions.push_back(term->get_function());
+    }
     return functions;
-}
-
-void OScriptGraph::set_functions(const TypedArray<int>& p_functions)
-{
-    _functions.clear();
-    for (int i = 0; i < p_functions.size(); i++)
-        _functions.insert(p_functions[i]);
-
-    emit_changed();
-}
-
-void OScriptGraph::add_function(int p_node_id)
-{
-    _functions.insert(p_node_id);
-}
-
-void OScriptGraph::remove_function(int p_node_id)
-{
-    _functions.erase(p_node_id);
 }
 
 const HashMap<uint64_t, PackedVector2Array>& OScriptGraph::get_knots() const
@@ -240,4 +427,13 @@ void OScriptGraph::remove_connection_knot(uint64_t p_connection_id)
 {
     _knots.erase(p_connection_id);
     emit_signal("knots_updated");
+}
+
+Ref<OScriptNode> OScriptGraph::create_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position)
+{
+    const Ref<OScriptNode> spawned = OScriptLanguage::get_singleton()->create_node_from_name(p_type, _orchestration);
+    if (spawned.is_valid())
+        _initialize_node(spawned, p_context, p_position);
+
+    return spawned;
 }

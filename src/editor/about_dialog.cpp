@@ -14,12 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "authors.gen.h"
-#include "donors.gen.h"
-#include "license.gen.h"
 #include "about_dialog.h"
+
+#include "authors.gen.h"
 #include "common/version.h"
-#include "plugin/plugin.h"
+#include "donors.gen.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
+#include "license.gen.h"
 
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>

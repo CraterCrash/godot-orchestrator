@@ -70,8 +70,8 @@ public:
     void _notification(int p_what);
 
     /// Construct the function component panel
-    /// @param p_script the script
-    explicit OrchestratorScriptFunctionsComponentPanel(const Ref<OScript>& p_script, OrchestratorScriptView* p_view);
+    /// @param p_orchestration the orchestration
+    explicit OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, OrchestratorScriptView* p_view);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_FUNCTIONS_COMPONENT_PANEL_H

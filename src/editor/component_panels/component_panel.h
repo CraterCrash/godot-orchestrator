@@ -46,7 +46,7 @@ class OrchestratorScriptComponentPanel : public VBoxContainer
 
 protected:
     String _title;                            //! Title
-    Ref<OScript> _script;                     //! The script
+    Orchestration* _orchestration;            //! The owning orchestration
     PanelContainer* _panel{ nullptr };        //! Panel container
     HBoxContainer* _panel_hbox{ nullptr };    //! Panel HBox container
     Tree* _tree{ nullptr };                   //! The tree list
@@ -185,8 +185,8 @@ public:
 
     /// Constructs a component panel
     /// @param p_title the panel title
-    /// @param p_script the script
-    OrchestratorScriptComponentPanel(const String& p_title, const Ref<OScript>& p_script);
+    /// @param p_orchestration the owning orchestration
+    OrchestratorScriptComponentPanel(const String& p_title, Orchestration* p_orchestration);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_COMPONENT_PANEL_H

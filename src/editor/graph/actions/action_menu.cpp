@@ -18,16 +18,16 @@
 
 #include "common/dictionary_utils.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "common/string_utils.h"
+#include "default_action_registrar.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
-#include "plugin/settings.h"
-#include "default_action_registrar.h"
 
 #include <godot_cpp/classes/check_box.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
 
 OrchestratorGraphActionMenu::OrchestratorGraphActionMenu(OrchestratorGraphEdit* p_graph_edit)
 {
@@ -108,10 +108,10 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         connect("close_requested", callable_mp(this, &OrchestratorGraphActionMenu::_on_close_requested));
 
         // When certain script elements change, this handles forcing a refresh
-        Ref<OScript> script = _graph_edit->get_owning_script();
-        script->connect("functions_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
-        script->connect("variables_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
-        script->connect("signals_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
+        const Ref<Resource> self = _graph_edit->get_orchestration()->get_self();
+        self->connect("functions_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
+        self->connect("variables_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
+        self->connect("signals_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));
 
         // When user changes any project settings, this is used to force a refresh for autoloads
         ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &OrchestratorGraphActionMenu::clear));

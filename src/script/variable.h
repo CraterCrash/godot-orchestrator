@@ -22,7 +22,7 @@
 using namespace godot;
 
 /// Forward declarations
-class OScript;
+class Orchestration;
 
 /// Defines a script variable
 ///
@@ -32,29 +32,29 @@ class OScript;
 ///
 class OScriptVariable : public Resource
 {
+    friend class Orchestration;
+
     GDCLASS(OScriptVariable, Resource);
 
     static void _bind_methods();
 
-    PropertyInfo _info;           //! Basic property details
-    Variant _default_value;       //! Optional defined default value
-    String _description;          //! An optional description for the variable
-    String _category;             //! Category for variables
-    bool _exported{ false };      //! Whether the variable is exposed on the node
-    bool _exportable{ false };    //! Tracks whether the variable can be exported
-    OScript* _script{ nullptr };  //! Owning script
-
-    String _classification;       //! Variable classification
-    int _type_category{ 0 };      //! Defaults to basic
-    Variant _type_subcategory;    //! Subcategory type
-    String _value_list;           //! Enum/Bitfield custom value list
+    Orchestration* _orchestration{ nullptr };  //! The owning orchestration
+    PropertyInfo _info;                        //! Basic property details
+    Variant _default_value;                    //! Optional defined default value
+    String _description;                       //! An optional description for the variable
+    String _category;                          //! Category for variables
+    bool _exported{ false };                   //! Whether the variable is exposed on the node
+    bool _exportable{ false };                 //! Tracks whether the variable can be exported
+    String _classification;                    //! Variable classification
+    int _type_category{ 0 };                   //! Defaults to basic
+    Variant _type_subcategory;                 //! Subcategory type
+    String _value_list;                        //! Enum/Bitfield custom value list
 
 protected:
-
     //~ Begin Wrapped Interface
     void _validate_property(PropertyInfo& p_property) const;
-    bool _property_can_revert(const StringName &p_name) const;
-    bool _property_get_revert(const StringName &p_name, Variant &r_property);
+    bool _property_can_revert(const StringName& p_name) const;
+    bool _property_get_revert(const StringName& p_name, Variant& r_property);
     //~ End Wrapped Interface
 
     /// Get whether the specified property is exportable.
@@ -62,17 +62,18 @@ protected:
     /// @return true if the property can be exported, false otherwise
     bool _is_exportable_type(const PropertyInfo& p_property) const;
 
-public:
     /// Constructor
+    /// Intentionally protected, variables created via an Orchestration
     OScriptVariable();
 
+public:
     /// Performs post resource initialization.
     /// This is used to align and fix-up state across versions.
     void post_initialize();
 
-    /// Get a reference to the script that owns this variable.
-    /// @return the owning script reference, should always be valid
-    Ref<OScript> get_owning_script() const;
+    /// Get a reference to the orchestration that owns this variable.
+    /// @return the owning orchestration reference, should always be valid
+    Orchestration* get_orchestration() const;
 
     /// Get the variable's PropertyInfo structure
     /// @return the property info
@@ -155,12 +156,6 @@ public:
     /// Set the variable's default value
     /// @param p_default_value the default value
     void set_default_value(const Variant& p_default_value);
-
-    /// Helper method to construct a OScriptVariable from a Godot PropertyInfo struct.
-    /// @param p_script the script that will own the signal
-    /// @param p_property the property info struct
-    static Ref<OScriptVariable> create(OScript* p_script, const PropertyInfo& p_property);
-
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_VARIABLE_H

@@ -14,18 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_RESOURCE_FORMAT_H
-#define ORCHESTRATOR_SCRIPT_RESOURCE_FORMAT_H
+#ifndef ORCHESTRATOR_SCRIPT_SERIALIZATION_INSTANCE_H
+#define ORCHESTRATOR_SCRIPT_SERIALIZATION_INSTANCE_H
 
-#include "script/resource/format.h"
+#include <godot_cpp/classes/object.hpp>
 
-class OrchestratorResourceFormat
+class OScriptResourceFormatInstance
 {
 public:
-    virtual ~OrchestratorResourceFormat() = default;
-
-    const int FORMAT_VERSION = 1;
-    const int RESERVED_FIELDS = 10;
+    const uint32_t FORMAT_VERSION{ 1 };
+    const uint32_t RESERVED_FIELDS{ 10 };
 
     enum
     {
@@ -81,4 +79,4 @@ public:
     };
 };
 
-#endif  // ORCHESTRATOR_SCRIPT_RESOURCE_FORMAT_H
+#endif  // ORCHESTRATOR_SCRIPT_SERIALIZATION_INSTANCE_H

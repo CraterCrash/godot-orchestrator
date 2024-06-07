@@ -15,3 +15,10 @@
 // limitations under the License.
 //
 #include "action_menu_filter.h"
+
+#include "editor/graph/graph_edit.h"
+
+Orchestration* OrchestratorGraphActionContext::get_orchestration() const
+{
+    return graph ? graph->get_orchestration() : nullptr;
+}

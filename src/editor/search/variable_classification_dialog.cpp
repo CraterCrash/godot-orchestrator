@@ -21,9 +21,8 @@
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
-#include "plugin/plugin.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
-#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 
 struct OrchestratorVariableTypeSearchDialog::SearchItemSortPath

@@ -63,7 +63,7 @@ String OScriptNodeFunctionEntry::get_tooltip_text() const
 {
     Ref<OScriptFunction> function = get_function();
     if (function.is_valid())
-        return vformat("Target is %s", get_owning_script()->get_base_type());
+        return vformat("Target is %s", get_orchestration()->get_base_type());
 
     return super::get_tooltip_text();
 }
@@ -102,7 +102,7 @@ void OScriptNodeFunctionEntry::initialize(const OScriptNodeInitContext& p_contex
     ERR_FAIL_COND_MSG(!p_context.method, "Failed to initialize node without a MethodInfo");
 
     const MethodInfo& mi = p_context.method.value();
-    _function = get_owning_script()->create_function(mi, get_id(), _is_user_defined());
+    _function = get_orchestration()->create_function(mi, get_id(), _is_user_defined());
     _guid = _function->get_guid();
 
     super::initialize(p_context);

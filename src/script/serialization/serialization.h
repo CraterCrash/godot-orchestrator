@@ -14,23 +14,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_FORMAT_LOADER_H
-#define ORCHESTRATOR_SCRIPT_FORMAT_LOADER_H
-
-#include "format.h"
+#ifndef ORCHESTRATOR_SCRIPT_SERIALIZATION_H
+#define ORCHESTRATOR_SCRIPT_SERIALIZATION_H
 
 #include <godot_cpp/classes/resource_format_loader.hpp>
+#include <godot_cpp/classes/resource_format_saver.hpp>
 
 using namespace godot;
 
-/// Defines a resource format implementation for loading Orchestrator scripts.
-class OScriptResourceLoader : public ResourceFormatLoader
+/// A ResourceFormatLoader that loads Orchestrator resource files using binary format
+class OScriptBinaryResourceLoader : public ResourceFormatLoader
 {
-    GDCLASS(OScriptResourceLoader, ResourceFormatLoader);
-    static void _bind_methods() {}
+    GDCLASS(OScriptBinaryResourceLoader, ResourceFormatLoader);
+    static void _bind_methods();
 
 public:
-
     //~ Begin ResourceFormatLoader Interface
     PackedStringArray _get_recognized_extensions() const override;
     bool _recognize_path(const String& p_path, const StringName& type) const override;
@@ -44,7 +42,24 @@ public:
     PackedStringArray _get_classes_used(const String& p_path) const override;
     Variant _load(const String& p_path, const String& p_original_path, bool p_use_sub_threads, int32_t p_cache_mode) const override;
     //~ End ResourceFormatLoader Interface
-
 };
 
-#endif  // ORCHESTRATOR_SCRIPT_FORMAT_LOADER_H
+/// A ResourceFormatSaver that saves a Orchestrator resource files using binary format
+class OScriptBinaryResourceSaver : public ResourceFormatSaver
+{
+    GDCLASS(OScriptBinaryResourceSaver, ResourceFormatSaver);
+    static void _bind_methods();
+
+    String _get_local_path(const String& p_path) const;
+
+public:
+    //~ Begin ResourceFormatSaver Interface
+    PackedStringArray _get_recognized_extensions(const Ref<Resource>& p_resource) const override;
+    bool _recognize(const Ref<Resource>& p_resource) const override;
+    Error _set_uid(const String& p_path, int64_t p_uid) override;
+    bool _recognize_path(const Ref<Resource>& p_resource, const String& p_path) const override;
+    Error _save(const Ref<Resource>& p_resource, const String& p_path, uint32_t p_flags) override;
+    //~ End ResourceFormatSaver Interface
+};
+
+#endif // ORCHESTRATOR_SCRIPT_SERIALIZATION_H

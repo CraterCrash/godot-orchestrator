@@ -21,14 +21,15 @@
 #include "common/logger.h"
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
+#include "common/string_utils.h"
 #include "common/version.h"
 #include "editor/graph/graph_knot.h"
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "nodes/graph_node_factory.h"
-#include "plugin/plugin.h"
-#include "plugin/settings.h"
 #include "script/language.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
@@ -94,20 +95,18 @@ EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
     return output_port ? PD_Output : PD_Input;
 }
 
-OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<OScript> p_script, const String& p_name)
+OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, const Ref<OScriptGraph>& p_graph)
 {
     internal::gdextension_interface_get_godot_version(&_version);
     _is_43p = _version.major == 4 && _version.minor >= 3;
 
-    set_name(p_name);
+    set_name(p_graph->get_graph_name());
     set_minimap_enabled(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_minimap", false));
     set_right_disconnects(true);
     set_show_arrange_button(false);
 
     _plugin = p_plugin;
-
-    _script = p_script;
-    _script_graph = _script->get_graph(p_name);
+    _script_graph = p_graph;
 
     _cache_connection_knots();
 
@@ -216,8 +215,10 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _confirm_window->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
         add_child(_confirm_window);
 
-        _script->connect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
-        _script->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
+        const Ref<Resource> self = get_orchestration()->get_self();
+        self->connect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
+        self->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
+
         _script_graph->connect("node_added", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_added));
         _script_graph->connect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
         _script_graph->connect("knots_updated", callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots));
@@ -275,6 +276,7 @@ void OrchestratorGraphEdit::_bind_methods()
     ADD_SIGNAL(MethodInfo("focus_requested", PropertyInfo(Variant::OBJECT, "target")));
     ADD_SIGNAL(MethodInfo("collapse_selected_to_function"));
     ADD_SIGNAL(MethodInfo("expand_node", PropertyInfo(Variant::INT, "node_id")));
+    ADD_SIGNAL(MethodInfo("validation_requested"));
 }
 
 void OrchestratorGraphEdit::clear_selection()
@@ -337,32 +339,6 @@ void OrchestratorGraphEdit::set_spawn_position_center_view()
     _saved_mouse_position = (get_scroll_offset() + get_rect().get_center()) / get_zoom();
 }
 
-void OrchestratorGraphEdit::spawn_node(const Ref<OScriptNode>& p_node, const Vector2& p_position)
-{
-    Logger::debug("Spawning node ", p_node->get_class(), " at ", p_position);
-    p_node->set_position(p_position);
-
-    // Node initialized, add to script
-    _script->add_node(_script_graph, p_node);
-
-    // Notify node has been placed
-    p_node->post_placed_new_node();
-
-    // Based on the connection drag details, attempt to auto-connect
-    if (_drag_context.should_autowire())
-    {
-        Ref<OScriptNode> other_node = _script->get_node(_drag_context.node_name.to_int());
-        if (other_node.is_valid())
-        {
-            Logger::debug("Auto-wire placed node ", p_node->get_class(), " with ", other_node->get_class());
-            _attempt_autowire(p_node, other_node);
-        }
-    }
-
-    _drag_context.reset();
-    emit_signal("nodes_changed");
-}
-
 void OrchestratorGraphEdit::goto_class_help(const String& p_class_name)
 {
     _plugin->get_editor_interface()->set_main_screen_editor("Script");
@@ -385,6 +361,32 @@ void OrchestratorGraphEdit::execute_action(const String& p_action_name)
     action->set_pressed(true);
 
     Input::get_singleton()->parse_input_event(action);
+}
+
+Ref<OScriptNode> OrchestratorGraphEdit::spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position)
+{
+    const Ref<OScriptNode> spawned = _script_graph->create_node(p_type, p_context, p_position);
+    if (spawned.is_valid())
+    {
+        if (_drag_context.should_autowire())
+        {
+            const Ref<OScriptNode> other = _script_graph->get_node(_drag_context.node_name.to_int());
+            if (other.is_valid())
+                _attempt_autowire(spawned, other);
+        }
+    }
+
+    _drag_context.reset();
+
+    if (spawned.is_valid())
+        emit_signal("nodes_changed");
+
+    return spawned;
+}
+
+void OrchestratorGraphEdit::sync()
+{
+    _synchronize_graph_connections_with_script();
 }
 
 #if GODOT_VERSION < 0x040300
@@ -557,7 +559,6 @@ bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Vari
 
 void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant& p_data)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
     Dictionary data = p_data;
 
     _update_saved_mouse_position(p_position);
@@ -570,14 +571,9 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
         {
             if (Node* dropped_node = root->get_node_or_null(nodes[0]))
             {
-                NodePath path = root->get_path_to(dropped_node);
-                Ref<OScriptNodeSceneNode> node = language->create_node_from_type<OScriptNodeSceneNode>(_script);
-
                 OScriptNodeInitContext context;
-                context.node_path = path;
-                node->initialize(context);
-
-                spawn_node(node, _saved_mouse_position);
+                context.node_path = root->get_path_to(dropped_node);
+                spawn_node<OScriptNodeSceneNode>(context, _saved_mouse_position);
             }
         }
     }
@@ -642,17 +638,11 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
     }
     else if (type == "function")
     {
-        const StringName function_name = StringName(Array(data["functions"])[0]);
-        const Ref<OScriptFunction> function = _script->find_function(function_name);
-        if (function.is_valid())
+        if (data.has("functions"))
         {
-            Ref<OScriptNodeCallFunction> node = language->create_node_from_type<OScriptNodeCallScriptFunction>(_script);
-
             OScriptNodeInitContext context;
-            context.method = function->get_method_info();
-            node->initialize(context);
-
-            spawn_node(node, _saved_mouse_position);
+            context.method = DictionaryUtils::to_method(data["functions"]);
+            spawn_node<OScriptNodeCallScriptFunction>(context, _saved_mouse_position);
         }
     }
     else if (type == "variable")
@@ -690,17 +680,11 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
     }
     else if (type == "signal")
     {
-        const String signal_name = String(Array(data["signals"])[0]);
-        const Ref<OScriptSignal> signal = _script->get_custom_signal(signal_name);
-        if (signal.is_valid())
+        if (data.has("signals"))
         {
-            Ref<OScriptNodeEmitSignal> node = language->create_node_from_type<OScriptNodeEmitSignal>(_script);
-
             OScriptNodeInitContext context;
-            context.method = signal->get_method_info();
-            node->initialize(context);
-
-            spawn_node(node, _saved_mouse_position);
+            context.method = DictionaryUtils::to_method(data["signals"]);
+            spawn_node<OScriptNodeEmitSignal>(context, _saved_mouse_position);
         }
     }
 }
@@ -999,20 +983,10 @@ void OrchestratorGraphEdit::_synchronize_graph_with_script(bool p_apply_position
 {
     _remove_all_nodes();
 
-    Array nodes = _script_graph->get_nodes();
-    for (int i = 0; i < nodes.size(); i++)
-    {
-        const Ref<OScriptNode> node = _script->get_node(nodes[i]);
-        if (!node.is_valid())
-        {
-            ERR_PRINT(vformat("Graph %s has node with id %d, but node is not found in the script metadata.",
-                _script_graph->get_graph_name(), nodes[i]));
+    _script_graph->sanitize_nodes();
 
-            _script_graph->remove_node(nodes[i]);
-            continue;
-        }
+    for (const Ref<OScriptNode>& node : _script_graph->get_nodes())
         _synchronize_graph_node(node);
-    }
 
     _synchronize_graph_connections_with_script();
 
@@ -1032,15 +1006,8 @@ void OrchestratorGraphEdit::_synchronize_graph_connections_with_script()
     clear_connections();
 
     // Re-assign connections
-    Array nodes = _script_graph->get_nodes();
-    for (const OScriptConnection& E : _script->get_connections())
-    {
-        // Only apply nodes that are part of this graph
-        if (!(nodes.has(E.from_node) || nodes.has(E.to_node)))
-            continue;
-
+    for (const OScriptConnection& E : _script_graph->get_connections())
         connect_node(itos(E.from_node), E.from_port, itos(E.to_node), E.to_port);
-    }
 }
 
 void OrchestratorGraphEdit::_synchronize_graph_knots()
@@ -1074,7 +1041,7 @@ void OrchestratorGraphEdit::_synchronize_graph_knots()
             const Ref<KnotPoint>& point = E.value[i];
 
             OrchestratorGraphKnot* graph_knot = memnew(OrchestratorGraphKnot);
-            graph_knot->set_owning_script(_script);
+            graph_knot->set_graph(_script_graph);
             graph_knot->set_connection(connection);
             graph_knot->set_knot(point);
             graph_knot->set_color(source->get_output_port_color(connection.from_port));
@@ -1532,7 +1499,8 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
         if (node->is_selected())
             node->set_selected(false);
 
-        _script->remove_node(node->get_script_node_id());
+        _script_graph->get_orchestration()->remove_node(node->get_script_node_id());
+
         node->queue_free();
     }
 
@@ -1553,7 +1521,7 @@ void OrchestratorGraphEdit::_on_right_mouse_clicked(const Vector2& p_position)
 
 void OrchestratorGraphEdit::_on_graph_node_added(int p_node_id)
 {
-    Ref<OScriptNode> node = _script->get_node(p_node_id);
+    Ref<OScriptNode> node = _script_graph->get_node(p_node_id);
     _synchronize_graph_node(node);
 
     // When node is added to graph, show right-click suggestion
@@ -1598,23 +1566,15 @@ void OrchestratorGraphEdit::_on_context_menu_selection(int p_id)
         case CM_FILE_PRELOAD:
         {
             const int index = _context_menu->get_item_index(p_id);
-            const String file = _context_menu->get_item_metadata(index);
 
-            OScriptLanguage* language = OScriptLanguage::get_singleton();
+            OScriptNodeInitContext context;
+            context.resource_path = _context_menu->get_item_metadata(index);
 
-            Ref<OScriptNode> node;
             if (p_id == CM_FILE_GET_PATH)
-                node = language->create_node_from_type<OScriptNodeResourcePath>(_script);
+                spawn_node<OScriptNodeResourcePath>(context, _saved_mouse_position);
             else if (p_id == CM_FILE_PRELOAD)
-                node = language->create_node_from_type<OScriptNodePreload>(_script);
+                spawn_node<OScriptNodePreload>(context, _saved_mouse_position);
 
-            if (node.is_valid())
-            {
-                OScriptNodeInitContext context;
-                context.resource_path = file;
-                node->initialize(context);
-                spawn_node(node, _saved_mouse_position);
-            }
             break;
         }
         default:
@@ -1644,7 +1604,7 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
 
 void OrchestratorGraphEdit::_on_inspect_script()
 {
-    _plugin->get_editor_interface()->inspect_object(_script.ptr());
+    _plugin->get_editor_interface()->inspect_object(get_orchestration()->get_self().ptr());
 
     EditorInspector* inspector = _plugin->get_editor_interface()->get_inspector();
 
@@ -1665,18 +1625,7 @@ void OrchestratorGraphEdit::_on_inspect_script()
 
 void OrchestratorGraphEdit::_on_validate_and_build()
 {
-    if(!_script->validate_and_build())
-    {
-        _confirm_window->set_text("There are build failures, please check the output.");
-        _confirm_window->set_title("Validation Failed");
-    }
-    else
-    {
-        _confirm_window->set_text("Orchestration validation successful.");
-        _confirm_window->set_title("Validation OK");
-    }
-    _confirm_window->reset_size();
-    _confirm_window->show();
+    emit_signal("validation_requested");
 }
 
 void OrchestratorGraphEdit::_on_copy_nodes_request()
@@ -1701,7 +1650,7 @@ void OrchestratorGraphEdit::_on_copy_nodes_request()
         }
     });
 
-    for (const OScriptConnection& E : _script->get_connections())
+    for (const OScriptConnection& E : get_orchestration()->get_connections())
         if (_clipboard->nodes.has(E.from_node) && _clipboard->nodes.has(E.to_node))
             _clipboard->connections.insert(E);
 }
@@ -1728,37 +1677,17 @@ void OrchestratorGraphEdit::_on_duplicate_nodes_request()
     HashMap<int, int> bindings;
     for (const int node_id : duplications)
     {
-        Ref<OScriptNode> node = _script->get_node(node_id);
-        if (!node.is_valid())
-        {
-            ERR_PRINT("Cannot duplicate node with id " + itos(node_id));
+        const Ref<OScriptNode> duplicate = _script_graph->duplicate_node(node_id, Vector2(20, 20), true);
+        if (!duplicate.is_valid())
             continue;
-        }
-
-        // Duplicate sub-resources to handle copying pins
-        Ref<OScriptNode> duplicate = node->duplicate(true);
-
-        // Initialize the duplicate node
-        // While the ID and Position are obvious, the other two maybe are not.
-        // Setting OScript is necessary because the OScript pointer is not stored/persisted.
-        // Additionally, there are other node properties that are maybe references to other objects or data
-        // that is post-processed after placement but before rendering, and this allows this step to handle
-        // that cleanly.
-        duplicate->set_id(_script->get_available_id());
-        duplicate->set_position(node->get_position() + Vector2(20, 20));
-        duplicate->set_owning_script(_script.ptr());
-        duplicate->post_initialize();
-
-        _script->add_node(_script_graph, duplicate);
-        duplicate->post_placed_new_node();
 
         selections.push_back(duplicate->get_id());
-        bindings[node->get_id()] = duplicate->get_id();
+        bindings[node_id] = duplicate->get_id();
     }
 
-    for (const OScriptConnection& E : _script->get_connections())
+    for (const OScriptConnection& E : get_orchestration()->get_connections())
         if (duplications.has(E.from_node) && duplications.has(E.to_node))
-            _script->connect_nodes(bindings[E.from_node], E.from_port, bindings[E.to_node], E.to_port);
+            _script_graph->link(bindings[E.from_node], E.from_port, bindings[E.to_node], E.to_port);
 
     _synchronize_graph_with_script();
 
@@ -1800,23 +1729,13 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
     HashMap<int, int> bindings;
     for (const KeyValue<int, Ref<OScriptNode>>& E : _clipboard->nodes)
     {
-        Ref<OScriptNode> node = E.value;
-
-        node->set_id(_script->get_available_id());
-        node->set_position(_clipboard->positions[E.key] + position_offset);
-        node->set_owning_script(_script.ptr());
-        node->post_initialize();
-
-        _script->add_node(_script_graph, node);
-
-        node->post_placed_new_node();
+        const Ref<OScriptNode> node = _script_graph->paste_node(E.value, _clipboard->positions[E.key] + position_offset);
         selections.push_back(node->get_id());
-
         bindings[E.key] = node->get_id();
     }
 
     for (const OScriptConnection& E : _clipboard->connections)
-        _script->connect_nodes(bindings[E.from_node], E.from_port, bindings[E.to_node], E.to_port);
+        _script_graph->link(bindings[E.from_node], E.from_port, bindings[E.to_node], E.to_port);
 
     _synchronize_graph_with_script();
 
@@ -1829,8 +1748,8 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
 
 void OrchestratorGraphEdit::_on_script_changed()
 {
-    _base_type_button->set_button_icon(SceneUtils::get_editor_icon(_script->get_base_type()));
-    _base_type_button->set_text(vformat("Base Type: %s", _script->get_base_type()));
+    _base_type_button->set_button_icon(SceneUtils::get_editor_icon(get_orchestration()->get_base_type()));
+    _base_type_button->set_text(vformat("Base Type: %s", get_orchestration()->get_base_type()));
 }
 
 #if GODOT_VERSION >= 0x040300

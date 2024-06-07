@@ -17,10 +17,7 @@
 #ifndef ORCHESTRATOR_EXECUTION_CONTEXT_H
 #define ORCHESTRATOR_EXECUTION_CONTEXT_H
 
-#include "execution_stack.h"
-
-#include <godot_cpp/classes/ref_counted.hpp>
-#include <godot_cpp/templates/vector.hpp>
+#include "script/context/execution_stack.h"
 
 using namespace godot;
 

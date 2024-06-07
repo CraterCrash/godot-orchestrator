@@ -201,14 +201,12 @@ void OScriptNodeGlobalConstant::initialize(const OScriptNodeInitContext& p_conte
     super::initialize(p_context);
 }
 
-bool OScriptNodeGlobalConstant::validate_node_during_build() const
+void OScriptNodeGlobalConstant::validate_node_during_build(BuildLog& p_log) const
 {
+    super::validate_node_during_build(p_log);
+
     if (_constant_name.is_empty())
-    {
-        ERR_PRINT("Constant node has no constant name specified.");
-        return false;
-    }
-    return super::validate_node_during_build();
+        p_log.error("Constant node has no constant name specified.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,14 +275,12 @@ OScriptNodeInstance* OScriptNodeMathConstant::instantiate(OScriptInstance* p_ins
     return i;
 }
 
-bool OScriptNodeMathConstant::validate_node_during_build() const
+void OScriptNodeMathConstant::validate_node_during_build(BuildLog& p_log) const
 {
+    super::validate_node_during_build(p_log);
+
     if (_constant_name.is_empty())
-    {
-        ERR_PRINT("Constant node has no constant name specified.");
-        return false;
-    }
-    return super::validate_node_during_build();
+        p_log.error("Constant node has no constant name specified");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,19 +402,14 @@ void OScriptNodeTypeConstant::initialize(const OScriptNodeInitContext& p_context
     super::initialize(p_context);
 }
 
-bool OScriptNodeTypeConstant::validate_node_during_build() const
+void OScriptNodeTypeConstant::validate_node_during_build(BuildLog& p_log) const
 {
+    super::validate_node_during_build(p_log);
+
     if (_constant_name.is_empty())
-    {
-        ERR_PRINT("Constant node has no constant name specified.");
-        return false;
-    }
-    if (_type == Variant::NIL)
-    {
-        ERR_PRINT("Constant node has no type specified.");
-        return false;
-    }
-    return super::validate_node_during_build();
+        p_log.error("Constant node has no constant name specified");
+    else if (_type == Variant::NIL)
+        p_log.error("Constant node has no type specified.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -499,19 +490,14 @@ String OScriptNodeClassConstantBase::get_icon() const
     return "MemberConstant";
 }
 
-bool OScriptNodeClassConstantBase::validate_node_during_build() const
+void OScriptNodeClassConstantBase::validate_node_during_build(BuildLog& p_log) const
 {
+    super::validate_node_during_build(p_log);
+
     if (_class_name.is_empty())
-    {
-        ERR_PRINT("Constant node has no class specified.");
-        return false;
-    }
-    if (_constant_name.is_empty())
-    {
-        ERR_PRINT("Constant node has no constant specified.");
-        return false;
-    }
-    return super::validate_node_during_build();
+        p_log.error("Constant node has no class specified.");
+    else if (_constant_name.is_empty())
+        p_log.error("Constant node has no constant specified.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

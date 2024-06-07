@@ -49,7 +49,7 @@ String OScriptNodeCallMemberFunction::get_node_title() const
 void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_context)
 {
     MethodInfo mi;
-    StringName target_class = get_owning_script()->get_base_type();
+    StringName target_class = get_orchestration()->get_base_type();
     Variant::Type target_type = Variant::NIL;
     if (p_context.user_data)
     {
@@ -100,7 +100,7 @@ void OScriptNodeCallMemberFunction::on_pin_disconnected(const Ref<OScriptNodePin
     if (p_pin->get_pin_name().match("target"))
     {
         _function_flags.set_flag(FF_IS_SELF);
-        _reference.target_class_name = get_owning_script()->get_base_type();
+        _reference.target_class_name = get_orchestration()->get_base_type();
     }
     reconstruct_node();
 }

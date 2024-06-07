@@ -17,10 +17,10 @@
 #include "graph_node_pin.h"
 
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "common/variant_utils.h"
 #include "graph_edit.h"
 #include "graph_node.h"
-#include "plugin/settings.h"
 #include "script/nodes/data/coercion_node.h"
 #include "script/nodes/data/dictionary.h"
 #include "script/nodes/editable_pin_node.h"
@@ -241,10 +241,9 @@ void OrchestratorGraphNodePin::_remove_editable_pin()
 
 void OrchestratorGraphNodePin::_promote_as_variable()
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-    OScript* script = _node->get_script_node()->get_owning_script();
+    Orchestration* orchestation = _node->get_script_node()->get_orchestration();
 
-    Ref<OScriptVariable> variable = script->create_variable(_create_promoted_variable_name(), _pin->get_type());
+    Ref<OScriptVariable> variable = orchestation->create_variable(_create_promoted_variable_name(), _pin->get_type());
     if (!variable.is_valid())
         return;
 
@@ -259,34 +258,26 @@ void OrchestratorGraphNodePin::_promote_as_variable()
     if (is_input())
     {
         position -= offset;
-        Ref<OScriptNodeVariableGet> var_node = language->create_node_from_type<OScriptNodeVariableGet>(script);
-        if (var_node.is_valid())
-        {
-            var_node->initialize(context);
-            get_graph()->spawn_node(var_node, position);
-            var_node->find_pin(0, PD_Output)->link(_pin);
-        }
+        Ref<OScriptNodeVariableGet> spawn_node = get_graph()->spawn_node<OScriptNodeVariableGet>(context, position);
+        if (spawn_node.is_valid())
+            spawn_node->find_pin(0, PD_Output)->link(_pin);
     }
     else
     {
         position += offset + Vector2(25, 0);
-        Ref<OScriptNodeVariableSet> var_node = language->create_node_from_type<OScriptNodeVariableSet>(script);
-        if (var_node.is_valid())
-        {
-            var_node->initialize(context);
-            get_graph()->spawn_node(var_node, position);
-            _pin->link(var_node->find_pin(1, PD_Input));
-        }
+        Ref<OScriptNodeVariableSet> spawn_node = get_graph()->spawn_node<OScriptNodeVariableSet>(context, position);
+        if (spawn_node.is_valid())
+            _pin->link(spawn_node->find_pin(1, PD_Input));
     }
 }
 
 String OrchestratorGraphNodePin::_create_promoted_variable_name()
 {
-    OScript* script = _node->get_script_node()->get_owning_script();
+    Orchestration* orchestration = _node->get_script_node()->get_orchestration();
 
     int index = 0;
     String name = _pin->get_pin_name() + itos(index++);
-    while (script->has_variable(name))
+    while (orchestration->has_variable(name))
         name = _pin->get_pin_name() + itos(index++);
 
     return name;
@@ -566,7 +557,7 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
 
 void OrchestratorGraphNodePin::_select_nodes_for_pin(const Ref<OScriptNodePin>& p_pin)
 {
-    Vector<Ref<OScriptNodePin>> connections = get_graph()->get_owning_script()->get_connections(p_pin.ptr());
+    Vector<Ref<OScriptNodePin>> connections = get_graph()->get_orchestration()->get_connections(p_pin.ptr());
     for (const Ref<OScriptNodePin>& connection : connections)
     {
         Ref<OScriptNode> node = connection->get_owning_node();

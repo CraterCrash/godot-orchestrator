@@ -14,10 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "node.h"
+#include "script/node.h"
 
 #include "common/variant_utils.h"
-#include "script.h"
+#include "script/script.h"
 
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -26,7 +26,7 @@ OScriptNode::OScriptNode()
     : _initialized(false)
     , _id(-1)
     , _flags(ScriptNodeFlags::CATALOGABLE)
-    , _script(nullptr)
+    , _orchestration(nullptr)
 {
 }
 
@@ -82,9 +82,9 @@ bool OScriptNode::_is_in_editor()
     return OS::get_singleton()->has_feature("editor");
 }
 
-void OScriptNode::set_owning_script(OScript* p_script)
+Ref<OScriptGraph> OScriptNode::get_owning_graph()
 {
-    _script = p_script;
+    return _orchestration->find_graph(this);
 }
 
 void OScriptNode::set_id(int p_id)

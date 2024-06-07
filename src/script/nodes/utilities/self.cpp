@@ -32,16 +32,16 @@ public:
 
 void OScriptNodeSelf::post_initialize()
 {
-    if (_is_in_editor() && _script)
-        _script->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+    if (_is_in_editor() && get_orchestration())
+        get_orchestration()->get_self()->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
 
     super::post_initialize();
 }
 
 void OScriptNodeSelf::post_placed_new_node()
 {
-    if (_is_in_editor() && _script)
-        _script->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+    if (_is_in_editor() && get_orchestration())
+        get_orchestration()->get_self()->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
 
     super::post_placed_new_node();
 }
@@ -63,8 +63,8 @@ String OScriptNodeSelf::get_node_title() const
 
 String OScriptNodeSelf::get_icon() const
 {
-    if (_script)
-        return _script->get_base_type();
+    if (get_orchestration())
+        return get_orchestration()->get_base_type();
 
     return super::get_icon();
 }

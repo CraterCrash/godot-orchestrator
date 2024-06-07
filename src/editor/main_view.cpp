@@ -16,15 +16,15 @@
 //
 #include "main_view.h"
 
+#include "common/settings.h"
 #include "common/scene_utils.h"
 #include "common/version.h"
 #include "editor/about_dialog.h"
 #include "editor/graph/graph_edit.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
 #include "getting_started.h"
-#include "plugin/plugin.h"
-#include "plugin/settings.h"
 #include "script/language.h"
 #include "script_view.h"
 
@@ -50,6 +50,7 @@
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 
 #define SKEY(m,k) Key(static_cast<int>(m) | static_cast<int>(k))
 
@@ -316,9 +317,55 @@ void OrchestratorMainView::_notification(int p_what)
     }
 }
 
-void OrchestratorMainView::edit(const Ref<OScript>& p_script)
+void OrchestratorMainView::edit_script(const Ref<OScript>& p_script)
 {
-    _open_script(p_script);
+    if (p_script->get_path().is_empty())
+    {
+        ERR_PRINT("Script has no path, cannot be opened.");
+        return;
+    }
+
+    _show_script_editors();
+
+    // Before we open the new file, an existing editors need to be hidden.
+    // Unlike GDScript, we don't use tabs but rather control which editor is visible manually.
+    for (const ScriptFile& file : _script_files)
+        file.editor->hide();
+
+    // Now check whether the file is already open in the editor.
+    // If so, use that editor rather than creating a new one.
+    for (int i = 0; i < _script_files.size(); i++)
+    {
+        const ScriptFile& file = _script_files[i];
+        if (file.file_name == p_script->get_path())
+        {
+            _current_index = i;
+            file.editor->show();
+
+            _update_files_list();
+            _on_prepare_file_menu();
+            return;
+        }
+    }
+
+    // This is a new file opened
+    OrchestratorScriptView* editor = memnew(OrchestratorScriptView(_plugin, this, p_script));
+    _script_editor_container->add_child(editor);
+
+    ScriptFile file;
+    file.file_name = p_script->get_path();
+    file.editor = editor;
+
+    _current_index = _script_files.size();
+    _script_files.push_back(file);
+
+    _update_files_list();
+    _on_prepare_file_menu();
+
+    _show_script_editor_view(file.file_name);
+
+    // Since the editor's ready callback needs to fire, we defer this call
+    call_deferred("emit_signal", "toggle_component_panel", _right_panel_visible);
 }
 
 void OrchestratorMainView::apply_changes()
@@ -348,9 +395,11 @@ void OrchestratorMainView::set_window_layout(const Ref<ConfigFile>& p_configurat
         PackedStringArray open_files = p_configuration->get_value("Orchestrator", "open_files", {});
         for (const String& file_name : open_files)
         {
-            const Ref<OScript> script = ResourceLoader::get_singleton()->load(file_name);
+            const Ref<Resource> res = ResourceLoader::get_singleton()->load(file_name);
+
+            const Ref<OScript> script = res;
             if (script.is_valid())
-                _open_script(script);
+                edit_script(script);
         }
 
         String open_selected_file = p_configuration->get_value("Orchestrator", "open_files_selected", "");
@@ -410,58 +459,6 @@ void OrchestratorMainView::_ask_close_current_unsaved_script()
     }
 }
 
-void OrchestratorMainView::_open_script(const Ref<OScript>& p_script)
-{
-    if (p_script->get_path().is_empty())
-    {
-        ERR_PRINT("Script has no path, cannot be opened.");
-        return;
-    }
-
-    _landing->hide();
-    _script_editor_container->show();
-
-    // Before we open the new file, an existing editors need to be hidden.
-    // Unlike GDScript, we don't use tabs but rather control which editor is visible manually.
-    for (const ScriptFile& file : _script_files)
-        file.editor->hide();
-
-    // Now check whether the file is already open in the editor.
-    // If so, use that editor rather than creating a new one.
-    for (int i = 0; i < _script_files.size(); i++)
-    {
-        const ScriptFile& file = _script_files[i];
-        if (file.file_name == p_script->get_path())
-        {
-            _current_index = i;
-            file.editor->show();
-
-            _update_files_list();
-            _on_prepare_file_menu();
-            return;
-        }
-    }
-
-    // This is a new file opened
-    OrchestratorScriptView* editor = memnew(OrchestratorScriptView(_plugin, this, p_script));
-    _script_editor_container->add_child(editor);
-
-    ScriptFile file;
-    file.file_name = p_script->get_path();
-    file.editor = editor;
-
-    _current_index = _script_files.size();
-    _script_files.push_back(file);
-
-    _update_files_list();
-    _on_prepare_file_menu();
-
-    _show_script_editor_view(file.file_name);
-
-    // Since the editor's ready callback needs to fire, we defer this call
-    call_deferred("emit_signal", "toggle_component_panel", _right_panel_visible);
-}
-
 void OrchestratorMainView::_save_script()
 {
     if (_has_open_script())
@@ -517,8 +514,7 @@ void OrchestratorMainView::_close_script(int p_index, bool p_save)
         // No more files are in the view.
         _current_index = -1;
 
-        _script_editor_container->hide();
-        _landing->show();
+        _show_landing();
     }
 
     _update_files_list();
@@ -662,6 +658,18 @@ void OrchestratorMainView::_navigate_to_current_path()
     }
 }
 
+void OrchestratorMainView::_show_landing()
+{
+    _script_editor_container->hide();
+    _landing->show();
+}
+
+void OrchestratorMainView::_show_script_editors()
+{
+    _landing->hide();
+    _script_editor_container->show();
+}
+
 void OrchestratorMainView::_show_script_editor_view(const String& p_file_name)
 {
     // Hide all editors
@@ -777,16 +785,23 @@ void OrchestratorMainView::_on_script_file_created(const Ref<Script>& p_script)
         ERR_PRINT(vformat("The script is not an orchestration"));
         return;
     }
-    edit(p_script);
+    edit_script(p_script);
 }
 
 void OrchestratorMainView::_on_open_script_file(const String& p_file_name)
 {
-    const Ref<OScript> script = ResourceLoader::get_singleton()->load(p_file_name);
-    if (!script.is_valid())
-        OS::get_singleton()->alert("The orchestration script file is not valid.", "Orchestration not valid");
+    const Ref<Resource> res = ResourceLoader::get_singleton()->load(p_file_name);
+    if (res.is_valid())
+    {
+        const Ref<OScript> script = res;
+        if (script.is_valid())
+        {
+            edit_script(script);
+            return;
+        }
+    }
 
-    _open_script(script);
+    OS::get_singleton()->alert("Failed to load the orchestration file.", "Orchestration invalid");
 }
 
 void OrchestratorMainView::_on_save_script_file(const String& p_file_name)

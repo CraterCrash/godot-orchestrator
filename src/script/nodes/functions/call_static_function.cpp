@@ -214,9 +214,9 @@ String OScriptNodeCallStaticFunction::get_node_title() const
     return "Call Static Function";
 }
 
-bool OScriptNodeCallStaticFunction::validate_node_during_build() const
+void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) const
 {
-    return true;
+    return super::validate_node_during_build(p_log);
 }
 
 OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate(OScriptInstance* p_instance)

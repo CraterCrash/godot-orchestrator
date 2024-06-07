@@ -17,12 +17,13 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_H
 #define ORCHESTRATOR_SCRIPT_NODE_H
 
-#include "context/execution_context.h"
 #include "instances/node_instance.h"
-#include "language.h"
-#include "node_pin.h"
-#include "script.h"
-#include "target_object.h"
+#include "orchestration/build_log.h"
+#include "script/action.h"
+#include "script/language.h"
+#include "script/graph.h"
+#include "script/node_pin.h"
+#include "script/target_object.h"
 
 #include <optional>
 
@@ -33,7 +34,6 @@
 using namespace godot;
 
 /// Forward declarations
-class OScript;
 class OScriptInstance;
 
 /// A context object used to initialize OScriptNode instances.
@@ -66,7 +66,8 @@ struct OScriptNodeInitContext
 ///
 class OScriptNode : public Resource
 {
-    friend class OScript;
+    friend class Orchestration;
+    friend class OScriptLanguage;
 
     ORCHESTRATOR_NODE_CLASS_BASE(OScriptNode, Resource);
 
@@ -85,17 +86,16 @@ public:
     };
 
 protected:
-    bool _initialized{ false };         //! Manages whether the node is initialized
-    int _id{ -1 };                      //! Unique node id, assigned by the owning script
-    Vector2 _size;                      //! Size of the node
-    Vector2 _position;                  //! Position of the node
-    BitField<ScriptNodeFlags> _flags;   //! Flags
-    Vector<Ref<OScriptNodePin>> _pins;  //! Pins
-    OScript* _script{ nullptr };        //! Owning script
-    bool _reconstructing{ false };      //! Tracks if the node is in reconstruction
+    Orchestration* _orchestration{ nullptr };  //! Owning orchestration
+    bool _initialized{ false };                //! Manages whether the node is initialized
+    int _id{ -1 };                             //! Unique node id, assigned by the owning script
+    Vector2 _size;                             //! Size of the node
+    Vector2 _position;                         //! Position of the node
+    BitField<ScriptNodeFlags> _flags;          //! Flags
+    Vector<Ref<OScriptNodePin>> _pins;         //! Pins
+    bool _reconstructing{ false };             //! Tracks if the node is in reconstruction
 
 private:
-
     // Serialization for pins
     // Dictionaries are used to minimize the sub-resource footprint in the script file.
     TypedArray<Dictionary> _get_pin_data() const;
@@ -110,13 +110,16 @@ protected:
 public:
     OScriptNode();
 
-    /// Get the owning Orchestrator script
-    /// @return the orchestrator script
-    OScript* get_owning_script() const { return _script; }
+    /// Get the owning orchestration
+    /// @return the orchestration
+    Orchestration* get_orchestration() const { return _orchestration; }
 
-    /// Set the script that owns this node
-    /// @param p_script the owning script
-    void set_owning_script(OScript* p_script);
+    /// Gets the owning graph
+    /// @return the owning graph
+    Ref<OScriptGraph> get_owning_graph();
+
+    // todo: remove this
+    void set_orchestration(Orchestration* p_orchestration) { _orchestration = p_orchestration; }
 
     /// Get the node's unique identifier
     /// @return the node's unique identifer
@@ -283,8 +286,8 @@ public:
     virtual bool can_create_user_defined_pin(EPinDirection p_direction, String& r_message) { return false; }
 
     /// Callback to perform node validation during build step.
-    /// @return true if the node is valid, false otherwise
-    virtual bool validate_node_during_build() const { return true; }
+    /// @param p_log the build log
+    virtual void validate_node_during_build(BuildLog& p_log) const { }
 
     /// Instantiate the script node's runtime instance.
     /// @param p_instance the owning runtime script instance
@@ -357,7 +360,6 @@ public:
     virtual bool can_duplicate() const { return true; }
 
 protected:
-
     /// Notify that node pins have been changed.
     void _notify_pins_changed();
 
@@ -367,7 +369,6 @@ protected:
     // needs to be protected
     // this allows nodes that use the editable pin contract to recalculate indices
     void _cache_pin_indices();
-
 };
 
 #define DECLARE_SCRIPT_NODE_INSTANCE(x) /*************************************/ \

@@ -18,10 +18,9 @@
 
 #include "common/callable_lambda.h"
 #include "common/scene_utils.h"
-#include "plugin/inspector_plugin_variable.h"
-#include "plugin/plugin.h"
+#include "editor/plugins/inspector_plugin_variable.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
-#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
 
@@ -92,7 +91,7 @@ void OrchestratorScriptVariablesComponentPanel::_create_item(TreeItem* p_parent,
 
 PackedStringArray OrchestratorScriptVariablesComponentPanel::_get_existing_names() const
 {
-    return _script->get_variable_names();
+    return _orchestration->get_variable_names();
 }
 
 String OrchestratorScriptVariablesComponentPanel::_get_tooltip_text() const
@@ -131,20 +130,20 @@ void OrchestratorScriptVariablesComponentPanel::_handle_context_menu(int p_id)
 bool OrchestratorScriptVariablesComponentPanel::_handle_add_new_item(const String& p_name)
 {
     // Add the new variable and update the components display
-    return _script->create_variable(p_name).is_valid();
+    return _orchestration->create_variable(p_name).is_valid();
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_item_selected()
 {
     TreeItem* item = _tree->get_selected();
 
-    Ref<OScriptVariable> variable = _script->get_variable(item->get_text(0));
+    Ref<OScriptVariable> variable = _orchestration->get_variable(item->get_text(0));
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(variable);
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_item_activated(TreeItem* p_item)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(p_item->get_text(0));
+    Ref<OScriptVariable> variable = _orchestration->get_variable(p_item->get_text(0));
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(variable);
 }
 
@@ -156,19 +155,19 @@ bool OrchestratorScriptVariablesComponentPanel::_handle_item_renamed(const Strin
         return false;
     }
 
-    _script->rename_variable(p_old_name, p_new_name);
+    _orchestration->rename_variable(p_old_name, p_new_name);
     return true;
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_remove(TreeItem* p_item)
 {
     const String variable_name = p_item->get_text(0);
-    _script->remove_variable(variable_name);
+    _orchestration->remove_variable(variable_name);
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(p_item->get_text(0));
+    Ref<OScriptVariable> variable = _orchestration->get_variable(p_item->get_text(0));
     if (!variable.is_valid())
         return;
 
@@ -210,7 +209,7 @@ void OrchestratorScriptVariablesComponentPanel::update()
 {
     _clear_tree();
 
-    PackedStringArray variable_names = _script->get_variable_names();
+    PackedStringArray variable_names = _orchestration->get_variable_names();
     if (!variable_names.is_empty())
     {
         HashMap<String, Ref<OScriptVariable>> categorized;
@@ -218,7 +217,7 @@ void OrchestratorScriptVariablesComponentPanel::update()
         HashMap<String, String> categorized_names;
         for (const String& variable_name : variable_names)
         {
-            Ref<OScriptVariable> variable = _script->get_variable(variable_name);
+            Ref<OScriptVariable> variable = _orchestration->get_variable(variable_name);
             if (variable->is_grouped_by_category())
             {
                 const String category = variable->get_category().to_lower();
@@ -282,7 +281,7 @@ void OrchestratorScriptVariablesComponentPanel::_bind_methods()
 {
 }
 
-OrchestratorScriptVariablesComponentPanel::OrchestratorScriptVariablesComponentPanel(const Ref<OScript>& p_script)
-    : OrchestratorScriptComponentPanel("Variables", p_script)
+OrchestratorScriptVariablesComponentPanel::OrchestratorScriptVariablesComponentPanel(Orchestration* p_orchestration)
+    : OrchestratorScriptComponentPanel("Variables", p_orchestration)
 {
 }

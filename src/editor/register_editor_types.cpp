@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor.h"
+#include "editor/register_editor_types.h"
 
 #include "about_dialog.h"
 #include "editor/component_panels/component_panel.h"
@@ -27,24 +27,34 @@
 #include "editor/graph/actions/action_menu.h"
 #include "editor/graph/actions/default_action_registrar.h"
 #include "editor/graph/graph_edit.h"
+#include "editor/graph/graph_knot.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
+#include "editor/main_view.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
+#include "editor/script_connections.h"
+#include "editor/script_view.h"
 #include "editor/search/search_dialog.h"
 #include "editor/search/variable_classification_dialog.h"
+#include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
-#include "graph/graph_knot.h"
-#include "main_view.h"
-#include "script_connections.h"
-#include "script_view.h"
+#include "plugins/inspector_plugin_variable.h"
 
-void register_editor_classes()
+void register_editor_types()
 {
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem);
+    // Plugin bits
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorPlugin)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)
+
+    // Editor bits
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorVariableTypeSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
@@ -116,4 +126,12 @@ void register_editor_classes()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinString)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinStruct)
 
+    // Add plugin to the editor
+    EditorPlugins::add_by_type<OrchestratorPlugin>();
+}
+
+void unregister_editor_types()
+{
+    // Remove plugin from the editor
+    EditorPlugins::remove_by_type<OrchestratorPlugin>();
 }

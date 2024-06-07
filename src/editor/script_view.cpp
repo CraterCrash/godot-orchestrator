@@ -35,10 +35,12 @@
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/json.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
+#include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
@@ -49,18 +51,10 @@
 
 Ref<OScriptFunction> OrchestratorScriptView::_create_new_function(const String& p_name, bool p_add_return_node)
 {
-    ERR_FAIL_COND_V_MSG(_script->has_graph(p_name), {}, "Script already has graph named " + p_name);
+    ERR_FAIL_COND_V_MSG(_orchestration->has_graph(p_name), {}, "Script already has graph named " + p_name);
 
-    Ref<OScriptGraph> graph = _script->create_graph(p_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
+    Ref<OScriptGraph> graph = _orchestration->create_graph(p_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
     ERR_FAIL_COND_V_MSG(!graph.is_valid(), {}, "Failed to create new function graph named " + p_name);
-
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-    Ref<OScriptNodeFunctionEntry> entry = language->create_node_from_type<OScriptNodeFunctionEntry>(_script);
-    if (!entry.is_valid())
-    {
-        _script->remove_graph(graph->get_graph_name());
-        ERR_FAIL_V_MSG({}, "Failed to create function entry node for function " + p_name);
-    }
 
     MethodInfo mi;
     mi.name = p_name;
@@ -71,31 +65,20 @@ Ref<OScriptFunction> OrchestratorScriptView::_create_new_function(const String& 
 
     OScriptNodeInitContext context;
     context.method = mi;
-    entry->initialize(context);
 
-    _script->add_node(graph, entry);
-    entry->post_placed_new_node();
-
-    graph->add_function(entry->get_id());
-    graph->add_node(entry->get_id());
+    const Ref<OScriptNodeFunctionEntry> entry = graph->create_node<OScriptNodeFunctionEntry>(context);
+    if (!entry.is_valid())
+    {
+        _orchestration->remove_graph(graph->get_graph_name());
+        ERR_FAIL_V_MSG({}, "Failed to create function entry node for function " + p_name);
+    }
 
     if (p_add_return_node)
     {
-        Ref<OScriptNodeFunctionResult> result = language->create_node_from_type<OScriptNodeFunctionResult>(_script);
-        if (result.is_valid())
-        {
-            result->set_position(entry->get_position() + Vector2(300, 0));
-            result->initialize(context);
-
-            _script->add_node(graph, result);
-            result->post_placed_new_node();
-
-            graph->add_node(result->get_id());
-        }
-        else
-        {
-            ERR_PRINT("Failed to spawn a result node for function " + p_name);
-        }
+        const Vector2 position = entry->get_position() + Vector2(300, 0);
+        const Ref<OScriptNodeFunctionResult> result = graph->create_node<OScriptNodeFunctionResult>(context, position);
+        if (!result.is_valid())
+            ERR_PRINT(vformat("Failed to spawn result node for function '%s'.", p_name));
     }
 
     _functions->update();
@@ -142,7 +125,7 @@ void OrchestratorScriptView::_resolve_node_set_connections(const Vector<Ref<OScr
         }
     }
 
-    for (const OScriptConnection& E : _script->get_connections())
+    for (const OScriptConnection& E : _orchestration->get_connections())
     {
         if (node_map.has(E.from_node) && node_map.has(E.to_node))
             r_connections.connections.insert(E);
@@ -164,16 +147,6 @@ Rect2 OrchestratorScriptView::_get_node_set_rect(const Vector<Ref<OScriptNode>>&
     for (const Ref<OScriptNode>& E : p_nodes)
         area.expand_to(E->get_position());
     return area;
-}
-
-void OrchestratorScriptView::_move_nodes(const Vector<Ref<OScriptNode>>& p_nodes, const Ref<OScriptGraph>& p_source,
-                                         const Ref<OScriptGraph>& p_target)
-{
-    for (const Ref<OScriptNode>& E : p_nodes)
-    {
-        p_source->remove_node(E->get_id());
-        p_target->add_node(E->get_id());
-    }
 }
 
 void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdit* p_graph)
@@ -198,33 +171,33 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
     ERR_FAIL_COND_EDMSG(connections.output_executions > 1, "Cannot collapse to function with more than one external output execution wire.");
     ERR_FAIL_COND_EDMSG(connections.outputs.size() > 2, "Cannot output more than one execution and one data pin.");
 
-    const String new_function_name = NameUtils::create_unique_name("NewFunction", _script->get_function_names());
+    const String new_function_name = NameUtils::create_unique_name("NewFunction", _orchestration->get_function_names());
     Ref<OScriptFunction> function = _create_new_function(new_function_name, true);
     if (!function.is_valid())
         return;
 
+    const Ref<OScriptGraph> source_graph = p_graph->get_owning_graph();
     const Ref<OScriptGraph> target_graph = function->get_function_graph();
 
     // Calculate the area of the original nodes
     const Rect2 area = _get_node_set_rect(selected);
 
-    // Move node between the two graphs
-    _move_nodes(selected, p_graph->get_owning_graph(), target_graph);
+    // Before we move the nodes, we need to severe their connections to the outside world
+    for (const OScriptConnection& E : connections.inputs)
+        source_graph->unlink(E.from_node, E.from_port, E.to_node, E.to_port);
+    for (const OScriptConnection& E : connections.outputs)
+        source_graph->unlink(E.from_node, E.from_port, E.to_node, E.to_port);
 
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-    Ref<OScriptNode> call_node = language->create_node_from_type<OScriptNodeCallScriptFunction>(_script);
+    // Move node between the two graphs
+    for (const Ref<OScriptNode>& E : selected)
+        source_graph->move_node_to(E, target_graph);
 
     OScriptNodeInitContext context;
     context.method = function->get_method_info();
-    call_node->initialize(context);
 
-    call_node->set_position(area.get_center());
-    _script->add_node(p_graph->get_owning_graph(), call_node);
-    call_node->post_placed_new_node();
+    Ref<OScriptNode> call_node = source_graph->create_node<OScriptNodeCallScriptFunction>(context, area.get_center());
 
-    p_graph->get_owning_graph()->add_node(call_node->get_id());
-
-    const Ref<OScriptNodeFunctionEntry> entry = _script->get_node(function->get_owning_node_id());
+    const Ref<OScriptNodeFunctionEntry> entry = _orchestration->get_node(function->get_owning_node_id());
     const Ref<OScriptNodeFunctionResult> result = function->get_return_node();
 
     int input_index = 1;
@@ -235,20 +208,20 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
     for (const OScriptConnection& E : connections.inputs)
     {
         // The exterior node connected to the selected node
-        const Ref<OScriptNode> source = _script->get_node(E.from_node);
+        const Ref<OScriptNode> source = _orchestration->get_node(E.from_node);
         const Ref<OScriptNodePin> source_pin = source->find_pins(PD_Output)[E.from_port];
         if (source_pin->is_execution() && !call_execution_wired)
         {
-            _script->connect_nodes(E.from_node, E.from_port, call_node->get_id(), 0);
+            source_graph->link(E.from_node, E.from_port, call_node->get_id(), 0);
             call_execution_wired = true;
         }
         else if (!source_pin->is_execution())
         {
-            _script->connect_nodes(E.from_node, E.from_port, call_node->get_id(), call_input_index++);
+            source_graph->link(E.from_node, E.from_port, call_node->get_id(), call_input_index++);
         }
 
         // The selected node that is connected from the outside
-        const Ref<OScriptNode> target = _script->get_node(E.to_node);
+        const Ref<OScriptNode> target = _orchestration->get_node(E.to_node);
         const Ref<OScriptNodePin> target_pin = target->find_pins(PD_Input)[E.to_port];
 
         if (!entry_positioned)
@@ -266,12 +239,12 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
             function->set_argument_type(size - 1, target_pin->get_type());
 
             // Wire entry data output to this connection
-            _script->connect_nodes(entry->get_id(), input_index++, E.to_node, E.to_port);
+            target_graph->link(entry->get_id(), input_index++, E.to_node, E.to_port);
         }
         else if (!input_execution_wired)
         {
             // Wire entry execution output to this connection
-            _script->connect_nodes(entry->get_id(), 0, E.to_node, E.to_port);
+            target_graph->link(entry->get_id(), 0, E.to_node, E.to_port);
             input_execution_wired = true;
         }
     }
@@ -284,7 +257,7 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
         for (const OScriptConnection& E : connections.outputs)
         {
             // The selected node that is connected from the ouside world
-            const Ref<OScriptNode> source = _script->get_node(E.from_node);
+            const Ref<OScriptNode> source = _orchestration->get_node(E.from_node);
             const Ref<OScriptNodePin> source_pin = source->find_pins(PD_Output)[E.from_port];
 
             if (!positioned)
@@ -296,7 +269,7 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
 
             if (source_pin->is_execution() && !output_execution_wired) // Connect execution
             {
-                _script->connect_nodes(E.from_node, E.from_port, result->get_id(), 0);
+                target_graph->link(E.from_node, E.from_port, result->get_id(), 0);
                 output_execution_wired = true;
             }
             else if (!source_pin->is_execution() && !output_data_wired) // Connect data
@@ -304,7 +277,7 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
                 function->set_has_return_value(true);
                 function->set_return_type(source_pin->get_type());
 
-                _script->connect_nodes(E.from_node, E.from_port, result->get_id(), 1);
+                target_graph->link(E.from_node, E.from_port, result->get_id(), 1);
                 output_data_wired = true;
             }
         }
@@ -331,16 +304,16 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
     for (const OScriptConnection& E : connections.outputs)
     {
         // The exterior node connected to the selected node
-        const Ref<OScriptNode> target = _script->get_node(E.to_node);
+        const Ref<OScriptNode> target = _orchestration->get_node(E.to_node);
         const Ref<OScriptNodePin> target_pin = target->find_pins(PD_Input)[E.to_port];
         if (target_pin->is_execution() && !call_execution_wired)
         {
-            _script->connect_nodes(call_node->get_id(), 0, E.to_node, E.to_port);
+            source_graph->link(call_node->get_id(), 0, E.to_node, E.to_port);
             call_execution_wired = true;
         }
         else if (!target_pin->is_execution())
         {
-            _script->connect_nodes(call_node->get_id(), call_output_index++, E.to_node, E.to_port);
+            source_graph->link(call_node->get_id(), call_output_index++, E.to_node, E.to_port);
         }
     }
 
@@ -351,7 +324,7 @@ void OrchestratorScriptView::_collapse_selected_to_function(OrchestratorGraphEdi
 
 void OrchestratorScriptView::_expand_node(int p_node_id, OrchestratorGraphEdit* p_graph)
 {
-    const Ref<OScriptNodeCallScriptFunction> call_node = _script->get_node(p_node_id);
+    const Ref<OScriptNodeCallScriptFunction> call_node = _orchestration->get_node(p_node_id);
     if (!call_node.is_valid())
         return;
 
@@ -362,10 +335,8 @@ void OrchestratorScriptView::_expand_node(int p_node_id, OrchestratorGraphEdit* 
     const Ref<OScriptGraph> function_graph = function->get_function_graph();
 
     Vector<Ref<OScriptNode>> selected;
-    TypedArray<int> graph_nodes = function_graph->get_nodes();
-    for (int i = 0; i < graph_nodes.size(); i++)
+    for (const Ref<OScriptNode>& graph_node : function_graph->get_nodes())
     {
-        Ref<OScriptNode> graph_node = _script->get_node(graph_nodes[i]);
         Ref<OScriptNodeFunctionEntry> entry = graph_node;
         Ref<OScriptNodeFunctionResult> result = graph_node;
         if (!entry.is_valid() && !result.is_valid() && graph_node->can_duplicate())
@@ -381,18 +352,13 @@ void OrchestratorScriptView::_expand_node(int p_node_id, OrchestratorGraphEdit* 
     HashMap<int, int> node_remap;
     for (const Ref<OScriptNode>& node : selected)
     {
-        Ref<OScriptNode> new_node = node->duplicate(true);
-        new_node->set_id(_script->get_available_id());
-        new_node->set_position(node->get_position() + pos_delta);
-        new_node->set_owning_script(_script.ptr());
-        new_node->post_initialize();
-
-        _script->add_node(p_graph->get_owning_graph(), new_node);
-
-        new_node->post_placed_new_node();
+        const Ref<OScriptNode> duplicate = p_graph->get_owning_graph()->duplicate_node(
+            node->get_id(),
+            pos_delta,
+            true);
 
         // Record mapping between old and new nodes
-        node_remap[node->get_id()] = new_node->get_id();
+        node_remap[node->get_id()] = duplicate->get_id();
     }
 
     // Record connections
@@ -401,19 +367,33 @@ void OrchestratorScriptView::_expand_node(int p_node_id, OrchestratorGraphEdit* 
 
     // Reapply connections among pasted nodes
     for (const OScriptConnection& E : connections.connections)
-        _script->connect_nodes(node_remap[E.from_node], E.from_port, node_remap[E.to_node], E.to_port);
+        p_graph->get_owning_graph()->link(node_remap[E.from_node], E.from_port, node_remap[E.to_node], E.to_port);
 
     // Remove call node
-    p_graph->get_owning_graph()->remove_node(call_node->get_id());
-    _script->remove_node(call_node->get_id());
+    p_graph->get_orchestration()->remove_node(call_node->get_id());
+}
+
+void OrchestratorScriptView::_meta_clicked(const Variant& p_value)
+{
+    _build_errors_dialog->hide();
+
+    const Dictionary value = JSON::parse_string(String(p_value));
+    if (value.has("goto_node"))
+        goto_node(String(value["goto_node"]).to_int());
+}
+
+bool OrchestratorScriptView::is_same_script(const Ref<OScript>& p_script) const
+{
+    const Ref<OScript> script = _resource;
+    return script.is_valid() && p_script == script;
 }
 
 void OrchestratorScriptView::goto_node(int p_node_id)
 {
-    Ref<OScriptNode> node = _script->get_node(p_node_id);
+    Ref<OScriptNode> node = _orchestration->get_node(p_node_id);
     if (node.is_valid())
     {
-        for (const Ref<OScriptGraph>& graph : _script->get_graphs())
+        for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
         {
             if (graph->has_node(p_node_id))
             {
@@ -435,25 +415,29 @@ void OrchestratorScriptView::scene_tab_changed()
 
 bool OrchestratorScriptView::is_modified() const
 {
-    return _script->is_edited();
+    return _orchestration->is_edited();
 }
 
 void OrchestratorScriptView::reload_from_disk()
 {
-    _script->reload();
+    Ref<OScript> script = _resource;
+    if (script.is_valid())
+        script->reload();
+    else
+        WARN_PRINT("Cannot reload resource type: " + _resource->get_class());
 }
 
 void OrchestratorScriptView::apply_changes()
 {
-    for (const Ref<OScriptNode>& node : _script->get_nodes())
+    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
         node->pre_save();
 
     for (int i = 0; i < _tabs->get_tab_count(); i++)
         if (OrchestratorGraphEdit* graph = Object::cast_to<OrchestratorGraphEdit>(_tabs->get_child(i)))
             graph->apply_changes();
 
-    if (ResourceSaver::get_singleton()->save(_script, _script->get_path()) != OK)
-        OS::get_singleton()->alert(vformat("Failed to save %s", _script->get_path()), "Error");
+    if (ResourceSaver::get_singleton()->save(_resource, _resource->get_path()) != OK)
+        OS::get_singleton()->alert(vformat("Failed to save %s", _resource->get_path()), "Error");
 
     _update_components();
 
@@ -461,20 +445,20 @@ void OrchestratorScriptView::apply_changes()
         if (OrchestratorGraphEdit* graph = Object::cast_to<OrchestratorGraphEdit>(_tabs->get_child(i)))
             graph->post_apply_changes();
 
-    for (const Ref<OScriptNode>& node : _script->get_nodes())
+    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
         node->post_save();
 }
 
 void OrchestratorScriptView::rename(const String& p_new_file)
 {
-    _script->set_path(p_new_file);
+    _resource->set_path(p_new_file);
 }
 
 bool OrchestratorScriptView::save_as(const String& p_new_file)
 {
-    if (ResourceSaver::get_singleton()->save(_script, p_new_file) == OK)
+    if (ResourceSaver::get_singleton()->save(_resource, p_new_file) == OK)
     {
-        _script->set_path(p_new_file);
+        _resource->set_path(p_new_file);
         return true;
     }
     return false;
@@ -482,7 +466,20 @@ bool OrchestratorScriptView::save_as(const String& p_new_file)
 
 bool OrchestratorScriptView::build()
 {
-    return _script->validate_and_build();
+    BuildLog log;
+    _orchestration->validate_and_build(log);
+
+    if (!log.has_errors() && !log.has_warnings())
+        return true;
+
+    _build_errors->clear();
+    _build_errors->append_text(vformat("[b]File:[/b] %s\n\n", _resource->get_path()));
+    for (const String& E : log.get_messages())
+        _build_errors->append_text(vformat("* %s\n", E));
+
+    _build_errors_dialog->popup_centered_ratio(0.5);
+
+    return false;
 }
 
 void OrchestratorScriptView::_update_components()
@@ -524,7 +521,11 @@ OrchestratorGraphEdit* OrchestratorScriptView::_get_or_create_tab(const StringNa
         return nullptr;
 
     // Create the graph and add it as a tab
-    OrchestratorGraphEdit* graph = memnew(OrchestratorGraphEdit(_plugin, _script, p_tab_name));
+    const Ref<OScriptGraph> script_graph = _orchestration->get_graph(p_tab_name);
+    if (!script_graph.is_valid())
+        return nullptr;
+
+    OrchestratorGraphEdit* graph = memnew(OrchestratorGraphEdit(_plugin, script_graph));
     _tabs->add_child(graph);
 
     String tab_icon = "ClassList";
@@ -538,6 +539,7 @@ OrchestratorGraphEdit* OrchestratorScriptView::_get_or_create_tab(const StringNa
     graph->connect("focus_requested", callable_mp(this, &OrchestratorScriptView::_on_graph_focus_requested));
     graph->connect("collapse_selected_to_function", callable_mp(this, &OrchestratorScriptView::_collapse_selected_to_function).bind(graph));
     graph->connect("expand_node", callable_mp(this, &OrchestratorScriptView::_expand_node).bind(graph));
+    graph->connect("validation_requested", callable_mp(this, &OrchestratorScriptView::build));
 
     if (p_focus)
         _tabs->get_tab_bar()->set_current_tab(_tabs->get_tab_count() - 1);
@@ -653,15 +655,12 @@ void OrchestratorScriptView::_add_callback(Object* p_object, const String& p_fun
         return;
 
     // Make sure that we're only applying the callback to the right resource
-    if (edited_script.ptr() != _script.ptr())
+    if (edited_script.ptr() != _resource.ptr())
         return;
 
     // Check if the method already exists and return if it does.
-    if (_script->has_function(p_function_name))
+    if (_orchestration->has_function(p_function_name))
         return;
-
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-    Ref<OScriptNode> node = language->create_node_from_type<OScriptNodeEvent>(_script);
 
     MethodInfo mi;
     mi.name = p_function_name;
@@ -681,21 +680,16 @@ void OrchestratorScriptView::_add_callback(Object* p_object, const String& p_fun
 
     OScriptNodeInitContext context;
     context.method = mi;
-    node->initialize(context);
 
-    OrchestratorGraphEdit* editor_graph = _get_or_create_tab("EventGraph", true, false);
-    if (editor_graph)
+    OrchestratorGraphEdit* event_graph = _get_or_create_tab("EventGraph", true, false);
+    if (!event_graph)
+        return;
+
+    const Ref<OScriptNodeEvent> node = event_graph->get_owning_graph()->create_node<OScriptNodeEvent>(context);
+    if (node.is_valid())
     {
-        Ref<OScriptGraph> graph = editor_graph->get_owning_graph();
-        _script->add_node(graph, node);
-        node->post_placed_new_node();
-
-        graph->add_function(node->get_id());
-        graph->add_node(node->get_id());
-
         _update_components();
-
-        editor_graph->focus_node(node->get_id());
+        event_graph->focus_node(node->get_id());
     }
 }
 
@@ -730,7 +724,16 @@ void OrchestratorScriptView::_notification(int p_what)
         vbox->set_h_size_flags(SIZE_EXPAND_FILL);
         _scroll_container->add_child(vbox);
 
-        _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_script));
+        _build_errors = memnew(RichTextLabel);
+        _build_errors->set_use_bbcode(true);
+        _build_errors->connect("meta_clicked", callable_mp(this, &OrchestratorScriptView::_meta_clicked));
+
+        _build_errors_dialog = memnew(AcceptDialog);
+        _build_errors_dialog->set_title("Orchestrator Build Errors");
+        _build_errors_dialog->add_child(_build_errors);
+        add_child(_build_errors_dialog);
+
+        _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_orchestration));
         _graphs->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_show_graph));
         _graphs->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_close_graph));
         _graphs->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
@@ -738,7 +741,7 @@ void OrchestratorScriptView::_notification(int p_what)
         _graphs->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_graphs);
 
-        _functions = memnew(OrchestratorScriptFunctionsComponentPanel(_script, this));
+        _functions = memnew(OrchestratorScriptFunctionsComponentPanel(_orchestration, this));
         _functions->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_show_graph));
         _functions->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptView::_on_close_graph));
         _functions->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptView::_on_focus_node));
@@ -747,15 +750,15 @@ void OrchestratorScriptView::_notification(int p_what)
         _functions->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_functions);
 
-        _macros = memnew(OrchestratorScriptMacrosComponentPanel(_script));
+        _macros = memnew(OrchestratorScriptMacrosComponentPanel(_orchestration));
         _macros->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_macros);
 
-        _variables = memnew(OrchestratorScriptVariablesComponentPanel(_script));
+        _variables = memnew(OrchestratorScriptVariablesComponentPanel(_orchestration));
         _variables->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_variables);
 
-        _signals = memnew(OrchestratorScriptSignalsComponentPanel(_script));
+        _signals = memnew(OrchestratorScriptSignalsComponentPanel(_orchestration));
         _signals->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptView::_on_scroll_to_item));
         vbox->add_child(_signals);
 
@@ -767,15 +770,11 @@ void OrchestratorScriptView::_notification(int p_what)
 }
 
 OrchestratorScriptView::OrchestratorScriptView(OrchestratorPlugin* p_plugin, OrchestratorMainView* p_main_view, const Ref<OScript>& p_script)
+    : _resource(p_script)
 {
     _plugin = p_plugin;
     _main_view = p_main_view;
-    _script = p_script;
-
-    // When scripts are first opened, this adds the event graph if it doesn't exist.
-    // This graph cannot be renamed or deleted.
-    if (!_script->has_graph("EventGraph"))
-        _script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+    _orchestration = p_script->get_orchestration();
 
     set_v_size_flags(SIZE_EXPAND_FILL);
     set_h_size_flags(SIZE_EXPAND_FILL);
