@@ -23,6 +23,7 @@
 #include <godot_cpp/classes/h_split_container.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
+#include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/classes/tree.hpp>
@@ -59,7 +60,8 @@ class OrchestratorScriptView : public HSplitContainer
     };
 
 protected:
-    Ref<OScript> _script;                                   //! The orchestrator script
+    Ref<Resource> _resource;                                //! The resource being edited
+    Orchestration* _orchestration;                          //! The orchestration
     TabContainer* _tabs{ nullptr };                         //! The tab container
     ScrollContainer* _scroll_container{ nullptr };          //! The right component container
     OrchestratorGraphEdit* _event_graph{ nullptr };         //! The standard event graph that cannot be removed
@@ -70,6 +72,8 @@ protected:
     OrchestratorScriptMacrosComponentPanel* _macros;        //! Macros section
     OrchestratorScriptVariablesComponentPanel* _variables;  //! Variables section
     OrchestratorScriptSignalsComponentPanel* _signals;      //! Signals section
+    RichTextLabel* _build_errors{ nullptr };                //! Build errors text
+    AcceptDialog* _build_errors_dialog{ nullptr };          //! Dialog that shows build errors
 
     /// Creates a new user-defined function
     /// @param p_name the new function name
@@ -87,12 +91,6 @@ protected:
     /// @return the rect area that bounds the nodes
     Rect2 _get_node_set_rect(const Vector<Ref<OScriptNode>>& p_nodes) const;
 
-    /// Moves nodes between two graphs
-    /// @param p_nodes the nodes to move
-    /// @param p_source the source graph to remove the node from
-    /// @param p_target the target graph to move the node to
-    void _move_nodes(const Vector<Ref<OScriptNode>>& p_nodes, const Ref<OScriptGraph>& p_source, const Ref<OScriptGraph>& p_target);
-
     /// Collapse all selected nodes in the graph to a function
     /// @param p_graph the graph to source the selected nodes from
     void _collapse_selected_to_function(OrchestratorGraphEdit* p_graph);
@@ -101,6 +99,10 @@ protected:
     /// @param p_node_id the node id to expand
     /// @param p_graph the graph that contains this node
     void _expand_node(int p_node_id, OrchestratorGraphEdit* p_graph);
+
+    /// Called when the user clicks on a meta link
+    /// @param p_value the meta value
+    void _meta_clicked(const Variant& p_value);
 
     OrchestratorScriptView() = default;
 
@@ -114,7 +116,7 @@ public:
     /// Return whether the given script is what the editor view represents.
     /// @param p_script the script to check
     /// @return true if the scripts are the same, false otherwise
-    bool is_same_script(const Ref<OScript>& p_script) const { return p_script == _script; }
+    bool is_same_script(const Ref<OScript>& p_script) const;
 
     /// Locates the node in the Orchestration and navigates to it, opening any graph that is
     /// necessary to navigate to the node.

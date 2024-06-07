@@ -14,13 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "inspector_plugin_variable.h"
+#include "editor/plugins/inspector_plugin_variable.h"
 
+#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/search/variable_classification_dialog.h"
-#include "plugin.h"
 #include "script/variable.h"
 
-#include <godot_cpp/classes/editor_interface.hpp>
 
 bool OrchestratorEditorInspectorPluginVariable::_can_handle(Object* p_object) const
 {

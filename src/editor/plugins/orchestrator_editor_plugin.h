@@ -14,14 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_PLUGIN_H
-#define ORCHESTRATOR_PLUGIN_H
+#ifndef ORCHESTRATOR_EDITOR_PLUGIN_H
+#define ORCHESTRATOR_EDITOR_PLUGIN_H
 
-#include "plugin/theme_cache.h"
+#include "editor/theme/theme_cache.h"
 
 #include <godot_cpp/classes/config_file.hpp>
-#include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
 
 using namespace godot;
@@ -123,6 +124,4 @@ private:
     void _on_editor_restart();
 };
 
-void register_plugin_classes();
-
-#endif  // ORCHESTRATOR_PLUGIN_H
+#endif  // ORCHESTRATOR_EDITOR_PLUGIN_H

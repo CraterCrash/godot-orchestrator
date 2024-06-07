@@ -23,7 +23,7 @@
 using namespace godot;
 
 /// Forward declarations
-class OScript;
+class Orchestration;
 
 /// Defines a script signal.
 ///
@@ -33,27 +33,29 @@ class OScript;
 ///
 class OScriptSignal : public Resource
 {
-    friend class OScript;
+    friend class Orchestration;
 
     GDCLASS(OScriptSignal, Resource);
     static void _bind_methods() { }
 
-    MethodInfo _method;           //! The signal definition
-    OScript* _script{ nullptr };  //! Owning script
+    Orchestration* _orchestration{ nullptr };  //! Owning Orchestration
+    MethodInfo _method;                        //! The signal definition
 
 protected:
-
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value);
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
-public:
+    /// Constructor
+    /// Intentionally protected, signals created via an Orchestration
+    OScriptSignal() = default;
 
-    /// Get a reference to the script that owns this signal.
-    /// @return the owning script reference, should always be valid
-    Ref<OScript> get_owning_script() const;
+public:
+    /// Get a reference to the orchestration that owns this signal.
+    /// @return the owning orchestration reference, should always be valid
+    Orchestration* get_orchestration() const;
 
     /// Get the signal name
     /// @return the signal name
@@ -94,12 +96,6 @@ public:
     /// @param p_index the argument list index to change
     /// @param p_type the new argument type
     void set_argument_type(size_t p_index, Variant::Type p_type);
-
-    /// Helper method to construct a OScriptSignal from a Godot MethodInfo struct.
-    /// @param p_script the script that will own the signal
-    /// @param p_method the method info struct
-    static Ref<OScriptSignal> create(OScript* p_script, const MethodInfo& p_method);
-
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_SIGNALS_H

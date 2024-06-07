@@ -17,11 +17,12 @@
 #ifndef ORCHESTRATOR_SCRIPT_INSTANCE_H
 #define ORCHESTRATOR_SCRIPT_INSTANCE_H
 
-#include "instance_base.h"
-#include "node_instance.h"
+#include "script/instances/instance_base.h"
+#include "script/instances/node_instance.h"
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 

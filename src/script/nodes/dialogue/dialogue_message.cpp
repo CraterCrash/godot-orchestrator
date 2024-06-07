@@ -186,7 +186,7 @@ String OScriptNodeDialogueMessage::get_node_title() const
     return "Show Dialogue Message";
 }
 
-bool OScriptNodeDialogueMessage::validate_node_during_build() const
+void OScriptNodeDialogueMessage::validate_node_during_build(BuildLog& p_log) const
 {
     Ref<OScriptNodePin> scene = find_pin("scene", PD_Input);
     if (scene.is_valid())
@@ -195,13 +195,9 @@ bool OScriptNodeDialogueMessage::validate_node_during_build() const
         if (!file_name.strip_edges().is_empty())
         {
             if (!FileAccess::file_exists(file_name))
-            {
-                ERR_PRINT("DialogueMessage node scene file '" + file_name + "' not found.");
-                return false;
-            }
+                p_log.error(vformat("File '%s' not found.", file_name));
         }
     }
-    return true;
 }
 
 OScriptNodeInstance* OScriptNodeDialogueMessage::instantiate(OScriptInstance* p_instance)

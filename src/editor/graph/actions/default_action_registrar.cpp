@@ -30,7 +30,9 @@ void OrchestratorDefaultGraphActionRegistrar::_register_node(const OrchestratorG
                                                        const Dictionary& p_data)
 {
     OScriptLanguage* language = OScriptLanguage::get_singleton();
-    Ref<OScriptNode> node = language->create_node_from_name(p_class_name, p_context.script, false);
+    Orchestration* orchestration = p_context.graph->get_orchestration();
+
+    const Ref<OScriptNode> node = language->create_node_from_name(p_class_name, orchestration, false);
     if (!node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::CATALOGABLE))
         return;
 
@@ -409,7 +411,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_graph_items(const Orches
     }
     else
     {
-        classes = _get_class_hierarchy(p_context.graph->get_owning_script()->get_base_type());
+        classes = _get_class_hierarchy(p_context.graph->get_orchestration()->get_base_type());
     }
 
     for (const String& class_name : classes)
@@ -540,10 +542,9 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_functions(const O
 
     if (OrchestratorGraphEdit* graph = p_context.graph)
     {
-        PackedStringArray function_names = graph->get_owning_script()->get_function_names();
-        for (const String& function_name : function_names)
+        Orchestration* orchestration = graph->get_orchestration();
+        for (const Ref<OScriptFunction>& function : orchestration->get_functions())
         {
-            Ref<OScriptFunction> function = graph->get_owning_script()->find_function(StringName(function_name));
             if (!function.is_valid() || !function->is_user_defined())
                 continue;
 
@@ -554,7 +555,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_functions(const O
             spec.category = vformat("Script/Call Function/%s", mi.name);
             spec.tooltip = _get_method_signature(mi);
             spec.text = vformat("Call %s", mi.name);
-            spec.keywords = vformat("call,%s,%s", graph->get_owning_script()->get_base_type(), mi.name);
+            spec.keywords = vformat("call,%s,%s", orchestration->get_base_type(), mi.name);
             spec.icon = _get_method_icon(mi);
             spec.type_icon = _get_method_type_icon(mi);
 
@@ -577,7 +578,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_variables(const O
 
     if (OrchestratorGraphEdit* graph = p_context.graph)
     {
-        for (const Ref<OScriptVariable>& variable : graph->get_owning_script()->get_variables())
+        for (const Ref<OScriptVariable>& variable : graph->get_orchestration()->get_variables())
         {
             if (!variable.is_valid())
                 continue;
@@ -624,19 +625,18 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_signals(const Orc
 
     if (OrchestratorGraphEdit* graph = p_context.graph)
     {
-        PackedStringArray signal_names = graph->get_owning_script()->get_custom_signal_names();
-        for (const String& signal_name : signal_names)
+        Orchestration* orchestration = graph->get_owning_graph()->get_orchestration();
+        for (const Ref<OScriptSignal>& signal : orchestration->get_custom_signals())
         {
-            Ref<OScriptSignal> signal = graph->get_owning_script()->get_custom_signal(signal_name);
             if (!signal.is_valid())
                 continue;
 
             OrchestratorGraphActionSpec spec;
             // todo: remove "script/"
-            spec.category = vformat("Script/Emit Signals/emit_%s", signal_name);
-            spec.tooltip = vformat("Emit signal '%s'", signal_name);
-            spec.text = vformat("Emit %s", signal_name);
-            spec.keywords = vformat("emit,signal,%s,%s", graph->get_owning_script()->get_base_type(), signal_name);
+            spec.category = vformat("Script/Emit Signals/emit_%s", signal->get_signal_name());
+            spec.tooltip = vformat("Emit signal '%s'", signal->get_signal_name());
+            spec.text = vformat("Emit %s", signal->get_signal_name());
+            spec.keywords = vformat("emit,signal,%s,%s", orchestration->get_base_type(), signal->get_signal_name());
             spec.icon = "MemberSignal";
             spec.type_icon = "MemberSignal";
 

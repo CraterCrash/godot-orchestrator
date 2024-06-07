@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "execution_context.h"
+#include "script/context/execution_context.h"
 
 #include "script/instances/node_instance.h"
 #include "script/node.h"

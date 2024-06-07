@@ -56,8 +56,8 @@ public:
     //~ End OrchestratorScriptViewSection Interface
 
     /// Construct a signals component panel
-    /// @param p_script the script
-    explicit OrchestratorScriptSignalsComponentPanel(const Ref<OScript>& p_script);
+    /// @param p_orchestration the orchestration
+    explicit OrchestratorScriptSignalsComponentPanel(Orchestration* p_orchestration);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_SIGNALS_COMPONENT_PANEL_H

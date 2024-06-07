@@ -18,10 +18,10 @@
 
 #include "common/logger.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
-#include "plugin/plugin.h"
-#include "plugin/settings.h"
 #include "script/nodes/editable_pin_node.h"
 #include "script/nodes/functions/call_function.h"
 #include "script/nodes/functions/call_script_function.h"
@@ -623,7 +623,7 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             case CM_DELETE:
             {
                 if (_node->can_user_delete_node())
-                    get_script_node()->get_owning_script()->remove_node(_node->get_id());
+                    get_graph()->get_orchestration()->remove_node(_node->get_id());
                 break;
             }
             case CM_REFRESH:

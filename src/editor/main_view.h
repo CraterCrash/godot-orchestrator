@@ -51,6 +51,7 @@ namespace godot
 class OrchestratorMainView : public PanelContainer
 {
     GDCLASS(OrchestratorMainView, PanelContainer);
+    static void _bind_methods();
 
 private:
     enum AccelMenuIds
@@ -109,7 +110,7 @@ private:
     OrchestratorGettingStarted* _landing{ nullptr }; //! Landing page
     PackedStringArray _recent_files;                 //! Recent files list
 
-    static void _bind_methods();
+    /// Constructor, intentionally private
     OrchestratorMainView() = default;
 
 public:
@@ -122,9 +123,9 @@ public:
     /// @param p_what the notification to be handled
     void _notification(int p_what);
 
-    /// Edit the specified object
-    /// @param object orchestrator script object
-    void edit(const Ref<OScript>& p_script);
+    /// Edit the specified orchestration script
+    /// @param p_script the orchestration script
+    void edit_script(const Ref<OScript>& p_script);
 
     /// Saves all open files
     void apply_changes();
@@ -151,10 +152,6 @@ private:
 
     bool _is_current_script_unsaved() const;
     void _ask_close_current_unsaved_script();
-
-    /// Open the specified script in the main view.
-    /// @param p_script the script to be opened, should be valid
-    void _open_script(const Ref<OScript>& p_script);
 
     /// Saves the currently opened script
     void _save_script();
@@ -194,6 +191,12 @@ private:
 
     /// Navigate to the current file in the FileSystemDock
     void _navigate_to_current_path();
+
+    /// Hides the script editors and shows the landing view
+    void _show_landing();
+
+    /// Hides the landing and shows the script editors
+    void _show_script_editors();
 
     /// Dispatched immediate before the file menu is shown to update its state
     void _on_prepare_file_menu();

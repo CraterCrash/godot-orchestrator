@@ -21,7 +21,6 @@
 
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/script.hpp>
-#include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/self_list.hpp>
@@ -30,6 +29,7 @@
 using namespace godot;
 
 /// Forward declarations
+class Orchestration;
 class OScript;
 class OScriptNode;
 
@@ -131,7 +131,7 @@ public:
     void _add_global_constant(const StringName& p_name, const Variant& p_value) override;
     void _add_named_global_constant(const StringName& p_name, const Variant& p_value) override;
     void _remove_named_global_constant(const StringName& p_name) override;
-    int32_t _find_function(const String& p_class_name, const String& p_function_name) const override;
+    int32_t _find_function(const String& p_function_name, const String& p_code) const override;
     String _make_function(const String& p_class_name, const String& p_function_name,
                           const PackedStringArray& p_function_args) const override;
     TypedArray<Dictionary> _get_public_functions() const override;
@@ -198,17 +198,17 @@ public:
 
     /// Create a script node based on the name of the node.
     /// @param p_class_name the node class name
-    /// @param p_owner the script owner
+    /// @param p_owner the orchestration
     /// @param p_allocate_id allocate node id from script, defaults to true.
     /// @return the script node reference
-    Ref<OScriptNode> create_node_from_name(const String& p_class_name, const Ref<OScript>& p_owner, bool p_allocate_id = true);
+    Ref<OScriptNode> create_node_from_name(const String& p_class_name, Orchestration* p_owner, bool p_allocate_id = true);
 
     /// Templated function to create a node from a node type
     /// @tparam T the node type
-    /// @param p_owner the script owner
+    /// @param p_owner the orchestration
     /// @return the created node reference, may be an invalid reference on failure
     template <typename T>
-    Ref<T> create_node_from_type(const Ref<OScript>& p_owner)
+    Ref<T> create_node_from_type(Orchestration* p_owner)
     {
         for (const KeyValue<StringName, ScriptNodeInfo>& E : _nodes)
             if (E.key == T::get_class_static())

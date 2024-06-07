@@ -14,17 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "language.h"
+#include "script/language.h"
 
+#include "common/dictionary_utils.h"
 #include "common/logger.h"
-#include "script.h"
+#include "common/settings.h"
+#include "script/script.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
 #ifdef TOOLS_ENABLED
   #include <godot_cpp/core/mutex_lock.hpp>
 #endif
-#include <godot_cpp/variant/utility_functions.hpp>
 
 OScriptLanguage* OScriptLanguage::_singleton = nullptr;
 HashMap<StringName, OScriptLanguage::ScriptNodeInfo> OScriptLanguage::_nodes;
@@ -108,20 +109,40 @@ bool OScriptLanguage::_supports_documentation() const
 
 bool OScriptLanguage::_is_using_templates()
 {
-    return false;
+    return true;
 }
 
 TypedArray<Dictionary> OScriptLanguage::_get_built_in_templates(const StringName& p_object) const
 {
-    return {};
+    Dictionary data;
+    data["inherit"] = p_object;
+    data["name"] = "Orchestration";
+    data["description"] = "Basic Orchestration";
+    data["content"] = "";
+    data["id"] = 0;
+    data["origin"] = 0; //built-in
+
+    return Array::make(data);
 }
 
-Ref<Script> OScriptLanguage::_make_template(const String& p_template, const String& p_class_name,
-                                            const String& p_base_class_name) const
+Ref<Script> OScriptLanguage::_make_template(const String& p_template, const String& p_class_name, const String& p_base_class_name) const
 {
+    // NOTE:
+    // The p_template argument is the content of the template, set in _get_built_in_templates.
+    // Even if the user deselects the template option in the script dialog, this method is called.
+    //
+    // The p_class_name is derived from the file name.
+    // The p_base_class_name is the actor/class type the script inherits from.
+    //
     Ref<OScript> script;
     script.instantiate();
+
+    // Set the script's base actor/class type
     script->set_base_type(p_base_class_name);
+
+    // All orchestrator scripts start with an "EventGraph" graph definition.
+    script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+
     return script;
 }
 
@@ -144,26 +165,21 @@ String OScriptLanguage::_validate_path(const String& p_path) const
     return "";
 }
 
-Dictionary OScriptLanguage::_validate(const String& p_script, const String& p_path, bool p_validate_functions,
-                                      bool p_validate_errors, bool p_validate_warnings, bool p_validate_safe_lines) const
+Dictionary OScriptLanguage::_validate(const String& p_script, const String& p_path, bool p_validate_functions, bool p_validate_errors, bool p_validate_warnings, bool p_validate_safe_lines) const
 {
-    // TODO:    GodotCPP
-    //          Do not see how this method is being invoked by Godot.
-    //          Need to discuss with the GDE team to understand the purpose for this call,
-    //          particularly with the fact there is technically no source code in our use case.
-
-    Dictionary result;
-    result["valid"] = true;
-    return result;
+    // Called by ScriptTextEditor::_validate_script, ScriptTextEditor::_validate
+    // These cases do not apply to us since we don't use the ScriptTextEditor, so just return valid.
+    return DictionaryUtils::of({{"valid", true}});
 }
 
 Object* OScriptLanguage::_create_script() const
 {
+    // todo: this does not appear to be called in Godot.
+
     OScript* script = memnew(OScript);
-
+    script->set_base_type(OrchestratorSettings::get_singleton()->get_setting("settings/default_type", "Node"));
     // All orchestrator scripts start with an "EventGraph" graph definition.
-    script->create_graph("EventGraph");
-
+    script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
     return script;
 }
 
@@ -210,39 +226,49 @@ void OScriptLanguage::_remove_named_global_constant(const StringName& p_name)
     _named_global_constants.erase(p_name);
 }
 
-int32_t OScriptLanguage::_find_function(const String& p_class_name, const String& p_function_name) const
+int32_t OScriptLanguage::_find_function(const String& p_function_name, const String& p_code) const
 {
+    // Locates the function name in the specified code.
+    // For visual scripts, we can't use this.
     return -1;
 }
 
-String OScriptLanguage::_make_function(const String& p_class_name, const String& p_function_name,
-                                       const PackedStringArray& p_function_args) const
+String OScriptLanguage::_make_function(const String& p_class_name, const String& p_function_name, const PackedStringArray& p_function_args) const
 {
+    // Creates a function stub for the given name.
+    // This is called by the ScriptTextEditor::add_callback
+    // Since we don't use the ScriptTextEditor, this doesn't apply.
     return {};
 }
 
 TypedArray<Dictionary> OScriptLanguage::_get_public_functions() const
 {
+    // Returns an array of MethodInfo for the language.
+    // In GDScript this includes things such as preload, assert, and its utility functions
     return {};
 }
 
 Dictionary OScriptLanguage::_get_public_constants() const
 {
+    // This includes things like PI, TAU, INF, and NAN.
+    // Orchestrator does not have anything beyond standard Godot.
     return {};
 }
 
 TypedArray<Dictionary> OScriptLanguage::_get_public_annotations() const
 {
+    // Returns list of annotation MethodInfo values.
+    // Orchestrator does not have any.
     return {};
 }
 
 String OScriptLanguage::_auto_indent_code(const String& p_code, int32_t p_from_line, int32_t p_to_line) const
 {
+    // Called by the Script -> Edit -> Indentation -> Auto Indent option
     return {};
 }
 
-Dictionary OScriptLanguage::_lookup_code(const String& p_code, const String& p_symbol, const String& p_path,
-                                         Object* p_owner) const
+Dictionary OScriptLanguage::_lookup_code(const String& p_code, const String& p_symbol, const String& p_path, Object* p_owner) const
 {
     return {};
 }
@@ -270,10 +296,12 @@ void OScriptLanguage::_reload_tool_script(const Ref<Script>& p_script, bool p_so
 
 void OScriptLanguage::_thread_enter()
 {
+    // Notifies when thread is created
 }
 
 void OScriptLanguage::_thread_exit()
 {
+    // Notifies when thread ends
 }
 
 void OScriptLanguage::_profiling_start()
@@ -378,14 +406,13 @@ bool OScriptLanguage::debug_break_parse(const String& p_file, int p_node, const 
     return false;
 }
 
-Ref<OScriptNode> OScriptLanguage::create_node_from_name(const String& p_class_name, const Ref<OScript>& p_owner,
-                                                        bool p_allocate_id)
+Ref<OScriptNode> OScriptLanguage::create_node_from_name(const String& p_class_name, Orchestration* p_owner, bool p_allocate_id)
 {
     ERR_FAIL_COND_V_MSG(!_nodes.has(p_class_name), Ref<OScriptNode>(), "No node found with name: " + p_class_name);
 
     Ref<OScriptNode> node(_nodes[p_class_name].creation_func());
     node->set_id(p_allocate_id ? p_owner->get_available_id() : -1);
-    node->set_owning_script(p_owner.ptr());
+    node->_orchestration = p_owner;
 
     return node;
 }

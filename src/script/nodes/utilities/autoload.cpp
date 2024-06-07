@@ -142,7 +142,7 @@ void OScriptNodeAutoload::initialize(const OScriptNodeInitContext& p_context)
     super::initialize(p_context);
 }
 
-bool OScriptNodeAutoload::validate_node_during_build() const
+void OScriptNodeAutoload::validate_node_during_build(BuildLog& p_log) const
 {
     if (OScriptLanguage::get_singleton()->has_any_global_constant(_autoload))
     {
@@ -150,10 +150,9 @@ bool OScriptNodeAutoload::validate_node_during_build() const
         if (autoload && autoload.get_type() == Variant::OBJECT)
         {
             if (Object::cast_to<Node>(autoload))
-                return true;
+                return;
         }
     }
 
-    ERR_PRINT(vformat("No autoload registered with name '%s' in the project settings.", _autoload));
-    return false;
+    p_log.error(vformat("No autoload registered with name '%s' in the project settings.", _autoload));
 }

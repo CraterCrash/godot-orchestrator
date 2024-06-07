@@ -16,42 +16,21 @@
 //
 #include "extension_interface.h"
 
-#include <gdextension_interface.h>
-#include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/resource_saver.hpp>
-#include <godot_cpp/core/defs.hpp>
-#include <godot_cpp/godot.hpp>
-
-// Godot helpers
 #include "common/logger.h"
 #include "common/version.h"
+#include "editor/register_editor_types.h"
+#include "script/register_script_types.h"
 
-// Plugin bits
-#include "plugin/plugin.h"
-#include "plugin/settings.h"
-
-// Script bits
-#include "script/nodes/script_nodes.h"
-#include "script/resource/format_loader.h"
-#include "script/resource/format_saver.h"
-#include "script/script.h"
-
-// Editor bits
-#include "editor/editor.h"
-
-#include "extension_db.h"
+#include <gdextension_interface.h>
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/core/defs.hpp>
+#include <godot_cpp/godot.hpp>
 
 using namespace godot;
 
 namespace orchestrator
 {
-    OScriptLanguage* script_language_extension = nullptr;
-    OrchestratorSettings* settings = nullptr;
-    Ref<OScriptResourceLoader> loader;
-    Ref<OScriptResourceSaver> saver;
     Logger* logger = nullptr;
-    ExtensionDB* extension_db = nullptr;
 
     void initialize_extension_module(ModuleInitializationLevel p_level)
     {
@@ -65,78 +44,44 @@ namespace orchestrator
             internal::gdextension_interface_get_godot_version(&godot_version);
             Logger::info("Using ", godot_version.string);
 
-            extension_db = new ExtensionDB();
-
-            internal::ExtensionDBLoader db_loader;
-            db_loader.prime();
+            register_extension_db();
         }
 
         if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS)
         {
-            ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSettings)
-
-            register_script_classes();
-            script_language_extension = memnew(OScriptLanguage);
+            register_script_types();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)
         {
-            settings = memnew(OrchestratorSettings);
-
-            // Adjust logger level based on project settings
-            const String level = settings->get_setting("settings/log_level");
-            Logger::set_level(Logger::get_level_from_name(level));
-
-            Engine::get_singleton()->register_script_language(script_language_extension);
-
-            loader.instantiate();
-            ResourceLoader::get_singleton()->add_resource_format_loader(loader);
-
-            saver.instantiate();
-            ResourceSaver::get_singleton()->add_resource_format_saver(saver);
-
-            register_script_node_classes();
+            register_script_extension();
+            register_script_resource_formats();
+            register_script_node_types();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
         {
-            register_editor_classes();
-            register_plugin_classes();
-
-            EditorPlugins::add_by_type<OrchestratorPlugin>();
+            register_editor_types();
         }
     }
 
     void uninitialize_extension_module(ModuleInitializationLevel p_level)
     {
-        if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS)
+        if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
         {
-            if (script_language_extension)
-                memdelete(script_language_extension);
-
-            if (loader.is_valid())
-            {
-                ResourceLoader::get_singleton()->remove_resource_format_loader(loader);
-                loader.unref();
-            }
-
-            if (saver.is_valid())
-            {
-                ResourceSaver::get_singleton()->remove_resource_format_saver(saver);
-                saver.unref();
-            }
+            unregister_editor_types();
         }
-
         if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)
         {
-            if (settings)
-                memdelete(settings);
-
-            if (script_language_extension)
-                Engine::get_singleton()->unregister_script_language(script_language_extension);
+            unregister_script_node_types();
+            unregister_script_extension();
         }
-
+        if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS)
+        {
+            unregister_script_resource_formats();
+            unregister_script_types();
+        }
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE)
         {
-            delete(extension_db);
+            unregister_extension_db();
 
             Logger::info("Shutting down " VERSION_FULL_NAME);
             delete(logger);

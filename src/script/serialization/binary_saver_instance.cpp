@@ -14,341 +14,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "format_saver_instance.h"
+#include "script/serialization/binary_saver_instance.h"
 
 #include "common/dictionary_utils.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
-#include <godot_cpp/core/version.hpp>
 
-void OScriptResourceSaverInstance::_find_resources(const Variant& p_variant, bool p_main)
+bool OScriptBinaryResourceSaverInstance::NonPersistentKey::operator<(const NonPersistentKey& p_key) const
 {
-    switch (p_variant.get_type())
+    return base == p_key.base ? property < p_key.property : base < p_key.base;
+}
+
+bool OScriptBinaryResourceSaverInstance::_is_resource_built_in(Ref<Resource> p_resource)
+{
+    // taken from resource.h
+    String path_cache = p_resource->get_path();
+    return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
+}
+
+void OScriptBinaryResourceSaverInstance::_pad_buffer(Ref<FileAccess> p_file, int p_size)
+{
+    const int extra = 4 - (p_size % 4);
+    if (extra < 4)
     {
-        case Variant::OBJECT:
-        {
-            Ref<Resource> res = p_variant;
-            if (res.is_null() || res->get_meta(StringName("_skip_save_"), false))
-                return;
-
-            if (!p_main && !_is_resource_built_in(res))
-            {
-                ERR_PRINT("External resources are not supported by the OrchestratorScript format");
-                return;
-            }
-
-            if (resource_set.has(res))
-                return;
-
-            resource_set.insert(res);
-
-            TypedArray<Dictionary> properties = res->get_property_list();
-            for (int i = 0; i < properties.size(); i++)
-            {
-                const PropertyInfo pi = DictionaryUtils::to_property(properties[i]);
-                if (pi.usage & PROPERTY_USAGE_STORAGE)
-                {
-                    Variant value = res->get(pi.name);
-                    if (pi.usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT)
-                    {
-                        NonPersistentKey key;
-                        key.base = res;
-                        key.property = pi.name;
-                        non_persistent_map[key] = value;
-
-                        Ref<Resource> sres = value;
-                        if (sres.is_valid())
-                        {
-                            resource_set.insert(sres);
-                            saved_resources.push_back(sres);
-                        }
-                        else
-                        {
-                            _find_resources(value);
-                        }
-                    }
-                    else
-                    {
-                        _find_resources(value);
-                    }
-                }
-            }
-
-            saved_resources.push_back(res);
-        }
-        break;
-
-        case Variant::ARRAY:
-        {
-            Array array = p_variant;
-            int size = array.size();
-            for (int i = 0; i < size; i++)
-            {
-                const Variant& v = array[i];
-                _find_resources(v);
-            }
-        }
-        break;
-
-        case Variant::DICTIONARY:
-        {
-            Dictionary dict = p_variant;
-            Array keys = dict.keys();
-            int size = keys.size();
-            for (int i = 0; i < size; i++)
-            {
-                const Variant& key = keys[i];
-                _find_resources(key);
-
-                const Variant& value = dict[key];
-                _find_resources(value);
-            }
-        }
-        break;
-
-        case Variant::NODE_PATH:
-        {
-            // Take the opportunity to save the node path strings
-            NodePath np = p_variant;
-            for (int i = 0; i < np.get_name_count(); i++)
-                _get_string_index(np.get_name(i));
-            for (int i = 0; i < np.get_subname_count(); i++)
-                _get_string_index(np.get_subname(i));
-        }
-        break;
-
-        default:
-        {
-        }
+        for (int i = 0; i < extra; i++)
+            p_file->store_8(0); // pad to 32 bytes
     }
 }
 
-int OScriptResourceSaverInstance::_get_string_index(const String& p_value)
+void OScriptBinaryResourceSaverInstance::_write_variant(
+    const Ref<FileAccess>& p_file, const Variant& p_value, HashMap<Ref<Resource>, int>& p_resource_map,
+    HashMap<StringName, int>& p_string_map, const PropertyInfo& p_hint)
 {
-    StringName sn = p_value;
-    if (string_map.has(sn))
-        return string_map[sn];
-
-    string_map[sn] = strings.size();
-    strings.push_back(sn);
-
-    return strings.size() - 1;
-}
-
-void OScriptResourceSaverInstance::_save_unicode_string(Ref<FileAccess> p_file, const String& p_value, bool p_bit_on_length)
-{
-    CharString utf8 = p_value.utf8();
-
-    size_t len;
-    if (p_bit_on_length)
-        len = (utf8.length() + 1) | 0x8000000;
-    else
-        len = (utf8.length() + 1);
-
-    p_file->store_32(len);
-    p_file->store_buffer((const uint8_t*)utf8.get_data(), utf8.length() + 1);
-}
-
-String OScriptResourceSaverInstance::_resource_get_class(Ref<Resource> p_resource)
-{
-    Ref<MissingResource> missing = p_resource;
-    if (missing.is_valid())
-        return missing->get_original_class();
-
-    return p_resource->get_class();
-}
-
-Error OScriptResourceSaverInstance::save(const String& p_path, const Ref<Resource>& p_resource, uint32_t p_flags)
-{
-    ERR_FAIL_COND_V_MSG(!p_path.ends_with(ORCHESTRATOR_SCRIPT_QUALIFIED_EXTENSION), ERR_FILE_UNRECOGNIZED,
-                        "Unrecognized extension");
-    ERR_FAIL_COND_V_MSG(!p_resource.is_valid(), ERR_INVALID_PARAMETER, "Resource is not valid");
-
-    Ref<FileAccess> f = FileAccess::open_compressed(p_path, FileAccess::WRITE);
-    ERR_FAIL_COND_V_MSG(!f.is_valid(), ERR_FILE_CANT_WRITE, "Cannot write to the file '" + p_path + "'");
-
-    relative_paths = p_flags & ResourceSaver::FLAG_RELATIVE_PATHS;
-    skip_editor = p_flags & ResourceSaver::FLAG_OMIT_EDITOR_PROPERTIES;
-    bundle_resources = p_flags & ResourceSaver::FLAG_BUNDLE_RESOURCES;
-    big_endian = p_flags & ResourceSaver::FLAG_SAVE_BIG_ENDIAN;
-    takeover_paths = p_flags & ResourceSaver::FLAG_REPLACE_SUBRESOURCE_PATHS;
-
-    if (!p_path.begins_with("res://"))
-        takeover_paths = false;
-
-    local_path = p_path.get_base_dir();
-    path = ProjectSettings::get_singleton()->localize_path(p_path);
-
-    _find_resources(p_resource, true);
-
-    static const uint8_t header[4] = { 'G', 'D', 'O', 'S' };
-    f->store_buffer(header, 4);
-
-    if (big_endian)
-    {
-        f->store_32(1);
-        f->set_big_endian(true);
-    }
-    else
-    {
-        f->store_32(0);
-    }
-
-    // 64-bit files, false for now
-    f->store_32(0);
-
-    // Store the format version of the file
-    f->store_32(FORMAT_VERSION);
-
-    // Store the version of Godot the extension was built with.
-    f->store_32(GODOT_VERSION_MAJOR);
-    f->store_32(GODOT_VERSION_MINOR);
-    f->store_32(GODOT_VERSION_PATCH);
-
-    if (f->get_error() != OK && f->get_error() != ERR_FILE_EOF)
-        return ERR_CANT_CREATE;
-
-    // Store the resource class name
-    // This means that if the class is renamed, this will yield the file unloadable.
-    // Therefore, if classes are renamed, a version bump and migration step will be necessary to reload.
-    _save_unicode_string(f, p_resource->get_class());
-
-    // We explicitly leave some buffer for extended resource bits later on.
-    // These fields will allow extension points without compromising the format.
-    for (int i = 0; i < RESERVED_FIELDS; i++)
-        f->store_32(0);
-
-    Dictionary missing_resource_properties = p_resource->get_meta("_missing_resources", Dictionary());
-
-    List<ResourceData> resources;
-
-    for (const Ref<Resource>& E : saved_resources)
-    {
-        ResourceData& rd = resources.push_back(ResourceData())->get();
-        rd.type = _resource_get_class(E);
-
-        TypedArray<Dictionary> properties = E->get_property_list();
-        for (int i = 0; i < properties.size(); i++)
-        {
-            const PropertyInfo F = DictionaryUtils::to_property(properties[i]);
-            if (skip_editor && F.name.begins_with("__editor"))
-                continue;
-
-            if (F.name.match("metadata/_missing_resources"))
-                continue;
-
-            if (F.usage & PROPERTY_USAGE_STORAGE)
-            {
-                Property property;
-                property.name_index = _get_string_index(F.name);
-
-                if (F.usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT)
-                {
-                    NonPersistentKey key;
-                    key.base = E;
-                    key.property = F.name;
-                    if (non_persistent_map.has(key))
-                        property.value = non_persistent_map[key];
-                }
-                else
-                    property.value = E->get(F.name);
-
-                if (property.pi.type == Variant::OBJECT && missing_resource_properties.has(F.name))
-                {
-                    // Was this missing resource overridden?
-                    // If so do not save the old value
-                    Ref<Resource> res = property.value;
-                    if (res.is_null())
-                        property.value = missing_resource_properties[F.name];
-                }
-
-                Variant default_value = Variant();
-                if (default_value.get_type() != Variant::NIL)
-                {
-                    Variant result;
-                    bool valid;
-                    Variant::evaluate(Variant::OP_EQUAL, property.value, default_value, result, valid);
-                    if (valid && bool(result))
-                        continue;
-                }
-
-                property.pi = F;
-                rd.properties.push_back(property);
-            }
-        }
-    }
-
-    // String table
-    // We store these in this way to minimize the file size rather than writing the string values
-    // multiple times in the file, potentially allowing the file to grow unnecessarily.
-    f->store_32(strings.size());
-    for (int i = 0; i < strings.size(); i++)
-        _save_unicode_string(f, strings[i]);
-
-    // Internal resources
-    f->store_32(saved_resources.size());
-    {
-        HashMap<Ref<Resource>, int> resource_map;
-        Vector<uint64_t> offsets;
-
-        int res_index = 0;
-        for (Ref<Resource>& resource : saved_resources)
-        {
-            // All internal resources are written as "local://[index]".
-            // This allows renaming and moving of the files without impacting the resource data
-            // that is maintained within the resource file.
-            //
-            // When the file is loaded, the "local://" prefix is replaced with the resource path
-            // and "::" to handle uniqueness within the Editor.
-            _save_unicode_string(f, "local://" + itos(res_index));
-
-            // Save position reference and write placeholder
-            // The offset table will be populated later.
-            offsets.push_back(f->get_position());
-            f->store_64(0);
-            resource_map[resource] = res_index++;
-        }
-
-        Vector<uint64_t> offset_table;
-        for (const ResourceData& rd : resources)
-        {
-            offset_table.push_back(f->get_position());
-            _save_unicode_string(f, rd.type);
-
-            f->store_32(rd.properties.size());
-            for (const Property& property : rd.properties)
-            {
-                f->store_32(property.name_index);
-                _write_variant(f, property.value, resource_map, string_map, property.pi);
-            }
-        }
-
-        // Now write offset table
-        for (int i = 0; i < offset_table.size(); i++)
-        {
-            f->seek(offsets[i]);
-            f->store_64(offset_table[i]);
-        }
-
-        f->seek_end();
-    }
-
-    // store a sentinel value at the end
-    f->store_buffer((const uint8_t*)"GDOS", 4);
-
-    if (f->get_error() != OK && f->get_error() != ERR_FILE_EOF)
-        return ERR_CANT_CREATE;
-
-    return OK;
-}
-
-void OScriptResourceSaverInstance::_write_variant(Ref<FileAccess> p_file, const Variant& p_value,
-                                                  HashMap<Ref<Resource>,int>& p_resource_map,
-                                                  HashMap<StringName, int>& p_string_map, const PropertyInfo& p_hint)
-{
-    switch (p_value.get_type())
+switch (p_value.get_type())
     {
         case Variant::NIL:
         {
@@ -600,15 +301,19 @@ void OScriptResourceSaverInstance::_write_variant(Ref<FileAccess> p_file, const 
 
             p_file->store_16(snc);
             for (int i = 0; i < np.get_name_count(); i++)
-                if (string_map.has(np.get_name(i)))
-                    p_file->store_32(string_map[np.get_name(i)]);
+            {
+                if (_string_map.has(np.get_name(i)))
+                    p_file->store_32(_string_map[np.get_name(i)]);
                 else
                     _save_unicode_string(p_file, np.get_name(i), true);
+            }
             for (int i = 0; i < np.get_subname_count(); i++)
-                if (string_map.has(np.get_subname(i)))
-                    p_file->store_32(string_map[np.get_subname(i)]);
+            {
+                if (_string_map.has(np.get_subname(i)))
+                    p_file->store_32(_string_map[np.get_subname(i)]);
                 else
                     _save_unicode_string(p_file, np.get_subname(i), true);
+            }
             break;
         }
         case Variant::RID:
@@ -785,19 +490,374 @@ void OScriptResourceSaverInstance::_write_variant(Ref<FileAccess> p_file, const 
     }
 }
 
-bool OScriptResourceSaverInstance::_is_resource_built_in(Ref<Resource> p_resource) const
+void OScriptBinaryResourceSaverInstance::_find_resources(const Variant& p_variant, bool p_main)
 {
-    // taken from resource.h
-    String path_cache = p_resource->get_path();
-    return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
+    switch (p_variant.get_type())
+    {
+        case Variant::OBJECT:
+        {
+            Ref<Resource> res = p_variant;
+            if (res.is_null() || res->get_meta(StringName("_skip_save_"), false))
+                return;
+
+            if (!p_main && !_is_resource_built_in(res))
+            {
+                ERR_PRINT("External resources are not supported by the OrchestratorScript format");
+                return;
+            }
+
+            if (_resource_set.has(res))
+                return;
+
+            _resource_set.insert(res);
+
+            TypedArray<Dictionary> properties = res->get_property_list();
+            for (int i = 0; i < properties.size(); i++)
+            {
+                const PropertyInfo pi = DictionaryUtils::to_property(properties[i]);
+                if (pi.usage & PROPERTY_USAGE_STORAGE)
+                {
+                    Variant value = res->get(pi.name);
+                    if (pi.usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT)
+                    {
+                        NonPersistentKey key;
+                        key.base = res;
+                        key.property = pi.name;
+                        _non_persistent_map[key] = value;
+
+                        Ref<Resource> sres = value;
+                        if (sres.is_valid())
+                        {
+                            _resource_set.insert(sres);
+                            _saved_resources.push_back(sres);
+                        }
+                        else
+                        {
+                            _find_resources(value);
+                        }
+                    }
+                    else
+                    {
+                        _find_resources(value);
+                    }
+                }
+            }
+            _saved_resources.push_back(res);
+        }
+        break;
+
+        case Variant::ARRAY:
+        {
+            Array array = p_variant;
+            int size = array.size();
+            for (int i = 0; i < size; i++)
+            {
+                const Variant& v = array[i];
+                _find_resources(v);
+            }
+        }
+        break;
+
+        case Variant::DICTIONARY:
+        {
+            Dictionary dict = p_variant;
+            Array keys = dict.keys();
+            int size = keys.size();
+            for (int i = 0; i < size; i++)
+            {
+                const Variant& key = keys[i];
+                _find_resources(key);
+
+                const Variant& value = dict[key];
+                _find_resources(value);
+            }
+        }
+        break;
+
+        case Variant::NODE_PATH:
+        {
+            // Take the opportunity to save the node path strings
+            NodePath np = p_variant;
+            for (int i = 0; i < np.get_name_count(); i++)
+                _get_string_index(np.get_name(i));
+            for (int i = 0; i < np.get_subname_count(); i++)
+                _get_string_index(np.get_subname(i));
+        }
+        break;
+
+        default:
+        {
+        }
+    }
 }
 
-void OScriptResourceSaverInstance::_pad_buffer(Ref<FileAccess> p_file, int size)
+void OScriptBinaryResourceSaverInstance::_save_unicode_string(Ref<FileAccess> p_file, const String& p_value, bool p_bit_on_length)
 {
-    int extra = 4 - (size % 4);
-    if (extra < 4)
+    CharString utf8 = p_value.utf8();
+
+    size_t length;
+    if (p_bit_on_length)
+        length = (utf8.length() + 1) | 0x8000000;
+    else
+        length = (utf8.length() + 1);
+
+    p_file->store_32(length);
+    p_file->store_buffer((const uint8_t*)utf8.get_data(), utf8.length() + 1);
+}
+
+int OScriptBinaryResourceSaverInstance::_get_string_index(const String& p_value)
+{
+    StringName sn = p_value;
+    if (_string_map.has(sn))
+        return _string_map[sn];
+
+    _string_map[sn] = _strings.size();
+    _strings.push_back(sn);
+
+    return _strings.size() - 1;
+}
+
+String OScriptBinaryResourceSaverInstance::_resource_get_class(const Ref<Resource>& p_resource)
+{
+    Ref<MissingResource> missing = p_resource;
+    if (missing.is_valid())
+        return missing->get_original_class();
+
+    return p_resource->get_class();
+}
+
+Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<Resource>& p_resource, uint32_t p_flags)
+{
+    Ref<FileAccess> file = FileAccess::open_compressed(p_path, FileAccess::WRITE);
+    ERR_FAIL_COND_V_MSG(!file.is_valid(), ERR_FILE_CANT_WRITE, "Cannot write to the file '" + p_path + "'.");
+
+    _relative_paths = p_flags & ResourceSaver::FLAG_RELATIVE_PATHS;
+    _skip_editor = p_flags & ResourceSaver::FLAG_OMIT_EDITOR_PROPERTIES;
+    _bundle_resources = p_flags & ResourceSaver::FLAG_BUNDLE_RESOURCES;
+    _big_endian = p_flags & ResourceSaver::FLAG_SAVE_BIG_ENDIAN;
+    _takeover_paths = p_flags & ResourceSaver::FLAG_REPLACE_SUBRESOURCE_PATHS;
+
+    if (!p_path.begins_with("res://"))
+        _takeover_paths = false;
+
+    _local_path = p_path.get_base_dir();
+    _path = ProjectSettings::get_singleton()->localize_path(p_path);
+
+    _find_resources(p_resource, true);
+
+    static const uint8_t header[4] = { 'G', 'D', 'O', 'S' };
+    file->store_buffer(header, 4);
+
+    if (_big_endian)
     {
-        for (int i = 0; i < extra; i++)
-            p_file->store_8(0); // pad to 32 bytes
+        file->store_32(1);
+        file->set_big_endian(true);
     }
+    else
+    {
+        file->store_32(0);
+    }
+
+    // 64-bit files, false for now
+    file->store_32(0);
+
+    // Store the format version of the file
+    file->store_32(FORMAT_VERSION);
+
+    // Store the version of Godot the extension was built with.
+    file->store_32(GODOT_VERSION_MAJOR);
+    file->store_32(GODOT_VERSION_MINOR);
+    file->store_32(GODOT_VERSION_PATCH);
+
+    if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF)
+        return ERR_CANT_CREATE;
+
+    // Store the resource class name
+    // This means that if the class is renamed, this will yield the file unloadable.
+    // Therefore, if classes are renamed, a version bump and migration step will be necessary to reload.
+    _save_unicode_string(file, p_resource->get_class());
+
+    // We explicitly leave some buffer for extended resource bits later on.
+    // These fields will allow extension points without compromising the format.
+    for (uint32_t i = 0; i < RESERVED_FIELDS; i++)
+        file->store_32(0);
+
+    Dictionary missing_resource_properties = p_resource->get_meta("_missing_resources", Dictionary());
+
+    List<ResourceInfo> resources;
+    for (const Ref<Resource>& E : _saved_resources)
+    {
+        ResourceInfo& ri = resources.push_back(ResourceInfo())->get();
+        ri.type = _resource_get_class(E);
+
+        TypedArray<Dictionary> properties = E->get_property_list();
+        for (int i = 0; i < properties.size(); i++)
+        {
+            const PropertyInfo F = DictionaryUtils::to_property(properties[i]);
+
+            if (_skip_editor && F.name.begins_with("__editor"))
+                continue;
+
+            if (F.name.match("metadata/_missing_resources"))
+                continue;
+
+            if (F.usage & PROPERTY_USAGE_STORAGE)
+            {
+                Property property;
+                property.name_index = _get_string_index(F.name);
+
+                if (F.usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT)
+                {
+                    NonPersistentKey key;
+                    key.base = E;
+                    key.property = F.name;
+                    if (_non_persistent_map.has(key))
+                        property.value = _non_persistent_map[key];
+                }
+                else
+                {
+                    property.value = E->get(F.name);
+                }
+
+                if (property.info.type == Variant::OBJECT && missing_resource_properties.has(F.name))
+                {
+                    // Was this missing resource overridden? If so, do not save the old value
+                    Ref<Resource> res = property.value;
+                    if (res.is_null())
+                        property.value = missing_resource_properties[F.name];
+                }
+
+                #if GODOT_VERSION >= 0x040300
+                Variant default_value = ClassDB::class_get_default_property_value(E->get_class(), F.name);
+                #else
+                Variant default_value;
+                #endif
+                if (default_value.get_type() != Variant::NIL)
+                {
+                    Variant result;
+                    bool valid;
+                    Variant::evaluate(Variant::OP_EQUAL, property.value, default_value, result, valid);
+                    if (valid && bool(result))
+                        continue;
+                }
+
+                property.info = F;
+                ri.properties.push_back(property);
+            }
+        }
+    }
+
+    // Save string table
+    // These are stored to minimize the file size rather than writing the string values multiple times
+    file->store_32(_strings.size());
+    for (int i = 0; i < _strings.size(); i++)
+        _save_unicode_string(file, _strings[i]);
+
+    // Store external resources (if needed)
+
+    // Store internal resources
+    file->store_32(_saved_resources.size());
+
+    HashSet<String> used_unique_ids;
+
+    #if GODOT_VERSION >= 0x040300
+    for (const Ref<Resource>& resource : _saved_resources)
+    {
+        if (_is_resource_built_in(resource))
+        {
+            if (!resource->get_scene_unique_id().is_empty())
+            {
+                if (used_unique_ids.has(resource->get_scene_unique_id()))
+                    resource->set_scene_unique_id("");
+                else
+                    used_unique_ids.insert(resource->get_scene_unique_id());
+            }
+        }
+    }
+    #endif
+
+    int res_index = 0;
+    HashMap<Ref<Resource>, int> resource_map;
+    Vector<uint64_t> offsets;
+
+    for (const Ref<Resource>& resource : _saved_resources)
+    {
+        #if GODOT_VERSION >= 0x040300
+        if (_is_resource_built_in(resource))
+        {
+            if (resource->get_scene_unique_id().is_empty())
+            {
+                String new_id;
+                while(true)
+                {
+                    new_id = _resource_get_class(resource) + "_" + Resource::generate_scene_unique_id();
+                    if (!used_unique_ids.has(new_id))
+                        break;
+                }
+                resource->set_scene_unique_id(new_id);
+                used_unique_ids.insert(new_id);
+            }
+
+            _save_unicode_string(file, "local://" + itos(res_index));
+            if (_takeover_paths)
+                resource->set_path(p_path + "::" + resource->get_scene_unique_id());
+            #ifdef TOOLS_ENABLED
+            resource->set_edited(false);
+            #endif
+        }
+        else
+        {
+            _save_unicode_string(file, resource->get_path());
+        }
+        #else
+        // All internal resources are written as "local://[index]"
+        // This allows renaming and moving of files without impacting the data.
+        //
+        // When the file is loaded, the "local://" prefix is replaced with the resource path,
+        // and "::" to handle uniquness within the Editor.
+        _save_unicode_string(file, "local://" + itos(res_index));
+        #endif
+
+        // Save position reference and write placeholder, populating offset table later
+        offsets.push_back(file->get_position());
+        file->store_64(0);
+        resource_map[resource] = res_index++;
+    }
+
+    Vector<uint64_t> offset_table;
+    for (const ResourceInfo& ri : resources)
+    {
+        offset_table.push_back(file->get_position());
+        _save_unicode_string(file, ri.type);
+
+        file->store_32(ri.properties.size());
+        for (const Property& property : ri.properties)
+        {
+            file->store_32(property.name_index);
+            _write_variant(file, property.value, resource_map, _string_map, property.info);
+        }
+    }
+
+    // Now flush offset table
+    for (int i = 0; i < offset_table.size(); i++)
+    {
+        file->seek(offsets[i]);
+        file->store_64(offset_table[i]);
+    }
+
+    file->seek_end();
+
+    // Store sentinel at the end of the file
+    file->store_buffer((const uint8_t*)"GDOS", 4);
+
+    if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF)
+        return ERR_CANT_CREATE;
+
+    return OK;
+}
+
+Error OScriptBinaryResourceSaverInstance::set_uid(const String& p_path, uint64_t p_uid)
+{
+    // todo: need to be completed
+    return OK;
 }

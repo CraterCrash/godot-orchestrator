@@ -94,6 +94,4 @@
 #include "variables/variable_get.h"
 #include "variables/variable_set.h"
 
-void register_script_node_classes();
-
 #endif  // ORCHESTRATOR_SCRIPT_NODES_H

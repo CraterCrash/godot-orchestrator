@@ -14,11 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_FORMAT_H
-#define ORCHESTRATOR_SCRIPT_FORMAT_H
+#ifndef ORCHESTRATOR_REGISTER_EDITOR_TYPES_H
+#define ORCHESTRATOR_REGISTER_EDITOR_TYPES_H
 
-#define ORCHESTRATOR_SCRIPT_EXTENSION           "os"
-#define ORCHESTRATOR_SCRIPT_QUALIFIED_EXTENSION ".os"
-#define ORCHESTRATOR_SCRIPT_TYPE                "OScript"
+void register_editor_types();
+void unregister_editor_types();
 
-#endif  // ORCHESTRATOR_SCRIPT_FORMAT_H
+#endif // ORCHESTRATOR_REGISTER_EDITOR_TYPES_H

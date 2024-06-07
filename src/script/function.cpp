@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "function.h"
+#include "script/function.h"
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
@@ -119,9 +119,9 @@ bool OScriptFunction::is_user_defined() const
     return _user_defined;
 }
 
-Ref<OScript> OScriptFunction::get_owning_script() const
+Orchestration* OScriptFunction::get_orchestration() const
 {
-    return _script;
+    return _orchestration;
 }
 
 int OScriptFunction::get_owning_node_id() const
@@ -131,7 +131,7 @@ int OScriptFunction::get_owning_node_id() const
 
 Ref<OScriptNode> OScriptFunction::get_owning_node() const
 {
-    return _script->get_node(_owning_node_id);
+    return _orchestration->get_node(_owning_node_id);
 }
 
 Ref<OScriptNode> OScriptFunction::get_return_node() const
@@ -147,10 +147,9 @@ Vector<Ref<OScriptNode>> OScriptFunction::get_return_nodes() const
     const Ref<OScriptGraph> graph = get_function_graph();
     if (graph.is_valid())
     {
-        TypedArray<int> nodes = graph->get_nodes();
-        for (int i = 0; i < nodes.size(); i++)
+        for (const Ref<OScriptNode>& node : graph->get_nodes())
         {
-            const Ref<OScriptNodeFunctionResult> result = _script->get_node(nodes[i]);
+            const Ref<OScriptNodeFunctionResult> result = node;
             if (result.is_valid())
                 results.push_back(result);
         }
@@ -160,8 +159,8 @@ Vector<Ref<OScriptNode>> OScriptFunction::get_return_nodes() const
 
 Ref<OScriptGraph> OScriptFunction::get_function_graph() const
 {
-    if (_script->has_graph(get_function_name()))
-        return _script->get_graph(get_function_name());
+    if (_orchestration->has_graph(get_function_name()))
+        return _orchestration->get_graph(get_function_name());
 
     return {};
 }
@@ -261,13 +260,4 @@ void OScriptFunction::set_has_return_value(bool p_has_return_value)
         _returns_value = p_has_return_value;
         emit_changed();
     }
-}
-
-Ref<OScriptFunction> OScriptFunction::create(OScript* p_script, const MethodInfo &p_method)
-{
-    Ref<OScriptFunction> function(memnew(OScriptFunction));
-    function->_guid = Guid::create_guid();
-    function->_method = p_method;
-    function->_script = p_script;
-    return function;
 }

@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "node_instance.h"
+#include "script/instances/node_instance.h"
 
 #include "script/node.h"
 

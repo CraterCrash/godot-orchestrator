@@ -14,11 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "node_pin.h"
+#include "script/node_pin.h"
 
+#include "common/settings.h"
 #include "common/variant_utils.h"
-#include "node.h"
-#include "plugin/settings.h"
+#include "script/node.h"
 #include "script/nodes/data/coercion_node.h"
 
 void OScriptNodePin::_bind_methods()
@@ -120,10 +120,10 @@ Vector2 OScriptNodePin::_calculate_midpoint_between_nodes(const Ref<OScriptNode>
     const Vector2 avg_size(110, 60);
     const Vector2 mid_point = Vector2(mid_x, mid_y) - (avg_size / 2);
 
-    Ref<OScript> script = get_owning_node()->get_owning_script();
-    if (script.is_valid())
+    Orchestration* orchestration = get_owning_node()->get_orchestration();
+    if (orchestration)
     {
-        Ref<OScriptGraph> graph = script->find_graph(p_source);
+        Ref<OScriptGraph> graph = orchestration->find_graph(p_source);
         if (graph.is_valid())
             return mid_point / graph->get_viewport_zoom();
     }
@@ -363,40 +363,11 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
     return false;
 }
 
-Ref<OScriptNode> OScriptNodePin::_create_intermediate_node(Variant::Type p_source_type, Variant::Type p_target_type) const
-{
-    OScript* script = get_owning_node()->get_owning_script();
-    if (script)
-    {
-        Ref<OScriptGraph> graph = script->find_graph(get_owning_node());
-        ERR_FAIL_COND_V_MSG(!graph.is_valid(), {}, "Failed to locate graph, connection link failed.");
-
-        OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-        // Intermediate nodes require that we add the node between the two pins
-        // and this intermediate node acts as a type converter.
-        Ref<OScriptNodeCoercion> intermediate = language->create_node_from_type<OScriptNodeCoercion>(script);
-        ERR_FAIL_COND_V_MSG(!intermediate.is_valid(), {}, "Failed to create intermediate node, connection link failed.");
-
-        Dictionary data;
-        data["left_type"] = p_source_type;
-        data["right_type"] = p_target_type;
-
-        OScriptNodeInitContext context;
-        context.user_data = data;
-        intermediate->initialize(context);
-
-        return intermediate;
-    }
-
-    return {};
-}
-
 void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin)
 {
     ERR_FAIL_COND_MSG(p_pin.is_null(), "Connection link failed, target pin is not valid.");
 
-    OScript* script = get_owning_node()->get_owning_script();
+    Orchestration* orchestration = get_owning_node()->get_orchestration();
 
     OScriptNode* source = nullptr;
     OScriptNode* target = nullptr;
@@ -437,19 +408,22 @@ void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin)
     bool use_coercion_nodes = OrchestratorSettings::get_singleton()->get_setting("ui/nodes/show_conversion_nodes");
     if (intermediate_required && use_coercion_nodes)
     {
-        intermediate = _create_intermediate_node(source_pin->get_type(), target_pin->get_type());
-        if (!intermediate.is_valid())
-            return;
+        Ref<OScriptGraph> owning_graph = orchestration->find_graph(get_owning_node());
+        ERR_FAIL_COND_MSG(!owning_graph.is_valid(), "Failed to locate owning graph, connection link failed.");
 
-        Vector2 position = _calculate_midpoint_between_nodes(source, target);
-        intermediate->set_position(position);
+        const Vector2 position = _calculate_midpoint_between_nodes(source, target);
 
-        script->add_node(script->find_graph(get_owning_node()), intermediate);
+        Dictionary data;
+        data["left_type"] = source_pin->get_type();
+        data["right_type"] = target_pin->get_type();
 
-        script->connect_nodes(source->get_id(), source_pin->get_pin_index(), intermediate->get_id(), 0);
-        script->connect_nodes(intermediate->get_id(), 0, target->get_id(), target_pin->get_pin_index());
+        OScriptNodeInitContext context;
+        context.user_data = data;
 
-        intermediate->post_placed_new_node();
+        intermediate = owning_graph->create_node<OScriptNodeCoercion>(context, position);
+
+        owning_graph->link(source->get_id(), source_pin->get_pin_index(), intermediate->get_id(), 0);
+        owning_graph->link(intermediate->get_id(), 0, target->get_id(), target_pin->get_pin_index());
 
         source->on_pin_connected(source_pin);
         intermediate->on_pin_connected(intermediate->find_pin(0, PD_Input));
@@ -458,8 +432,10 @@ void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin)
     }
     else
     {
-        script->connect_nodes(source->get_id(), source_pin->get_pin_index(),
-                              target->get_id(), target_pin->get_pin_index());
+        Ref<OScriptGraph> owning_graph = orchestration->find_graph(get_owning_node());
+        ERR_FAIL_COND_MSG(!owning_graph.is_valid(), "Failed to locate owning graph, connection link failed.");
+
+        owning_graph->link(source->get_id(), source_pin->get_pin_index(), target->get_id(), target_pin->get_pin_index());
 
         source->on_pin_connected(source_pin);
         target->on_pin_connected(target_pin);
@@ -477,14 +453,15 @@ void OScriptNodePin::unlink(const Ref<OScriptNodePin>& p_pin)
 {
     ERR_FAIL_COND_MSG(!p_pin.is_valid(), "Connection unlink failed, pin is not valid.");
 
-    OScript* script = get_owning_node()->get_owning_script();
+    // todo: tried delegating to node graph; however, the find_graph method failed to return a graph instance
+    Orchestration* orchestration = get_owning_node()->get_orchestration();
 
     if (get_direction() == PD_Input)  // Treat the incoming node as an output (target) pin
     {
         OScriptNode* source = p_pin->get_owning_node();
         OScriptNode* target = get_owning_node();
 
-        script->disconnect_nodes(source->get_id(), p_pin->get_pin_index(), target->get_id(), get_pin_index());
+        orchestration->disconnect_nodes(source->get_id(), p_pin->get_pin_index(), target->get_id(), get_pin_index());
 
         source->on_pin_disconnected(p_pin);
         target->on_pin_disconnected(this);
@@ -494,7 +471,7 @@ void OScriptNodePin::unlink(const Ref<OScriptNodePin>& p_pin)
         OScriptNode* source = get_owning_node();
         OScriptNode* target = p_pin->get_owning_node();
 
-        script->disconnect_nodes(source->get_id(), get_pin_index(), target->get_id(), p_pin->get_pin_index());
+        orchestration->disconnect_nodes(source->get_id(), get_pin_index(), target->get_id(), p_pin->get_pin_index());
 
         source->on_pin_disconnected(this);
         target->on_pin_disconnected(p_pin);
@@ -506,11 +483,11 @@ void OScriptNodePin::unlink(const Ref<OScriptNodePin>& p_pin)
 
 void OScriptNodePin::unlink_all(bool p_notify_nodes)
 {
-    OScript* script = get_owning_node()->get_owning_script();
+    Orchestration* orchestration = get_owning_node()->get_orchestration();
 
     Vector<Ref<OScriptNode>> affected_nodes;
-    Vector<Ref<OScriptNodePin>> connections = script->get_connections(this);
-     for (const Ref<OScriptNodePin>& pin : connections)
+    Vector<Ref<OScriptNodePin>> connections = orchestration->get_connections(this);
+    for (const Ref<OScriptNodePin>& pin : connections)
     {
         OScriptNode* pin_node = pin->get_owning_node();
         unlink(pin);
@@ -533,7 +510,7 @@ bool OScriptNodePin::has_any_connections() const
 
 Vector<Ref<OScriptNodePin>> OScriptNodePin::get_connections() const
 {
-    return get_owning_node()->get_owning_script()->get_connections(this);
+    return get_owning_node()->get_orchestration()->get_connections(this);
 }
 
 Ref<OScriptTargetObject> OScriptNodePin::resolve_target()

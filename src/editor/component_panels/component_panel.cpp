@@ -19,12 +19,11 @@
 #include "common/callable_lambda.h"
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
-#include "plugin/plugin.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
-#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -339,9 +338,9 @@ void OrchestratorScriptComponentPanel::_bind_methods()
     ADD_SIGNAL(MethodInfo("scroll_to_item", PropertyInfo(Variant::OBJECT, "item")));
 }
 
-OrchestratorScriptComponentPanel::OrchestratorScriptComponentPanel(const String& p_title, const Ref<OScript>& p_script)
+OrchestratorScriptComponentPanel::OrchestratorScriptComponentPanel(const String& p_title, Orchestration* p_orchestration)
     : _title(p_title)
-    , _script(p_script)
+    , _orchestration(p_orchestration)
 {
     set_v_size_flags(SIZE_SHRINK_BEGIN);
     set_h_size_flags(SIZE_EXPAND_FILL);

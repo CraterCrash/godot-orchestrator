@@ -59,8 +59,8 @@ public:
     //~ End OrchestratorScriptViewSection Interface
 
     /// Constructs a variable component panel
-    /// @param p_script the script
-    explicit OrchestratorScriptVariablesComponentPanel(const Ref<OScript>& p_script);
+    /// @param p_orchestration the orchestration
+    explicit OrchestratorScriptVariablesComponentPanel(Orchestration* p_orchestration);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_VARIABLES_COMPONENT_PANEL_H

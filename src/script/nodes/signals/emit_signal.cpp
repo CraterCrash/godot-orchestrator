@@ -208,7 +208,7 @@ void OScriptNodeEmitSignal::_on_signal_changed()
 
 void OScriptNodeEmitSignal::post_initialize()
 {
-    _signal = get_owning_script()->find_custom_signal(_signal_name);
+    _signal = get_orchestration()->find_custom_signal(_signal_name);
     if (_signal.is_valid() && _is_in_editor())
         _signal->connect("changed", callable_mp(this, &OScriptNodeEmitSignal::_on_signal_changed));
 
@@ -260,17 +260,12 @@ String OScriptNodeEmitSignal::get_node_title() const
     return super::get_node_title();
 }
 
-bool OScriptNodeEmitSignal::validate_node_during_build() const
+void OScriptNodeEmitSignal::validate_node_during_build(BuildLog& p_log) const
 {
-    if (!super::validate_node_during_build())
-        return false;
+    super::validate_node_during_build(p_log);
 
     if (!_signal.is_valid())
-    {
-        ERR_PRINT("There is no signal defined for the signal emit node.");
-        return false;
-    }
-    return true;
+        p_log.error("There is no signal defined");
 }
 
 bool OScriptNodeEmitSignal::can_inspect_node_properties() const
@@ -284,7 +279,7 @@ OScriptNodeInstance* OScriptNodeEmitSignal::instantiate(OScriptInstance* p_insta
     i->_node = this;
     i->_instance = p_instance;
 
-    Ref<OScriptSignal> signal = get_owning_script()->get_custom_signal(_signal_name);
+    Ref<OScriptSignal> signal = get_orchestration()->get_custom_signal(_signal_name);
     if (signal.is_valid())
         i->_signal = signal->get_method_info();
 
@@ -297,7 +292,7 @@ void OScriptNodeEmitSignal::initialize(const OScriptNodeInitContext& p_context)
 
     const MethodInfo& mi = p_context.method.value();
     _signal_name = mi.name;
-    _signal = get_owning_script()->get_custom_signal(_signal_name);
+    _signal = get_orchestration()->get_custom_signal(_signal_name);
 
     super::initialize(p_context);
 }

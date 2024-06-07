@@ -44,8 +44,8 @@ public:
     void _notification(int p_what);
 
     /// Construct the function component panel
-    /// @param p_script the script
-    explicit OrchestratorScriptMacrosComponentPanel(const Ref<OScript>& p_script);
+    /// @param p_orchestration the orchestration
+    explicit OrchestratorScriptMacrosComponentPanel(Orchestration* p_orchestration);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_MACROS_COMPONENT_PANEL_H

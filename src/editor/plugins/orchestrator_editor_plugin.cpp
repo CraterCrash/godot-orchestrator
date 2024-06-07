@@ -14,13 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "plugin.h"
-
 #include "common/version.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/main_view.h"
+#include "editor/plugins/inspector_plugin_variable.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/window_wrapper.h"
-#include "plugin/inspector_plugin_variable.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/control.hpp>
@@ -96,10 +95,10 @@ void OrchestratorPlugin::_edit(Object* p_object)
 {
     if (p_object && _handles(p_object))
     {
-        Ref<OScript> script(Object::cast_to<OScript>(p_object));
-        if (script.is_valid())
+        OScript* script = Object::cast_to<OScript>(p_object);
+        if (script)
         {
-            _main_view->edit(script);
+            _main_view->edit_script(script);
             _window_wrapper->move_to_foreground();
         }
     }
@@ -302,13 +301,4 @@ void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)
 void OrchestratorPlugin::_on_editor_restart()
 {
     get_editor_interface()->restart_editor(true);
-}
-
-void register_plugin_classes()
-{
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorPlugin)
-
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)
 }

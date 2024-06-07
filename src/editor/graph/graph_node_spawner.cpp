@@ -83,11 +83,6 @@ bool OrchestratorGraphNodeSpawnerProperty::is_filtered(const OrchestratorGraphAc
 
 void OrchestratorGraphNodeSpawnerPropertyGet::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNodePropertyGet> node = language->create_node_from_type<OScriptNodePropertyGet>(script);
-
     OScriptNodeInitContext context;
     context.property = _property;
 
@@ -96,9 +91,7 @@ void OrchestratorGraphNodeSpawnerPropertyGet::execute(OrchestratorGraphEdit* p_g
     else if (!_target_classes.is_empty())
         context.class_name = _target_classes[0];
 
-    node->initialize(context);
-
-    p_graph->spawn_node(node, p_position);
+    p_graph->spawn_node<OScriptNodePropertyGet>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerPropertyGet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -128,11 +121,6 @@ bool OrchestratorGraphNodeSpawnerPropertyGet::is_filtered(const OrchestratorGrap
 
 void OrchestratorGraphNodeSpawnerPropertySet::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNodePropertySet> node = language->create_node_from_type<OScriptNodePropertySet>(script);
-
     OScriptNodeInitContext context;
     context.property = _property;
 
@@ -141,13 +129,9 @@ void OrchestratorGraphNodeSpawnerPropertySet::execute(OrchestratorGraphEdit* p_g
     else if (!_target_classes.is_empty())
         context.class_name = _target_classes[0];
 
-    node->initialize(context);
-
-    // Set the default value on the constructed pin
-    if (_default_value)
-        node->set_default_value(_default_value);
-
-    p_graph->spawn_node(node, p_position);
+    Ref<OScriptNodePropertySet> setter = p_graph->spawn_node<OScriptNodePropertySet>(context, p_position);
+    if (setter.is_valid() && _default_value)
+        setter->set_default_value(_default_value);
 }
 
 bool OrchestratorGraphNodeSpawnerPropertySet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -177,16 +161,10 @@ bool OrchestratorGraphNodeSpawnerPropertySet::is_filtered(const OrchestratorGrap
 
 void OrchestratorGraphNodeSpawnerCallMemberFunction::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNodeCallMemberFunction> node = language->create_node_from_type<OScriptNodeCallMemberFunction>(script);
-
     OScriptNodeInitContext context;
     context.method = _method;
-    node->initialize(context);
 
-    p_graph->spawn_node(node, p_position);
+    p_graph->spawn_node<OScriptNodeCallMemberFunction>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -253,32 +231,20 @@ bool OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(const Orchestra
 
 void OrchestratorGraphNodeSpawnerCallScriptFunction::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNodeCallScriptFunction> node = language->create_node_from_type<OScriptNodeCallScriptFunction>(script);
-
     OScriptNodeInitContext context;
     context.method = _method;
-    node->initialize(context);
 
-    p_graph->spawn_node(node, p_position);
+    p_graph->spawn_node<OScriptNodeCallScriptFunction>(context, p_position);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void OrchestratorGraphNodeSpawnerEvent::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNodeEvent> node = language->create_node_from_type<OScriptNodeEvent>(script);
-
     OScriptNodeInitContext context;
     context.method = _method;
-    node->initialize(context);
 
-    p_graph->spawn_node(node, p_position);
+    p_graph->spawn_node<OScriptNodeEvent>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerEvent::is_filtered(const OrchestratorGraphActionFilter& p_filter, const OrchestratorGraphActionSpec& p_spec)
@@ -287,9 +253,9 @@ bool OrchestratorGraphNodeSpawnerEvent::is_filtered(const OrchestratorGraphActio
         return true;
 
     // Can only define the event function once
-    if (OrchestratorGraphEdit* graph = p_filter.context.graph)
+    if (Orchestration* orchestration = p_filter.get_orchestration())
     {
-        if (graph->get_owning_script()->get_function_names().has(_method.name))
+        if (orchestration->has_function(_method.name))
             return true;
     }
 
@@ -300,23 +266,14 @@ bool OrchestratorGraphNodeSpawnerEvent::is_filtered(const OrchestratorGraphActio
 
 void OrchestratorGraphNodeSpawnerEmitMemberSignal::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    const Ref<OScript> script = p_graph->get_owning_script();
-    if (script.is_valid())
-    {
-        OScriptLanguage* language = OScriptLanguage::get_singleton();
-        Ref<OScriptNodeEmitMemberSignal> node = language->create_node_from_type<OScriptNodeEmitMemberSignal>(script);
+    Dictionary data;
+    data["target_class"] = _target_class;
 
-        Dictionary data;
-        data["target_class"] = _target_class;
+    OScriptNodeInitContext context;
+    context.method = _method;
+    context.user_data = data;
 
-        OScriptNodeInitContext context;
-        context.method = _method;
-        context.user_data = data;
-
-        node->initialize(context);
-
-        p_graph->spawn_node(node, p_position);
-    }
+    p_graph->spawn_node<OScriptNodeEmitMemberSignal>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerEmitMemberSignal::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -332,22 +289,13 @@ bool OrchestratorGraphNodeSpawnerEmitMemberSignal::is_filtered(const Orchestrato
 
 void OrchestratorGraphNodeSpawnerEmitSignal::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    const Ref<OScript> script = p_graph->get_owning_script();
-    if (script.is_valid())
-    {
-        const Ref<OScriptSignal>& signal = p_graph->get_owning_script()->get_custom_signal(_method.name);
-        if (signal.is_valid())
-        {
-            OScriptLanguage* language = OScriptLanguage::get_singleton();
-            Ref<OScriptNodeEmitSignal> node = language->create_node_from_type<OScriptNodeEmitSignal>(script);
+    if (!p_graph->get_orchestration()->has_custom_signal(_method.name))
+        return;
 
-            OScriptNodeInitContext context;
-            context.method = _method;
-            node->initialize(context);
+    OScriptNodeInitContext context;
+    context.method = _method;
 
-            p_graph->spawn_node(node, p_position);
-        }
-    }
+    p_graph->spawn_node<OScriptNodeEmitSignal>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerEmitSignal::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -361,10 +309,9 @@ bool OrchestratorGraphNodeSpawnerEmitSignal::is_filtered(const OrchestratorGraph
         const OrchestratorGraphNodePin* pin = p_filter.context.pins[0];
         if (pin && pin->is_output())
         {
-            Ref<OScript> script = p_filter.context.graph->get_owning_script();
-            if (script->has_custom_signal(_method.name))
+            if (Orchestration* orchestration = p_filter.get_orchestration())
             {
-                Ref<OScriptSignal> signal = script->get_custom_signal(_method.name);
+                Ref<OScriptSignal> signal = orchestration->find_custom_signal(_method.name);
                 if (signal.is_valid() && signal->get_argument_count() > 0)
                 {
                     bool filtered = true;
@@ -400,16 +347,10 @@ bool OrchestratorGraphNodeSpawnerVariable::is_filtered(const OrchestratorGraphAc
 
 void OrchestratorGraphNodeSpawnerVariableGet::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNodeVariableGet> node = language->create_node_from_type<OScriptNodeVariableGet>(script);
-
     OScriptNodeInitContext context;
     context.variable_name = _variable_name;
-    node->initialize(context);
 
-    p_graph->spawn_node(node, p_position);
+    p_graph->spawn_node<OScriptNodeVariableGet>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerVariableGet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -417,10 +358,12 @@ bool OrchestratorGraphNodeSpawnerVariableGet::is_filtered(const OrchestratorGrap
 {
     if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
     {
-        Ref<OScript> script = p_filter.context.graph->get_owning_script();
-        Ref<OScriptVariable> variable = script->get_variable(_variable_name);
-        if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
-            return true;
+        if (Orchestration* orchestration = p_filter.get_orchestration())
+        {
+            const Ref<OScriptVariable> variable = orchestration->get_variable(_variable_name);
+            if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
+                return true;
+        }
     }
     return OrchestratorGraphNodeSpawnerVariable::is_filtered(p_filter, p_spec);
 }
@@ -429,16 +372,10 @@ bool OrchestratorGraphNodeSpawnerVariableGet::is_filtered(const OrchestratorGrap
 
 void OrchestratorGraphNodeSpawnerVariableSet::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNodeVariableSet> node = language->create_node_from_type<OScriptNodeVariableSet>(script);
-
     OScriptNodeInitContext context;
     context.variable_name = _variable_name;
-    node->initialize(context);
 
-    p_graph->spawn_node(node, p_position);
+    p_graph->spawn_node<OScriptNodeVariableSet>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerVariableSet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -446,8 +383,7 @@ bool OrchestratorGraphNodeSpawnerVariableSet::is_filtered(const OrchestratorGrap
 {
     if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
     {
-        Ref<OScript> script = p_filter.context.graph->get_owning_script();
-        Ref<OScriptVariable> variable = script->get_variable(_variable_name);
+        const Ref<OScriptVariable> variable = p_filter.get_orchestration()->get_variable(_variable_name);
         if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
             return true;
     }
@@ -458,16 +394,10 @@ bool OrchestratorGraphNodeSpawnerVariableSet::is_filtered(const OrchestratorGrap
 
 void OrchestratorGraphNodeSpawnerScriptNode::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
-
-    Ref<OScript> script = p_graph->get_owning_script();
-    Ref<OScriptNode> node = language->create_node_from_name(_node_name, script);
-
     OScriptNodeInitContext context;
     context.user_data = _data;
-    node->initialize(context);
 
-    p_graph->spawn_node(node, p_position);
+    p_graph->spawn_node(_node_name, context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerScriptNode::is_filtered(const OrchestratorGraphActionFilter& p_filter,

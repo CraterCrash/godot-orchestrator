@@ -55,7 +55,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "signals"; }
-    bool validate_node_during_build() const override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     bool can_inspect_node_properties() const override;
     Ref<Resource> get_inspect_object() override { return _signal; }
     OScriptNodeInstance* instantiate(OScriptInstance*  p_instance) override;
