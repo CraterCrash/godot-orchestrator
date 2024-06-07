@@ -81,7 +81,7 @@ void OrchestratorGraphActionDB::use_temp(bool p_use_temp)
 void OrchestratorGraphActionDB::load(const OrchestratorGraphActionFilter& p_filter)
 {
     // When base type changes, refresh entire database
-    const StringName base_type = p_filter.context.graph->get_owning_script()->get_base_type();
+    const StringName base_type = p_filter.context.graph->get_orchestration()->get_base_type();
     if (_graph_base_type != base_type)
     {
         clear();

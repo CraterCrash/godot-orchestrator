@@ -18,7 +18,7 @@
 #define ORCHESTRATOR_SCRIPT_NODE_INSTANCE_H
 
 #include "script/context/execution_context.h"
-#include "script_instance.h"
+#include "script/instances/script_instance.h"
 
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/templates/vector.hpp>

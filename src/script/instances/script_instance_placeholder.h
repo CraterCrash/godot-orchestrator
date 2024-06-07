@@ -17,7 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_PLACEHOLDER_INSTANCE_H
 #define ORCHESTRATOR_SCRIPT_PLACEHOLDER_INSTANCE_H
 
-#include "instance_base.h"
+#include "script/instances/instance_base.h"
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/hash_map.hpp>

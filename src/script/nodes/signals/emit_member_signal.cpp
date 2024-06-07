@@ -156,40 +156,46 @@ String OScriptNodeEmitMemberSignal::get_node_title() const
     return vformat("Emit %s", _method.name);
 }
 
-bool OScriptNodeEmitMemberSignal::validate_node_during_build() const
+void OScriptNodeEmitMemberSignal::validate_node_during_build(BuildLog& p_log) const
 {
-    ERR_FAIL_COND_V_MSG(_target_class.is_empty(), false, "No target class defined on emit member signal node.");
-    ERR_FAIL_COND_V_MSG(_method.name.is_empty(), false, "No method details defined on emit member signal node.");
+    if (_target_class.is_empty())
+    {
+        p_log.error("No target class defined.");
+        return;
+    }
 
-    Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
-    ERR_FAIL_COND_V_MSG(!target_pin.is_valid(), false, "Failed to find target pin on emit member signal node.");
+    if (_method.name.is_empty())
+    {
+        p_log.error("No method defined");
+        return;
+    }
 
-    Vector<Ref<OScriptNodePin>> connections = target_pin->get_connections();
+    const Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
+    if (!target_pin.is_valid())
+    {
+        p_log.error("Failed to find target pin");
+        return;
+    }
+
+    const Vector<Ref<OScriptNodePin>> connections = target_pin->get_connections();
     if (connections.is_empty())
     {
         // If the node isn't connected on its execution input pin; safe to ignore this.
         Ref<OScriptNodePin> exec_in = find_pin("ExecIn", PD_Input);
-        if (exec_in.is_valid() && exec_in->get_connections().is_empty())
-            return true;
-
-        // Assume signal method is on the base script type
-        ERR_FAIL_COND_V_MSG(
-            !ClassDB::class_has_signal(_script->get_base_type(), _method.name),
-            false,
-            vformat("No signal found on %s (%s) with name: %s", _script->get_base_type(), _script->get_path(), _method.name));
-
-        // todo: should we check signal signatures?
+        if (!(exec_in.is_valid() && exec_in->get_connections().is_empty()))
+        {
+            if (!ClassDB::class_has_signal(get_orchestration()->get_base_type(), _method.name))
+                p_log.error(vformat("No signal found in %s with name: %s", get_orchestration()->get_self()->get_path(), _method.name));
+        }
     }
     else
     {
-        Ref<OScriptTargetObject> target = connections[0]->resolve_target();
-        ERR_FAIL_COND_V_MSG(target.is_null(), false, "No target object resolved for emit member signal node.");
-        ERR_FAIL_COND_V_MSG(!target->has_signal(_method.name), false, "No signal found on target with name: " + _method.name);
-
-        // todo: should we check signal signatures?
+        const Ref<OScriptTargetObject> target = connections[0]->resolve_target();
+        if (target.is_null())
+            p_log.error("No target object resolved");
+        else if (!target->has_signal(_method.name))
+            p_log.error(vformat("No signal found on target with method name: %s", _method.name));
     }
-
-    return true;
 }
 
 OScriptNodeInstance* OScriptNodeEmitMemberSignal::instantiate(OScriptInstance* p_instance)

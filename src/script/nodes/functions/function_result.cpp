@@ -71,12 +71,11 @@ String OScriptNodeFunctionResult::get_tooltip_text() const
     return "The node terminates the function's execution and returns any output values.";
 }
 
-bool OScriptNodeFunctionResult::validate_node_during_build() const
+void OScriptNodeFunctionResult::validate_node_during_build(BuildLog& p_log) const
 {
-    if (!super::validate_node_during_build())
-        return false;
+    super::validate_node_during_build(p_log);
 
-    Ref<OScriptFunction> function = get_function();
+    const Ref<OScriptFunction> function = get_function();
     if (function.is_valid())
     {
         const String function_name = function->get_function_name();
@@ -84,13 +83,9 @@ bool OScriptNodeFunctionResult::validate_node_during_build() const
         {
             // Check hidden first because those are not assigned cached pin indices
             if (!pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN) && !pin->has_any_connections())
-            {
-                ERR_PRINT("There is no connection to function " + function_name + " output pin " + pin->get_pin_name());
-                return false;
-            }
+                p_log.error(vformat("Function %s output pin '%s' is not connected", function_name, pin->get_pin_name().capitalize()));
         }
     }
-    return true;
 }
 
 bool OScriptNodeFunctionResult::is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const
@@ -100,16 +95,15 @@ bool OScriptNodeFunctionResult::is_compatible_with_graph(const Ref<OScriptGraph>
 
 void OScriptNodeFunctionResult::post_placed_new_node()
 {
-    Ref<OScriptGraph> graph = get_owning_script()->find_graph(this);
+    const Ref<OScriptGraph> graph = get_owning_graph();
     if (graph.is_valid() && graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION))
     {
         // There is only ever 1 function node in a function graph and the function node cannot
         // be deleted by the user, and so we can safely look that up on the graph's metadata.
-        int function_node_id = graph->get_functions()[0];
-        Ref<OScriptNodeFunctionTerminator> func = get_owning_script()->get_node(function_node_id);
-        if (func.is_valid())
+        const Vector<Ref<OScriptFunction>> functions = graph->get_functions();
+        if (!functions.is_empty())
         {
-            _function = func->get_function();
+            _function = functions[0];
             _guid = _function->get_guid();
             reconstruct_node();
         }

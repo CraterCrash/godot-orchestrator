@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_GRAPH_KNOT_H
 
 #include "editor/graph/graph_edit.h"
+#include "script/script.h"
 
 #include <godot_cpp/classes/graph_element.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
@@ -32,7 +33,7 @@ class OrchestratorGraphKnot : public GraphElement
 
 protected:
     OScriptConnection _connection;     //! The connection this knot belongs
-    Ref<OScript> _script;              //! The owning script
+    Ref<OScriptGraph> _graph;          //! The owning graph
     Ref<OrchestratorKnotPoint> _knot;  //! The knot
     TextureRect* _icon;                //! The icon
     Color _color;                      //! The knot color
@@ -53,9 +54,9 @@ public:
     void _gui_input(const Ref<InputEvent>& p_event) override;
     //~ End Control Interface
 
-    /// Set the owning script
-    /// @param p_script the script that owns the knot
-    void set_owning_script(const Ref<OScript>& p_script);
+    /// Set the owning graph
+    /// @param p_graph the graph that owns this knot
+    void set_graph(const Ref<OScriptGraph>& p_graph);
 
     /// Gets the owning connection
     /// @return the connection

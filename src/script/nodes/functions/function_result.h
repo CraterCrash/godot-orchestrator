@@ -42,7 +42,7 @@ public:
     void allocate_default_pins() override;
     String get_node_title() const override;
     String get_tooltip_text() const override;
-    bool validate_node_during_build() const override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     bool draw_node_as_exit() const override { return true; }
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     void post_placed_new_node() override;

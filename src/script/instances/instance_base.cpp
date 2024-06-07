@@ -19,6 +19,7 @@
 #include "common/memory_utils.h"
 #include "script/script.h"
 
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 
 static void add_to_state(GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value, void* p_userdata)

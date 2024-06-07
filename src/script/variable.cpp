@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "variable.h"
+#include "script/variable.h"
 
 #include "api/extension_db.h"
 #include "common/string_utils.h"
@@ -177,9 +177,9 @@ void OScriptVariable::post_initialize()
     }
 }
 
-Ref<OScript> OScriptVariable::get_owning_script() const
+Orchestration* OScriptVariable::get_orchestration() const
 {
-    return _script;
+    return _orchestration;
 }
 
 void OScriptVariable::set_variable_name(const String& p_name)
@@ -374,21 +374,4 @@ void OScriptVariable::set_default_value(const Variant& p_default_value)
         _default_value = p_default_value;
         emit_changed();
     }
-}
-
-Ref<OScriptVariable> OScriptVariable::create(OScript* p_script, const PropertyInfo& p_property)
-{
-    Ref<OScriptVariable> variable(memnew(OScriptVariable));
-    variable->_info = p_property;
-    variable->_script = p_script;
-    variable->_default_value = VariantUtils::make_default(p_property.type);
-    variable->_category = "Default";
-    variable->_classification = "type:Nil"; // any
-    variable->_info.type = Variant::NIL;
-    variable->_info.hint = PROPERTY_HINT_NONE;
-    variable->_info.hint_string = "";
-    variable->_info.class_name = "";
-    variable->_info.usage = PROPERTY_USAGE_STORAGE;
-
-    return variable;
 }

@@ -237,7 +237,7 @@ void OScriptNodeFunctionTerminator::post_initialize()
 {
     super::post_initialize();
 
-    _function = get_owning_script()->find_function(_guid);
+    _function = get_orchestration()->find_function(_guid);
     if (_function.is_valid())
     {
         if (_is_in_editor())

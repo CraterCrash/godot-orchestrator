@@ -14,10 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "plugin/theme_cache.h"
+#include "editor/theme/theme_cache.h"
 
 #include "common/scene_utils.h"
-#include "plugin/settings.h"
+#include "common/settings.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_node.hpp>

@@ -225,9 +225,9 @@ String OScriptNodeCallStaticFunction::get_help_topic() const
     return super::get_help_topic();
 }
 
-bool OScriptNodeCallStaticFunction::validate_node_during_build() const
+void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) const
 {
-    return true;
+    return super::validate_node_during_build(p_log);
 }
 
 OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate(OScriptInstance* p_instance)

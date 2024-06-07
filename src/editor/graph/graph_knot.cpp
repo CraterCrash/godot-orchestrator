@@ -17,15 +17,14 @@
 #include "editor/graph/graph_knot.h"
 
 #include "common/scene_utils.h"
-#include "editor/graph/graph_node.h"
-#include "plugin/settings.h"
+#include "common/settings.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
 void OrchestratorGraphKnot::_connections_changed(const String& p_caller)
 {
-    if (!_script->get_connections().has(_connection))
+    if (!_graph->get_orchestration()->get_connections().has(_connection))
         queue_free();
 }
 
@@ -46,10 +45,12 @@ void OrchestratorGraphKnot::_node_deselected()
     _icon->set_modulate(_color);
 }
 
-void OrchestratorGraphKnot::set_owning_script(const Ref<OScript>& p_script)
+void OrchestratorGraphKnot::set_graph(const Ref<OScriptGraph>& p_graph)
 {
-    _script = p_script;
-    _script->connect("connections_changed", callable_mp(this, &OrchestratorGraphKnot::_connections_changed));
+    _graph = p_graph;
+
+    const Ref<Resource> self = _graph->get_orchestration()->get_self();
+    self->connect("connections_changed", callable_mp(this, &OrchestratorGraphKnot::_connections_changed));
 }
 
 void OrchestratorGraphKnot::set_knot(const Ref<OrchestratorKnotPoint>& p_knot)

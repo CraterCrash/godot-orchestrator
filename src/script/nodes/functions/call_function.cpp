@@ -295,7 +295,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         if (_reference.target_type == Variant::NIL)
         {
             if (_function_flags.has_flag(FF_IS_SELF))
-                target->set_target_class(get_owning_script()->get_base_type());
+                target->set_target_class(get_orchestration()->get_base_type());
             else
                 target->set_target_class("Object");
 
@@ -486,7 +486,7 @@ void OScriptNodeCallFunction::remove_dynamic_pin(const Ref<OScriptNodePin>& p_pi
         remove_pin(p_pin);
 
         // Taken from OScriptNodeEditablePin::_adjust_connections
-        get_owning_script()->adjust_connections(this, pin_offset, -1, PD_Input);
+        get_orchestration()->adjust_connections(this, pin_offset, -1, PD_Input);
 
         _vararg_count--;
         reconstruct_node();

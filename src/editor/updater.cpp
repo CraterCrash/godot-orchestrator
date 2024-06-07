@@ -18,7 +18,7 @@
 
 #include "common/scene_utils.h"
 #include "common/version.h"
-#include "plugin/plugin.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/button.hpp>

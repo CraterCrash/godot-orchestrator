@@ -16,16 +16,16 @@
 //
 #include "editor/component_panels/signals_panel.h"
 
+#include "common/dictionary_utils.h"
 #include "common/scene_utils.h"
-#include "plugin/plugin.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
-#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
 
 PackedStringArray OrchestratorScriptSignalsComponentPanel::_get_existing_names() const
 {
-    return _script->get_custom_signal_names();
+    return _orchestration->get_custom_signal_names();
 }
 
 String OrchestratorScriptSignalsComponentPanel::_get_tooltip_text() const
@@ -64,20 +64,20 @@ void OrchestratorScriptSignalsComponentPanel::_handle_context_menu(int p_id)
 bool OrchestratorScriptSignalsComponentPanel::_handle_add_new_item(const String& p_name)
 {
     // Add the new signal and update the components display
-    return _script->create_custom_signal(p_name).is_valid();
+    return _orchestration->create_custom_signal(p_name).is_valid();
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_item_selected()
 {
     TreeItem* item = _tree->get_selected();
 
-    Ref<OScriptSignal> signal = _script->get_custom_signal(item->get_text(0));
+    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(item->get_text(0));
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_item_activated(TreeItem* p_item)
 {
-    Ref<OScriptSignal> signal = _script->get_custom_signal(p_item->get_text(0));
+    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(p_item->get_text(0));
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
 }
 
@@ -89,14 +89,14 @@ bool OrchestratorScriptSignalsComponentPanel::_handle_item_renamed(const String&
         return false;
     }
 
-    _script->rename_custom_user_signal(p_old_name, p_new_name);
+    _orchestration->rename_custom_user_signal(p_old_name, p_new_name);
     return true;
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_remove(TreeItem* p_item)
 {
     const String signal_name = p_item->get_text(0);
-    _script->remove_custom_signal(signal_name);
+    _orchestration->remove_custom_signal(signal_name);
 }
 
 Dictionary OrchestratorScriptSignalsComponentPanel::_handle_drag_data(const Vector2& p_position)
@@ -106,8 +106,12 @@ Dictionary OrchestratorScriptSignalsComponentPanel::_handle_drag_data(const Vect
     TreeItem* selected = _tree->get_selected();
     if (selected)
     {
-        data["type"] = "signal";
-        data["signals"] = Array::make(selected->get_text(0));
+        Ref<OScriptSignal> signal = _orchestration->find_custom_signal(StringName(selected->get_text(0)));
+        if (signal.is_valid())
+        {
+            data["type"] = "signal";
+            data["signals"] = DictionaryUtils::from_method(signal->get_method_info());
+        }
     }
     return data;
 }
@@ -116,13 +120,13 @@ void OrchestratorScriptSignalsComponentPanel::update()
 {
     _clear_tree();
 
-    PackedStringArray signal_names = _script->get_custom_signal_names();
+    PackedStringArray signal_names = _orchestration->get_custom_signal_names();
     if (!signal_names.is_empty())
     {
         signal_names.sort();
         for (const String& signal_name : signal_names)
         {
-            Ref<OScriptSignal> signal = _script->get_custom_signal(signal_name);
+            Ref<OScriptSignal> signal = _orchestration->get_custom_signal(signal_name);
 
             TreeItem* item = _tree->get_root()->create_child();
             item->set_text(0, signal_name);
@@ -146,7 +150,7 @@ void OrchestratorScriptSignalsComponentPanel::_bind_methods()
 {
 }
 
-OrchestratorScriptSignalsComponentPanel::OrchestratorScriptSignalsComponentPanel(const Ref<OScript>& p_script)
-    : OrchestratorScriptComponentPanel("Signals", p_script)
+OrchestratorScriptSignalsComponentPanel::OrchestratorScriptSignalsComponentPanel(Orchestration* p_orchestration)
+    : OrchestratorScriptComponentPanel("Signals", p_orchestration)
 {
 }

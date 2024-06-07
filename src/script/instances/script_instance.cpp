@@ -14,15 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "script_instance.h"
+#include "script/instances/script_instance.h"
 
 #include "common/dictionary_utils.h"
 #include "common/memory_utils.h"
-#include "plugin/settings.h"
-#include "script/nodes/variables/local_variable.h"
+#include "common/settings.h"
+#include "script/nodes/script_nodes.h"
 #include "script/script.h"
-
-#include <iomanip>
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/object.hpp>

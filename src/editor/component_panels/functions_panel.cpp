@@ -17,14 +17,14 @@
 #include "editor/component_panels/functions_panel.h"
 
 #include "common/callable_lambda.h"
+#include "common/dictionary_utils.h"
 #include "common/scene_utils.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/script_connections.h"
 #include "editor/script_view.h"
-#include "plugin/plugin.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
@@ -34,13 +34,13 @@ void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p
     // Function name and graph names are synonymous
     const String function_name = p_item->get_text(0);
     emit_signal("show_graph_requested", function_name);
-    emit_signal("focus_node_requested", function_name, _script->get_function_node_id(function_name));
+    emit_signal("focus_node_requested", function_name, _orchestration->get_function_node_id(function_name));
     _tree->deselect_all();
 }
 
 PackedStringArray OrchestratorScriptFunctionsComponentPanel::_get_existing_names() const
 {
-    return _script->get_function_names();
+    return _orchestration->get_function_names();
 }
 
 String OrchestratorScriptFunctionsComponentPanel::_get_tooltip_text() const
@@ -93,7 +93,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_item_selected()
     const TreeItem* item = _tree->get_selected();
     if (item)
     {
-        const Ref<OScriptFunction> function = _script->find_function(StringName(item->get_text(0)));
+        const Ref<OScriptFunction> function = _orchestration->find_function(StringName(item->get_text(0)));
         if (function.is_valid())
         {
             const Ref<OScriptNode> node = function->get_owning_node();
@@ -116,7 +116,7 @@ bool OrchestratorScriptFunctionsComponentPanel::_handle_item_renamed(const Strin
         return false;
     }
 
-    _script->rename_function(p_old_name, p_new_name);
+    _orchestration->rename_function(p_old_name, p_new_name);
     emit_signal("graph_renamed", p_old_name, p_new_name);
     return true;
 }
@@ -127,13 +127,17 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_remove(TreeItem* p_item)
     const String function_name = p_item->get_text(0);
     emit_signal("close_graph_requested", function_name);
 
-    _script->remove_function(function_name);
+    _orchestration->remove_function(function_name);
 }
 
 void OrchestratorScriptFunctionsComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
                                                                     int p_mouse_button)
 {
-    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
+    if (_orchestration->get_type() != OrchestrationType::OT_Script)
+        return;
+
+    const Ref<OScript> script = _orchestration->get_self();
+    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
 
     OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
     add_child(dialog);
@@ -147,8 +151,12 @@ Dictionary OrchestratorScriptFunctionsComponentPanel::_handle_drag_data(const Ve
     TreeItem* selected = _tree->get_selected();
     if (selected)
     {
-        data["type"] = "function";
-        data["functions"] = Array::make(selected->get_text(0));
+        Ref<OScriptFunction> function = _orchestration->find_function(StringName(selected->get_text(0)));
+        if (function.is_valid())
+        {
+            data["type"] = "function";
+            data["functions"] = DictionaryUtils::from_method(function->get_method_info());
+        }
     }
     return data;
 }
@@ -157,10 +165,17 @@ void OrchestratorScriptFunctionsComponentPanel::update()
 {
     _clear_tree();
 
-    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(_script);
-    const String base_type = _script->get_instance_base_type();
+    Vector<Node*> script_nodes;
+    String base_type;
 
-    for (const Ref<OScriptGraph>& graph : _script->get_graphs())
+    if (_orchestration->get_type() == OrchestrationType::OT_Script)
+    {
+        const Ref<OScript> script = _orchestration->get_self();
+        script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+        base_type = script->get_instance_base_type();
+    }
+
+    for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
     {
         if (!(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION)))
             continue;
@@ -213,7 +228,7 @@ void OrchestratorScriptFunctionsComponentPanel::_bind_methods()
     ADD_SIGNAL(MethodInfo("override_function_requested"));
 }
 
-OrchestratorScriptFunctionsComponentPanel::OrchestratorScriptFunctionsComponentPanel(const Ref<OScript>& p_script, OrchestratorScriptView* p_view)
-    : OrchestratorScriptComponentPanel("Functions", p_script), _view(p_view)
+OrchestratorScriptFunctionsComponentPanel::OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, OrchestratorScriptView* p_view)
+    : OrchestratorScriptComponentPanel("Functions", p_orchestration), _view(p_view)
 {
 }

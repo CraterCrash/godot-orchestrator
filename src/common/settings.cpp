@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "settings.h"
+#include "common/settings.h"
 
 #include "common/dictionary_utils.h"
 #include "common/logger.h"

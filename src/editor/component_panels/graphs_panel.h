@@ -75,8 +75,8 @@ public:
     //~ End OrchestratorScriptViewSection Interface
 
     /// Constructs the graphs component panel
-    /// @param p_script the script
-    explicit OrchestratorScriptGraphsComponentPanel(const Ref<OScript>& p_script);
+    /// @param p_orchestration the orchestration
+    explicit OrchestratorScriptGraphsComponentPanel(Orchestration* p_orchestration);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_GRAPHS_COMPONENT_PANEL_H

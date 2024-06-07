@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "signals.h"
+#include "script/signals.h"
 
 #include "common/dictionary_utils.h"
 #include "common/variant_utils.h"
@@ -117,9 +117,9 @@ bool OScriptSignal::_set(const StringName &p_name, const Variant &p_value)
     return false;
 }
 
-Ref<OScript> OScriptSignal::get_owning_script() const
+Orchestration* OScriptSignal::get_orchestration() const
 {
-    return _script;
+    return _orchestration;
 }
 
 const StringName& OScriptSignal::get_signal_name() const
@@ -189,12 +189,4 @@ void OScriptSignal::set_argument_name(size_t p_index, const StringName& p_name)
         _method.arguments[p_index].name = p_name;
         emit_changed();
     }
-}
-
-Ref<OScriptSignal> OScriptSignal::create(OScript* p_script, const MethodInfo &p_method)
-{
-    Ref<OScriptSignal> signal(memnew(OScriptSignal));
-    signal->_method = p_method;
-    signal->_script = p_script;
-    return signal;
 }

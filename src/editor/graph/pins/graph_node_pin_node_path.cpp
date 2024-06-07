@@ -212,7 +212,11 @@ void OrchestratorGraphNodePinNodePath::_on_show_scene_tree_dialog()
     dialog->set_min_size(Size2(475, 700));
     dialog->set_node_path(_pin->get_effective_default_value());
     dialog->connect("node_selected", callable_mp(this, &OrchestratorGraphNodePinNodePath::_on_node_selected));
-    dialog->set_script(_pin->get_owning_node()->get_owning_script());
+
+    const Ref<OScript> script = _pin->get_owning_node()->get_orchestration()->get_self();
+    if (script.is_valid())
+        dialog->set_script(script);
+
     add_child(dialog);
 
     dialog->popup_centered();

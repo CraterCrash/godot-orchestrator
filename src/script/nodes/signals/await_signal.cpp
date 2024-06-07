@@ -83,9 +83,9 @@ String OScriptNodeAwaitSignal::get_node_title() const
     return "Await Signal";
 }
 
-bool OScriptNodeAwaitSignal::validate_node_during_build() const
+void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const
 {
-    return super::validate_node_during_build();
+    return super::validate_node_during_build(p_log);
 }
 
 OScriptNodeInstance* OScriptNodeAwaitSignal::instantiate(OScriptInstance* p_instance)

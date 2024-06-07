@@ -17,7 +17,7 @@
 #include "editor/search/search_dialog.h"
 
 #include "common/scene_utils.h"
-#include "plugin/plugin.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>

@@ -33,7 +33,6 @@
 using namespace godot;
 
 // Forward declarations
-class OScript;
 class OScriptNode;
 class OrchestratorGraphKnot;
 class OrchestratorPlugin;
@@ -117,7 +116,6 @@ class OrchestratorGraphEdit : public GraphEdit
     #if GODOT_VERSION >= 0x040300
     OptionButton* _grid_pattern{ nullptr };                //! Grid pattern option button
     #endif
-    Ref<OScript> _script;                                  //! The underlying orchestration script
     Ref<OScriptGraph> _script_graph;                       //! The underlying orchestration script graph
     OrchestratorGraphActionMenu* _action_menu{ nullptr };  //! Actions menu
     ConfirmationDialog* _confirm_window{ nullptr };        //! Confirmation window
@@ -150,21 +148,20 @@ public:
 
     /// Creates the Orchestration OrchestratorGraphEdit instance.
     /// @param p_plugin the plugin instance, should never be null
-    /// @param p_script the orchestration script instance, should never be null
-    /// @param p_name the graph name, should never be null or empty
-    OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, Ref<OScript> p_script, const String& p_name);
+    /// @param p_graph the orchestration graph, should never be invalid
+    OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, const Ref<OScriptGraph>& p_graph);
 
     /// Godot callback that handles notifications
     /// @param p_what the notification to be handled
     void _notification(int p_what);
 
-    /// Get the owning orchestration script.
-    /// @return the script reference, should always be valid
-    Ref<OScript> get_owning_script() { return _script; }
-
     /// Get the owning orchestration script graph.
     /// @return the script graph reference, should always be valid
     Ref<OScriptGraph> get_owning_graph() { return _script_graph; }
+
+    /// Get the owning orchestration
+    /// @return the owning orchestration, should always be valid
+    Orchestration* get_orchestration() { return _script_graph->get_orchestration(); }
 
     /// Get the editor graph action menu.
     OrchestratorGraphActionMenu* get_action_menu() { return _action_menu; }
@@ -199,11 +196,6 @@ public:
     /// Sets the spawn position the center of the graph edit view
     void set_spawn_position_center_view();
 
-    /// Spawn a node at the specified position.
-    /// @param p_node the node to be spawned
-    /// @param p_position the position where the node should be spawned
-    void spawn_node(const Ref<OScriptNode>& p_node, const Vector2& p_position);
-
     /// Goto class help
     /// @param p_class_name the class name to show help for
     void goto_class_help(const String& p_class_name);
@@ -231,6 +223,25 @@ public:
     bool _is_node_hover_valid(const StringName& p_from, int p_from_port, const StringName& p_to, int p_to_port) override;
     PackedVector2Array _get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const override;
     //~ End GraphEdit overrides
+
+    /// Helper method for spawning nodes
+    /// @param p_context the node initialization context
+    /// @param p_position the position to spawn the node, if provided.
+    /// @return the node reference if the node was spawned, an invalid reference if the spawn failed
+    template <typename T>
+    Ref<T> spawn_node(const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2())
+    {
+        return spawn_node(T::get_class_static(), p_context, p_position);
+    }
+
+    /// Helper method to spawn a node by it's type
+    /// @param p_type the node type to spawn
+    /// @param p_context the node initialization context
+    /// @param p_position the position to spawn the node
+    /// @return the node reference if it was spawned successfully, no reference otherwise
+    Ref<OScriptNode> spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2());
+
+    void sync();
 
 private:
     /// Caches the graph knots for use.
