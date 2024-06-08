@@ -30,6 +30,7 @@ void OScriptSignal::_get_property_list(List<PropertyInfo>* r_list) const
     // Editor-only properties
     int32_t read_only = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY;
     r_list->push_back(PropertyInfo(Variant::STRING, "signal_name", PROPERTY_HINT_NONE, "", read_only));
+    r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT));
     r_list->push_back(PropertyInfo(Variant::INT, "argument_count", PROPERTY_HINT_RANGE, "0,32", PROPERTY_USAGE_EDITOR));
     for (size_t i = 1; i <= _method.arguments.size(); i++)
     {
@@ -74,6 +75,11 @@ bool OScriptSignal::_get(const StringName &p_name, Variant &r_value)
             return true;
         }
     }
+    else if (p_name.match("description"))
+    {
+        r_value = _description;
+        return true;
+    }
     return false;
 }
 
@@ -113,6 +119,11 @@ bool OScriptSignal::_set(const StringName &p_name, const Variant &p_value)
             set_argument_name(index, p_value);
             return true;
         }
+    }
+    else if (p_name.match("description"))
+    {
+        _description = p_value;
+        return true;
     }
     return false;
 }
@@ -187,6 +198,15 @@ void OScriptSignal::set_argument_name(size_t p_index, const StringName& p_name)
     if (_method.arguments.size() > p_index)
     {
         _method.arguments[p_index].name = p_name;
+        emit_changed();
+    }
+}
+
+void OScriptSignal::set_description(const String& p_description)
+{
+    if (_description != p_description)
+    {
+        _description = p_description;
         emit_changed();
     }
 }

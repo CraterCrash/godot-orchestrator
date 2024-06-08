@@ -71,6 +71,10 @@ protected:
     void _set_variables(const TypedArray<OScriptVariable>& p_variables) { _set_variables_internal(p_variables); }
     TypedArray<OScriptSignal> _get_signals() const { return _get_signals_internal(); }
     void _set_signals(const TypedArray<OScriptSignal>& p_signals) { _set_signals_internal(p_signals); }
+    void _set_brief_description(const String& p_description) { set_brief_description(p_description); }
+    String _get_brief_description() const { return get_brief_description(); }
+    void _set_description(const String& p_description) { set_description(p_description); }
+    String _get_description() const { return get_description(); }
     //~ End Serialization API
 
     /// Update export placeholders

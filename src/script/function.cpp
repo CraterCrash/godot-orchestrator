@@ -27,6 +27,7 @@ void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const
     r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method"));
     r_list->push_back(PropertyInfo(Variant::BOOL, "user_defined"));
     r_list->push_back(PropertyInfo(Variant::INT, "id"));
+    r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT));
 }
 
 bool OScriptFunction::_get(const StringName &p_name, Variant &r_value)
@@ -49,6 +50,11 @@ bool OScriptFunction::_get(const StringName &p_name, Variant &r_value)
     else if (p_name.match("user_defined"))
     {
         r_value = _user_defined;
+        return true;
+    }
+    else if (p_name.match("description"))
+    {
+        r_value = _description;
         return true;
     }
     return false;
@@ -76,6 +82,15 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
     else if (p_name.match("user_defined"))
     {
         _user_defined = p_value;
+        result = true;
+    }
+    else if (p_name.match("description"))
+    {
+        _description = p_value;
+
+        if (_orchestration)
+            _orchestration->get_self()->emit_changed();
+
         result = true;
     }
 
@@ -258,6 +273,15 @@ void OScriptFunction::set_has_return_value(bool p_has_return_value)
             MethodUtils::set_no_return_value(_method);
 
         _returns_value = p_has_return_value;
+        emit_changed();
+    }
+}
+
+void OScriptFunction::set_description(const String& p_description)
+{
+    if (_description != p_description)
+    {
+        _description = p_description;
         emit_changed();
     }
 }

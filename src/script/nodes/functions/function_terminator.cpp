@@ -33,6 +33,8 @@ void OScriptNodeFunctionTerminator::_get_property_list(List<PropertyInfo>* r_lis
     r_list->push_back(PropertyInfo(Variant::STRING, "function_id", PROPERTY_HINT_NONE, "", read_only_serialize));
     r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", read_only_editor));
 
+    r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT));
+
     if (function.is_valid())
     {
         if (_supports_return_values())
@@ -113,6 +115,15 @@ bool OScriptNodeFunctionTerminator::_get(const StringName& p_name, Variant& r_va
             return true;
         }
     }
+    else if (p_name.match("description"))
+    {
+        Ref<OScriptFunction> function = get_function();
+        if (function.is_valid())
+        {
+            r_value = function->get_description();
+            return true;
+        }
+    }
     return false;
 }
 
@@ -173,6 +184,15 @@ bool OScriptNodeFunctionTerminator::_set(const StringName& p_name, const Variant
         if (function.is_valid() && function->is_user_defined())
         {
             function->set_return_type(VariantUtils::to_type(p_value));
+            return true;
+        }
+    }
+    else if (p_name.match("description"))
+    {
+        Ref<OScriptFunction> function = get_function();
+        if (function.is_valid())
+        {
+            function->set_description(p_value);
             return true;
         }
     }

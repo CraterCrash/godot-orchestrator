@@ -61,8 +61,8 @@ void OrchestratorPlugin::_notification(int p_what)
 
         // Register the plugin's icon for CreateScript Dialog
         Ref<Theme> theme = ThemeDB::get_singleton()->get_default_theme();
-        if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons"))
-            theme->set_icon(_get_plugin_name(), "EditorIcons", _get_plugin_icon());
+        if (theme.is_valid() && !theme->has_icon(OScript::get_class_static(), "EditorIcons"))
+            theme->set_icon(OScript::get_class_static(), "EditorIcons", _get_plugin_icon());
 
         _window_wrapper = memnew(OrchestratorWindowWrapper);
         _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));

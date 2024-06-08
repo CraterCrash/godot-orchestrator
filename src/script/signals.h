@@ -40,6 +40,7 @@ class OScriptSignal : public Resource
 
     Orchestration* _orchestration{ nullptr };  //! Owning Orchestration
     MethodInfo _method;                        //! The signal definition
+    String _description;                       //! Signal description
 
 protected:
     //~ Begin Wrapped Interface
@@ -96,6 +97,14 @@ public:
     /// @param p_index the argument list index to change
     /// @param p_type the new argument type
     void set_argument_type(size_t p_index, Variant::Type p_type);
+
+    /// Get the description
+    /// @return the description
+    String get_description() const { return _description; }
+
+    /// Sets the description
+    /// @param p_description the description
+    void set_description(const String& p_description);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_SIGNALS_H

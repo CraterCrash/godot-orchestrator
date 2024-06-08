@@ -276,6 +276,24 @@ void Orchestration::validate_and_build(BuildLog& p_log)
     }
 }
 
+void Orchestration::set_brief_description(const String& p_description)
+{
+    if (!_brief_description.match(p_description))
+    {
+        _brief_description = p_description;
+        _self->emit_changed();
+    }
+}
+
+void Orchestration::set_description(const String& p_description)
+{
+    if (!_description.match(p_description))
+    {
+        _description = p_description;
+        _self->emit_changed();
+    }
+}
+
 void Orchestration::add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node)
 {
     ERR_FAIL_COND_MSG(_has_instances(), "Cannot add node, instances exist.");

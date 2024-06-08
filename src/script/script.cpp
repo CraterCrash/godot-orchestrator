@@ -20,6 +20,7 @@
 #include "script/instances/script_instance.h"
 #include "script/instances/script_instance_placeholder.h"
 #include "script/nodes/script_nodes.h"
+#include "script_docdata.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -73,6 +74,14 @@ void OScript::_bind_methods()
     ClassDB::bind_method(D_METHOD("_get_graphs"), &OScript::_get_graphs);
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "graphs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_graphs",
                  "_get_graphs");
+
+    ClassDB::bind_method(D_METHOD("_set_brief_description", "description"), &OScript::_set_brief_description);
+    ClassDB::bind_method(D_METHOD("_get_brief_description"), &OScript::_get_brief_description);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "brief_description", PROPERTY_HINT_MULTILINE_TEXT), "_set_brief_description", "_get_brief_description");
+
+    ClassDB::bind_method(D_METHOD("_set_description", "description"), &OScript::_set_description);
+    ClassDB::bind_method(D_METHOD("_get_description"), &OScript::_get_description);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT), "_set_description", "_get_description");
 
     ADD_SIGNAL(MethodInfo("connections_changed", PropertyInfo(Variant::STRING, "caller")));
     ADD_SIGNAL(MethodInfo("functions_changed"));
@@ -209,9 +218,7 @@ Error OScript::_reload(bool p_keep_state)
 
 TypedArray<Dictionary> OScript::_get_documentation() const
 {
-    // todo:    see how to generate it from the script/node contents
-    //          see doc_data & script_language_extension
-    return {};
+    return OScriptDocData::create_documentation(Ref<OScript>(this));
 }
 
 bool OScript::_has_static_method(const StringName& p_method) const

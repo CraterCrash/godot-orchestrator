@@ -63,6 +63,8 @@ protected:
     HashMap<StringName, Ref<OScriptSignal>> _signals;      //! Map of all user-defined signals
     HashMap<StringName, Ref<OScriptGraph>> _graphs;        //! Map of all defined graphs
     Resource* _self;                                       //! Reference to the outer resource type
+    String _brief_description;                             //! The brief description
+    String _description;                                   //! The description
 
     //~ Begin Serialization Interface
     TypedArray<OScriptNode> _get_nodes_internal() const;
@@ -157,6 +159,22 @@ public:
     /// Validtes and the builds the orchestration
     /// @param p_log the build log
     virtual void validate_and_build(BuildLog& p_log);
+
+    /// Get the brief description for the orchestration
+    /// @return the brief description
+    virtual String get_brief_description() const { return _brief_description; }
+
+    /// Set the brief description
+    /// @param p_description the brief description
+    virtual void set_brief_description(const String& p_description);
+
+    /// Get the description for the orchestration
+    /// @return the description
+    virtual String get_description() const { return _description; }
+
+    /// Set the description for the orchestration
+    /// @param p_description the description
+    virtual void set_description(const String& p_description);
 
     //~ Begin Node Interface
     void add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node);

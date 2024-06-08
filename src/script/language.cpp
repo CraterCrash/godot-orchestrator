@@ -79,7 +79,7 @@ String OScriptLanguage::_get_name() const
 
 String OScriptLanguage::_get_type() const
 {
-    return TYPE;
+    return OScript::get_class_static();
 }
 
 String OScriptLanguage::_get_extension() const
@@ -104,7 +104,7 @@ bool OScriptLanguage::_supports_builtin_mode() const
 
 bool OScriptLanguage::_supports_documentation() const
 {
-    return false;
+    return true;
 }
 
 bool OScriptLanguage::_is_using_templates()
