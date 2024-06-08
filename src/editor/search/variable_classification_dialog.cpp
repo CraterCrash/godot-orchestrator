@@ -24,6 +24,7 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/templates/rb_set.hpp>
 
 struct OrchestratorVariableTypeSearchDialog::SearchItemSortPath
 {
@@ -263,12 +264,16 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorVariableType
 {
     Vector<Ref<SearchItem>> items;
 
+    RBSet<String> recent_items;
     const Ref<FileAccess> recents = FileUtils::open_project_settings_file("orchestrator_recent_history.variable_type", FileAccess::READ);
     FileUtils::for_each_line(recents, [&](const String& line) {
         if (const String trimmed = line.strip_edges(); !trimmed.is_empty())
         {
-            // const TypeEntry entry = _get_entry_from_name(trimmed);
-            // if (_is_recognized(entry))
+            if (recent_items.has(trimmed))
+                return;
+
+            recent_items.insert(trimmed);
+
             const Ref<SearchItem> search_item = _get_search_item_by_name(trimmed);
             if (search_item.is_valid())
                 items.push_back(search_item);
@@ -299,10 +304,14 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorVariableType
 
 void OrchestratorVariableTypeSearchDialog::_save_recent_items(const Vector<Ref<SearchItem>>& p_recents)
 {
+    RBSet<String> recent_items;
     Ref<FileAccess> file = FileUtils::open_project_settings_file("orchestrator_recent_history.variable_type", FileAccess::WRITE);
     for (const Ref<SearchItem>& item : p_recents)
     {
         const String name = String(item->name).strip_edges();
+        if (recent_items.has(name))
+            continue;
+
         if (!name.is_empty())
             file->store_line(name);
     }
