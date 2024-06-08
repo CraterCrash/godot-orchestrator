@@ -153,9 +153,12 @@ void OrchestratorScriptComponentPanel::_update_theme()
     if (theme.is_valid() && _panel)
     {
         Ref<StyleBoxFlat> sb = theme->get_stylebox("panel", "ItemList")->duplicate();
-        sb->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
-        sb->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
-        _panel->add_theme_stylebox_override("panel", sb);
+        if (sb.is_valid())
+        {
+            sb->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+            sb->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+            _panel->add_theme_stylebox_override("panel", sb);
+        }
     }
 
     Ref<StyleBoxFlat> sb = _tree->get_theme_stylebox("panel");
