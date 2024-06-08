@@ -23,7 +23,6 @@
 class OScriptNodeInstantiateSceneInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeInstantiateScene);
-    String _scene_name;
     Ref<PackedScene> _scene;
 
 public:
@@ -31,7 +30,7 @@ public:
     {
         if (!_scene.is_valid())
         {
-            _scene = ResourceLoader::get_singleton()->load(_scene_name);
+            _scene = ResourceLoader::get_singleton()->load(p_context.get_input(0));
             if (!_scene.is_valid())
             {
                 p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Failed to load scene");
@@ -162,6 +161,5 @@ OScriptNodeInstance* OScriptNodeInstantiateScene::instantiate(OScriptInstance* p
     OScriptNodeInstantiateSceneInstance* i = memnew(OScriptNodeInstantiateSceneInstance);
     i->_node = this;
     i->_instance = p_instance;
-    i->_scene_name = _scene;
     return i;
 }
