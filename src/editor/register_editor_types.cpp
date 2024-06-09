@@ -26,6 +26,7 @@
 #include "editor/getting_started.h"
 #include "editor/graph/actions/action_menu.h"
 #include "editor/graph/actions/default_action_registrar.h"
+#include "editor/graph/autowire_selections.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/graph/graph_knot.h"
 #include "editor/graph/graph_node.h"
@@ -58,6 +59,7 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorVariableTypeSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptAutowireSelections)
 
     // Action components
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionDB)

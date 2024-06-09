@@ -16,6 +16,7 @@
 //
 #include "graph_node_pin.h"
 
+#include "common/callable_lambda.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/variant_utils.h"
@@ -258,16 +259,18 @@ void OrchestratorGraphNodePin::_promote_as_variable()
     if (is_input())
     {
         position -= offset;
-        Ref<OScriptNodeVariableGet> spawn_node = get_graph()->spawn_node<OScriptNodeVariableGet>(context, position);
-        if (spawn_node.is_valid())
-            spawn_node->find_pin(0, PD_Output)->link(_pin);
+        get_graph()->spawn_node<OScriptNodeVariableGet>(context, position,
+            callable_mp_lambda(this, [&, this](const Ref<OScriptNodeVariableGet>& p_node) {
+                p_node->find_pin(0, PD_Output)->link(_pin);
+            }));
     }
     else
     {
         position += offset + Vector2(25, 0);
-        Ref<OScriptNodeVariableSet> spawn_node = get_graph()->spawn_node<OScriptNodeVariableSet>(context, position);
-        if (spawn_node.is_valid())
-            _pin->link(spawn_node->find_pin(1, PD_Input));
+        get_graph()->spawn_node<OScriptNodeVariableSet>(context, position,
+            callable_mp_lambda(this, [&, this](const Ref<OScriptNodeVariableSet>& p_node) {
+                _pin->link(p_node->find_pin(1, PD_Input));
+            }));
     }
 }
 

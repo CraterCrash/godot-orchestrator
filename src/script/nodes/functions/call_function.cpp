@@ -290,7 +290,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
     {
         Variant::Type target_type = _reference.target_type != Variant::NIL ? _reference.target_type : Variant::OBJECT;
         Ref<OScriptNodePin> target = create_pin(PD_Input, "target", target_type);
-        target->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_AUTOWIRE);
+        target->set_flags(OScriptNodePin::Flags::DATA);
         if (_reference.target_type == Variant::NIL)
         {
             if (_function_flags.has_flag(FF_IS_SELF))
