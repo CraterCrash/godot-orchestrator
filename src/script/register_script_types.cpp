@@ -20,6 +20,7 @@
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
 #include "script/serialization/serialization.h"
+#include "script/vm/script_state.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>

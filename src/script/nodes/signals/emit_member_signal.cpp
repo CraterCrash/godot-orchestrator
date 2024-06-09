@@ -25,14 +25,14 @@ class OScriptNodeEmitMemberSignalInstance : public OScriptNodeInstance
     MethodInfo _method;
     Array _args;
 
-    Object* _get_call_instance(OScriptNodeExecutionContext& p_context)
+    Object* _get_call_instance(OScriptExecutionContext& p_context)
     {
         Variant target = p_context.get_input(0);
-        return !target ? _instance->get_owner() : Object::cast_to<Object>(target);
+        return !target ? p_context.get_owner() : Object::cast_to<Object>(target);
     }
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (!_method.name.is_empty())
         {
@@ -198,11 +198,10 @@ void OScriptNodeEmitMemberSignal::validate_node_during_build(BuildLog& p_log) co
     }
 }
 
-OScriptNodeInstance* OScriptNodeEmitMemberSignal::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeEmitMemberSignal::instantiate()
 {
     OScriptNodeEmitMemberSignalInstance* i = memnew(OScriptNodeEmitMemberSignalInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_method = _method;
     return i;
 }

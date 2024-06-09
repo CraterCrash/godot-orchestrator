@@ -42,7 +42,7 @@ public:
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 

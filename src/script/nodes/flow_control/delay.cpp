@@ -16,6 +16,8 @@
 //
 #include "delay.h"
 
+#include "script/vm/script_state.h"
+
 #include <godot_cpp/classes/main_loop.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -27,7 +29,7 @@ class OScriptNodeDelayInstance : public OScriptNodeInstance
 public:
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         // Resume mode means that the delay has concluded, it's safe to proceed.
         if (p_context.get_step_mode() == STEP_MODE_RESUME)
@@ -102,10 +104,9 @@ String OScriptNodeDelay::get_icon() const
     return "Timer";
 }
 
-OScriptNodeInstance* OScriptNodeDelay::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeDelay::instantiate()
 {
     OScriptNodeDelayInstance *i = memnew(OScriptNodeDelayInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }

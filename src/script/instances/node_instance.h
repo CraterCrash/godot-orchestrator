@@ -17,8 +17,8 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_INSTANCE_H
 #define ORCHESTRATOR_SCRIPT_NODE_INSTANCE_H
 
-#include "script/context/execution_context.h"
 #include "script/instances/script_instance.h"
+#include "script/vm/execution_context.h"
 
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -27,6 +27,7 @@ using namespace godot;
 
 /// Forward declarations
 class OScriptNode;
+class OScriptVirtualMachine;
 
 /// The runtime instance of an OScriptNode object.
 ///
@@ -41,6 +42,7 @@ class OScriptNode;
 class OScriptNodeInstance : public Object
 {
     friend class OScriptInstance;
+    friend class OScriptVirtualMachine;
 
 public:
     /// Defines the different modes for the call to the step method.
@@ -88,8 +90,8 @@ protected:
     int output_pin_count{ 0 };                           //! Output pin count
     int working_memory_index{ 0 };                       //! Number of working memory slots
     int pass_index{ 0 };                                 //! The pass index
-    int data_input_pin_count{ 0 };
-    int data_output_pin_count{ 0 };
+    int data_input_pin_count{ 0 };                       //! Number of input data pins
+    int data_output_pin_count{ 0 };                      //! Number of output data pins
 
 public:
     /// Get the node instance's node unique id
@@ -104,9 +106,9 @@ public:
     Ref<OScriptNode> get_base_node();
 
     /// Executes a single step for this node during a frame
-    /// @param execution context
+    /// @param p_context execution context
     /// @return the output port and bits
-    virtual int step(OScriptNodeExecutionContext& p_context) = 0;
+    virtual int step(OScriptExecutionContext& p_context) = 0;
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_INSTANCE_H

@@ -29,7 +29,7 @@ public:
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     void set_default_value(const Variant& p_default_value);

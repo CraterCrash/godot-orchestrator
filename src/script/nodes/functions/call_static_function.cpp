@@ -29,7 +29,7 @@ class OScriptNodeCallStaticFunctionInstance : public OScriptNodeInstance
     StringName _class_name;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         // We need to get the hash, stored from the extension_api.json
         const int64_t hash = ExtensionDB::get_static_function_hash(_class_name, _method.name);
@@ -219,11 +219,10 @@ void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) 
     return super::validate_node_during_build(p_log);
 }
 
-OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate()
 {
     OScriptNodeCallStaticFunctionInstance* i = memnew(OScriptNodeCallStaticFunctionInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_method = _method;
     i->_argument_count = _method.arguments.size();
     i->_class_name = _class_name;

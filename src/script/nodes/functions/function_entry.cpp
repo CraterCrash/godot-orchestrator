@@ -24,7 +24,7 @@ class OScriptNodeFunctionEntryInstance : public OScriptNodeInstance
     size_t _argument_count{ 0 };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         for (size_t i = 0; i < _argument_count; i++)
             p_context.copy_input_to_output(i, i);
@@ -88,11 +88,10 @@ bool OScriptNodeFunctionEntry::can_create_user_defined_pin(EPinDirection p_direc
     return result;
 }
 
-OScriptNodeInstance* OScriptNodeFunctionEntry::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeFunctionEntry::instantiate()
 {
     OScriptNodeFunctionEntryInstance* i = memnew(OScriptNodeFunctionEntryInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_argument_count = _function->get_argument_count();
     return i;
 }

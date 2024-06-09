@@ -22,7 +22,7 @@ class OScriptNodeResourcePathInstance : public OScriptNodeInstance
     Variant _path;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_output(0, &_path);
         return 0;
@@ -87,11 +87,10 @@ String OScriptNodeResourcePath::get_icon() const
     return "ResourcePreloader";
 }
 
-OScriptNodeInstance* OScriptNodeResourcePath::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeResourcePath::instantiate()
 {
     OScriptNodeResourcePathInstance *i = memnew(OScriptNodeResourcePathInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_path = _path;
     return i;
 }

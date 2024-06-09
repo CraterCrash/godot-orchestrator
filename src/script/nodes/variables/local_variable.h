@@ -44,7 +44,7 @@ public:
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     bool can_duplicate() const override { return false; }
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 
@@ -67,7 +67,7 @@ public:
     String get_node_title_color_name() const override { return "variable"; }
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
     void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface

@@ -16,7 +16,8 @@
 //
 #include "dialogue_message.h"
 
-#include "dialogue_choice.h"
+#include "script/nodes/dialogue/dialogue_choice.h"
+#include "script/vm/script_state.h"
 
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -45,7 +46,7 @@ class OScriptNodeDialogueMessageInstance : public OScriptNodeInstance
 public:
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (p_context.get_step_mode() == STEP_MODE_RESUME)
         {
@@ -78,7 +79,7 @@ public:
         Ref<PackedScene> scene = ResourceLoader::get_singleton()->load(scene_file);
         if (scene.is_valid())
         {
-            if (Node* node = Object::cast_to<Node>(_instance->get_owner()))
+            if (Node* node = Object::cast_to<Node>(p_context.get_owner()))
             {
                 _ui = scene->instantiate();
 
@@ -200,11 +201,10 @@ void OScriptNodeDialogueMessage::validate_node_during_build(BuildLog& p_log) con
     }
 }
 
-OScriptNodeInstance* OScriptNodeDialogueMessage::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeDialogueMessage::instantiate()
 {
     OScriptNodeDialogueMessageInstance* i = memnew(OScriptNodeDialogueMessageInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_choices = _choices;
     return i;
 }

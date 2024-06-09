@@ -25,14 +25,12 @@
 class OScriptNodeGlobalConstantInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeGlobalConstant)
-
-    StringName _constant_name;
+    Variant _value;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
-        const EnumValue& ev = ExtensionDB::get_global_enum_value(_constant_name);
-        p_context.set_output(0, ev.value);
+        p_context.set_output(0, _value);
         return 0;
     }
 };
@@ -45,7 +43,7 @@ class OScriptNodeMathConstantInstance : public OScriptNodeInstance
     double _value;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_output(0, _value);
         return 0;
@@ -60,7 +58,7 @@ class OScriptNodeTypeConstantInstance : public OScriptNodeInstance
     Variant _value;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_output(0, _value);
         return 0;
@@ -75,7 +73,7 @@ class OScriptNodeClassConstantInstance : public OScriptNodeInstance
     Variant _value;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_output(0, _value);
         return 0;
@@ -90,7 +88,7 @@ class OScriptNodeSingletonConstantInstance : public OScriptNodeInstance
     Variant _value;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_output(0, _value);
         return 0;
@@ -186,12 +184,14 @@ PackedStringArray OScriptNodeGlobalConstant::get_keywords() const
     return ExtensionDB::get_global_enum_value_names();
 }
 
-OScriptNodeInstance* OScriptNodeGlobalConstant::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeGlobalConstant::instantiate()
 {
     OScriptNodeGlobalConstantInstance* i = memnew(OScriptNodeGlobalConstantInstance);
     i->_node = this;
-    i->_instance = p_instance;
-    i->_constant_name = _constant_name;
+
+    const EnumValue& ev = ExtensionDB::get_global_enum_value(_constant_name);
+    i->_value = ev.value;
+
     return i;
 }
 
@@ -266,11 +266,10 @@ PackedStringArray OScriptNodeMathConstant::get_keywords() const
     return ExtensionDB::get_math_constant_names();
 }
 
-OScriptNodeInstance* OScriptNodeMathConstant::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeMathConstant::instantiate()
 {
     OScriptNodeMathConstantInstance* i = memnew(OScriptNodeMathConstantInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_value = ExtensionDB::get_math_constant(_constant_name).value;
     return i;
 }
@@ -385,11 +384,10 @@ String OScriptNodeTypeConstant::get_icon() const
     return "MemberConstant";
 }
 
-OScriptNodeInstance* OScriptNodeTypeConstant::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeTypeConstant::instantiate()
 {
     OScriptNodeTypeConstantInstance* i = memnew(OScriptNodeTypeConstantInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_value = _type_constants[_type][_constant_name];
     return i;
 }
@@ -512,11 +510,10 @@ PackedStringArray OScriptNodeClassConstant::_get_class_constant_choices(const St
     return ClassDB::class_get_integer_constant_list(_class_name, false);
 }
 
-OScriptNodeInstance* OScriptNodeClassConstant::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeClassConstant::instantiate()
 {
     OScriptNodeClassConstantInstance* i = memnew(OScriptNodeClassConstantInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_value = ClassDB::class_get_integer_constant(_class_name, _constant_name);
     return i;
 }
@@ -565,11 +562,10 @@ PackedStringArray OScriptNodeSingletonConstant::_get_class_names() const
     return _singletons;
 }
 
-OScriptNodeInstance* OScriptNodeSingletonConstant::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSingletonConstant::instantiate()
 {
     OScriptNodeSingletonConstantInstance* i = memnew(OScriptNodeSingletonConstantInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_value = ClassDB::class_get_integer_constant(_class_name, _constant_name);
     return i;
 }

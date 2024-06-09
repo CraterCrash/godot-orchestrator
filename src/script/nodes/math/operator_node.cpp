@@ -29,7 +29,7 @@ class OScriptNodeOperatorInstance : public OScriptNodeInstance
     bool _unary{ false };
     Variant _result;
 
-    int _evaluate_variant(OScriptNodeExecutionContext& p_context, const Variant& p_arg0, const Variant& p_arg1)
+    int _evaluate_variant(OScriptExecutionContext& p_context, const Variant& p_arg0, const Variant& p_arg1)
     {
         bool valid = true;
         Variant::evaluate(_operator, p_arg0, p_arg1, _result, valid);
@@ -47,7 +47,7 @@ class OScriptNodeOperatorInstance : public OScriptNodeInstance
     }
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (_unary)
             return _evaluate_variant(p_context, p_context.get_input(0), Variant());
@@ -279,11 +279,10 @@ String OScriptNodeOperator::get_node_title() const
         return vformat(_get_expression(), "A", "B");
 }
 
-OScriptNodeInstance* OScriptNodeOperator::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeOperator::instantiate()
 {
     OScriptNodeOperatorInstance* i = memnew(OScriptNodeOperatorInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_unary = _is_unary();
     i->_operator = VariantOperators::to_engine(_info.op);
     return i;

@@ -20,7 +20,7 @@ class OScriptNodeDialogueChoiceInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDialogueChoice)
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Dictionary dict;
         dict["text"] = p_context.get_input(0);
@@ -49,11 +49,10 @@ String OScriptNodeDialogueChoice::get_node_title() const
     return "Dialogue Choice";
 }
 
-OScriptNodeInstance* OScriptNodeDialogueChoice::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeDialogueChoice::instantiate()
 {
     OScriptNodeDialogueChoiceInstance* i = memnew(OScriptNodeDialogueChoiceInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 

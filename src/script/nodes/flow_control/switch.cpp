@@ -24,7 +24,7 @@ class OScriptNodeSwitchInstance : public OScriptNodeInstance
     int _case_count{ 0 };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (p_context.get_step_mode() == STEP_MODE_CONTINUE)
             return 0;
@@ -50,7 +50,7 @@ class OScriptNodeSwitchStringInstance : public OScriptNodeInstance
     bool _has_default{ false };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         String value = p_context.get_input(0);
         for (int i = 0; i < _values.size(); i++)
@@ -72,7 +72,7 @@ class OScriptNodeSwitchIntegerInstance : public OScriptNodeInstance
     bool _has_default{ false };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         int value = p_context.get_input(0);
         auto it = std::lower_bound(_values.begin(), _values.end(), value);
@@ -91,7 +91,7 @@ class OScriptNodeSwitchEnumInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSwitchEnum);
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant& value = p_context.get_input(0);
 
@@ -195,11 +195,10 @@ String OScriptNodeSwitch::get_icon() const
     return "ClassList";
 }
 
-OScriptNodeInstance* OScriptNodeSwitch::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSwitch::instantiate()
 {
     OScriptNodeSwitchInstance* i = memnew(OScriptNodeSwitchInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_case_count = _cases;
     return i;
 }
@@ -428,11 +427,10 @@ String OScriptNodeSwitchString::_get_new_pin_name()
     return {};
 }
 
-OScriptNodeInstance* OScriptNodeSwitchString::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSwitchString::instantiate()
 {
     OScriptNodeSwitchStringInstance* i = memnew(OScriptNodeSwitchStringInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_values = _pin_names;
     i->_case_sensitive = _case_sensitive;
     i->_has_default = _has_default_value;
@@ -487,11 +485,10 @@ String OScriptNodeSwitchInteger::_get_new_pin_name()
     return itos(_start_index + (_pin_names.size() - 1));
 }
 
-OScriptNodeInstance* OScriptNodeSwitchInteger::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSwitchInteger::instantiate()
 {
     OScriptNodeSwitchIntegerInstance* i = memnew(OScriptNodeSwitchIntegerInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_has_default = _has_default_value;
 
     for (const String& pin_name : _pin_names)
@@ -562,11 +559,10 @@ String OScriptNodeSwitchEnum::get_tooltip_text() const
     return "Selects an output that matches the input value.";
 }
 
-OScriptNodeInstance* OScriptNodeSwitchEnum::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSwitchEnum::instantiate()
 {
     OScriptNodeSwitchEnumInstance* i = memnew(OScriptNodeSwitchEnumInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 

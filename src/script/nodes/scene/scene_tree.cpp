@@ -24,9 +24,9 @@ class OScriptNodeSceneTreeInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSceneTree);
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
-        Node* owner = Object::cast_to<Node>(_instance->get_owner());
+        Node* owner = Object::cast_to<Node>(p_context.get_owner());
         if (!owner)
         {
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Orchestration owner is not a Node");
@@ -74,10 +74,9 @@ String OScriptNodeSceneTree::get_icon() const
     return "NodeInfo";
 }
 
-OScriptNodeInstance* OScriptNodeSceneTree::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSceneTree::instantiate()
 {
     OScriptNodeSceneTreeInstance* i = memnew(OScriptNodeSceneTreeInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }

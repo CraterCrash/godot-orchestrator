@@ -26,7 +26,7 @@ class OScriptNodeInstantiateSceneInstance : public OScriptNodeInstance
     Ref<PackedScene> _scene;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (!_scene.is_valid())
         {
@@ -156,10 +156,9 @@ Ref<OScriptTargetObject> OScriptNodeInstantiateScene::resolve_target(const Ref<O
     return super::resolve_target(p_pin);
 }
 
-OScriptNodeInstance* OScriptNodeInstantiateScene::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeInstantiateScene::instantiate()
 {
     OScriptNodeInstantiateSceneInstance* i = memnew(OScriptNodeInstantiateSceneInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }

@@ -21,7 +21,7 @@ class OScriptNodeWhileInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeWhile);
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant& condition = p_context.get_input(0);
         if (condition.get_type() != Variant::BOOL)
@@ -64,11 +64,10 @@ String OScriptNodeWhile::get_icon() const
     return "Loop";
 }
 
-OScriptNodeInstance* OScriptNodeWhile::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeWhile::instantiate()
 {
     OScriptNodeWhileInstance* i = memnew(OScriptNodeWhileInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 

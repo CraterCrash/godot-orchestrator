@@ -24,7 +24,7 @@ class OScriptNodeRandomInstance : public OScriptNodeInstance
     int _possibilities{ 0 };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (_possibilities == 0)
             return -1;
@@ -109,11 +109,10 @@ void OScriptNodeRandom::pin_default_value_changed(const Ref<OScriptNodePin>& p_p
     super::pin_default_value_changed(p_pin);
 }
 
-OScriptNodeInstance* OScriptNodeRandom::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeRandom::instantiate()
 {
     OScriptNodeRandomInstance* i = memnew(OScriptNodeRandomInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_possibilities = _possibilities;
     return i;
 }
