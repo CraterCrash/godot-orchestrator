@@ -25,7 +25,7 @@ class OScriptNodeForLoopInstance : public OScriptNodeInstance
 public:
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         // Break triggers node input port 1, check if that caused the step
         // If so we're done and we should exit.
@@ -169,11 +169,10 @@ void OScriptNodeForLoop::get_actions(List<Ref<OScriptAction>>& p_action_list)
     super::get_actions(p_action_list);
 }
 
-OScriptNodeInstance* OScriptNodeForLoop::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeForLoop::instantiate()
 {
     OScriptNodeForLoopInstance* i = memnew(OScriptNodeForLoopInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 

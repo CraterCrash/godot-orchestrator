@@ -32,7 +32,7 @@ class OScriptNodeComposeInstance : public OScriptNodeInstance
     Variant::Type _target_type{ Variant::NIL };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (_target_type != Variant::NIL)
         {
@@ -112,7 +112,7 @@ class OScriptNodeComposeFromInstance : public OScriptNodeInstance
         }
     }
 
-    String _get_argument_list(OScriptNodeExecutionContext& p_context) const
+    String _get_argument_list(OScriptExecutionContext& p_context) const
     {
         PackedStringArray args;
         for (int i = 0; i < _constructor_arg_types.size(); i++)
@@ -124,7 +124,7 @@ class OScriptNodeComposeFromInstance : public OScriptNodeInstance
     }
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (_target_type != Variant::NIL)
         {
@@ -156,7 +156,7 @@ public:
                     {
                         Object* callable_object = p_context.get_input(0);
                         if (!callable_object)
-                            callable_object = _instance->get_owner();
+                            callable_object = p_context.get_owner();
 
                         Callable c(callable_object, p_context.get_input(1));
                         p_context.set_output(0, c);
@@ -284,11 +284,10 @@ String OScriptNodeCompose::get_icon() const
     return "Instance";
 }
 
-OScriptNodeInstance* OScriptNodeCompose::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeCompose::instantiate()
 {
     OScriptNodeComposeInstance* i = memnew(OScriptNodeComposeInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_target_type = _type;
     i->_components = _type_components[_type];
     return i;
@@ -402,11 +401,10 @@ String OScriptNodeComposeFrom::get_icon() const
     return "Instance";
 }
 
-OScriptNodeInstance* OScriptNodeComposeFrom::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeComposeFrom::instantiate()
 {
     OScriptNodeComposeFromInstance* i = memnew(OScriptNodeComposeFromInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_target_type = _type;
 
     Vector<Variant::Type> arg_types;

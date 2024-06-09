@@ -24,7 +24,7 @@ class OScriptNodeSequenceInstance : public OScriptNodeInstance
 public:
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (p_context.get_step_mode() == STEP_MODE_BEGIN)
             p_context.set_working_memory(0, 0);
@@ -100,11 +100,10 @@ String OScriptNodeSequence::get_icon() const
     return "AnimationTrackList";
 }
 
-OScriptNodeInstance* OScriptNodeSequence::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSequence::instantiate()
 {
     OScriptNodeSequenceInstance* i = memnew(OScriptNodeSequenceInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_steps = _steps;
     return i;
 }

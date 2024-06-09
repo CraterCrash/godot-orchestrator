@@ -42,7 +42,7 @@ public:
     String get_node_title_color_name() const override { return "resources"; }
     bool should_draw_as_bead() const override { return true; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };

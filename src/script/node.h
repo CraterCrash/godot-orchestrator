@@ -34,6 +34,7 @@
 using namespace godot;
 
 /// Forward declarations
+class OScriptGraph;
 class OScriptInstance;
 
 /// A context object used to initialize OScriptNode instances.
@@ -43,19 +44,12 @@ class OScriptInstance;
 ///
 struct OScriptNodeInitContext
 {
-    // Method details
     std::optional<MethodInfo> method;
-
-    // Various property types
     std::optional<PropertyInfo> property;
     std::optional<NodePath> node_path;
-
     std::optional<StringName> class_name;
-
     std::optional<String> variable_name;
-
     std::optional<String> resource_path;
-
     std::optional<Dictionary> user_data;
 };
 
@@ -67,6 +61,7 @@ struct OScriptNodeInitContext
 class OScriptNode : public Resource
 {
     friend class Orchestration;
+    friend class OScriptGraph;
     friend class OScriptLanguage;
 
     ORCHESTRATOR_NODE_CLASS_BASE(OScriptNode, Resource);
@@ -117,9 +112,6 @@ public:
     /// Gets the owning graph
     /// @return the owning graph
     Ref<OScriptGraph> get_owning_graph();
-
-    // todo: remove this
-    void set_orchestration(Orchestration* p_orchestration) { _orchestration = p_orchestration; }
 
     /// Get the node's unique identifier
     /// @return the node's unique identifer
@@ -290,9 +282,8 @@ public:
     virtual void validate_node_during_build(BuildLog& p_log) const { }
 
     /// Instantiate the script node's runtime instance.
-    /// @param p_instance the owning runtime script instance
     /// @return node's runtime instance
-    virtual OScriptNodeInstance* instantiate(OScriptInstance* p_instance);
+    virtual OScriptNodeInstance* instantiate();
 
     /// Initializes the node from spawner data
     /// @param p_context the initialization context
@@ -377,7 +368,6 @@ protected:
 
 #define DECLARE_SCRIPT_NODE_INSTANCE(x) /*************************************/ \
     friend class x;                                                             \
-    x* _node = nullptr;                                                         \
-    OScriptInstance* _instance = nullptr;
+    x* _node = nullptr;
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_H

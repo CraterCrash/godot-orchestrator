@@ -29,7 +29,7 @@ class OScriptNodeDecomposeInstance : public OScriptNodeInstance
     Array _components;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant& value = p_context.get_input(0);
         for (int i = 0; i < _components.size(); i++)
@@ -132,11 +132,10 @@ String OScriptNodeDecompose::get_icon() const
     return "Unlinked";
 }
 
-OScriptNodeInstance* OScriptNodeDecompose::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeDecompose::instantiate()
 {
     OScriptNodeDecomposeInstance* i = memnew(OScriptNodeDecomposeInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_components = _type_components[_type];
     return i;
 }

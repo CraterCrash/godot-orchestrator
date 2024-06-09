@@ -23,7 +23,7 @@ class OScriptNodeSelectInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSelect);
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant pick_a = p_context.get_input(2);
         if (pick_a.booleanize())
@@ -116,10 +116,9 @@ Vector<Variant::Type> OScriptNodeSelect::get_possible_pin_types() const
     return types;
 }
 
-OScriptNodeInstance* OScriptNodeSelect::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSelect::instantiate()
 {
     OScriptNodeSelectInstance* i = memnew(OScriptNodeSelectInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }

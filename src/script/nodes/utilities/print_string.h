@@ -40,7 +40,7 @@ public:
     String get_node_title() const override { return "Print String"; }
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override { return "MemberMethod"; }
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     OScriptNodePrintString();

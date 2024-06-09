@@ -22,9 +22,9 @@ class OScriptNodeSelfInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSelf);
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
-        Variant owner = _instance->get_owner();
+        Variant owner = p_context.get_owner();
         p_context.set_output(0, &owner);
         return 0;
     }
@@ -80,11 +80,10 @@ String OScriptNodeSelf::get_icon() const
     return super::get_icon();
 }
 
-OScriptNodeInstance* OScriptNodeSelf::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSelf::instantiate()
 {
     OScriptNodeSelfInstance* i = memnew(OScriptNodeSelfInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 

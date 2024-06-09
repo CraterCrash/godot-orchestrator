@@ -201,7 +201,7 @@ void OScriptNode::rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>&
     }
 }
 
-OScriptNodeInstance* OScriptNode::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNode::instantiate()
 {
     ERR_PRINT("A custom script node implementation did not override instantiate");
     return nullptr;

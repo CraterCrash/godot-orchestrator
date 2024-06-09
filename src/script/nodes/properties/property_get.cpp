@@ -30,21 +30,21 @@ class OScriptNodePropertyGetInstance : public OScriptNodeInstance
     String _property_name;
     NodePath _node_path;
 
-    Node* _get_node_path_target()
+    Node* _get_node_path_target(OScriptExecutionContext& p_context)
     {
-        if (Node* owner = Object::cast_to<Node>(_instance->get_owner()))
+        if (Node* owner = Object::cast_to<Node>(p_context.get_owner()))
             return owner->get_tree()->get_current_scene()->get_node_or_null(_node_path);
         return nullptr;
     }
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         switch (_call_mode)
         {
             case OScriptNodeProperty::CALL_SELF:
             {
-                Variant value = _instance->get_owner()->get(_property_name);
+                Variant value = p_context.get_owner()->get(_property_name);
                 p_context.set_output(0, &value);
                 break;
             }
@@ -63,7 +63,7 @@ public:
 
             case OScriptNodeProperty::CALL_NODE_PATH:
             {
-                if (Node* target = _get_node_path_target())
+                if (Node* target = _get_node_path_target(p_context))
                 {
                     Variant value = target->get(_property_name);
                     p_context.set_output(0, &value);
@@ -110,11 +110,10 @@ StringName OScriptNodePropertyGet::resolve_type_class(const Ref<OScriptNodePin>&
     return super::resolve_type_class(p_pin);
 }
 
-OScriptNodeInstance* OScriptNodePropertyGet::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodePropertyGet::instantiate()
 {
     OScriptNodePropertyGetInstance* i = memnew(OScriptNodePropertyGetInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_call_mode = _call_mode;
     i->_target_class = _base_type;
     i->_property_name = _property_name;

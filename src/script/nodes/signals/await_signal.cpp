@@ -16,6 +16,8 @@
 //
 #include "await_signal.h"
 
+#include "script/vm/script_state.h"
+
 class OScriptNodeAwaitSignalInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeAwaitSignal);
@@ -23,7 +25,7 @@ class OScriptNodeAwaitSignalInstance : public OScriptNodeInstance
 public:
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         // Check whether the signal was raised and we should resume.
         if (p_context.get_step_mode() == STEP_MODE_RESUME)
@@ -32,7 +34,7 @@ public:
         // Get the target, falling back to self when not specified.
         Object* target = p_context.get_input(0);
         if (!target)
-            target = _instance->get_owner();
+            target = p_context.get_owner();
 
 
         const String signal_name = p_context.get_input(1);
@@ -88,10 +90,9 @@ void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const
     return super::validate_node_during_build(p_log);
 }
 
-OScriptNodeInstance* OScriptNodeAwaitSignal::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeAwaitSignal::instantiate()
 {
     OScriptNodeAwaitSignalInstance* i = memnew(OScriptNodeAwaitSignalInstance);
-    i->_instance = p_instance;
     i->_node = this;
     return i;
 }

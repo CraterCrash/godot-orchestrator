@@ -17,6 +17,7 @@
 #include "print_string.h"
 
 #include "script/script.h"
+#include "script/vm/script_state.h"
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
@@ -41,11 +42,11 @@ private:
 
 public:
     int get_working_memory_size() const override { return 1; }
-    int step(OScriptNodeExecutionContext& p_context) override;
+    int step(OScriptExecutionContext& p_context) override;
 
 private:
     Node* _get_or_create_ui_container(Node* p_root_node);
-    SceneTree* _get_tree();
+    SceneTree* _get_tree(OScriptExecutionContext& p_context);
 
     void _ui_container_node_added(Node* p_node);
     void _ui_container_node_removed(Node* p_node);
@@ -53,7 +54,7 @@ private:
 
 HashMap<String, Node*> OScriptNodePrintStringInstance::_scene_containers;
 
-int OScriptNodePrintStringInstance::step(OScriptNodeExecutionContext& p_context)
+int OScriptNodePrintStringInstance::step(OScriptExecutionContext& p_context)
 {
     // When this node is executed in export builds, it does nothing.
     if (!OS::get_singleton()->has_feature("editor"))
@@ -61,7 +62,7 @@ int OScriptNodePrintStringInstance::step(OScriptNodeExecutionContext& p_context)
 
     if (p_context.get_step_mode() != STEP_MODE_RESUME)
     {
-        if (Node* owner = Object::cast_to<Node>(_instance->get_owner()))
+        if (Node* owner = Object::cast_to<Node>(p_context.get_owner()))
         {
             if (!owner->is_inside_tree())
             {
@@ -88,7 +89,7 @@ int OScriptNodePrintStringInstance::step(OScriptNodeExecutionContext& p_context)
     // current scene, but rather that it will exist at some point in the future.
     if (p_context.get_input(1))
     {
-        SceneTree* tree = _get_tree();
+        SceneTree* tree = _get_tree(p_context);
 
         Node* container = _get_or_create_ui_container(tree->get_current_scene());
         if (container)
@@ -160,9 +161,9 @@ Node* OScriptNodePrintStringInstance::_get_or_create_ui_container(Node* p_root_n
     return node;
 }
 
-SceneTree* OScriptNodePrintStringInstance::_get_tree()
+SceneTree* OScriptNodePrintStringInstance::_get_tree(OScriptExecutionContext& p_context)
 {
-    return Object::cast_to<Node>(_instance->get_owner())->get_tree();
+    return Object::cast_to<Node>(p_context.get_owner())->get_tree();
 }
 
 void OScriptNodePrintStringInstance::_ui_container_node_added([[maybe_unused]] Node* p_node)
@@ -208,11 +209,10 @@ String OScriptNodePrintString::get_tooltip_text() const
                    "If Print To Log is true, it will be shown in the output window.");
 }
 
-OScriptNodeInstance* OScriptNodePrintString::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodePrintString::instantiate()
 {
     OScriptNodePrintStringInstance* i = memnew(OScriptNodePrintStringInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 

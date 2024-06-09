@@ -22,7 +22,7 @@ class OScriptNodeMakeDictionaryInstance : public OScriptNodeInstance
     int _count{ 0 };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Dictionary result;
         for (int i = 0; i < _count; i += 2)
@@ -43,7 +43,7 @@ class OScriptNodeDictionarySetInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDictionarySet);
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Dictionary dict = p_context.get_input(0);
 
@@ -108,11 +108,10 @@ String OScriptNodeMakeDictionary::get_icon() const
     return "Dictionary";
 }
 
-OScriptNodeInstance* OScriptNodeMakeDictionary::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeMakeDictionary::instantiate()
 {
     OScriptNodeMakeDictionaryInstance* i = memnew(OScriptNodeMakeDictionaryInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_count = _element_count * 2;
     return i;
 }
@@ -197,10 +196,9 @@ String OScriptNodeDictionarySet::get_icon() const
     return "Dictionary";
 }
 
-OScriptNodeInstance* OScriptNodeDictionarySet::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeDictionarySet::instantiate()
 {
     OScriptNodeDictionarySetInstance* i = memnew(OScriptNodeDictionarySetInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }

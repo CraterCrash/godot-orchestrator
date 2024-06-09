@@ -28,9 +28,9 @@ class OScriptNodeSceneNodeInstance : public OScriptNodeInstance
     NodePath _node_path;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
-        Node* owner = Object::cast_to<Node>(_instance->get_owner());
+        Node* owner = Object::cast_to<Node>(p_context.get_owner());
         if (!owner)
         {
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Orchestration owner is not a Node");
@@ -125,11 +125,10 @@ Ref<OScriptTargetObject> OScriptNodeSceneNode::resolve_target(const Ref<OScriptN
     return super::resolve_target(p_pin);
 }
 
-OScriptNodeInstance* OScriptNodeSceneNode::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeSceneNode::instantiate()
 {
     OScriptNodeSceneNodeInstance* i = memnew(OScriptNodeSceneNodeInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_node_path = _node_path;
     return i;
 }

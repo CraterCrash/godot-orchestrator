@@ -23,7 +23,7 @@ class OScriptNodeChanceInstance : public OScriptNodeInstance
     int _chance{ 0 };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         const int _calculated_chance = _random.randi_range(0, 100);
         return _calculated_chance <= _chance ? 0 : 1;
@@ -89,11 +89,10 @@ String OScriptNodeChance::get_node_title() const
     return "Chance";
 }
 
-OScriptNodeInstance* OScriptNodeChance::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeChance::instantiate()
 {
     OScriptNodeChanceInstance *i = memnew(OScriptNodeChanceInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_chance = _chance;
     return i;
 }

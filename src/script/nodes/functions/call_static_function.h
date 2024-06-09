@@ -48,7 +48,7 @@ public:
     String get_node_title_color_name() const override { return "function_call"; }
     String get_help_topic() const override;
     void validate_node_during_build(BuildLog& p_log) const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };

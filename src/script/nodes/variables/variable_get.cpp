@@ -24,10 +24,10 @@ class OScriptNodeVariableGetInstance : public OScriptNodeInstance
     StringName _variable_name;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant value;
-        if (!_instance->get_variable(_variable_name, value))
+        if (!p_context.get_runtime()->get_variable(_variable_name, value))
         {
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Variable " + _variable_name + " not found.");
             return -1;
@@ -77,11 +77,10 @@ String OScriptNodeVariableGet::get_node_title() const
     return vformat("Get %s", _variable->get_variable_name());
 }
 
-OScriptNodeInstance* OScriptNodeVariableGet::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeVariableGet::instantiate()
 {
     OScriptNodeVariableGetInstance *i = memnew(OScriptNodeVariableGetInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_variable_name = _variable->get_variable_name();
     return i;
 }

@@ -24,12 +24,12 @@ class OScriptNodeVariableSetInstance : public OScriptNodeInstance
     StringName _variable_name;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant value = p_context.get_input(0);
 
         Variant current_value;
-        if (_instance->get_variable(_variable_name, current_value))
+        if (p_context.get_runtime()->get_variable(_variable_name, current_value))
         {
             // Value is currently assigned
             if (!Variant::can_convert(value.get_type(), current_value.get_type()))
@@ -40,7 +40,7 @@ public:
             }
         }
 
-        if (!_instance->set_variable(_variable_name, value))
+        if (!p_context.get_runtime()->set_variable(_variable_name, value))
         {
             p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Variable " + _variable_name + " not found.");
             return -1;
@@ -105,11 +105,10 @@ String OScriptNodeVariableSet::get_node_title() const
     return vformat("Set %s", _variable->get_variable_name());
 }
 
-OScriptNodeInstance* OScriptNodeVariableSet::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeVariableSet::instantiate()
 {
     OScriptNodeVariableSetInstance *i = memnew(OScriptNodeVariableSetInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_variable_name = _variable->get_variable_name();
     return i;
 }

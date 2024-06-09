@@ -24,7 +24,7 @@ class OScriptNodeLocalVariableInstance : public OScriptNodeInstance
 public:
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_output(0, p_context.get_working_memory());
         return 0;
@@ -39,7 +39,7 @@ class OScriptNodeAssignLocalVariableInstance : public OScriptNodeInstance
 public:
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_working_memory(0, p_context.get_input(1));
         return 0;
@@ -145,11 +145,10 @@ bool OScriptNodeLocalVariable::is_compatible_with_graph(const Ref<OScriptGraph>&
     return p_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION);
 }
 
-OScriptNodeInstance* OScriptNodeLocalVariable::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeLocalVariable::instantiate()
 {
     OScriptNodeLocalVariableInstance* i = memnew(OScriptNodeLocalVariableInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 
@@ -200,11 +199,10 @@ bool OScriptNodeAssignLocalVariable::is_compatible_with_graph(const Ref<OScriptG
     return p_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION);
 }
 
-OScriptNodeInstance* OScriptNodeAssignLocalVariable::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeAssignLocalVariable::instantiate()
 {
     OScriptNodeAssignLocalVariableInstance* i = memnew(OScriptNodeAssignLocalVariableInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 
