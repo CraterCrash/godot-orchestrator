@@ -342,6 +342,11 @@ public:
     /// @return true if at least one pin is connected, false otherwise
     bool has_any_connections() const;
 
+    /// Get a lit of eligible autowire pins for this node
+    /// @param p_pin the pin that ie being autowired with this node
+    /// @return list of eligible autowire pins
+    virtual Vector<Ref<OScriptNodePin>> get_eligible_autowire_pins(const Ref<OScriptNodePin>& p_pin) const;
+
     /// Called when a pin connection is made.
     /// @param p_pin the pin that was connected
     virtual void on_pin_connected(const Ref<OScriptNodePin>& p_pin);

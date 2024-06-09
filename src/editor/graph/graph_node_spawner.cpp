@@ -16,6 +16,7 @@
 //
 #include "graph_node_spawner.h"
 
+#include "common/callable_lambda.h"
 #include "common/method_utils.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
@@ -129,9 +130,11 @@ void OrchestratorGraphNodeSpawnerPropertySet::execute(OrchestratorGraphEdit* p_g
     else if (!_target_classes.is_empty())
         context.class_name = _target_classes[0];
 
-    Ref<OScriptNodePropertySet> setter = p_graph->spawn_node<OScriptNodePropertySet>(context, p_position);
-    if (setter.is_valid() && _default_value)
-        setter->set_default_value(_default_value);
+    p_graph->spawn_node<OScriptNodePropertySet>(context, p_position,
+        callable_mp_lambda(this, [&, this](const Ref<OScriptNodePropertySet>& p_node) {
+            if (p_node.is_valid() && _default_value)
+                p_node->set_default_value(_default_value);
+        }));
 }
 
 bool OrchestratorGraphNodeSpawnerPropertySet::is_filtered(const OrchestratorGraphActionFilter& p_filter,

@@ -34,6 +34,7 @@ using namespace godot;
 
 // Forward declarations
 class OScriptNode;
+class OrchestratorScriptAutowireSelections;
 class OrchestratorGraphKnot;
 class OrchestratorPlugin;
 
@@ -133,6 +134,7 @@ class OrchestratorGraphEdit : public GraphEdit
     HashMap<uint64_t, Vector<Ref<KnotPoint>>> _knots;      //! Knots for each graph connection
     GDExtensionGodotVersion _version;                      //! Godot version
     bool _is_43p{ false };                                 //! Is Godot 4.3+
+    OrchestratorScriptAutowireSelections* _autowire{ nullptr };
 
     OrchestratorGraphEdit() = default;
 
@@ -227,19 +229,19 @@ public:
     /// Helper method for spawning nodes
     /// @param p_context the node initialization context
     /// @param p_position the position to spawn the node, if provided.
-    /// @return the node reference if the node was spawned, an invalid reference if the spawn failed
+    /// @param p_callback the callback to call when the node is spawned successfully.
     template <typename T>
-    Ref<T> spawn_node(const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2())
+    void spawn_node(const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2(), const Callable& p_callback = Callable())
     {
-        return spawn_node(T::get_class_static(), p_context, p_position);
+        spawn_node(T::get_class_static(), p_context, p_position, p_callback);
     }
 
     /// Helper method to spawn a node by it's type
     /// @param p_type the node type to spawn
     /// @param p_context the node initialization context
     /// @param p_position the position to spawn the node
-    /// @return the node reference if it was spawned successfully, no reference otherwise
-    Ref<OScriptNode> spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2());
+    /// @param p_callback the callback to call when the node is spawned successfully.
+    void spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2(), const Callable& p_callback = Callable());
 
     void sync();
 
@@ -318,10 +320,22 @@ private:
     /// Synchronizes the child order
     void _synchronize_child_order();
 
-    /// Attempt to autowire based on drag data the two specified nodes
-    /// @param p_new_node the newly created node
-    /// @param p_existing_node the existing node
-    void _attempt_autowire(const Ref<OScriptNode>& p_new_node, const Ref<OScriptNode>& p_existing_node);
+    /// Perform any post-steps after spawning a node
+    /// @param p_spawned the spawned node
+    /// @param p_callback a callback that is called after spawning the node
+    void _complete_spawn(const Ref<OScriptNode>& p_spawned, const Callable& p_callback);
+
+    /// Queue the autowire action for the spawned node
+    /// @param p_source the source pin
+    /// @param p_spawned the spawned node
+    /// @param p_callback optional callback to be fired when the node was spawned
+    void _queue_autowire(const Ref<OScriptNodePin>& p_source, const Ref<OScriptNode>& p_spawned, const Callable& p_callback = Callable());
+
+    /// Completes the autowire action
+    /// @param p_spawned the spawned node
+    /// @param p_callback the callback to fire when the node is spawned
+    /// @param p_confirmed whether the user confirmed any choices
+    void _complete_autowire(const Ref<OScriptNode>& p_spawned, const Callable& p_callback, bool p_confirmed);
 
     /// Shows the actions menu
     /// @param p_position the position to show the dialog
