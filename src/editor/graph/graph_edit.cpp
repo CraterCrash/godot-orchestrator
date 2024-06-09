@@ -1505,7 +1505,11 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
         if (node->is_selected())
             node->set_selected(false);
 
-        _script_graph->get_orchestration()->remove_node(node->get_script_node_id());
+        const Ref<OScriptNodeEvent> event_node = node->get_script_node();
+        if (event_node.is_valid())
+            _script_graph->get_orchestration()->remove_function(event_node->get_function()->get_function_name());
+        else
+            _script_graph->get_orchestration()->remove_node(node->get_script_node_id());
 
         node->queue_free();
     }
