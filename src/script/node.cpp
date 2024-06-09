@@ -276,6 +276,39 @@ bool OScriptNode::has_any_connections() const
     return false;
 }
 
+Vector<Ref<OScriptNodePin>> OScriptNode::get_eligible_autowire_pins(const Ref<OScriptNodePin>& p_pin) const
+{
+    Vector<Ref<OScriptNodePin>> eligible_pins;
+    for (const Ref<OScriptNodePin>& pin : get_all_pins())
+    {
+        // Invalid or hidden pins are skipped
+        if (!pin.is_valid() && pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+            continue;
+
+        // Skip pins that are specifically flagged as non-autowirable
+        if (pin->get_flags().has_flag(OScriptNodePin::Flags::NO_AUTOWIRE))
+            continue;
+
+        // Cannot connect input to input or output to output
+        if (p_pin->get_direction() == pin->get_direction())
+            continue;
+
+        // Match execution or data state
+        if ((p_pin->is_execution() && !pin->is_execution()) || (!p_pin->is_execution() && pin->is_execution()))
+            continue;
+
+        if (!p_pin->is_execution() && !pin->is_execution())
+        {
+            // Data flow pins must match types
+            if (pin->get_type() != p_pin->get_type())
+                continue;
+        }
+
+        eligible_pins.push_back(pin);
+    }
+    return eligible_pins;
+}
+
 void OScriptNode::on_pin_connected(const Ref<OScriptNodePin>& p_pin)
 {
     emit_signal("pin_connected", p_pin->get_direction(), p_pin->get_pin_index());

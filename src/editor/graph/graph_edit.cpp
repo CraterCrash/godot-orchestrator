@@ -16,6 +16,7 @@
 //
 #include "graph_edit.h"
 
+#include "autowire_selections.h"
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
@@ -36,6 +37,7 @@
 
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/geometry2d.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -363,7 +365,7 @@ void OrchestratorGraphEdit::execute_action(const String& p_action_name)
     Input::get_singleton()->parse_input_event(action);
 }
 
-Ref<OScriptNode> OrchestratorGraphEdit::spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position)
+void OrchestratorGraphEdit::spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position, const Callable& p_callback)
 {
     const Ref<OScriptNode> spawned = _script_graph->create_node(p_type, p_context, p_position);
     if (spawned.is_valid())
@@ -372,16 +374,16 @@ Ref<OScriptNode> OrchestratorGraphEdit::spawn_node(const StringName& p_type, con
         {
             const Ref<OScriptNode> other = _script_graph->get_node(_drag_context.node_name.to_int());
             if (other.is_valid())
-                _attempt_autowire(spawned, other);
+            {
+                const Ref<OScriptNodePin> pin = other->find_pin(_drag_context.node_port, _drag_context.get_direction());
+                _queue_autowire(pin, spawned, p_callback);
+            }
+        }
+        else
+        {
+            _complete_spawn(spawned, p_callback);
         }
     }
-
-    _drag_context.reset();
-
-    if (spawned.is_valid())
-        emit_signal("nodes_changed");
-
-    return spawned;
 }
 
 void OrchestratorGraphEdit::sync()
@@ -1092,51 +1094,57 @@ void OrchestratorGraphEdit::_synchronize_child_order()
     });
 }
 
-void OrchestratorGraphEdit::_attempt_autowire(const Ref<OScriptNode>& p_new_node, const Ref<OScriptNode>& p_existing_node)
+void OrchestratorGraphEdit::_complete_spawn(const Ref<OScriptNode>& p_spawned, const Callable& p_callback)
 {
-    // User dragging a connection either an input or output port
-    Ref<OScriptNodePin> existing_pin = p_existing_node->find_pin(_drag_context.node_port, _drag_context.get_direction());
-    if (!existing_pin.is_valid())
+    if (p_spawned.is_valid())
+    {
+        if (p_callback != Callable())
+            p_callback.callv(Array::make(p_spawned));
+
+        emit_signal("nodes_changed");
+    }
+}
+
+void OrchestratorGraphEdit::_queue_autowire(const Ref<OScriptNodePin>& p_source, const Ref<OScriptNode>& p_spawned, const Callable& p_callback)
+{
+    if (!p_source.is_valid() || !p_spawned.is_valid())
         return;
 
-    for (const Ref<OScriptNodePin>& pin : p_new_node->get_all_pins())
+    const Vector<Ref<OScriptNodePin>> choices = p_spawned->get_eligible_autowire_pins(p_source);
+
+    _autowire = memnew(OrchestratorScriptAutowireSelections);
+    _autowire->set_source(p_source);
+    _autowire->set_spawned(p_spawned);
+
+    add_child(_autowire);
+
+    _autowire->connect("confirmed", callable_mp(this, &OrchestratorGraphEdit::_complete_autowire).bind(p_spawned, p_callback, true));
+    _autowire->connect("canceled", callable_mp(this, &OrchestratorGraphEdit::_complete_autowire).bind(p_spawned, p_callback, false));
+
+    // This must be deferred to avoid conflicts with exclusive windows
+    callable_mp(_autowire, &OrchestratorScriptAutowireSelections::popup_autowire).call_deferred();
+}
+
+void OrchestratorGraphEdit::_complete_autowire(const Ref<OScriptNode>& p_spawned, const Callable& p_callback, bool p_confirmed)
+{
+    if (p_confirmed)
     {
-        // Invalid/hidden pins are skipped
-        if (!pin.is_valid() || pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
-            continue;
-
-        // Skip pins that are specifically flagged as non-autowirable
-        if (pin->get_flags().has_flag(OScriptNodePin::Flags::NO_AUTOWIRE))
-            continue;
-
-        // If pin direction matches drag, skip
-        if (_drag_context.get_direction() == pin->get_direction())
-            continue;
-
-        // If the existing pin is an execution, only match against executions
-        if (existing_pin->is_execution() && !pin->is_execution())
-            continue;
-
-        // If the existing pin is an data port, only match data ports
-        if (!existing_pin->is_execution() && pin->is_execution())
-            continue;
-
-        if (!existing_pin->is_execution() && !pin->is_execution())
+        const Ref<OScriptNodePin> choice = _autowire->get_autowire_choice();
+        if (choice.is_valid())
         {
-            // For data flows, match types
-            if (existing_pin->get_type() != pin->get_type())
-                continue;
+            if (_drag_context.output_port)
+                _autowire->get_source()->link(choice);
+            else
+                choice->link(_autowire->get_source());
+
+            p_spawned->post_node_autowired(_autowire->get_source()->get_owning_node(), _drag_context.get_direction());
         }
-
-        // For OScriptNodePin the link must be done where the argument pin is the input.
-        if (_drag_context.output_port)
-            existing_pin->link(pin);
-        else
-            pin->link(existing_pin);
-
-        p_new_node->post_node_autowired(p_existing_node, _drag_context.get_direction());
-        break;
     }
+
+    _autowire->queue_free();
+    _drag_context.reset();
+
+    _complete_spawn(p_spawned, p_callback);
 }
 
 void OrchestratorGraphEdit::_show_action_menu(const Vector2& p_position, const OrchestratorGraphActionFilter& p_filter)
