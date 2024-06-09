@@ -295,6 +295,7 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
         _tree = memnew(Tree);
         _tree->set_columns(1);
         _tree->set_allow_rmb_select(true);
+        _tree->set_allow_reselect(true);
         _tree->set_select_mode(Tree::SELECT_ROW);
         _tree->set_h_scroll_enabled(false);
         _tree->set_v_scroll_enabled(false);
