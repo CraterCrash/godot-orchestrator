@@ -30,7 +30,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     bool should_draw_as_bead() const override { return true; }
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNodeVariable Interface
 };
 

@@ -27,7 +27,7 @@ class OScriptNodeEmitSignalInstance : public OScriptNodeInstance
     MethodInfo _signal;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (_signal.name.is_empty())
         {
@@ -39,48 +39,48 @@ public:
         for (size_t i = 0; i < _signal.arguments.size(); i++)
             args.push_back(p_context.get_input(i));
 
-        dispatch(_signal.name, args);
+        dispatch(p_context, _signal.name, args);
 
         return 0;
     }
 
 
-    void dispatch(const StringName& p_name, const std::vector<Variant>& p_args)
+    void dispatch(OScriptExecutionContext& p_context, const StringName& p_name, const std::vector<Variant>& p_args)
     {
         switch (p_args.size())
         {
             case 0:
-                dispatch(p_name);
+                dispatch(p_context, p_name);
                 break;
             case 1:
-                dispatch(p_name, p_args[0]);
+                dispatch(p_context, p_name, p_args[0]);
                 break;
             case 2:
-                dispatch(p_name, p_args[0], p_args[1]);
+                dispatch(p_context, p_name, p_args[0], p_args[1]);
                 break;
             case 3:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2]);
                 break;
             case 4:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2], p_args[3]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2], p_args[3]);
                 break;
             case 5:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4]);
                 break;
             case 6:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5]);
                 break;
             case 7:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6]);
                 break;
             case 8:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7]);
                 break;
             case 9:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7], p_args[8]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7], p_args[8]);
                 break;
             case 10:
-                dispatch(p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7], p_args[8], p_args[9]);
+                dispatch(p_context, p_name, p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7], p_args[8], p_args[9]);
                 break;
             default:
                 ERR_PRINT("Too many signal arguments, no signal dispatched");
@@ -88,9 +88,9 @@ public:
     }
 
     template<typename... Args>
-    void dispatch(const StringName& p_name, const Args&... p_args)
+    void dispatch(OScriptExecutionContext& p_context, const StringName& p_name, const Args&... p_args)
     {
-        _instance->get_owner()->emit_signal(p_name, p_args...);
+        p_context.get_owner()->emit_signal(p_name, p_args...);
     }
 };
 
@@ -273,11 +273,10 @@ bool OScriptNodeEmitSignal::can_inspect_node_properties() const
     return _signal.is_valid() && !_signal->get_signal_name().is_empty();
 }
 
-OScriptNodeInstance* OScriptNodeEmitSignal::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeEmitSignal::instantiate()
 {
     OScriptNodeEmitSignalInstance* i = memnew(OScriptNodeEmitSignalInstance);
     i->_node = this;
-    i->_instance = p_instance;
 
     Ref<OScriptSignal> signal = get_orchestration()->get_custom_signal(_signal_name);
     if (signal.is_valid())

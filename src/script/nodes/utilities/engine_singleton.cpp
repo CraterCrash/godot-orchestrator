@@ -27,7 +27,7 @@ class OScriptNodeEngineSingletonInstance : public OScriptNodeInstance
     Object* _value{ nullptr };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.set_output(0, _value);
         return 0;
@@ -106,11 +106,10 @@ StringName OScriptNodeEngineSingleton::resolve_type_class(const Ref<OScriptNodeP
     return _singleton;
 }
 
-OScriptNodeInstance* OScriptNodeEngineSingleton::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeEngineSingleton::instantiate()
 {
     OScriptNodeEngineSingletonInstance* i = memnew(OScriptNodeEngineSingletonInstance);
     i->_node = this;
-    i->_instance = p_instance;
 
     if (!_singleton.is_empty() && Engine::get_singleton()->get_singleton_list().has(_singleton))
         i->_value = Engine::get_singleton()->get_singleton(_singleton);

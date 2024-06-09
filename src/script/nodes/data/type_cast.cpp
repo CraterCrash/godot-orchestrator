@@ -24,7 +24,7 @@ class OScriptNodeTypeCastInstance : public OScriptNodeInstance
     StringName _target_class;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context)
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant& input = p_context.get_input(0);
         if (input.get_type() == Variant::OBJECT)
@@ -154,11 +154,10 @@ String OScriptNodeTypeCast::get_icon() const
     return StringUtils::default_if_empty(_target_type, super::get_icon());
 }
 
-OScriptNodeInstance* OScriptNodeTypeCast::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeTypeCast::instantiate()
 {
     OScriptNodeTypeCastInstance* i = memnew(OScriptNodeTypeCastInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_target_class = _target_type;
     return i;
 }

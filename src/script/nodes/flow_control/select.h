@@ -44,7 +44,7 @@ public:
     bool can_change_pin_type() override { return true; }
     void change_pin_types(Variant::Type p_type) override;
     Vector<Variant::Type> get_possible_pin_types() const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
 };

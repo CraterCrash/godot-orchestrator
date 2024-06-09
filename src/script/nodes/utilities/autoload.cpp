@@ -26,7 +26,7 @@ class OScriptNodeAutoloadInstance : public OScriptNodeInstance
     String _autoload;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (!OScriptLanguage::get_singleton()->has_any_global_constant(_autoload))
         {
@@ -125,11 +125,10 @@ Ref<OScriptTargetObject> OScriptNodeAutoload::resolve_target(const Ref<OScriptNo
     return super::resolve_target(p_pin);
 }
 
-OScriptNodeInstance* OScriptNodeAutoload::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeAutoload::instantiate()
 {
     OScriptNodeAutoloadInstance* i = memnew(OScriptNodeAutoloadInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_autoload = _autoload;
     return i;
 }

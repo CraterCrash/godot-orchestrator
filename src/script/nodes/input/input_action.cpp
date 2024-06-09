@@ -30,7 +30,7 @@ class OScriptNodeInputActionInstance : public OScriptNodeInstance
     OScriptNodeInputAction::ActionMode _mode;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Input* input = Input::get_singleton();
         if (!input)
@@ -167,11 +167,10 @@ String OScriptNodeInputAction::get_icon() const
     return "InputEventAction";
 }
 
-OScriptNodeInstance* OScriptNodeInputAction::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeInputAction::instantiate()
 {
     OScriptNodeInputActionInstance* i = memnew(OScriptNodeInputActionInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_action_name = _action_name;
     i->_mode = ActionMode(_mode);
     return i;

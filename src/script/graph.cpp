@@ -376,9 +376,9 @@ Ref<OScriptNode> OScriptGraph::duplicate_node(int p_node_id, const Vector2& p_de
     // Additionally, there are other node properties that are maybe references to other objects or data
     // that is post-processed after placement but before rendering, and this allows this step to handle
     // that cleanly.
+    duplicate->_orchestration = _orchestration;
     duplicate->set_id(_orchestration->get_available_id());
     duplicate->set_position(node->get_position() + p_delta);
-    duplicate->set_orchestration(_orchestration);
     duplicate->post_initialize();
 
     _orchestration->add_node(this, duplicate);
@@ -389,9 +389,9 @@ Ref<OScriptNode> OScriptGraph::duplicate_node(int p_node_id, const Vector2& p_de
 
 Ref<OScriptNode> OScriptGraph::paste_node(const Ref<OScriptNode>& p_node, const Vector2& p_position)
 {
+    p_node->_orchestration = _orchestration;
     p_node->set_id(_orchestration->get_available_id());
     p_node->set_position(p_position);
-    p_node->set_orchestration(_orchestration);
     p_node->post_initialize();
 
     _orchestration->add_node(this, p_node);

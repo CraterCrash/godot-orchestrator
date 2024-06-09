@@ -25,7 +25,7 @@ public:
 
     int get_working_memory_size() const override { return 1; }
 
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (_has_return)
         {
@@ -121,11 +121,10 @@ bool OScriptNodeFunctionResult::can_user_delete_node() const
     return true;
 }
 
-OScriptNodeInstance* OScriptNodeFunctionResult::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeFunctionResult::instantiate()
 {
     OScriptNodeFunctionResultInstance* i = memnew(OScriptNodeFunctionResultInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_has_return = _function->has_return_type();
     return i;
 }

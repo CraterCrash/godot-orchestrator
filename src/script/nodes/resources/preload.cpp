@@ -26,7 +26,7 @@ class OScriptNodePreloadInstance : public OScriptNodeInstance
     Ref<Resource> _resource;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant out = _resource;
         p_context.set_output(0, &out);
@@ -133,11 +133,10 @@ StringName OScriptNodePreload::resolve_type_class(const Ref<OScriptNodePin>& p_p
     return super::resolve_type_class(p_pin);
 }
 
-OScriptNodeInstance* OScriptNodePreload::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodePreload::instantiate()
 {
     OScriptNodePreloadInstance* i = memnew(OScriptNodePreloadInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_resource = _resource;
     return i;
 }

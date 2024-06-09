@@ -48,7 +48,7 @@ public:
     void post_placed_new_node() override;
     bool can_user_delete_node() const override;
     bool can_duplicate() const override { return false; }
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     OScriptNodeFunctionResult();

@@ -30,14 +30,13 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
 
     OScriptFunctionReference _reference;
     StringName _function_name;
-    Object* _owner{ nullptr };
     int _argument_count{ 0 };
     int _argument_offset{ 2 };
     bool _pure{ false };
     bool _chained{ false };
     Array _args;
 
-    int _do_pure(OScriptNodeExecutionContext& p_context) const
+    int _do_pure(OScriptExecutionContext& p_context) const
     {
         // Pure function calls use the Godot Expression class to evaluate the function call.
         // This requires that we bind the arguments using a variant Array.
@@ -61,7 +60,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
         {
             // Execute the expression with the provided arguments.
             // This requires an instance object, we use the script owner.
-            Variant result = parser->execute(args, _owner);
+            Variant result = parser->execute(args, p_context.get_owner());
             if (!parser->has_execute_failed())
             {
                 // Execution was successful, set output if applicable.
@@ -79,7 +78,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
         return -1 | STEP_FLAG_END;
     }
 
-    int _do_target_type(OScriptNodeExecutionContext& p_context) const
+    int _do_target_type(OScriptExecutionContext& p_context) const
     {
         const Variant** pargs = _argument_count > 0 ? p_context.get_input_ptr() + 1 : nullptr;
         Variant target = p_context.get_input(0);
@@ -99,17 +98,17 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
         return 0;
     }
 
-    Object* _get_call_instance(OScriptNodeExecutionContext& p_context)
+    Object* _get_call_instance(OScriptExecutionContext& p_context)
     {
         if (_argument_offset == 0)
-            return _owner;
+            return p_context.get_owner();
 
         Variant target = p_context.get_input(0);
-        return !target ? _instance->get_owner() : Object::cast_to<Object>(target);
+        return !target ? p_context.get_owner() : Object::cast_to<Object>(target);
     }
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         // Check if function call is pure
         if (_pure)
@@ -435,12 +434,10 @@ void OScriptNodeCallFunction::allocate_default_pins()
     super::allocate_default_pins();
 }
 
-OScriptNodeInstance* OScriptNodeCallFunction::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeCallFunction::instantiate()
 {
     OScriptNodeCallFunctionInstance *i = memnew(OScriptNodeCallFunctionInstance);
     i->_node = this;
-    i->_instance = p_instance;
-    i->_owner = p_instance->get_owner();
     i->_argument_count = get_argument_count();
     i->_argument_offset = get_argument_offset();
     i->_reference = _reference;

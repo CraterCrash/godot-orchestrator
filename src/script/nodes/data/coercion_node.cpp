@@ -24,7 +24,7 @@ class OScriptNodeCoercionInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeCoercion);
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         p_context.copy_input_to_output(0, 0);
         return 0;
@@ -77,11 +77,10 @@ String OScriptNodeCoercion::get_node_title() const
     return " "; // todo: hack trick to avoid apply a title for now
 }
 
-OScriptNodeInstance* OScriptNodeCoercion::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeCoercion::instantiate()
 {
     OScriptNodeCoercionInstance* i = memnew(OScriptNodeCoercionInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 

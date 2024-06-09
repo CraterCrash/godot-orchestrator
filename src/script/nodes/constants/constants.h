@@ -59,7 +59,7 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNodeInterface
@@ -87,7 +87,7 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNodeInterface
 };
@@ -119,7 +119,7 @@ public:
     String get_node_title() const override;
     String get_help_topic() const override;
     String get_icon() const override;
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNodeInterface
@@ -175,7 +175,7 @@ public:
     OScriptNodeClassConstant();
 
     //~ Begin OScriptNode Interface
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNodeInterface
 };
 
@@ -199,7 +199,7 @@ public:
 
     //~ Begin OScriptNode Interface
     String get_node_title() const override { return "Singleton Class Constant"; }
-    OScriptNodeInstance* instantiate(OScriptInstance* p_instance) override;
+    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNodeInterface
 };
 #endif  // ORCHESTRATOR_SCRIPT_NODE_CONSTANTS_H

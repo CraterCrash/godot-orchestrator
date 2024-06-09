@@ -24,7 +24,7 @@ class OScriptNodeMakeArrayInstance : public OScriptNodeInstance
     int _count{ 0 };
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Array result;
         for (int i = 0; i < _count; i++)
@@ -45,7 +45,7 @@ class OScriptNodeArrayGetInstance : public OScriptNodeInstance
     Variant::Type _index_type;
 
     template<typename T>
-    int _step_internal(OScriptNodeExecutionContext& p_context)
+    int _step_internal(OScriptExecutionContext& p_context)
     {
         T array = p_context.get_input(0);
         int index = p_context.get_input(1);
@@ -59,7 +59,7 @@ class OScriptNodeArrayGetInstance : public OScriptNodeInstance
     }
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         switch (_collection_type)
         {
@@ -100,7 +100,7 @@ class OScriptNodeArraySetInstance : public OScriptNodeInstance
     Variant::Type _collection_type;
     Variant::Type _index_type;
 
-    int _invalid_index(OScriptNodeExecutionContext& p_context, int p_index)
+    int _invalid_index(OScriptExecutionContext& p_context, int p_index)
     {
         p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
             "Size is too small to index at index " + itos(p_index));
@@ -108,7 +108,7 @@ class OScriptNodeArraySetInstance : public OScriptNodeInstance
     }
 
     template<typename T>
-    int _step_internal(OScriptNodeExecutionContext& p_context)
+    int _step_internal(OScriptExecutionContext& p_context)
     {
         T array = p_context.get_input(0);
         int index = p_context.get_input(1);
@@ -133,7 +133,7 @@ class OScriptNodeArraySetInstance : public OScriptNodeInstance
     }
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         switch (_collection_type)
         {
@@ -172,7 +172,7 @@ class OScriptNodeArrayFindInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArrayFind)
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Array target_array = p_context.get_input(0);
         Variant item = p_context.get_input(1);
@@ -191,7 +191,7 @@ class OScriptNodeArrayClearInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArrayClear)
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Array target_array = p_context.get_input(0);
         target_array.clear();
@@ -208,7 +208,7 @@ class OScriptNodeArrayAppendInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArrayAppend)
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Array target_array = p_context.get_input(0);
         Array source_array = p_context.get_input(1);
@@ -227,7 +227,7 @@ class OScriptNodeArrayAddElementInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArrayAddElement)
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Array target_array = p_context.get_input(0);
         Variant item = p_context.get_input(1);
@@ -249,7 +249,7 @@ class OScriptNodeArrayRemoveElementInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArrayRemoveElement)
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Array target_array = p_context.get_input(0);
         Variant item = p_context.get_input(1);
@@ -279,7 +279,7 @@ class OScriptNodeArrayRemoveIndexInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeArrayRemoveIndex)
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Array target_array = p_context.get_input(0);
         int index = p_context.get_input(1);
@@ -335,11 +335,10 @@ void OScriptNodeMakeArray::pin_default_value_changed(const Ref<OScriptNodePin>& 
 
 }
 
-OScriptNodeInstance* OScriptNodeMakeArray::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeMakeArray::instantiate()
 {
     OScriptNodeMakeArrayInstance* i = memnew(OScriptNodeMakeArrayInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_count = _element_count;
     return i;
 }
@@ -408,11 +407,10 @@ String OScriptNodeArrayGet::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArrayGet::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArrayGet::instantiate()
 {
     OScriptNodeArrayGetInstance* i = memnew(OScriptNodeArrayGetInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_collection_type = _collection_type;
     i->_index_type = _index_type;
     return i;
@@ -471,11 +469,10 @@ String OScriptNodeArraySet::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArraySet::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArraySet::instantiate()
 {
     OScriptNodeArraySetInstance* i = memnew(OScriptNodeArraySetInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_collection_type = _collection_type;
     i->_index_type = _index_type;
     return i;
@@ -520,11 +517,10 @@ String OScriptNodeArrayFind::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArrayFind::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArrayFind::instantiate()
 {
     OScriptNodeArrayFindInstance* i = memnew(OScriptNodeArrayFindInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 
@@ -556,11 +552,10 @@ String OScriptNodeArrayClear::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArrayClear::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArrayClear::instantiate()
 {
     OScriptNodeArrayClearInstance* i = memnew(OScriptNodeArrayClearInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 
@@ -598,11 +593,10 @@ String OScriptNodeArrayAppend::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArrayAppend::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArrayAppend::instantiate()
 {
     OScriptNodeArrayAppendInstance* i = memnew(OScriptNodeArrayAppendInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 
@@ -639,11 +633,10 @@ String OScriptNodeArrayAddElement::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArrayAddElement::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArrayAddElement::instantiate()
 {
     OScriptNodeArrayAddElementInstance* i = memnew(OScriptNodeArrayAddElementInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 
@@ -680,11 +673,10 @@ String OScriptNodeArrayRemoveElement::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArrayRemoveElement::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArrayRemoveElement::instantiate()
 {
     OScriptNodeArrayRemoveElementInstance* i = memnew(OScriptNodeArrayRemoveElementInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
 
@@ -720,10 +712,9 @@ String OScriptNodeArrayRemoveIndex::get_icon() const
     return "FileThumbnail";
 }
 
-OScriptNodeInstance* OScriptNodeArrayRemoveIndex::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeArrayRemoveIndex::instantiate()
 {
     OScriptNodeArrayRemoveIndexInstance* i = memnew(OScriptNodeArrayRemoveIndexInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }

@@ -21,7 +21,7 @@ class OScriptNodeBranchInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeBranch);
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         return p_context.get_input(0) ? 0 : 1;
     }
@@ -58,10 +58,9 @@ String OScriptNodeBranch::get_icon() const
     return "VcsBranches";
 }
 
-OScriptNodeInstance* OScriptNodeBranch::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeBranch::instantiate()
 {
     OScriptNodeBranchInstance* i = memnew(OScriptNodeBranchInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }

@@ -27,7 +27,7 @@ class OScriptNodeNewInstance : public OScriptNodeInstance
     String _class_name;
 
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         if (!_class_name.is_empty() && ClassDB::can_instantiate(_class_name))
         {
@@ -44,7 +44,7 @@ class OScriptNodeFreeInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeFree);
 public:
-    int step(OScriptNodeExecutionContext& p_context) override
+    int step(OScriptExecutionContext& p_context) override
     {
         Variant object = p_context.get_input(0);
         if (object)
@@ -145,11 +145,10 @@ String OScriptNodeNew::get_icon() const
     return "CurveCreate";
 }
 
-OScriptNodeInstance* OScriptNodeNew::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeNew::instantiate()
 {
     OScriptNodeNewInstance* i = memnew(OScriptNodeNewInstance);
     i->_node = this;
-    i->_instance = p_instance;
     i->_class_name = _class_name;
     return i;
 }
@@ -195,10 +194,9 @@ String OScriptNodeFree::get_icon() const
     return "CurveDelete";
 }
 
-OScriptNodeInstance* OScriptNodeFree::instantiate(OScriptInstance* p_instance)
+OScriptNodeInstance* OScriptNodeFree::instantiate()
 {
     OScriptNodeFreeInstance* i = memnew(OScriptNodeFreeInstance);
     i->_node = this;
-    i->_instance = p_instance;
     return i;
 }
