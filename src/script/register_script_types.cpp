@@ -233,7 +233,7 @@ void register_script_resource_formats()
     UtilityFunctions::print("Creating binary resource loader");
     Ref<OScriptBinaryResourceLoader> loader;
     loader.instantiate();
-    loaders.push_back(loader);
+    //loaders.push_back(loader);
     UtilityFunctions::print("Registering binary resource loaders");
     ResourceLoader::get_singleton()->add_resource_format_loader(loader);
 
@@ -241,9 +241,10 @@ void register_script_resource_formats()
     UtilityFunctions::print("Creating binary resource saver");
     Ref<OScriptBinaryResourceSaver> saver;
     saver.instantiate();
-    savers.push_back(saver);
+    //savers.push_back(saver);
     UtilityFunctions::print("Registering binary resource savers");
     ResourceSaver::get_singleton()->add_resource_format_saver(saver);
+    UtilityFunctions::print("done");
 }
 
 void unregister_script_resource_formats()
