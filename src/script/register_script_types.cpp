@@ -251,6 +251,7 @@ void unregister_script_resource_formats()
 {
     using namespace orchestrator::internal;
 
+    UtilityFunctions::print("Unregister savers");
     for (Ref<ResourceFormatSaver>& saver : savers)
     {
         ResourceSaver::get_singleton()->remove_resource_format_saver(saver);
@@ -258,6 +259,7 @@ void unregister_script_resource_formats()
     }
     savers.clear();
 
+    UtilityFunctions::print("Unregister loaders");
     for (Ref<ResourceFormatLoader>& loader : loaders)
     {
         ResourceLoader::get_singleton()->remove_resource_format_loader(loader);
