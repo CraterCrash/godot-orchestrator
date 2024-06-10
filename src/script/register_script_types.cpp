@@ -26,6 +26,7 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
 #include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 namespace orchestrator
 {
@@ -229,12 +230,16 @@ void register_script_resource_formats()
     using namespace orchestrator::internal;
 
     // Create loaders & register
+    UtilityFunctions::print("Creating binary resource loader");
     loaders.push_back(memnew(OScriptBinaryResourceLoader));
+    UtilityFunctions::print("Registering binary resource loaders");
     for (const Ref<ResourceFormatLoader>& loader : loaders)
         ResourceLoader::get_singleton()->add_resource_format_loader(loader);
 
     // Create savers & register
+    UtilityFunctions::print("Creating binary resource saver");
     savers.push_back(memnew(OScriptBinaryResourceSaver));
+    UtilityFunctions::print("Registering binary resource savers");
     for (const Ref<ResourceFormatSaver>& saver : savers)
         ResourceSaver::get_singleton()->add_resource_format_saver(saver);
 }
