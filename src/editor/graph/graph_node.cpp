@@ -336,10 +336,23 @@ void OrchestratorGraphNode::_update_styles()
     {
         const String type_name = vformat("GraphNode_%s", _node->get_node_title_color_name());
         begin_bulk_theme_override();
-        add_theme_stylebox_override("panel", cache->get_theme_stylebox("panel", "GraphNode"));
-        add_theme_stylebox_override("panel_selected", cache->get_theme_stylebox("panel_selected", "GraphNode"));
-        add_theme_stylebox_override("titlebar", cache->get_theme_stylebox("titlebar", type_name));
-        add_theme_stylebox_override("titlebar_selected", cache->get_theme_stylebox("titlebar_selected", type_name));
+
+        Ref<StyleBox> panel = cache->get_theme_stylebox("panel", "GraphNode");
+        if (panel.is_valid())
+            add_theme_stylebox_override("panel", panel);
+
+        Ref<StyleBox> panel_selected = cache->get_theme_stylebox("panel_selected", "GraphNode");
+        if (panel_selected.is_valid())
+            add_theme_stylebox_override("panel_selected", panel_selected);
+
+        Ref<StyleBox> titlebar = cache->get_theme_stylebox("titlebar", type_name);
+        if (titlebar.is_valid())
+            add_theme_stylebox_override("titlebar", titlebar);
+
+        Ref<StyleBox> titlebar_selected = cache->get_theme_stylebox("titlebar_selected", type_name);
+        if (titlebar_selected.is_valid())
+            add_theme_stylebox_override("titlebar_selected", titlebar_selected);
+
         end_bulk_theme_override();
     }
 }
