@@ -229,22 +229,22 @@ void register_script_resource_formats()
 {
     using namespace orchestrator::internal;
 
-    // Create loaders & register
-    UtilityFunctions::print("Creating binary resource loader");
-    Ref<OScriptBinaryResourceLoader> loader;
-    loader.instantiate();
-    //loaders.push_back(loader);
-    UtilityFunctions::print("Registering binary resource loaders");
-    ResourceLoader::get_singleton()->add_resource_format_loader(loader);
-
-    // Create savers & register
-    UtilityFunctions::print("Creating binary resource saver");
-    Ref<OScriptBinaryResourceSaver> saver;
-    saver.instantiate();
-    //savers.push_back(saver);
-    UtilityFunctions::print("Registering binary resource savers");
-    ResourceSaver::get_singleton()->add_resource_format_saver(saver);
-    UtilityFunctions::print("done");
+    // // Create loaders & register
+    // UtilityFunctions::print("Creating binary resource loader");
+    // Ref<OScriptBinaryResourceLoader> loader;
+    // loader.instantiate();
+    // //loaders.push_back(loader);
+    // UtilityFunctions::print("Registering binary resource loaders");
+    // ResourceLoader::get_singleton()->add_resource_format_loader(loader);
+    //
+    // // Create savers & register
+    // UtilityFunctions::print("Creating binary resource saver");
+    // Ref<OScriptBinaryResourceSaver> saver;
+    // saver.instantiate();
+    // //savers.push_back(saver);
+    // UtilityFunctions::print("Registering binary resource savers");
+    // ResourceSaver::get_singleton()->add_resource_format_saver(saver);
+    // UtilityFunctions::print("done");
 }
 
 void unregister_script_resource_formats()
