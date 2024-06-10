@@ -187,7 +187,7 @@ public:
         node->class_ptr = T::get_orchestrator_node_ptr_static();
 
         T::register_custom_orchestrator_data_to_otdb();
-        Logger::debug("Registered node '", T::get_class_static(), "'.");
+        // Logger::debug("Registered node '", T::get_class_static(), "'.");
     }
 
     #ifdef TOOLS_ENABLED

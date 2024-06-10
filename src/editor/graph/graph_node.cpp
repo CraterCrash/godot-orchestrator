@@ -36,6 +36,7 @@
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 OrchestratorGraphNode::OrchestratorGraphNode(OrchestratorGraphEdit* p_graph, const Ref<OScriptNode>& p_node)
 {

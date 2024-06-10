@@ -21,6 +21,8 @@
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
 
+#include <sstream>
+
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/templates/local_vector.hpp>

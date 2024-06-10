@@ -69,7 +69,7 @@ void OScriptLanguage::_add_node_class_internal(const StringName& p_class, const 
 
 void OScriptLanguage::_init()
 {
-    Logger::info("Initializing OrchestratorScript");
+    // Logger::info("Initializing OrchestratorScript");
 }
 
 String OScriptLanguage::_get_name() const

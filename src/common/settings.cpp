@@ -20,6 +20,7 @@
 #include "common/logger.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 // Helper setting layouts
 #define BOOL_SETTING(n,v) PropertyInfo(Variant::BOOL, n), v

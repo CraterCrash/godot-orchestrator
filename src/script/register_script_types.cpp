@@ -87,13 +87,13 @@ void register_script_extension()
 
     // Create the settings implementation
     // This must be done before we create the OScriptLanguage
-    settings = memnew(OrchestratorSettings);
-    if (settings)
-    {
-        // Adjust logger level based on project settings
-        const String level = settings->get_setting("settings/log_level");
-        Logger::set_level(Logger::get_level_from_name(level));
-    }
+    // settings = memnew(OrchestratorSettings);
+    // if (settings)
+    // {
+    //     // Adjust logger level based on project settings
+    //     const String level = settings->get_setting("settings/log_level");
+    //     Logger::set_level(Logger::get_level_from_name(level));
+    // }
 
     Engine::get_singleton()->register_script_language(language);
 }

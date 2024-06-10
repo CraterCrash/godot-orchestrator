@@ -30,19 +30,19 @@ using namespace godot;
 
 namespace orchestrator
 {
-    Logger* logger = nullptr;
+    // Logger* logger = nullptr;
 
     void initialize_extension_module(ModuleInitializationLevel p_level)
     {
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE)
         {
             // Initialize the logger
-            logger = LoggerFactory::create("user://orchestrator.log");
-            Logger::info("Starting " VERSION_FULL_NAME);
+            // logger = LoggerFactory::create("user://orchestrator.log");
+            // Logger::info("Starting " VERSION_FULL_NAME);
 
             GDExtensionGodotVersion godot_version;
             internal::gdextension_interface_get_godot_version(&godot_version);
-            Logger::info("Using ", godot_version.string);
+            // Logger::info("Using ", godot_version.string);
 
             register_extension_db();
         }
@@ -83,8 +83,8 @@ namespace orchestrator
         {
             unregister_extension_db();
 
-            Logger::info("Shutting down " VERSION_FULL_NAME);
-            delete(logger);
+            // Logger::info("Shutting down " VERSION_FULL_NAME);
+            // delete(logger);
         }
     }
 

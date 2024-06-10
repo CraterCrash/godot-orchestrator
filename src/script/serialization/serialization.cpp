@@ -23,6 +23,7 @@
 
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 PackedStringArray OScriptBinaryResourceLoader::_get_recognized_extensions() const
 {
