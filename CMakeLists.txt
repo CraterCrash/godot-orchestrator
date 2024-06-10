@@ -143,16 +143,16 @@ endif()
 # Include directories for GDExtension library
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-IF (NOT APPLE)
-    # Linker options for the GDExtension library
-    TARGET_LINK_OPTIONS(${PROJECT_NAME} PRIVATE
-            $<$<NOT:${compiler_is_msvc}>:
-            -static-libgcc
-            -static-libstdc++
-            -Wl,-R,'$$ORIGIN'
-            >
-    )
-ENDIF ()
+#IF (NOT APPLE)
+#    # Linker options for the GDExtension library
+#    TARGET_LINK_OPTIONS(${PROJECT_NAME} PRIVATE
+#            $<$<NOT:${compiler_is_msvc}>:
+#            -static-libgcc
+#            -static-libstdc++
+#            -Wl,-R,'$$ORIGIN'
+#            >
+#    )
+#ENDIF ()
 
 if (AUTOFORMAT_SRC_ON_CONFIGURE MATCHES ON)
     include(clang-format)
