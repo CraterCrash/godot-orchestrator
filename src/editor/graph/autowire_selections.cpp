@@ -17,6 +17,7 @@
 #include "editor/graph/autowire_selections.h"
 
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "script/node.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -84,6 +85,14 @@ void OrchestratorScriptAutowireSelections::popup_autowire()
         if (choices.size() == 1)
             _choice = choices[0];
 
+        get_ok_button()->call_deferred("emit_signal", "pressed");
+        return;
+    }
+
+    // If the autowire selection dialog is disabled, then just return
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    if (!settings->get_setting("ui/graph/show_autowire_selection_dialog", true))
+    {
         get_ok_button()->call_deferred("emit_signal", "pressed");
         return;
     }
