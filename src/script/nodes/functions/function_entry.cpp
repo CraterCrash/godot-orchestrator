@@ -107,3 +107,7 @@ void OScriptNodeFunctionEntry::initialize(const OScriptNodeInitContext& p_contex
     super::initialize(p_context);
 }
 
+Ref<OScriptNodePin> OScriptNodeFunctionEntry::get_execution_pin() const
+{
+    return find_pin("ExecOut", PD_Output);
+}

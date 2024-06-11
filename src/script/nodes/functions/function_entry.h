@@ -46,6 +46,10 @@ public:
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    /// Gets the execution pin for this function entry node
+    /// @return the execution pin
+    Ref<OScriptNodePin> get_execution_pin() const;
 };
 
 #endif  // ORCHESTRATOR_FUNCTION_ENTRY_H
