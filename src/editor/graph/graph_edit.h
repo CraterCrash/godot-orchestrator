@@ -353,6 +353,9 @@ private:
     /// Hides the drag status hint
     void _hide_drag_hint();
 
+    /// Dispatched when the script's function is changed
+    void _function_changed();
+
     /// Connection drag started
     /// @param p_from the source node
     /// @param p_from_port source node port

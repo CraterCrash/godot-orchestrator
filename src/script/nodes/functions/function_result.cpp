@@ -47,7 +47,7 @@ void OScriptNodeFunctionResult::pre_remove()
     // When this node is removed, clear the function's return value
     Ref<OScriptFunction> function = get_function();
     if (function.is_valid())
-        _function->set_return_type(Variant::NIL);
+        _function->set_has_return_value(false);
 }
 
 void OScriptNodeFunctionResult::allocate_default_pins()
