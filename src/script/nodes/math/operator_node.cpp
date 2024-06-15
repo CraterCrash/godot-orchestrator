@@ -196,13 +196,19 @@ bool OScriptNodeOperator::_is_unary() const
     return _info.right_type_name.is_empty();
 }
 
+void OScriptNodeOperator::post_initialize()
+{
+    reconstruct_node();
+    super::post_initialize();
+}
+
 void OScriptNodeOperator::allocate_default_pins()
 {
     create_pin(PD_Input, "a", _info.left_type);
     if (!_is_unary())
         create_pin(PD_Input, "b", _info.right_type);
 
-    create_pin(PD_Output, "return_value", _info.return_type);
+    create_pin(PD_Output, "result", _info.return_type);
 
     super::allocate_default_pins();
 }

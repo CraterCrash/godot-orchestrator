@@ -41,13 +41,13 @@ String OScriptNodeCallBuiltinFunction::get_tooltip_text() const
 {
     if (!_reference.method.name.is_empty())
         return vformat("Calls the built-in Godot function '%s'", _reference.method.name);
-    else
-        return "Calls the specified built-in Godot function";
+
+    return "Calls the specified built-in Godot function";
 }
 
 String OScriptNodeCallBuiltinFunction::get_node_title() const
 {
-    return vformat("Call %s", _reference.method.name.capitalize());
+    return vformat("%s", _reference.method.name.capitalize());
 }
 
 void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_context)
