@@ -163,6 +163,7 @@ void OScriptNodeMakeDictionary::remove_dynamic_pin(const Ref<OScriptNodePin>& p_
 
 void OScriptNodeDictionarySet::post_initialize()
 {
+    reconstruct_node();
     super::post_initialize();
 }
 
@@ -174,7 +175,7 @@ void OScriptNodeDictionarySet::allocate_default_pins()
     create_pin(PD_Input, "value", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
 
     create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "return_value", Variant::DICTIONARY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, "dictionary", Variant::DICTIONARY)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Output, "replaced", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Output, "old_value", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
 

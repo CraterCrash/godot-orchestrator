@@ -158,7 +158,7 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
     _tree_view->clear();
 
     _tree_view->create_item();
-    _tree_view->set_columns(2);
+    _tree_view->set_columns(3);
 
     Ref<Texture2D> broken = SceneUtils::get_editor_icon("_not_found_");
 
@@ -226,8 +226,8 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
         TreeItem* node = _make_item(parent, item, item->get_spec().text);
 
         const bool is_favorite = action_favorites.has(item->get_spec().category);
-        node->add_button(1, SceneUtils::get_editor_icon(is_favorite ? "Favorites" : "NonFavorite"));
-        node->set_tooltip_text(1, is_favorite ? "Remove action from favorites." : "Add action to favorites.");
+        node->add_button(2, SceneUtils::get_editor_icon(is_favorite ? "Favorites" : "NonFavorite"));
+        node->set_tooltip_text(2, is_favorite ? "Remove action from favorites." : "Add action to favorites.");
         node->set_meta("favorite", is_favorite);
 
         if (item->get_spec().category == _selection)
@@ -251,9 +251,13 @@ TreeItem* OrchestratorGraphActionMenu::_make_item(TreeItem* p_parent,
     child->set_selectable(0, p_menu_item->get_handler().is_valid());
 
     child->set_text_alignment(1, HORIZONTAL_ALIGNMENT_RIGHT);
+    child->set_text(1, p_menu_item->get_spec().qualifiers);
     child->set_expand_right(1, true);
-    child->set_icon(1, SceneUtils::get_editor_icon(p_menu_item->get_spec().type_icon));
-    child->set_tooltip_text(1, p_menu_item->get_handler().is_valid() ? p_menu_item->get_handler()->get_class() : "");
+
+    child->set_icon(2, SceneUtils::get_editor_icon(p_menu_item->get_spec().type_icon));
+    child->set_expand_right(2, true);
+    child->set_text_alignment(2, HORIZONTAL_ALIGNMENT_RIGHT);
+    child->set_tooltip_text(2, p_menu_item->get_handler().is_valid() ? p_menu_item->get_handler()->get_class() : "");
 
     child->set_meta("item", p_menu_item);
 

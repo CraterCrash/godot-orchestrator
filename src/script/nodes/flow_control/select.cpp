@@ -66,13 +66,19 @@ bool OScriptNodeSelect::_set(const StringName& p_name, const Variant& p_value)
     return false;
 }
 
+void OScriptNodeSelect::post_initialize()
+{
+    reconstruct_node();
+    super::post_initialize();
+}
+
 void OScriptNodeSelect::allocate_default_pins()
 {
     const Variant::Type type = VariantUtils::to_type(_type);
     create_pin(PD_Input, "a", type)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Input, "b", type)->set_flags(OScriptNodePin::Flags::DATA);
     create_pin(PD_Input, "pick_a", Variant::BOOL, false)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "return_value", type)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, "result", type)->set_flags(OScriptNodePin::Flags::DATA);
 
     super::allocate_default_pins();
 }
@@ -98,7 +104,7 @@ void OScriptNodeSelect::change_pin_types(Variant::Type p_type)
 
     find_pin("a", PD_Input)->set_type(p_type);
     find_pin("b", PD_Input)->set_type(p_type);
-    find_pin("return_value", PD_Output)->set_type(p_type);
+    find_pin("result", PD_Output)->set_type(p_type);
 
     reconstruct_node();
 }

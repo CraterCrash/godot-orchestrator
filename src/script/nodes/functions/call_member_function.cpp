@@ -38,13 +38,16 @@ String OScriptNodeCallMemberFunction::get_tooltip_text() const
 {
     if (!_reference.method.name.is_empty())
         return vformat("Calls the function '%s'", _reference.method.name);
-    else
-        return "Calls the specified function";
+
+    return "Calls the specified function";
 }
 
 String OScriptNodeCallMemberFunction::get_node_title() const
 {
-    return vformat("Call %s", _reference.method.name.capitalize());
+    if (!_reference.method.name.is_empty())
+        return vformat("%s", _reference.method.name.capitalize());
+
+    return super::get_node_title();
 }
 
 String OScriptNodeCallMemberFunction::get_help_topic() const

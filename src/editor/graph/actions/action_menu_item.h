@@ -32,6 +32,7 @@ struct OrchestratorGraphActionSpec
     String tooltip;
     String keywords;
     String text;
+    String qualifiers;
     String icon;
     String type_icon;
     bool graph_compatible{ true };

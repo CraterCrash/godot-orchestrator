@@ -348,7 +348,15 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
     if (MethodUtils::has_return_value(p_method))
     {
         Ref<OScriptNodePin> rv = create_pin(PD_Output, "return_value", p_method.return_val.type);
-        rv->set_flags(OScriptNodePin::Flags::DATA);
+        if (rv->get_type() == Variant::OBJECT)
+        {
+            rv->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL);
+            rv->set_label(p_method.return_val.class_name);
+        }
+        else
+        {
+            rv->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::HIDE_LABEL);
+        }
         rv->set_target_class(p_method.return_val.class_name);
     }
 

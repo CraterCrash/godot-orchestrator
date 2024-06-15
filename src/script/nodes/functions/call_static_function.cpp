@@ -138,6 +138,8 @@ void OScriptNodeCallStaticFunction::post_initialize()
 
     _resolve_method_info();
 
+    reconstruct_node();
+
     super::post_initialize();
 }
 
@@ -195,7 +197,15 @@ void OScriptNodeCallStaticFunction::allocate_default_pins()
     if (MethodUtils::has_return_value(_method))
     {
         Ref<OScriptNodePin> rv = create_pin(PD_Output, "return_value", _method.return_val.type);
-        rv->set_flags(OScriptNodePin::Flags::DATA);
+        if (_method.return_val.type == Variant::OBJECT)
+        {
+            rv->set_label(_method.return_val.class_name);
+            rv->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL);
+        }
+        else
+        {
+            rv->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::HIDE_LABEL);
+        }
         rv->set_target_class(_method.return_val.class_name);
     }
 
@@ -204,13 +214,16 @@ void OScriptNodeCallStaticFunction::allocate_default_pins()
 
 String OScriptNodeCallStaticFunction::get_tooltip_text() const
 {
+    if (!_class_name.is_empty() && !_method_name.is_empty())
+        return vformat("Calls the static function '%s.%s'", _class_name, _method_name);
+
     return "Calls a static function";
 }
 
 String OScriptNodeCallStaticFunction::get_node_title() const
 {
     if (!_class_name.is_empty() && !_method_name.is_empty())
-        return vformat("Call Static %s.%s", _class_name, _method_name);
+        return vformat("%s %s", _class_name, _method_name.capitalize());
 
     return "Call Static Function";
 }
