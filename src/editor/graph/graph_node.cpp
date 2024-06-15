@@ -622,8 +622,7 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             }
             case CM_DELETE:
             {
-                if (_node->can_user_delete_node())
-                    get_graph()->get_orchestration()->remove_node(_node->get_id());
+                _simulate_action_pressed("ui_graph_delete");
                 break;
             }
             case CM_REFRESH:
