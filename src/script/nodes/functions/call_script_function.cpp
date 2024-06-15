@@ -68,7 +68,7 @@ String OScriptNodeCallScriptFunction::get_tooltip_text() const
 String OScriptNodeCallScriptFunction::get_node_title() const
 {
     if (_function.is_valid())
-        return vformat("Call %s", _function->get_function_name().capitalize());
+        return vformat("%s", _function->get_function_name().capitalize());
 
     return super::get_node_title();
 }

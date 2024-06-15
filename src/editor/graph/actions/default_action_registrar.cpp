@@ -50,6 +50,10 @@ void OrchestratorDefaultGraphActionRegistrar::_register_node(const OrchestratorG
     spec.type_icon = "PluginScript";
     spec.graph_compatible = node->is_compatible_with_graph(p_context.graph->get_owning_graph());
 
+    const Ref<OScriptNodeCallStaticFunction> call_static_function = node;
+    if (call_static_function.is_valid())
+        spec.qualifiers += "static";
+
     // Initialize the node based on the basic data so that filtration can resolve pin types
     OScriptNodeInitContext context;
     context.user_data = p_data;
@@ -244,7 +248,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     {
         for (const String& function_name : ExtensionDB::get_static_function_names(class_name))
         {
-            const String category = vformat("%s/call_%s", class_name, function_name);
+            const String category = vformat("%s/%s", class_name, function_name);
             _register_node<OScriptNodeCallStaticFunction>(p_context, category,
                 DictionaryUtils::of({ { "class_name", class_name }, { "method_name", function_name } }));;
         }
@@ -477,13 +481,15 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
     for (int i = 0; i < methods.size(); i++)
     {
         const MethodInfo mi = DictionaryUtils::to_method(methods[i]);
+        if (mi.name.begins_with("_"))
+            continue;
 
         OrchestratorGraphActionSpec spec;
         // todo: remove "class/methods/"
         spec.category = vformat("Class/Methods/%s/%s", p_class_name, mi.name);
         spec.tooltip = _get_method_signature(mi);
-        spec.text = vformat("call_%s", mi.name).capitalize();
-        spec.keywords = vformat("call,%s,%s", p_class_name, mi.name);
+        spec.text = vformat("%s", mi.name).capitalize();
+        spec.keywords = vformat("%s,%s", p_class_name, mi.name);
         spec.icon = _get_method_icon(mi);
         spec.type_icon = _get_method_type_icon(mi);
 
@@ -554,7 +560,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_functions(const O
             // todo: remove "script/"
             spec.category = vformat("Script/Call Function/%s", mi.name);
             spec.tooltip = _get_method_signature(mi);
-            spec.text = vformat("Call %s", mi.name);
+            spec.text = vformat("call_%s", mi.name);
             spec.keywords = vformat("call,%s,%s", orchestration->get_base_type(), mi.name);
             spec.icon = _get_method_icon(mi);
             spec.type_icon = _get_method_type_icon(mi);

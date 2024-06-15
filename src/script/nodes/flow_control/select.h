@@ -36,6 +36,7 @@ protected:
 
 public:
     //~ Begin OScriptNode Interface
+    void post_initialize() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
