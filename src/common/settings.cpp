@@ -143,6 +143,9 @@ void OrchestratorSettings::_register_settings()
 
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
 
+    _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_graph_friendly_names", false));
+    _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_function_friendly_names", false));
+
     _settings.emplace_back(BOOL_SETTING("ui/graph/disconnect_control_flow_when_dragged", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_autowire_selection_dialog", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));

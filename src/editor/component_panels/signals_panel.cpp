@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/popup_menu.hpp>
@@ -53,7 +54,7 @@ void OrchestratorScriptSignalsComponentPanel::_handle_context_menu(int p_id)
     switch (p_id)
     {
         case CM_RENAME_SIGNAL:
-            _tree->edit_selected(true);
+            _edit_selected_tree_item();
             break;
         case CM_REMOVE_SIGNAL:
             _confirm_removal(_tree->get_selected());
@@ -71,13 +72,13 @@ void OrchestratorScriptSignalsComponentPanel::_handle_item_selected()
 {
     TreeItem* item = _tree->get_selected();
 
-    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(item->get_text(0));
+    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(_get_tree_item_name(item));
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_item_activated(TreeItem* p_item)
 {
-    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(p_item->get_text(0));
+    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(_get_tree_item_name(p_item));
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
 }
 
@@ -95,8 +96,7 @@ bool OrchestratorScriptSignalsComponentPanel::_handle_item_renamed(const String&
 
 void OrchestratorScriptSignalsComponentPanel::_handle_remove(TreeItem* p_item)
 {
-    const String signal_name = p_item->get_text(0);
-    _orchestration->remove_custom_signal(signal_name);
+    _orchestration->remove_custom_signal(_get_tree_item_name(p_item));
 }
 
 Dictionary OrchestratorScriptSignalsComponentPanel::_handle_drag_data(const Vector2& p_position)
@@ -106,7 +106,7 @@ Dictionary OrchestratorScriptSignalsComponentPanel::_handle_drag_data(const Vect
     TreeItem* selected = _tree->get_selected();
     if (selected)
     {
-        Ref<OScriptSignal> signal = _orchestration->find_custom_signal(StringName(selected->get_text(0)));
+        Ref<OScriptSignal> signal = _orchestration->find_custom_signal(StringName(_get_tree_item_name(selected)));
         if (signal.is_valid())
         {
             data["type"] = "signal";
@@ -128,10 +128,7 @@ void OrchestratorScriptSignalsComponentPanel::update()
         {
             Ref<OScriptSignal> signal = _orchestration->get_custom_signal(signal_name);
 
-            TreeItem* item = _tree->get_root()->create_child();
-            item->set_text(0, signal_name);
-            item->set_meta("__name", signal_name);
-            item->set_icon(0, SceneUtils::get_editor_icon("MemberSignal"));
+            _create_item(_tree->get_root(), signal_name, signal_name, "MemberSignal");
         }
     }
 
