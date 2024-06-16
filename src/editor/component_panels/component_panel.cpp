@@ -325,7 +325,7 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
         _tree->connect("item_edited", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_item_edited));
         _tree->connect("item_selected", callable_mp_lambda(this, [&] { _handle_item_selected(); }));
         _tree->connect("item_mouse_selected", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_item_mouse_selected));
-        _tree->connect("item_collapsed", callable_mp_lambda(this, [&]([[maybe_unused]] TreeItem* i) { update(); }));
+        _tree->connect("item_collapsed", callable_mp_lambda(this, [&]([[maybe_unused]] TreeItem* i) { _tree->update_minimum_size(); }));
         _tree->connect("button_clicked", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_item_button_clicked));
         _context_menu->connect("id_pressed", callable_mp_lambda(this, [&](int id) { _handle_context_menu(id); }));
         _confirm->connect("confirmed", callable_mp(this, &OrchestratorScriptComponentPanel::_remove_confirmed));
