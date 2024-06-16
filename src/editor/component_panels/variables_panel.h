@@ -48,7 +48,7 @@ protected:
     Dictionary _handle_drag_data(const Vector2& p_position) override;
     //~ End OrchestratorScriptViewSection Interface
 
-    void _create_item(TreeItem* p_parent, const Ref<OScriptVariable>& p_variable);
+    void _create_variable_item(TreeItem* p_parent, const Ref<OScriptVariable>& p_variable);
 
     /// Default constructor
     OrchestratorScriptVariablesComponentPanel() = default;

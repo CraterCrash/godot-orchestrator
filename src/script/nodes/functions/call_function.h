@@ -113,6 +113,7 @@ public:
     void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
     void post_initialize() override;
     void allocate_default_pins() override;
+    String get_icon() const override { return "MemberMethod"; }
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface

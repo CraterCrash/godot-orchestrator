@@ -47,6 +47,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "events"; }
     String get_help_topic() const override;
+    String get_icon() const override { return "PlayStart"; }
     bool can_user_delete_node() const override { return true; }
     bool can_inspect_node_properties() const override { return true; }
     bool can_duplicate() const override { return false; }
