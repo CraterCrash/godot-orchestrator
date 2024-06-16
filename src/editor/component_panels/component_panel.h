@@ -69,11 +69,26 @@ protected:
     Variant _tree_drag_data(const Vector2& p_position);
     //~ End Signal handlers
 
+    /// Creates an item in the tree.
+    /// @param p_parent the parent
+    /// @param p_text the display text
+    /// @param p_item_name the item name
+    /// @param p_icon_name the icon
+    TreeItem* _create_item(TreeItem* p_parent, const String& p_text, const String& p_item_name, const String& p_icon_name);
+
+    /// Get the item's real name
+    /// @param p_item the tree item
+    /// @return the item's real name
+    String _get_tree_item_name(TreeItem* p_item);
+
     /// Updates the control's theme.
     void _update_theme();
 
     /// Clears the tree of all items but the root.
     void _clear_tree();
+
+    /// Edit the selected tree item
+    void _edit_selected_tree_item();
 
     /// Updates the state of the collapse button.
     void _update_collapse_button_icon();

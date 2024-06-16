@@ -19,6 +19,7 @@
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/script_connections.h"
 #include "editor/script_view.h"
@@ -32,7 +33,7 @@
 void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p_item)
 {
     // Function name and graph names are synonymous
-    const String function_name = p_item->get_text(0);
+    const String function_name = _get_tree_item_name(p_item);
     emit_signal("show_graph_requested", function_name);
     emit_signal("focus_node_requested", function_name, _orchestration->get_function_node_id(function_name));
     _tree->deselect_all();
@@ -75,7 +76,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_context_menu(int p_id)
             _show_function_graph(_tree->get_selected());
             break;
         case CM_RENAME_FUNCTION:
-            _tree->edit_selected(true);
+            _edit_selected_tree_item();
             break;
         case CM_REMOVE_FUNCTION:
             _confirm_removal(_tree->get_selected());
@@ -90,10 +91,10 @@ bool OrchestratorScriptFunctionsComponentPanel::_handle_add_new_item(const Strin
 
 void OrchestratorScriptFunctionsComponentPanel::_handle_item_selected()
 {
-    const TreeItem* item = _tree->get_selected();
+    TreeItem* item = _tree->get_selected();
     if (item)
     {
-        const Ref<OScriptFunction> function = _orchestration->find_function(StringName(item->get_text(0)));
+        const Ref<OScriptFunction> function = _orchestration->find_function(StringName(_get_tree_item_name(item)));
         if (function.is_valid())
         {
             const Ref<OScriptNode> node = function->get_owning_node();
@@ -124,7 +125,7 @@ bool OrchestratorScriptFunctionsComponentPanel::_handle_item_renamed(const Strin
 void OrchestratorScriptFunctionsComponentPanel::_handle_remove(TreeItem* p_item)
 {
     // Function name and graph names are synonymous
-    const String function_name = p_item->get_text(0);
+    const String function_name = _get_tree_item_name(p_item);
     emit_signal("close_graph_requested", function_name);
 
     _orchestration->remove_function(function_name);
@@ -151,7 +152,7 @@ Dictionary OrchestratorScriptFunctionsComponentPanel::_handle_drag_data(const Ve
     TreeItem* selected = _tree->get_selected();
     if (selected)
     {
-        Ref<OScriptFunction> function = _orchestration->find_function(StringName(selected->get_text(0)));
+        Ref<OScriptFunction> function = _orchestration->find_function(StringName(_get_tree_item_name(selected)));
         if (function.is_valid())
         {
             data["type"] = "function";
@@ -175,16 +176,19 @@ void OrchestratorScriptFunctionsComponentPanel::update()
         base_type = script->get_instance_base_type();
     }
 
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    bool use_friendly_names = settings->get_setting("ui/components_panel/show_function_friendly_names", false);
+
     for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
     {
         if (!(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION)))
             continue;
 
-        TreeItem* item = _tree->get_root()->create_child();
-        item->set_text(0, graph->get_graph_name());
-        item->set_meta("__name", graph->get_graph_name()); // Used for renames
-        item->set_icon(0, SceneUtils::get_editor_icon("MemberMethod"));
+        String friendly_name = graph->get_graph_name();
+        if (use_friendly_names)
+            friendly_name = graph->get_graph_name().capitalize();
 
+        TreeItem* item = _create_item(_tree->get_root(), friendly_name, graph->get_graph_name(), "MemberMethod");
         if (SceneUtils::has_any_signals_connected_to_function(graph->get_graph_name(), base_type, script_nodes))
             item->add_button(0, SceneUtils::get_editor_icon("Slot"));
     }

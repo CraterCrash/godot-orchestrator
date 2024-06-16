@@ -29,6 +29,7 @@
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
@@ -72,7 +73,10 @@ void OrchestratorScriptComponentPanel::_tree_item_edited()
 
     // Nothing to edit if they're identical
     if (old_name.match(new_name))
+    {
+        item->set_text(0, item->get_meta("__rollback_name"));
         return;
+    }
 
     _handle_item_renamed(old_name, new_name);
 
@@ -137,11 +141,28 @@ Variant OrchestratorScriptComponentPanel::_tree_drag_data(const Vector2& p_posit
     hbc->add_child(rect);
 
     Label* label = memnew(Label);
-    label->set_text(_tree->get_selected()->get_text(0));
+    label->set_text(_get_tree_item_name(_tree->get_selected()));
     hbc->add_child(label);
 
     set_drag_preview(container);
     return data;
+}
+
+TreeItem* OrchestratorScriptComponentPanel::_create_item(TreeItem* p_parent, const String& p_text, const String& p_item_name, const String& p_icon_name)
+{
+    TreeItem* item = p_parent->create_child();
+    item->set_text(0, p_text);
+    item->set_meta("__name", p_item_name);
+    item->set_meta("__rollback_name", p_text);
+    if (!p_icon_name.is_empty())
+        item->set_icon(0, SceneUtils::get_editor_icon(p_icon_name));
+
+    return item;
+}
+
+String OrchestratorScriptComponentPanel::_get_tree_item_name(TreeItem* p_item)
+{
+    return p_item ? p_item->get_meta("__name") : "";
 }
 
 void OrchestratorScriptComponentPanel::_update_theme()
@@ -183,6 +204,17 @@ void OrchestratorScriptComponentPanel::_clear_tree()
     _tree->create_item();
 }
 
+void OrchestratorScriptComponentPanel::_edit_selected_tree_item()
+{
+    TreeItem* selected = _tree->get_selected();
+    if (selected)
+    {
+        const String item_name = _get_tree_item_name(selected);
+        _tree->get_selected()->set_text(0, item_name);
+        _tree->edit_selected(true);
+    }
+}
+
 void OrchestratorScriptComponentPanel::_update_collapse_button_icon()
 {
     const String icon_name = _expanded ? "GuiTreeArrowDown" : "GuiTreeArrowRight";
@@ -218,7 +250,7 @@ bool OrchestratorScriptComponentPanel::_find_child_and_activate(const String& p_
     {
         if (TreeItem* child = Object::cast_to<TreeItem>(root->get_child(i)))
         {
-            if (child->get_text(0).match(p_name))
+            if (_get_tree_item_name(child).match(p_name))
             {
                 emit_signal("scroll_to_item", child);
                 _tree->call_deferred("set_selected", child, 0);
@@ -317,6 +349,10 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
         _notify = memnew(AcceptDialog);
         _notify->set_title("Message");
         add_child(_notify);
+
+        // For handling friendly name changes
+        ProjectSettings* settings = ProjectSettings::get_singleton();
+        settings->connect("settings_changed", callable_mp(this, &OrchestratorScriptComponentPanel::update));
 
         // Connections
         _collapse_button->connect("pressed", callable_mp(this, &OrchestratorScriptComponentPanel::_toggle));
