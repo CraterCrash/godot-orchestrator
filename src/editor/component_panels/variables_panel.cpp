@@ -73,12 +73,12 @@ void OrchestratorScriptVariablesComponentPanel::_create_item(TreeItem* p_parent,
     {
         int32_t index = item->get_button_count(0);
         item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityVisible"), 3);
-        item->set_button_tooltip_text(0, index, "Variable is visible outside the orchestration.");
+        item->set_button_tooltip_text(0, index, "Variable is exported and visible outside the orchestration.");
         item->set_button_disabled(0, index, false);
     }
     else
     {
-        String tooltip = "Variable is private.";
+        String tooltip = "Variable is private and not exported.";
         if (!p_variable->is_exportable())
             tooltip += "\nType cannot be exported.";
 
