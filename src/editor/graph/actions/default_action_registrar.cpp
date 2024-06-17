@@ -481,7 +481,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
     for (int i = 0; i < methods.size(); i++)
     {
         const MethodInfo mi = DictionaryUtils::to_method(methods[i]);
-        if (mi.name.begins_with("_"))
+        if (mi.name.begins_with("_") && !(mi.flags & METHOD_FLAG_VIRTUAL))
             continue;
 
         OrchestratorGraphActionSpec spec;
