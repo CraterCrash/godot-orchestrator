@@ -20,20 +20,46 @@
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 
 class OScriptNodeNewInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeNew);
     String _class_name;
+    String _script_path;
 
 public:
     int step(OScriptExecutionContext& p_context) override
     {
         if (!_class_name.is_empty() && ClassDB::can_instantiate(_class_name))
         {
-            Variant object = ClassDB::instantiate(_class_name);
-            p_context.set_output(0, object);
+            if (!_script_path.is_empty())
+            {
+                // Loading a script object instance type
+                Ref<Script> script = ResourceLoader::get_singleton()->load(_script_path);
+                if (script.is_valid())
+                {
+                    Variant base = ClassDB::instantiate(script->get_instance_base_type());
+                    Object* object = Object::cast_to<Object>(base);
+                    if (object)
+                    {
+                        object->set_script(script);
+                        p_context.set_output(0, object);
+                        return 0;
+                    }
+                }
+            }
+            else
+            {
+                // Loading a native class
+                Variant object = ClassDB::instantiate(_class_name);
+                p_context.set_output(0, object);
+                return 0;
+            }
         }
+
+        p_context.set_output(0, Variant());
         return 0;
     }
 };
@@ -150,6 +176,18 @@ OScriptNodeInstance* OScriptNodeNew::instantiate()
     OScriptNodeNewInstance* i = memnew(OScriptNodeNewInstance);
     i->_node = this;
     i->_class_name = _class_name;
+
+    const TypedArray<Dictionary> global_class_list = ProjectSettings::get_singleton()->get_global_class_list();
+    for (int index = 0; index < global_class_list.size(); index++)
+    {
+        const Dictionary& entry = global_class_list[index];
+        if (entry.has("class") && _class_name.match(entry["class"]))
+        {
+            i->_script_path = entry["path"];
+            break;
+        }
+    }
+
     return i;
 }
 
