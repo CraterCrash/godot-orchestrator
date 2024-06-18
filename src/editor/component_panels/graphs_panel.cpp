@@ -195,7 +195,7 @@ void OrchestratorScriptGraphsComponentPanel::update()
     }
 
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
-    bool use_friendly_names = settings->get_setting("ui/components_panel/show_graph_friendly_names", false);
+    bool use_friendly_names = settings->get_setting("ui/components_panel/show_graph_friendly_names", true);
 
     const PackedStringArray functions = _orchestration->get_function_names();
     for (const Ref<OScriptGraph>& graph : graphs)
