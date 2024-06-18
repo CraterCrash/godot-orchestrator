@@ -177,7 +177,7 @@ void OrchestratorScriptFunctionsComponentPanel::update()
     }
 
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
-    bool use_friendly_names = settings->get_setting("ui/components_panel/show_function_friendly_names", false);
+    bool use_friendly_names = settings->get_setting("ui/components_panel/show_function_friendly_names", true);
 
     for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
     {
