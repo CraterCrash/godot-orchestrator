@@ -66,6 +66,18 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
     {
         _method = DictionaryUtils::to_method(p_value);
         _returns_value = MethodUtils::has_return_value(_method);
+
+        // Cleanup the argument usage flags that were constructed incorrectly due to godot-cpp bug
+        for (PropertyInfo& argument : _method.arguments)
+        {
+            if (argument.usage == 7)
+                argument.usage = PROPERTY_USAGE_DEFAULT;
+        }
+
+        // Cleanup return value usage flags that were constructed incorrectly due to godot-cpp bug
+        if (_method.return_val.usage == 7)
+            _method.return_val.usage = PROPERTY_USAGE_DEFAULT;
+
         result = true;
     }
     else if (p_name.match("id"))
