@@ -9,11 +9,7 @@ runs:
       run: |
         sudo apt-get update
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-        sudo apt-get install gcc-13 g++-13 -y
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
-        sudo update-alternatives --config gcc
-        sudo update-alternatives --config g++
+        sudo apt-get install gcc g++ gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
 
     - name: Install Ninja (Linux)
       shell: sh
