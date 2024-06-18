@@ -58,7 +58,7 @@ protected:
 
     //~ Begin Serialization API
     StringName _get_base_type() const { return _base_type; }
-    void _set_base_type(const StringName& p_base_type) { _base_type = p_base_type; }
+    void _set_base_type(const StringName& p_base_type) { set_base_type(p_base_type); }
     TypedArray<OScriptNode> _get_nodes() const { return _get_nodes_internal(); }
     void _set_nodes(const TypedArray<OScriptNode>& p_nodes) { _set_nodes_internal(p_nodes); }
     TypedArray<int> _get_connections() const { return _get_connections_internal(); }
