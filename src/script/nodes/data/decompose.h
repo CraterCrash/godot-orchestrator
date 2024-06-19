@@ -35,14 +35,13 @@ class OScriptNodeDecompose : public OScriptNode
     // todo: this node needs to have its rendering fixed
 
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDecompose, OScriptNode);
+    static void _bind_methods();
 
     using TypeMap = HashMap<Variant::Type, Array>;
 
 protected:
     Variant::Type _type;              //! Transient type to pass from creation metadata
     static TypeMap _type_components;  //! Various types and respective components
-
-    static void _bind_methods();
 
 public:
     //~ Begin OScriptNode Interface

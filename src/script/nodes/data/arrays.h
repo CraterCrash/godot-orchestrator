@@ -23,7 +23,8 @@
 /// Creates a new array
 class OScriptNodeMakeArray : public OScriptEditablePinNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeMakeArray, OScriptEditablePinNode)
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeMakeArray, OScriptEditablePinNode);
+    static void _bind_methods() { }
 
 protected:
     int _element_count{ 0 };
@@ -52,6 +53,7 @@ public:
 class OScriptNodeArrayGet : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayGet, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     Variant::Type _collection_type{ Variant::ARRAY };
@@ -75,6 +77,7 @@ public:
 class OScriptNodeArraySet : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArraySet, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     Variant::Type _collection_type{ Variant::ARRAY };
@@ -98,6 +101,7 @@ public:
 class OScriptNodeArrayFind : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayFind, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -114,6 +118,7 @@ public:
 class OScriptNodeArrayClear : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayClear, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -131,6 +136,7 @@ public:
 class OScriptNodeArrayAppend : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayAppend, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -147,6 +153,7 @@ public:
 class OScriptNodeArrayAddElement : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayAddElement, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -163,6 +170,7 @@ public:
 class OScriptNodeArrayRemoveElement : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayRemoveElement, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -179,6 +187,7 @@ public:
 class OScriptNodeArrayRemoveIndex : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayRemoveIndex, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

@@ -23,6 +23,7 @@
 class OScriptNodeSceneTree : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSceneTree, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

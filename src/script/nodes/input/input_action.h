@@ -23,6 +23,7 @@
 class OScriptNodeInputAction : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeInputAction, OScriptNode);
+    static void _bind_methods();
 
 public:
     // Various action modes
@@ -45,8 +46,6 @@ protected:
 
     PackedStringArray _get_action_names() const;
     String _get_mode() const;
-
-    static void _bind_methods();
 
 public:
 

@@ -22,6 +22,7 @@
 class OScriptNodeChance : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeChance, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
 

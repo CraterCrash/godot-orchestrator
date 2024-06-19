@@ -22,7 +22,8 @@
 /// Creates a new instance of a Godot class
 class OScriptNodeNew : public OScriptNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeNew, OScriptNode)
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeNew, OScriptNode);
+    static void _bind_methods();
 
 protected:
     String _class_name;
@@ -32,8 +33,6 @@ protected:
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
-
-    static void _bind_methods();
 
 public:
     //~ Begin OScriptNode Interface
@@ -53,8 +52,7 @@ public:
 /// Destroys an instance of a Godot class
 class OScriptNodeFree : public OScriptNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeFree, OScriptNode)
-protected:
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeFree, OScriptNode);
     static void _bind_methods();
 
 public:

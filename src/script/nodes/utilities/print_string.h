@@ -31,6 +31,7 @@ using namespace godot;
 class OScriptNodePrintString : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePrintString, OScriptNode);
+    static void _bind_methods() { }
 
 public:
 

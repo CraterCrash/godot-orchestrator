@@ -23,6 +23,7 @@
 class OScriptNodeEngineSingleton : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEngineSingleton, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _singleton{ "Engine" };  //! Name of the singleton

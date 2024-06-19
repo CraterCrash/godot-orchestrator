@@ -23,6 +23,7 @@
 class OScriptNodeBranch : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeBranch, OScriptNode);
+    static void _bind_methods() { }
 
 public:
 

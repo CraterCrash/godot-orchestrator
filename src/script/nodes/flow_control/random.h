@@ -23,6 +23,7 @@
 class OScriptNodeRandom : public OScriptEditablePinNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeRandom, OScriptEditablePinNode);
+    static void _bind_methods() { }
 
 protected:
     int _possibilities = 1;

@@ -28,6 +28,7 @@
 class OScriptNodeDelay : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDelay, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     float _duration{ 1 };  //! Delay duration

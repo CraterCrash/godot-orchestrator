@@ -22,6 +22,7 @@
 class OScriptNodeLocalVariable : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeLocalVariable, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     Guid _guid;           //! Uniquely identifies this variable from any other.
@@ -55,6 +56,7 @@ public:
 class OScriptNodeAssignLocalVariable : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeAssignLocalVariable, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     Variant::Type _type{ Variant::NIL }; //! Transient type used to identify pin type

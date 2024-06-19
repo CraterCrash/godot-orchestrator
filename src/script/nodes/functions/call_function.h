@@ -48,7 +48,6 @@ struct OScriptFunctionReference
 class OScriptNodeCallFunction : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCallFunction, OScriptNode);
-
     static void _bind_methods();
 
 public:

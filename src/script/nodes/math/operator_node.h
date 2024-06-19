@@ -24,7 +24,6 @@
 class OScriptNodeOperator : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeOperator, OScriptNode);
-
     static void _bind_methods();
 
 protected:
