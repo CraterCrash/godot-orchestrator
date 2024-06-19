@@ -25,6 +25,7 @@
 class OScriptNodeForLoop : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeForLoop, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     bool _with_break{ false };  //! Whether break is enabled

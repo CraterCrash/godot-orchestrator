@@ -23,6 +23,7 @@
 class OScriptNodeSceneNode : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSceneNode, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     NodePath _node_path;

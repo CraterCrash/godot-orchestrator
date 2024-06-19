@@ -24,6 +24,7 @@
 class OScriptNodeSelect : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSelect, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     int _type = 0;

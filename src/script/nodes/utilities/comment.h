@@ -23,6 +23,7 @@
 class OScriptNodeComment : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeComment, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _comments;

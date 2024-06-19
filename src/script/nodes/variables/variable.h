@@ -23,6 +23,7 @@
 class OScriptNodeVariable : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeVariable, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     StringName _variable_name;       //! Variable name reference

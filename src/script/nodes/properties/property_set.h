@@ -23,6 +23,7 @@
 class OScriptNodePropertySet : public OScriptNodeProperty
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePropertySet, OScriptNodeProperty);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

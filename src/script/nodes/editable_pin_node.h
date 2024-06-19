@@ -24,6 +24,7 @@
 class OScriptEditablePinNode : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptEditablePinNode, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
 

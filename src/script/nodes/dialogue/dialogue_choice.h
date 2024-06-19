@@ -23,7 +23,8 @@
 /// These can be combined into an array and evaluated by a DialogueMessage node.
 class OScriptNodeDialogueChoice : public OScriptNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeDialogueChoice, OScriptNode)
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeDialogueChoice, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

@@ -23,6 +23,7 @@
 class OScriptNodeVariableGet : public OScriptNodeVariable
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeVariableGet, OScriptNodeVariable);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNodeVariable Interface
