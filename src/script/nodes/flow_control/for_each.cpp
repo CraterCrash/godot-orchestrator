@@ -93,6 +93,10 @@ void OScriptNodeForEach::post_initialize()
     if (element.is_valid() && element->get_type() == Variant::OBJECT)
         element->set_type(Variant::NIL);
 
+    // Fixes issue where a break pin exists but the break status was not persisted
+    if (!_with_break && find_pin("break", PD_Input).is_valid())
+        _with_break = true;
+
     // Automatically adjusts old nodes to having the new aborted node layout
     if (_with_break && !find_pin("aborted", PD_Output).is_valid())
         reconstruct_node();
