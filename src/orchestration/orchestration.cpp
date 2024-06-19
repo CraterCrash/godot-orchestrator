@@ -165,8 +165,46 @@ void Orchestration::_fix_orphans()
         if (!orphaned)
             continue;
 
-        WARN_PRINT(vformat("Removed orphan node %d from script %s.", E.key, get_self()->get_path()));
+        // If a node is orphaned but a connection exists to re-add it back to the graph, do it
+        for (const OScriptConnection& C : _connections)
+        {
+            if (C.is_linked_to(E.key))
+            {
+                for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs)
+                {
+                    if (G.value->has_node(C.to_node) || G.value->has_node(C.from_node))
+                    {
+                        WARN_PRINT("Adding orphaned node " + itos(E.key) + " back to graph " + G.value->get_graph_name());
+                        G.value->add_node(E.value);
+                        orphaned = false;
+                        break;
+                    }
+                }
+
+                if (!orphaned)
+                    break;
+            }
+        }
+
+        if (!orphaned)
+            continue;
+
+        WARN_PRINT(vformat("Removed orphan node %d (%s) from script %s.", E.key, E.value->get_class(), get_self()->get_path()));
         _nodes.erase(E.key);
+    }
+
+    {
+        RBSet<OScriptConnection> removals;
+        for (const OScriptConnection& C : _connections)
+        {
+            if (!_nodes.has(C.from_node) || !_nodes.has(C.to_node))
+                removals.insert(C);
+        }
+        for (const OScriptConnection C : removals)
+        {
+            WARN_PRINT(vformat("Removing orphan connection for " + C.to_string() + ", either the source or target node no longer exists."));
+            _connections.erase(C);
+        }
     }
 }
 
