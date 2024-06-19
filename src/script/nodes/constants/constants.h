@@ -23,6 +23,7 @@
 class OScriptNodeConstant : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeConstant, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     OScriptNodeConstant();
@@ -36,6 +37,7 @@ public:
 class OScriptNodeGlobalConstant : public OScriptNodeConstant
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeGlobalConstant, OScriptNodeConstant);
+    static void _bind_methods() { }
 
 protected:
     StringName _constant_name;
@@ -69,6 +71,7 @@ public:
 class OScriptNodeMathConstant : public OScriptNodeConstant
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeMathConstant, OScriptNodeConstant);
+    static void _bind_methods() { }
 
 protected:
     String _constant_name{ "One" };  //! The math constant
@@ -96,6 +99,7 @@ public:
 class OScriptNodeTypeConstant : public OScriptNodeConstant
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeTypeConstant, OScriptNodeConstant);
+    static void _bind_methods();
 
     static Vector<Variant::Type> _types;
     static HashMap<Variant::Type, HashMap<StringName, Variant>> _type_constants;
@@ -109,8 +113,6 @@ protected:
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
-
-    static void _bind_methods();
 
 public:
     //~ Begin OScriptNode Interface
@@ -129,6 +131,7 @@ public:
 class OScriptNodeClassConstantBase : public OScriptNodeConstant
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeClassConstantBase, OScriptNodeConstant);
+    static void _bind_methods() { }
 
 protected:
     String _class_name;     //! Constant class name
@@ -165,6 +168,7 @@ public:
 class OScriptNodeClassConstant : public OScriptNodeClassConstantBase
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeClassConstant, OScriptNodeClassConstantBase);
+    static void _bind_methods() { }
 
 protected:
     //~ Begin OScriptNodeClassConstantBase Interface
@@ -183,6 +187,7 @@ public:
 class OScriptNodeSingletonConstant : public OScriptNodeClassConstantBase
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSingletonConstant, OScriptNodeClassConstantBase);
+    static void _bind_methods() { }
 
 protected:
     PackedStringArray _singletons;    //! Cached list of applicable singletons

@@ -23,6 +23,7 @@
 class OScriptNodeAutoload : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeAutoload, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _autoload;  //! Name of the autoload

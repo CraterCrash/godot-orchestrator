@@ -23,6 +23,7 @@
 class OScriptNodePreload : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePreload, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     Ref<Resource> _resource;  //! The loaded resource

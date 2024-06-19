@@ -29,6 +29,7 @@ using namespace godot;
 class OScriptNodeEvent : public OScriptNodeFunctionEntry
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEvent, OScriptNodeFunctionEntry);
+    static void _bind_methods() { }
 
 protected:
 

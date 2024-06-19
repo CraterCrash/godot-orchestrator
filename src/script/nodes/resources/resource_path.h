@@ -23,6 +23,7 @@
 class OScriptNodeResourcePath : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeResourcePath, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _path;  //! The resource path

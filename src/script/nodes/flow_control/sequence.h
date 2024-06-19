@@ -23,6 +23,7 @@
 class OScriptNodeSequence : public OScriptEditablePinNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSequence, OScriptEditablePinNode);
+    static void _bind_methods() { }
 
 public:
     enum InsertPosition

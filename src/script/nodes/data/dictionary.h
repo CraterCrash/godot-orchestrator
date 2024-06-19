@@ -23,7 +23,8 @@
 /// Creates a new dictionary
 class OScriptNodeMakeDictionary : public OScriptEditablePinNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeMakeDictionary, OScriptEditablePinNode)
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeMakeDictionary, OScriptEditablePinNode);
+    static void _bind_methods() { }
 
 protected:
     int _element_count{ 0 };
@@ -52,6 +53,7 @@ public:
 class OScriptNodeDictionarySet : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDictionarySet, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

@@ -35,6 +35,7 @@
 class OScriptNodeFunctionResult : public OScriptNodeFunctionTerminator
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeFunctionResult, OScriptNodeFunctionTerminator);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

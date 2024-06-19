@@ -27,6 +27,7 @@
 class OScriptNodeEmitMemberSignal : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEmitMemberSignal, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _target_class;   //! Signal target class name reference

@@ -31,6 +31,7 @@
 class OScriptNodeAwaitSignal : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeAwaitSignal, OScriptNode);
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

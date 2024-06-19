@@ -23,6 +23,7 @@
 class OScriptNodeWhile : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeWhile, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     bool _condition = false;

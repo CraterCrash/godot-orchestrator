@@ -24,6 +24,7 @@
 class OScriptNodeSwitch : public OScriptEditablePinNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitch, OScriptEditablePinNode);
+    static void _bind_methods() { }
 
 protected:
     int _cases{ 0 };     //! Transient case count
@@ -58,6 +59,7 @@ public:
 class OScriptNodeSwitchEditablePin : public OScriptEditablePinNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchEditablePin, OScriptEditablePinNode);
+    static void _bind_methods() { }
 
 protected:
     PackedStringArray _pin_names;
@@ -97,6 +99,7 @@ public:
 class OScriptNodeSwitchString : public OScriptNodeSwitchEditablePin
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchString, OScriptNodeSwitchEditablePin);
+    static void _bind_methods() { }
 
 protected:
     //~ Begin OScriptNodeSwitchEditablePin Interface
@@ -117,6 +120,7 @@ public:
 class OScriptNodeSwitchInteger : public OScriptNodeSwitchEditablePin
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchInteger, OScriptNodeSwitchEditablePin);
+    static void _bind_methods() { }
 
 protected:
     int _start_index{ 0 };
@@ -147,6 +151,7 @@ public:
 class OScriptNodeSwitchEnum : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchEnum, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _enum_name; //! Transient enum name

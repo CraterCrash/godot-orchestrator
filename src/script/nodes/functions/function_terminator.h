@@ -23,6 +23,7 @@
 class OScriptNodeFunctionTerminator : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeFunctionTerminator, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     Guid _guid;                      //! Function guid

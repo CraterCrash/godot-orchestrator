@@ -35,6 +35,7 @@ using namespace godot;
 class OScriptNodeProperty : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeProperty, OScriptNode);
+    static void _bind_methods();
 
 public:
     enum CallMode : uint32_t
@@ -57,8 +58,6 @@ protected:
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
-
-    static void _bind_methods();
 
 public:
     OScriptNodeProperty();

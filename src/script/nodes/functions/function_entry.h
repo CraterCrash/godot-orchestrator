@@ -27,6 +27,7 @@
 class OScriptNodeFunctionEntry : public OScriptNodeFunctionTerminator
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeFunctionEntry, OScriptNodeFunctionTerminator);
+    static void _bind_methods() { }
 
 protected:
     virtual bool _is_user_defined() const { return true; }

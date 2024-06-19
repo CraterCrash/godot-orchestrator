@@ -32,6 +32,7 @@
 class OScriptNodeEmitSignal : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEmitSignal, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     Ref<OScriptSignal> _signal;     //! Signal reference

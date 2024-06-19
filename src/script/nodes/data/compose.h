@@ -33,13 +33,13 @@
 class OScriptNodeCompose : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCompose, OScriptNode);
+    static void _bind_methods();
+
     using TypeMap = HashMap<Variant::Type, Array>;
 
 protected:
     Variant::Type _type;              //! Transient type to pass from creation metadata
     static TypeMap _type_components;  //! Variant types and the respective components
-
-    static void _bind_methods();
 
 public:
     //~ Begin OScriptNode Interface
@@ -63,13 +63,12 @@ public:
 /// Composes a variant using its constructor signatures
 class OScriptNodeComposeFrom : public OScriptNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeComposeFrom, OScriptNode)
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeComposeFrom, OScriptNode);
+    static void _bind_methods();
 
 protected:
     Variant::Type _type;                         //! Transient type to pass from creation metadata
     Vector<PropertyInfo> _constructor_args;      //! Transient constructor arguments
-
-    static void _bind_methods();
 
 public:
     //~ Begin OScriptNode Interface

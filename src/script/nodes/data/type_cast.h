@@ -25,6 +25,7 @@ using namespace godot;
 class OScriptNodeTypeCast : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeTypeCast, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _target_type{ "Object" };

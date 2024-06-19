@@ -22,7 +22,8 @@
 /// A node that represents a dialogue message that is part of a conversation.
 class OScriptNodeDialogueMessage : public OScriptEditablePinNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeDialogueMessage, OScriptEditablePinNode)
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeDialogueMessage, OScriptEditablePinNode);
+    static void _bind_methods() { }
 
 protected:
     int _choices{ 0 };

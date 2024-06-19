@@ -24,6 +24,7 @@
 class OScriptNodeForEach : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeForEach, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     bool _with_break{ false };  //! Whether break is enabled
