@@ -75,20 +75,35 @@ static Ref<OScriptNodePin> get_data_pin_at_count_index(const Ref<OScriptNode>& p
     return nullptr;
 }
 
-void OScriptVirtualMachine::_set_unassigned_inputs(const Ref<OScriptNode>& p_node, const OScriptNodeInstance* p_instance)
+void OScriptVirtualMachine::_set_unassigned_inputs(const Ref<OScriptNode>& p_node, const OScriptNodeInstance* p_instance, Function& r_function)
 {
     for (int i = 0; i < p_instance->data_input_pin_count; i++)
     {
         // If the input pin is bound with a value of -1, it is unassigned.
         if (p_instance->input_pins[i] == -1)
         {
-            // Assign the default value index
-            p_instance->input_pins[i] = _default_values.size() | OScriptNodeInstance::INPUT_DEFAULT_VALUE_BIT;
-
             // Place the pin's effective default value on the default value list
             const Ref<OScriptNodePin> pin = get_data_pin_at_count_index(p_node, i, PD_Input);
-            if (pin.is_valid())
+            if (!pin.is_valid())
+                continue;
+
+            // Default values should be passed on the stack, assign a stack position for the value
+            int stack_pos = r_function.max_stack++;
+            p_instance->input_default_stack_pos[i] = stack_pos;
+
+            // Rather than duplicate default values for each node, reuse existing ones if possible.
+            int lookup_index = _default_values.find(pin->get_effective_default_value());
+            if (lookup_index != -1)
+            {
+                // Default value already exists, assign the stack position
+                p_instance->input_pins[i] = lookup_index | OScriptNodeInstance::INPUT_DEFAULT_VALUE_BIT;
+            }
+            else
+            {
+                // Default value doesn't exist, create a new entry
+                p_instance->input_pins[i] = _default_values.size() | OScriptNodeInstance::INPUT_DEFAULT_VALUE_BIT;
                 _default_values.push_back(pin->get_effective_default_value());
+            }
         }
     }
 }
@@ -198,8 +213,12 @@ bool OScriptVirtualMachine::_create_node_instance_pins(const Ref<OScriptNode>& p
         // Create the input array
         // Each defaults to -1, and if left as -1 triggers default value serialization
         p_instance->input_pins = memnew_arr(int, p_instance->data_input_pin_count);
+        p_instance->input_default_stack_pos = memnew_arr(int, p_instance->data_input_pin_count);
         for (int i = 0; i < p_instance->data_input_pin_count; i++)
+        {
             p_instance->input_pins[i] = -1;
+            p_instance->input_default_stack_pos[i] = -1;
+        }
     }
 
     if (p_instance->data_output_pin_count)
@@ -407,7 +426,7 @@ bool OScriptVirtualMachine::_build_function_node_graph(const Ref<OScriptFunction
         const Ref<OScriptNode>& node = p_function->get_orchestration()->get_node(E);
         const OScriptNodeInstance* instance = _nodes[E];
 
-        _set_unassigned_inputs(node, instance);
+        _set_unassigned_inputs(node, instance, r_function);
         _set_unassigned_outputs(node, instance, r_function.trash_pos);
     }
 
@@ -448,7 +467,7 @@ void OScriptVirtualMachine::_resolve_inputs(OScriptExecutionContext& p_context, 
     {
         const int index = p_instance->input_pins[i] & OScriptNodeInstance::INPUT_MASK;
         if (p_instance->input_pins[i] & OScriptNodeInstance::INPUT_DEFAULT_VALUE_BIT)
-            p_context._set_input_from_default_value(i, _default_values[index]);
+            p_context._set_input_from_default_value(i, p_instance->input_default_stack_pos[i], _default_values[index]);
         else
             p_context._copy_stack_to_input(index, i);
     }
@@ -509,7 +528,7 @@ void OScriptVirtualMachine::_dependency_step(OScriptExecutionContext& p_context,
     {
         const int index = p_instance->input_pins[i] & OScriptNodeInstance::INPUT_MASK;
         if (p_instance->input_pins[i] & OScriptNodeInstance::INPUT_DEFAULT_VALUE_BIT)
-            p_context.set_input(i, &_default_values[index]);
+            p_context._set_input_from_default_value(i, p_instance->input_default_stack_pos[i], _default_values[index]);
         else
             p_context._copy_stack_to_input(index, i);
     }

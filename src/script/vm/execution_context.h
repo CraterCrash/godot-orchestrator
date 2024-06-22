@@ -113,8 +113,13 @@ protected:
 
     /// Set the input value at the specified index to the default value
     /// @param p_index the input stack index to mutate
+    /// @param p_stack_index the stack position to write the value
     /// @param p_value the default value to use
-    _FORCE_INLINE_ void _set_input_from_default_value(int p_index, const Variant& p_value) { _inputs[p_index] = const_cast<Variant*>(&p_value); }
+    _FORCE_INLINE_ void _set_input_from_default_value(int p_index, int p_stack_index, const Variant& p_value)
+    {
+        _variant_stack[p_stack_index] = p_value.duplicate();
+        _inputs[p_index] = &_variant_stack[p_stack_index];
+    }
 
     /// Copies a variant stack value to the input stack at the given indices
     /// @param p_stack_index the variant stack index to copy from
