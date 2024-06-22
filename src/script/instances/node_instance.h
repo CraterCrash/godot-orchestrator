@@ -86,6 +86,7 @@ protected:
     Vector<OScriptNodeInstance*> dependencies;           //! List of node instance dependencies for this node
     int* input_pins{ nullptr };                          //! Input pins
     int input_pin_count{ 0 };                            //! Input pin count
+    int* input_default_stack_pos{ nullptr };             //! Holds stack position references for default values
     int* output_pins{ nullptr };                         //! Output pins
     int output_pin_count{ 0 };                           //! Output pin count
     int working_memory_index{ 0 };                       //! Number of working memory slots
@@ -109,6 +110,9 @@ public:
     /// @param p_context execution context
     /// @return the output port and bits
     virtual int step(OScriptExecutionContext& p_context) = 0;
+
+    /// Destructor
+    ~OScriptNodeInstance() override;
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_INSTANCE_H
