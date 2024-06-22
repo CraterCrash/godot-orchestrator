@@ -469,17 +469,25 @@ bool OrchestratorScriptView::build()
     BuildLog log;
     _orchestration->validate_and_build(log);
 
-    if (!log.has_errors() && !log.has_warnings())
-        return true;
-
     _build_errors->clear();
     _build_errors->append_text(vformat("[b]File:[/b] %s\n\n", _resource->get_path()));
-    for (const String& E : log.get_messages())
-        _build_errors->append_text(vformat("* %s\n", E));
+    if (log.has_errors() || log.has_warnings())
+    {
+        _build_errors_dialog->set_title("Orchestration Build Errors");
+        for (const String& E : log.get_messages())
+            _build_errors->append_text(vformat("* %s\n", E));
 
-    _build_errors_dialog->popup_centered_ratio(0.5);
+        _build_errors_dialog->popup_centered_ratio(0.5);
+        return false;
+    }
+    else
+    {
+        _build_errors_dialog->set_title("Orchestration Validation Results");
+        _build_errors->append_text(vformat("* [color=green]OK[/color]: Script is valid."));
 
-    return false;
+        _build_errors_dialog->popup_centered_ratio(0.25);
+        return true;
+    }
 }
 
 void OrchestratorScriptView::_update_components()
