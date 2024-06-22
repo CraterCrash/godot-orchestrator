@@ -16,6 +16,7 @@
 //
 #include "for.h"
 
+#include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 
 class OScriptNodeForLoopInstance : public OScriptNodeInstance
@@ -99,8 +100,27 @@ bool OScriptNodeForLoop::_set(const StringName& p_name, const Variant& p_value)
 
 void OScriptNodeForLoop::post_initialize()
 {
+    // Fixes issue where a break pin exists but the break status was not persisted
+    if (!_with_break && find_pin("break", PD_Output).is_valid())
+        _with_break = true;
+
+    // Automatically adjusts old nodes to having the new aborted node layout
     if (_with_break && !find_pin("aborted", PD_Output).is_valid())
+    {
         reconstruct_node();
+
+        // This needs to be delayed until the end of frame due to pin index caching
+        callable_mp_lambda(this, [&,this]() {
+            const Ref<OScriptNodePin> aborted = find_pin("aborted", PD_Output);
+            const Ref<OScriptNodePin> completed = find_pin("completed", PD_Output);
+            if (aborted.is_valid() && completed.is_valid())
+            {
+                const Vector<Ref<OScriptNodePin>> targets = completed->get_connections();
+                if (!targets.is_empty())
+                    aborted->link(targets[0]);
+            }
+        }).call_deferred();
+    }
 
     super::post_initialize();
 }
