@@ -185,9 +185,12 @@ void OrchestratorScriptComponentPanel::_update_theme()
     if (theme.is_valid() && _tree)
     {
         Ref<StyleBoxFlat> sb = theme->get_stylebox("panel", "Tree")->duplicate();
-        sb->set_corner_radius(CORNER_TOP_LEFT, 0);
-        sb->set_corner_radius(CORNER_TOP_RIGHT, 0);
-        _tree->add_theme_stylebox_override("panel", sb);
+        if (sb.is_valid())
+        {
+            sb->set_corner_radius(CORNER_TOP_LEFT, 0);
+            sb->set_corner_radius(CORNER_TOP_RIGHT, 0);
+            _tree->add_theme_stylebox_override("panel", sb);
+        }
     }
 
     _add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
