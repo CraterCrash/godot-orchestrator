@@ -80,7 +80,8 @@ protected:
     /// Sets unassigned inputs on the specified node, if any exist.
     /// @param p_node the script node
     /// @param p_instance the node instance
-    void _set_unassigned_inputs(const Ref<OScriptNode>& p_node, const OScriptNodeInstance* p_instance);
+    /// @param r_function the function declaration
+    void _set_unassigned_inputs(const Ref<OScriptNode>& p_node, const OScriptNodeInstance* p_instance, Function& r_function);
 
     /// Sets unassigned outputs on the specified node, if any exist.
     /// @param p_node the script node
