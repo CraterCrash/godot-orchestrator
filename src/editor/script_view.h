@@ -146,8 +146,9 @@ public:
     bool save_as(const String& p_new_file);
 
     /// Performs the build step
+    /// @param p_show_success display a success message if the build is successful
     /// @return true if the build is successful, false otherwise
-    bool build();
+    bool build(bool p_show_success = false);
 
 private:
     /// Updates the components tree
