@@ -19,8 +19,6 @@
 
 #include "editor/component_panels/component_panel.h"
 
-class OrchestratorScriptView;
-
 class OrchestratorScriptFunctionsComponentPanel : public OrchestratorScriptComponentPanel
 {
     GDCLASS(OrchestratorScriptFunctionsComponentPanel, OrchestratorScriptComponentPanel);
@@ -33,8 +31,8 @@ class OrchestratorScriptFunctionsComponentPanel : public OrchestratorScriptCompo
         CM_REMOVE_FUNCTION
     };
 
-    OrchestratorScriptView* _view;
     Button* _override_button{ nullptr };
+    Callable _new_function_callback;
 
 protected:
     //~ Begin OrchestratorScriptComponentPanel Interface
@@ -72,7 +70,8 @@ public:
 
     /// Construct the function component panel
     /// @param p_orchestration the orchestration
-    explicit OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, OrchestratorScriptView* p_view);
+    /// @param p_new_function_callback the callable to call when a new function is to be added
+    explicit OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, Callable p_new_function_callback);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_FUNCTIONS_COMPONENT_PANEL_H

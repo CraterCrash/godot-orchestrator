@@ -22,7 +22,6 @@
 #include "common/settings.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/script_connections.h"
-#include "editor/script_view.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -86,7 +85,12 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_context_menu(int p_id)
 
 bool OrchestratorScriptFunctionsComponentPanel::_handle_add_new_item(const String& p_name)
 {
-    return _view->_create_new_function(p_name).is_valid();
+    if (_new_function_callback.is_valid())
+    {
+        const Ref<OScriptFunction> result = _new_function_callback.call(p_name, false);
+        return result.is_valid();
+    }
+    return false;
 }
 
 void OrchestratorScriptFunctionsComponentPanel::_handle_item_selected()
@@ -237,7 +241,7 @@ void OrchestratorScriptFunctionsComponentPanel::_bind_methods()
     ADD_SIGNAL(MethodInfo("override_function_requested"));
 }
 
-OrchestratorScriptFunctionsComponentPanel::OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, OrchestratorScriptView* p_view)
-    : OrchestratorScriptComponentPanel("Functions", p_orchestration), _view(p_view)
+OrchestratorScriptFunctionsComponentPanel::OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, Callable p_new_function_callback)
+    : OrchestratorScriptComponentPanel("Functions", p_orchestration), _new_function_callback(p_new_function_callback)
 {
 }

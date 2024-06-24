@@ -23,7 +23,9 @@
 #include "editor/component_panels/macros_panel.h"
 #include "editor/component_panels/signals_panel.h"
 #include "editor/component_panels/variables_panel.h"
+#include "editor/editor_panel.h"
 #include "editor/getting_started.h"
+#include "editor/goto_node_dialog.h"
 #include "editor/graph/actions/action_menu.h"
 #include "editor/graph/actions/default_action_registrar.h"
 #include "editor/graph/autowire_selections.h"
@@ -35,18 +37,18 @@
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
-#include "editor/main_view.h"
 #include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/script_connections.h"
-#include "editor/script_view.h"
+#include "editor/script_editor_viewport.h"
 #include "editor/search/search_dialog.h"
 #include "editor/search/variable_classification_dialog.h"
 #include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
 #include "script/serialization/text_loader_instance.h"
+
 
 void register_editor_types()
 {
@@ -88,14 +90,16 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerScriptNode)
 
     // View components
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorViewport)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptEditorViewport)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGotoNodeDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorUpdater)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorAboutDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScreenSelect)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorWindowWrapper)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorMainView)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGettingStarted)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptConnectionsDialog)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptView)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptFunctionsComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptGraphsComponentPanel)
