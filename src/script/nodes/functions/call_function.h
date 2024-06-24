@@ -82,6 +82,14 @@ protected:
     /// @param p_method the Godot method object
     virtual void _create_pins_for_method(const MethodInfo& p_method);
 
+    /// Creates the pin for a given property
+    /// @param p_property the property to source the pin from
+    /// @param p_direction the pin direction
+    /// @param p_name the name to assign to the pin
+    /// @param p_flags the initial pin flags
+    /// @return the constructed pin or an invalid reference if construction failed
+    virtual Ref<OScriptNodePin> _create_pin_for_property(const PropertyInfo& p_property, EPinDirection p_direction, const String& p_name, BitField<OScriptNodePin::Flags> p_flags);
+
     /// Set flags for the function based on the Godot method flags
     /// @param p_method the Godot method object
     virtual void _set_function_flags(const MethodInfo& p_method);
