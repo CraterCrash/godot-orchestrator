@@ -18,7 +18,7 @@
 
 #include "common/version.h"
 #include "editor/graph/graph_edit.h"
-#include "editor/main_view.h"
+#include "editor/editor_panel.h"
 #include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/window_wrapper.h"
@@ -75,10 +75,10 @@ void OrchestratorPlugin::_notification(int p_what)
         _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));
         _window_wrapper->set_margins_enabled(true);
 
-        _main_view = memnew(OrchestratorMainView(this, _window_wrapper));
+        _editor_panel = memnew(OrchestratorEditorPanel(_window_wrapper));
 
         _editor.get_editor_main_screen()->add_child(_window_wrapper);
-        _window_wrapper->set_wrapped_control(_main_view);
+        _window_wrapper->set_wrapped_control(_editor_panel);
         _window_wrapper->set_v_size_flags(Control::SIZE_EXPAND_FILL);
         _window_wrapper->hide();
         _window_wrapper->connect("window_visibility_changed", callable_mp(this, &OrchestratorPlugin::_on_window_visibility_changed));
@@ -91,8 +91,8 @@ void OrchestratorPlugin::_notification(int p_what)
     {
         OrchestratorGraphEdit::free_clipboard();
 
-        memdelete(_main_view);
-        _main_view = nullptr;
+        memdelete(_editor_panel);
+        _editor_panel = nullptr;
 
         _plugin = nullptr;
     }
@@ -102,10 +102,10 @@ void OrchestratorPlugin::_edit(Object* p_object)
 {
     if (p_object && _handles(p_object))
     {
-        OScript* script = Object::cast_to<OScript>(p_object);
-        if (script)
+        Ref<Resource> resource = Object::cast_to<Resource>(p_object);
+        if (resource.is_valid())
         {
-            _main_view->edit_script(script);
+            _editor_panel->edit_resource(resource);
             _window_wrapper->move_to_foreground();
         }
     }
@@ -216,7 +216,7 @@ void OrchestratorPlugin::request_editor_restart()
 {
     AcceptDialog* request = memnew(AcceptDialog);
     request->set_title("Restart editor");
-    _main_view->add_child(request);
+    _editor_panel->add_child(request);
 
     VBoxContainer* container = memnew(VBoxContainer);
     Label* label = memnew(Label);
@@ -237,14 +237,14 @@ String OrchestratorPlugin::get_plugin_version() const
 
 void OrchestratorPlugin::_apply_changes()
 {
-    if (_main_view)
-        _main_view->apply_changes();
+    if (_editor_panel)
+        _editor_panel->apply_changes();
 }
 
 void OrchestratorPlugin::_set_window_layout(const Ref<ConfigFile>& p_configuration)
 {
-    if (_main_view)
-        _main_view->set_window_layout(p_configuration);
+    if (_editor_panel)
+        _editor_panel->set_window_layout(p_configuration);
 
     if (restore_windows_on_load())
     {
@@ -262,8 +262,8 @@ void OrchestratorPlugin::_set_window_layout(const Ref<ConfigFile>& p_configurati
 
 void OrchestratorPlugin::_get_window_layout(const Ref<ConfigFile>& p_configuration)
 {
-    if (_main_view)
-        _main_view->get_window_layout(p_configuration);
+    if (_editor_panel)
+        _editor_panel->get_window_layout(p_configuration);
 
     if (_window_wrapper->get_window_enabled())
     {
@@ -286,8 +286,8 @@ void OrchestratorPlugin::_get_window_layout(const Ref<ConfigFile>& p_configurati
 
 bool OrchestratorPlugin::_build()
 {
-    if (_main_view)
-        return _main_view->build();
+    if (_editor_panel)
+        return _editor_panel->build();
 
     return true;
 }

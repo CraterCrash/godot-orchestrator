@@ -29,7 +29,7 @@
 using namespace godot;
 
 /// Forward declarations
-class OrchestratorMainView;
+class OrchestratorEditorPanel;
 class OrchestratorWindowWrapper;
 
 /// The Orchestrator editor plug-in.
@@ -42,7 +42,7 @@ class OrchestratorPlugin : public EditorPlugin
     static OrchestratorPlugin* _plugin;
 
     EditorInterface& _editor;                                 //! Godot editor interface reference
-    OrchestratorMainView* _main_view{ nullptr };              //! Plugin's main view
+    OrchestratorEditorPanel* _editor_panel{ nullptr };        //! Plugin's editor panel
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
     Vector<Ref<EditorExportPlugin>> _export_plugins;
