@@ -19,4 +19,14 @@
 
 #define OACCEL_KEY(mask,key) (Key(static_cast<int>(mask) | static_cast<int>(key)))
 
+#define OCONNECT(obj, signal, method)               \
+        if (!obj->is_connected(signal, method)) {   \
+            obj->connect(signal, method);           \
+        }
+
+#define ODISCONNECT(obj, signal, method)            \
+        if (obj->is_connected(signal, method)) {    \
+            obj->disconnect(signal, method);        \
+        }
+
 #endif // ORCHESTRATOR_MACROS_H
