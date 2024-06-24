@@ -464,7 +464,7 @@ bool OrchestratorScriptView::save_as(const String& p_new_file)
     return false;
 }
 
-bool OrchestratorScriptView::build()
+bool OrchestratorScriptView::build(bool p_show_success)
 {
     BuildLog log;
     _orchestration->validate_and_build(log);
@@ -480,14 +480,14 @@ bool OrchestratorScriptView::build()
         _build_errors_dialog->popup_centered_ratio(0.5);
         return false;
     }
-    else
+
+    if (p_show_success)
     {
         _build_errors_dialog->set_title("Orchestration Validation Results");
         _build_errors->append_text(vformat("* [color=green]OK[/color]: Script is valid."));
-
         _build_errors_dialog->popup_centered_ratio(0.25);
-        return true;
     }
+    return true;
 }
 
 void OrchestratorScriptView::_update_components()
@@ -547,7 +547,7 @@ OrchestratorGraphEdit* OrchestratorScriptView::_get_or_create_tab(const StringNa
     graph->connect("focus_requested", callable_mp(this, &OrchestratorScriptView::_on_graph_focus_requested));
     graph->connect("collapse_selected_to_function", callable_mp(this, &OrchestratorScriptView::_collapse_selected_to_function).bind(graph));
     graph->connect("expand_node", callable_mp(this, &OrchestratorScriptView::_expand_node).bind(graph));
-    graph->connect("validation_requested", callable_mp(this, &OrchestratorScriptView::build));
+    graph->connect("validation_requested", callable_mp(this, &OrchestratorScriptView::build).bind(true));
 
     if (p_focus)
         _tabs->get_tab_bar()->set_current_tab(_tabs->get_tab_count() - 1);
