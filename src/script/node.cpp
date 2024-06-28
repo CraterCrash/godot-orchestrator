@@ -282,7 +282,7 @@ Vector<Ref<OScriptNodePin>> OScriptNode::get_eligible_autowire_pins(const Ref<OS
     for (const Ref<OScriptNodePin>& pin : get_all_pins())
     {
         // Invalid or hidden pins are skipped
-        if (!pin.is_valid() && pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+        if (!pin.is_valid() || pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
             continue;
 
         // Skip pins that are specifically flagged as non-autowirable
