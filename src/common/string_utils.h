@@ -57,6 +57,8 @@ namespace StringUtils
     //~ Begin "taken from ustring.h"
     String path_to_file(const String &p_local, const String &p_path);
     String path_to(const String &p_local, const String &p_path);
+    String property_name_encode(const String& p_name);
+    String c_escape_multiline(const String& p_name);
     //~ End "taken from ustring.h"
 }
 

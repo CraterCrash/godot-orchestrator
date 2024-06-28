@@ -38,7 +38,7 @@ bool OScriptFunction::_get(const StringName &p_name, Variant &r_value)
     }
     else if (p_name.match("method"))
     {
-        r_value = DictionaryUtils::from_method(_method);
+        r_value = DictionaryUtils::from_method(_method, true);
         return true;
     }
     else if (p_name.match("id"))

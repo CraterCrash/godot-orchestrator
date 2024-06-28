@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
 #include "common/settings.h"
+#include "common/string_utils.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -70,6 +71,14 @@ void OScriptLanguage::_add_node_class_internal(const StringName& p_class, const 
 void OScriptLanguage::_init()
 {
     Logger::info("Initializing OrchestratorScript");
+
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    if (settings)
+    {
+        const String format = settings->get_setting("settings/storage_format", "Text");
+        if (format.match("Binary"))
+            _extension = ORCHESTRATOR_SCRIPT_EXTENSION;
+    }
 }
 
 String OScriptLanguage::_get_name() const
@@ -84,12 +93,12 @@ String OScriptLanguage::_get_type() const
 
 String OScriptLanguage::_get_extension() const
 {
-    return EXTENSION;
+    return _extension;
 }
 
 PackedStringArray OScriptLanguage::_get_recognized_extensions() const
 {
-    return { Array::make(EXTENSION) };
+    return { Array::make(ORCHESTRATOR_SCRIPT_EXTENSION, ORCHESTRATOR_SCRIPT_TEXT_EXTENSION) };
 }
 
 bool OScriptLanguage::_can_inherit_from_file() const
@@ -345,12 +354,14 @@ List<Ref<OScript>> OScriptLanguage::get_scripts() const
 {
     List<Ref<OScript>> scripts;
     {
+        const PackedStringArray extensions = _get_recognized_extensions();
+
         MutexLock mutex_lock(*this->lock.ptr());
         const SelfList<OScript>* iterator = _scripts.first();
         while (iterator)
         {
             String path = iterator->self()->get_path();
-            if (path.get_extension().to_lower() == EXTENSION)
+            if (extensions.has(path.get_extension().to_lower()))
                 scripts.push_back(Ref<OScript>(iterator->self()));
 
             iterator = iterator->next();
@@ -404,6 +415,15 @@ bool OScriptLanguage::debug_break_parse(const String& p_file, int p_node, const 
     //          Currently the EngineDebugger::debug method is not exposed to GDE and so it is
     //          not presently possible to actually execute any type of debugger operation.
     return false;
+}
+
+String OScriptLanguage::get_script_extension_filter() const
+{
+    PackedStringArray results;
+    for (const String& extension : _get_recognized_extensions())
+        results.push_back(vformat("*.%s", extension));
+
+    return StringUtils::join(",", results);
 }
 
 Ref<OScriptNode> OScriptLanguage::create_node_from_name(const String& p_class_name, Orchestration* p_owner, bool p_allocate_id)

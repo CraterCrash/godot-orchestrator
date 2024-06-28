@@ -14,13 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "editor/plugins/orchestrator_editor_plugin.h"
+
 #include "common/version.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/main_view.h"
 #include "editor/plugins/inspector_plugin_variable.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
+#include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/window_wrapper.h"
 #include "script/script.h"
+#include "script/serialization/text_loader_instance.h"
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
@@ -58,6 +61,10 @@ void OrchestratorPlugin::_notification(int p_what)
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginVariable));
         for (const Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
             add_inspector_plugin(plugin);
+
+        _export_plugins.push_back(memnew(OrchestratorEditorExportPlugin));
+        for (const Ref<EditorExportPlugin>& plugin : _export_plugins)
+            add_export_plugin(plugin);
 
         // Register the plugin's icon for CreateScript Dialog
         Ref<Theme> theme = ThemeDB::get_singleton()->get_default_theme();

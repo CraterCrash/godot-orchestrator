@@ -20,6 +20,7 @@
 #include "editor/theme/theme_cache.h"
 
 #include <godot_cpp/classes/config_file.hpp>
+#include <godot_cpp/classes/editor_export_plugin.hpp>
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
@@ -44,6 +45,7 @@ class OrchestratorPlugin : public EditorPlugin
     OrchestratorMainView* _main_view{ nullptr };              //! Plugin's main view
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
+    Vector<Ref<EditorExportPlugin>> _export_plugins;
     Ref<OrchestratorThemeCache> _theme_cache;
 
 public:
