@@ -48,7 +48,7 @@ public:
                 if (uint64_t(_args.size()) != _method.arguments.size())
                     _args.resize(_method.arguments.size());
 
-                for (int i = 0; i < _method.arguments.size(); i++)
+                for (uint64_t i = 0; i < _method.arguments.size(); i++)
                     _args[i] = p_context.get_input(i + 2);
             }
 
