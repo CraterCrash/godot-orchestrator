@@ -982,7 +982,9 @@ void OScriptVirtualMachine::call_method(const StringName& p_method, const Varian
     }
 
     if (F->max_stack > _max_call_stack)
+    {
         ERR_FAIL_MSG("Unable to call function, call stack exceeds " + itos(_max_call_stack));
+    }
 
     // Setup the execution stack
     OScriptExecutionStackInfo si;
