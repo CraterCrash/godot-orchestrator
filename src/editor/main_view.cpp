@@ -16,6 +16,7 @@
 //
 #include "main_view.h"
 
+#include "common/macros.h"
 #include "common/settings.h"
 #include "common/scene_utils.h"
 #include "common/version.h"
@@ -51,8 +52,6 @@
 #include <godot_cpp/classes/v_separator.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
-
-#define SKEY(m,k) Key(static_cast<int>(m) | static_cast<int>(k))
 
 OrchestratorMainView::OrchestratorMainView(OrchestratorPlugin* p_plugin, OrchestratorWindowWrapper* p_window_wrapper)
 {
@@ -93,7 +92,7 @@ void OrchestratorMainView::_notification(int p_what)
         _file_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
         _file_menu->set_text("File");
         _file_menu->get_popup()->clear();
-        _file_menu->get_popup()->add_item("New Orchestration...", AccelMenuIds::NEW, SKEY(KEY_MASK_CTRL, KEY_N));
+        _file_menu->get_popup()->add_item("New Orchestration...", AccelMenuIds::NEW, OACCEL_KEY(KEY_MASK_CTRL, KEY_N));
         _file_menu->get_popup()->add_item("Open...", AccelMenuIds::OPEN);
 
         _recent_history = memnew(PopupMenu);
@@ -105,19 +104,19 @@ void OrchestratorMainView::_notification(int p_what)
         _update_recent_history();
 
         _file_menu->get_popup()->add_separator();
-        _file_menu->get_popup()->add_item("Save", AccelMenuIds::SAVE, SKEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_S));
+        _file_menu->get_popup()->add_item("Save", AccelMenuIds::SAVE, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_S));
         _file_menu->get_popup()->add_item("Save As...", AccelMenuIds::SAVE_AS);
-        _file_menu->get_popup()->add_item("Save All", AccelMenuIds::SAVE_ALL, SKEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S));
+        _file_menu->get_popup()->add_item("Save All", AccelMenuIds::SAVE_ALL, OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S));
         _file_menu->get_popup()->add_separator();
         _file_menu->get_popup()->add_item("Show in Filesystem", AccelMenuIds::SHOW_IN_FILESYSTEM);
         _file_menu->get_popup()->add_separator();
-        _file_menu->get_popup()->add_item("Close", AccelMenuIds::CLOSE, SKEY(KEY_MASK_CTRL, KEY_W));
+        _file_menu->get_popup()->add_item("Close", AccelMenuIds::CLOSE, OACCEL_KEY(KEY_MASK_CTRL, KEY_W));
         _file_menu->get_popup()->add_item("Close All", AccelMenuIds::CLOSE_ALL);
         _file_menu->get_popup()->add_separator();
-        _file_menu->get_popup()->add_item("Run", AccelMenuIds::RUN, SKEY(KEY_MASK_SHIFT | KEY_MASK_CTRL, KEY_X));
+        _file_menu->get_popup()->add_item("Run", AccelMenuIds::RUN, OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_CTRL, KEY_X));
         _file_menu->get_popup()->add_separator();
-        _file_menu->get_popup()->add_item("Toggle Orchestrator Panel", AccelMenuIds::TOGGLE_LEFT_PANEL, SKEY(KEY_MASK_CTRL, KEY_BACKSLASH));
-        _file_menu->get_popup()->add_item("Toggle Component Panel", AccelMenuIds::TOGGLE_RIGHT_PANEL, SKEY(KEY_MASK_CTRL, KEY_SLASH));
+        _file_menu->get_popup()->add_item("Toggle Orchestrator Panel", AccelMenuIds::TOGGLE_LEFT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_BACKSLASH));
+        _file_menu->get_popup()->add_item("Toggle Component Panel", AccelMenuIds::TOGGLE_RIGHT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_SLASH));
         _file_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         _file_menu->get_popup()->connect("about_to_popup",
                                          callable_mp(this, &OrchestratorMainView::_on_prepare_file_menu));
@@ -128,7 +127,7 @@ void OrchestratorMainView::_notification(int p_what)
         _goto_menu->set_v_size_flags(SIZE_SHRINK_BEGIN);
         _goto_menu->set_text("Goto");
         _goto_menu->get_popup()->clear();
-        _goto_menu->get_popup()->add_item("Goto Node", AccelMenuIds::GOTO_NODE, SKEY(KEY_MASK_CTRL, KEY_L));
+        _goto_menu->get_popup()->add_item("Goto Node", AccelMenuIds::GOTO_NODE, OACCEL_KEY(KEY_MASK_CTRL, KEY_L));
         _goto_menu->get_popup()->connect("id_pressed", callable_mp(this, &OrchestratorMainView::_on_menu_option));
         _goto_menu->get_popup()->connect("about_to_popup", callable_mp(this, &OrchestratorMainView::_on_prepare_goto_menu));
         left_menu->add_child(_goto_menu);
