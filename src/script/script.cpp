@@ -25,9 +25,9 @@
 #include <godot_cpp/core/mutex_lock.hpp>
 
 OScript::OScript()
-    : _valid(true)
+    : Orchestration(this, OT_Script)
+    , _valid(true)
     , _language(OScriptLanguage::get_singleton())
-    , Orchestration(this, OT_Script)
 {
 }
 

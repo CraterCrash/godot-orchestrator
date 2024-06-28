@@ -23,10 +23,10 @@
 #include <godot_cpp/core/class_db.hpp>
 
 OScriptNode::OScriptNode()
-    : _initialized(false)
+    : _orchestration(nullptr)
+    , _initialized(false)
     , _id(-1)
     , _flags(ScriptNodeFlags::CATALOGABLE)
-    , _orchestration(nullptr)
 {
 }
 
