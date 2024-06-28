@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_SCRIPT_LANGUAGE_H
 
 #include "common/logger.h"
+#include "serialization/format_defs.h"
 
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -66,6 +67,7 @@ private:
     SelfList<OScript>::List _scripts;                          //! all loaded scripts
     HashMap<StringName, Variant> _global_constants;            //! Stores global constants
     HashMap<StringName, Variant> _named_global_constants;      //! Stores named global constants
+    String _extension{ ORCHESTRATOR_SCRIPT_TEXT_EXTENSION };   //! The language's extension
 
 protected:
 
@@ -84,9 +86,6 @@ protected:
 public:
     /// Public lock used for specific synchronizing use cases.
     Ref<Mutex> lock;
-
-    /// The language's extension
-    static inline const char* EXTENSION = "os";
 
     /// The language's type
     static inline const char* TYPE = "Orchestrator";
@@ -161,6 +160,8 @@ public:
     // Debugging
     bool debug_break(const String& p_error, bool p_allow_continue);
     bool debug_break_parse(const String& p_file, int p_node, const String& p_error);
+
+    String get_script_extension_filter() const;
 
     /// Adds the node clas to the language (DO NOT USE DIRECTLY!!!!)
     /// @tparam T the class type

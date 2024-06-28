@@ -49,12 +49,16 @@ void OScriptNodePin::_bind_methods()
 bool OScriptNodePin::_load(const Dictionary& p_data)
 {
     // These are required fields for a pin
-    if (!p_data.has("pin_name") || !p_data.has("type") || !p_data.has("dir"))
+    if (!p_data.has("pin_name"))
         return false;
 
     _pin_name = p_data["pin_name"];
-    _type = VariantUtils::to_type(p_data["type"]);
-    _direction = EPinDirection(int(p_data["dir"]));
+
+    if (p_data.has("type"))
+        _type = VariantUtils::to_type(p_data["type"]);
+
+    if (p_data.has("dir"))
+        _direction = EPinDirection(int(p_data["dir"]));
 
     if (p_data.has("flags"))
         _flags = int(p_data["flags"]);
@@ -80,8 +84,12 @@ Dictionary OScriptNodePin::_save()
 {
     Dictionary data;
     data["pin_name"] = _pin_name;
-    data["type"] = _type;
-    data["dir"] = _direction;
+
+    if (_type != Variant::NIL)
+        data["type"] = _type;
+
+    if (_direction != PD_Input)
+        data["dir"] = _direction;
 
     if (_flags > 0)
         data["flags"] = _flags;
@@ -93,13 +101,17 @@ Dictionary OScriptNodePin::_save()
         data["target_class"] = _target_class;
 
     if (_default_value.get_type() != Variant::NIL)
-        data["dv"] = _default_value;
+    {
+        if (_default_value != Variant())
+            data["dv"] = _default_value;
+    }
 
     // This fixes any potential data issues and guarantees that a generated default value exists.
     if (_generated_default_value.get_type() == Variant::NIL)
         _generated_default_value = VariantUtils::make_default(_type);
 
-    data["gdv"] = _generated_default_value;
+    if (VariantUtils::make_default(_type) != _generated_default_value)
+        data["gdv"] = _generated_default_value;
 
     return data;
 }

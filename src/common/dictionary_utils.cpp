@@ -18,11 +18,26 @@
 
 #include "memory_utils.h"
 
+#include <godot_cpp/variant/utility_functions.hpp>
+
 namespace DictionaryUtils
 {
+    bool is_property_equal(const PropertyInfo& p_left, const PropertyInfo& p_right)
+    {
+        return p_left.name == p_right.name &&
+                p_left.type == p_right.type &&
+                p_left.hint == p_right.hint &&
+                p_left.class_name == p_right.class_name &&
+                p_left.hint_string == p_right.hint_string &&
+                p_left.usage == p_right.usage;
+    }
+
     PropertyInfo to_property(const Dictionary& p_dict)
     {
         PropertyInfo pi;
+        pi.hint = PROPERTY_HINT_NONE;
+        pi.usage = PROPERTY_USAGE_DEFAULT;
+
         if (p_dict.has("name"))
             pi.name = p_dict["name"];
         if (p_dict.has("type"))
@@ -33,20 +48,45 @@ namespace DictionaryUtils
             pi.hint = p_dict["hint"];
         if (p_dict.has("hint_string"))
             pi.hint_string = p_dict["hint_string"];
+
+        // Fixes godot-cpp bug where PropertyInfo usage was being serialized incorrectly.
         if (p_dict.has("usage"))
-            pi.usage = p_dict["usage"];
+        {
+            uint32_t usage = p_dict["usage"];
+            if (usage != 7)
+                pi.usage = usage;
+        }
+
         return pi;
     }
 
-    Dictionary from_property(const PropertyInfo& p_property)
+    Dictionary from_property(const PropertyInfo& p_property, bool p_use_minimal)
     {
         Dictionary dict;
-        dict["name"] = p_property.name;
-        dict["type"] = p_property.type;
-        dict["class_name"] = p_property.class_name;
-        dict["hint"] = p_property.hint;
-        dict["hint_string"] = p_property.hint_string;
-        dict["usage"] = p_property.usage;
+
+        if (!p_use_minimal || !p_property.name.is_empty())
+            dict["name"] = p_property.name;
+
+        if (!p_use_minimal || p_property.type != Variant::NIL)
+            dict["type"] = p_property.type;
+
+        if (!p_use_minimal || !p_property.class_name.is_empty())
+            dict["class_name"] = p_property.class_name;
+
+        if (!p_use_minimal || p_property.hint != PROPERTY_HINT_NONE)
+            dict["hint"] = p_property.hint;
+
+        if (!p_use_minimal || !p_property.hint_string.is_empty())
+            dict["hint_string"] = p_property.hint_string;
+
+        // Fixes godot-cpp bug where PropertyInfo usage was being serialized incorrectly.
+        uint32_t usage = p_property.usage;
+        if (usage == 7)
+            usage = PROPERTY_USAGE_DEFAULT;
+
+        if (!p_use_minimal || usage != PROPERTY_USAGE_DEFAULT)
+            dict["usage"] = usage;
+
         return dict;
     }
 
@@ -91,22 +131,36 @@ namespace DictionaryUtils
         return mi;
     }
 
-    Dictionary from_method(const MethodInfo& p_method)
+    Dictionary from_method(const MethodInfo& p_method, bool p_use_minimal)
     {
+        PropertyInfo empty_property;
+        empty_property.usage = PROPERTY_USAGE_DEFAULT;
+        empty_property.hint = PROPERTY_HINT_NONE;
+
         Dictionary dict;
         dict["name"] = p_method.name;
-        dict["return"] = from_property(p_method.return_val);
-        dict["flags"] = p_method.flags;
 
-        Array default_args;
-        for (const Variant& default_argument : p_method.default_arguments)
-            default_args.push_back(default_argument);
-        dict["default_args"] = default_args;
+        if (!p_use_minimal || !is_property_equal(p_method.return_val, empty_property))
+            dict["return"] = from_property(p_method.return_val, p_use_minimal);
 
-        Array args;
-        for (const PropertyInfo& argument : p_method.arguments)
-            args.push_back(from_property(argument));
-        dict["args"] = args;
+        if (!p_use_minimal || p_method.flags != METHOD_FLAGS_DEFAULT)
+            dict["flags"] = p_method.flags;
+
+        if (!p_use_minimal || !p_method.default_arguments.empty())
+        {
+            Array default_args;
+            for (const Variant& default_argument : p_method.default_arguments)
+                default_args.push_back(default_argument);
+            dict["default_args"] = default_args;
+        }
+
+        if (!p_use_minimal || !p_method.arguments.empty())
+        {
+            Array args;
+            for (const PropertyInfo& argument : p_method.arguments)
+                args.push_back(from_property(argument, p_use_minimal));
+            dict["args"] = args;
+        }
 
         return dict;
     }
@@ -120,5 +174,30 @@ namespace DictionaryUtils
             result[key] = val;
         }
         return result;
+    }
+
+    struct PropertyInfoNameSort
+    {
+        _FORCE_INLINE_ bool operator()(const PropertyInfo& a, const PropertyInfo& b) const
+        {
+            return String(a.name) < String(b.name);
+        }
+    };
+
+    List<PropertyInfo> to_properties(const TypedArray<Dictionary>& p_array, bool p_sorted)
+    {
+        List<PropertyInfo> properties;
+
+        uint64_t array_size = p_array.size();
+        for (uint64_t i = 0; i < array_size; i++)
+        {
+            const PropertyInfo pi = to_property(p_array[i]);
+            properties.push_back(pi);
+        }
+
+        if (p_sorted)
+            properties.sort_custom<PropertyInfoNameSort>();
+
+        return properties;
     }
 }

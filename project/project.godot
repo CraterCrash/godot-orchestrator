@@ -50,4 +50,3 @@ move_right={
 [orchestrator]
 
 settings/default_type="Node3D"
-settings/runtime/max_call_stack=256

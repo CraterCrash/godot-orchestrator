@@ -17,8 +17,8 @@
 #include "main_view.h"
 
 #include "common/macros.h"
-#include "common/settings.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "common/version.h"
 #include "editor/about_dialog.h"
 #include "editor/graph/graph_edit.h"
@@ -27,6 +27,7 @@
 #include "editor/window_wrapper.h"
 #include "getting_started.h"
 #include "script/language.h"
+#include "script/serialization/resource_cache.h"
 #include "script_view.h"
 
 #include <godot_cpp/classes/display_server.hpp>
@@ -235,12 +236,14 @@ void OrchestratorMainView::_notification(int p_what)
         _about_window = memnew(OrchestratorAboutDialog);
         add_child(_about_window);
 
+        const String filter = OScriptLanguage::get_singleton()->get_script_extension_filter();
+
         _open_dialog = memnew(FileDialog);
         _open_dialog->set_min_size(Vector2(700, 400));
         _open_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
         _open_dialog->set_title("Open Orchestration Script");
         _open_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
-        _open_dialog->add_filter("*.os", "Orchestrator Scripts");
+        _open_dialog->add_filter(filter, "Orchestrator Scripts");
         _open_dialog->connect("file_selected", callable_mp(this, &OrchestratorMainView::_on_open_script_file));
         add_child(_open_dialog);
 
@@ -249,7 +252,7 @@ void OrchestratorMainView::_notification(int p_what)
         _save_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
         _save_dialog->set_title("Save As Orchestration Script");
         _save_dialog->set_file_mode(FileDialog::FILE_MODE_SAVE_FILE);
-        _save_dialog->add_filter("*.os", "Orchestrator Scripts");
+        _save_dialog->add_filter(filter, "Orchestrator Scripts");
         _save_dialog->connect("file_selected", callable_mp(this, &OrchestratorMainView::_on_save_script_file));
         add_child(_save_dialog);
 
@@ -490,6 +493,9 @@ void OrchestratorMainView::_close_script(int p_index, bool p_save)
 
     if (p_save)
         file.editor->apply_changes();
+
+    // Drop the resource from the cache
+    ResourceCache::get_singleton()->remove_ref(file.file_name);
 
     // Hide the editor and remove it
     file.editor->queue_free();
