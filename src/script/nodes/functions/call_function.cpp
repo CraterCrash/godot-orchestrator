@@ -212,7 +212,7 @@ bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) c
     }
     else if (p_name.match("method"))
     {
-        r_value = DictionaryUtils::from_method(_reference.method);
+        r_value = DictionaryUtils::from_method(_reference.method, true);
         return true;
     }
     else if (p_name.match("variable_arg_count"))

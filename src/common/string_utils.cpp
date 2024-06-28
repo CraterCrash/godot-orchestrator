@@ -114,4 +114,23 @@ namespace StringUtils
 
         return dir;
     }
+
+    String property_name_encode(const String& p_name)
+    {
+        const char32_t *cstr = p_name.ptr();
+        for (int i = 0; cstr[i]; i++)
+            if (cstr[i] == '=' || cstr[i] == '"' || cstr[i] == ';' || cstr[i] == '[' || cstr[i] == ']' || cstr[i] < 33 || cstr[i] > 126)
+                return "\"" + c_escape_multiline(p_name) + "\"";
+
+        return p_name;
+    }
+
+    String c_escape_multiline(const String& p_name)
+    {
+        String escaped = p_name.ptr();
+        escaped = escaped.replace("\\", "\\\\");
+        escaped = escaped.replace("\"", "\\\"");
+        return escaped;
+    }
+
 }

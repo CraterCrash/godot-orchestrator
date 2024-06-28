@@ -128,18 +128,19 @@ void OrchestratorSettings::_register_deprecated_settings()
 
     // Deprecated with Orchestrator v2
     _removed.emplace_back(BOOL_SETTING("ui/nodes/show_conversion_nodes", false));
+    _removed.emplace_back(BOOL_SETTING("settings/save_copy_as_text_resource", false));
+    _removed.emplace_back(BOOL_SETTING("settings/runtime/tickable", true));
 }
 
 void OrchestratorSettings::_register_settings()
 {
     // Orchestrator v2
     _settings.emplace_back(RESOURCE_SETTING("settings/default_type", "Object", "Node"));
+    _settings.emplace_back(SENUM_SETTING("settings/storage_format", "Text,Binary", "Text"));
     _settings.emplace_back(SENUM_SETTING("settings/log_level", "FATAL,ERROR,WARN,INFO,DEBUG,TRACE", "INFO"));
-    _settings.emplace_back(BOOL_SETTING("settings/save_copy_as_text_resource", false));
 
     _settings.emplace_back(RANGE_SETTING("settings/runtime/max_call_stack", "256,1024,256", 1024));
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
-    _settings.emplace_back(BOOL_SETTING("settings/runtime/tickable", true));
 
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
 

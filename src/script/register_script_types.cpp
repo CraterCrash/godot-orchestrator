@@ -19,6 +19,7 @@
 #include "common/settings.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
+#include "script/serialization/resource_cache.h"
 #include "script/serialization/serialization.h"
 #include "script/vm/script_state.h"
 
@@ -37,6 +38,8 @@ namespace orchestrator
         OScriptLanguage* language{ nullptr };
         OrchestratorSettings* settings{ nullptr };
         ExtensionDB* extension_db{ nullptr };
+
+        ResourceCache* resource_cache{ nullptr };
     }
 }
 
@@ -47,6 +50,8 @@ void register_script_types()
     // Register loader/savers
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptBinaryResourceLoader)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptBinaryResourceSaver)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptTextResourceLoader)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptTextResourceSaver)
 
     // Settings
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSettings)
@@ -228,13 +233,17 @@ void register_script_resource_formats()
 {
     using namespace orchestrator::internal;
 
+    resource_cache = new ResourceCache();
+
     // Create loaders & register
     loaders.push_back(memnew(OScriptBinaryResourceLoader));
+    loaders.push_back(memnew(OScriptTextResourceLoader));
     for (const Ref<ResourceFormatLoader>& loader : loaders)
         ResourceLoader::get_singleton()->add_resource_format_loader(loader);
 
     // Create savers & register
     savers.push_back(memnew(OScriptBinaryResourceSaver));
+    savers.push_back(memnew(OScriptTextResourceSaver));
     for (const Ref<ResourceFormatSaver>& saver : savers)
         ResourceSaver::get_singleton()->add_resource_format_saver(saver);
 }
@@ -256,6 +265,9 @@ void unregister_script_resource_formats()
         loader.unref();
     }
     loaders.clear();
+
+    delete resource_cache;
+    resource_cache = nullptr;
 }
 
 void register_extension_db()

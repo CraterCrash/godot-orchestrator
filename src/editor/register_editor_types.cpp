@@ -36,6 +36,8 @@
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
 #include "editor/main_view.h"
+#include "editor/plugins/inspector_plugin_variable.h"
+#include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/script_connections.h"
 #include "editor/script_view.h"
@@ -44,12 +46,13 @@
 #include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
-#include "plugins/inspector_plugin_variable.h"
+#include "script/serialization/text_loader_instance.h"
 
 void register_editor_types()
 {
     // Plugin bits
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorPlugin)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorExportPlugin)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)

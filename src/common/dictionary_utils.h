@@ -33,8 +33,9 @@ namespace DictionaryUtils
     /// Convert a PropertyInfo to a Dictionary.
     ///
     /// @param p_property the property to convert to a dictionary
+    /// @param p_use_minimal the dictinoary will only be populated with non-default PropertyInfo values
     /// @return the dictionary
-    Dictionary from_property(const PropertyInfo& p_property);
+    Dictionary from_property(const PropertyInfo& p_property, bool p_use_minimal = false);
 
     /// Convert a Dictionary to a GDExtensionPropertyInfo.
     ///
@@ -55,14 +56,21 @@ namespace DictionaryUtils
     /// Convert a MethodInfo to a Dictionary.
     ////
     /// @param p_method the method or signal to convert to a dictionary
+    /// @param p_use_minimal the dictionary will only be populated with non-default MethodInfo values
     /// @return the dictionary
-    Dictionary from_method(const MethodInfo& p_method);
+    Dictionary from_method(const MethodInfo& p_method, bool p_use_minimal = false);
 
     /// Constructs a simple dictionary from a list of variant pair tuples
     ///
     /// @param p_values the key/value pairs to insert into a dictionary
     /// @return the constructed dictionary
     Dictionary of(std::initializer_list<std::pair<Variant, Variant>>&& p_values);
+
+    /// Converts a dictionary of properties to a list of PropertyInfo objects.
+    /// @param p_array the dictionary
+    /// @param p_sorted whether to sort the properties by name
+    /// @return the list of property info objects
+    List<PropertyInfo> to_properties(const TypedArray<Dictionary>& p_array, bool p_sorted = false);
 }
 
 #endif  // ORCHESTRATOR_DICTIONARY_UTILS_H

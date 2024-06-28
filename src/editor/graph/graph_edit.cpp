@@ -735,8 +735,11 @@ void OrchestratorGraphEdit::_store_connection_knots()
         for (int i = 0; i < E.value.size(); i++)
             array.push_back(E.value[i]->point);
 
-        knots[E.key] = array;
+        // No need to serialize empty arrays
+        if (!array.is_empty())
+            knots[E.key] = array;
     }
+
     _script_graph->set_knots(knots);
 }
 
