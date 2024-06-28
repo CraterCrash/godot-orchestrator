@@ -298,7 +298,7 @@ RBSet<OScriptConnection> OScriptGraph::get_connections() const
     RBSet<OScriptConnection> connections;
     for (const OScriptConnection& E : _orchestration->get_connections())
     {
-        if (_nodes.has(E.from_node) | _nodes.has(E.to_node))
+        if (_nodes.has(E.from_node) || _nodes.has(E.to_node))
             connections.insert(E);
     }
     return connections;
