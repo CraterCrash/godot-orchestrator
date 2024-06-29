@@ -95,8 +95,9 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         _tree_view->set_select_mode(Tree::SELECT_ROW);
         _tree_view->connect("item_activated", callable_mp(this, &OrchestratorGraphActionMenu::_on_tree_item_activated));
         _tree_view->connect("item_selected", callable_mp(this, &OrchestratorGraphActionMenu::_on_tree_item_selected));
-        _tree_view->connect("nothing_selected", callable_mp(this, &OrchestratorGraphActionMenu::_on_tree_item_activated));
+        _tree_view->connect("nothing_selected", callable_mp(this, &OrchestratorGraphActionMenu::_on_tree_nothing_selected));
         _tree_view->connect("button_clicked", callable_mp(this, &OrchestratorGraphActionMenu::_on_tree_button_clicked));
+        _tree_view->connect("item_collapsed", callable_mp(this, &OrchestratorGraphActionMenu::_on_tree_item_collapsed));
         vbox->add_child(_tree_view);
 
         set_ok_button_text("Add");
@@ -390,6 +391,23 @@ void OrchestratorGraphActionMenu::_on_tree_item_selected()
 void OrchestratorGraphActionMenu::_on_tree_item_activated()
 {
     _notify_and_close(_tree_view->get_selected());
+}
+
+void OrchestratorGraphActionMenu::_on_tree_nothing_selected()
+{
+    // Although Godot Tree dispatches nothing_selected, it does have a selected item,
+    // so this needs to be cleared and the Add button needs to be disabled.
+    _tree_view->deselect_all();
+    get_ok_button()->set_disabled(true);
+}
+
+void OrchestratorGraphActionMenu::_on_tree_item_collapsed(TreeItem* p_item)
+{
+    if (!p_item || p_item->get_child_count() > 0)
+    {
+        _tree_view->deselect_all();
+        get_ok_button()->set_disabled(true);
+    }
 }
 
 void OrchestratorGraphActionMenu::_on_tree_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_button_index)
