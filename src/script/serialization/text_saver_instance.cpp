@@ -81,7 +81,11 @@ void OScriptTextResourceSaverInstance::_find_resources_object(const Variant& p_v
 
         // Use a numeric ID as a base, beacuse they are sorted in natural order before saving.
         // This increases the chances of thread loading to fetch them first.
+        #if GODOT_VERSION >= 0x040300
+        String id = itos(_external_resources.size() + 1) + "-" + Resource::generate_scene_unique_id();
+        #else
         String id = itos(_external_resources.size() + 1) + "_" + _generate_scene_unique_id();
+        #endif
         _external_resources[res] = id;
         return;
     }
@@ -166,6 +170,7 @@ String OScriptTextResourceSaverInstance::_resource_get_class(const Ref<Resource>
     return p_resource->get_class();
 }
 
+#if GODOT_VERSION < 0x040300
 String OScriptTextResourceSaverInstance::_generate_scene_unique_id()
 {
     // Generate a unique enough hash, but still user-readable.
@@ -198,6 +203,7 @@ String OScriptTextResourceSaverInstance::_generate_scene_unique_id()
 
     return id;
 }
+#endif
 
 int64_t OScriptTextResourceSaverInstance::_get_resource_id_for_path(const String& p_path, bool p_generate)
 {
@@ -339,7 +345,11 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
         String attempt;
         while (true)
         {
+            #if GODOT_VERSION >= 0x040300
+            attempt = E.value + Resource::generate_scene_unique_id();
+            #else
             attempt = E.value + _generate_scene_unique_id();
+            #endif
             if (!cached_ids_found.has(attempt))
                 break;
         }
@@ -438,7 +448,11 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
                 String new_id;
                 while(true)
                 {
+                    #if GODOT_VERSION >= 0x040300
+                    new_id = _resource_get_class(res) + "_" + Resource::generate_scene_unique_id();
+                    #else
                     new_id = _resource_get_class(res) + "_" + _generate_scene_unique_id();
+                    #endif
                     if (!used_unique_ids.has(new_id))
                         break;
                 }
