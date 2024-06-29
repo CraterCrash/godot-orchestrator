@@ -49,7 +49,7 @@ class OScriptInstance : public OScriptInstanceBase
 
 public:
     /// Defines details about the script instance to be passed to Godot
-    static const GDExtensionScriptInstanceInfo2 INSTANCE_INFO;
+    static const OScriptInstanceInfo INSTANCE_INFO;
 
     /// Create an OScriptInstance object
     /// @param p_script the orchestrator script this instance represents

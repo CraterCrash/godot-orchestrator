@@ -23,6 +23,7 @@
 class OScriptNodeInstantiateScene : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeInstantiateScene, OScriptNode);
+    static void _bind_methods() { }
 
 protected:
     String _scene;

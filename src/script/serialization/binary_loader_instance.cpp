@@ -31,7 +31,7 @@ bool OScriptBinaryResourceLoaderInstance::_is_cached(const String& p_path)
 
 Ref<Resource> OScriptBinaryResourceLoaderInstance::_get_cached_ref(const String& p_path)
 {
-    #if GODOT_VERSION >= 0x040300
+    #if GODOT_VERSION >= 0x040400
     return ResourceLoader::get_singleton()->get_cached_ref(p_path);
     #else
     return nullptr;
@@ -702,7 +702,7 @@ Error OScriptBinaryResourceLoaderInstance::load()
         String type = _read_unicode_string();
 
         Ref<Resource> res;
-        #if GODOT_VERSION >= 0x040300
+        #if GODOT_VERSION >= 0x040400
         if (_cache_mode == ResourceFormatLoader::CACHE_MODE_REPLACE && _is_cached(path))
         {
             // Use existing one
@@ -811,7 +811,7 @@ Error OScriptBinaryResourceLoaderInstance::load()
             res->set_meta("_missing_resources", missing_resource_properties);
 
         #ifdef TOOLS_ENABLED
-        #if GODOT_VERSION >= 0x040300
+        #if GODOT_VERSION >= 0x040400
         res->set_edited(false);
         #endif
         #endif

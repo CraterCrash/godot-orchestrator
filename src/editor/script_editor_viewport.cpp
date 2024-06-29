@@ -434,7 +434,9 @@ void OrchestratorScriptEditorViewport::_expand_node(int p_node_id, OrchestratorG
 
 void OrchestratorScriptEditorViewport::_notification(int p_what)
 {
+    #if GODOT_VERSION < 0x040300
     OrchestratorEditorViewport::_notification(p_what);
+    #endif
 
     if (p_what == NOTIFICATION_READY)
     {
