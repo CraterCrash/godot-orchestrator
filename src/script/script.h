@@ -17,7 +17,6 @@
 #ifndef ORCHESTRATOR_SCRIPT_H
 #define ORCHESTRATOR_SCRIPT_H
 
-#include "common/version.h"
 #include "orchestration/orchestration.h"
 #include "script/instances/instance_base.h"
 

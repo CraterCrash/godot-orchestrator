@@ -46,11 +46,11 @@ public:
     };
 
 protected:
-    CallMode _call_mode;
+    CallMode _call_mode{ CALL_SELF };
     StringName _base_type;
     StringName _property_name;
     NodePath _node_path;
-    Variant::Type _property_type;
+    Variant::Type _property_type{ Variant::NIL };
     String _property_hint;
 
     //~ Begin Wrapped Interface

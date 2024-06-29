@@ -29,6 +29,7 @@
 #include <godot_cpp/classes/resource_saver.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/classes/scene_state.hpp>
+#include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -215,7 +216,7 @@ Variant OScriptTextResourceSaverInstance::_class_get_property_default_value(cons
 {
     // See https://github.com/godotengine/godot/pull/90916
     #if GODOT_VERSION >= 0x040300
-    return ClassDB::class_get_default_property_value(p_class_name, p_property);
+    return ClassDB::class_get_property_default_value(p_class_name, p_property);
     #else
     if (!_default_value_cache.has(p_class_name))
     {
@@ -289,7 +290,7 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
         String title = "[orchestration type=\"" + _resource_get_class(p_resource) + "\" ";
         #if GODOT_VERSION >= 0x040300
         Ref<Script> script = p_resource->get_script();
-        if (script.is_valid() && script->get_global_name())
+        if (script.is_valid() && !script->get_global_name().is_empty())
             title += "script_class=\"" + String(script->get_global_name()) + "\" ";
         #endif
 
@@ -468,7 +469,7 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
                 res->set_path(vformat("%s::%s", p_path, id));
 
             _internal_resources[res] = id;
-            #if (TOOLS_ENABLED && GODOT_VERSION >= 0x040300)
+            #if (TOOLS_ENABLED && GODOT_VERSION >= 0x040400)
             res->set_edited(false);
             #endif
         }

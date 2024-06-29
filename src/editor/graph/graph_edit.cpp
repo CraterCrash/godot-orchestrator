@@ -189,7 +189,6 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _grid_pattern->connect("item_selected", callable_mp(this, &OrchestratorGraphEdit::_on_grid_style_selected));
         get_menu_hbox()->add_child(_grid_pattern);
         get_menu_hbox()->move_child(_grid_pattern, 5);
-        get_menu_hbox()->get_child(4)->connect("toggled", callable_mp(this, &OrchestratorGraphEdit::_on_show_grid));
 
         set_grid_pattern(GRID_PATTERN_LINES);
         #endif

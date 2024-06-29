@@ -20,25 +20,19 @@
 #include "action_menu_filter.h"
 #include "action_menu_item.h"
 
-#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 
 using namespace godot;
 
 /// A simple database that maintains a collection of actions.
-class OrchestratorGraphActionDB : public RefCounted
+class OrchestratorGraphActionDB
 {
-    GDCLASS(OrchestratorGraphActionDB, RefCounted);
-
     StringName _graph_base_type;
     HashMap<StringName, List<Ref<OrchestratorGraphActionMenuItem>>> _object_items;
     List<Ref<OrchestratorGraphActionMenuItem>> _filtered_items;
     bool _use_temp{ false };
 
 protected:
-    /// Godot bind methods handler
-    static void _bind_methods() {}
-
     /// Generates the action items.
     /// @param p_filter the filter
     void _generate_action_items(const OrchestratorGraphActionFilter& p_filter, const StringName& p_name);

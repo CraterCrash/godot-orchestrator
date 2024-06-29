@@ -728,7 +728,7 @@ Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<R
                 }
 
                 #if GODOT_VERSION >= 0x040300
-                Variant default_value = ClassDB::class_get_default_property_value(E->get_class(), F.name);
+                Variant default_value = ClassDB::class_get_property_default_value(E->get_class(), F.name);
                 #else
                 Variant default_value;
                 #endif
@@ -800,9 +800,11 @@ Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<R
 
             _save_unicode_string(file, "local://" + itos(res_index));
             if (_takeover_paths)
-                resource->set_path(p_path + "::" + resource->get_scene_unique_id());
+                resource->set_path(vformat("%s::%s", p_path, resource->get_scene_unique_id()));
+            #if GODOT_VERSION >= 0x040400
             #ifdef TOOLS_ENABLED
             resource->set_edited(false);
+            #endif
             #endif
         }
         else
