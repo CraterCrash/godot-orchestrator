@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_TEXT_SAVER_INSTANCE_H
 #define ORCHESTRATOR_SCRIPT_TEXT_SAVER_INSTANCE_H
 
+#include "common/version.h"
 #include "script/serialization/instance.h"
 
 #include <godot_cpp/classes/resource.hpp>
@@ -96,7 +97,9 @@ protected:
     String _resource_get_class(const Ref<Resource>& p_resource) const;
 
     /// Generate a unique scene id
+    #if GODOT_VERSION < 0x040300
     String _generate_scene_unique_id();
+    #endif
 
     /// Get the resource ID for a specific path
     /// @param p_path the file path
