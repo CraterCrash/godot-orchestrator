@@ -1,0 +1,2187 @@
+[orchestration type="OScript" load_steps=50 format=1 uid="uid://i088ibwd6mn2"]
+
+[obj type="OScriptFunction" id="OScriptFunction_p5wor"]
+guid = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
+method = {
+"name": &"_on_body_entered",
+"args": [{
+"name": &"body",
+"class_name": &"Node3D"
+}]
+}
+id = 17
+
+[obj type="OScriptFunction" id="OScriptFunction_behy4"]
+guid = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
+method = {
+"name": &"is_player",
+"return": {
+"type": 1
+},
+"args": [{
+"name": &"body",
+"type": 24
+}]
+}
+user_defined = true
+id = 25
+
+[obj type="OScriptFunction" id="OScriptFunction_5a116"]
+guid = "76F0B89F-94D2-400F-919B-B9F4DD04AAA1"
+method = {
+"name": &"_on_body_exited",
+"args": [{
+"name": &"body",
+"class_name": &"Node3D"
+}]
+}
+id = 32
+
+[obj type="OScriptFunction" id="OScriptFunction_kye8x"]
+guid = "D425DB89-BAA2-485C-990E-98CD745979CE"
+method = {
+"name": &"close_game"
+}
+user_defined = true
+id = 44
+
+[obj type="OScriptFunction" id="OScriptFunction_0vhnn"]
+guid = "F0CC2314-5ACB-4476-8233-83AA27051F56"
+method = {
+"name": &"_unhandled_key_input",
+"flags": 8,
+"args": [{
+"name": &"event",
+"type": 24,
+"class_name": &"InputEvent",
+"hint": 17,
+"hint_string": "InputEvent"
+}]
+}
+id = 63
+
+[obj type="OScriptGraph" id="OScriptGraph_xn3em"]
+graph_name = &"EventGraph"
+offset = Vector2(-1159.04, 328.196)
+zoom = 0.826446
+flags = 8
+nodes = Array[int]([2, 7, 8, 17, 19, 20, 29, 30, 32, 38, 43, 49, 54, 55, 56, 57, 58, 59, 60, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74])
+functions = Array[int]([17, 32, 63])
+
+[obj type="OScriptGraph" id="OScriptGraph_k5v5k"]
+graph_name = &"is_player"
+offset = Vector2(-1700, -382.25)
+flags = 22
+nodes = Array[int]([25, 26, 27, 28])
+functions = Array[int]([25])
+
+[obj type="OScriptGraph" id="OScriptGraph_dfi8a"]
+graph_name = &"close_game"
+offset = Vector2(-980, -302.25)
+flags = 22
+nodes = Array[int]([44, 47, 48, 50, 53])
+functions = Array[int]([44])
+
+[obj type="OScriptNodeBranch" id="OScriptNodeBranch_vqktw"]
+id = 2
+size = Vector2(185, 93)
+position = Vector2(-300, 180)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 516,
+"label": "if [condition]"
+}, {
+"pin_name": &"condition",
+"type": 1,
+"flags": 2
+}, {
+"pin_name": &"true",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"false",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeBranch" id="OScriptNodeBranch_7c5hw"]
+id = 7
+size = Vector2(185, 93)
+position = Vector2(-380, 1080)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 516,
+"label": "if [condition]"
+}, {
+"pin_name": &"condition",
+"type": 1,
+"flags": 2
+}, {
+"pin_name": &"true",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"false",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_wugb8"]
+id = 8
+size = Vector2(337, 207)
+position = Vector2(-160, 1040)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "You left the area, stopping game."
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_hy3md"]
+function_id = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
+id = 17
+size = Vector2(230, 93)
+position = Vector2(-800, 180)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"body",
+"dir": 1,
+"flags": 2050
+}])
+
+[obj type="OScriptNodeDialogueChoice" id="OScriptNodeDialogueChoice_8ueq6"]
+id = 19
+size = Vector2(474, 133)
+position = Vector2(-600, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"text",
+"type": 4,
+"flags": 16777218,
+"dv": "Hi, my name is Oscar.  Are you busy?"
+}, {
+"pin_name": &"visible",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"choice",
+"type": 24,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeDialogueChoice" id="OScriptNodeDialogueChoice_oqk3q"]
+id = 20
+size = Vector2(474, 130)
+position = Vector2(-600, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"text",
+"type": 4,
+"flags": 16777218,
+"dv": "I am okay, I think I am going to explore town."
+}, {
+"pin_name": &"visible",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"choice",
+"type": 24,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_n64y0"]
+function_id = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
+return_type = 1
+id = 25
+size = Vector2(108, 83.0001)
+position = Vector2(-840, -40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"body",
+"type": 24,
+"dir": 1,
+"flags": 2050
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_p50t4"]
+function_id = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
+return_type = 1
+id = 26
+size = Vector2(203, 83)
+position = Vector2(-360, -40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"return_value",
+"type": 1
+}, {
+"pin_name": &"return_out",
+"type": 1,
+"dir": 1,
+"flags": 34
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_hdxsq"]
+function_name = &"is_in_group"
+target_class_name = "Area3D"
+flags = 10
+method = {
+"name": &"is_in_group",
+"return": {
+"type": 1
+},
+"flags": 5,
+"args": [{
+"name": &"group",
+"type": 21
+}]
+}
+chain = false
+id = 27
+size = Vector2(239, 110)
+position = Vector2(-680, -40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2,
+"target_class": "Area3D"
+}, {
+"pin_name": &"group",
+"type": 21,
+"flags": 2050
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_bv8uc"]
+variable_name = &"player_group"
+id = 28
+size = Vector2(165, 56)
+position = Vector2(-900, 60)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 21,
+"dir": 1,
+"flags": 2050,
+"label": "player_group"
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_g7dw3"]
+guid = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
+function_name = &"is_player"
+flags = 8
+id = 29
+size = Vector2(225.002, 93)
+position = Vector2(-560, 180)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"body",
+"type": 24,
+"flags": 2050
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_q3kci"]
+guid = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
+function_name = &"is_player"
+flags = 8
+id = 30
+size = Vector2(225, 93)
+position = Vector2(-640, 1080)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"body",
+"type": 24,
+"flags": 2050
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_762v4"]
+function_id = "76F0B89F-94D2-400F-919B-B9F4DD04AAA1"
+id = 32
+size = Vector2(219, 93)
+position = Vector2(-860, 1080)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"body",
+"dir": 1,
+"flags": 2050
+}])
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_jtxfd"]
+title = "Manny's Area3D Trigger Conversation"
+background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+font_size = 24
+comments = "Start a conversation with Manny when Player gets within proximity of the area.
+The player can select two outcomes that both end with closing the game."
+id = 38
+size = Vector2(1950.23, 674.003)
+position = Vector2(-820, 40)
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_jlhe8"]
+title = "Manny Revenge"
+background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+font_size = 24
+comments = "Stops the game when the player leaves the area.
+Manny doesn't like to be lonely.
+Performs a countdown from 3 before stopping the game."
+id = 43
+size = Vector2(2504.55, 460.49)
+position = Vector2(-880, 900)
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_nhhe7"]
+function_id = "D425DB89-BAA2-485C-990E-98CD745979CE"
+id = 44
+size = Vector2(129, 56.0001)
+position = Vector2(-120, 40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_5sqwe"]
+function_name = &"quit"
+target_class_name = "Area3D"
+flags = 8
+method = {
+"name": &"quit",
+"return": {},
+"default_args": [0],
+"args": [{
+"name": &"exit_code",
+"type": 2
+}]
+}
+chain = false
+id = 47
+size = Vector2(195, 113)
+position = Vector2(340, 60)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2,
+"target_class": "Area3D"
+}, {
+"pin_name": &"exit_code",
+"type": 2,
+"flags": 2050,
+"dv": 0
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_g20yq"]
+id = 48
+size = Vector2(210, 197)
+position = Vector2(60, 40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "Quiting game"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_36fuq"]
+guid = "D425DB89-BAA2-485C-990E-98CD745979CE"
+function_name = &"close_game"
+flags = 8
+id = 49
+size = Vector2(157, 66)
+position = Vector2(940, 360)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeSceneTree" id="OScriptNodeSceneTree_mdq36"]
+id = 50
+size = Vector2(149, 56)
+position = Vector2(120, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"scene_tree",
+"type": 24,
+"dir": 1,
+"flags": 4194306,
+"target_class": "SceneTree"
+}])
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_lmb00"]
+title = "Function \"stop_game\""
+background_color = Color(0.301961, 0.521569, 0.788235, 0.537255)
+font_size = 32
+comments = "Simple function that calls quit on the SceneTree after 
+writing to the console that the game is being stopped."
+id = 53
+size = Vector2(909, 468)
+position = Vector2(-200, -120)
+
+[obj type="OScriptNodeForLoop" id="OScriptNodeForLoop_fxq2n"]
+id = 54
+size = Vector2(273.002, 126)
+position = Vector2(200, 1040)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"first_index",
+"type": 2,
+"flags": 2,
+"dv": 0
+}, {
+"pin_name": &"last_index",
+"type": 2,
+"flags": 2,
+"dv": 3
+}, {
+"pin_name": &"loop_body",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"index",
+"type": 2,
+"dir": 1,
+"flags": 514
+}, {
+"pin_name": &"completed",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_xfts8"]
+id = 55
+size = Vector2(202, 204)
+position = Vector2(1200, 1100)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "Hello"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2.0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeDelay" id="OScriptNodeDelay_ymd56"]
+id = 56
+size = Vector2(160, 96)
+position = Vector2(1440, 1100)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"duration",
+"type": 3,
+"flags": 2,
+"dv": 1.0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_au5hs"]
+op = 7
+code = &"-"
+name = &"Subtract"
+left_type = 2
+left_type_name = &"int"
+right_type = 2
+right_type_name = &"int"
+return_type = 2
+id = 57
+size = Vector2(227, 96)
+position = Vector2(500, 1120)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 2,
+"dv": 3
+}, {
+"pin_name": &"b",
+"type": 2
+}, {
+"pin_name": &"result",
+"type": 2,
+"dir": 1
+}])
+
+[obj type="OScriptNodeBranch" id="OScriptNodeBranch_ehc6v"]
+id = 58
+size = Vector2(185, 93)
+position = Vector2(1000, 980)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 516,
+"label": "if [condition]"
+}, {
+"pin_name": &"condition",
+"type": 1,
+"flags": 2
+}, {
+"pin_name": &"true",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"false",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_rvj5e"]
+op = 0
+code = &"=="
+name = &"Equal"
+left_type = 2
+left_type_name = &"int"
+right_type = 2
+right_type_name = &"int"
+return_type = 1
+id = 59
+size = Vector2(201, 96)
+position = Vector2(760, 1060)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 2
+}, {
+"pin_name": &"b",
+"type": 2
+}, {
+"pin_name": &"result",
+"type": 1,
+"dir": 1
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_y4piu"]
+guid = "D425DB89-BAA2-485C-990E-98CD745979CE"
+function_name = &"close_game"
+flags = 8
+id = 60
+size = Vector2(157, 66)
+position = Vector2(1340, 980)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_21ug3"]
+function_id = "F0CC2314-5ACB-4476-8233-83AA27051F56"
+id = 63
+size = Vector2(261, 93)
+position = Vector2(-2580, 760)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"event",
+"type": 24,
+"dir": 1,
+"flags": 2050
+}])
+
+[obj type="OScriptNodeTypeCast" id="OScriptNodeTypeCast_jkc8c"]
+type = "InputEventKey"
+id = 64
+size = Vector2(227, 120)
+position = Vector2(-2320, 760)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"flags": 4194306
+}, {
+"pin_name": &"yes",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"no",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"output",
+"type": 24,
+"dir": 1,
+"flags": 4196354,
+"label": "as InputEventKey"
+}])
+
+[obj type="OScriptNodeSwitchEnum" id="OScriptNodeSwitchEnum_n5bvd"]
+id = 65
+size = Vector2(171, 5250)
+position = Vector2(-1620, 760)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 516,
+"label": "value_is:"
+}, {
+"pin_name": &"value",
+"type": 24,
+"flags": 33554434,
+"target_class": "Key"
+}, {
+"pin_name": &"case_0_out",
+"dir": 1,
+"flags": 2564,
+"label": "None"
+}, {
+"pin_name": &"case_4194304_out",
+"dir": 1,
+"flags": 2564,
+"label": "Special",
+"gdv": 4194304
+}, {
+"pin_name": &"case_4194305_out",
+"dir": 1,
+"flags": 2564,
+"label": "Escape",
+"gdv": 4194305
+}, {
+"pin_name": &"case_4194306_out",
+"dir": 1,
+"flags": 2564,
+"label": "Tab",
+"gdv": 4194306
+}, {
+"pin_name": &"case_4194307_out",
+"dir": 1,
+"flags": 2564,
+"label": "Backtab",
+"gdv": 4194307
+}, {
+"pin_name": &"case_4194308_out",
+"dir": 1,
+"flags": 2564,
+"label": "Backspace",
+"gdv": 4194308
+}, {
+"pin_name": &"case_4194309_out",
+"dir": 1,
+"flags": 2564,
+"label": "Enter",
+"gdv": 4194309
+}, {
+"pin_name": &"case_4194310_out",
+"dir": 1,
+"flags": 2564,
+"label": "Enter (Keypad)",
+"gdv": 4194310
+}, {
+"pin_name": &"case_4194311_out",
+"dir": 1,
+"flags": 2564,
+"label": "Insert",
+"gdv": 4194311
+}, {
+"pin_name": &"case_4194312_out",
+"dir": 1,
+"flags": 2564,
+"label": "Delete",
+"gdv": 4194312
+}, {
+"pin_name": &"case_4194313_out",
+"dir": 1,
+"flags": 2564,
+"label": "Pause",
+"gdv": 4194313
+}, {
+"pin_name": &"case_4194314_out",
+"dir": 1,
+"flags": 2564,
+"label": "Print",
+"gdv": 4194314
+}, {
+"pin_name": &"case_4194315_out",
+"dir": 1,
+"flags": 2564,
+"label": "Sysreq",
+"gdv": 4194315
+}, {
+"pin_name": &"case_4194316_out",
+"dir": 1,
+"flags": 2564,
+"label": "Clear",
+"gdv": 4194316
+}, {
+"pin_name": &"case_4194317_out",
+"dir": 1,
+"flags": 2564,
+"label": "Home",
+"gdv": 4194317
+}, {
+"pin_name": &"case_4194318_out",
+"dir": 1,
+"flags": 2564,
+"label": "End",
+"gdv": 4194318
+}, {
+"pin_name": &"case_4194319_out",
+"dir": 1,
+"flags": 2564,
+"label": "Left",
+"gdv": 4194319
+}, {
+"pin_name": &"case_4194320_out",
+"dir": 1,
+"flags": 2564,
+"label": "Up",
+"gdv": 4194320
+}, {
+"pin_name": &"case_4194321_out",
+"dir": 1,
+"flags": 2564,
+"label": "Right",
+"gdv": 4194321
+}, {
+"pin_name": &"case_4194322_out",
+"dir": 1,
+"flags": 2564,
+"label": "Down",
+"gdv": 4194322
+}, {
+"pin_name": &"case_4194323_out",
+"dir": 1,
+"flags": 2564,
+"label": "Pageup",
+"gdv": 4194323
+}, {
+"pin_name": &"case_4194324_out",
+"dir": 1,
+"flags": 2564,
+"label": "Pagedown",
+"gdv": 4194324
+}, {
+"pin_name": &"case_4194325_out",
+"dir": 1,
+"flags": 2564,
+"label": "Shift",
+"gdv": 4194325
+}, {
+"pin_name": &"case_4194326_out",
+"dir": 1,
+"flags": 2564,
+"label": "Ctrl",
+"gdv": 4194326
+}, {
+"pin_name": &"case_4194327_out",
+"dir": 1,
+"flags": 2564,
+"label": "Meta",
+"gdv": 4194327
+}, {
+"pin_name": &"case_4194328_out",
+"dir": 1,
+"flags": 2564,
+"label": "Alt",
+"gdv": 4194328
+}, {
+"pin_name": &"case_4194329_out",
+"dir": 1,
+"flags": 2564,
+"label": "Capslock",
+"gdv": 4194329
+}, {
+"pin_name": &"case_4194330_out",
+"dir": 1,
+"flags": 2564,
+"label": "Numlock",
+"gdv": 4194330
+}, {
+"pin_name": &"case_4194331_out",
+"dir": 1,
+"flags": 2564,
+"label": "Scrolllock",
+"gdv": 4194331
+}, {
+"pin_name": &"case_4194332_out",
+"dir": 1,
+"flags": 2564,
+"label": "F1",
+"gdv": 4194332
+}, {
+"pin_name": &"case_4194333_out",
+"dir": 1,
+"flags": 2564,
+"label": "F2",
+"gdv": 4194333
+}, {
+"pin_name": &"case_4194334_out",
+"dir": 1,
+"flags": 2564,
+"label": "F3",
+"gdv": 4194334
+}, {
+"pin_name": &"case_4194335_out",
+"dir": 1,
+"flags": 2564,
+"label": "F4",
+"gdv": 4194335
+}, {
+"pin_name": &"case_4194336_out",
+"dir": 1,
+"flags": 2564,
+"label": "F5",
+"gdv": 4194336
+}, {
+"pin_name": &"case_4194337_out",
+"dir": 1,
+"flags": 2564,
+"label": "F6",
+"gdv": 4194337
+}, {
+"pin_name": &"case_4194338_out",
+"dir": 1,
+"flags": 2564,
+"label": "F7",
+"gdv": 4194338
+}, {
+"pin_name": &"case_4194339_out",
+"dir": 1,
+"flags": 2564,
+"label": "F8",
+"gdv": 4194339
+}, {
+"pin_name": &"case_4194340_out",
+"dir": 1,
+"flags": 2564,
+"label": "F9",
+"gdv": 4194340
+}, {
+"pin_name": &"case_4194341_out",
+"dir": 1,
+"flags": 2564,
+"label": "F10",
+"gdv": 4194341
+}, {
+"pin_name": &"case_4194342_out",
+"dir": 1,
+"flags": 2564,
+"label": "F11",
+"gdv": 4194342
+}, {
+"pin_name": &"case_4194343_out",
+"dir": 1,
+"flags": 2564,
+"label": "F12",
+"gdv": 4194343
+}, {
+"pin_name": &"case_4194344_out",
+"dir": 1,
+"flags": 2564,
+"label": "F13",
+"gdv": 4194344
+}, {
+"pin_name": &"case_4194345_out",
+"dir": 1,
+"flags": 2564,
+"label": "F14",
+"gdv": 4194345
+}, {
+"pin_name": &"case_4194346_out",
+"dir": 1,
+"flags": 2564,
+"label": "F15",
+"gdv": 4194346
+}, {
+"pin_name": &"case_4194347_out",
+"dir": 1,
+"flags": 2564,
+"label": "F16",
+"gdv": 4194347
+}, {
+"pin_name": &"case_4194348_out",
+"dir": 1,
+"flags": 2564,
+"label": "F17",
+"gdv": 4194348
+}, {
+"pin_name": &"case_4194349_out",
+"dir": 1,
+"flags": 2564,
+"label": "F18",
+"gdv": 4194349
+}, {
+"pin_name": &"case_4194350_out",
+"dir": 1,
+"flags": 2564,
+"label": "F19",
+"gdv": 4194350
+}, {
+"pin_name": &"case_4194351_out",
+"dir": 1,
+"flags": 2564,
+"label": "F20",
+"gdv": 4194351
+}, {
+"pin_name": &"case_4194352_out",
+"dir": 1,
+"flags": 2564,
+"label": "F21",
+"gdv": 4194352
+}, {
+"pin_name": &"case_4194353_out",
+"dir": 1,
+"flags": 2564,
+"label": "F22",
+"gdv": 4194353
+}, {
+"pin_name": &"case_4194354_out",
+"dir": 1,
+"flags": 2564,
+"label": "F23",
+"gdv": 4194354
+}, {
+"pin_name": &"case_4194355_out",
+"dir": 1,
+"flags": 2564,
+"label": "F24",
+"gdv": 4194355
+}, {
+"pin_name": &"case_4194356_out",
+"dir": 1,
+"flags": 2564,
+"label": "F25",
+"gdv": 4194356
+}, {
+"pin_name": &"case_4194357_out",
+"dir": 1,
+"flags": 2564,
+"label": "F26",
+"gdv": 4194357
+}, {
+"pin_name": &"case_4194358_out",
+"dir": 1,
+"flags": 2564,
+"label": "F27",
+"gdv": 4194358
+}, {
+"pin_name": &"case_4194359_out",
+"dir": 1,
+"flags": 2564,
+"label": "F28",
+"gdv": 4194359
+}, {
+"pin_name": &"case_4194360_out",
+"dir": 1,
+"flags": 2564,
+"label": "F29",
+"gdv": 4194360
+}, {
+"pin_name": &"case_4194361_out",
+"dir": 1,
+"flags": 2564,
+"label": "F30",
+"gdv": 4194361
+}, {
+"pin_name": &"case_4194362_out",
+"dir": 1,
+"flags": 2564,
+"label": "F31",
+"gdv": 4194362
+}, {
+"pin_name": &"case_4194363_out",
+"dir": 1,
+"flags": 2564,
+"label": "F32",
+"gdv": 4194363
+}, {
+"pin_name": &"case_4194364_out",
+"dir": 1,
+"flags": 2564,
+"label": "F33",
+"gdv": 4194364
+}, {
+"pin_name": &"case_4194365_out",
+"dir": 1,
+"flags": 2564,
+"label": "F34",
+"gdv": 4194365
+}, {
+"pin_name": &"case_4194366_out",
+"dir": 1,
+"flags": 2564,
+"label": "F35",
+"gdv": 4194366
+}, {
+"pin_name": &"case_4194433_out",
+"dir": 1,
+"flags": 2564,
+"label": "Multiply (Keypad)",
+"gdv": 4194433
+}, {
+"pin_name": &"case_4194434_out",
+"dir": 1,
+"flags": 2564,
+"label": "Divide (Keypad)",
+"gdv": 4194434
+}, {
+"pin_name": &"case_4194435_out",
+"dir": 1,
+"flags": 2564,
+"label": "Subtract (Keypad)",
+"gdv": 4194435
+}, {
+"pin_name": &"case_4194436_out",
+"dir": 1,
+"flags": 2564,
+"label": "Period (Keypad)",
+"gdv": 4194436
+}, {
+"pin_name": &"case_4194437_out",
+"dir": 1,
+"flags": 2564,
+"label": "Add (Keypad)",
+"gdv": 4194437
+}, {
+"pin_name": &"case_4194438_out",
+"dir": 1,
+"flags": 2564,
+"label": "0 (Keypad)",
+"gdv": 4194438
+}, {
+"pin_name": &"case_4194439_out",
+"dir": 1,
+"flags": 2564,
+"label": "1 (Keypad)",
+"gdv": 4194439
+}, {
+"pin_name": &"case_4194440_out",
+"dir": 1,
+"flags": 2564,
+"label": "2 (Keypad)",
+"gdv": 4194440
+}, {
+"pin_name": &"case_4194441_out",
+"dir": 1,
+"flags": 2564,
+"label": "3 (Keypad)",
+"gdv": 4194441
+}, {
+"pin_name": &"case_4194442_out",
+"dir": 1,
+"flags": 2564,
+"label": "4 (Keypad)",
+"gdv": 4194442
+}, {
+"pin_name": &"case_4194443_out",
+"dir": 1,
+"flags": 2564,
+"label": "5 (Keypad)",
+"gdv": 4194443
+}, {
+"pin_name": &"case_4194444_out",
+"dir": 1,
+"flags": 2564,
+"label": "6 (Keypad)",
+"gdv": 4194444
+}, {
+"pin_name": &"case_4194445_out",
+"dir": 1,
+"flags": 2564,
+"label": "7 (Keypad)",
+"gdv": 4194445
+}, {
+"pin_name": &"case_4194446_out",
+"dir": 1,
+"flags": 2564,
+"label": "8 (Keypad)",
+"gdv": 4194446
+}, {
+"pin_name": &"case_4194447_out",
+"dir": 1,
+"flags": 2564,
+"label": "9 (Keypad)",
+"gdv": 4194447
+}, {
+"pin_name": &"case_4194370_out",
+"dir": 1,
+"flags": 2564,
+"label": "Menu",
+"gdv": 4194370
+}, {
+"pin_name": &"case_4194371_out",
+"dir": 1,
+"flags": 2564,
+"label": "Hyper",
+"gdv": 4194371
+}, {
+"pin_name": &"case_4194373_out",
+"dir": 1,
+"flags": 2564,
+"label": "Help",
+"gdv": 4194373
+}, {
+"pin_name": &"case_4194376_out",
+"dir": 1,
+"flags": 2564,
+"label": "Back",
+"gdv": 4194376
+}, {
+"pin_name": &"case_4194377_out",
+"dir": 1,
+"flags": 2564,
+"label": "Forward",
+"gdv": 4194377
+}, {
+"pin_name": &"case_4194378_out",
+"dir": 1,
+"flags": 2564,
+"label": "Stop",
+"gdv": 4194378
+}, {
+"pin_name": &"case_4194379_out",
+"dir": 1,
+"flags": 2564,
+"label": "Refresh",
+"gdv": 4194379
+}, {
+"pin_name": &"case_4194380_out",
+"dir": 1,
+"flags": 2564,
+"label": "Volumedown",
+"gdv": 4194380
+}, {
+"pin_name": &"case_4194381_out",
+"dir": 1,
+"flags": 2564,
+"label": "Volumemute",
+"gdv": 4194381
+}, {
+"pin_name": &"case_4194382_out",
+"dir": 1,
+"flags": 2564,
+"label": "Volumeup",
+"gdv": 4194382
+}, {
+"pin_name": &"case_4194388_out",
+"dir": 1,
+"flags": 2564,
+"label": "Mediaplay",
+"gdv": 4194388
+}, {
+"pin_name": &"case_4194389_out",
+"dir": 1,
+"flags": 2564,
+"label": "Mediastop",
+"gdv": 4194389
+}, {
+"pin_name": &"case_4194390_out",
+"dir": 1,
+"flags": 2564,
+"label": "Mediaprevious",
+"gdv": 4194390
+}, {
+"pin_name": &"case_4194391_out",
+"dir": 1,
+"flags": 2564,
+"label": "Medianext",
+"gdv": 4194391
+}, {
+"pin_name": &"case_4194392_out",
+"dir": 1,
+"flags": 2564,
+"label": "Mediarecord",
+"gdv": 4194392
+}, {
+"pin_name": &"case_4194393_out",
+"dir": 1,
+"flags": 2564,
+"label": "Homepage",
+"gdv": 4194393
+}, {
+"pin_name": &"case_4194394_out",
+"dir": 1,
+"flags": 2564,
+"label": "Favorites",
+"gdv": 4194394
+}, {
+"pin_name": &"case_4194395_out",
+"dir": 1,
+"flags": 2564,
+"label": "Search",
+"gdv": 4194395
+}, {
+"pin_name": &"case_4194396_out",
+"dir": 1,
+"flags": 2564,
+"label": "Standby",
+"gdv": 4194396
+}, {
+"pin_name": &"case_4194397_out",
+"dir": 1,
+"flags": 2564,
+"label": "Openurl",
+"gdv": 4194397
+}, {
+"pin_name": &"case_4194398_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launchmail",
+"gdv": 4194398
+}, {
+"pin_name": &"case_4194399_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launchmedia",
+"gdv": 4194399
+}, {
+"pin_name": &"case_4194400_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 0",
+"gdv": 4194400
+}, {
+"pin_name": &"case_4194401_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 1",
+"gdv": 4194401
+}, {
+"pin_name": &"case_4194402_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 2",
+"gdv": 4194402
+}, {
+"pin_name": &"case_4194403_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 3",
+"gdv": 4194403
+}, {
+"pin_name": &"case_4194404_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 4",
+"gdv": 4194404
+}, {
+"pin_name": &"case_4194405_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 5",
+"gdv": 4194405
+}, {
+"pin_name": &"case_4194406_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 6",
+"gdv": 4194406
+}, {
+"pin_name": &"case_4194407_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 7",
+"gdv": 4194407
+}, {
+"pin_name": &"case_4194408_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 8",
+"gdv": 4194408
+}, {
+"pin_name": &"case_4194409_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launch 9",
+"gdv": 4194409
+}, {
+"pin_name": &"case_4194410_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launcha",
+"gdv": 4194410
+}, {
+"pin_name": &"case_4194411_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launchb",
+"gdv": 4194411
+}, {
+"pin_name": &"case_4194412_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launchc",
+"gdv": 4194412
+}, {
+"pin_name": &"case_4194413_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launchd",
+"gdv": 4194413
+}, {
+"pin_name": &"case_4194414_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launche",
+"gdv": 4194414
+}, {
+"pin_name": &"case_4194415_out",
+"dir": 1,
+"flags": 2564,
+"label": "Launchf",
+"gdv": 4194415
+}, {
+"pin_name": &"case_4194416_out",
+"dir": 1,
+"flags": 2564,
+"label": "Globe",
+"gdv": 4194416
+}, {
+"pin_name": &"case_4194417_out",
+"dir": 1,
+"flags": 2564,
+"label": "Keyboard",
+"gdv": 4194417
+}, {
+"pin_name": &"case_4194418_out",
+"dir": 1,
+"flags": 2564,
+"label": "Jis Eisu",
+"gdv": 4194418
+}, {
+"pin_name": &"case_4194419_out",
+"dir": 1,
+"flags": 2564,
+"label": "Jis Kana",
+"gdv": 4194419
+}, {
+"pin_name": &"case_8388607_out",
+"dir": 1,
+"flags": 2564,
+"label": "Unknown",
+"gdv": 8388607
+}, {
+"pin_name": &"case_32_out",
+"dir": 1,
+"flags": 2564,
+"label": "Space",
+"gdv": 32
+}, {
+"pin_name": &"case_33_out",
+"dir": 1,
+"flags": 2564,
+"label": "Exclam",
+"gdv": 33
+}, {
+"pin_name": &"case_34_out",
+"dir": 1,
+"flags": 2564,
+"label": "Quotedbl",
+"gdv": 34
+}, {
+"pin_name": &"case_35_out",
+"dir": 1,
+"flags": 2564,
+"label": "Numbersign",
+"gdv": 35
+}, {
+"pin_name": &"case_36_out",
+"dir": 1,
+"flags": 2564,
+"label": "Dollar",
+"gdv": 36
+}, {
+"pin_name": &"case_37_out",
+"dir": 1,
+"flags": 2564,
+"label": "Percent",
+"gdv": 37
+}, {
+"pin_name": &"case_38_out",
+"dir": 1,
+"flags": 2564,
+"label": "Ampersand",
+"gdv": 38
+}, {
+"pin_name": &"case_39_out",
+"dir": 1,
+"flags": 2564,
+"label": "Apostrophe",
+"gdv": 39
+}, {
+"pin_name": &"case_40_out",
+"dir": 1,
+"flags": 2564,
+"label": "Parenleft",
+"gdv": 40
+}, {
+"pin_name": &"case_41_out",
+"dir": 1,
+"flags": 2564,
+"label": "Parenright",
+"gdv": 41
+}, {
+"pin_name": &"case_42_out",
+"dir": 1,
+"flags": 2564,
+"label": "Asterisk",
+"gdv": 42
+}, {
+"pin_name": &"case_43_out",
+"dir": 1,
+"flags": 2564,
+"label": "Plus",
+"gdv": 43
+}, {
+"pin_name": &"case_44_out",
+"dir": 1,
+"flags": 2564,
+"label": "Comma",
+"gdv": 44
+}, {
+"pin_name": &"case_45_out",
+"dir": 1,
+"flags": 2564,
+"label": "Minus",
+"gdv": 45
+}, {
+"pin_name": &"case_46_out",
+"dir": 1,
+"flags": 2564,
+"label": "Period",
+"gdv": 46
+}, {
+"pin_name": &"case_47_out",
+"dir": 1,
+"flags": 2564,
+"label": "Slash",
+"gdv": 47
+}, {
+"pin_name": &"case_48_out",
+"dir": 1,
+"flags": 2564,
+"label": "0",
+"gdv": 48
+}, {
+"pin_name": &"case_49_out",
+"dir": 1,
+"flags": 2564,
+"label": "1",
+"gdv": 49
+}, {
+"pin_name": &"case_50_out",
+"dir": 1,
+"flags": 2564,
+"label": "2",
+"gdv": 50
+}, {
+"pin_name": &"case_51_out",
+"dir": 1,
+"flags": 2564,
+"label": "3",
+"gdv": 51
+}, {
+"pin_name": &"case_52_out",
+"dir": 1,
+"flags": 2564,
+"label": "4",
+"gdv": 52
+}, {
+"pin_name": &"case_53_out",
+"dir": 1,
+"flags": 2564,
+"label": "5",
+"gdv": 53
+}, {
+"pin_name": &"case_54_out",
+"dir": 1,
+"flags": 2564,
+"label": "6",
+"gdv": 54
+}, {
+"pin_name": &"case_55_out",
+"dir": 1,
+"flags": 2564,
+"label": "7",
+"gdv": 55
+}, {
+"pin_name": &"case_56_out",
+"dir": 1,
+"flags": 2564,
+"label": "8",
+"gdv": 56
+}, {
+"pin_name": &"case_57_out",
+"dir": 1,
+"flags": 2564,
+"label": "9",
+"gdv": 57
+}, {
+"pin_name": &"case_58_out",
+"dir": 1,
+"flags": 2564,
+"label": "Colon",
+"gdv": 58
+}, {
+"pin_name": &"case_59_out",
+"dir": 1,
+"flags": 2564,
+"label": "Semicolon",
+"gdv": 59
+}, {
+"pin_name": &"case_60_out",
+"dir": 1,
+"flags": 2564,
+"label": "Less",
+"gdv": 60
+}, {
+"pin_name": &"case_61_out",
+"dir": 1,
+"flags": 2564,
+"label": "Equal",
+"gdv": 61
+}, {
+"pin_name": &"case_62_out",
+"dir": 1,
+"flags": 2564,
+"label": "Greater",
+"gdv": 62
+}, {
+"pin_name": &"case_63_out",
+"dir": 1,
+"flags": 2564,
+"label": "Question",
+"gdv": 63
+}, {
+"pin_name": &"case_64_out",
+"dir": 1,
+"flags": 2564,
+"label": "At",
+"gdv": 64
+}, {
+"pin_name": &"case_65_out",
+"dir": 1,
+"flags": 2564,
+"label": "A",
+"gdv": 65
+}, {
+"pin_name": &"case_66_out",
+"dir": 1,
+"flags": 2564,
+"label": "B",
+"gdv": 66
+}, {
+"pin_name": &"case_67_out",
+"dir": 1,
+"flags": 2564,
+"label": "C",
+"gdv": 67
+}, {
+"pin_name": &"case_68_out",
+"dir": 1,
+"flags": 2564,
+"label": "D",
+"gdv": 68
+}, {
+"pin_name": &"case_69_out",
+"dir": 1,
+"flags": 2564,
+"label": "E",
+"gdv": 69
+}, {
+"pin_name": &"case_70_out",
+"dir": 1,
+"flags": 2564,
+"label": "F",
+"gdv": 70
+}, {
+"pin_name": &"case_71_out",
+"dir": 1,
+"flags": 2564,
+"label": "G",
+"gdv": 71
+}, {
+"pin_name": &"case_72_out",
+"dir": 1,
+"flags": 2564,
+"label": "H",
+"gdv": 72
+}, {
+"pin_name": &"case_73_out",
+"dir": 1,
+"flags": 2564,
+"label": "I",
+"gdv": 73
+}, {
+"pin_name": &"case_74_out",
+"dir": 1,
+"flags": 2564,
+"label": "J",
+"gdv": 74
+}, {
+"pin_name": &"case_75_out",
+"dir": 1,
+"flags": 2564,
+"label": "K",
+"gdv": 75
+}, {
+"pin_name": &"case_76_out",
+"dir": 1,
+"flags": 2564,
+"label": "L",
+"gdv": 76
+}, {
+"pin_name": &"case_77_out",
+"dir": 1,
+"flags": 2564,
+"label": "M",
+"gdv": 77
+}, {
+"pin_name": &"case_78_out",
+"dir": 1,
+"flags": 2564,
+"label": "N",
+"gdv": 78
+}, {
+"pin_name": &"case_79_out",
+"dir": 1,
+"flags": 2564,
+"label": "O",
+"gdv": 79
+}, {
+"pin_name": &"case_80_out",
+"dir": 1,
+"flags": 2564,
+"label": "P",
+"gdv": 80
+}, {
+"pin_name": &"case_81_out",
+"dir": 1,
+"flags": 2564,
+"label": "Q",
+"gdv": 81
+}, {
+"pin_name": &"case_82_out",
+"dir": 1,
+"flags": 2564,
+"label": "R",
+"gdv": 82
+}, {
+"pin_name": &"case_83_out",
+"dir": 1,
+"flags": 2564,
+"label": "S",
+"gdv": 83
+}, {
+"pin_name": &"case_84_out",
+"dir": 1,
+"flags": 2564,
+"label": "T",
+"gdv": 84
+}, {
+"pin_name": &"case_85_out",
+"dir": 1,
+"flags": 2564,
+"label": "U",
+"gdv": 85
+}, {
+"pin_name": &"case_86_out",
+"dir": 1,
+"flags": 2564,
+"label": "V",
+"gdv": 86
+}, {
+"pin_name": &"case_87_out",
+"dir": 1,
+"flags": 2564,
+"label": "W",
+"gdv": 87
+}, {
+"pin_name": &"case_88_out",
+"dir": 1,
+"flags": 2564,
+"label": "X",
+"gdv": 88
+}, {
+"pin_name": &"case_89_out",
+"dir": 1,
+"flags": 2564,
+"label": "Y",
+"gdv": 89
+}, {
+"pin_name": &"case_90_out",
+"dir": 1,
+"flags": 2564,
+"label": "Z",
+"gdv": 90
+}, {
+"pin_name": &"case_91_out",
+"dir": 1,
+"flags": 2564,
+"label": "Bracketleft",
+"gdv": 91
+}, {
+"pin_name": &"case_92_out",
+"dir": 1,
+"flags": 2564,
+"label": "Backslash",
+"gdv": 92
+}, {
+"pin_name": &"case_93_out",
+"dir": 1,
+"flags": 2564,
+"label": "Bracketright",
+"gdv": 93
+}, {
+"pin_name": &"case_94_out",
+"dir": 1,
+"flags": 2564,
+"label": "Asciicircum",
+"gdv": 94
+}, {
+"pin_name": &"case_95_out",
+"dir": 1,
+"flags": 2564,
+"label": "Underscore",
+"gdv": 95
+}, {
+"pin_name": &"case_96_out",
+"dir": 1,
+"flags": 2564,
+"label": "Quoteleft",
+"gdv": 96
+}, {
+"pin_name": &"case_123_out",
+"dir": 1,
+"flags": 2564,
+"label": "Braceleft",
+"gdv": 123
+}, {
+"pin_name": &"case_124_out",
+"dir": 1,
+"flags": 2564,
+"label": "Bar",
+"gdv": 124
+}, {
+"pin_name": &"case_125_out",
+"dir": 1,
+"flags": 2564,
+"label": "Braceright",
+"gdv": 125
+}, {
+"pin_name": &"case_126_out",
+"dir": 1,
+"flags": 2564,
+"label": "Asciitilde",
+"gdv": 126
+}, {
+"pin_name": &"case_165_out",
+"dir": 1,
+"flags": 2564,
+"label": "Yen",
+"gdv": 165
+}, {
+"pin_name": &"case_167_out",
+"dir": 1,
+"flags": 2564,
+"label": "Section",
+"gdv": 167
+}])
+
+[obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_cn0by"]
+mode = 1
+property_name = &"keycode"
+id = 66
+size = Vector2(205, 66)
+position = Vector2(-2080, 900)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2
+}, {
+"pin_name": &"keycode",
+"type": 2,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_07utq"]
+id = 67
+size = Vector2(202, 207)
+position = Vector2(-1400, 660)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "Hit Escape."
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_skp62"]
+id = 68
+size = Vector2(202, 207)
+position = Vector2(-1400, 880)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "Hit Tab."
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_f5nc0"]
+mode = 1
+property_name = &"pressed"
+id = 69
+size = Vector2(201, 66)
+position = Vector2(-2080, 820)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2
+}, {
+"pin_name": &"pressed",
+"type": 1,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeBranch" id="OScriptNodeBranch_hoyx5"]
+id = 70
+size = Vector2(213, 93)
+position = Vector2(-1860, 740)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 516,
+"label": "if [condition]"
+}, {
+"pin_name": &"condition",
+"type": 1,
+"flags": 2
+}, {
+"pin_name": &"true",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"false",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_xrf7a"]
+title = "Unhandled Input Logic"
+background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+font_size = 24
+comments = "Reacts to unhandled input.
+Prints Hit Escape or Hit Tab depending on which key was pressed."
+id = 71
+size = Vector2(1440, 486)
+position = Vector2(-2620, 620)
+
+[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_d6q01"]
+id = 72
+size = Vector2(397, 307)
+position = Vector2(440, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"name",
+"type": 4,
+"flags": 16777218,
+"label": "Speaker",
+"dv": "Manny"
+}, {
+"pin_name": &"text",
+"type": 4,
+"flags": 16777218,
+"label": "Message",
+"dv": "Nice to meet you Oscar. I have to finish doing some work around this area, please come back if you have any questions."
+}, {
+"pin_name": &"scene",
+"type": 4,
+"flags": 8388610
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_yt6sk"]
+id = 73
+size = Vector2(397, 283)
+position = Vector2(440, 100)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"name",
+"type": 4,
+"flags": 16777218,
+"label": "Speaker",
+"dv": "Manny	"
+}, {
+"pin_name": &"text",
+"type": 4,
+"flags": 16777218,
+"label": "Message",
+"dv": "Sounds great.  Be sure to check out the Inn, they have the best donuts in town."
+}, {
+"pin_name": &"scene",
+"type": 4,
+"flags": 8388610,
+"dv": ""
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_23vae"]
+id = 74
+size = Vector2(451, 343)
+position = Vector2(-60, 220)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"name",
+"type": 4,
+"flags": 16777218,
+"label": "Speaker",
+"dv": "Manny"
+}, {
+"pin_name": &"text",
+"type": 4,
+"flags": 16777218,
+"label": "Message",
+"dv": "Hello Player, my name is Manny...
+How are you today?"
+}, {
+"pin_name": &"scene",
+"type": 4,
+"flags": 8388610,
+"dv": ""
+}, {
+"pin_name": &"temp_0",
+"dir": 1,
+"flags": 36
+}, {
+"pin_name": &"temp_0",
+"dir": 1,
+"flags": 36
+}, {
+"pin_name": &"temp_0",
+"dir": 1,
+"flags": 36
+}, {
+"pin_name": &"temp_0",
+"dir": 1,
+"flags": 36
+}, {
+"pin_name": &"choice_0",
+"type": 24,
+"flags": 10,
+"target_class": "OScriptNodeDialogueChoice"
+}, {
+"pin_name": &"choice_0_out",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"choice_1",
+"type": 24,
+"flags": 10,
+"target_class": "OScriptNodeDialogueChoice"
+}, {
+"pin_name": &"choice_1_out",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_quqfk"]
+name = "player_group"
+exported = true
+classification = "type:StringName"
+type = 21
+default_value = &"Player"
+
+[resource]
+base_type = &"Area3D"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_quqfk")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_p5wor"), SubResource("OScriptFunction_behy4"), SubResource("OScriptFunction_5a116"), SubResource("OScriptFunction_kye8x"), SubResource("OScriptFunction_0vhnn")])
+connections = Array[int]([29, 0, 2, 0, 30, 0, 7, 0, 7, 0, 8, 0, 27, 0, 26, 0, 25, 0, 27, 0, 17, 0, 29, 0, 32, 0, 30, 0, 48, 0, 47, 0, 44, 0, 48, 0, 73, 0, 49, 0, 8, 0, 54, 0, 58, 1, 55, 0, 55, 0, 56, 0, 54, 0, 58, 0, 57, 0, 59, 0, 58, 0, 60, 0, 63, 0, 64, 0, 70, 0, 65, 0, 64, 2, 66, 0, 65, 2, 67, 0, 65, 3, 68, 0, 64, 2, 69, 0, 64, 0, 70, 0, 74, 1, 72, 0, 74, 0, 73, 0, 2, 0, 74, 0, 29, 1, 2, 1, 30, 1, 7, 1, 27, 1, 26, 1, 25, 1, 27, 1, 17, 1, 29, 1, 32, 1, 30, 1, 50, 0, 47, 1, 57, 0, 55, 1, 54, 1, 57, 1, 59, 0, 58, 1, 63, 1, 64, 1, 66, 0, 65, 1, 69, 0, 70, 1, 28, 0, 27, 2, 20, 0, 74, 4, 19, 0, 74, 5])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeBranch_vqktw"), SubResource("OScriptNodeBranch_7c5hw"), SubResource("OScriptNodePrintString_wugb8"), SubResource("OScriptNodeEvent_hy3md"), SubResource("OScriptNodeDialogueChoice_8ueq6"), SubResource("OScriptNodeDialogueChoice_oqk3q"), SubResource("OScriptNodeFunctionEntry_n64y0"), SubResource("OScriptNodeFunctionResult_p50t4"), SubResource("OScriptNodeCallMemberFunction_hdxsq"), SubResource("OScriptNodeVariableGet_bv8uc"), SubResource("OScriptNodeCallScriptFunction_g7dw3"), SubResource("OScriptNodeCallScriptFunction_q3kci"), SubResource("OScriptNodeEvent_762v4"), SubResource("OScriptNodeComment_jtxfd"), SubResource("OScriptNodeComment_jlhe8"), SubResource("OScriptNodeFunctionEntry_nhhe7"), SubResource("OScriptNodeCallMemberFunction_5sqwe"), SubResource("OScriptNodePrintString_g20yq"), SubResource("OScriptNodeCallScriptFunction_36fuq"), SubResource("OScriptNodeSceneTree_mdq36"), SubResource("OScriptNodeComment_lmb00"), SubResource("OScriptNodeForLoop_fxq2n"), SubResource("OScriptNodePrintString_xfts8"), SubResource("OScriptNodeDelay_ymd56"), SubResource("OScriptNodeOperator_au5hs"), SubResource("OScriptNodeBranch_ehc6v"), SubResource("OScriptNodeOperator_rvj5e"), SubResource("OScriptNodeCallScriptFunction_y4piu"), SubResource("OScriptNodeEvent_21ug3"), SubResource("OScriptNodeTypeCast_jkc8c"), SubResource("OScriptNodeSwitchEnum_n5bvd"), SubResource("OScriptNodePropertyGet_cn0by"), SubResource("OScriptNodePrintString_07utq"), SubResource("OScriptNodePrintString_skp62"), SubResource("OScriptNodePropertyGet_f5nc0"), SubResource("OScriptNodeBranch_hoyx5"), SubResource("OScriptNodeComment_xrf7a"), SubResource("OScriptNodeDialogueMessage_d6q01"), SubResource("OScriptNodeDialogueMessage_yt6sk"), SubResource("OScriptNodeDialogueMessage_23vae")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_xn3em"), SubResource("OScriptGraph_k5v5k"), SubResource("OScriptGraph_dfi8a")])

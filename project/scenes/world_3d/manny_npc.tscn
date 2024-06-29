@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://k26geaksotly"]
 
-[ext_resource type="Script" path="res://scenes/world_3d/manny_rotate.os" id="1_3nshh"]
-[ext_resource type="Script" path="res://scenes/world_3d/manny_area.os" id="1_3xxqk"]
+[ext_resource type="Script" uid="uid://c15sj30jfu8q2" path="res://scenes/world_3d/manny_rotate.torch" id="1_6jg3s"]
+[ext_resource type="Script" uid="uid://i088ibwd6mn2" path="res://scenes/world_3d/manny_area.torch" id="2_nyobw"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bl2bb"]
 
@@ -16,7 +16,7 @@ height = 4.0
 radius = 4.0
 
 [node name="Manny" type="CharacterBody3D"]
-script = ExtResource("1_3nshh")
+script = ExtResource("1_6jg3s")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_bl2bb")
@@ -26,7 +26,7 @@ material_override = SubResource("StandardMaterial3D_x2jg1")
 mesh = SubResource("BoxMesh_epgww")
 
 [node name="Area3D" type="Area3D" parent="."]
-script = ExtResource("1_3xxqk")
+script = ExtResource("2_nyobw")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
 shape = SubResource("CylinderShape3D_2r3jc")
