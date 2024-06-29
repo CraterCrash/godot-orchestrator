@@ -20,7 +20,7 @@ class OScriptNodeRandomInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeRandom);
 
-    RandomNumberGenerator _random;
+    Ref<RandomNumberGenerator> _random;
     int _possibilities{ 0 };
 
 public:
@@ -29,7 +29,10 @@ public:
         if (_possibilities == 0)
             return -1;
 
-        return _random.randi_range(0, _possibilities - 1);
+        if (!_random.is_valid())
+            _random.instantiate();
+
+        return _random->randi_range(0, _possibilities - 1);
     }
 };
 
