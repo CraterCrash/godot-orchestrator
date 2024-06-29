@@ -17,6 +17,7 @@
 #include "call_member_function.h"
 
 #include "common/dictionary_utils.h"
+#include "common/method_utils.h"
 #include "common/variant_utils.h"
 
 OScriptNodeCallMemberFunction::OScriptNodeCallMemberFunction()

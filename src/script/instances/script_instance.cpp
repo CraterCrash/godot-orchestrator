@@ -25,9 +25,9 @@
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 
-static GDExtensionScriptInstanceInfo2 init_script_instance_info()
+static OScriptInstanceInfo init_script_instance_info()
 {
-    GDExtensionScriptInstanceInfo2 info;
+    OScriptInstanceInfo info;
     OScriptInstanceBase::init_instance(info);
 
     info.set_func = [](void* p_self, GDExtensionConstStringNamePtr p_name,
@@ -77,7 +77,7 @@ static GDExtensionScriptInstanceInfo2 init_script_instance_info()
     return info;
 }
 
-const GDExtensionScriptInstanceInfo2 OScriptInstance::INSTANCE_INFO = init_script_instance_info();
+const OScriptInstanceInfo OScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
 OScriptInstance::OScriptInstance(const Ref<OScript>& p_script, OScriptLanguage* p_language, Object* p_owner)
     : _script(p_script)

@@ -22,9 +22,9 @@
 
 #include <godot_cpp/templates/local_vector.hpp>
 
-static GDExtensionScriptInstanceInfo2 init_placeholder_instance_info()
+static OScriptInstanceInfo init_placeholder_instance_info()
 {
-    GDExtensionScriptInstanceInfo2 info;
+    OScriptInstanceInfo info;
     OScriptInstanceBase::init_instance(info);
 
     // not set
@@ -83,7 +83,7 @@ static GDExtensionScriptInstanceInfo2 init_placeholder_instance_info()
     return info;
 }
 
-const GDExtensionScriptInstanceInfo2 OScriptPlaceHolderInstance::INSTANCE_INFO = init_placeholder_instance_info();
+const OScriptInstanceInfo OScriptPlaceHolderInstance::INSTANCE_INFO = init_placeholder_instance_info();
 
 OScriptPlaceHolderInstance::OScriptPlaceHolderInstance(Ref<OScript> p_script, Object* p_owner)
 {

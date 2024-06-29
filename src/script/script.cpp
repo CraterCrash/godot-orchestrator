@@ -80,8 +80,6 @@ void OScript::_bind_methods()
     ADD_SIGNAL(MethodInfo("signals_changed"));
 }
 
-/// Serialization //////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /// ScriptExtension ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool OScript::_editor_can_reload_from_file()
@@ -98,7 +96,7 @@ void* OScript::_placeholder_instance_create(Object* p_object) const
         MutexLock lock(*_language->lock.ptr());
         _placeholders[p_object->get_instance_id()] = psi;
     }
-    return internal::gdextension_interface_script_instance_create2(&OScriptPlaceHolderInstance::INSTANCE_INFO, psi);
+    return GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptPlaceHolderInstance::INSTANCE_INFO, psi);
     #else
     return nullptr;
     #endif
@@ -134,7 +132,7 @@ void* OScript::_instance_create(Object* p_object) const
         _instances[p_object] = si;
     }
 
-    void* godot_inst = internal::gdextension_interface_script_instance_create2(&OScriptInstance::INSTANCE_INFO, si);
+    void* godot_inst = GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptInstance::INSTANCE_INFO, si);
 
     // Dispatch the "Init Event" if its wired
     if (has_function("_init"))

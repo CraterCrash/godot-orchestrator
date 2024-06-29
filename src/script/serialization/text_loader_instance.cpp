@@ -495,7 +495,7 @@ Error OScriptTextResourceLoaderInstance::load()
                 #endif
             }
 
-            #if GODOT_VERSION >= 0x040400
+            #if GODOT_VERSION >= 0x040300
             res->set_scene_unique_id(id);
             #else
             ResourceCache::get_singleton()->set_scene_unique_id(_local_path, res, id);
