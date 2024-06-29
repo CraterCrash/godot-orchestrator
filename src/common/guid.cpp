@@ -66,12 +66,12 @@ String Guid::to_string() const
 
 Guid Guid::create_guid()
 {
-    RandomNumberGenerator rng;
+    Ref<RandomNumberGenerator> rng(memnew(RandomNumberGenerator));
 
-    uint32_t a = rng.randi();
-    uint32_t b = rng.randi();
-    uint32_t c = rng.randi();
-    uint32_t d = rng.randi();
+    uint32_t a = rng->randi();
+    uint32_t b = rng->randi();
+    uint32_t c = rng->randi();
+    uint32_t d = rng->randi();
 
     // The 4 bits of digit M indicate the GUID version, and the 1-3 most significant bits
     // of digit N indicate the UUID variant.
