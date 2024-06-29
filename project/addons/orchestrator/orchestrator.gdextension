@@ -1,7 +1,7 @@
 [configuration]
 
 entry_symbol = "extension_library_init"
-compatibility_minimum="4.2"
+compatibility_minimum="4.3"
 reloadable = false
 
 [libraries]
