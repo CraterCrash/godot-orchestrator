@@ -17,7 +17,6 @@
 #ifndef ORCHESTRATOR_SCRIPT_H
 #define ORCHESTRATOR_SCRIPT_H
 
-#include "common/version.h"
 #include "orchestration/orchestration.h"
 #include "script/instances/instance_base.h"
 
@@ -121,9 +120,6 @@ public:
     TypedArray<StringName> _get_members() const override;
     Variant _get_rpc_config() const override;
     String _get_class_icon_path() const override;
-    #if GODOT_VERSION >= 0x040300
-    ScriptLanguage::ScriptNameCasing _preferred_file_name_casing() const override;
-    #endif
     //~ End ScriptExtension overrides
 
     /// Get the underlying script's language

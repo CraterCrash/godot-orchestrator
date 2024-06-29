@@ -66,7 +66,7 @@ String OScriptNodeSelf::get_node_title() const
 String OScriptNodeSelf::get_help_topic() const
 {
     #if GODOT_VERSION >= 0x040300
-    return vformat("class:%s", _script->get_base_type());
+    return vformat("class:%s", _orchestration->get_base_type());
     #else
     return super::get_help_topic();
     #endif

@@ -67,7 +67,6 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptAutowireSelections)
 
     // Action components
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionDB)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenu)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenuItem)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionHandler)
