@@ -24,6 +24,7 @@
 #include "editor/component_panels/signals_panel.h"
 #include "editor/component_panels/variables_panel.h"
 #include "editor/editor_panel.h"
+#include "editor/file_dialog.h"
 #include "editor/getting_started.h"
 #include "editor/goto_node_dialog.h"
 #include "editor/graph/actions/action_menu.h"
@@ -60,6 +61,7 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)
 
     // Editor bits
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorFileDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorVariableTypeSearchDialog)
