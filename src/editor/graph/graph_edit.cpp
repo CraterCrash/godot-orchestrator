@@ -773,7 +773,7 @@ void OrchestratorGraphEdit::_create_connection_knot(const Dictionary& p_connecti
     int knot_position = 0;
 
     const Vector2 from_position = source->get_output_port_position(connection.from_port) + source->get_position_offset();
-    const Vector2 to_position = source->get_input_port_position(connection.to_port) + target->get_position_offset();
+    const Vector2 to_position = target->get_input_port_position(connection.to_port) + target->get_position_offset();
 
     points.push_back(from_position);
     points.append_array(knot_points);
