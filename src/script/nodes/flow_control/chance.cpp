@@ -19,13 +19,16 @@
 class OScriptNodeChanceInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeChance);
-    RandomNumberGenerator _random;
+    Ref<RandomNumberGenerator> _random;
     int _chance{ 0 };
 
 public:
     int step(OScriptExecutionContext& p_context) override
     {
-        const int _calculated_chance = _random.randi_range(0, 100);
+        if (!_random.is_valid())
+            _random.instantiate();
+
+        const int _calculated_chance = _random->randi_range(0, 100);
         return _calculated_chance <= _chance ? 0 : 1;
     }
 };
