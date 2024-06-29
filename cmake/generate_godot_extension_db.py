@@ -101,6 +101,9 @@ def get_variant_type(variant_type):
         return "Variant::PACKED_VECTOR3_ARRAY"
     elif variant_type == "PackedColorArray":
         return "Variant::PACKED_COLOR_ARRAY"
+    # Godot 4.3+
+    elif variant_type == "PackedVector4Array":
+        return "Variant::PACKED_VECTOR4_ARRAY"
     return variant_type
 
 def get_operator_type(op_type):
