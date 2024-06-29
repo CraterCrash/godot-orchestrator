@@ -264,50 +264,50 @@ def create_structs():
     print_indent("/// Describes a mapping between an enum name and value")
     print_struct("EnumValue", ["StringName name",
                                "StringName friendly_name",
-                               "int value"])
+                               "int value{ 0 }"])
 
     print_indent("/// Describes a definition of an Enumeration type")
     print_struct("EnumInfo", ["StringName name",
-                              "bool is_bitfield",
+                              "bool is_bitfield{ false }",
                               "Vector<EnumValue> values"])
 
     print_indent("/// Describes a function")
     print_struct("FunctionInfo", ["StringName name",
                                   "PropertyInfo return_val",
                                   "StringName category",
-                                  "bool is_vararg",
+                                  "bool is_vararg{ false }",
                                   "Vector<PropertyInfo> arguments"])
 
     print_indent("/// Describes an operator for a Godot type")
-    print_struct("OperatorInfo", ["VariantOperators::Code op",
+    print_struct("OperatorInfo", ["VariantOperators::Code op{ VariantOperators::OP_EQUAL }",
                                   "StringName code",
                                   "StringName name",
-                                  "Variant::Type left_type",
+                                  "Variant::Type left_type{ Variant::NIL }",
                                   "StringName left_type_name",
-                                  "Variant::Type right_type",
+                                  "Variant::Type right_type{ Variant::NIL }",
                                   "StringName right_type_name",
-                                  "Variant::Type return_type"])
+                                  "Variant::Type return_type{ Variant::NIL }"])
 
     print_indent("/// Describes a constructor definition")
     print_struct("ConstructorInfo", ["Vector<PropertyInfo> arguments"])
 
     print_indent("/// Describes a Constant definition")
     print_struct("ConstantInfo", ["StringName name",
-                                  "Variant::Type type",
+                                  "Variant::Type type{ Variant::NIL }",
                                   "Variant value"])
 
     print_indent("/// Builtin Godot Type details")
     print_struct("BuiltInType", ["StringName name",
-                                 "Variant::Type type",
-                                 "bool keyed",
-                                 "bool has_destructor",
+                                 "Variant::Type type{ Variant::NIL }",
+                                 "bool keyed{ false }",
+                                 "bool has_destructor{ false }",
                                  "Vector<OperatorInfo> operators",
                                  "Vector<ConstructorInfo> constructors",
                                  "Vector<MethodInfo> methods",
                                  "Vector<PropertyInfo> properties",
                                  "Vector<ConstantInfo> constants",
                                  "Vector<EnumInfo> enums",
-                                 "Variant::Type index_returning_type"])
+                                 "Variant::Type index_returning_type{ Variant::NIL }"])
 
     print_indent("/// Describes a Godot Class")
     print_struct("ClassInfo", ["StringName name",
