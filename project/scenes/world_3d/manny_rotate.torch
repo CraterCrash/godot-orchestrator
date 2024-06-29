@@ -1,0 +1,159 @@
+[orchestration type="OScript" load_steps=10 format=1 uid="uid://c15sj30jfu8q2"]
+
+[obj type="OScriptFunction" id="OScriptFunction_8ku1s"]
+guid = "353DC3AF-0F76-4294-89CC-2F918ED5C978"
+method = {
+"name": &"_physics_process",
+"flags": 8,
+"args": [{
+"name": &"delta",
+"type": 3
+}]
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_8e6ng"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3, 4, 5])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_fecy0"]
+function_id = "353DC3AF-0F76-4294-89CC-2F918ED5C978"
+id = 0
+size = Vector2(221, 93)
+position = Vector2(260, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"delta",
+"type": 3,
+"dir": 1,
+"flags": 2050
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_ljx3o"]
+op = 8
+code = &"*"
+name = &"Multiply"
+left_type = 3
+left_type_name = &"float"
+right_type = 3
+right_type_name = &"float"
+return_type = 3
+id = 1
+size = Vector2(201, 93)
+position = Vector2(480, 340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 3
+}, {
+"pin_name": &"b",
+"type": 3,
+"dv": 50.0
+}, {
+"pin_name": &"result",
+"type": 3,
+"dir": 1
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_f8yni"]
+function_name = &"deg_to_rad"
+flags = 1
+method = {
+"name": &"deg_to_rad",
+"return": {
+"type": 3
+},
+"args": [{
+"name": &"deg",
+"type": 3
+}]
+}
+id = 2
+size = Vector2(244, 66)
+position = Vector2(740, 340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"deg",
+"type": 3,
+"flags": 2050
+}, {
+"pin_name": &"return_value",
+"type": 3,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_qrrqq"]
+function_name = &"rotate_y"
+target_class_name = "CharacterBody3D"
+flags = 8
+method = {
+"name": &"rotate_y",
+"args": [{
+"name": &"angle",
+"type": 3
+}]
+}
+chain = false
+id = 3
+size = Vector2(198, 120)
+position = Vector2(1020, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2,
+"target_class": "CharacterBody3D"
+}, {
+"pin_name": &"angle",
+"type": 3,
+"flags": 2050
+}])
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_0xhvy"]
+title = "Rotate Manny"
+background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+font_size = 24
+comments = "Rotates the character every physics frame."
+id = 4
+size = Vector2(1003, 292)
+position = Vector2(240, 160)
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_8c50o"]
+variable_name = &"rotation_speed"
+id = 5
+size = Vector2(203, 66)
+position = Vector2(260, 380)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 3,
+"dir": 1,
+"flags": 2050,
+"label": "rotation_speed"
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_730ue"]
+name = "rotation_speed"
+category = "Default"
+exported = true
+classification = "type:float"
+type = 3
+default_value = 50.0
+description = "Specifies the speed the model rotates."
+
+[resource]
+base_type = &"CharacterBody3D"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_730ue")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_8ku1s")])
+connections = Array[int]([0, 1, 1, 0, 1, 0, 2, 0, 0, 0, 3, 0, 5, 0, 1, 1, 2, 0, 3, 2])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_fecy0"), SubResource("OScriptNodeOperator_ljx3o"), SubResource("OScriptNodeCallBuiltinFunction_f8yni"), SubResource("OScriptNodeCallMemberFunction_qrrqq"), SubResource("OScriptNodeComment_0xhvy"), SubResource("OScriptNodeVariableGet_8c50o")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_8e6ng")])

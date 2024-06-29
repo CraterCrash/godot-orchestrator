@@ -1,9 +1,15 @@
 [gd_scene load_steps=2 format=3 uid="uid://d2fqumjmubvy0"]
 
-[ext_resource type="Script" path="res://scenes/world_3d/camera.os" id="1_04cjj"]
+[ext_resource type="Script" uid="uid://bvc44327ha4lf" path="res://scenes/world_3d/camera.torch" id="1_qll8g"]
 
 [node name="OrbitalCamera" type="Node3D"]
-script = ExtResource("1_04cjj")
+script = ExtResource("1_qll8g")
+Sensitivity/horizontal_sensitivity = null
+Zoom/max_zoom = null
+Zoom/min_zoom = null
+Zoom/zoom_step = null
+Zoom/zoom_y_step = null
+Sensitivity/vertical_sensitivity = null
 
 [node name="SpringArm3D" type="SpringArm3D" parent="."]
 
