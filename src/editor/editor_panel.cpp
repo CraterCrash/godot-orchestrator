@@ -29,6 +29,7 @@
 #include "editor/script_editor_viewport.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
+#include "file_dialog.h"
 #include "script/language.h"
 #include "script/script.h"
 #include "script/serialization/resource_cache.h"
@@ -305,10 +306,10 @@ void OrchestratorEditorPanel::_handle_menu_option(int p_option)
             _show_create_new_script_dialog();
             break;
         case FILE_OPEN:
-            _file_open_dialog->popup_centered();
+            _file_open_dialog->popup_file_dialog();
             break;
         case FILE_SAVE_AS:
-            _file_save_dialog->popup_centered();
+            _file_save_dialog->popup_file_dialog();
             break;
         case FILE_SAVE:
             _save_script();
@@ -945,20 +946,18 @@ void OrchestratorEditorPanel::_notification(int p_what)
 
             const String filter = OScriptLanguage::get_singleton()->get_script_extension_filter();
 
-            _file_open_dialog = memnew(FileDialog);
-            _file_open_dialog->set_min_size(Vector2(700, 400));
-            _file_open_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
-            _file_open_dialog->set_title("Open Orchestration Script");
+            _file_open_dialog = memnew(OrchestratorFileDialog);
+            _file_open_dialog->set_access(FileDialog::ACCESS_FILESYSTEM);
             _file_open_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
+            _file_open_dialog->set_title("Open Orchestration Script");
             _file_open_dialog->add_filter(filter, "Orchestrator Scripts");
             _file_open_dialog->connect("file_selected", callable_mp(this, &OrchestratorEditorPanel::_open_script_file));
             add_child(_file_open_dialog);
 
-            _file_save_dialog = memnew(FileDialog);
-            _file_save_dialog->set_min_size(Vector2(700, 400));
-            _file_save_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
-            _file_save_dialog->set_title("Save As Orchestration Script");
+            _file_save_dialog = memnew(OrchestratorFileDialog);
+            _file_save_dialog->set_access(FileDialog::ACCESS_FILESYSTEM);
             _file_save_dialog->set_file_mode(FileDialog::FILE_MODE_SAVE_FILE);
+            _file_save_dialog->set_title("Save As Orchestration Script");
             _file_save_dialog->add_filter(filter, "Orchestrator Scripts");
             _file_save_dialog->connect("file_selected", callable_mp(this, &OrchestratorEditorPanel::_save_script_file));
             add_child(_file_save_dialog);

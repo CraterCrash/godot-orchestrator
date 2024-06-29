@@ -30,6 +30,7 @@ using namespace godot;
 
 /// Forward declarations
 class OrchestratorEditorViewport;
+class OrchestratorFileDialog;
 class OrchestratorGettingStarted;
 class OrchestratorGotoNodeDialog;
 class OrchestratorScreenSelect;
@@ -123,8 +124,8 @@ protected:
     PopupMenu* _file_list_context_menu{ nullptr };            //! File list context menu
     ItemList* _file_list{ nullptr };                          //! File list
     Window* _about_dialog{ nullptr };                         //! About dialog
-    FileDialog* _file_open_dialog{ nullptr };                 //! File open dialog
-    FileDialog* _file_save_dialog{ nullptr };                 //! File save dialog
+    OrchestratorFileDialog* _file_open_dialog{ nullptr };     //! File open dialog
+    OrchestratorFileDialog* _file_save_dialog{ nullptr };     //! File save dialog
     ConfirmationDialog* _close_confirm{ nullptr };            //! Close confirmation dialog
     OrchestratorGotoNodeDialog* _goto_dialog{ nullptr };      //! Goto node dialog
     OrchestratorScreenSelect* _screen_select{ nullptr };      //! Window screen selector
