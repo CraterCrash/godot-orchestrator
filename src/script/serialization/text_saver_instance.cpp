@@ -261,6 +261,9 @@ void OScriptTextResourceSaverInstance::_find_resources(const Variant& p_variant,
         case Variant::DICTIONARY:
             _find_resources_dictionary(p_variant, p_main);
             break;
+        default:
+            // no-op
+            break;
     }
 }
 
