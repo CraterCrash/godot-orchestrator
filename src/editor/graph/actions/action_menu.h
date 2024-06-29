@@ -116,6 +116,13 @@ private:
     /// Dispatched when a tree element is double-clicked
     void _on_tree_item_activated();
 
+    /// Dispatched when clicking anywhere in the tree with no selection
+    void _on_tree_nothing_selected();
+
+    /// Dispached when a tree item is collapsed or expanded
+    /// @param p_item the item collapsed or expanded
+    void _on_tree_item_collapsed(TreeItem* p_item);
+
     /// Dispatched when the user clicks a button in the tree
     /// @param p_item the current tree item who's button was clicked
     /// @param p_column the column the button is within
