@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://d1eu3lxtgtc8h"]
 
-[ext_resource type="Script" path="res://scenes/world_3d/player.os" id="1_idu7t"]
+[ext_resource type="Script" uid="uid://u54x6sgtcvs0" path="res://scenes/world_3d/player.torch" id="1_dmtt2"]
 [ext_resource type="PackedScene" uid="uid://d2fqumjmubvy0" path="res://scenes/world_3d/camera.tscn" id="2_30xhs"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0vwb7"]
@@ -8,7 +8,7 @@
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_esanm"]
 
 [node name="Player" type="CharacterBody3D"]
-script = ExtResource("1_idu7t")
+script = ExtResource("1_dmtt2")
 Movement/accelleration = 8.0
 camera_path = NodePath("OrbitalCamera")
 Movement/gravity = 30.0
