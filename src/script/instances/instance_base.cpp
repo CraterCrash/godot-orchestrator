@@ -46,9 +46,15 @@ void OScriptInstanceBase::init_instance(OScriptInstanceInfo& p_info)
         return ((OScriptInstanceBase*)p_self)->get_property_list(r_count);
     };
 
+    #if GODOT_VERSION >= 0x040300
     p_info.free_property_list_func = [](void* p_self, const GDExtensionPropertyInfo* p_list, uint32_t p_count) {
         ((OScriptInstanceBase*)p_self)->free_property_list(p_list, p_count);
     };
+    #else
+    p_info.free_property_list_func = [](void* p_self, const GDExtensionPropertyInfo* p_list) {
+        ((OScriptInstanceBase*)p_self)->free_property_list(p_list);
+    };
+    #endif
 
     p_info.get_owner_func = [](void* p_self) {
         return ((OScriptInstanceBase*)p_self)->get_owner()->_owner;
@@ -63,9 +69,15 @@ void OScriptInstanceBase::init_instance(OScriptInstanceInfo& p_info)
         return ((OScriptInstanceBase*)p_self)->get_method_list(r_count);
     };
 
+    #if GODOT_VERSION >= 0x040300
     p_info.free_method_list_func = [](void* p_self, const GDExtensionMethodInfo* p_list, uint32_t p_count) {
         ((OScriptInstanceBase*)p_self)->free_method_list(p_list, p_count);
     };
+    #else
+    p_info.free_method_list_func = [](void* p_self, const GDExtensionMethodInfo* p_list) {
+        ((OScriptInstanceBase*)p_self)->free_method_list(p_list);
+    };
+    #endif
 
     p_info.get_property_type_func = [](void* p_self, GDExtensionConstStringNamePtr p_name,
                                        GDExtensionBool* r_is_valid) -> GDExtensionVariantType {
