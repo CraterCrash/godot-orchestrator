@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_EDITOR_VIEWPORT_H
 #define ORCHESTRATOR_EDITOR_VIEWPORT_H
 
+#include "common/version.h"
+
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
@@ -163,6 +165,20 @@ public:
     /// @param p_show_success whether to show the validation results upon success
     /// @return true if the build is successful, false otherwise
     bool build(bool p_show_success = false);
+
+    #if GODOT_VERSION >= 0x040300
+    /// Clear all breakpoints in the script view
+    void clear_breakpoints();
+
+    /// Sets the breakpoint status on the specified node
+    /// @param p_node_id the graph node id
+    /// @param p_enabled whether the breakpoint is enabled
+    void set_breakpoint(int p_node_id, bool p_enabled);
+
+    /// Get a list of breakpoints
+    /// @return the list of breakpoints for this script editor
+    PackedStringArray get_breakpoints() const;
+    #endif
 
     /// Focuses on the specified node
     /// @param p_node_id the node ID

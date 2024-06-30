@@ -266,5 +266,5 @@ OScriptInstance* OScriptInstance::from_object(GDExtensionObjectPtr p_object)
 void OScriptInstance::call(const StringName& p_method, const Variant* const* p_args, GDExtensionInt p_arg_count,
                            Variant* r_return, GDExtensionCallError* r_err)
 {
-    _vm.call_method(p_method, p_args, p_arg_count, r_return, r_err);
+    _vm.call_method(this, p_method, p_args, p_arg_count, r_return, r_err);
 }

@@ -55,10 +55,14 @@ void register_editor_types()
 {
     // Plugin bits
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorPlugin)
+    #if GODOT_VERSION >= 0x040300
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorDebuggerPlugin)
+    #endif
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorExportPlugin)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorCache)
 
     // Editor bits
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorFileDialog)

@@ -40,12 +40,15 @@ class OScriptState;
 ///
 class OScriptInstance : public OScriptInstanceBase
 {
+    friend class OScript;
+    friend class OScriptLanguage;
     friend class OScriptState;
 
     Ref<OScript> _script;                       //! The script this instance represents
     Object* _owner{ nullptr };                  //! The owning object of the script
     OScriptLanguage* _language{ nullptr };      //! The language the script represents
     OScriptVirtualMachine _vm;                  //! The virtual machine instance
+    void* _script_instance{ nullptr };          //! Godot script instance
 
 public:
     /// Defines details about the script instance to be passed to Godot

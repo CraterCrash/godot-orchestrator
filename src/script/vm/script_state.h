@@ -44,6 +44,7 @@ class OScriptState : public RefCounted
 protected:
     ObjectID _instance_id;                                  //! Script intance object ID
     ObjectID _script_id;                                    //! Script intance ID
+    OScriptInstance* _script_instance{ nullptr };           //! Script instance
     OScriptVirtualMachine* _instance{ nullptr };            //! Virtual machine runtime (owned by script instance)
     OScriptVirtualMachine::Function* _func_ptr{ nullptr };  //! Executing function pointer
     OScriptNodeInstance* _node{ nullptr };                  //! Node that requested the yield/await

@@ -31,6 +31,7 @@ class OScriptExecutionContext;
 class OScriptExecutionStack;
 class OScriptFunction;
 class OScriptInstance;
+class OScriptLanguage;
 class OScriptNode;
 class OScriptNodeInstance;
 class OScriptVariable;
@@ -41,6 +42,7 @@ struct OScriptConnection;
 /// The runtime virtual machine for Orchestrations
 class OScriptVirtualMachine
 {
+    friend class OScriptLanguage;
     friend class OScriptState;
 
 public:
@@ -228,12 +230,13 @@ public:
     bool register_function(const Ref<OScriptFunction>& p_function);
 
     /// Executes or calls the specified method
+    /// @param p_instance the script instance that made the call
     /// @param p_method the method name to run
     /// @param p_args the method arguments
     /// @param p_arg_count the number of method arguments
     /// @param r_return the return value, if applicable
     /// @param r_err the return code, if applicable
-    void call_method(const StringName& p_method, const Variant* const* p_args, GDExtensionInt p_arg_count, Variant* r_return, GDExtensionCallError* r_err);
+    void call_method(OScriptInstance* p_instance, const StringName& p_method, const Variant* const* p_args, GDExtensionInt p_arg_count, Variant* r_return, GDExtensionCallError* r_err);
 
     /// Constructs the virtual machine
     OScriptVirtualMachine();

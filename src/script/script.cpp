@@ -132,7 +132,7 @@ void* OScript::_instance_create(Object* p_object) const
         _instances[p_object] = si;
     }
 
-    void* godot_inst = GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptInstance::INSTANCE_INFO, si);
+    si->_script_instance = GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptInstance::INSTANCE_INFO, si);
 
     // Dispatch the "Init Event" if its wired
     if (has_function("_init"))
@@ -142,7 +142,7 @@ void* OScript::_instance_create(Object* p_object) const
         si->call("_init", nullptr, 0, &result, &err);
     }
 
-    return godot_inst;
+    return si->_script_instance;
 }
 
 bool OScript::_instance_has(Object* p_object) const

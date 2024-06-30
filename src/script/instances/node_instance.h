@@ -42,6 +42,7 @@ class OScriptVirtualMachine;
 class OScriptNodeInstance : public Object
 {
     friend class OScriptInstance;
+    friend class OScriptLanguage;
     friend class OScriptVirtualMachine;
 
 public:
