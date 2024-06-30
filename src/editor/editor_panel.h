@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_EDITOR_PANEL_H
 #define ORCHESTRATOR_EDITOR_PANEL_H
 
+#include "common/version.h"
+
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/file_dialog.hpp>
 #include <godot_cpp/classes/file_system_dock.hpp>
@@ -179,6 +181,12 @@ protected:
     void _file_moved(const String& p_old_file_name, const String& p_new_file_name);
     void _folder_removed(const String& p_folder_name);
 
+    #if GODOT_VERSION >= 0x040300
+    void _goto_script_line(const Ref<Script>& p_script, int p_line);
+    void _clear_all_breakpoints();
+    void _set_breakpoint(const Ref<Script>& p_script, int p_line, bool p_enabled);
+    #endif
+
     /// Constructor, intentially protected
     OrchestratorEditorPanel() = default;
 
@@ -205,6 +213,12 @@ public:
     /// Apply the window layout
     /// @param p_config the configuration to read from
     void set_window_layout(const Ref<ConfigFile>& p_config);
+
+    #if GODOT_VERSION >= 0x040300
+    /// Get all active, defined breakpoints
+    /// @return list of breakpoints
+    PackedStringArray get_breakpoints() const;
+    #endif
 
     /// Constructs the editor panel
     /// @param p_window_wrapper

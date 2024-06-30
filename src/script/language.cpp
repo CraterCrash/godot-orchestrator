@@ -21,9 +21,13 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "script/script.h"
+#include "script/vm/script_vm.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
+#if GODOT_VERSION >= 0x040300
+  #include <godot_cpp/classes/os.hpp>
+#endif
 #ifdef TOOLS_ENABLED
   #include <godot_cpp/core/mutex_lock.hpp>
 #endif
@@ -40,6 +44,14 @@ OScriptLanguage::OScriptLanguage()
 OScriptLanguage::~OScriptLanguage()
 {
     _singleton = nullptr;
+
+    #if GODOT_VERSION >= 0x040300
+    if (_call_stack)
+    {
+        memdelete_arr(_call_stack);
+        _call_stack = nullptr;
+    }
+    #endif
 }
 
 OScriptLanguage* OScriptLanguage::get_singleton()
@@ -79,6 +91,21 @@ void OScriptLanguage::_init()
         if (format.match("Binary"))
             _extension = ORCHESTRATOR_SCRIPT_EXTENSION;
     }
+
+    #if GODOT_VERSION >= 0x040300
+    if (EngineDebugger::get_singleton()->is_active())
+    {
+        OrchestratorSettings* os = OrchestratorSettings::get_singleton();
+        int max_call_stack = os->get_setting("settings/runtime/max_call_stack", 1024);
+        _debug_max_call_stack = max_call_stack;
+        _call_stack = memnew_arr(CallStack, _debug_max_call_stack + 1);
+    }
+    else
+    {
+        _debug_max_call_stack = 0;
+        _call_stack = nullptr;
+    }
+    #endif
 }
 
 String OScriptLanguage::_get_name() const
@@ -329,9 +356,192 @@ void OScriptLanguage::_finish()
 {
 }
 
+#if GODOT_VERSION >= 0x040300
+String OScriptLanguage::_debug_get_stack_level_source(int32_t p_level) const
+{
+    if (_debug_parse_err_line >= 0)
+        return _debug_parse_err_file;
+
+    ERR_FAIL_INDEX_V(p_level, _debug_call_stack_pos, {});
+    int l = _debug_call_stack_pos - p_level - 1;
+    return _call_stack[l].instance->get_script()->get_path();
+}
+
+int32_t OScriptLanguage::_debug_get_stack_level_line(int32_t p_level) const
+{
+    if (_debug_parse_err_line >= 0)
+        return _debug_parse_err_line;
+
+    ERR_FAIL_INDEX_V(p_level, _debug_call_stack_pos, -1);
+    int l = _debug_call_stack_pos - p_level - 1;
+    return *_call_stack[l].id;
+}
+
+String OScriptLanguage::_debug_get_stack_level_function(int32_t p_level) const
+{
+    if (_debug_parse_err_line >= 0)
+        return {};
+
+    ERR_FAIL_INDEX_V(p_level, _debug_call_stack_pos, {});
+    int l = _debug_call_stack_pos - p_level - 1;
+    return *(_call_stack[l].current_function);
+}
+
+void* OScriptLanguage::_debug_get_stack_level_instance(int32_t p_level)
+{
+    if (_debug_parse_err_line >= 0)
+         return nullptr;
+
+    ERR_FAIL_INDEX_V(p_level, _debug_call_stack_pos, nullptr);
+    int l = _debug_call_stack_pos - p_level - 1;
+    return _call_stack[l].instance->_script_instance;
+}
+
+Dictionary OScriptLanguage::_debug_get_stack_level_members(int32_t p_level, int32_t p_max_subitems, int32_t p_max_depth)
+{
+    if (_debug_parse_err_line >= 0)
+        return {};
+
+    ERR_FAIL_INDEX_V(p_level, _debug_call_stack_pos, {});
+    int l =_debug_call_stack_pos - p_level - 1;
+
+    Ref<OScript> script = _call_stack[l].instance->get_script();
+    if (!script.is_valid())
+        return {};
+
+    PackedStringArray member_names;
+    Array member_values;
+
+    for (const String& variable_name: script->get_variable_names())
+    {
+        Variant value;
+        if (_call_stack[l].instance->get_variable(variable_name, value))
+        {
+            member_names.push_back("Variables/" + variable_name);
+            member_values.push_back(value);
+        }
+    }
+
+    Dictionary members;
+    members["members"] = member_names;
+    members["values"] = member_values;
+
+    return members;
+}
+
+Dictionary OScriptLanguage::_debug_get_stack_level_locals(int32_t p_level, int32_t p_max_subitems, int32_t p_max_depth)
+{
+    if (_debug_parse_err_line >= 0)
+        return {};
+
+    ERR_FAIL_INDEX_V(p_level, _debug_call_stack_pos, {});
+
+    int l =_debug_call_stack_pos - p_level - 1;
+    const StringName* function_name = _call_stack[l].current_function;
+    ERR_FAIL_COND_V(!_call_stack[l].instance->_vm._functions.has(*function_name), {});
+
+    OScriptNodeInstance* node = _call_stack[l].instance->_vm._nodes[*_call_stack[l].id];
+    ERR_FAIL_COND_V(!node, {});
+
+    PackedStringArray local_names;
+    Array local_values;
+
+    local_names.push_back("Script Node Name");
+    local_values.push_back(node->get_base_node()->get_node_title());
+    local_names.push_back("Script Node ID");
+    local_values.push_back(node->get_base_node()->get_id());
+    local_names.push_back("Script Node Type");
+    local_values.push_back(node->get_base_node()->get_class());
+
+    int offset = 0;
+    for (int i = 0; i < node->input_pin_count; i++)
+    {
+        Ref<OScriptNodePin> pin = node->get_base_node()->find_pin(i, PD_Input);
+        if (pin->is_execution())
+        {
+            offset++;
+            continue;
+        }
+
+        if (!pin->get_label().is_empty())
+            local_names.push_back("Inputs/" + pin->get_label());
+        else
+            local_names.push_back("Inputs/" + pin->get_pin_name());
+
+        int in_from = node->input_pins[i - offset];
+        int in_value = in_from & OScriptNodeInstance::INPUT_MASK;
+        if (in_from & OScriptNodeInstance::INPUT_DEFAULT_VALUE_BIT)
+            local_values.push_back(_call_stack[l].instance->_vm._default_values[in_value]);
+        else
+            local_values.push_back(_call_stack[l].stack[in_value]);
+    }
+
+    offset = 0;
+    for (int i = 0; i < node->output_pin_count; i++)
+    {
+        Ref<OScriptNodePin> pin = node->get_base_node()->find_pin(i, PD_Output);
+        if (pin->is_execution())
+        {
+            offset++;
+            continue;
+        }
+
+        if (!pin->get_label().is_empty())
+            local_names.push_back("Outputs/" + pin->get_label());
+        else
+            local_names.push_back("Outputs/" + pin->get_pin_name());
+
+        int out = node->output_pins[i - offset];
+        local_values.push_back(_call_stack[l].stack[out]);
+    }
+
+    Dictionary locals;
+    locals["locals"] = local_names;
+    locals["values"] = local_values;
+    return locals;
+}
+
+Dictionary OScriptLanguage::_debug_get_globals(int32_t p_max_subitems, int32_t p_max_depth)
+{
+    Dictionary results;
+    results["globals"] = get_global_constant_names();
+
+    Array values;
+    for (const String& name : get_global_constant_names())
+        values.push_back(get_any_global_constant(name));
+    results["values"] = values;
+
+    return results;
+}
+
+String OScriptLanguage::_debug_get_error() const
+{
+    return _debug_error;
+}
+
+int32_t OScriptLanguage::_debug_get_stack_level_count() const
+{
+    if (_debug_parse_err_line >= 0)
+        return 1;
+
+    return _debug_call_stack_pos;
+}
+#endif
+
 TypedArray<Dictionary> OScriptLanguage::_debug_get_current_stack_info()
 {
-    return {};
+    TypedArray<Dictionary> array;
+    #if GODOT_VERSION >= 0x040300
+    for (int i = 0; i < _debug_call_stack_pos; i++)
+    {
+        Dictionary data;
+        data["file"] = _call_stack[i].instance->get_script()->get_path();
+        data["func"] = *_call_stack[i].current_function;
+        data["line"] = *_call_stack[i].id;
+        array.append(data);
+    }
+    #endif
+    return array;
 }
 
 bool OScriptLanguage::_handles_global_class_type(const String& p_type) const
@@ -403,19 +613,106 @@ PackedStringArray OScriptLanguage::get_global_constant_names() const
 
 bool OScriptLanguage::debug_break(const String& p_error, bool p_allow_continue)
 {
-    // TODO:    GodotCPP Feature Request
-    //          Currently the EngineDebugger::debug method is not exposed to GDE and so it is
-    //          not presently possible to actually execute any type of debugger operation.
+    #if GODOT_VERSION >= 0x040300
+    if (EngineDebugger::get_singleton()->is_active())
+    {
+        if (OS::get_singleton()->get_thread_caller_id() == OS::get_singleton()->get_main_thread_id())
+        {
+            _debug_parse_err_line = -1;
+            _debug_parse_err_file = "";
+            _debug_error = p_error;
+
+            EngineDebugger::get_singleton()->script_debug(this, p_allow_continue, true);
+            return true;
+        }
+    }
+    #endif
     return false;
 }
 
 bool OScriptLanguage::debug_break_parse(const String& p_file, int p_node, const String& p_error)
 {
-    // TODO:    GodotCPP Feature Request
-    //          Currently the EngineDebugger::debug method is not exposed to GDE and so it is
-    //          not presently possible to actually execute any type of debugger operation.
+    #if GODOT_VERSION >= 0x040300
+    if (EngineDebugger::get_singleton()->is_active())
+    {
+        if (OS::get_singleton()->get_thread_caller_id() == OS::get_singleton()->get_main_thread_id())
+        {
+            _debug_parse_err_line = p_node;
+            _debug_parse_err_file = p_file;
+            _debug_error = p_error;
+
+            EngineDebugger::get_singleton()->script_debug(this, false, true);
+            return true;
+        }
+    }
+    #endif
     return false;
 }
+
+#if GODOT_VERSION >= 0x040300
+void OScriptLanguage::function_entry(const StringName* p_method, const OScriptExecutionContext* p_context)
+{
+    // Debugging can only happen within main thread
+    if (OS::get_singleton()->get_thread_caller_id() != OS::get_singleton()->get_main_thread_id())
+        return;
+
+    EngineDebugger* debugger = EngineDebugger::get_singleton();
+    if (!debugger || !debugger->is_active())
+        return;
+
+    if (debugger->get_lines_left() > 0 && debugger->get_depth() >= 0)
+        debugger->set_depth(debugger->get_depth() + 1);
+
+    if (_debug_call_stack_pos >= _debug_max_call_stack)
+    {
+        // Stack overflow
+        _debug_error = vformat("Stack overflow detected (stack size: %s)", _debug_max_call_stack);
+        debugger->script_debug(this, false, false);
+        return;
+    }
+
+    Variant* ptr = p_context->_working_memory;
+    _call_stack[_debug_call_stack_pos].stack = reinterpret_cast<Variant*>(p_context->_stack);
+    _call_stack[_debug_call_stack_pos].instance = p_context->_script_instance;
+    _call_stack[_debug_call_stack_pos].current_function = p_method;
+    _call_stack[_debug_call_stack_pos].working_memory = &ptr;
+    _call_stack[_debug_call_stack_pos].id = const_cast<int*>(p_context->get_current_node_ref());
+    _debug_call_stack_pos++;
+}
+
+void OScriptLanguage::function_exit(const StringName* p_method, const OScriptExecutionContext* p_context)
+{
+    // Debugging can only happen within main thread
+    if (OS::get_singleton()->get_thread_caller_id() != OS::get_singleton()->get_main_thread_id())
+        return;
+
+    EngineDebugger* debugger = EngineDebugger::get_singleton();
+    if (!debugger || !debugger->is_active())
+        return;
+
+    if (debugger->get_lines_left() > 0 && debugger->get_depth() >= 0)
+        debugger->set_depth(debugger->get_depth() - 1);
+
+    if (_debug_call_stack_pos == 0)
+    {
+        // Stack underflow
+        _debug_error = "Stack underflow detected";
+        debugger->script_debug(this, false, false);
+        return;
+    }
+
+    if (_call_stack[_debug_call_stack_pos - 1].instance != p_context->_script_instance
+        || *_call_stack[_debug_call_stack_pos - 1].current_function != *p_method)
+    {
+        // Function mismatch
+        _debug_error = "Function mismatch detected";
+        debugger->script_debug(this, false, false);
+        return;
+    }
+
+    _debug_call_stack_pos--;
+}
+#endif
 
 String OScriptLanguage::get_script_extension_filter() const
 {

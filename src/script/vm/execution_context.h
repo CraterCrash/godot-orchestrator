@@ -22,6 +22,8 @@
 using namespace godot;
 
 /// Forward declarations
+class OScriptInstance;
+class OScriptLanguage;
 class OScriptNodeInstance;
 class OScriptState;
 class OScriptVirtualMachine;
@@ -60,6 +62,7 @@ struct OScriptExecutionStackInfo
 /// The main script execution context which manages the execution state, stack and other runtime details.
 class OScriptExecutionContext
 {
+    friend class OScriptLanguage;
     friend class OScriptState;
     friend class OScriptVirtualMachine;
 
@@ -73,6 +76,7 @@ protected:
     int* _flow_stack{ nullptr };                  //! The flow stack
     int* _pass_stack{ nullptr };                  //! The node pass stack
 
+    OScriptInstance* _script_instance{ nullptr }; //! The script instance
     OScriptVirtualMachine* _instance{ nullptr };  //! The virtual machine instance
 
     int _initial_node_id{ -1 };                   //! Initial starting node ID
@@ -199,6 +203,10 @@ public:
     /// Gets the current executing node unique ID
     /// @return the current node unique ID
     int get_current_node() const { return _current_node_id; }
+
+    /// Gets the current executing node unique ID reference
+    /// @returns a reference to the current node unique ID
+    const int* get_current_node_ref() const { return &_current_node_id; }
 
     /// Get the current node port that received the impulse
     /// @return the current node port with the impulse

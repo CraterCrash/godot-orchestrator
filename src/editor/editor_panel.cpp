@@ -157,10 +157,31 @@ void OrchestratorEditorPanel::_update_scene_tab_signals(bool p_connect)
     if (p_connect)
     {
         OCONNECT(scene_tabs, "tab_changed", callable_mp(this, &OrchestratorEditorPanel::_scene_tab_changed));
+
+        #if GODOT_VERSION >= 0x040300
+        OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton();
+        if (debugger)
+        {
+            OCONNECT(debugger, "goto_script_line", callable_mp(this, &OrchestratorEditorPanel::_goto_script_line));
+            OCONNECT(debugger, "breakpoints_cleared_in_tree", callable_mp(this, &OrchestratorEditorPanel::_clear_all_breakpoints));
+            OCONNECT(debugger, "breakpoint_set_in_tree", callable_mp(this, &OrchestratorEditorPanel::_set_breakpoint));
+        }
+        #endif
+
         return;
     }
 
     ODISCONNECT(scene_tabs, "tab_changed", callable_mp(this, &OrchestratorEditorPanel::_scene_tab_changed));
+
+    #if GODOT_VERSION >= 0x040300
+    OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton();
+    if (debugger)
+    {
+        ODISCONNECT(debugger, "goto_script_line", callable_mp(this, &OrchestratorEditorPanel::_goto_script_line));
+        ODISCONNECT(debugger, "breakpoints_cleared_in_tree", callable_mp(this, &OrchestratorEditorPanel::_clear_all_breakpoints));
+        ODISCONNECT(debugger, "breakpoint_set_in_tree", callable_mp(this, &OrchestratorEditorPanel::_set_breakpoint));
+    }
+    #endif
 }
 
 void OrchestratorEditorPanel::_update_file_system_dock_signals(bool p_connect)
@@ -649,6 +670,53 @@ void OrchestratorEditorPanel::_folder_removed(const String& p_folder_name)
     }
 }
 
+#if GODOT_VERSION >= 0x040300
+void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int p_line)
+{
+    if (p_script.is_valid())
+    {
+        for (const OrchestrationFile& file : _files_context.open_files)
+        {
+            if (file.file_name == p_script->get_path())
+            {
+                // Make plugin active
+                OrchestratorPlugin::get_singleton()->make_active();
+                // Show viewport
+                _show_editor_viewport(file.file_name);
+                // Goto node
+                file.viewport->goto_node(p_line + 1);
+                break;
+            }
+        }
+    }
+}
+
+void OrchestratorEditorPanel::_clear_all_breakpoints()
+{
+    // Clear all breakpoints in the script editors
+    for (const OrchestrationFile& file : _files_context.open_files)
+        file.viewport->clear_breakpoints();
+
+    // Clear cache breakpoints
+    OrchestratorPlugin::get_singleton()->get_editor_cache()->clear_all_breakpoints();
+}
+
+void OrchestratorEditorPanel::_set_breakpoint(const Ref<Script>& p_script, int p_line, bool p_enabled)
+{
+    const int node_id = p_line + 1;
+
+    Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
+    cache->set_breakpoint(p_script->get_path(), node_id, p_enabled);
+    cache->set_disabled_breakpoint(p_script->get_path(), node_id, true); // todo: is this right?
+
+    for (const OrchestrationFile& file : _files_context.open_files)
+    {
+        if (file.viewport->is_same_script(p_script))
+            file.viewport->set_breakpoint(node_id, p_enabled);
+    }
+}
+#endif
+
 void OrchestratorEditorPanel::_window_changed(bool p_visible)
 {
     _select_separator->set_visible(!p_visible);
@@ -774,6 +842,16 @@ void OrchestratorEditorPanel::set_window_layout(const Ref<ConfigFile>& p_configu
         }
     }
 }
+
+#if GODOT_VERSION >= 0x040300
+PackedStringArray OrchestratorEditorPanel::get_breakpoints() const
+{
+    PackedStringArray breakpoints;
+    for (const OrchestrationFile& file : _files_context.open_files)
+        breakpoints.append_array(file.viewport->get_breakpoints());
+    return breakpoints;
+}
+#endif
 
 void OrchestratorEditorPanel::_notification(int p_what)
 {

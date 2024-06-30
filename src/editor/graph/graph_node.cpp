@@ -50,6 +50,10 @@ OrchestratorGraphNode::OrchestratorGraphNode(OrchestratorGraphEdit* p_graph, con
     set_v_size_flags(SIZE_EXPAND_FILL);
     set_meta("__script_node", p_node);
 
+    #if GODOT_VERSION >= 0x040300
+    _initialize_node_beakpoint_state();
+    #endif
+
     _update_tooltip();
 }
 
@@ -277,6 +281,26 @@ void OrchestratorGraphNode::_update_indicators()
         notification->set_tooltip_text("Node is experimental and behavior may change without notice.");
         _indicators->add_child(notification);
     }
+
+    #if GODOT_VERSION >= 0x040300
+    if (_node->has_breakpoint())
+    {
+        TextureRect* breakpoint = memnew(TextureRect);
+        breakpoint->set_custom_minimum_size(Vector2(0, 24));
+        breakpoint->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        if (!_node->has_disabled_breakpoint())
+        {
+            breakpoint->set_texture(SceneUtils::get_editor_icon("DebugSkipBreakpointsOff"));
+            breakpoint->set_tooltip_text("Debugger will break when processing this node");
+        }
+        else
+        {
+            breakpoint->set_texture(SceneUtils::get_editor_icon("DebugSkipBreakpointsOn"));
+            breakpoint->set_tooltip_text("Debugger will skip the breakpoint when processing this node");
+        }
+        _indicators->add_child(breakpoint);
+    }
+    #endif
 }
 
 void OrchestratorGraphNode::_update_titlebar()
@@ -446,11 +470,18 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     if (!call_script_function.is_valid())
         _context_menu->set_item_disabled(_context_menu->get_item_index(CM_EXPAND_NODE), true);
 
-
-    // todo: support breakpoints (See Trello)
-    // _context_menu->add_separator("Breakpoints");
-    // _context_menu->add_item("Toggle Breakpoint", CM_TOGGLE_BREAKPOINT, KEY_F9);
-    // _context_menu->add_item("Add Breakpoint", CM_ADD_BREAKPOINT);
+    #if GODOT_VERSION >= 0x040300
+    _context_menu->add_separator("Breakpoints");
+    _context_menu->add_item("Toggle Breakpoint", CM_TOGGLE_BREAKPOINT, KEY_F9);
+    if (_node->has_breakpoint())
+    {
+        _context_menu->add_item("Remove breakpoint", CM_REMOVE_BREAKPOINT);
+        if (_node->has_disabled_breakpoint())
+            _context_menu->add_item("Enable breakpoint", CM_ADD_BREAKPOINT);
+        else
+            _context_menu->add_item("Disable breakpoint", CM_DISABLE_BREAKPOINT);
+    }
+    #endif
 
     _context_menu->add_separator("Documentation");
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Help"), "View Documentation", CM_VIEW_DOCUMENTATION);
@@ -469,6 +500,46 @@ void OrchestratorGraphNode::_simulate_action_pressed(const String& p_action_name
 {
     get_graph()->execute_action(p_action_name);
 }
+
+#if GODOT_VERSION >= 0x040300
+void OrchestratorGraphNode::_initialize_node_beakpoint_state()
+{
+    Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
+    if (cache.is_valid())
+    {
+        const String path = _node->get_orchestration()->get_self()->get_path();
+        #if GODOT_VERSION >= 0x040300
+        const bool disabled = cache->is_node_disabled_breakpoint(path, _node->get_id());
+        const bool enabled  = cache->is_node_breakpoint(path, _node->get_id());
+        if (disabled || enabled)
+            _set_breakpoint_state(disabled ? OScriptNode::BREAKPOINT_DISABLED : OScriptNode::BREAKPOINT_ENABLED);
+        else
+            _set_breakpoint_state(OScriptNode::BREAKPOINT_NONE);
+        #endif
+    }
+}
+
+void OrchestratorGraphNode::_set_breakpoint_state(OScriptNode::BreakpointFlags p_flag)
+{
+    _node->set_breakpoint_flag(p_flag);
+
+    OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton();
+    if (!debugger)
+        return;
+
+    const int node_id = _node->get_id();
+    const String path = _node->get_orchestration()->get_self()->get_path();
+
+    debugger->set_breakpoint(path, node_id, p_flag != OScriptNode::BreakpointFlags::BREAKPOINT_NONE);
+
+    Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
+    if (cache.is_valid())
+    {
+        cache->set_breakpoint(path, node_id, p_flag == OScriptNode::BreakpointFlags::BREAKPOINT_ENABLED);
+        cache->set_disabled_breakpoint(path, node_id, p_flag != OScriptNode::BreakpointFlags::BREAKPOINT_DISABLED);
+    }
+}
+#endif
 
 void OrchestratorGraphNode::_on_changed()
 {
@@ -671,6 +742,39 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
                 get_graph()->emit_signal("expand_node", _node->get_id());
                 break;
             }
+            #if GODOT_VERSION >= 0x040300
+            case CM_TOGGLE_BREAKPOINT:
+            {
+                // An OScriptNode registers the breakpoint data from the current open session.
+                // This data is transient and is lost across restarts, although GDScript persists
+                // this and we should implement this too.
+                //
+                // What we need to integrate with is EditorDebugNode. It is what will be responsible
+                // for coordinating the breakpoint communication with the EngineDebugger that runs
+                // in the separate prcoess that runs the game in F5. It uses Local/Remove debuggers.
+                if (_node->has_breakpoint())
+                    _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_NONE);
+                else
+                    _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_ENABLED);
+                break;
+            }
+            case CM_ADD_BREAKPOINT:
+            case CM_ENABLE_BREAKPOINT:
+            {
+                _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_ENABLED);
+                break;
+            }
+            case CM_REMOVE_BREAKPOINT:
+            {
+                _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_NONE);
+                break;
+            }
+            case CM_DISABLE_BREAKPOINT:
+            {
+                _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_DISABLED);
+                break;
+            }
+            #endif
             #ifdef _DEBUG
             case CM_SHOW_DETAILS:
             {

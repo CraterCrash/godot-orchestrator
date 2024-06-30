@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_GRAPH_NODE_H
 #define ORCHESTRATOR_GRAPH_NODE_H
 
+#include "common/version.h"
 #include "script/node.h"
 
 #include <godot_cpp/classes/graph_node.hpp>
@@ -57,6 +58,9 @@ private:
         CM_RENAME,
         CM_TOGGLE_BREAKPOINT,
         CM_ADD_BREAKPOINT,
+        CM_ENABLE_BREAKPOINT,
+        CM_REMOVE_BREAKPOINT,
+        CM_DISABLE_BREAKPOINT,
         CM_VIEW_DOCUMENTATION,
         CM_COLLAPSE_FUNCTION,
         CM_EXPAND_NODE,
@@ -206,6 +210,15 @@ protected:
     /// Simulates the action being pressed
     /// @param p_action_name the action to simulate
     void _simulate_action_pressed(const String& p_action_name);
+
+    #if GODOT_VERSION >= 0x040300
+    /// Initializes the node's breakpoint state
+    void _initialize_node_beakpoint_state();
+
+    /// Set the breakpoint state
+    /// @param p_flag the breakpoint flag state
+    void _set_breakpoint_state(OScriptNode::BreakpointFlags p_flag);
+    #endif
 
 private:
     /// Called when the graph node is moved

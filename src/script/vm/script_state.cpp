@@ -63,6 +63,7 @@ Variant OScriptState::_call_method(GDExtensionCallError& r_error)
 {
     void* stack = const_cast<unsigned char*>(_stack.ptr());
     OScriptExecutionContext context(_stack_info, stack, _flow_stack_pos, _pass);
+    context._script_instance = _script_instance;
 
     Variant result;
     _instance->_call_method_internal(_function, &context, true, _node, _func_ptr, result, r_error);

@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_EDITOR_PLUGIN_H
 #define ORCHESTRATOR_EDITOR_PLUGIN_H
 
+#include "editor/editor_cache.h"
+#include "editor/plugins/orchestrator_editor_debugger_plugin.h"
 #include "editor/theme/theme_cache.h"
 
 #include <godot_cpp/classes/config_file.hpp>
@@ -47,6 +49,10 @@ class OrchestratorPlugin : public EditorPlugin
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
     Vector<Ref<EditorExportPlugin>> _export_plugins;
     Ref<OrchestratorThemeCache> _theme_cache;
+    Ref<OrchestratorEditorCache> _editor_cache;               //! Script editor cache
+    #if GODOT_VERSION >= 0x040300
+    Ref<OrchestratorEditorDebuggerPlugin> _debugger_plugin;   //! Debugger plugin
+    #endif
 
 public:
     /// Constructor
@@ -90,7 +96,11 @@ public:
     /// @param p_metadata the metadata to save
     void save_metadata(const Ref<ConfigFile>& p_metadata);
 
+    /// Makes this plugin's view active, if it isn't already.
+    void make_active();
+
     Ref<OrchestratorThemeCache> get_theme_cache() { return _theme_cache; }
+    Ref<OrchestratorEditorCache> get_editor_cache() { return _editor_cache; }
 
     //~ Begin EditorPlugin interface
     String get_plugin_version() const;
@@ -106,6 +116,7 @@ public:
     bool _build() override;
     void _enable_plugin() override;
     void _disable_plugin() override;
+    PackedStringArray _get_breakpoints() const override;
     //~ End EditorPlugin interface
 
     /// Get the editor inspector plugin by type
