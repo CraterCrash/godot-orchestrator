@@ -151,6 +151,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(BOOL_SETTING("ui/graph/disconnect_control_flow_when_dragged", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_autowire_selection_dialog", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
+    _settings.emplace_back(BOOL_SETTING("ui/graph/show_arrange_button", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_overlay_action_tooltips", true));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f)));
 
