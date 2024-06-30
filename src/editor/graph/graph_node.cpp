@@ -699,7 +699,8 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             }
             case CM_REFRESH:
             {
-                _node->reconstruct_node();
+                for (Ref<OScriptNode>& node : get_graph()->get_selected_script_nodes())
+                    node->reconstruct_node();
                 break;
             }
             case CM_BREAK_LINKS:
