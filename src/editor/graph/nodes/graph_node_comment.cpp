@@ -17,6 +17,8 @@
 #include "graph_node_comment.h"
 
 #include "editor/graph/graph_edit.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
+#include "editor/theme/theme_cache.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
@@ -152,3 +154,75 @@ void OrchestratorGraphNodeComment::raise_request_node_reorder()
     for (OrchestratorGraphNode* node : intersections)
         get_parent()->move_child(node, -1);
 }
+
+#if GODOT_VERSION >= 0x040300
+void OrchestratorGraphFrameComment::_node_moved(Vector2 p_old_pos, Vector2 p_new_pos)
+{
+    _node->set_position(p_new_pos);
+}
+
+void OrchestratorGraphFrameComment::_node_resized()
+{
+    _node->set_size(get_size());
+}
+
+void OrchestratorGraphFrameComment::_script_node_changed()
+{
+    set_tint_color(_node->get_background_color());
+    set_title(_node->get_node_title());
+
+    Label* title = Object::cast_to<Label>(get_titlebar_hbox()->get_child(0));
+    if (title)
+    {
+        title->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+        if (_node->is_title_center_aligned())
+            title->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+    }
+
+    const int font_size = _node->get_font_size();
+    _text->add_theme_font_size_override("font_size", font_size != 0 ? font_size : 14);
+    _text->set_text(_node->get("comments"));
+    _text->add_theme_color_override("font_color", _node->get_text_color());
+}
+
+void OrchestratorGraphFrameComment::_notification(int p_what)
+{
+    if (p_what == NOTIFICATION_READY)
+    {
+        // Used to replicate size/position state to underlying node resource
+        connect("dragged", callable_mp(this, &OrchestratorGraphFrameComment::_node_moved));
+        connect("resized", callable_mp(this, &OrchestratorGraphFrameComment::_node_resized));
+
+        _node->connect("changed", callable_mp(this, &OrchestratorGraphFrameComment::_script_node_changed));
+
+        Ref<OrchestratorThemeCache> cache = OrchestratorPlugin::get_singleton()->get_theme_cache();
+        if (cache.is_valid())
+        {
+            begin_bulk_theme_override();
+            add_theme_stylebox_override("panel", cache->get_theme_stylebox("panel", "GraphFrame"));
+            add_theme_stylebox_override("panel_selected", cache->get_theme_stylebox("panel_selected", "GraphFrame"));
+            end_bulk_theme_override();
+        }
+    }
+}
+
+void OrchestratorGraphFrameComment::_bind_methods()
+{
+}
+
+OrchestratorGraphFrameComment::OrchestratorGraphFrameComment(OrchestratorGraphEdit* p_graph, const Ref<OScriptNodeComment>& p_node)
+    : _graph(p_graph)
+    , _node(p_node)
+{
+    set_meta("__script_node", p_node);
+    set_tint_color_enabled(true);
+
+    _text = memnew(Label);
+    _text->set_vertical_alignment(VERTICAL_ALIGNMENT_TOP);
+    _text->set_v_size_flags(SIZE_SHRINK_BEGIN);
+
+    add_child(_text);
+
+    _script_node_changed();
+}
+#endif

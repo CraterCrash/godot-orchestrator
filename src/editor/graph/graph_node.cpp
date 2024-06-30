@@ -28,6 +28,7 @@
 #include "script/nodes/functions/call_function.h"
 #include "script/nodes/functions/call_script_function.h"
 #include "script/nodes/variables/variable_get.h"
+#include "script/nodes/utilities/comment.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -491,6 +492,14 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     #endif
 
     #if GODOT_VERSION >= 0x040300
+    Ref<OScriptNodeComment> comment = _node;
+    if (comment.is_null())
+    {
+        // Anything but comments
+        if (GraphFrame* frame = get_graph()->get_element_frame(get_name()))
+            _context_menu->add_item("Detach from comment frame", CM_DETACH_FRAME);
+    }
+
     if (!multi_selections)
     {
         _context_menu->add_separator("Breakpoints");
@@ -818,6 +827,11 @@ void OrchestratorGraphNode::_handle_context_menu(int p_id)
             case CM_DISABLE_BREAKPOINT:
             {
                 _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_DISABLED);
+                break;
+            }
+            case CM_DETACH_FRAME:
+            {
+                get_graph()->detach_graph_element_from_frame(get_name());
                 break;
             }
             #endif

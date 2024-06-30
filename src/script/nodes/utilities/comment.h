@@ -25,6 +25,14 @@ class OScriptNodeComment : public OScriptNode
     ORCHESTRATOR_NODE_CLASS(OScriptNodeComment, OScriptNode);
     static void _bind_methods() { }
 
+public:
+    // State types for the node
+    enum State : int
+    {
+        State_Initial = 1, // Orchestrator 2.1.dev3 or before
+        State_Tracks_Attachments = 2 // Used by Orchestrator 2.1.dev4
+    };
+
 protected:
     String _comments;
     String _title{ "Comment" };
@@ -32,6 +40,10 @@ protected:
     Color _background_color{ 0.6, 0.6, 0.6, 0.05 };
     Color _text_color{ 1.0, 1.0, 1.0, 1.0 };
     int _font_size{ 0 };
+    #if GODOT_VERSION >= 0x040300
+    int _state{ State_Initial };
+    PackedInt64Array _attachments;
+    #endif
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo> *r_list) const;
@@ -62,6 +74,20 @@ public:
     /// Get the comment text's font size
     /// @return the font size, 0 means use the default size
     int get_font_size() const { return _font_size; }
+
+    #if GODOT_VERSION >= 0x040300
+    /// Gets the comment node's current data state
+    /// @return the data state
+    int get_state() const { return _state; }
+
+    /// Gets the comment node's attachments
+    /// @return array of attached node ids
+    const PackedInt64Array& get_attachments() const { return _attachments; }
+
+    /// Sets the node's attachments
+    /// @param p_attachments the attachments to set
+    void set_attachments(const PackedInt64Array& p_attachments);
+    #endif
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_COMMENT_H

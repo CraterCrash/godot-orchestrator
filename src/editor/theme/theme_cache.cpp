@@ -18,6 +18,7 @@
 
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_node.hpp>
@@ -38,6 +39,34 @@ void OrchestratorThemeCache::_settings_changed()
     const Color bkgrnd = settings->get_setting("ui/nodes/background_color", Color::html("#191d23"));
     const int radius = settings->get_setting("ui/nodes/border_radius", 4);
     const int bwidth = settings->get_setting("ui/nodes/border_width", 2);
+
+    #if GODOT_VERSION >= 0x040300
+    Ref<StyleBoxFlat> frame_panel = get_theme_stylebox("panel", "GraphFrame");
+    if (!frame_panel.is_valid())
+    {
+        Ref<StyleBoxFlat> new_frame_panel = _get_editor_theme_stylebox("panel", "GraphFrame")->duplicate(true);
+        if (new_frame_panel.is_valid())
+        {
+            add_theme_stylebox("panel", "GraphFrame", new_frame_panel);
+
+            Ref<StyleBoxFlat> new_frame_panel_selected = new_frame_panel->duplicate(true);
+            if (new_frame_panel_selected.is_valid())
+            {
+                new_frame_panel_selected->set_border_color(select);
+                add_theme_stylebox("panel_selected", "GraphFrame", new_frame_panel_selected);
+            }
+        }
+    }
+    else
+    {
+        Ref<StyleBoxFlat> panel_selected = get_theme_stylebox("panel_selected", "GraphFrame");
+        if (panel_selected.is_valid())
+        {
+            if (panel_selected->get_border_color() != select)
+                panel_selected->set_border_color(select);
+        }
+    }
+    #endif
 
     Ref<StyleBoxFlat> panel = get_theme_stylebox("panel", "GraphNode");
     if (!panel.is_valid())
