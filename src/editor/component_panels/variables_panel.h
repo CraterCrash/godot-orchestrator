@@ -30,6 +30,8 @@ class OrchestratorScriptVariablesComponentPanel : public OrchestratorScriptCompo
         CM_REMOVE_VARIABLE
     };
 
+    void _update_variables() { update(); }
+
 protected:
     //~ Begin OrchestratorScriptViewSection Interface
     String _get_unique_name_prefix() const override { return "NewVar"; }
