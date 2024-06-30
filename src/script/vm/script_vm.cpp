@@ -22,6 +22,8 @@
 #include "script/nodes/variables/local_variable.h"
 #include "script/vm/script_state.h"
 
+#include <godot_cpp/classes/engine_debugger.hpp>
+
 static int get_exec_pin_index_of_port(const Ref<OScriptNode>& p_node, int p_port, EPinDirection p_direction)
 {
     int exec_index{ 0 };
@@ -546,8 +548,43 @@ void OScriptVirtualMachine::_dependency_step(OScriptExecutionContext& p_context,
 
 int OScriptVirtualMachine::_execute_step(OScriptExecutionContext& p_context, OScriptNodeInstance* p_instance)
 {
+    // In the case of dependency steps, adjust current node id
+    int current_node_id = p_instance->get_id();
+    if (p_context.get_current_node() != current_node_id)
+        p_context._current_node_id = p_instance->get_id();
+
     // Setup step details
     p_context._set_current_node_working_memory(p_instance->get_working_memory_size());
+
+    #if GODOT_VERSION >= 0x040300
+    EngineDebugger* debugger = EngineDebugger::get_singleton();
+    if (debugger && debugger->is_active())
+    {
+        Orchestration* orchestration = p_instance->get_base_node()->get_orchestration();
+
+        bool do_break = false;
+        const int node_id = p_instance->get_base_node()->get_id();
+
+        if (debugger->get_lines_left() > 0)
+        {
+            if (debugger->get_depth() <= 0)
+                debugger->set_lines_left(debugger->get_lines_left() - 1);
+            if (debugger->get_lines_left() <= 0)
+                do_break = true;
+        }
+
+        if (!do_break && debugger->is_breakpoint(node_id, orchestration->get_self()->get_path()))
+            do_break = true;
+
+        if (do_break && !debugger->is_skipping_breakpoints())
+            OScriptLanguage::get_singleton()->debug_break("Breakpoint: Before Node " + itos(node_id) + " executes.", true);
+
+        debugger->line_poll();
+    }
+    #endif
+
+    // Reset node
+    p_context._current_node_id = current_node_id;
 
     // Execute
     return p_instance->step(p_context);
@@ -658,6 +695,11 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
     OScriptNodeInstance* node = p_instance;
     int node_port = 0; // always assumes 0 for now
 
+    #if GODOT_VERSION >= 0x040300
+    if (EngineDebugger::get_singleton()->is_active())
+        OScriptLanguage::get_singleton()->function_entry(&p_method, p_context);
+    #endif
+
     while (node)
     {
         // Track current node details
@@ -723,6 +765,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
             state->_instance_id = _owner->get_instance_id();
             state->_script_id = _script->get_instance_id();
             state->_instance = this;
+            state->_script_instance = p_context->_script_instance;
             state->_function = p_method;
             state->_working_memory_index = node->working_memory_index;
             state->_variant_stack_size = p_function->max_stack;
@@ -737,6 +780,11 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
             context.set_error(GDEXTENSION_CALL_OK);
             r_return = state;
 
+            #if GODOT_VERSION >= 0x040300
+            if (EngineDebugger::get_singleton()->is_active())
+                OScriptLanguage::get_singleton()->function_exit(&p_method, p_context);
+            #endif
+
             return;
         }
 
@@ -749,6 +797,23 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
                 context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Return value should be assigned to node's working memory.");
             break;
         }
+
+        #if GODOT_VERSION >= 0x040300
+        if (EngineDebugger::get_singleton()->is_active())
+        {
+            bool do_break = false;
+
+            const int node_id = node->get_base_node()->get_id();
+            const String path = node->get_base_node()->get_orchestration()->get_self()->get_path();
+            if (EngineDebugger::get_singleton()->is_breakpoint(node_id, path))
+                do_break = true;
+
+            if (do_break && !EngineDebugger::get_singleton()->is_skipping_breakpoints())
+                OScriptLanguage::get_singleton()->debug_break("Breakpoint: After Node " + itos(node_id) + " has executed.", true);
+
+            EngineDebugger::get_singleton()->line_poll();
+        }
+        #endif
 
         // Calculate the output node
         const int next_node_id = result & OScriptNodeInstance::STEP_MASK;
@@ -858,6 +923,11 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
     if (context.has_error())
         _report_error(context, node, p_method);
 
+    #if GODOT_VERSION >= 0x040300
+    if (EngineDebugger::get_singleton()->is_active())
+        OScriptLanguage::get_singleton()->function_exit(&p_method, p_context);
+    #endif
+
     // Cleanup
     context._cleanup();
 }
@@ -946,7 +1016,7 @@ bool OScriptVirtualMachine::register_function(const Ref<OScriptFunction>& p_func
     return true;
 }
 
-void OScriptVirtualMachine::call_method(const StringName& p_method, const Variant* const* p_args, GDExtensionInt p_arg_count, Variant* r_return, GDExtensionCallError* r_err)
+void OScriptVirtualMachine::call_method(OScriptInstance* p_instance, const StringName& p_method, const Variant* const* p_args, GDExtensionInt p_arg_count, Variant* r_return, GDExtensionCallError* r_err)
 {
     ERR_FAIL_COND_MSG(!r_err, "No error code argument provided.");
 
@@ -1003,6 +1073,7 @@ void OScriptVirtualMachine::call_method(const StringName& p_method, const Varian
     context._initialize_variant_stack();
     context._push_node_onto_flow_stack(F->node);
     context._push_arguments(p_args, static_cast<int>(p_arg_count));
+    context._script_instance = p_instance;
 
     // Dispatch to the internal handler
     _call_method_internal(p_method, &context, false, F->instance, F, *r_return, *r_err);

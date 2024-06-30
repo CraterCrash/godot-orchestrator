@@ -66,10 +66,18 @@ void OrchestratorPlugin::_notification(int p_what)
         for (const Ref<EditorExportPlugin>& plugin : _export_plugins)
             add_export_plugin(plugin);
 
+        #if GODOT_VERSION >= 0x040300
+        _debugger_plugin.instantiate();
+        add_debugger_plugin(_debugger_plugin);
+        #endif
+
         // Register the plugin's icon for CreateScript Dialog
         Ref<Theme> theme = ThemeDB::get_singleton()->get_default_theme();
         if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons"))
             theme->set_icon(_get_plugin_name(), "EditorIcons", _get_plugin_icon());
+
+        _editor_cache.instantiate();
+        _editor_cache->load();
 
         _window_wrapper = memnew(OrchestratorWindowWrapper);
         _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));
@@ -212,6 +220,11 @@ void OrchestratorPlugin::save_metadata(const Ref<ConfigFile>& p_metadata)
     p_metadata->save(file);
 }
 
+void OrchestratorPlugin::make_active()
+{
+    _editor.set_main_screen_editor(_get_plugin_name());
+}
+
 void OrchestratorPlugin::request_editor_restart()
 {
     AcceptDialog* request = memnew(AcceptDialog);
@@ -239,6 +252,9 @@ void OrchestratorPlugin::_apply_changes()
 {
     if (_editor_panel)
         _editor_panel->apply_changes();
+
+    if (_editor_cache.is_valid())
+        _editor_cache->save();
 }
 
 void OrchestratorPlugin::_set_window_layout(const Ref<ConfigFile>& p_configuration)
@@ -298,6 +314,18 @@ void OrchestratorPlugin::_enable_plugin()
 
 void OrchestratorPlugin::_disable_plugin()
 {
+}
+
+PackedStringArray OrchestratorPlugin::_get_breakpoints() const
+{
+    #if GODOT_VERSION >= 0x040300
+    // When the game is started with the debugger, it uses this method to gather all breakpoints,
+    // and these are passed to the CLI of the game process. this should obtain all breakpoints
+    // currently set and return them using the format of "<script_file>:<node_id>".
+    return _editor_panel->get_breakpoints();
+    #else
+    return PackedStringArray();
+    #endif
 }
 
 void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)

@@ -28,6 +28,9 @@ OScriptNode::OScriptNode()
     , _initialized(false)
     , _id(-1)
     , _flags(ScriptNodeFlags::CATALOGABLE)
+    #if GODOT_VERSION >= 0x040300
+    , _breakpoint_flag(BreakpointFlags::BREAKPOINT_NONE)
+    #endif
 {
 }
 
@@ -102,6 +105,17 @@ void OScriptNode::set_position(const Vector2& p_position)
 {
     _position = p_position;
 }
+
+#if GODOT_VERSION >= 0x040300
+void OScriptNode::set_breakpoint_flag(BreakpointFlags p_flag)
+{
+    if (_breakpoint_flag != p_flag)
+    {
+        _breakpoint_flag = p_flag;
+        emit_changed();
+    }
+}
+#endif
 
 void OScriptNode::set_flags(BitField<ScriptNodeFlags> p_flags)
 {

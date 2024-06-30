@@ -19,6 +19,7 @@
 #include "common/scene_utils.h"
 #include "editor/graph/graph_edit.h"
 #include "orchestration/orchestration.h"
+#include "plugins/orchestrator_editor_debugger_plugin.h"
 #include "plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/json.hpp>
@@ -274,6 +275,36 @@ bool OrchestratorEditorViewport::build(bool p_show_success)
 
     return true;
 }
+
+#if GODOT_VERSION >= 0x040300
+void OrchestratorEditorViewport::clear_breakpoints()
+{
+    OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton();
+    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
+    {
+        node->set_breakpoint_flag(OScriptNode::BREAKPOINT_NONE);
+        debugger->set_breakpoint(_orchestration->get_self()->get_path(), node->get_id(), false);
+    }
+}
+
+void OrchestratorEditorViewport::set_breakpoint(int p_node_id, bool p_enabled)
+{
+    const Ref<OScriptNode> node = _orchestration->get_node(p_node_id);
+    if (node.is_valid())
+        node->set_breakpoint_flag(p_enabled ? OScriptNode::BREAKPOINT_ENABLED : OScriptNode::BREAKPOINT_NONE);
+}
+
+PackedStringArray OrchestratorEditorViewport::get_breakpoints() const
+{
+    PackedStringArray breakpoints;
+    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
+    {
+        if (node->has_breakpoint())
+            breakpoints.push_back(vformat("%s:%d", _orchestration->get_self()->get_path(), node->get_id()));
+    }
+    return breakpoints;
+}
+#endif
 
 void OrchestratorEditorViewport::goto_node(int p_node_id)
 {
