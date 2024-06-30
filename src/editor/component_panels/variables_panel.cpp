@@ -17,6 +17,7 @@
 #include "editor/component_panels/variables_panel.h"
 
 #include "common/callable_lambda.h"
+#include "common/macros.h"
 #include "common/scene_utils.h"
 #include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
@@ -202,6 +203,12 @@ Dictionary OrchestratorScriptVariablesComponentPanel::_handle_drag_data(const Ve
 
 void OrchestratorScriptVariablesComponentPanel::update()
 {
+    Callable callback = callable_mp(this, &OrchestratorScriptVariablesComponentPanel::_update_variables);
+
+    // Make sure all variables are disconnected
+    for (const Ref<OScriptVariable>& variable : _orchestration->get_variables())
+        ODISCONNECT(variable, "changed", callback);
+
     _clear_tree();
 
     PackedStringArray variable_names = _orchestration->get_variable_names();
@@ -237,16 +244,14 @@ void OrchestratorScriptVariablesComponentPanel::update()
             sorted_uncategorized_names.push_back(E.key);
         sorted_uncategorized_names.sort();
 
-        auto callable = callable_mp_lambda(this, [=, this]{ update(); });
-
         TreeItem* root = _tree->get_root();
         for (const String& sort_categorized_name : sorted_categorized_names)
         {
             const String variable_name = categorized_names[sort_categorized_name];
             const Ref<OScriptVariable>& variable = categorized[variable_name];
 
-            if (variable.is_valid() && !variable->is_connected("changed", callable))
-                variable->connect("changed", callable);
+            if (variable.is_valid())
+                OCONNECT(variable, "changed", callback);
 
             _create_variable_item(root, variable);
         }
@@ -254,8 +259,8 @@ void OrchestratorScriptVariablesComponentPanel::update()
         for (const String& sort_uncategorized_name : sorted_uncategorized_names)
         {
             const Ref<OScriptVariable>& variable = uncategorized[sort_uncategorized_name];
-            if (variable.is_valid() && !variable->is_connected("changed", callable))
-                variable->connect("changed", callable);
+            if (variable.is_valid())
+                OCONNECT(variable, "changed", callback);
 
             _create_variable_item(root, variable);
         }
