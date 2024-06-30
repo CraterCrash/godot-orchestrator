@@ -104,8 +104,8 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, const
 
     set_name(p_graph->get_graph_name());
     set_minimap_enabled(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_minimap", false));
+    set_show_arrange_button(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_arrange_button", false));
     set_right_disconnects(true);
-    set_show_arrange_button(false);
 
     _plugin = p_plugin;
     _script_graph = p_graph;
@@ -1658,6 +1658,7 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
         bool node_resizable = os->get_setting("ui/nodes/resizable_by_default", false);
 
         set_minimap_enabled(os->get_setting("ui/graph/show_minimap", false));
+        set_show_arrange_button(os->get_setting("ui/graph/show_arrange_button", false));
 
         for_each_graph_node([&](OrchestratorGraphNode* node) {
             node->show_icons(show_icons);
