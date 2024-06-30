@@ -28,14 +28,21 @@ using namespace godot;
 class OrchestratorThemeCache : public RefCounted
 {
     GDCLASS(OrchestratorThemeCache, RefCounted);
-    static void _bind_methods() {}
+    static void _bind_methods();
 
 protected:
+    bool _theme_changed{ false };
     HashMap<StringName, HashMap<StringName, Ref<StyleBox>>> _stylebox_cache;
 
     //~ Begin Signal Handlers
     void _settings_changed();
     //~ End Signal Handlers
+
+    /// Gets the editor theme stylebox
+    /// @param p_name the item name
+    /// @param p_type_name the type name
+    /// @return the editor stylebox theme, should always be valid
+    Ref<StyleBox> _get_editor_theme_stylebox(const String& p_name, const String& p_type_name) const;
 
 public:
     //~ Begn Wrapped Interface
@@ -53,12 +60,6 @@ public:
     /// @param p_type_name the type name
     /// @returns the stylebox from the cache or an invalid stylebox reference if it doesn't exist
     Ref<StyleBox> get_theme_stylebox(const StringName& p_name, const String& p_type_name) const;
-
-    /// Gets the editor theme stylebox
-    /// @param p_name the item name
-    /// @param p_type_name the type name
-    /// @return the editor stylebox theme, should always be valid
-    Ref<StyleBox>_get_editor_theme_stylebox(const String& p_name, const String& p_type_name) const;
 };
 
 #endif // ORCHESTRATOR_THEME_CACHE_H

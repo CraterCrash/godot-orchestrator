@@ -26,6 +26,7 @@
 
 #if GODOT_VERSION >= 0x040300
 #include <godot_cpp/classes/graph_frame.hpp>
+#include <godot_cpp/classes/texture_rect.hpp>
 #endif
 
 /// A simple OrchestratorGraphNode implementation to render comment nodes.
@@ -79,10 +80,20 @@ class OrchestratorGraphFrameComment : public GraphFrame
     GDCLASS(OrchestratorGraphFrameComment, GraphFrame);
     static void _bind_methods();
 
+    struct ThemeCache
+    {
+        Ref<StyleBox> titlebar;
+        Ref<StyleBox> titlebar_selected;
+    };
+
+    const int TITLEBAR_HEIGHT{ 30 };
+
 protected:
     OrchestratorGraphEdit* _graph{ nullptr };
     Ref<OScriptNodeComment> _node;
     Label* _text{ nullptr };
+    TextureRect* _icon{ nullptr };
+    ThemeCache _theme_cache;
 
     //~ Begin Object Interface
     void _notification(int p_what);
@@ -91,6 +102,7 @@ protected:
     void _node_moved(Vector2 p_old_pos, Vector2 p_new_pos);
     void _node_resized();
     void _script_node_changed();
+    void _update_theme();
 
     /// Default constructor, intentionally protected
     OrchestratorGraphFrameComment() = default;
