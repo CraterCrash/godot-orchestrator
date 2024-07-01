@@ -30,7 +30,12 @@ void OrchestratorGraphKnot::_connections_changed(const String& p_caller)
 
 void OrchestratorGraphKnot::_position_changed()
 {
-    _knot->point = get_position_offset() + Vector2(8, 8);
+    _knot->point = get_position_offset();
+
+    set_block_signals(true);
+    set_position_offset(get_position_offset() - RENDER_OFFSET);
+    set_block_signals(false);
+
     emit_signal("knot_position_changed", _knot->point);
 }
 
@@ -56,7 +61,8 @@ void OrchestratorGraphKnot::set_graph(const Ref<OScriptGraph>& p_graph)
 void OrchestratorGraphKnot::set_knot(const Ref<OrchestratorKnotPoint>& p_knot)
 {
     _knot = p_knot;
-    set_position_offset(_knot->point + Vector2(-8, -8));
+
+    set_position_offset(_knot->point - RENDER_OFFSET);
 }
 
 void OrchestratorGraphKnot::_gui_input(const Ref<InputEvent>& p_event)
@@ -90,7 +96,7 @@ void OrchestratorGraphKnot::_notification(int p_what)
 
         _icon = memnew(TextureRect);
         _icon->set_texture(SceneUtils::get_editor_icon("GuiGraphNodePort"));
-        _icon->set_custom_minimum_size(Vector2(16, 16));
+        _icon->set_custom_minimum_size(RENDER_ICON_SIZE);
         _icon->set_modulate(_color);
         vbox->add_child(_icon);
 
