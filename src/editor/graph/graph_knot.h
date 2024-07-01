@@ -45,6 +45,9 @@ protected:
     void _node_deselected();
     //~ End Signal Handlers
 
+    const Vector2 RENDER_OFFSET{ 8, 8 };
+    const Vector2 RENDER_ICON_SIZE = RENDER_OFFSET * 2;
+
 public:
     //~ Begin Wrapped Interface
     void _notification(int p_what);
