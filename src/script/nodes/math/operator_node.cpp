@@ -285,6 +285,18 @@ String OScriptNodeOperator::get_node_title() const
         return vformat(_get_expression(), "A", "B");
 }
 
+Vector<Ref<OScriptNodePin>> OScriptNodeOperator::get_eligible_autowire_pins(const Ref<OScriptNodePin>& p_pin) const
+{
+    // For math operator nodes, always auto-wire to the first eligible.
+    // This is done for convenience to avoid the dialog box.
+
+    Vector<Ref<OScriptNodePin>> pins = super::get_eligible_autowire_pins(p_pin);
+    if (pins.size() > 1)
+        pins.resize(1);
+
+    return pins;
+}
+
 OScriptNodeInstance* OScriptNodeOperator::instantiate()
 {
     OScriptNodeOperatorInstance* i = memnew(OScriptNodeOperatorInstance);
