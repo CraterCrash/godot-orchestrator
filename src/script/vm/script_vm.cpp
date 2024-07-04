@@ -719,7 +719,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
                 context.get_error_reason()));
 
             r_return.clear();
-            return;
+            break;
         }
 
         // Initialize working memory
