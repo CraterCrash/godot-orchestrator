@@ -556,7 +556,10 @@ def write_builtin_type_methods(godot_type):
                 for arg in method["arguments"]:
                     if len(args) > 0:
                         args += ", "
-                    args += "{ " + get_variant_type(arg["type"]) + ", " + quote(arg["name"]) + " }"
+                    args += "{ " + get_variant_type(arg["type"]) + ", " + quote(arg["name"])
+                    if arg["type"] == "Variant":
+                        args += ", PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT"
+                    args += " }"
 
             nil_is_variant = ""
             if "return_type" in method and method["return_type"] == "Variant":
@@ -613,7 +616,10 @@ def write_utility_functions(functions):
         print_indent("fi.is_vararg = " + str(func["is_vararg"]).lower() + ";")
         if 'arguments' in func:
             for arg in func["arguments"]:
-                print_indent("fi.arguments.push_back({ " + get_variant_type(arg["type"]) + ", " + quote(arg["name"]) + " });")
+                if arg["type"] == "Variant":
+                    print_indent("fi.arguments.push_back({ " + get_variant_type(arg["type"]) + ", " + quote(arg["name"]) + ", PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });")
+                else:
+                    print_indent("fi.arguments.push_back({ " + get_variant_type(arg["type"]) + ", " + quote(arg["name"]) + " });")
         print_indent(DB + "_functions[" + quote(func["name"]) + "] = fi;")
         print_indent(DB + "_function_names.push_back(" + quote(func["name"]) + ");")
         indent_pop()

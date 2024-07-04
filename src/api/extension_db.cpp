@@ -1230,7 +1230,7 @@ namespace godot
 				type.methods.push_back(_make_method("is_subsequence_ofn", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::STRING, "text" } }));
 				type.methods.push_back(_make_method("bigrams", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_STRING_ARRAY, {  }));
 				type.methods.push_back(_make_method("similarity", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::STRING, "text" } }));
-				type.methods.push_back(_make_method("format", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::NIL, "values" }, { Variant::STRING, "placeholder" } }));
+				type.methods.push_back(_make_method("format", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::NIL, "values", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::STRING, "placeholder" } }));
 				type.methods.push_back(_make_method("replace", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
 				type.methods.push_back(_make_method("replacen", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
 				type.methods.push_back(_make_method("repeat", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "count" } }));
@@ -2539,7 +2539,7 @@ namespace godot
 				type.methods.push_back(_make_method("is_subsequence_ofn", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::STRING, "text" } }));
 				type.methods.push_back(_make_method("bigrams", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_STRING_ARRAY, {  }));
 				type.methods.push_back(_make_method("similarity", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::STRING, "text" } }));
-				type.methods.push_back(_make_method("format", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::NIL, "values" }, { Variant::STRING, "placeholder" } }));
+				type.methods.push_back(_make_method("format", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::NIL, "values", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::STRING, "placeholder" } }));
 				type.methods.push_back(_make_method("replace", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
 				type.methods.push_back(_make_method("replacen", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
 				type.methods.push_back(_make_method("repeat", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "count" } }));
@@ -2762,15 +2762,15 @@ namespace godot
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("clear", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("merge", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::DICTIONARY, "dictionary" }, { Variant::BOOL, "overwrite" } }));
-				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "key" } }));
+				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("has_all", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::ARRAY, "keys" } }));
-				type.methods.push_back(_make_method("find_key", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "value" } }, true));
-				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::NIL, "key" } }));
+				type.methods.push_back(_make_method("find_key", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }, true));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("hash", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("keys", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
 				type.methods.push_back(_make_method("values", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
 				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::DICTIONARY, { { Variant::BOOL, "deep" } }));
-				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "key" }, { Variant::NIL, "default" } }, true));
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::NIL, "default", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }, true));
 				type.methods.push_back(_make_method("make_read_only", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("is_read_only", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				ExtensionDB::_singleton->_builtin_types["Dictionary"] = type;
@@ -2813,36 +2813,36 @@ namespace godot
 				type.methods.push_back(_make_method("clear", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("hash", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("assign", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::ARRAY, "array" } }));
-				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value" } }));
-				type.methods.push_back(_make_method("push_front", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value" } }));
-				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value" } }));
+				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
+				type.methods.push_back(_make_method("push_front", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
+				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::ARRAY, "array" } }));
 				type.methods.push_back(_make_method("resize", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "size" } }));
-				type.methods.push_back(_make_method("insert", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "position" }, { Variant::NIL, "value" } }));
+				type.methods.push_back(_make_method("insert", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "position" }, { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("remove_at", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "position" } }));
-				type.methods.push_back(_make_method("fill", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value" } }));
-				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value" } }));
+				type.methods.push_back(_make_method("fill", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("front", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("back", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("pick_random", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
-				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what" }, { Variant::INT, "from" } }));
-				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what" }, { Variant::INT, "from" } }));
-				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value" } }));
-				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "value" } }));
+				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::INT, "from" } }));
+				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::INT, "from" } }));
+				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
+				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("pop_back", METHOD_FLAG_NORMAL, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("pop_front", METHOD_FLAG_NORMAL, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("pop_at", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "position" } }, true));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("sort_custom", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::CALLABLE, "func" } }));
 				type.methods.push_back(_make_method("shuffle", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
-				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("bsearch_custom", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value" }, { Variant::CALLABLE, "func" }, { Variant::BOOL, "before" } }));
+				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::BOOL, "before" } }));
+				type.methods.push_back(_make_method("bsearch_custom", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::CALLABLE, "func" }, { Variant::BOOL, "before" } }));
 				type.methods.push_back(_make_method("reverse", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::BOOL, "deep" } }));
 				type.methods.push_back(_make_method("slice", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::INT, "begin" }, { Variant::INT, "end" }, { Variant::INT, "step" }, { Variant::BOOL, "deep" } }));
 				type.methods.push_back(_make_method("filter", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::CALLABLE, "method" } }));
 				type.methods.push_back(_make_method("map", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::CALLABLE, "method" } }));
-				type.methods.push_back(_make_method("reduce", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::CALLABLE, "method" }, { Variant::NIL, "accum" } }, true));
+				type.methods.push_back(_make_method("reduce", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::CALLABLE, "method" }, { Variant::NIL, "accum", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }, true));
 				type.methods.push_back(_make_method("any", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::CALLABLE, "method" } }));
 				type.methods.push_back(_make_method("all", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::CALLABLE, "method" } }));
 				type.methods.push_back(_make_method("max", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
@@ -2934,7 +2934,7 @@ namespace godot
 				type.methods.push_back(_make_method("encode_half", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("encode_float", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("encode_double", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::FLOAT, "value" } }));
-				type.methods.push_back(_make_method("encode_var", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "byte_offset" }, { Variant::NIL, "value" }, { Variant::BOOL, "allow_objects" } }));
+				type.methods.push_back(_make_method("encode_var", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "byte_offset" }, { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::BOOL, "allow_objects" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedByteArray"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_BYTE_ARRAY] = "PackedByteArray";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedByteArray");
@@ -3470,7 +3470,7 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "x" });
+				fi.arguments.push_back({ Variant::NIL, "x", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["floor"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("floor");
 			}
@@ -3500,7 +3500,7 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "x" });
+				fi.arguments.push_back({ Variant::NIL, "x", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["ceil"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("ceil");
 			}
@@ -3530,7 +3530,7 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "x" });
+				fi.arguments.push_back({ Variant::NIL, "x", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["round"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("round");
 			}
@@ -3560,7 +3560,7 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "x" });
+				fi.arguments.push_back({ Variant::NIL, "x", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["abs"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("abs");
 			}
@@ -3590,7 +3590,7 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "x" });
+				fi.arguments.push_back({ Variant::NIL, "x", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["sign"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("sign");
 			}
@@ -3620,8 +3620,8 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "x" });
-				fi.arguments.push_back({ Variant::NIL, "step" });
+				fi.arguments.push_back({ Variant::NIL, "x", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "step", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["snapped"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("snapped");
 			}
@@ -3756,9 +3756,9 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "from" });
-				fi.arguments.push_back({ Variant::NIL, "to" });
-				fi.arguments.push_back({ Variant::NIL, "weight" });
+				fi.arguments.push_back({ Variant::NIL, "from", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "to", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "weight", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["lerp"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("lerp");
 			}
@@ -3995,9 +3995,9 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "value" });
-				fi.arguments.push_back({ Variant::NIL, "min" });
-				fi.arguments.push_back({ Variant::NIL, "max" });
+				fi.arguments.push_back({ Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "min", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "max", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["wrap"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("wrap");
 			}
@@ -4031,8 +4031,8 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
-				fi.arguments.push_back({ Variant::NIL, "arg2" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "arg2", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["max"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("max");
 			}
@@ -4064,8 +4064,8 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
-				fi.arguments.push_back({ Variant::NIL, "arg2" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "arg2", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["min"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("min");
 			}
@@ -4097,9 +4097,9 @@ namespace godot
 				fi.category = "math";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "value" });
-				fi.arguments.push_back({ Variant::NIL, "min" });
-				fi.arguments.push_back({ Variant::NIL, "max" });
+				fi.arguments.push_back({ Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "min", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "max", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["clamp"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("clamp");
 			}
@@ -4234,7 +4234,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "obj" });
+				fi.arguments.push_back({ Variant::NIL, "obj", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["weakref"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("weakref");
 			}
@@ -4244,7 +4244,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::INT, "");
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "variable" });
+				fi.arguments.push_back({ Variant::NIL, "variable", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["typeof"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("typeof");
 			}
@@ -4254,7 +4254,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "variant" });
+				fi.arguments.push_back({ Variant::NIL, "variant", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				fi.arguments.push_back({ Variant::INT, "type" });
 				ExtensionDB::_singleton->_functions["type_convert"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("type_convert");
@@ -4265,7 +4265,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::STRING, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["str"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("str");
 			}
@@ -4295,7 +4295,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["print"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("print");
 			}
@@ -4305,7 +4305,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["print_rich"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("print_rich");
 			}
@@ -4315,7 +4315,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["printerr"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("printerr");
 			}
@@ -4325,7 +4325,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["printt"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("printt");
 			}
@@ -4335,7 +4335,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["prints"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("prints");
 			}
@@ -4345,7 +4345,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["printraw"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("printraw");
 			}
@@ -4355,7 +4355,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["print_verbose"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("print_verbose");
 			}
@@ -4365,7 +4365,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["push_error"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("push_error");
 			}
@@ -4375,7 +4375,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::NIL, "");
 				fi.is_vararg = true;
-				fi.arguments.push_back({ Variant::NIL, "arg1" });
+				fi.arguments.push_back({ Variant::NIL, "arg1", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["push_warning"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("push_warning");
 			}
@@ -4385,7 +4385,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::STRING, "");
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "variable" });
+				fi.arguments.push_back({ Variant::NIL, "variable", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["var_to_str"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("var_to_str");
 			}
@@ -4405,7 +4405,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::PACKED_BYTE_ARRAY, "");
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "variable" });
+				fi.arguments.push_back({ Variant::NIL, "variable", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["var_to_bytes"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("var_to_bytes");
 			}
@@ -4425,7 +4425,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::PACKED_BYTE_ARRAY, "");
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "variable" });
+				fi.arguments.push_back({ Variant::NIL, "variable", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["var_to_bytes_with_objects"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("var_to_bytes_with_objects");
 			}
@@ -4445,7 +4445,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::INT, "");
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "variable" });
+				fi.arguments.push_back({ Variant::NIL, "variable", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["hash"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("hash");
 			}
@@ -4475,7 +4475,7 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::BOOL, "");
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "instance" });
+				fi.arguments.push_back({ Variant::NIL, "instance", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["is_instance_valid"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("is_instance_valid");
 			}
@@ -4504,8 +4504,8 @@ namespace godot
 				fi.category = "general";
 				fi.return_val = PropertyInfo(Variant::BOOL, "");
 				fi.is_vararg = false;
-				fi.arguments.push_back({ Variant::NIL, "a" });
-				fi.arguments.push_back({ Variant::NIL, "b" });
+				fi.arguments.push_back({ Variant::NIL, "a", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
+				fi.arguments.push_back({ Variant::NIL, "b", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT });
 				ExtensionDB::_singleton->_functions["is_same"] = fi;
 				ExtensionDB::_singleton->_function_names.push_back("is_same");
 			}
