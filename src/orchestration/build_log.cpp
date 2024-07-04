@@ -27,7 +27,7 @@ void BuildLog::error(const String& p_message)
 
 void BuildLog::warn(const String& p_message)
 {
-    _messages.push_back(vformat("[b][color=yellow]WARNING[/color][/b]: Node %s ([url={\"goto_node\":\"%d\"}]#%d[/url] - %s",
+    _messages.push_back(vformat("[b][color=yellow]WARNING[/color][/b]: Node %s ([url={\"goto_node\":\"%d\"}]#%d[/url]) - %s",
         _current_node->get_class(), _current_node->get_id(), _current_node->get_id(), p_message));
     _warnings++;
 }
