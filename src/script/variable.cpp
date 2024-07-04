@@ -273,9 +273,9 @@ void OScriptVariable::set_classification(const String& p_classification)
                 else
                 {
                     _info.type = Variant::OBJECT;
-                    _info.hint = PROPERTY_HINT_OBJECT_ID;
-                    _info.hint_string = class_name;
-                    _info.class_name = "";
+                    _info.hint = PROPERTY_HINT_NONE;
+                    _info.hint_string = "";
+                    _info.class_name = class_name;
                     _info.usage = PROPERTY_USAGE_NO_EDITOR;
                 }
             }
