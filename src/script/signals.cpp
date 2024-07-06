@@ -17,6 +17,7 @@
 #include "script/signals.h"
 
 #include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 #include "common/variant_utils.h"
 #include "script/script.h"
 
@@ -156,11 +157,11 @@ bool OScriptSignal::resize_argument_list(size_t p_new_size)
         _method.arguments.resize(p_new_size);
         for (size_t i = current_size; i < p_new_size; i++)
         {
-            _method.arguments[i].name = "arg" + itos(i + 1);
+            _method.arguments[i].name = "arg" + (i + 1);
             _method.arguments[i].type = Variant::NIL;
 
             // Cleanup the argument usage flags that were constructed incorrectly due to godot-cpp bug
-            _method.arguments[i].usage = PROPERTY_USAGE_DEFAULT;
+            _method.arguments[i].usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT;
         }
         result = true;
     }
@@ -180,7 +181,15 @@ void OScriptSignal::set_argument_type(size_t p_index, Variant::Type p_type)
 {
     if (_method.arguments.size() > p_index)
     {
-        _method.arguments[p_index].type = p_type;
+        PropertyInfo& pi = _method.arguments[p_index];
+        pi.type = p_type;
+
+        // Indicate that "Any" (Variant::NIL) indicates Variant types
+        if (PropertyUtils::is_nil_no_variant(pi))
+            pi.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+        else
+            pi.usage &= ~PROPERTY_USAGE_NIL_IS_VARIANT;
+
         emit_changed();
     }
 }
