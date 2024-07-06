@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/property_utils.h"
 #include "nodes/functions/function_result.h"
 #include "script/script.h"
 
@@ -72,6 +73,10 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
         {
             if (argument.usage == 7)
                 argument.usage = PROPERTY_USAGE_DEFAULT;
+
+            // If "Any" (Variant::NIL) set the usage flag correctly
+            if (PropertyUtils::is_nil_no_variant(argument))
+                argument.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
         }
 
         // Cleanup return value usage flags that were constructed incorrectly due to godot-cpp bug
@@ -201,8 +206,9 @@ bool OScriptFunction::resize_argument_list(size_t p_new_size)
             _method.arguments.resize(p_new_size);
             for (size_t i = current_size; i < p_new_size; i++)
             {
-                _method.arguments[i].name = "arg" + itos(i + 1);
+                _method.arguments[i].name = "arg" + (i + 1);
                 _method.arguments[i].type = Variant::NIL;
+                _method.arguments[i].usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT;
             }
             result = true;
         }
@@ -223,7 +229,15 @@ void OScriptFunction::set_argument_type(size_t p_index, Variant::Type p_type)
 {
     if (_method.arguments.size() > p_index && _user_defined)
     {
-        _method.arguments[p_index].type = p_type;
+        PropertyInfo& pi = _method.arguments[p_index];
+        pi.type = p_type;
+
+        // Function arguments set as "Any" type imply variant, using Variant::NIL
+        if (PropertyUtils::is_nil(pi))
+            pi.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+        else
+            pi.usage &= ~PROPERTY_USAGE_NIL_IS_VARIANT;
+
         emit_changed();
     }
 }
