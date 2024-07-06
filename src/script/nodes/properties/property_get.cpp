@@ -80,9 +80,9 @@ public:
 void OScriptNodePropertyGet::allocate_default_pins()
 {
     if (_call_mode == CALL_INSTANCE)
-        create_pin(PD_Input, "target", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+        create_pin(PD_Input, PT_Data, "target", Variant::OBJECT);
 
-    create_pin(PD_Output, _property_name, _property_type)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Data, _property_name, _property_type);
 }
 
 String OScriptNodePropertyGet::get_tooltip_text() const

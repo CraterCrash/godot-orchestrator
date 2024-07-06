@@ -69,13 +69,13 @@ public:
 
 void OScriptNodePropertySet::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
 
     if (_call_mode == CALL_INSTANCE)
-        create_pin(PD_Input, "target", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+        create_pin(PD_Input, PT_Data, "target", Variant::OBJECT);
 
-    create_pin(PD_Input, _property_name, _property_type)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Data, _property_name, _property_type);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
 }
 
 String OScriptNodePropertySet::get_tooltip_text() const

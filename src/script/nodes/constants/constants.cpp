@@ -159,9 +159,8 @@ void OScriptNodeGlobalConstant::post_initialize()
 
 void OScriptNodeGlobalConstant::allocate_default_pins()
 {
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", Variant::INT);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-    constant->set_label(_constant_name);
+    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", Variant::INT);
+    constant->set_label(_constant_name, false);
     super::allocate_default_pins();
 }
 
@@ -250,9 +249,8 @@ bool OScriptNodeMathConstant::_set(const StringName& p_name, const Variant& p_va
 
 void OScriptNodeMathConstant::allocate_default_pins()
 {
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", Variant::FLOAT);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-    constant->set_label(_constant_name);
+    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", Variant::FLOAT);
+    constant->set_label(_constant_name, false);
     super::allocate_default_pins();
 }
 
@@ -384,9 +382,8 @@ void OScriptNodeTypeConstant::allocate_default_pins()
     if (!_constant_name.is_empty())
         label += "::" + _constant_name;
 
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", _type);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-    constant->set_label(label);
+    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", _type);
+    constant->set_label(label, false);
     super::allocate_default_pins();
 }
 
@@ -497,9 +494,8 @@ void OScriptNodeClassConstantBase::allocate_default_pins()
     if (!_constant_name.is_empty())
         label += "::" + _constant_name;
 
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", Variant::INT);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-    constant->set_label(label);
+    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", Variant::INT);
+    constant->set_label(label, false);
     super::allocate_default_pins();
 }
 

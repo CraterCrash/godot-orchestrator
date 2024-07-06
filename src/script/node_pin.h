@@ -40,7 +40,21 @@ enum EPinDirection : int
     PD_MAX
 };
 
-VARIANT_ENUM_CAST(EPinDirection)
+VARIANT_ENUM_CAST(EPinDirection);
+
+/// Pin Type
+///
+/// A pin can either represent an execution or control flow where the execution of
+/// the graph is controlled by these connections, or a data pin where the pin is
+/// responsible for accepting or passing data between nodes.
+enum EPinType : int
+{
+    PT_Execution,
+    PT_Data,
+    PT_MAX
+};
+
+VARIANT_ENUM_CAST(EPinType);
 
 /// Node Pin
 ///
@@ -99,6 +113,10 @@ private:
 
 protected:
     static void _bind_methods();
+
+    /// Clears a specific flag on the pin
+    /// @param p_flag the flag to clear
+    void _clear_flag(Flags p_flag);
 
     /// Loads the pin data from the provided dictionary.
     /// @param p_data the pin data
@@ -200,13 +218,10 @@ public:
     _FORCE_INLINE_ bool is_input() const { return _direction == PD_Input; }
     _FORCE_INLINE_ bool is_output() const { return _direction == PD_Output; }
 
-    /// Get the pin flags
-    /// @return the flags
-    BitField<Flags> get_flags() const;
-
-    /// Set the pin flags
-    /// @param p_flags the pin flags
-    void set_flags(BitField<Flags> p_flags);
+    /// Set a specific flag on the pin
+    /// @param p_flag the flag to set
+    /// @deprecated use specific helper methods instead
+    void set_flag(Flags p_flag);
 
     /// Get the pin's label
     /// @return the pin's label
@@ -214,7 +229,17 @@ public:
 
     /// Set the pin's label
     /// @param p_label the label
-    void set_label(const String &p_label);
+    /// @param p_pretty_format whether the label should be formatted using the pretty algorithm
+    void set_label(const String &p_label, bool p_pretty_format = true);
+
+    /// Shows the label for the pin
+    void show_label();
+
+    /// Marks the label for the pin to be hidden
+    void hide_label();
+
+    /// Toggles pretty format of labels off
+    void no_pretty_format();
 
     /// Set the file types associated with a file pin
     /// @param p_file_types the file types
@@ -248,9 +273,49 @@ public:
     /// @return the connected pins
     Vector<Ref<OScriptNodePin>> get_connections() const;
 
+    /// Return whether this pin is hidden.
+    /// @return true if the pin is hidden, false otherwise
+    _FORCE_INLINE_ bool is_hidden() const { return _flags.has_flag(HIDDEN); }
+
     /// Return whether this pin acts as an execution pin.
     /// @return true if the pin is a control flow, execution pin, false otherwise
-    _FORCE_INLINE_ bool is_execution() const { return get_flags().has_flag(OScriptNodePin::Flags::EXECUTION); }
+    _FORCE_INLINE_ bool is_execution() const { return _flags.has_flag(EXECUTION); }
+
+    /// Return whether this pin acts as a file selection pin.
+    /// @return true if the pin should be rendered as a file selector
+    _FORCE_INLINE_ bool is_file() const { return _flags.has_flag(FILE); }
+
+    /// Return whether this pin acts as an enumeration
+    /// @return true if this pin is an enumeration, false otherwise
+    _FORCE_INLINE_ bool is_enum() const { return _flags.has_flag(ENUM); }
+
+    /// Return whether this pin acts as a bitfield
+    /// @return true if this pin is an enumeration, false otherwise
+    _FORCE_INLINE_ bool is_bitfield() const { return _flags.has_flag(BITFIELD); }
+
+    /// Return whether this pin is rendered as multi-lined text.
+    /// @return true if this is a multi-lined text pin, false otherwise
+    _FORCE_INLINE_ bool is_multiline_text() const { return _flags.has_flag(MULTILINE); }
+
+    /// Return whether to default field is ignored and unused (not rendered)
+    /// @return true if the default field is ignored/unused, false otherwise
+    _FORCE_INLINE_ bool is_default_ignored() const { return _flags.has_flag(IGNORE_DEFAULT); }
+
+    /// Returns whether the pin permits connections.
+    /// @return true if the pin is connectable, false otherwise
+    _FORCE_INLINE_ bool is_connectable() const { return !_flags.has_flag(NO_CONNECTION); }
+
+    /// Returns whether to render pin labels with pretty formatting
+    /// @return true to use pretty formatting, false to render labels/names as-is.
+    _FORCE_INLINE_ bool use_pretty_labels() const { return !_flags.has_flag(NO_CAPITALIZE); }
+
+    /// Return whether the pin can be autowired
+    /// @return true if the pin can be autowired, false otherwise
+    _FORCE_INLINE_ bool can_autowire() const { return !_flags.has_flag(NO_AUTOWIRE); }
+
+    /// Return whether the label is visible for this pin
+    /// @return true if the label is visible, false otherwise
+    bool is_label_visible() const;
 
     /// Attempts to resolve the target object of this pin.
     /// @return the target object of the pin or {@code nullptr} if there is no target.

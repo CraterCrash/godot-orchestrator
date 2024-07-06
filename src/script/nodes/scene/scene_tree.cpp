@@ -52,8 +52,8 @@ public:
 
 void OScriptNodeSceneTree::allocate_default_pins()
 {
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, "scene_tree", Variant::OBJECT);
-    pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::OBJECT);
+    Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, "scene_tree", Variant::OBJECT);
+    pin->set_flag(OScriptNodePin::Flags::OBJECT);
     pin->set_target_class("SceneTree");
 
     super::allocate_default_pins();

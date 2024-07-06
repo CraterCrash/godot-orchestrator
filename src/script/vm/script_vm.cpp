@@ -179,7 +179,7 @@ bool OScriptVirtualMachine::_create_node_instance_pins(const Ref<OScriptNode>& p
     {
         // Currently we ignore hidden pins.
         // Ideally long-term, this logic should allow hidden pins to be used for internal purposes.
-        if (pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+        if (pin->is_hidden())
             continue;
 
         switch (pin->get_direction())

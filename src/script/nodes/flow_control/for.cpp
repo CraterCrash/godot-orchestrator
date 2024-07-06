@@ -142,19 +142,19 @@ void OScriptNodeForLoop::reallocate_pins_during_reconstruction(const Vector<Ref<
 
 void OScriptNodeForLoop::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "first_index", Variant::INT, _start_index)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "last_index", Variant::INT, _end_index)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "first_index", Variant::INT, _start_index);
+    create_pin(PD_Input, PT_Data, "last_index", Variant::INT, _end_index);
 
     if (_with_break)
-        create_pin(PD_Input, "break")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::SHOW_LABEL);
+        create_pin(PD_Input, PT_Execution, "break")->show_label();
 
-    create_pin(PD_Output, "loop_body")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-    create_pin(PD_Output, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL);
-    create_pin(PD_Output, "completed")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::SHOW_LABEL);
+    create_pin(PD_Output, PT_Execution, "loop_body")->show_label();
+    create_pin(PD_Output, PT_Data, "index", Variant::INT)->show_label();
+    create_pin(PD_Output, PT_Execution, "completed")->show_label();
 
     if (_with_break)
-        create_pin(PD_Output, "aborted")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::SHOW_LABEL);
+        create_pin(PD_Output, PT_Execution, "aborted")->show_label();
 
     super::allocate_default_pins();
 }

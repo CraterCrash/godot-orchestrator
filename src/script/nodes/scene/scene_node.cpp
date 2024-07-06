@@ -81,8 +81,9 @@ bool OScriptNodeSceneNode::_set(const StringName& p_name, const Variant& p_value
 
 void OScriptNodeSceneNode::allocate_default_pins()
 {
-    Ref<OScriptNodePin> path_pin = create_pin(PD_Output, _node_path, Variant::OBJECT);
-    path_pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::OBJECT | OScriptNodePin::NO_CAPITALIZE);
+    Ref<OScriptNodePin> path_pin = create_pin(PD_Output, PT_Data, _node_path, Variant::OBJECT);
+    path_pin->set_flag(OScriptNodePin::OBJECT);
+    path_pin->no_pretty_format();
     path_pin->set_target_class("Node");
 
     if (_is_in_editor() && !_node_path.is_empty())

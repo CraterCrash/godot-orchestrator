@@ -68,10 +68,10 @@ void OScriptNodeAwaitSignal::post_placed_new_node()
 
 void OScriptNodeAwaitSignal::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "target", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "signal_name", Variant::STRING)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "target", Variant::OBJECT);
+    create_pin(PD_Input, PT_Data, "signal_name", Variant::STRING);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
     super::allocate_default_pins();
 }
 

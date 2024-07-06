@@ -65,9 +65,6 @@ private:
         CM_COLLAPSE_FUNCTION,
         CM_EXPAND_NODE,
         CM_RESIZABLE,
-        #ifdef _DEBUG
-        CM_SHOW_DETAILS = 999,
-        #endif
         CM_NODE_ACTION = 1000
     };
 

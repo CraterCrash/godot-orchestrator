@@ -61,8 +61,8 @@ void OScriptNodeCoercion::post_placed_new_node()
 
 void OScriptNodeCoercion::allocate_default_pins()
 {
-    create_pin(PD_Input, "input", _left)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::HIDE_LABEL);
-    create_pin(PD_Output, "output", _right)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::HIDE_LABEL);
+    create_pin(PD_Input, PT_Data, "input", _left)->hide_label();
+    create_pin(PD_Output, PT_Data, "output", _right)->hide_label();
 }
 
 String OScriptNodeCoercion::get_tooltip_text() const

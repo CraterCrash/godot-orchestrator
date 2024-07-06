@@ -34,9 +34,9 @@ public:
 
 void OScriptNodeDialogueChoice::allocate_default_pins()
 {
-    create_pin(PD_Input, "text", Variant::STRING)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::MULTILINE);
-    create_pin(PD_Input, "visible", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "choice", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, PT_Data, "text", Variant::STRING)->set_flag(OScriptNodePin::Flags::MULTILINE);
+    create_pin(PD_Input, PT_Data, "visible", Variant::BOOL);
+    create_pin(PD_Output, PT_Data, "choice", Variant::OBJECT);
 }
 
 String OScriptNodeDialogueChoice::get_tooltip_text() const
