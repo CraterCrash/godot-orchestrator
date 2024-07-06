@@ -58,7 +58,7 @@ void OrchestratorScriptVariablesComponentPanel::_create_variable_item(TreeItem* 
         item->set_button_disabled(0, index, true);
     }
 
-    item->add_button(0, SceneUtils::get_editor_icon(p_variable->get_variable_type_name()), 2);
+    item->add_button(0, SceneUtils::get_class_icon(p_variable->get_variable_type_name()), 2);
 
     if (!p_variable->get_description().is_empty())
     {

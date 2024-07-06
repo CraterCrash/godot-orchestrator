@@ -347,6 +347,13 @@ String OScriptVariable::get_variable_type_name() const
     if (_info.type == Variant::NIL)
         return "Variant";
 
+    if (_info.hint == PROPERTY_HINT_ENUM || _info.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
+        return "Enum";
+    else if (_info.hint == PROPERTY_HINT_FLAGS || _info.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
+        return "Enum";
+    else if (_info.type == Variant::OBJECT && !_info.class_name.is_empty() && !_info.class_name.contains("."))
+        return _info.class_name;
+
     return Variant::get_type_name(_info.type);
 }
 
