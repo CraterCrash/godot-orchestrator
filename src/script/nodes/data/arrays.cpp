@@ -305,12 +305,11 @@ void OScriptNodeMakeArray::allocate_default_pins()
 {
     for (int i = 0; i < _element_count; i++)
     {
-        Ref<OScriptNodePin> pin = create_pin(PD_Input, _get_pin_name_given_index(i), Variant::NIL);
-        pin->set_flags(OScriptNodePin::Flags::DATA);
+        Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, _get_pin_name_given_index(i), Variant::NIL);
         pin->set_label(vformat("[%d]", i));
     }
 
-    create_pin(PD_Output, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
 
     super::allocate_default_pins();
 }
@@ -385,9 +384,9 @@ void OScriptNodeArrayGet::allocate_default_pins()
 {
     _collection_name = Variant::get_type_name(_collection_type);
 
-    create_pin(PD_Input, "array", _collection_type)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "element", _index_type)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, PT_Data, "array", _collection_type);
+    create_pin(PD_Input, PT_Data, "index", Variant::INT);
+    create_pin(PD_Output, PT_Data, "element", _index_type);
 
     super::allocate_default_pins();
 }
@@ -442,14 +441,14 @@ void OScriptNodeArraySet::allocate_default_pins()
 {
     _collection_name = Variant::get_type_name(_collection_type);
 
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "array", _collection_type)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "element", _index_type)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "size_to_fit", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "array", _collection_type);
+    create_pin(PD_Input, PT_Data, "index", Variant::INT);
+    create_pin(PD_Input, PT_Data, "element", _index_type);
+    create_pin(PD_Input, PT_Data, "size_to_fit", Variant::BOOL);
 
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "result", _collection_type)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Data, "result", _collection_type);
 
     super::allocate_default_pins();
 }
@@ -493,11 +492,11 @@ void OScriptNodeArraySet::initialize(const OScriptNodeInitContext& p_context)
 
 void OScriptNodeArrayFind::allocate_default_pins()
 {
-    create_pin(PD_Input, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "item", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Input, PT_Data, "item", Variant::NIL);
 
-    create_pin(PD_Output, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Output, PT_Data, "index", Variant::INT);
 
     super::allocate_default_pins();
 }
@@ -528,11 +527,11 @@ OScriptNodeInstance* OScriptNodeArrayFind::instantiate()
 
 void OScriptNodeArrayClear::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "array", Variant::ARRAY);
 
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
 
     super::allocate_default_pins();
 }
@@ -563,17 +562,12 @@ OScriptNodeInstance* OScriptNodeArrayClear::instantiate()
 
 void OScriptNodeArrayAppend::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    Ref<OScriptNodePin> target = create_pin(PD_Input, "target_array", Variant::ARRAY);
-    target->set_flags(OScriptNodePin::Flags::DATA);
-    target->set_label("Target");
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
+    create_pin(PD_Input, PT_Data, "source_array", Variant::ARRAY)->set_label("Source");
 
-    Ref<OScriptNodePin> source = create_pin(PD_Input, "source_array", Variant::ARRAY);
-    source->set_flags(OScriptNodePin::Flags::DATA);
-    source->set_label("Source");
-
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
 
     super::allocate_default_pins();
 }
@@ -604,16 +598,13 @@ OScriptNodeInstance* OScriptNodeArrayAppend::instantiate()
 
 void OScriptNodeArrayAddElement::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    Ref<OScriptNodePin> target = create_pin(PD_Input, "target_array", Variant::ARRAY);
-    target->set_flags(OScriptNodePin::Flags::DATA);
-    target->set_label("Target");
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
+    create_pin(PD_Input, PT_Data, "element", Variant::NIL);
 
-    create_pin(PD_Input, "element", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
-
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Output, PT_Data, "index", Variant::INT);
 
     super::allocate_default_pins();
 }
@@ -644,16 +635,13 @@ OScriptNodeInstance* OScriptNodeArrayAddElement::instantiate()
 
 void OScriptNodeArrayRemoveElement::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    Ref<OScriptNodePin> target = create_pin(PD_Input, "target_array", Variant::ARRAY);
-    target->set_flags(OScriptNodePin::Flags::DATA);
-    target->set_label("Target");
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
+    create_pin(PD_Input, PT_Data, "element", Variant::NIL);
 
-    create_pin(PD_Input, "element", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
-
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "removed", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Output, PT_Data, "removed", Variant::BOOL);
 
     super::allocate_default_pins();
 }
@@ -684,15 +672,12 @@ OScriptNodeInstance* OScriptNodeArrayRemoveElement::instantiate()
 
 void OScriptNodeArrayRemoveIndex::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    Ref<OScriptNodePin> target = create_pin(PD_Input, "target_array", Variant::ARRAY);
-    target->set_flags(OScriptNodePin::Flags::DATA);
-    target->set_label("Target");
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
+    create_pin(PD_Input, PT_Data, "index", Variant::INT);
 
-    create_pin(PD_Input, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
-
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
 
     super::allocate_default_pins();
 }

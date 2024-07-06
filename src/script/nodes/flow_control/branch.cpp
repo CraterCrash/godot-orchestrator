@@ -31,14 +31,13 @@ public:
 
 void OScriptNodeBranch::allocate_default_pins()
 {
-    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, "ExecIn");
-    exec_in->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, PT_Execution, "ExecIn");
     exec_in->set_label("if [condition]");
 
-    create_pin(PD_Input, "condition", Variant::BOOL, false)->set_flags(OScriptNodePin::DATA);
+    create_pin(PD_Input, PT_Data, "condition", Variant::BOOL, false);
 
-    create_pin(PD_Output, "true")->set_flags(OScriptNodePin::EXECUTION | OScriptNodePin::SHOW_LABEL);
-    create_pin(PD_Output, "false")->set_flags(OScriptNodePin::EXECUTION | OScriptNodePin::SHOW_LABEL);
+    create_pin(PD_Output, PT_Execution, "true")->show_label();
+    create_pin(PD_Output, PT_Execution, "false")->show_label();
 
     super::allocate_default_pins();
 }

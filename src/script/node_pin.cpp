@@ -46,6 +46,15 @@ void OScriptNodePin::_bind_methods()
     BIND_ENUM_CONSTANT(Flags::ENUM)
 }
 
+void OScriptNodePin::_clear_flag(Flags p_flag)
+{
+    if (_flags.has_flag(p_flag))
+    {
+        _flags = _flags & ~p_flag;
+        emit_changed();
+    }
+}
+
 bool OScriptNodePin::_load(const Dictionary& p_data)
 {
     // These are required fields for a pin
@@ -314,16 +323,11 @@ EPinDirection OScriptNodePin::get_complimentary_direction() const
     return _direction == PD_Input ? PD_Output : PD_Input;
 }
 
-BitField<OScriptNodePin::Flags> OScriptNodePin::get_flags() const
+void OScriptNodePin::set_flag(Flags p_flag)
 {
-    return _flags;
-}
-
-void OScriptNodePin::set_flags(BitField<OScriptNodePin::Flags> p_flags)
-{
-    if (_flags != p_flags)
+    if (!_flags.has_flag(p_flag))
     {
-        _flags = p_flags;
+        _flags.set_flag(p_flag);
         emit_changed();
     }
 }
@@ -333,13 +337,41 @@ String OScriptNodePin::get_label() const
     return _label;
 }
 
-void OScriptNodePin::set_label(const String& p_label)
+void OScriptNodePin::set_label(const String& p_label, bool p_pretty_format)
 {
     if (_label != p_label)
     {
         _label = p_label;
+
+        // To simplify the logic, setting a label for Data-type pins shows automatically.
+        // For execution pins, this requires setting the SHOW_LABEL and the label text.
+        // This allows simply calling set_label to have the label shown for execution pins.
+        // todo: can this be done irrespective of pin types?
+        if (_flags.has_flag(EXECUTION) && !_flags.has_flag(SHOW_LABEL))
+            _flags.set_flag(SHOW_LABEL);
+
+        if (!p_pretty_format && !_flags.has_flag(NO_CAPITALIZE))
+            _flags.set_flag(NO_CAPITALIZE);
+
         emit_changed();
     }
+}
+
+void OScriptNodePin::show_label()
+{
+    _clear_flag(HIDE_LABEL);
+    set_flag(SHOW_LABEL);
+}
+
+void OScriptNodePin::hide_label()
+{
+    _clear_flag(SHOW_LABEL);
+    set_flag(HIDE_LABEL);
+}
+
+void OScriptNodePin::no_pretty_format()
+{
+    set_flag(NO_CAPITALIZE);
 }
 
 bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
@@ -523,6 +555,17 @@ bool OScriptNodePin::has_any_connections() const
 Vector<Ref<OScriptNodePin>> OScriptNodePin::get_connections() const
 {
     return get_owning_node()->get_orchestration()->get_connections(this);
+}
+
+bool OScriptNodePin::is_label_visible() const
+{
+    if (_flags.has_flag(HIDE_LABEL) || _flags.has_flag(HIDDEN))
+        return false;
+
+    if (_flags.has_flag(EXECUTION) && !_flags.has_flag(SHOW_LABEL))
+        return false;
+
+    return true;
 }
 
 Ref<OScriptTargetObject> OScriptNodePin::resolve_target()

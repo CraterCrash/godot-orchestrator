@@ -52,7 +52,7 @@ void OScriptNodeFunctionResult::pre_remove()
 
 void OScriptNodeFunctionResult::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
 
     Ref<OScriptFunction> function = get_function();
     if (function.is_valid())
@@ -82,7 +82,7 @@ void OScriptNodeFunctionResult::validate_node_during_build(BuildLog& p_log) cons
         for (const Ref<OScriptNodePin>& pin : get_all_pins())
         {
             // Check hidden first because those are not assigned cached pin indices
-            if (!pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN) && !pin->has_any_connections())
+            if (!pin->is_hidden() && !pin->has_any_connections())
                 p_log.error(vformat("Function %s output pin '%s' is not connected", function_name, pin->get_pin_name().capitalize()));
         }
     }

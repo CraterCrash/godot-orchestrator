@@ -56,7 +56,7 @@ void OrchestratorGraphNodePinString::_on_focus_lost(LineEdit* p_line_edit)
 
 Control* OrchestratorGraphNodePinString::_get_default_value_widget()
 {
-    if (_pin->get_flags().has_flag(OScriptNodePin::Flags::MULTILINE))
+    if (_pin->is_multiline_text())
     {
         TextEdit* text_edit = memnew(TextEdit);
         text_edit->set_placeholder("No value...");
@@ -88,5 +88,5 @@ Control* OrchestratorGraphNodePinString::_get_default_value_widget()
 
 bool OrchestratorGraphNodePinString::_render_default_value_below_label() const
 {
-    return _pin->get_flags().has_flag(OScriptNodePin::Flags::MULTILINE);
+    return _pin->is_multiline_text();
 }

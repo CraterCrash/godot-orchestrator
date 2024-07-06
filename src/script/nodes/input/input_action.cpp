@@ -145,8 +145,7 @@ void OScriptNodeInputAction::_bind_methods()
 
 void OScriptNodeInputAction::allocate_default_pins()
 {
-    Ref<OScriptNodePin> state = create_pin(PD_Output, "state", Variant::BOOL);
-    state->set_flags(OScriptNodePin::Flags::DATA);
+    Ref<OScriptNodePin> state = create_pin(PD_Output, PT_Data, "state", Variant::BOOL);
     state->set_label(_get_mode());
 
     super::allocate_default_pins();

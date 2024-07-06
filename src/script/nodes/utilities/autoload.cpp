@@ -81,9 +81,8 @@ void OScriptNodeAutoload::allocate_default_pins()
             _autoload = values[0];
     }
 
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, "autoload", Variant::OBJECT);
-    pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-    pin->set_label(_autoload);
+    Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, "autoload", Variant::OBJECT);
+    pin->set_label(_autoload, false);
 
     super::allocate_default_pins();
 }

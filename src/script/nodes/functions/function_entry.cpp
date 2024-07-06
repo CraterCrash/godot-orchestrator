@@ -41,7 +41,7 @@ OScriptNodeFunctionEntry::OScriptNodeFunctionEntry()
 
 void OScriptNodeFunctionEntry::allocate_default_pins()
 {
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
 
     Ref<OScriptFunction> function = get_function();
     if (function.is_valid())

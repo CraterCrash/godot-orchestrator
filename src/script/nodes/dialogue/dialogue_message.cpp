@@ -135,42 +135,41 @@ void OScriptNodeDialogueMessage::post_initialize()
 
 void OScriptNodeDialogueMessage::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
 
-    Ref<OScriptNodePin> name = create_pin(PD_Input, "name", Variant::STRING);
-    name->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::MULTILINE);
+    Ref<OScriptNodePin> name = create_pin(PD_Input, PT_Data, "name", Variant::STRING);
+    name->set_flag(OScriptNodePin::Flags::MULTILINE);
     name->set_label("Speaker");
 
-    Ref<OScriptNodePin> text = create_pin(PD_Input, "text", Variant::STRING);
-    text->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::MULTILINE);
+    Ref<OScriptNodePin> text = create_pin(PD_Input, PT_Data, "text", Variant::STRING);
+    text->set_flag(OScriptNodePin::Flags::MULTILINE);
     text->set_label("Message");
 
-    Ref<OScriptNodePin> scene = create_pin(PD_Input, "scene", Variant::STRING, "");
-    scene->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::FILE);
+    Ref<OScriptNodePin> scene = create_pin(PD_Input, PT_Data, "scene", Variant::STRING, "");
+    scene->set_flag(OScriptNodePin::Flags::FILE);
     scene->set_file_types("*.scn,*.tscn; Scene Files");
 
     if (_choices == 0)
     {
-        create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+        create_pin(PD_Output, PT_Execution, "ExecOut");
     }
     else
     {
         // This is a hack to control row alignments with inputs.
         for (int i = 0; i < 4; i++)
         {
-            Ref<OScriptNodePin> pin = create_pin(PD_Output, "temp_" + itos(i));
-            pin->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::HIDDEN);
+            Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Execution, "temp_" + itos(i));
+            pin->set_flag(OScriptNodePin::Flags::HIDDEN);
         }
 
         for (int i = 0; i < _choices; i++)
         {
             const String pin_name = _get_pin_name_given_index(i);
-            Ref<OScriptNodePin> input = create_pin(PD_Input, pin_name, Variant::OBJECT);
-            input->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::IGNORE_DEFAULT);
+            Ref<OScriptNodePin> input = create_pin(PD_Input, PT_Data, pin_name, Variant::OBJECT);
+            input->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
             input->set_target_class(OScriptNodeDialogueChoice::get_class_static());
 
-            Ref<OScriptNodePin> output = create_pin(PD_Output, vformat("%s_out", pin_name));
-            output->set_flags(OScriptNodePin::Flags::EXECUTION);
+            create_pin(PD_Output, PT_Execution, vformat("%s_out", pin_name));
         }
     }
 

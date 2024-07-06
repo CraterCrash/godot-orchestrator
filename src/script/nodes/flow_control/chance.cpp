@@ -69,15 +69,10 @@ void OScriptNodeChance::post_initialize()
 
 void OScriptNodeChance::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
 
-    Ref<OScriptNodePin> within = create_pin(PD_Output, "Within");
-    within->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-    within->set_label(vformat("%d%%", _chance));
-
-    Ref<OScriptNodePin> outside = create_pin(PD_Output, "Outside");
-    outside->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-    outside->set_label(vformat("%d%%", 100 - _chance));
+    create_pin(PD_Output, PT_Execution, "Within")->set_label(vformat("%d%%", _chance));
+    create_pin(PD_Output, PT_Execution, "Outside")->set_label(vformat("%d%%", 100 - _chance));
 
     super::allocate_default_pins();
 }
