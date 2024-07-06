@@ -17,6 +17,7 @@
 #include "script/variable.h"
 
 #include "api/extension_db.h"
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "script/script.h"
@@ -236,6 +237,9 @@ void OScriptVariable::set_classification(const String& p_classification)
                         else
                             _info.usage = PROPERTY_USAGE_DEFAULT;
 
+                        if (type == Variant::NIL)
+                            _info.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+
                         break;
                     }
                 }
@@ -255,7 +259,10 @@ void OScriptVariable::set_classification(const String& p_classification)
                     _info.hint = _classification.begins_with("bitfield:") ? PROPERTY_HINT_FLAGS : PROPERTY_HINT_ENUM;
                     _info.hint_string = StringUtils::join(",", hints);
                     _info.class_name = name;
-                    _info.usage = PROPERTY_USAGE_DEFAULT;
+                    if (_classification.begins_with("bitfield:"))
+                        _info.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_BITFIELD;
+                    else
+                        _info.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_ENUM;
                 }
             }
             else if (_classification.begins_with("class:"))
@@ -344,17 +351,7 @@ void OScriptVariable::set_variable_type(const Variant::Type p_type)
 
 String OScriptVariable::get_variable_type_name() const
 {
-    if (_info.type == Variant::NIL)
-        return "Variant";
-
-    if (_info.hint == PROPERTY_HINT_ENUM || _info.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
-        return "Enum";
-    else if (_info.hint == PROPERTY_HINT_FLAGS || _info.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
-        return "Enum";
-    else if (_info.type == Variant::OBJECT && !_info.class_name.is_empty() && !_info.class_name.contains("."))
-        return _info.class_name;
-
-    return Variant::get_type_name(_info.type);
+    return PropertyUtils::get_property_type_name(_info);
 }
 
 void OScriptVariable::set_description(const String& p_description)
