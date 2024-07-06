@@ -443,6 +443,10 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_properties(const O
     {
         const PropertyInfo pi = DictionaryUtils::to_property(properties[i]);
 
+        // Exclude properties that are not included in the class reference
+        if (pi.usage & PROPERTY_USAGE_INTERNAL)
+            continue;
+
         OrchestratorGraphActionSpec getter_spec;
         // todo: remove "class/properties/"
         getter_spec.category = vformat("Class/Properties/%s/get_%s", p_class_name, pi.name);
