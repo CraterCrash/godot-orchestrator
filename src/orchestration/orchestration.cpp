@@ -735,7 +735,7 @@ Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Va
     variable->_info.hint = PROPERTY_HINT_NONE;
     variable->_info.hint_string = "";
     variable->_info.class_name = "";
-    variable->_info.usage = PROPERTY_USAGE_STORAGE;
+    variable->_info.usage = PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_NIL_IS_VARIANT;
     _variables[p_name] = variable;
 
     #ifdef TOOLS_ENABLED

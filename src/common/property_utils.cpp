@@ -22,4 +22,18 @@ namespace PropertyUtils
     {
         return is_nil(p_property) && !(p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
     }
+
+    String get_property_type_name(const PropertyInfo& p_property)
+    {
+        if (is_variant(p_property))
+            return "Variant";
+
+        if (is_enum(p_property) || is_bitfield(p_property))
+            return "Enum";
+
+        if (is_class(p_property))
+            return p_property.class_name;
+
+        return Variant::get_type_name(p_property.type);
+    }
 }
