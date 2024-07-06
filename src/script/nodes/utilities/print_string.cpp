@@ -192,13 +192,13 @@ void OScriptNodePrintStringInstance::_ui_container_node_removed(Node* p_node)
 
 void OScriptNodePrintString::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "Text", Variant::STRING, "Hello")->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "PrintToScreen", Variant::BOOL, true)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "PrintToLog", Variant::BOOL, true)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "TextColor", Variant::COLOR, Color(1, 1, 1))->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "Duration", Variant::FLOAT, 2)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "Text", Variant::STRING, "Hello");
+    create_pin(PD_Input, PT_Data, "PrintToScreen", Variant::BOOL, true);
+    create_pin(PD_Input, PT_Data, "PrintToLog", Variant::BOOL, true);
+    create_pin(PD_Input, PT_Data, "TextColor", Variant::COLOR, Color(1, 1, 1));
+    create_pin(PD_Input, PT_Data, "Duration", Variant::FLOAT, 2);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
 
     super::allocate_default_pins();
 }

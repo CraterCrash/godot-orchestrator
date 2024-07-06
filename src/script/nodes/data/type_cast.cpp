@@ -122,18 +122,15 @@ void OScriptNodeTypeCast::post_node_autowired(const Ref<OScriptNode>& p_node, EP
 
 void OScriptNodeTypeCast::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "instance", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::OBJECT);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "instance", Variant::OBJECT)->set_flag(OScriptNodePin::Flags::OBJECT);
 
-    Ref<OScriptNodePin> yes = create_pin(PD_Output, "yes");
-    yes->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    create_pin(PD_Output, PT_Execution, "yes")->show_label();
+    create_pin(PD_Output, PT_Execution, "no")->show_label();
 
-    Ref<OScriptNodePin> no = create_pin(PD_Output, "no");
-    no->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-
-    Ref<OScriptNodePin> output = create_pin(PD_Output, "output", Variant::OBJECT);
-    output->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::OBJECT | OScriptNodePin::Flags::NO_CAPITALIZE);
-    output->set_label("as " + StringUtils::default_if_empty(_target_type, "Object"));
+    Ref<OScriptNodePin> output = create_pin(PD_Output, PT_Data, "output", Variant::OBJECT);
+    output->set_flag(OScriptNodePin::OBJECT);
+    output->set_label("as " + StringUtils::default_if_empty(_target_type, "Object"), false);
 }
 
 String OScriptNodeTypeCast::get_tooltip_text() const

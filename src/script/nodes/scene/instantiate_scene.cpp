@@ -74,13 +74,13 @@ bool OScriptNodeInstantiateScene::_set(const StringName& p_name, const Variant& 
 
 void OScriptNodeInstantiateScene::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    Ref<OScriptNodePin> scene = create_pin(PD_Input, "scene", Variant::STRING, _scene);
-    scene->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::FILE);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    Ref<OScriptNodePin> scene = create_pin(PD_Input, PT_Data, "scene", Variant::STRING, _scene);
+    scene->set_flag(OScriptNodePin::Flags::FILE);
     scene->set_file_types("*.scn,*.tscn; Scene Files");
 
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "scene_root", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Data, "scene_root", Variant::OBJECT);
 
     super::allocate_default_pins();
 }

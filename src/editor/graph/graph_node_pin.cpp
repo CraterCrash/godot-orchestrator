@@ -156,7 +156,7 @@ bool OrchestratorGraphNodePin::is_output() const
 
 bool OrchestratorGraphNodePin::is_connectable() const
 {
-    return !_pin->get_flags().has_flag(OScriptNodePin::NO_CONNECTION);
+    return _pin->is_connectable();
 }
 
 bool OrchestratorGraphNodePin::is_connected() const
@@ -166,7 +166,7 @@ bool OrchestratorGraphNodePin::is_connected() const
 
 bool OrchestratorGraphNodePin::is_hidden() const
 {
-    return _pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN);
+    return _pin->is_hidden();
 }
 
 bool is_numeric(Variant::Type p_type)
@@ -316,7 +316,7 @@ void OrchestratorGraphNodePin::_create_widgets()
             label->set_v_size_flags(SIZE_SHRINK_CENTER);
             row0->add_child(label);
 
-            if (!is_execution() && !_pin->get_flags().has_flag(OScriptNodePin::Flags::IGNORE_DEFAULT))
+            if (!is_execution() && !_pin->is_default_ignored())
             {
                 _default_value = _get_default_value_widget();
                 if (_default_value)
@@ -337,7 +337,7 @@ void OrchestratorGraphNodePin::_create_widgets()
             label->set_v_size_flags(SIZE_SHRINK_CENTER);
             add_child(label);
 
-            if (!is_execution() && !_pin->get_flags().has_flag(OScriptNodePin::Flags::IGNORE_DEFAULT))
+            if (!is_execution() && !_pin->is_default_ignored())
             {
                 _default_value = _get_default_value_widget();
                 if (_default_value)
@@ -368,7 +368,7 @@ TextureRect* OrchestratorGraphNodePin::_create_type_icon(bool p_visible)
     _icon->set_texture(SceneUtils::get_editor_icon(value_type_name));
     _icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
 
-    if (_pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN) || !p_visible)
+    if (_pin->is_hidden() || !p_visible)
         _icon->set_visible(false);
 
     return _icon;
@@ -376,29 +376,23 @@ TextureRect* OrchestratorGraphNodePin::_create_type_icon(bool p_visible)
 
 Label* OrchestratorGraphNodePin::_create_label()
 {
-    bool ignore_label = _pin->get_flags().has_flag(OScriptNodePin::Flags::HIDE_LABEL);
-    bool force_label = _pin->get_flags().has_flag(OScriptNodePin::Flags::SHOW_LABEL);
-
-    String text = _pin->get_label();
-    if (text.is_empty())
-        text = _pin->get_pin_name();
-
-    if (!_pin->get_flags().has_flag(OScriptNodePin::Flags::NO_CAPITALIZE))
-        text = text.capitalize();
-
     Label* label = memnew(Label);
-    if (!ignore_label)
+
+    if (_pin->is_label_visible())
     {
-        if (!is_execution() || force_label)
-            label->set_text(text);
-        else
-            label->set_custom_minimum_size(Vector2(50, 0));
+        String text = _pin->get_label();
+        if (text.is_empty())
+            text = _pin->get_pin_name();
+
+        if (_pin->use_pretty_labels())
+            text = text.capitalize();
+
+        label->set_text(text);
     }
     else
+    {
         label->set_custom_minimum_size(Vector2(50, 0));
-
-    if (_pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
-        label->set_visible(false);
+    }
 
     return label;
 }

@@ -82,9 +82,9 @@ void OScriptNodeDelay::reallocate_pins_during_reconstruction(const Vector<Ref<OS
 
 void OScriptNodeDelay::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "duration", Variant::FLOAT, _duration)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "duration", Variant::FLOAT, _duration);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
 
     super::allocate_default_pins();
 }

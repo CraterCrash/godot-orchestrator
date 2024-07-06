@@ -120,19 +120,19 @@ void OScriptNodeForEach::post_initialize()
 
 void OScriptNodeForEach::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "array", Variant::ARRAY)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::IGNORE_DEFAULT);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "array", Variant::ARRAY)->set_flag(OScriptNodePin::IGNORE_DEFAULT);
 
     if (_with_break)
-        create_pin(PD_Input, "break")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+        create_pin(PD_Input, PT_Execution, "break")->show_label();
 
-    create_pin(PD_Output, "loop_body")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-    create_pin(PD_Output, "element", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "index", Variant::INT)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "completed")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    create_pin(PD_Output, PT_Execution, "loop_body")->show_label();
+    create_pin(PD_Output, PT_Data, "element", Variant::NIL);
+    create_pin(PD_Output, PT_Data, "index", Variant::INT);
+    create_pin(PD_Output, PT_Execution, "completed")->show_label();
 
     if (_with_break)
-        create_pin(PD_Output, "aborted")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+        create_pin(PD_Output, PT_Execution, "aborted")->show_label();
 }
 
 String OScriptNodeForEach::get_tooltip_text() const

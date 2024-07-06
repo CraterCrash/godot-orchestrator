@@ -64,9 +64,8 @@ bool OScriptNodeEngineSingleton::_set(const StringName& p_name, const Variant& p
 
 void OScriptNodeEngineSingleton::allocate_default_pins()
 {
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, "singleton", Variant::OBJECT);
-    pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-    pin->set_label(_singleton);
+    Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, "singleton", Variant::OBJECT);
+    pin->set_label(_singleton, false);
 
     super::allocate_default_pins();
 }

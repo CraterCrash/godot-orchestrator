@@ -211,8 +211,8 @@ bool OScriptNodeFunctionTerminator::create_pins_for_function_entry_exit(const Re
             // The Godot framework does not permit output arguments on function calls and therefore those will
             // not be supported here. Additionally, this will also mean that only a single output pin will be
             // possible when creating return nodes.
-            Ref<OScriptNodePin> pin = create_pin(PD_Output, property.name, property.type);
-            pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+            Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, property.name, property.type);
+            pin->no_pretty_format();
             pins_good = pin.is_valid() & pins_good;
         }
     }
@@ -220,12 +220,12 @@ bool OScriptNodeFunctionTerminator::create_pins_for_function_entry_exit(const Re
     {
         if (p_function->has_return_type())
         {
-            Ref<OScriptNodePin> pin = create_pin(PD_Input, "return_value", p_function->get_return_type());
+            Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, "return_value", p_function->get_return_type());
             pins_good = pin.is_valid() & pins_good;
 
             // Create hidden output pin to transfer value to caller
-            Ref<OScriptNodePin> out = create_pin(PD_Output, "return_out", p_function->get_return_type());
-            out->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::HIDDEN);
+            Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Data, "return_out", p_function->get_return_type());
+            out->set_flag(OScriptNodePin::Flags::HIDDEN);
             pins_good = out.is_valid() & pins_good;
         }
     }

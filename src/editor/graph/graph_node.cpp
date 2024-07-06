@@ -486,11 +486,6 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     _context_menu->add_separator("Documentation");
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Help"), "View Documentation", CM_VIEW_DOCUMENTATION);
 
-    #ifdef _DEBUG
-    _context_menu->add_separator("Debugging");
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Godot"), "Show details", CM_SHOW_DETAILS);
-    #endif
-
     _context_menu->set_position(get_screen_position() + (p_position * (real_t) get_graph()->get_zoom()));
     _context_menu->reset_size();
     _context_menu->popup();
@@ -773,26 +768,6 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             case CM_DISABLE_BREAKPOINT:
             {
                 _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_DISABLED);
-                break;
-            }
-            #endif
-            #ifdef _DEBUG
-            case CM_SHOW_DETAILS:
-            {
-                UtilityFunctions::print("--- Dump Node ", _node->get_class(), " ---");
-                UtilityFunctions::print("Position: ", _node->get_position());
-
-                Vector<Ref<OScriptNodePin>> pins = _node->get_all_pins();
-                UtilityFunctions::print("Pins: ", pins.size());
-                for (const Ref<OScriptNodePin>& pin : pins)
-                {
-                    UtilityFunctions::print("Pin[", pin->get_pin_name(), "]: ",
-                                            pin->is_input() ? "Input" : "Output",
-                                            " Default: ", pin->get_effective_default_value(),
-                                            " Type: ", pin->get_pin_type_name(), " (", pin->get_type(), ")",
-                                            " Target: ", pin->get_target_class(),
-                                            " Flags: ", pin->get_flags().operator Variant());
-                }
                 break;
             }
             #endif

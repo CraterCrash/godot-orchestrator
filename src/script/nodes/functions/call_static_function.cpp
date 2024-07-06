@@ -158,8 +158,8 @@ void OScriptNodeCallStaticFunction::post_placed_new_node()
 
 void OScriptNodeCallStaticFunction::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Output, PT_Execution, "ExecOut");
 
     const size_t default_start_index = _method.arguments.empty()
         ? 0
@@ -169,23 +169,22 @@ void OScriptNodeCallStaticFunction::allocate_default_pins()
     size_t def_index = 0;
     for (const PropertyInfo& pi : _method.arguments)
     {
-        Ref<OScriptNodePin> pin = create_pin(PD_Input, pi.name, pi.type);
+        Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, pi.name, pi.type);
         if (pin.is_valid())
         {
-            BitField<OScriptNodePin::Flags> flags(OScriptNodePin::Flags::DATA | OScriptNodePin::NO_CAPITALIZE);
+            pin->no_pretty_format();
             if (pi.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
             {
-                flags.set_flag(OScriptNodePin::Flags::ENUM);
+                pin->set_flag(OScriptNodePin::Flags::ENUM);
                 pin->set_target_class(pi.class_name);
                 pin->set_type(pi.type);
             }
             else if (pi.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
             {
-                flags.set_flag(OScriptNodePin::Flags::BITFIELD);
+                pin->set_flag(OScriptNodePin::Flags::BITFIELD);
                 pin->set_target_class(pi.class_name);
                 pin->set_type(pi.type);
             }
-            pin->set_flags(flags);
 
             if (arg_index >= default_start_index)
                 pin->set_default_value(_method.default_arguments[def_index++]);
@@ -195,16 +194,13 @@ void OScriptNodeCallStaticFunction::allocate_default_pins()
 
     if (MethodUtils::has_return_value(_method))
     {
-        Ref<OScriptNodePin> rv = create_pin(PD_Output, "return_value", _method.return_val.type);
+        Ref<OScriptNodePin> rv = create_pin(PD_Output, PT_Data, "return_value", _method.return_val.type);
+
         if (_method.return_val.type == Variant::OBJECT)
-        {
             rv->set_label(_method.return_val.class_name);
-            rv->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL);
-        }
         else
-        {
-            rv->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::HIDE_LABEL);
-        }
+            rv->hide_label();
+
         rv->set_target_class(_method.return_val.class_name);
     }
 

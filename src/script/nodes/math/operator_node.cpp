@@ -204,11 +204,11 @@ void OScriptNodeOperator::post_initialize()
 
 void OScriptNodeOperator::allocate_default_pins()
 {
-    create_pin(PD_Input, "a", _info.left_type);
+    create_pin(PD_Input, PT_Data, "a", _info.left_type);
     if (!_is_unary())
-        create_pin(PD_Input, "b", _info.right_type);
+        create_pin(PD_Input, PT_Data, "b", _info.right_type);
 
-    create_pin(PD_Output, "result", _info.return_type);
+    create_pin(PD_Output, PT_Data, "result", _info.return_type);
 
     super::allocate_default_pins();
 }

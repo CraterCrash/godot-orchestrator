@@ -403,7 +403,7 @@ void Orchestration::disconnect_nodes(int p_source_id, int p_source_port, int p_t
 Vector<Ref<OScriptNodePin>> Orchestration::get_connections(const OScriptNodePin* p_pin) const
 {
     // todo: consider caching pin connections in each pin for performance reasons
-    if (!p_pin || p_pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+    if (!p_pin || p_pin->is_hidden())
         return {};
 
     const OScriptNode* node = p_pin->get_owning_node();

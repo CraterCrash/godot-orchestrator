@@ -83,9 +83,8 @@ bool OScriptNodePreload::_set(const StringName &p_name, const Variant& p_value)
 
 void OScriptNodePreload::allocate_default_pins()
 {
-    Ref<OScriptNodePin> path = create_pin(PD_Output, "path", Variant::OBJECT, _resource_path);
-    path->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::SHOW_LABEL | OScriptNodePin::Flags::NO_CAPITALIZE);
-    path->set_label(_resource_path);
+    Ref<OScriptNodePin> path = create_pin(PD_Output, PT_Data, "path", Variant::OBJECT, _resource_path);
+    path->set_label(_resource_path, false);
 
     super::allocate_default_pins();
 }

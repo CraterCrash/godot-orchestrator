@@ -327,13 +327,12 @@ public:
 
     /// Create a pin associated with this node.
     /// @param p_direction the pin direction, input or output
+    /// @param p_pin_type the pin type, execution or data
     /// @param p_name the pin name
     /// @param p_type the pin type, defaults to Variant::NIL
     /// @param p_default_value the default value, defaults to null
-    /// @param p_index the slot index
     /// @return the newly created pin reference
-    Ref<OScriptNodePin> create_pin(EPinDirection p_direction, const String& p_name, Variant::Type p_type = Variant::NIL,
-                                   const Variant& p_default_value = Variant(), int p_index = -1);
+    Ref<OScriptNodePin> create_pin(EPinDirection p_direction, EPinType p_pin_type, const String& p_name, Variant::Type p_type = Variant::NIL, const Variant& p_default_value = Variant());
 
     /// Find the specified pin.
     /// @param p_pin_name the pin name to locate

@@ -17,6 +17,7 @@
 #include "script/node.h"
 
 #include "common/variant_utils.h"
+#include "common/version.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/os.hpp>
@@ -226,23 +227,25 @@ void OScriptNode::initialize(const OScriptNodeInitContext& p_context)
     allocate_default_pins();
 }
 
-Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, const String& p_name, Variant::Type p_type,
-                                            const Variant& p_default_value, int p_index)
+Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, EPinType p_pin_type, const String& p_name, Variant::Type p_type, const Variant& p_default_value)
 {
     Ref<OScriptNodePin> pin = OScriptNodePin::create(this);
     if (pin.is_valid())
     {
+        if (p_pin_type == PT_Execution)
+            pin->set_flag(OScriptNodePin::Flags::EXECUTION);
+        else
+            pin->set_flag(OScriptNodePin::Flags::DATA);
+
         pin->set_direction(p_direction);
         pin->set_pin_name(p_name);
         pin->set_type(p_type);
         pin->set_default_value(p_default_value);
+
         Variant::Type type = p_default_value.get_type() != Variant::NIL ? p_default_value.get_type() : p_type;
         pin->set_generated_default_value(VariantUtils::make_default(type));
 
-        if (p_index != -1 && p_index < _pins.size())
-            _pins.insert(p_index, pin);
-        else
-            _pins.push_back(pin);
+        _pins.push_back(pin);
     }
     return pin;
 }
@@ -296,11 +299,11 @@ Vector<Ref<OScriptNodePin>> OScriptNode::get_eligible_autowire_pins(const Ref<OS
     for (const Ref<OScriptNodePin>& pin : get_all_pins())
     {
         // Invalid or hidden pins are skipped
-        if (!pin.is_valid() || pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+        if (!pin.is_valid() || pin->is_hidden())
             continue;
 
         // Skip pins that are specifically flagged as non-autowirable
-        if (pin->get_flags().has_flag(OScriptNodePin::Flags::NO_AUTOWIRE))
+        if (!pin->can_autowire())
             continue;
 
         // Cannot connect input to input or output to output
@@ -365,7 +368,7 @@ void OScriptNode::_cache_pin_indices()
     int output_index = 0;
     for (const Ref<OScriptNodePin>& pin : _pins)
     {
-        if (pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+        if (pin->is_hidden())
             continue;
 
         if (pin->is_input())

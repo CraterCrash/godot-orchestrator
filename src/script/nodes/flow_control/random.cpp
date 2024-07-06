@@ -82,11 +82,10 @@ void OScriptNodeRandom::post_initialize()
 
 void OScriptNodeRandom::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
 
     for (int i = 0; i < _possibilities; i++)
-        create_pin(PD_Output, _get_pin_name_given_index(i))
-            ->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+        create_pin(PD_Output, PT_Execution, _get_pin_name_given_index(i))->show_label();
 
     super::allocate_default_pins();
 }

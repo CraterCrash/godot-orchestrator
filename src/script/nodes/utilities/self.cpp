@@ -48,7 +48,7 @@ void OScriptNodeSelf::post_placed_new_node()
 
 void OScriptNodeSelf::allocate_default_pins()
 {
-    create_pin(PD_Output, "self", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Output, PT_Data, "self", Variant::OBJECT);
 }
 
 String OScriptNodeSelf::get_tooltip_text() const

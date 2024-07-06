@@ -114,34 +114,33 @@ void OScriptNodeEmitMemberSignal::post_placed_new_node()
 
 void OScriptNodeEmitMemberSignal::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "target", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Data, "target", Variant::OBJECT);
 
     // Godot signals do not support default values or varargs, no need to be concerned with those
     // They also do not support return values.
     for (const PropertyInfo& pi : _method.arguments)
     {
-        Ref<OScriptNodePin> pin = create_pin(PD_Input, pi.name, pi.type);
+        Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, pi.name, pi.type);
         if (pin.is_valid())
         {
-            BitField<OScriptNodePin::Flags> flags(OScriptNodePin::Flags::DATA | OScriptNodePin::NO_CAPITALIZE);
+            pin->no_pretty_format();
             if (pi.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
             {
-                flags.set_flag(OScriptNodePin::Flags::ENUM);
+                pin->set_flag(OScriptNodePin::Flags::ENUM);
                 pin->set_target_class(pi.class_name);
                 pin->set_type(pi.type);
             }
             else if (pi.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
             {
-                flags.set_flag(OScriptNodePin::Flags::BITFIELD);
+                pin->set_flag(OScriptNodePin::Flags::BITFIELD);
                 pin->set_target_class(pi.class_name);
                 pin->set_type(pi.type);
             }
-            pin->set_flags(flags);
         }
     }
 
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_pin(PD_Output, PT_Execution, "ExecOut");
 
     super::allocate_default_pins();
 }

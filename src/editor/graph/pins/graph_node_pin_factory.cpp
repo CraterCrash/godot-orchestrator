@@ -52,16 +52,16 @@ OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::_resolve_string_based
 
 OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::create_pin(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
 {
-    if (p_pin->get_flags().has_flag(OScriptNodePin::Flags::EXECUTION))
+    if (p_pin->is_execution())
         return memnew(OrchestratorGraphNodePinExec(p_node, p_pin));
 
-    else if (p_pin->get_flags().has_flag(OScriptNodePin::Flags::FILE))
+    else if (p_pin->is_file())
         return memnew(OrchestratorGraphNodePinFile(p_node, p_pin));
 
-    else if (p_pin->get_flags().has_flag(OScriptNodePin::Flags::ENUM))
+    else if (p_pin->is_enum())
         return memnew(OrchestratorGraphNodePinEnum(p_node, p_pin));
 
-    else if (p_pin->get_flags().has_flag(OScriptNodePin::Flags::BITFIELD))
+    else if (p_pin->is_bitfield())
         return memnew(OrchestratorGraphNodePinBitField(p_node, p_pin));
 
     switch (p_pin->get_type())
