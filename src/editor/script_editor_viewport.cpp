@@ -65,56 +65,6 @@ void OrchestratorScriptEditorViewport::_graph_opened(OrchestratorGraphEdit* p_gr
     p_graph->connect("expand_node", callable_mp(this, &OrchestratorScriptEditorViewport::_expand_node).bind(p_graph));
 }
 
-void OrchestratorScriptEditorViewport::_add_callback(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
-{
-    // Get the script attached to the object
-    Ref<Script> script = p_object->get_script();
-    if (!script.is_valid())
-        return;
-
-    // Make sure that we are only applying the callback to the right resource
-    if (script.ptr() != _resource.ptr())
-        return;
-
-    // Check whether a function already exists with the given name
-    if (_orchestration->has_function(p_function_name))
-        return;
-
-    EditorInterface* editor_interface = OrchestratorPlugin::get_singleton()->get_editor_interface();
-    editor_interface->set_main_screen_editor(OrchestratorPlugin::get_singleton()->_get_plugin_name());
-
-    MethodInfo method;
-    method.name = p_function_name;
-    method.return_val.type = Variant::NIL; // Signals do not have return values
-
-    for (const String& argument : p_args)
-    {
-        PackedStringArray bits = argument.split(":");
-
-        const BuiltInType type = ExtensionDB::get_builtin_type(bits[1]);
-
-        PropertyInfo pi;
-        pi.name = bits[0];
-        pi.class_name = bits[1];
-        pi.type = type.type;
-        method.arguments.push_back(pi);
-    }
-
-    OScriptNodeInitContext context;
-    context.method = method;
-
-    OrchestratorGraphEdit* event_graph = _get_or_create_tab(EVENT_GRAPH_NAME, true, false);
-    if (!event_graph)
-        return;
-
-    const Ref<OScriptNodeEvent> node = event_graph->get_owning_graph()->create_node<OScriptNodeEvent>(context);
-    if (node.is_valid())
-    {
-        _update_components();
-        event_graph->focus_node(node->get_id());
-    }
-}
-
 Ref<OScriptFunction> OrchestratorScriptEditorViewport::_create_new_function(const String& p_name, bool p_has_return)
 {
     ERR_FAIL_COND_V_MSG(_orchestration->has_graph(p_name), {}, "Script already has graph named " + p_name);
@@ -432,6 +382,67 @@ void OrchestratorScriptEditorViewport::_expand_node(int p_node_id, OrchestratorG
     p_graph->get_orchestration()->remove_node(call_node->get_id());
 }
 
+void OrchestratorScriptEditorViewport::add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
+{
+    // Check whether a function already exists with the given name
+    if (_orchestration->has_function(p_function_name))
+    {
+        // This could be the user relinking an existing function to a signal.
+        // In this case the component viewport needs a redraw.
+        _update_components();
+        return;
+    }
+
+    EditorInterface* editor_interface = OrchestratorPlugin::get_singleton()->get_editor_interface();
+    editor_interface->set_main_screen_editor(OrchestratorPlugin::get_singleton()->_get_plugin_name());
+
+    MethodInfo method;
+    method.name = p_function_name;
+    method.return_val.type = Variant::NIL; // Signals do not have return values
+
+    for (const String& argument : p_args)
+    {
+        PackedStringArray bits = argument.split(":");
+
+        if (ClassDB::get_class_list().has(bits[1]))
+        {
+            // Type represents a registered class.
+            PropertyInfo property;
+            property.name = bits[0];
+            property.class_name = bits[1];
+            property.type = Variant::OBJECT;
+            method.arguments.push_back(property);
+        }
+        else if (ExtensionDB::get_builtin_type_names().has(bits[1]))
+        {
+            // Built-In Type
+            PropertyInfo property;
+            property.name = bits[0];
+            property.type = ExtensionDB::get_builtin_type(bits[1]).type;
+            method.arguments.push_back(property);
+        }
+        else
+        {
+            ERR_PRINT("Failed to resolve argument type for argument '" + argument + "'.  Function not added.");
+            return;
+        }
+    }
+
+    OScriptNodeInitContext context;
+    context.method = method;
+
+    OrchestratorGraphEdit* event_graph = _get_or_create_tab(EVENT_GRAPH_NAME, true, false);
+    if (!event_graph)
+        return;
+
+    const Ref<OScriptNodeEvent> node = event_graph->get_owning_graph()->create_node<OScriptNodeEvent>(context);
+    if (node.is_valid())
+    {
+        _update_components();
+        event_graph->focus_node(node->get_id());
+    }
+}
+
 void OrchestratorScriptEditorViewport::_notification(int p_what)
 {
     #if GODOT_VERSION < 0x040300
@@ -440,9 +451,6 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
 
     if (p_what == NOTIFICATION_READY)
     {
-        if (Node* editor_node = get_tree()->get_root()->get_child(0))
-            editor_node->connect("script_add_function_request", callable_mp(this, &OrchestratorScriptEditorViewport::_add_callback));
-
         _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_orchestration));
         _graphs->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_show_graph));
         _graphs->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_close_graph));
