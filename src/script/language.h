@@ -157,6 +157,9 @@ public:
     int32_t _find_function(const String& p_function_name, const String& p_code) const override;
     String _make_function(const String& p_class_name, const String& p_function_name,
                           const PackedStringArray& p_function_args) const override;
+    #if GODOT_VERSION >= 0x040300
+    bool _can_make_function() const override;
+    #endif
     TypedArray<Dictionary> _get_public_functions() const override;
     Dictionary _get_public_constants() const override;
     TypedArray<Dictionary> _get_public_annotations() const override;

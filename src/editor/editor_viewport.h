@@ -184,6 +184,12 @@ public:
     /// @param p_node_id the node ID
     void goto_node(int p_node_id);
 
+    /// Add a script function
+    /// @param p_object the object
+    /// @param p_function_name the function name
+    /// @param p_args the arguments for the function
+    virtual void add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args) { }
+
     /// Notifies this viewport that the scene tab has changed
     void notify_scene_tab_changed();
 

@@ -49,12 +49,6 @@ protected:
     void _graph_opened(OrchestratorGraphEdit* p_graph) override;
     //~ End OrchestratorEditorViewport Interface
 
-    /// Adds a signal handler callback to this script
-    /// @param p_object the object to be found
-    /// @param p_function_name the function name to be created
-    /// @param p_args the function arguments, if any
-    void _add_callback(Object* p_object, const String& p_function_name, const PackedStringArray& p_args);
-
     /// Creates a new function in the script
     /// @param p_name the function name
     /// @param p_has_return whether function has a return node
@@ -99,6 +93,10 @@ protected:
     OrchestratorScriptEditorViewport() = default;
 
 public:
+    //~ Begin OrchestratorEditorViewport Interface
+    void add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args) override;
+    //~ End OrchestratorEditorViewport Interface
+
     /// Constructor
     /// @param p_script the orchestration script
     explicit OrchestratorScriptEditorViewport(const Ref<OScript>& p_script);

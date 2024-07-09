@@ -670,6 +670,33 @@ void OrchestratorEditorPanel::_folder_removed(const String& p_folder_name)
     }
 }
 
+void OrchestratorEditorPanel::_add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
+{
+    Ref<Script> script = p_object->get_script();
+    if (!script.is_valid())
+        return;
+
+    Ref<OScript> orchestration = script;
+    if (!orchestration.is_valid())
+        return;
+
+    for (int i = 0; i < _files_context.open_files.size(); i++)
+    {
+        const OrchestrationFile& file = _files_context.open_files[i];
+        if (file.viewport->is_same_script(orchestration))
+        {
+            OrchestratorPlugin::get_singleton()->make_active();
+            file.viewport->show();
+
+            file.viewport->add_script_function(p_object, p_function_name, p_args);
+            return;
+        }
+    }
+
+    edit_script(orchestration);
+    _files_context.get_selected()->viewport->add_script_function(p_object, p_function_name, p_args);
+}
+
 #if GODOT_VERSION >= 0x040300
 void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int p_line)
 {
@@ -860,6 +887,9 @@ void OrchestratorEditorPanel::_notification(int p_what)
         case NOTIFICATION_READY:
         {
             add_theme_stylebox_override("panel", SceneUtils::get_editor_style("ScriptEditorPanel"));
+
+            if (Node* editor_node = get_tree()->get_root()->get_child(0))
+                editor_node->connect("script_add_function_request", callable_mp(this, &OrchestratorEditorPanel::_add_script_function));
 
             VBoxContainer* vbox = memnew(VBoxContainer);
             add_child(vbox);
