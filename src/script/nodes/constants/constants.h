@@ -48,6 +48,10 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
     /// Calculates the first, default constant name on placement.
     /// If a constant is already set, it is returned.
     StringName _get_default_constant_name() const;
@@ -114,6 +118,13 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
+    /// Create a pin's property info structure
+    PropertyInfo _create_pin_property_info();
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
@@ -143,6 +154,10 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
     /// Return a list of class names that are only selectable within the node's inspector.
     /// If this returns an empty list, the editor's class selector dialog will be used instead.
     /// @return array of class names, may be empty.
@@ -152,6 +167,10 @@ protected:
     /// @param p_class_name the class name, should not be empty
     /// @return string array of constant choices, may be empty but ideally should not.
     virtual PackedStringArray _get_class_constant_choices(const String& p_class_name) const { return {}; }
+
+    /// Creates the constant pin
+    /// @return the constant pin reference
+    Ref<OScriptNodePin> _create_constant_pin();
 
 public:
     //~ Begin OScriptNode Interface

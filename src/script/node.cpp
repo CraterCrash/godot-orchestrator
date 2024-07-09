@@ -86,6 +86,14 @@ bool OScriptNode::_is_in_editor()
     return OS::get_singleton()->has_feature("editor");
 }
 
+void OScriptNode::_queue_reconstruct()
+{
+    if (_reconstruction_queued)
+        return;
+
+    callable_mp(this, &OScriptNode::reconstruct_node).call_deferred();
+}
+
 Ref<OScriptGraph> OScriptNode::get_owning_graph()
 {
     return _orchestration->find_graph(this);
@@ -175,6 +183,7 @@ void OScriptNode::reconstruct_node()
 
     // Clear reconstruction flag
     _reconstructing = false;
+    _reconstruction_queued = false;
 }
 
 void OScriptNode::post_placed_new_node()
@@ -215,6 +224,34 @@ void OScriptNode::rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>&
     }
 }
 
+void OScriptNode::validate_node_during_build(BuildLog& p_log) const
+{
+    for (const Ref<OScriptNodePin>& pin : _pins)
+    {
+        if (pin->is_output() && pin->has_any_connections())
+        {
+            for (const Ref<OScriptNodePin>& connection : pin->get_connections())
+            {
+                if (!connection->can_accept(pin))
+                {
+                    p_log.error(
+                        this,
+                        pin,
+                        vformat("Is not compatible with one of its connected input pins.\n\tTo fix, re-add the target node to the graph to fix the metadata."));
+                }
+            }
+        }
+
+        if (!pin->is_valid())
+        {
+            p_log.error(
+                this,
+                pin,
+                "Not valid and could not be upgraded.\n\tPlease re-create the node to fix the metadata.");
+        }
+    }
+}
+
 OScriptNodeInstance* OScriptNode::instantiate()
 {
     ERR_PRINT("A custom script node implementation did not override instantiate");
@@ -236,9 +273,9 @@ String OScriptNode::get_help_topic() const
     #endif
 }
 
-Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, EPinType p_pin_type, const String& p_name, Variant::Type p_type, const Variant& p_default_value)
+Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, EPinType p_pin_type, const PropertyInfo& p_property, const Variant& p_default_value)
 {
-    Ref<OScriptNodePin> pin = OScriptNodePin::create(this);
+    Ref<OScriptNodePin> pin = OScriptNodePin::create(this, p_property);
     if (pin.is_valid())
     {
         if (p_pin_type == PT_Execution)
@@ -247,11 +284,9 @@ Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, EPinType 
             pin->set_flag(OScriptNodePin::Flags::DATA);
 
         pin->set_direction(p_direction);
-        pin->set_pin_name(p_name);
-        pin->set_type(p_type);
         pin->set_default_value(p_default_value);
 
-        Variant::Type type = p_default_value.get_type() != Variant::NIL ? p_default_value.get_type() : p_type;
+        Variant::Type type = p_default_value.get_type() != Variant::NIL ? p_default_value.get_type() : p_property.type;
         pin->set_generated_default_value(VariantUtils::make_default(type));
 
         _pins.push_back(pin);

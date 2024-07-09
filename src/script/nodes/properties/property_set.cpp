@@ -16,6 +16,7 @@
 //
 #include "property_set.h"
 
+#include "common/property_utils.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/node.hpp>
@@ -27,7 +28,7 @@ class OScriptNodePropertySetInstance : public OScriptNodeInstance
 
     OScriptNodeProperty::CallMode _call_mode;
     String _target_class;
-    String _property_name;
+    PropertyInfo _property;
     NodePath _node_path;
 
     Node* _get_node_path_target(OScriptExecutionContext& p_context)
@@ -44,12 +45,12 @@ public:
         switch (_call_mode)
         {
             case OScriptNodeProperty::CALL_SELF:
-                p_context.get_owner()->set(_property_name, input);
+                p_context.get_owner()->set(_property.name, input);
                 break;
 
             case OScriptNodeProperty::CALL_NODE_PATH:
                 if (Node* target = _get_node_path_target(p_context))
-                    target->set(_property_name, input);
+                    target->set(_property.name, input);
                 break;
 
             case OScriptNodeProperty::CALL_INSTANCE:
@@ -57,7 +58,7 @@ public:
                 if (instance.get_type() == Variant::OBJECT)
                 {
                     Object* obj = Object::cast_to<Object>(instance);
-                    obj->set(_property_name, p_context.get_input(1));
+                    obj->set(_property.name, p_context.get_input(1));
                 }
                 break;
         }
@@ -69,26 +70,30 @@ public:
 
 void OScriptNodePropertySet::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
 
     if (_call_mode == CALL_INSTANCE)
-        create_pin(PD_Input, PT_Data, "target", Variant::OBJECT);
+    {
+        Ref<OScriptNodePin> target = create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target", _base_type));
+        target->set_label(_base_type);
+        target->no_pretty_format();
+    }
 
-    create_pin(PD_Input, PT_Data, _property_name, _property_type);
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Input, PT_Data, _property);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 }
 
 String OScriptNodePropertySet::get_tooltip_text() const
 {
-    if (!_property_name.is_empty())
-        return vformat("Set the value for the property '%s'", _property_name);
-    else
-        return "Sets the value for a given property";
+    if (!_property.name.is_empty())
+        return vformat("Set the value for the property '%s'", _property.name);
+
+    return "Sets the value for a given property";
 }
 
 String OScriptNodePropertySet::get_node_title() const
 {
-    return vformat("Set %s%s", _property_name.capitalize(), _call_mode == CALL_SELF ? " (Self)" : "");
+    return vformat("Set %s%s", _property.name.capitalize(), _call_mode == CALL_SELF ? " (Self)" : "");
 }
 
 OScriptNodeInstance* OScriptNodePropertySet::instantiate()
@@ -97,7 +102,7 @@ OScriptNodeInstance* OScriptNodePropertySet::instantiate()
     i->_node = this;
     i->_call_mode = _call_mode;
     i->_target_class = _base_type;
-    i->_property_name = _property_name;
+    i->_property = _property;
     i->_node_path = _node_path;
     return i;
 }

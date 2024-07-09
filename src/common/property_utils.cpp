@@ -16,8 +16,83 @@
 //
 #include "common/property_utils.h"
 
+#include "godot_cpp/templates/hash_map.hpp"
+#include "string_utils.h"
+
 namespace PropertyUtils
 {
+    static HashMap<uint32_t, String> get_property_usage_name_map()
+    {
+        HashMap<uint32_t, String> names;
+        names[PROPERTY_USAGE_NONE] = "None";
+        names[PROPERTY_USAGE_STORAGE] = "Storage";
+        names[PROPERTY_USAGE_EDITOR] = "Editor";
+        names[PROPERTY_USAGE_CLASS_IS_BITFIELD] ="ClassIsBitfield";
+        names[PROPERTY_USAGE_CLASS_IS_ENUM] = "ClassIsEnum";
+        names[PROPERTY_USAGE_NIL_IS_VARIANT] = "NilIsVariant";
+        names[PROPERTY_USAGE_DEFAULT] = "Default";
+        return names;
+    }
+
+    bool are_equal(const PropertyInfo& p_left, const PropertyInfo& p_right)
+    {
+        return p_left.type == p_right.type &&
+            p_left.hint == p_right.hint &&
+            p_left.hint_string == p_right.hint_string &&
+            p_left.usage == p_right.usage &&
+            p_left.class_name == p_right.class_name;
+    }
+
+    PropertyInfo as(const String& p_name, const PropertyInfo& p_property)
+    {
+        PropertyInfo new_property = p_property;
+        new_property.name = p_name;
+        return new_property;
+    }
+
+    PropertyInfo make_exec(const String& p_name)
+    {
+        return make_typed(p_name, Variant::NIL);
+    }
+
+    PropertyInfo make_variant(const String& p_name)
+    {
+        return { Variant::NIL, p_name, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT };
+    }
+
+    PropertyInfo make_object(const String& p_name, const String& p_class_name)
+    {
+        return { Variant::OBJECT, p_name, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT, p_class_name };
+    }
+
+    PropertyInfo make_file(const String& p_name, const String& p_filters)
+    {
+        return { Variant::STRING, p_name, PROPERTY_HINT_FILE, p_filters, PROPERTY_USAGE_DEFAULT };
+    }
+
+    PropertyInfo make_typed(const String& p_name, Variant::Type p_type, bool p_variant_on_nil)
+    {
+        if (p_variant_on_nil && p_type == Variant::NIL)
+            return make_variant(p_name);
+
+        return { p_type, p_name, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT };
+    }
+
+    PropertyInfo make_multiline(const String& p_name)
+    {
+        return { Variant::STRING, p_name, PROPERTY_HINT_MULTILINE_TEXT, "", PROPERTY_USAGE_DEFAULT };
+    }
+
+    PropertyInfo make_enum_class(const String& p_name, const String& p_class_name)
+    {
+        return { Variant::INT, p_name, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_ENUM, p_class_name };
+    }
+
+    PropertyInfo make_class_enum(const String& p_name, const String& p_class_name, const String& p_enum_name)
+    {
+        return make_enum_class(p_name, vformat("%s.%s", p_class_name, p_enum_name));
+    }
+
     bool is_nil_no_variant(const PropertyInfo& p_property)
     {
         return is_nil(p_property) && !(p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
@@ -35,5 +110,17 @@ namespace PropertyUtils
             return p_property.class_name;
 
         return Variant::get_type_name(p_property.type);
+    }
+
+    String usage_to_string(uint32_t p_usage)
+    {
+        static HashMap<uint32_t, String> usage_names = get_property_usage_name_map();
+
+        PackedStringArray values;
+        for (const KeyValue<uint32_t, String>& E : usage_names)
+            if (E.key & p_usage)
+                values.push_back(E.value);
+
+        return StringUtils::join(", ", values);
     }
 }

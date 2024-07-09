@@ -17,6 +17,7 @@
 #include "switch.h"
 
 #include "api/extension_db.h"
+#include "common/property_utils.h"
 
 class OScriptNodeSwitchInstance : public OScriptNodeInstance
 {
@@ -142,6 +143,19 @@ bool OScriptNodeSwitch::_set(const StringName &p_name, const Variant &p_value)
     return false;
 }
 
+void OScriptNodeSwitch::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - Make sure pins encode the variant flag
+        Ref<OScriptNodePin> value = find_pin("value", PD_Input);
+        if (value.is_valid() && PropertyUtils::is_nil_no_variant(value->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeSwitch::_unlink_pins(int p_new_cases)
 {
     // Case 0 index is 2
@@ -162,20 +176,18 @@ void OScriptNodeSwitch::_unlink_pins(int p_new_cases)
 
 void OScriptNodeSwitch::allocate_default_pins()
 {
-    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, PT_Execution, "ExecIn");
-    exec_in->set_label("value_is:");
-
-    create_pin(PD_Input, PT_Data, "value", Variant::NIL);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"))->set_label("value_is:");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("value"));
 
     for (int i = 0; i < _cases; i++)
-        create_pin(PD_Input, PT_Data, _get_pin_name_given_index(i));
+        create_pin(PD_Input, PT_Data, PropertyUtils::make_variant(_get_pin_name_given_index(i)));
 
     // Push output ports down to align with input cases.
-    create_pin(PD_Output, PT_Execution, "Done")->show_label();
-    create_pin(PD_Output, PT_Execution, "default")->show_label();
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("Done"))->show_label();
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("default"))->show_label();
 
     for (int i = 0; i < _cases; i++)
-        create_pin(PD_Output, PT_Execution, _get_pin_name_given_index(i) + "_out");
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec(_get_pin_name_given_index(i) + "_out"));
 }
 
 String OScriptNodeSwitch::get_tooltip_text() const
@@ -342,20 +354,14 @@ void OScriptNodeSwitchEditablePin::_recompute_pin_names(int p_index)
 
 void OScriptNodeSwitchEditablePin::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "value", _get_input_pin_type());
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("value", _get_input_pin_type()));
 
     for (int i = 0; i < _pin_names.size(); i++)
-    {
-        Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Execution, _get_pin_name_given_index(i));
-        pin->set_label(_pin_names[i], false);
-    }
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec(_get_pin_name_given_index(i)))->set_label(_pin_names[i], false);
 
     if (_has_default_value)
-    {
-        Ref<OScriptNodePin> default_value = create_pin(PD_Output, PT_Execution, "default");
-        default_value->set_label("Default");
-    }
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("default"))->set_label("Default");
 }
 
 String OScriptNodeSwitchEditablePin::get_tooltip_text() const
@@ -495,6 +501,19 @@ OScriptNodeInstance* OScriptNodeSwitchInteger::instantiate()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeSwitchEnum::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - Some enum nodes were encoded as object types, which is incorrect.
+        Ref<OScriptNodePin> pin = find_pin("value", PD_Input);
+        if (pin.is_valid() && pin->is_enum() && pin->get_property_info().type == Variant::OBJECT)
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeSwitchEnum::post_initialize()
 {
     Ref<OScriptNodePin> pin = find_pin("value", PD_Input);
@@ -506,37 +525,17 @@ void OScriptNodeSwitchEnum::post_initialize()
     super::post_initialize();
 }
 
-void OScriptNodeSwitchEnum::post_placed_new_node()
-{
-    if (!_enum_name.is_empty())
-    {
-        Ref<OScriptNodePin> pin = find_pin("value", PD_Input);
-        if (pin.is_valid())
-        {
-            pin->set_flag(OScriptNodePin::Flags::ENUM);
-            pin->set_target_class(_enum_name);
-            pin->set_type(Variant::INT);
-        }
-    }
-    super::post_placed_new_node();
-}
-
 void OScriptNodeSwitchEnum::allocate_default_pins()
 {
-    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, PT_Execution, "ExecIn");
-    exec_in->set_label("value_is:");
-
-    Ref<OScriptNodePin> input = create_pin(PD_Input, PT_Data, "value", Variant::NIL);
-    input->set_flag(OScriptNodePin::Flags::ENUM);
-    input->set_target_class(_enum_name);
-    input->set_type(Variant::INT);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"))->set_label("value_is:");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_enum_class("value", _enum_name));
 
     const EnumInfo& ei = ExtensionDB::get_global_enum(_enum_name);
     for (const EnumValue& ev : ei.values)
     {
         if (!ev.friendly_name.is_empty())
         {
-            Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Execution, "case_" + itos(ev.value) + "_out");
+            Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("case_" + itos(ev.value) + "_out"));
             out->set_label(ev.friendly_name, false);
             out->set_generated_default_value(ev.value);
         }

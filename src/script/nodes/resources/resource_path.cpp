@@ -16,6 +16,8 @@
 //
 #include "resource_path.h"
 
+#include "common/property_utils.h"
+
 class OScriptNodeResourcePathInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeResourcePath);
@@ -57,16 +59,9 @@ bool OScriptNodeResourcePath::_set(const StringName& p_name, const Variant& p_va
     return false;
 }
 
-void OScriptNodeResourcePath::post_initialize()
-{
-    reconstruct_node();
-    super::post_initialize();
-}
-
 void OScriptNodeResourcePath::allocate_default_pins()
 {
-    Ref<OScriptNodePin> path = create_pin(PD_Output, PT_Data, "path", Variant::STRING);
-    path->set_label(_path, false);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("path", Variant::STRING))->set_label(_path, false);
 
     super::allocate_default_pins();
 }
@@ -100,4 +95,12 @@ void OScriptNodeResourcePath::initialize(const OScriptNodeInitContext& p_context
         _path = p_context.resource_path.value();
 
     super::initialize(p_context);
+}
+
+void OScriptNodeResourcePath::validate_node_during_build(BuildLog& p_log) const
+{
+    if (!FileAccess::file_exists(_path))
+        p_log.error(this, "Resource path '" + _path + "' no longer exists.");
+
+    super::validate_node_during_build(p_log);
 }

@@ -394,6 +394,7 @@ def create_db_header():
     print_indent("static PackedStringArray get_global_enum_names();")
     print_indent("static PackedStringArray get_global_enum_value_names();")
     print_indent("static EnumInfo get_global_enum(const StringName& p_enum_name);")
+    print_indent("static EnumInfo get_global_enum_by_value(const StringName& p_name);")
     print_indent("static EnumValue get_global_enum_value(const StringName& p_enum_value_name);")
     print_indent("")
     print_indent("static PackedStringArray get_math_constant_names();")

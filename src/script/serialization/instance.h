@@ -22,8 +22,8 @@
 class OScriptResourceFormatInstance
 {
 public:
-    const uint32_t FORMAT_VERSION{ 1 };
-    const uint32_t RESERVED_FIELDS{ 10 };
+    static uint32_t FORMAT_VERSION;
+    static uint32_t RESERVED_FIELDS;
 
     enum
     {

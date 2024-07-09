@@ -48,6 +48,7 @@ public:
     String get_icon() const override { return "Translation"; }
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
     /// Returns whether the type is supported.

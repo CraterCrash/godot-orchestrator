@@ -16,6 +16,7 @@
 //
 #include "emit_signal.h"
 
+#include "common/property_utils.h"
 #include "common/variant_utils.h"
 
 #include <godot_cpp/classes/os.hpp>
@@ -200,6 +201,42 @@ bool OScriptNodeEmitSignal::_set(const StringName& p_name, const Variant& p_valu
     return false;
 }
 
+void OScriptNodeEmitSignal::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - makes sure that full property attributes are encoded in the pins
+        if (_signal.is_valid())
+        {
+            const MethodInfo& mi = _signal->get_method_info();
+            for (const PropertyInfo& pi : mi.arguments)
+            {
+                const Ref<OScriptNodePin> pin = find_pin(pi.name, PD_Input);
+                if (!pin.is_valid())
+                {
+                    reconstruct_node();
+                    break;
+                }
+
+                const PropertyInfo pin_pi = pin->get_property_info();
+                if (!PropertyUtils::are_equal(pi, pin_pi))
+                {
+                    reconstruct_node();
+                    break;
+                }
+
+                if (!pin->use_pretty_labels())
+                {
+                    reconstruct_node();
+                    break;
+                }
+            }
+        }
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeEmitSignal::_on_signal_changed()
 {
     _signal_name = _signal->get_signal_name();
@@ -226,16 +263,16 @@ void OScriptNodeEmitSignal::post_placed_new_node()
 void OScriptNodeEmitSignal::allocate_default_pins()
 {
     // Single input exec pin
-    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
 
     // Create output exec pin
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
     if (_signal.is_valid())
     {
         const MethodInfo& mi = _signal->get_method_info();
         for (const PropertyInfo& pi : mi.arguments)
-            create_pin(PD_Input, PT_Data, pi.name, pi.type)->no_pretty_format();
+            create_pin(PD_Input, PT_Data, pi);
     }
 
     super::allocate_default_pins();
@@ -255,14 +292,6 @@ String OScriptNodeEmitSignal::get_node_title() const
         return vformat("Emit %s", _signal->get_signal_name());
 
     return super::get_node_title();
-}
-
-void OScriptNodeEmitSignal::validate_node_during_build(BuildLog& p_log) const
-{
-    super::validate_node_during_build(p_log);
-
-    if (!_signal.is_valid())
-        p_log.error("There is no signal defined");
 }
 
 bool OScriptNodeEmitSignal::can_inspect_node_properties() const
@@ -291,4 +320,12 @@ void OScriptNodeEmitSignal::initialize(const OScriptNodeInitContext& p_context)
     _signal = get_orchestration()->get_custom_signal(_signal_name);
 
     super::initialize(p_context);
+}
+
+void OScriptNodeEmitSignal::validate_node_during_build(BuildLog& p_log) const
+{
+    if (!_signal.is_valid())
+        p_log.error(this, "No signal is defined.");
+
+    super::validate_node_during_build(p_log);
 }

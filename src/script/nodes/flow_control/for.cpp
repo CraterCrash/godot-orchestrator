@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 
 class OScriptNodeForLoopInstance : public OScriptNodeInstance
 {
@@ -142,19 +143,19 @@ void OScriptNodeForLoop::reallocate_pins_during_reconstruction(const Vector<Ref<
 
 void OScriptNodeForLoop::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "first_index", Variant::INT, _start_index);
-    create_pin(PD_Input, PT_Data, "last_index", Variant::INT, _end_index);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("first_index", Variant::INT), _start_index);
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("last_index", Variant::INT), _end_index);
 
     if (_with_break)
-        create_pin(PD_Input, PT_Execution, "break")->show_label();
+        create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("break"))->show_label();
 
-    create_pin(PD_Output, PT_Execution, "loop_body")->show_label();
-    create_pin(PD_Output, PT_Data, "index", Variant::INT)->show_label();
-    create_pin(PD_Output, PT_Execution, "completed")->show_label();
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("loop_body"))->show_label();
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("index", Variant::INT))->show_label();
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("completed"))->show_label();
 
     if (_with_break)
-        create_pin(PD_Output, PT_Execution, "aborted")->show_label();
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("aborted"))->show_label();
 
     super::allocate_default_pins();
 }

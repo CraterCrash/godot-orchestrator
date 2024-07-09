@@ -16,6 +16,8 @@
 //
 #include "dictionary.h"
 
+#include "common/property_utils.h"
+
 class OScriptNodeMakeDictionaryInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeMakeDictionary);
@@ -68,6 +70,22 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeMakeDictionary::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        if (_element_count > 0)
+        {
+            // Fixup - make sure variant is encoded in pins
+            const Ref<OScriptNodePin> key = find_pin(_get_pin_name_given_index(0) + "_key");
+            if (key.is_valid() && !PropertyUtils::is_nil_no_variant(key->get_property_info()))
+                reconstruct_node();
+        }
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeMakeDictionary::post_initialize()
 {
     _element_count = find_pins(PD_Input).size() / 2;
@@ -80,14 +98,14 @@ void OScriptNodeMakeDictionary::allocate_default_pins()
     {
         const String element_prefix = _get_pin_name_given_index(i);
 
-        Ref<OScriptNodePin> key = create_pin(PD_Input, PT_Data, vformat("%s_key", element_prefix), Variant::NIL);
+        Ref<OScriptNodePin> key = create_pin(PD_Input, PT_Data, PropertyUtils::make_variant(vformat("%s_key", element_prefix)));
         key->set_label(vformat("Key %d", i), false);
 
-        Ref<OScriptNodePin> value = create_pin(PD_Input, PT_Data, vformat("%s_value", element_prefix), Variant::NIL);
+        Ref<OScriptNodePin> value = create_pin(PD_Input, PT_Data, PropertyUtils::make_variant(vformat("%s_value", element_prefix)));
         value->set_label(vformat("Value %d", i), false);
     }
 
-    create_pin(PD_Output, PT_Data, "dictionary", Variant::DICTIONARY);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("dictionary", Variant::DICTIONARY));
     super::allocate_default_pins();
 }
 
@@ -167,15 +185,15 @@ void OScriptNodeDictionarySet::post_initialize()
 
 void OScriptNodeDictionarySet::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "target", Variant::DICTIONARY);
-    create_pin(PD_Input, PT_Data, "key", Variant::NIL);
-    create_pin(PD_Input, PT_Data, "value", Variant::NIL);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("target", Variant::DICTIONARY));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("key"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("value"));
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "dictionary", Variant::DICTIONARY);
-    create_pin(PD_Output, PT_Data, "replaced", Variant::BOOL);
-    create_pin(PD_Output, PT_Data, "old_value", Variant::NIL);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("dictionary", Variant::DICTIONARY));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("replaced", Variant::BOOL));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("old_value"));
 
     super::allocate_default_pins();
 }

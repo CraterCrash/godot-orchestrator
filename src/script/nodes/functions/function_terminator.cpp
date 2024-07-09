@@ -16,6 +16,8 @@
 //
 #include "function_terminator.h"
 
+#include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 #include "common/variant_utils.h"
 
 void OScriptNodeFunctionTerminator::_get_property_list(List<PropertyInfo>* r_list) const
@@ -211,8 +213,7 @@ bool OScriptNodeFunctionTerminator::create_pins_for_function_entry_exit(const Re
             // The Godot framework does not permit output arguments on function calls and therefore those will
             // not be supported here. Additionally, this will also mean that only a single output pin will be
             // possible when creating return nodes.
-            Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, property.name, property.type);
-            pin->no_pretty_format();
+            Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, property);
             pins_good = pin.is_valid() & pins_good;
         }
     }
@@ -220,11 +221,12 @@ bool OScriptNodeFunctionTerminator::create_pins_for_function_entry_exit(const Re
     {
         if (p_function->has_return_type())
         {
-            Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, "return_value", p_function->get_return_type());
+            const MethodInfo mi = p_function->get_method_info();
+            Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, PropertyUtils::as("return_value", mi.return_val));
             pins_good = pin.is_valid() & pins_good;
 
             // Create hidden output pin to transfer value to caller
-            Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Data, "return_out", p_function->get_return_type());
+            Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Data, PropertyUtils::as("return_out", mi.return_val));
             out->set_flag(OScriptNodePin::Flags::HIDDEN);
             pins_good = out.is_valid() & pins_good;
         }
@@ -244,6 +246,9 @@ void OScriptNodeFunctionTerminator::post_initialize()
             _function->connect("changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
         _return_value = _function->has_return_type();
     }
+
+    // Always reconstruct entry/exit nodes
+    reconstruct_node();
 }
 
 void OScriptNodeFunctionTerminator::post_placed_new_node()

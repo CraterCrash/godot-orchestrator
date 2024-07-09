@@ -127,6 +127,7 @@ Variant OScriptBinaryResourceLoader::_load(const String& p_path, const String& p
     if (script.is_valid())
     {
         script->set_path(local_path);
+        script->_version = loader._version;
 
         // Sanity check, used to be in OrchestratorScriptView, but belongs here instead
         if (script->get_orchestration()->get_type() == OT_Script && !script->has_graph("EventGraph"))
@@ -241,6 +242,7 @@ Variant OScriptTextResourceLoader::_load(const String& p_path, const String& p_o
     if (script.is_valid())
     {
         script->set_path(local_path);
+        script->_version = loader._version;
 
         // Sanity check, used to be in OrchestratorScriptView, but belongs here instead
         if (script->get_orchestration()->get_type() == OT_Script && !script->has_graph("EventGraph"))
@@ -339,11 +341,6 @@ Error OScriptTextResourceSaver::_save(const Ref<Resource>& p_resource, const Str
 {
     OScriptTextResourceSaverInstance saver;
     return saver.save(_get_local_path(p_path), p_resource, p_flags);
-
-    // String basename = p_path.get_basename() + ".tres";
-    // ResourceSaver::get_singleton()->save(p_resource, basename, p_flags);
-    //
-    // return result;
 }
 
 void OScriptTextResourceSaver::_bind_methods()

@@ -23,19 +23,12 @@
 OScriptNodeCallBuiltinFunction::OScriptNodeCallBuiltinFunction()
 {
     _flags = ScriptNodeFlags::CATALOGABLE;
+    _function_flags = FunctionFlags::FF_PURE;
 }
 
 bool OScriptNodeCallBuiltinFunction::_has_execution_pins(const MethodInfo& p_method) const
 {
     return !MethodUtils::has_return_value(p_method);
-}
-
-void OScriptNodeCallBuiltinFunction::post_initialize()
-{
-    _reference.name = _reference.method.name;
-    _reference.return_type = _reference.method.return_val.type;
-
-    super::post_initialize();
 }
 
 String OScriptNodeCallBuiltinFunction::get_tooltip_text() const
@@ -69,10 +62,7 @@ void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_
 
     const MethodInfo mi = DictionaryUtils::to_method(data);
     _reference.method = mi;
-    _reference.name = _reference.method.name;
-    _reference.return_type = _reference.method.return_val.type;
 
-    _function_flags = FunctionFlags::FF_PURE;
     _set_function_flags(_reference.method);
 
     super::initialize(p_context);

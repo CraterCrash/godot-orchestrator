@@ -167,6 +167,7 @@ namespace godot
 		static PackedStringArray get_global_enum_names();
 		static PackedStringArray get_global_enum_value_names();
 		static EnumInfo get_global_enum(const StringName& p_enum_name);
+		static EnumInfo get_global_enum_by_value(const StringName& p_name);
 		static EnumValue get_global_enum_value(const StringName& p_enum_value_name);
 		
 		static PackedStringArray get_math_constant_names();

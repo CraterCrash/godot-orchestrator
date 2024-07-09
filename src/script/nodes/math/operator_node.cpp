@@ -17,6 +17,7 @@
 #include "operator_node.h"
 
 #include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -204,11 +205,11 @@ void OScriptNodeOperator::post_initialize()
 
 void OScriptNodeOperator::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Data, "a", _info.left_type);
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("a", _info.left_type));
     if (!_is_unary())
-        create_pin(PD_Input, PT_Data, "b", _info.right_type);
+        create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("b", _info.right_type));
 
-    create_pin(PD_Output, PT_Data, "result", _info.return_type);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("result", _info.return_type));
 
     super::allocate_default_pins();
 }
@@ -312,6 +313,17 @@ void OScriptNodeOperator::initialize(const OScriptNodeInitContext& p_context)
     _info.return_type = VariantUtils::to_type(data["return_type"]);
 
     super::initialize(p_context);
+}
+
+void OScriptNodeOperator::validate_node_during_build(BuildLog& p_log) const
+{
+    Ref<OScriptNodePin> result = find_pin("result", PD_Output);
+    if (!result.is_valid())
+        p_log.error(this, "No result pin found, right-click node and select 'Refresh Nodes'.");
+    else if (!result->has_any_connections())
+        p_log.error(this, result, "Requires a connection.");
+
+    super::validate_node_during_build(p_log);
 }
 
 bool OScriptNodeOperator::is_supported(Variant::Type p_type)

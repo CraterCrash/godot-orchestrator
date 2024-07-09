@@ -16,6 +16,8 @@
 //
 #include "while.h"
 
+#include "common/property_utils.h"
+
 class OScriptNodeWhileInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeWhile);
@@ -39,13 +41,11 @@ public:
 
 void OScriptNodeWhile::allocate_default_pins()
 {
-    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, PT_Execution, "ExecIn");
-    exec_in->set_label("while [condition]");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"))->set_label("while [condition]");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("condition", Variant::BOOL), _condition);
 
-    create_pin(PD_Input, PT_Data, "condition", Variant::BOOL, _condition);
-
-    create_pin(PD_Output, PT_Execution, "repeat")->show_label();
-    create_pin(PD_Output, PT_Execution, "done")->show_label();
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("repeat"))->show_label();
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("done"))->show_label();
 }
 
 String OScriptNodeWhile::get_tooltip_text() const

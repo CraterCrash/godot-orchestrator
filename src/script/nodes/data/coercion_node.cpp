@@ -17,6 +17,7 @@
 #include "coercion_node.h"
 
 #include "common/logger.h"
+#include "common/property_utils.h"
 #include "common/variant_utils.h"
 
 class OScriptNodeCoercionInstance : public OScriptNodeInstance
@@ -61,8 +62,8 @@ void OScriptNodeCoercion::post_placed_new_node()
 
 void OScriptNodeCoercion::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Data, "input", _left)->hide_label();
-    create_pin(PD_Output, PT_Data, "output", _right)->hide_label();
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("input", _left))->hide_label();
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("output", _right))->hide_label();
 }
 
 String OScriptNodeCoercion::get_tooltip_text() const

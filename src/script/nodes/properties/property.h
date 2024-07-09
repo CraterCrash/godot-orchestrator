@@ -48,16 +48,26 @@ public:
 protected:
     CallMode _call_mode{ CALL_SELF };
     StringName _base_type;
-    StringName _property_name;
     NodePath _node_path;
-    Variant::Type _property_type{ Variant::NIL };
-    String _property_hint;
+    PropertyInfo _property;
+    bool _has_property{ false };
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
+
+    /// Gets the class property if found
+    /// @param p_class_name the class name
+    /// @param p_name the property name
+    /// @param r_property the returned property structure
+    /// @return true if found, false otherwise
+    bool _get_class_property(const String& p_class_name, const String& p_name, PropertyInfo& r_property);
+
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
 
 public:
     OScriptNodeProperty();
@@ -67,6 +77,7 @@ public:
     String get_icon() const override;
     String get_node_title_color_name() const override { return "properties"; }
     void initialize(const OScriptNodeInitContext& p_context) override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 };
 

@@ -157,7 +157,7 @@ bool OScriptSignal::resize_argument_list(size_t p_new_size)
         _method.arguments.resize(p_new_size);
         for (size_t i = current_size; i < p_new_size; i++)
         {
-            _method.arguments[i].name = "arg" + (i + 1);
+            _method.arguments[i].name = "arg" + itos(i + 1);
             _method.arguments[i].type = Variant::NIL;
 
             // Cleanup the argument usage flags that were constructed incorrectly due to godot-cpp bug

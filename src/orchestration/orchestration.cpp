@@ -24,6 +24,8 @@
 #include "script/nodes/variables/variable.h"
 #include "script/variable.h"
 
+#include <godot_cpp/classes/time.hpp>
+
 TypedArray<OScriptNode> Orchestration::_get_nodes_internal() const
 {
     Array r_out;
@@ -297,6 +299,16 @@ void Orchestration::post_initialize()
     for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs)
         G.value->post_initialize();
 
+    // Check if upgrades are required
+    if (_version < OScriptResourceFormatInstance::FORMAT_VERSION)
+    {
+        // Upgrade nodes that require it
+        for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
+            E.value->_upgrade(_version, OScriptResourceFormatInstance::FORMAT_VERSION);
+
+        _version = OScriptResourceFormatInstance::FORMAT_VERSION;
+    }
+
     _initialized = true;
 }
 
@@ -306,12 +318,7 @@ void Orchestration::validate_and_build(BuildLog& p_log)
     _fix_orphans();
 
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
-    {
-        p_log.set_current_node(E.value);
-
         E.value->validate_node_during_build(p_log);
-        p_log.set_current_node({});
-    }
 }
 
 void Orchestration::add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node)

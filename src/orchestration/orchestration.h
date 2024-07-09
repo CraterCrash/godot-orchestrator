@@ -22,6 +22,7 @@
 #include "script/function.h"
 #include "script/graph.h"
 #include "script/node.h"
+#include "script/serialization/instance.h"
 #include "script/signals.h"
 #include "script/variable.h"
 
@@ -37,6 +38,10 @@ enum OrchestrationType
 
 VARIANT_ENUM_CAST(OrchestrationType);
 
+/// Forward declarations
+class OScriptBinaryResourceLoader;
+class OScriptTextResourceLoader;
+
 /// The common contract for different types of Orchestration resources.
 ///
 /// Different resource types can implement this interface in order to act like an Orchestration.  This
@@ -50,6 +55,8 @@ VARIANT_ENUM_CAST(OrchestrationType);
 class Orchestration
 {
     friend class OScriptGraph;
+    friend class OScriptBinaryResourceLoader;
+    friend class OScriptTextResourceLoader;
 
 protected:
     OrchestrationType _type;                               //! The orchestration type
@@ -63,6 +70,7 @@ protected:
     HashMap<StringName, Ref<OScriptSignal>> _signals;      //! Map of all user-defined signals
     HashMap<StringName, Ref<OScriptGraph>> _graphs;        //! Map of all defined graphs
     Resource* _self;                                       //! Reference to the outer resource type
+    uint32_t _version{ 0 };                                //! Orchestration version
 
     //~ Begin Serialization Interface
     TypedArray<OScriptNode> _get_nodes_internal() const;

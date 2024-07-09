@@ -17,6 +17,7 @@
 #include "input_action.h"
 
 #include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 
 #include <godot_cpp/classes/input.hpp>
@@ -145,8 +146,7 @@ void OScriptNodeInputAction::_bind_methods()
 
 void OScriptNodeInputAction::allocate_default_pins()
 {
-    Ref<OScriptNodePin> state = create_pin(PD_Output, PT_Data, "state", Variant::BOOL);
-    state->set_label(_get_mode());
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("state", Variant::BOOL))->set_label(_get_mode());
 
     super::allocate_default_pins();
 }
@@ -173,4 +173,14 @@ OScriptNodeInstance* OScriptNodeInputAction::instantiate()
     i->_action_name = _action_name;
     i->_mode = ActionMode(_mode);
     return i;
+}
+
+void OScriptNodeInputAction::validate_node_during_build(BuildLog& p_log) const
+{
+    if (_action_name.is_empty())
+        p_log.error(this, "No input action name specified.");
+    else if (!_get_action_names().has(_action_name))
+        p_log.error(this, "Input action '" + _action_name + "' is not defined.");
+
+    super::validate_node_during_build(p_log);
 }

@@ -16,6 +16,7 @@
 //
 #include "self.h"
 
+#include "common/property_utils.h"
 #include "common/version.h"
 
 class OScriptNodeSelfInstance : public OScriptNodeInstance
@@ -31,6 +32,19 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OScriptNodeSelf::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 and p_current_version >= 2)
+    {
+        // Fixup - makes sure that base type matches pin
+        const Ref<OScriptNodePin> self = find_pin("self", PD_Output);
+        if (self.is_valid() && self->get_property_info().class_name != get_orchestration()->get_base_type())
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
 
 void OScriptNodeSelf::post_initialize()
 {
@@ -50,7 +64,7 @@ void OScriptNodeSelf::post_placed_new_node()
 
 void OScriptNodeSelf::allocate_default_pins()
 {
-    create_pin(PD_Output, PT_Data, "self", Variant::OBJECT);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_base_type()));
 }
 
 String OScriptNodeSelf::get_tooltip_text() const
@@ -87,7 +101,21 @@ OScriptNodeInstance* OScriptNodeSelf::instantiate()
     return i;
 }
 
+void OScriptNodeSelf::validate_node_during_build(BuildLog& p_log) const
+{
+    const String base_type = get_orchestration()->get_base_type();
+
+    const Ref<OScriptNodePin> self = find_pin("self", PD_Output);
+    if (!self.is_valid())
+        p_log.error(this, "No output pin found.");
+    else if (self->get_property_info().class_name != base_type)
+        p_log.error(this, "Node requires reconstruction, right-click node and select 'Refresh Nodes'.");
+
+    super::validate_node_during_build(p_log);
+}
+
 void OScriptNodeSelf::_on_script_changed()
 {
+    reconstruct_node();
     _notify_pins_changed();
 }

@@ -23,6 +23,68 @@ namespace PropertyUtils
 {
     using namespace godot;
 
+    /// Checks whether two property info structures are identical (Excluding name).
+    /// @param p_left a property
+    /// @param p_right a property
+    /// @return true if the two are identical, false otherwise
+    bool are_equal(const PropertyInfo& p_left, const PropertyInfo& p_right);
+
+    /// Constructs a new property info with a new name from an existing property
+    /// @param p_name the new property name
+    /// @param p_property the property to source data from
+    /// @return the newly constructed property with the new name
+    PropertyInfo as(const String& p_name, const PropertyInfo& p_property);
+
+    /// Create a simple exec property
+    /// @param p_name the execution pin name
+    /// @return the execution property
+    PropertyInfo make_exec(const String& p_name);
+
+    /// Make a variant-based property
+    /// @param p_name the property pin name
+    /// @return the newly constructed property with the specified type
+    PropertyInfo make_variant(const String& p_name);
+
+    /// Make an object-based property for a given class type
+    /// @param p_name the property pin name
+    /// @param p_class_name the class name, if unspecified the pin accepts any Object
+    /// @return the newly constructed property with the specified class type
+    PropertyInfo make_object(const String& p_name, const String& p_class_name = "Object");
+
+    /// Make a file property
+    /// @param p_name the property pin name
+    /// @param p_filters the file filters, defaults to none
+    /// @return the newly constructed property
+    PropertyInfo make_file(const String& p_name, const String& p_filters = String());
+
+    /// Makes a simple typed property.
+    ///
+    /// @note This should not be used to make complex types such as objects, enums, or bitfields, nor
+    /// to construct properties that represent various hinted types such as files or multilined text.
+    /// @param p_name the property pin name
+    /// @param p_type the basic type
+    /// @param p_variant_on_nil whether the property should be a variant if the type is NIL
+    /// @return the newly constructed property with the specified type
+    PropertyInfo make_typed(const String& p_name, Variant::Type p_type, bool p_variant_on_nil = false);
+
+    /// Make a multiline text property.
+    /// @param p_name the property pin name
+    /// @return the newly constructed property
+    PropertyInfo make_multiline(const String& p_name);
+
+    /// Creates a property info for a global enum type (class has enum name)
+    /// @param p_name the property name
+    /// @param p_class_name the global enum class name
+    /// @return the property info structure
+    PropertyInfo make_enum_class(const String& p_name, const String& p_class_name);
+
+    /// Creates a property info for a class-specific enumeration type
+    /// @param p_name the property name
+    /// @param p_class_name the class that owns the enum
+    /// @param p_enum_name the name of the enumeration
+    /// @return the property info structure
+    PropertyInfo make_class_enum(const String& p_name, const String& p_class_name, const String& p_enum_name);
+
     /// Checks whether the property type is <code>NIL</code>
     /// @param p_property the property to check
     /// @return true if the property is NIL, false otherwise
@@ -48,6 +110,16 @@ namespace PropertyUtils
     /// @return true if the property is a bitfield, false otherwise
     _FORCE_INLINE_ bool is_bitfield(const PropertyInfo& p_property) { return p_property.hint == PROPERTY_HINT_FLAGS || p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD; }
 
+    /// Checks whether the property is a class enum.
+    /// @param p_property the property to check
+    /// @return true if the property usage has <code>PROPERTY_USAGE_CLASS_IS_ENUM</code>
+    _FORCE_INLINE_ bool is_class_enum(const PropertyInfo& p_property) { return p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM; }
+
+    /// Checks whether the property is a class bitfield.
+    /// @param p_property the property to check
+    /// @return true if the property usage has <code>PROPERTY_USAGE_CLASS_IS_BITFIELD</code>
+    _FORCE_INLINE_ bool is_class_bitfield(const PropertyInfo& p_property) { return p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD; }
+
     /// Checks whether the property type is <code>NIL</code> but the variant flag is not set.
     /// @param p_property the property to check
     /// @return true if the property is <code>NIL</code> but has no variant flag set
@@ -57,6 +129,11 @@ namespace PropertyUtils
     /// @param p_property the property
     /// @return the property type name
     String get_property_type_name(const PropertyInfo& p_property);
+
+    /// Converts a property info's <code>usage</code> bitfield to a string.
+    /// @param p_usage the property usage flags bitfield value
+    /// @return comma-separated string of property usage flags
+    String usage_to_string(uint32_t p_usage);
 }
 
 #endif // ORCHESTRATOR_PROPERTY_UTILS_H

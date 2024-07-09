@@ -80,6 +80,7 @@ class OScriptTextResourceLoaderInstance : public OScriptResourceFormatInstance
 
     Error _error{ OK };
 
+    uint32_t _version{ 1 };
     Ref<Resource> _resource;
 
     /// For converters

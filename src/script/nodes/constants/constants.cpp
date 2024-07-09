@@ -16,10 +16,11 @@
 //
 #include "constants.h"
 
+#include "api/extension_db.h"
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
-#include "api/extension_db.h"
 
 #include <godot_cpp/classes/engine.hpp>
 
@@ -144,6 +145,19 @@ bool OScriptNodeGlobalConstant::_set(const StringName& p_name, const Variant& p_
     return false;
 }
 
+void OScriptNodeGlobalConstant::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - make sure pin uses new enum semantics
+        Ref<OScriptNodePin> constant = find_pin("constant", PD_Output);
+        if (constant.is_valid() && !PropertyUtils::is_class_enum(constant->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeGlobalConstant::post_initialize()
 {
     // Initially set the value from the pin
@@ -159,8 +173,14 @@ void OScriptNodeGlobalConstant::post_initialize()
 
 void OScriptNodeGlobalConstant::allocate_default_pins()
 {
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", Variant::INT);
+    EnumInfo ei = ExtensionDB::get_global_enum_by_value(_constant_name);
+    if (ei.values.is_empty())
+    {
+        ERR_FAIL_MSG("Failed to locate enum for " + _constant_name);
+    }
+    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, PropertyUtils::make_enum_class("constant", ei.name));
     constant->set_label(_constant_name, false);
+
     super::allocate_default_pins();
 }
 
@@ -215,7 +235,7 @@ void OScriptNodeGlobalConstant::validate_node_during_build(BuildLog& p_log) cons
     super::validate_node_during_build(p_log);
 
     if (_constant_name.is_empty())
-        p_log.error("Constant node has no constant name specified.");
+        p_log.error(this, "Constant node has no constant name specified.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,7 +269,7 @@ bool OScriptNodeMathConstant::_set(const StringName& p_name, const Variant& p_va
 
 void OScriptNodeMathConstant::allocate_default_pins()
 {
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", Variant::FLOAT);
+    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("constant", Variant::FLOAT));
     constant->set_label(_constant_name, false);
     super::allocate_default_pins();
 }
@@ -298,7 +318,7 @@ void OScriptNodeMathConstant::validate_node_during_build(BuildLog& p_log) const
     super::validate_node_during_build(p_log);
 
     if (_constant_name.is_empty())
-        p_log.error("Constant node has no constant name specified");
+        p_log.error(this, "No constant name specified.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -376,13 +396,49 @@ void OScriptNodeTypeConstant::_bind_methods()
     }
 }
 
+void OScriptNodeTypeConstant::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - Make sure that the class enum details are encoded
+        Ref<OScriptNodePin> constant = find_pin("constant", PD_Output);
+        if (constant.is_valid() && !PropertyUtils::is_class_enum(constant->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
+PropertyInfo OScriptNodeTypeConstant::_create_pin_property_info()
+{
+    // Check whether constant is an enumeration
+    BuiltInType type = ExtensionDB::get_builtin_type(_type);
+    ERR_FAIL_COND_V_MSG(type.type != _type, PropertyInfo(), "Failed to resolve built-in type");
+
+    for (const EnumInfo& E : type.enums)
+    {
+        for (const EnumValue& V : E.values)
+        {
+            if (V.name == _constant_name)
+                return PropertyUtils::make_class_enum("constant", type.name, E.name);
+        }
+    }
+    for (const ConstantInfo& C : type.constants)
+    {
+        if (C.name == _constant_name)
+            return PropertyUtils::make_typed("constant", _type);
+    }
+
+    ERR_FAIL_V_MSG(PropertyInfo(), "Failed to find type constant " + _constant_name);
+}
+
 void OScriptNodeTypeConstant::allocate_default_pins()
 {
     String label = VariantUtils::get_friendly_type_name(_type);
     if (!_constant_name.is_empty())
         label += "::" + _constant_name;
 
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", _type);
+    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, _create_pin_property_info());
     constant->set_label(label, false);
     super::allocate_default_pins();
 }
@@ -432,9 +488,9 @@ void OScriptNodeTypeConstant::validate_node_during_build(BuildLog& p_log) const
     super::validate_node_during_build(p_log);
 
     if (_constant_name.is_empty())
-        p_log.error("Constant node has no constant name specified");
+        p_log.error(this, "No constant name specified.");
     else if (_type == Variant::NIL)
-        p_log.error("Constant node has no type specified.");
+        p_log.error(this, "No type specified.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -488,14 +544,36 @@ bool OScriptNodeClassConstantBase::_set(const StringName& p_name, const Variant&
     return false;
 }
 
+void OScriptNodeClassConstantBase::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - make sure pin uses new enum semantics
+        Ref<OScriptNodePin> constant = find_pin("constant", PD_Output);
+        if (constant.is_valid() && !PropertyUtils::is_class_enum(constant->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
+Ref<OScriptNodePin> OScriptNodeClassConstantBase::_create_constant_pin()
+{
+    const String enum_name = ClassDB::class_get_integer_constant_enum(_class_name, _constant_name);
+    if (!enum_name.is_empty())
+        return create_pin(PD_Output, PT_Data, PropertyUtils::make_class_enum("constant", _class_name, enum_name));
+
+    return create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("constant", Variant::INT));
+}
+
 void OScriptNodeClassConstantBase::allocate_default_pins()
 {
     String label = _class_name;
     if (!_constant_name.is_empty())
         label += "::" + _constant_name;
 
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, PT_Data, "constant", Variant::INT);
-    constant->set_label(label, false);
+    _create_constant_pin()->set_label(label, false);
+
     super::allocate_default_pins();
 }
 
@@ -534,9 +612,9 @@ void OScriptNodeClassConstantBase::validate_node_during_build(BuildLog& p_log) c
     super::validate_node_during_build(p_log);
 
     if (_class_name.is_empty())
-        p_log.error("Constant node has no class specified.");
+        p_log.error(this, "No constant class name specified.");
     else if (_constant_name.is_empty())
-        p_log.error("Constant node has no constant specified.");
+        p_log.error(this, "No constant specified.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

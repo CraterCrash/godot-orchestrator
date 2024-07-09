@@ -17,6 +17,7 @@
 #include "variable_get.h"
 
 #include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 
 class OScriptNodeVariableGetInstance : public OScriptNodeInstance
 {
@@ -45,21 +46,25 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void OScriptNodeVariableGet::allocate_default_pins()
+void OScriptNodeVariableGet::_upgrade(uint32_t p_version, uint32_t p_current_version)
 {
-    Ref<OScriptNodePin> value = create_pin(PD_Output, PT_Data, "value", _variable->get_variable_type());
-    value->set_label(_variable_name, false);
-
-    const PropertyInfo& pi = _variable->get_info();
-
-    if (_variable->get_variable_type() == Variant::OBJECT)
+    if (p_version == 1 and p_current_version >= 2)
     {
-        if (!pi.hint_string.is_empty())
-            value->set_target_class(pi.hint_string);
-        else
-            value->set_target_class(pi.class_name);
+        // Fixup - makes sure that stored property matches variable, if not reconstructs
+        if (_variable.is_valid())
+        {
+            const Ref<OScriptNodePin> output = find_pin("value", PD_Output);
+            if (output.is_valid() && !PropertyUtils::are_equal(_variable->get_info(), output->get_property_info()))
+                reconstruct_node();
+        }
     }
 
+    super::_upgrade(p_version, p_current_version);
+}
+
+void OScriptNodeVariableGet::allocate_default_pins()
+{
+    create_pin(PD_Output, PT_Data, PropertyUtils::as("value", _variable->get_info()))->set_label(_variable_name, false);
     super::allocate_default_pins();
 }
 

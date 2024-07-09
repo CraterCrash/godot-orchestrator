@@ -16,7 +16,9 @@
 //
 #include "scene_node.h"
 
+#include "common/property_utils.h"
 #include "common/scene_utils.h"
+#include "common/string_utils.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -56,6 +58,7 @@ public:
 void OScriptNodeSceneNode::_get_property_list(List<PropertyInfo>* r_list) const
 {
     r_list->push_back(PropertyInfo(Variant::NODE_PATH, "node_path"));
+    r_list->push_back(PropertyInfo(Variant::STRING, "target_class_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
 bool OScriptNodeSceneNode::_get(const StringName& p_name, Variant& r_value) const
@@ -63,6 +66,11 @@ bool OScriptNodeSceneNode::_get(const StringName& p_name, Variant& r_value) cons
     if (p_name.match("node_path"))
     {
         r_value = _node_path;
+        return true;
+    }
+    if (p_name.match("target_class_name"))
+    {
+        r_value = _class_name;
         return true;
     }
     return false;
@@ -76,22 +84,53 @@ bool OScriptNodeSceneNode::_set(const StringName& p_name, const Variant& p_value
         _notify_pins_changed();
         return true;
     }
+    else if (p_name.match("target_class_name"))
+    {
+        _class_name = p_value;
+        return true;
+    }
     return false;
+}
+
+void OScriptNodeSceneNode::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - class name to be encoded on output pin
+        if (_class_name.is_empty())
+        {
+            const Ref<OScriptNodePin> output = find_pin(_node_path, PD_Output);
+            if (output.is_valid() && !output->get_property_info().class_name.is_empty())
+            {
+                _class_name = output->get_property_info().class_name;
+                reconstruct_node();
+            }
+        }
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
+Node* OScriptNodeSceneNode::_get_referenced_node() const
+{
+    if (_is_in_editor() && !_node_path.is_empty())
+    {
+        if (SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop()))
+        {
+            if (st->get_edited_scene_root())
+            {
+                if (Node* root = st->get_edited_scene_root())
+                    return root->get_node_or_null(_node_path);
+            }
+        }
+    }
+    return nullptr;
 }
 
 void OScriptNodeSceneNode::allocate_default_pins()
 {
-    Ref<OScriptNodePin> path_pin = create_pin(PD_Output, PT_Data, _node_path, Variant::OBJECT);
-    path_pin->set_flag(OScriptNodePin::OBJECT);
-    path_pin->no_pretty_format();
-    path_pin->set_target_class("Node");
-
-    if (_is_in_editor() && !_node_path.is_empty())
-    {
-        Node* root = ((SceneTree*)Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
-        if (Node* target_node = root->get_node_or_null(_node_path))
-            path_pin->set_target_class(target_node->get_class());
-    }
+    const String class_name = StringUtils::default_if_empty(_class_name, "Node");
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object(_node_path, class_name))->no_pretty_format();
 
     super::allocate_default_pins();
 }
@@ -115,13 +154,8 @@ Ref<OScriptTargetObject> OScriptNodeSceneNode::resolve_target(const Ref<OScriptN
 {
     if (_is_in_editor() && p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
     {
-        SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
-        if (st && st->get_edited_scene_root())
-        {
-            Node* root = st->get_edited_scene_root();
-            if (root)
-                return memnew(OScriptTargetObject(root->get_node_or_null(_node_path), false));
-        }
+        if (Node* root = _get_referenced_node())
+            return memnew(OScriptTargetObject(root->get_node_or_null(_node_path), false));
     }
     return super::resolve_target(p_pin);
 }
@@ -138,6 +172,16 @@ void OScriptNodeSceneNode::initialize(const OScriptNodeInitContext& p_context)
 {
     if (p_context.node_path)
         _node_path = p_context.node_path.value();
+    if (p_context.class_name)
+        _class_name = p_context.class_name.value();
 
     super::initialize(p_context);
+}
+
+void OScriptNodeSceneNode::validate_node_during_build(BuildLog& p_log) const
+{
+    if (_node_path.is_empty())
+        p_log.error(this, "No NodePath specified.");
+
+    super::validate_node_during_build(p_log);
 }
