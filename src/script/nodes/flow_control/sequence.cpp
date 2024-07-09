@@ -16,6 +16,8 @@
 //
 #include "sequence.h"
 
+#include "common/property_utils.h"
+
 class OScriptNodeSequenceInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeSequence);
@@ -78,10 +80,10 @@ bool OScriptNodeSequence::_set(const StringName& p_name, const Variant& p_value)
 
 void OScriptNodeSequence::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
 
     for (int i = 0; i < _steps; i++)
-        create_pin(PD_Output, PT_Execution, _get_pin_name_given_index(i))->show_label();
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec(_get_pin_name_given_index(i)))->show_label();
 
     super::allocate_default_pins();
 }

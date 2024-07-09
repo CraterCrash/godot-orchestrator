@@ -16,6 +16,8 @@
 //
 #include "chance.h"
 
+#include "common/property_utils.h"
+
 class OScriptNodeChanceInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeChance);
@@ -69,10 +71,10 @@ void OScriptNodeChance::post_initialize()
 
 void OScriptNodeChance::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
 
-    create_pin(PD_Output, PT_Execution, "Within")->set_label(vformat("%d%%", _chance));
-    create_pin(PD_Output, PT_Execution, "Outside")->set_label(vformat("%d%%", 100 - _chance));
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("Within"))->set_label(vformat("%d%%", _chance));
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("Outside"))->set_label(vformat("%d%%", 100 - _chance));
 
     super::allocate_default_pins();
 }

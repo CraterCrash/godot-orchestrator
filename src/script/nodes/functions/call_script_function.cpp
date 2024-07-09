@@ -19,11 +19,8 @@
 void OScriptNodeCallScriptFunction::_on_function_changed()
 {
     if (_function.is_valid())
-    {
-        _reference.name = _function->get_function_name();
         _reference.method = _function->get_method_info();
-        _reference.return_type = _function->get_return_type();
-    }
+
     reconstruct_node();
 }
 
@@ -34,8 +31,6 @@ void OScriptNodeCallScriptFunction::post_initialize()
         _function = get_orchestration()->find_function(_reference.guid);
         if (_function.is_valid())
         {
-            _reference.name = _function->get_function_name();
-            _reference.return_type = _function->get_return_type();
             _reference.method = _function->get_method_info();
             _function_flags.set_flag(FF_IS_SELF);
             if (_is_in_editor())
@@ -91,7 +86,7 @@ void OScriptNodeCallScriptFunction::validate_node_during_build(BuildLog& p_log) 
     super::validate_node_during_build(p_log);
 
     if (!_function.is_valid())
-        p_log.error("There is no function instance defined.");
+        p_log.error(this, "There is no function instance defined.");
 }
 
 bool OScriptNodeCallScriptFunction::can_inspect_node_properties() const
@@ -113,9 +108,7 @@ void OScriptNodeCallScriptFunction::initialize(const OScriptNodeInitContext& p_c
     if (_function.is_valid())
     {
         _reference.guid = _function->get_guid();
-        _reference.name = _function->get_function_name();
         _reference.method = _function->get_method_info();
-        _reference.return_type = _function->get_return_type();
         _function_flags.set_flag(FF_IS_SELF);
     }
 

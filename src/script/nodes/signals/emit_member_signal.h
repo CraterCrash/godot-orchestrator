@@ -39,18 +39,20 @@ protected:
     bool _set(const StringName &p_name, const Variant &p_value);
     //~ End Wrapped Interface
 
+    /// Called when the script is modified.
+    void _script_changed();
+
 public:
 
     //~ Begin OScriptNode Interface
     void post_initialize() override;
-    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "signals"; }
-    void validate_node_during_build(BuildLog& p_log) const override;
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 };
 

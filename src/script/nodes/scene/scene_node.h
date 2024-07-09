@@ -20,19 +20,32 @@
 #include "script/script.h"
 
 /// Acquire a reference to a scene node.
+///
+/// This node is really only effective while the scene that contains the node is open in the editor.
+/// To work with nodes in other unopened scenes requires work beyond what this implementation is
+/// capable of doing at this time.
+///
 class OScriptNodeSceneNode : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSceneNode, OScriptNode);
     static void _bind_methods() { }
 
 protected:
-    NodePath _node_path;
+    NodePath _node_path;    //! The node's path
+    String _class_name;     //! Node's class type
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
+
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
+    /// Get the referenced node from the scene, if possible.
+    Node* _get_referenced_node() const;
 
 public:
 
@@ -45,6 +58,7 @@ public:
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
 };

@@ -16,6 +16,7 @@
 //
 #include "function_entry.h"
 
+#include "common/property_utils.h"
 #include "script/function.h"
 
 class OScriptNodeFunctionEntryInstance : public OScriptNodeInstance
@@ -41,7 +42,7 @@ OScriptNodeFunctionEntry::OScriptNodeFunctionEntry()
 
 void OScriptNodeFunctionEntry::allocate_default_pins()
 {
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
     Ref<OScriptFunction> function = get_function();
     if (function.is_valid())

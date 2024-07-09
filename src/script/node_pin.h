@@ -98,21 +98,26 @@ public:
     };
 
 private:
-    StringName _pin_name;                      //! The pin's name, must be unique.
-    Variant::Type _type{ Variant::NIL };       //! The type associated with the pin
+    PropertyInfo _property;                    //! Pin's property details
     String _target_class;                      //! The target class associated with the pin
     Variant _default_value;                    //! The default value
     Variant _generated_default_value;          //! Generated default value
     EPinDirection _direction{ PD_Input };      //! The direction
     BitField<Flags> _flags{ 0 };               //! Pin flags
     String _label;                             //! A custom label name
-    String _file_types;                        //! File dialog types
     OScriptNode* _owning_node{ nullptr };      //! The node that owns this pin
     bool _set_type_resets_default{ false };    //! Whether changing the type resets the default value
+    bool _valid{ true };                       //! Indicates if the pin is valid
     int _cached_pin_index{ -1 };               //! Cached pin index calculated after pins added to node
 
 protected:
     static void _bind_methods();
+
+    /// Creates a pin for the specified node.
+    /// @param p_owning_node the owning node
+    /// @param p_property the property info for the pin
+    /// @return the script pin refererence
+    static Ref<OScriptNodePin> create(OScriptNode* p_owning_node, const PropertyInfo& p_property);
 
     /// Clears a specific flag on the pin
     /// @param p_flag the flag to clear
@@ -139,6 +144,10 @@ public:
     /// @return the script pin reference
     static Ref<OScriptNodePin> create(OScriptNode* p_owning_node);
 
+    /// Return whether the pin is valid
+    /// @return true if the pin is valid; false otherwise.
+    bool is_valid() const { return _valid; }
+
     /// Get the owning Orchestrator script node
     /// @return the orchestrator script node
     OScriptNode* get_owning_node() const;
@@ -150,6 +159,10 @@ public:
     /// Get the pin's slot index
     /// @return the slot index
     int32_t get_pin_index() const;
+
+    /// Get the pin's property info
+    /// @return an immutable property info that describes the pin
+    const PropertyInfo& get_property_info() const { return _property; }
 
     /// Get the pin's name
     /// @return the pin's name
@@ -243,10 +256,10 @@ public:
 
     /// Set the file types associated with a file pin
     /// @param p_file_types the file types
-    void set_file_types(const String &p_file_types) { _file_types = p_file_types; }
+    void set_file_types(const String &p_file_types);
 
     /// Get the file types for a file pin
-    String get_file_types() const { return _file_types; }
+    String get_file_types() const;
 
     /// Checks whether this pin can be connected with the supplied pin.
     /// @param p_pin the other pin

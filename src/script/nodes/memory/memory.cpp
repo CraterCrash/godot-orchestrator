@@ -16,6 +16,7 @@
 //
 #include "script/nodes/memory/memory.h"
 
+#include "common/property_utils.h"
 #include "common/version.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -138,11 +139,19 @@ bool OScriptNodeNew::_set(const StringName& p_name, const Variant& p_value)
     return false;
 }
 
+void OScriptNodeNew::post_initialize()
+{
+    // Fixup - always reconstruct the node
+    reconstruct_node();
+
+    super::post_initialize();
+}
+
 void OScriptNodeNew::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "Instance", Variant::OBJECT);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("instance", _class_name));
 
     super::allocate_default_pins();
 }
@@ -208,12 +217,21 @@ void OScriptNodeFree::_bind_methods()
 {
 }
 
+void OScriptNodeFree::post_initialize()
+{
+    reconstruct_node();
+    super::post_initialize();
+}
+
 void OScriptNodeFree::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "Target", Variant::OBJECT)->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    Ref<OScriptNodePin> instance = create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target"));
+    instance->set_label("instance");
+    instance->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
+
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
     super::allocate_default_pins();
 }
@@ -238,4 +256,13 @@ OScriptNodeInstance* OScriptNodeFree::instantiate()
     OScriptNodeFreeInstance* i = memnew(OScriptNodeFreeInstance);
     i->_node = this;
     return i;
+}
+
+void OScriptNodeFree::validate_node_during_build(BuildLog& p_log) const
+{
+    Ref<OScriptNodePin> target = find_pin("target", PD_Input);
+    if (!target.is_valid() || !target->has_any_connections())
+        p_log.error(this, target, "Requires a connection.");
+
+    super::validate_node_during_build(p_log);
 }

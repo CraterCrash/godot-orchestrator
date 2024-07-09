@@ -16,6 +16,8 @@
 //
 #include "scene_tree.h"
 
+#include "common/property_utils.h"
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 
@@ -50,11 +52,22 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeSceneTree::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - make sure that the SceneTree class name is encoded in the pin
+        Ref<OScriptNodePin> scene_tree = find_pin("scene_tree", PD_Output);
+        if (!scene_tree.is_valid() || !scene_tree->get_property_info().class_name.is_empty())
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeSceneTree::allocate_default_pins()
 {
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, "scene_tree", Variant::OBJECT);
-    pin->set_flag(OScriptNodePin::Flags::OBJECT);
-    pin->set_target_class("SceneTree");
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("scene_tree", SceneTree::get_class_static()));
 
     super::allocate_default_pins();
 }

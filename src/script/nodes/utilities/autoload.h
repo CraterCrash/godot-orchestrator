@@ -34,6 +34,18 @@ protected:
     bool _set(const StringName &p_name, const Variant &p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
+    /// Get the autoload instance
+    /// @return the autoload instance
+    Variant _get_autoload_instance() const;
+
+    /// Get the autoload base class type
+    /// @return the base class type
+    String _get_autoload_base_type() const;
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;

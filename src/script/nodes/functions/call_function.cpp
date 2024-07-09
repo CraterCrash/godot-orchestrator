@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -29,7 +30,6 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeCallFunction);
 
     OScriptFunctionReference _reference;
-    StringName _function_name;
     int _argument_count{ 0 };
     int _argument_offset{ 2 };
     bool _pure{ false };
@@ -50,7 +50,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
         }
 
         // Create the expression to be parsed
-        const String expression = vformat("%s(%s)", _reference.name, StringUtils::join(",", arg_names));
+        const String expression = vformat("%s(%s)", _reference.method.name, StringUtils::join(",", arg_names));
 
         Ref<Expression> parser;
         parser.instantiate();
@@ -85,10 +85,10 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
 
         GDExtensionCallError err;
         Variant result;
-        target.callp(_reference.name, pargs, _argument_count, result, err);
+        target.callp(_reference.method.name, pargs, _argument_count, result, err);
         if (err.error != GDEXTENSION_CALL_OK)
         {
-            p_context.set_error(err.error, "Failed executing method " + _reference.name);
+            p_context.set_error(err.error, "Failed executing method " + _reference.method.name);
             return -1 | STEP_FLAG_END;
         }
 
@@ -115,13 +115,13 @@ public:
             return _do_pure(p_context);
 
         // Check if the function call is on a specific target type
-        if (_reference.target_type != Variant::NIL)
+        if (_reference.target_type != Variant::NIL && _reference.target_type != Variant::OBJECT)
             return _do_target_type(p_context);
 
         Object* instance = _get_call_instance(p_context);
         if (!instance)
         {
-            ERR_PRINT("Cannot call function " + _reference.name + " on null target");
+            ERR_PRINT("Cannot call function " + _reference.method.name + " on null target");
             return -1 | STEP_FLAG_END;
         }
 
@@ -137,14 +137,14 @@ public:
 
         if (MethodUtils::has_return_value(_reference.method))
         {
-            Variant result = instance->callv(_function_name, _args);
+            Variant result = instance->callv(_reference.method.name, _args);
             p_context.set_output(0, result);
             if (_chained)
                 p_context.set_output(1, p_context.get_input(0));
         }
         else
         {
-            instance->callv(_function_name, _args);
+            instance->callv(_reference.method.name, _args);
             if (_chained)
                 p_context.set_output(0, p_context.get_input(0));
         }
@@ -277,30 +277,29 @@ bool OScriptNodeCallFunction::_set(const StringName& p_name, const Variant& p_va
     return false;
 }
 
+void OScriptNodeCallFunction::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - Address missing usage flags for certain method arguments
+        for (PropertyInfo& pi : _reference.method.arguments)
+            if (PropertyUtils::is_nil_no_variant(pi))
+                pi.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method)
 {
     if (_has_execution_pins(p_method))
     {
-        create_pin(PD_Input, PT_Execution, "ExecIn");
-        create_pin(PD_Output, PT_Execution, "ExecOut");
+        create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
     }
 
     _chainable = false;
-    if (get_argument_offset() != 0)
-    {
-        Variant::Type target_type = _reference.target_type != Variant::NIL ? _reference.target_type : Variant::OBJECT;
-        Ref<OScriptNodePin> target = create_pin(PD_Input, PT_Data, "target", target_type);
-        if (_reference.target_type == Variant::NIL)
-        {
-            if (_function_flags.has_flag(FF_IS_SELF))
-                target->set_target_class(get_orchestration()->get_base_type());
-            else
-                target->set_target_class("Object");
-
-            _chainable = true;
-            notify_property_list_changed();
-        }
-    }
+    Ref<OScriptNodePin> target = _create_target_pin();
 
     const size_t default_start_index = p_method.arguments.empty()
         ? 0
@@ -310,10 +309,20 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
     size_t default_index = 0;
     for (const PropertyInfo& pi : p_method.arguments)
     {
-        Ref<OScriptNodePin> pin = _create_pin_for_property(pi, PD_Input, PT_Data, pi.name);
+        Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, pi);
         if (pin.is_valid())
         {
-            pin->no_pretty_format();
+            const String arg_class_name = pin->get_property_info().class_name;
+            if (!arg_class_name.is_empty())
+            {
+                if (arg_class_name.contains("."))
+                    pin->set_label(arg_class_name.substr(arg_class_name.find(".") + 1));
+                else
+                     pin->set_label(arg_class_name);
+
+                pin->no_pretty_format();
+            }
+
             if (argument_index >= default_start_index)
                 pin->set_default_value(p_method.default_arguments[default_index++]);
         }
@@ -322,56 +331,25 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
 
     if (_reference.method.flags & METHOD_FLAG_VARARG)
     {
-        const int base_arg_count = _reference.method.arguments.size() + 1;
+        const uint32_t base_arg_count = _reference.method.arguments.size() + 1;
         for (int i = 0; i < _vararg_count; i++)
-        {
-            Ref<OScriptNodePin> vararg_pin = create_pin(PD_Input, PT_Data, "arg" + itos(base_arg_count + i), Variant::NIL);
-            vararg_pin->no_pretty_format();
-        }
+            create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("arg" + itos(base_arg_count + i)));
     }
 
     if (MethodUtils::has_return_value(p_method))
     {
-        Ref<OScriptNodePin> rv = _create_pin_for_property(p_method.return_val, PD_Output, PT_Data, "return_value");
+        Ref<OScriptNodePin> rv = create_pin(PD_Output, PT_Data, PropertyUtils::as("return_value", p_method.return_val));
         if (rv.is_valid())
         {
             if (rv->get_type() == Variant::OBJECT)
                 rv->set_label(p_method.return_val.class_name);
             else
                 rv->hide_label();
-
-            rv->set_target_class(p_method.return_val.class_name);
-            rv->set_type(p_method.return_val.type);
         }
     }
 
-    if (_chainable && _chain)
-    {
-        Ref<OScriptNodePin> chain = create_pin(PD_Output, PT_Data, "return_target", Variant::OBJECT);
-        chain->set_label("Target");
-        chain->set_target_class(find_pin("target", PD_Input)->get_target_class());
-    }
-}
-
-Ref<OScriptNodePin> OScriptNodeCallFunction::_create_pin_for_property(const PropertyInfo& p_property, EPinDirection p_direction, EPinType p_pin_type, const String& p_name)
-{
-    Ref<OScriptNodePin> pin = create_pin(p_direction, p_pin_type, p_name, p_property.type);
-    if (pin.is_valid())
-    {
-        if (p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
-        {
-            pin->set_flag(OScriptNodePin::Flags::ENUM);
-            pin->set_target_class(p_property.class_name);
-            pin->set_type(p_property.type);
-        }
-        else if (p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
-        {
-            pin->set_flag(OScriptNodePin::Flags::BITFIELD);
-            pin->set_target_class(p_property.class_name);
-            pin->set_type(p_property.type);
-        }
-    }
-    return pin;
+    if (_chainable && _chain && target.is_valid())
+        create_pin(PD_Output, PT_Data, PropertyUtils::as("return_target", target->get_property_info()))->set_label("Target");
 }
 
 bool OScriptNodeCallFunction::_has_execution_pins(const MethodInfo& p_method) const
@@ -454,7 +432,6 @@ OScriptNodeInstance* OScriptNodeCallFunction::instantiate()
     i->_argument_count = get_argument_count();
     i->_argument_offset = get_argument_offset();
     i->_reference = _reference;
-    i->_function_name = _reference.name;
     i->_pure = _function_flags.has_flag(FF_PURE);
     i->_chained = _chain;
     return i;
@@ -462,8 +439,32 @@ OScriptNodeInstance* OScriptNodeCallFunction::instantiate()
 
 void OScriptNodeCallFunction::initialize(const OScriptNodeInitContext& p_context)
 {
-    ERR_FAIL_COND_MSG(_reference.name.is_empty(), "Function name not specified.");
+    ERR_FAIL_COND_MSG(_reference.method.name.is_empty(), "Function name not specified.");
     super::initialize(p_context);
+}
+
+void OScriptNodeCallFunction::validate_node_during_build(BuildLog& p_log) const
+{
+    for (const PropertyInfo& property : _reference.method.arguments)
+    {
+        const Ref<OScriptNodePin> property_pin = find_pin(property.name, PD_Input);
+        if (property_pin.is_valid())
+        {
+            switch (property_pin->get_property_info().type)
+            {
+                case Variant::OBJECT:
+                case Variant::CALLABLE:
+                case Variant::NODE_PATH:
+                    if (!property_pin->has_any_connections())
+                        p_log.error(this, property_pin, "Requires a connection.");
+                break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    super::validate_node_during_build(p_log);
 }
 
 void OScriptNodeCallFunction::add_dynamic_pin()

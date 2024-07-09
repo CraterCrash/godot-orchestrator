@@ -73,15 +73,27 @@ protected:
 
     OrchestratorGraphNode* _node{ nullptr };    //! The owning node
     TextureRect* _icon{ nullptr };              //! The pin's icon
+    Label* _label{ nullptr };                   //! The pin's label
     Control* _default_value{ nullptr };         //! The default value control
     PopupMenu* _context_menu{ nullptr };        //! The context menu
     Ref<OScriptNodePin> _pin;                   //! The script pin reference
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
     OrchestratorGraphNodePin() = default;
 
     /// Get the connection color name to be used for this pin.
     /// @return the connection color name.
     virtual String _get_color_name() const;
+
+    /// Updates the pin's label
+    virtual void _update_label();
+
+    /// Return whether to update the label on default value visibility change
+    /// @return true if label is updated when default value widget visibility is toggled
+    virtual bool _is_label_updated_on_default_value_visibility_change() { return false; }
 
     /// Creates the UI widgets for this specific pin.
     virtual void _create_widgets();
@@ -103,10 +115,6 @@ public:
     /// @param p_node the owning node, should not be null
     /// @param p_pin the pin reference, should be valid
     OrchestratorGraphNodePin(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);
-
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
-    void _notification(int p_what);
 
     /// Handle GUI input events for the pin.
     /// @param p_event the input event
@@ -221,10 +229,6 @@ private:
     /// @param p_visible whether the icon is visible
     /// @return the icon texture rect
     TextureRect* _create_type_icon(bool p_visible);
-
-    /// Creates the pin's label
-    /// @return the label
-    Label* _create_label();
 
     /// Updates the pin's tooltip text
     void _update_tooltip();

@@ -30,7 +30,8 @@ protected:
     OrchestratorGraphNodePinObject() = default;
 
     //~ Begin OrchestratorGraphNodePin Interface
-    Control* _get_default_value_widget() override;
+    void _update_label() override;
+    bool _is_label_updated_on_default_value_visibility_change() override { return true; }
     //~ End OrchestratorGraphNodePin Interface
 
 public:

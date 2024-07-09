@@ -29,6 +29,10 @@ class OScriptNodeMakeArray : public OScriptEditablePinNode
 protected:
     int _element_count{ 0 };
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
@@ -60,6 +64,10 @@ protected:
     Variant::Type _index_type{ Variant::NIL };
     String _collection_name{ "Array" };
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
@@ -84,6 +92,10 @@ protected:
     Variant::Type _index_type{ Variant::NIL };
     String _collection_name{ "Array" };
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
@@ -102,6 +114,11 @@ class OScriptNodeArrayFind : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayFind, OScriptNode);
     static void _bind_methods() { }
+
+protected:
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
 
 public:
     //~ Begin OScriptNode Interface
@@ -155,6 +172,11 @@ class OScriptNodeArrayAddElement : public OScriptNode
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayAddElement, OScriptNode);
     static void _bind_methods() { }
 
+protected:
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
@@ -171,6 +193,11 @@ class OScriptNodeArrayRemoveElement : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayRemoveElement, OScriptNode);
     static void _bind_methods() { }
+
+protected:
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
 
 public:
     //~ Begin OScriptNode Interface

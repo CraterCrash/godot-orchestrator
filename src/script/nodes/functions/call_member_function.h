@@ -27,18 +27,31 @@ class OScriptNodeCallMemberFunction : public OScriptNodeCallFunction
 
     static void _bind_methods() {}
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
+    //~ Begin OScripNodeCallFunction Interface
+    Ref<OScriptNodePin> _create_target_pin() override;
+    int get_argument_offset() const override { return 1; }
+    //~ End OScriptNodeCallFunction Interface
+
+    /// Gets the class in the hierarchy that owns the method
+    /// @param p_class_name eldest class in hierarchy to search
+    /// @param p_method_name the method name to look for
+    /// @return the class name that owns the method or an empty string if not found
+    StringName _get_method_class_hierarchy_owner(const String& p_class_name, const String& p_method_name);
+
 public:
     OScriptNodeCallMemberFunction();
 
     //~ Begin OScriptNode Interface
-    void post_initialize() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_help_topic() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
-    void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
     /// Get the target function class

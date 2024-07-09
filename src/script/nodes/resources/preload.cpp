@@ -16,6 +16,9 @@
 //
 #include "preload.h"
 
+#include "common/property_utils.h"
+#include "common/string_utils.h"
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -81,18 +84,23 @@ bool OScriptNodePreload::_set(const StringName &p_name, const Variant& p_value)
     return false;
 }
 
-void OScriptNodePreload::allocate_default_pins()
-{
-    Ref<OScriptNodePin> path = create_pin(PD_Output, PT_Data, "path", Variant::OBJECT, _resource_path);
-    path->set_label(_resource_path, false);
-
-    super::allocate_default_pins();
-}
-
 void OScriptNodePreload::post_initialize()
 {
+    // Fixup resource pin attributes
+    if (!_resource.is_valid() && !_resource_path.is_empty())
+        _resource = ResourceLoader::get_singleton()->load(_resource_path);
+
     reconstruct_node();
     super::post_initialize();
+}
+
+void OScriptNodePreload::allocate_default_pins()
+{
+    const String class_name = !_resource.is_valid() ? "Resource" : _resource->get_class();
+    const String path = StringUtils::default_if_empty(_resource_path, "No Resource");
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("path", class_name), _resource_path)->set_label(path, false);
+
+    super::allocate_default_pins();
 }
 
 String OScriptNodePreload::get_tooltip_text() const
@@ -148,4 +156,14 @@ void OScriptNodePreload::initialize(const OScriptNodeInitContext& p_context)
         _resource = ResourceLoader::get_singleton()->load(_resource_path);
     }
     super::initialize(p_context);
+}
+
+void OScriptNodePreload::validate_node_during_build(BuildLog& p_log) const
+{
+    if (_resource_path.is_empty())
+        p_log.error(this, "No resource specified.");
+    else if (!FileAccess::file_exists(_resource_path))
+        p_log.error(this, "Resource no longer exists.");
+
+    super::validate_node_during_build(p_log);
 }

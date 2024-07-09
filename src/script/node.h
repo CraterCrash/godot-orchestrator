@@ -97,6 +97,7 @@ protected:
     Vector2 _position;                         //! Position of the node
     BitField<ScriptNodeFlags> _flags;          //! Flags
     Vector<Ref<OScriptNodePin>> _pins;         //! Pins
+    bool _reconstruction_queued{ false };      //! Tracks if node reconstruction has been queued
     bool _reconstructing{ false };             //! Tracks if the node is in reconstruction
     #if GODOT_VERSION >= 0x040300
     BreakpointFlags _breakpoint_flag;          //! Transient state for breakpoints
@@ -113,6 +114,13 @@ protected:
     static void register_custom_orchestrator_data_to_otdb() { }
 
     static bool _is_in_editor();
+
+    //~ Begin Upgrade Interface
+    virtual void _upgrade(uint32_t p_version, uint32_t p_current_version) { }
+    //~ End Upgrade Interface
+
+    /// Queues the node for reconstruction at the end of the frame
+    void _queue_reconstruct();
 
 public:
     OScriptNode();
@@ -305,7 +313,7 @@ public:
 
     /// Callback to perform node validation during build step.
     /// @param p_log the build log
-    virtual void validate_node_during_build(BuildLog& p_log) const { }
+    virtual void validate_node_during_build(BuildLog& p_log) const;
 
     /// Instantiate the script node's runtime instance.
     /// @return node's runtime instance
@@ -329,14 +337,13 @@ public:
     /// @return the Godot help topic
     virtual String get_help_topic() const;
 
-    /// Create a pin associated with this node.
+    /// Create a pin based on a property.
     /// @param p_direction the pin direction, input or output
     /// @param p_pin_type the pin type, execution or data
-    /// @param p_name the pin name
-    /// @param p_type the pin type, defaults to Variant::NIL
+    /// @param p_property the property structure
     /// @param p_default_value the default value, defaults to null
     /// @return the newly created pin reference
-    Ref<OScriptNodePin> create_pin(EPinDirection p_direction, EPinType p_pin_type, const String& p_name, Variant::Type p_type = Variant::NIL, const Variant& p_default_value = Variant());
+    Ref<OScriptNodePin> create_pin(EPinDirection p_direction, EPinType p_pin_type, const PropertyInfo& p_property, const Variant& p_default_value = Variant());
 
     /// Find the specified pin.
     /// @param p_pin_name the pin name to locate

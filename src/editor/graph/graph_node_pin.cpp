@@ -17,8 +17,10 @@
 #include "graph_node_pin.h"
 
 #include "common/callable_lambda.h"
+#include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "graph_edit.h"
 #include "graph_node.h"
@@ -52,6 +54,27 @@ String OrchestratorGraphNodePin::_get_color_name() const
         type_name = "any";
 
     return vformat("ui/connection_colors/%s", type_name);
+}
+
+void OrchestratorGraphNodePin::_update_label()
+{
+    if (_label)
+    {
+        if (_pin->is_label_visible())
+        {
+            String text = StringUtils::default_if_empty(_pin->get_label(), _pin->get_pin_name());
+            if (_pin->use_pretty_labels())
+                text = text.capitalize();
+
+            _label->set_text(text);
+            _label->set_custom_minimum_size(Vector2());
+        }
+        else
+        {
+            _label->set_text("");
+            _label->set_custom_minimum_size(Vector2(10, 0));
+        }
+    }
 }
 
 void OrchestratorGraphNodePin::_notification(int p_what)
@@ -221,6 +244,9 @@ void OrchestratorGraphNodePin::set_default_value_control_visibility(bool p_visib
 {
     if (_default_value)
         _default_value->set_visible(p_visible);
+
+    if (_label && _is_label_updated_on_default_value_visibility_change())
+        _update_label();
 }
 
 void OrchestratorGraphNodePin::show_icon(bool p_visible)
@@ -310,11 +336,12 @@ void OrchestratorGraphNodePin::_create_widgets()
             if (!is_execution())
                 row0->add_child(_create_type_icon(true));
 
-            Label* label = _create_label();
-            label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
-            label->set_h_size_flags(SIZE_FILL);
-            label->set_v_size_flags(SIZE_SHRINK_CENTER);
-            row0->add_child(label);
+            _label = memnew(Label);
+            _label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+            _label->set_h_size_flags(SIZE_FILL);
+            _label->set_v_size_flags(SIZE_SHRINK_CENTER);
+            _update_label();
+            row0->add_child(_label);
 
             if (!is_execution() && !_pin->is_default_ignored())
             {
@@ -331,11 +358,12 @@ void OrchestratorGraphNodePin::_create_widgets()
             if (!is_execution())
                 add_child(_create_type_icon(show_icons));
 
-            Label* label = _create_label();
-            label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
-            label->set_h_size_flags(SIZE_FILL);
-            label->set_v_size_flags(SIZE_SHRINK_CENTER);
-            add_child(label);
+            _label = memnew(Label);
+            _label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+            _label->set_h_size_flags(SIZE_FILL);
+            _label->set_v_size_flags(SIZE_SHRINK_CENTER);
+            _update_label();
+            add_child(_label);
 
             if (!is_execution() && !_pin->is_default_ignored())
             {
@@ -350,11 +378,12 @@ void OrchestratorGraphNodePin::_create_widgets()
     }
     else
     {
-        Label* label = _create_label();
-        label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
-        label->set_h_size_flags(SIZE_FILL);
-        label->set_v_size_flags(SIZE_SHRINK_CENTER);
-        add_child(label);
+        _label = memnew(Label);
+        _label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
+        _label->set_h_size_flags(SIZE_FILL);
+        _label->set_v_size_flags(SIZE_SHRINK_CENTER);
+        _update_label();
+        add_child(_label);
 
         if (!is_execution())
             add_child(_create_type_icon(show_icons));
@@ -365,36 +394,13 @@ TextureRect* OrchestratorGraphNodePin::_create_type_icon(bool p_visible)
 {
     _icon = memnew(TextureRect);
     String value_type_name = _pin->get_pin_type_name();
-    _icon->set_texture(SceneUtils::get_editor_icon(value_type_name));
+    _icon->set_texture(SceneUtils::get_class_icon(value_type_name));
     _icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
 
     if (_pin->is_hidden() || !p_visible)
         _icon->set_visible(false);
 
     return _icon;
-}
-
-Label* OrchestratorGraphNodePin::_create_label()
-{
-    Label* label = memnew(Label);
-
-    if (_pin->is_label_visible())
-    {
-        String text = _pin->get_label();
-        if (text.is_empty())
-            text = _pin->get_pin_name();
-
-        if (_pin->use_pretty_labels())
-            text = text.capitalize();
-
-        label->set_text(text);
-    }
-    else
-    {
-        label->set_custom_minimum_size(Vector2(50, 0));
-    }
-
-    return label;
 }
 
 void OrchestratorGraphNodePin::_update_tooltip()
@@ -404,11 +410,26 @@ void OrchestratorGraphNodePin::_update_tooltip()
     Variant::Type pin_type = _pin->get_type();
     if (!is_execution())
     {
-        String tooltip_text = label.capitalize();
+        String tooltip_text = StringUtils::default_if_empty(label, _pin->get_pin_name()).capitalize();
         tooltip_text += "\n" + VariantUtils::get_friendly_type_name(pin_type, true).capitalize();
+
+        if (!_pin->get_property_info().class_name.is_empty())
+            tooltip_text += "\nClass: " + _pin->get_property_info().class_name;
 
         if (!tooltip.is_empty())
             tooltip_text += "\n\n" + tooltip.capitalize();
+
+        #if DEBUG_ENABLED
+        tooltip_text += "\n\nProperty Name: " + _pin->get_property_info().name + "\n";
+        tooltip_text += "Property Type: " + itos(_pin->get_property_info().type) + " - " + _pin->get_pin_type_name() + "\n";
+        tooltip_text += "Property Class: " + _pin->get_property_info().class_name + "\n";
+        tooltip_text += "Property Hint: " + _pin->get_property_info().hint_string + "\n";
+        tooltip_text += "Property Hint Flags: " + itos(_pin->get_property_info().hint) + "\n";
+        tooltip_text += "Property Usage: " + PropertyUtils::usage_to_string(_pin->get_property_info().usage) + "\n\n";
+        tooltip_text += "Default Value: " + String(_pin->get_default_value()) + "\n";
+        tooltip_text += "Generated Default Value: " + String(_pin->get_generated_default_value()) + "\n";
+        tooltip_text += "Effective Default Value: " + String(_pin->get_effective_default_value());
+        #endif
 
         set_tooltip_text(tooltip_text);
     }
@@ -497,7 +518,7 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
 
             for (int i = 0; i < options.size(); i++)
             {
-                const String type = VariantUtils::get_friendly_type_name(options[i]).capitalize();
+                const String type = VariantUtils::get_friendly_type_name(options[i], true).capitalize();
                 sub_menu->add_item(type, CM_CHANGE_PIN_TYPE + i);
                 sub_menu->set_item_metadata(sub_menu->get_item_index(CM_CHANGE_PIN_TYPE + i), options[i]);
             }

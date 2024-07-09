@@ -16,6 +16,7 @@
 //
 #include "await_signal.h"
 
+#include "common/property_utils.h"
 #include "script/vm/script_state.h"
 
 class OScriptNodeAwaitSignalInstance : public OScriptNodeInstance
@@ -56,22 +57,12 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void OScriptNodeAwaitSignal::post_initialize()
-{
-    super::post_initialize();
-}
-
-void OScriptNodeAwaitSignal::post_placed_new_node()
-{
-    super::post_placed_new_node();
-}
-
 void OScriptNodeAwaitSignal::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "target", Variant::OBJECT);
-    create_pin(PD_Input, PT_Data, "signal_name", Variant::STRING);
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("signal_name", Variant::STRING));
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
     super::allocate_default_pins();
 }
 
@@ -85,14 +76,16 @@ String OScriptNodeAwaitSignal::get_node_title() const
     return "Await Signal";
 }
 
-void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const
-{
-    return super::validate_node_during_build(p_log);
-}
-
 OScriptNodeInstance* OScriptNodeAwaitSignal::instantiate()
 {
     OScriptNodeAwaitSignalInstance* i = memnew(OScriptNodeAwaitSignalInstance);
     i->_node = this;
     return i;
+}
+
+void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const
+{
+    // todo: need to validate signal exists on target object instance
+
+    return super::validate_node_during_build(p_log);
 }

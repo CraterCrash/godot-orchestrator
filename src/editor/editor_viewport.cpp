@@ -17,6 +17,7 @@
 #include "editor/editor_viewport.h"
 
 #include "common/scene_utils.h"
+#include "common/string_utils.h"
 #include "editor/graph/graph_edit.h"
 #include "orchestration/orchestration.h"
 #include "plugins/orchestrator_editor_debugger_plugin.h"
@@ -188,7 +189,10 @@ void OrchestratorEditorViewport::_meta_clicked(const Variant& p_meta)
 
     const Dictionary value = JSON::parse_string(String(p_meta));
     if (value.has("goto_node"))
+    {
+        emit_signal("focus_requested");
         goto_node(String(value["goto_node"]).to_int());
+    }
 }
 
 void OrchestratorEditorViewport::apply_changes()
@@ -251,16 +255,44 @@ bool OrchestratorEditorViewport::build(bool p_show_success)
     BuildLog log;
     _orchestration->validate_and_build(log);
 
-    const bool has_errors = log.has_errors() || log.has_warnings();
+    const Vector<BuildLog::Failure> failures = log.get_failures();
 
     _build_errors->clear();
     _build_errors->append_text(vformat("[b]File:[/b] %s\n\n", _resource->get_path()));
 
-    if (has_errors)
+    if (!failures.is_empty())
     {
         _build_errors_dialog->set_title("Orchestration Build Errors");
-        for (const String& E : log.get_messages())
-            _build_errors->append_text(vformat("* %s\n", E));
+        for (const BuildLog::Failure& failure : failures)
+        {
+            String preamble;
+            switch (failure.type)
+            {
+                case BuildLog::FailureType::FT_Warning:
+                    preamble = "[color=yellow]WARNING[/color]";
+                    break;
+                default:
+                    preamble = "[color=#a95853]ERROR[/color]";
+                    break;
+            }
+
+            String message = failure.message;
+            if (failure.pin.is_valid())
+            {
+                String pin_name = StringUtils::default_if_empty(failure.pin->get_label(), failure.pin->get_pin_name().capitalize());
+                if (!pin_name.is_empty())
+                    message = vformat("Pin '%s' : %s", pin_name, message);
+            }
+
+            _build_errors->append_text(
+                vformat("* [b]%s[/b] : Node #[url={\"goto_node\":\"%d\",\"script\":\"%s\"}]%d - %s[/url]\n\t%s\n\n",
+                    preamble,
+                    failure.node->get_id(),
+                    failure.node->get_orchestration()->get_self()->get_path(),
+                    failure.node->get_id(),
+                    failure.node->get_node_title(),
+                    message));
+        }
 
         _build_errors_dialog->popup_centered_ratio(0.5);
         return false;
@@ -373,6 +405,7 @@ void OrchestratorEditorViewport::_notification(int p_what)
 
 void OrchestratorEditorViewport::_bind_methods()
 {
+    ADD_SIGNAL(MethodInfo("focus_requested"));
 }
 
 OrchestratorEditorViewport::OrchestratorEditorViewport(const Ref<Resource>& p_resource) : _resource(p_resource)

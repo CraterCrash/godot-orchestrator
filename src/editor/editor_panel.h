@@ -181,6 +181,7 @@ protected:
     void _file_moved(const String& p_old_file_name, const String& p_new_file_name);
     void _folder_removed(const String& p_folder_name);
     void _add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args);
+    void _focus_viewport(OrchestratorEditorViewport* p_viewport);
 
     #if GODOT_VERSION >= 0x040300
     void _goto_script_line(const Ref<Script>& p_script, int p_line);
