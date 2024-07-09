@@ -30,7 +30,8 @@ class OrchestratorScriptGraphsComponentPanel : public OrchestratorScriptComponen
         CM_RENAME_GRAPH,
         CM_REMOVE_GRAPH,
         CM_FOCUS_FUNCTION,
-        CM_REMOVE_FUNCTION
+        CM_REMOVE_FUNCTION,
+        CM_DISCONNECT_SLOT
     };
 
 protected:
@@ -65,6 +66,9 @@ protected:
     /// Notifies the script view that a graph function was removed.
     /// @param p_item the graph function item, should not be null
     void _remove_graph_function(TreeItem* p_item);
+
+    /// Handles disconnecting a signal slot function from the signal
+    void _disconnect_slot(TreeItem* p_item);
 
     /// Default constructor
     OrchestratorScriptGraphsComponentPanel() = default;

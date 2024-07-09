@@ -28,7 +28,8 @@ class OrchestratorScriptFunctionsComponentPanel : public OrchestratorScriptCompo
     {
         CM_OPEN_FUNCTION_GRAPH,
         CM_RENAME_FUNCTION,
-        CM_REMOVE_FUNCTION
+        CM_REMOVE_FUNCTION,
+        CM_DISCONNECT_SLOT
     };
 
     Button* _override_button{ nullptr };
@@ -54,6 +55,7 @@ protected:
 
     //~ Begin Signal handlers
     void _show_function_graph(TreeItem* p_item);
+    void _disconnect_slot(TreeItem* p_item);
     //~ End Signal handlers
 
     /// Default constructor

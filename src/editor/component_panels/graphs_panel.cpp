@@ -53,6 +53,35 @@ void OrchestratorScriptGraphsComponentPanel::_remove_graph_function(TreeItem* p_
     update();
 }
 
+void OrchestratorScriptGraphsComponentPanel::_disconnect_slot(TreeItem* p_item)
+{
+    const Ref<OScript> script = _orchestration->get_self();
+    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+
+    const String method_name = _get_tree_item_name(p_item);
+
+    for (Node* node : nodes)
+    {
+        TypedArray<Dictionary> connections = node->get_incoming_connections();
+        for (int i = 0; i < connections.size(); i++)
+        {
+            const Dictionary& dict = connections[i];
+            const Callable& callable = dict["callable"];
+            if (callable.get_method() != method_name)
+                continue;
+
+            const Signal& signal = dict["signal"];
+
+            if (Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
+            {
+                source->disconnect(signal.get_name(), callable);
+                update();
+                return;
+            }
+        }
+    }
+}
+
 PackedStringArray OrchestratorScriptGraphsComponentPanel::_get_existing_names() const
 {
     PackedStringArray result;
@@ -98,6 +127,12 @@ bool OrchestratorScriptGraphsComponentPanel::_populate_context_menu(TreeItem* p_
         // Graph Functions
         _context_menu->add_item("Focus", CM_FOCUS_FUNCTION);
         _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
+
+        if (p_item->has_meta("__slot") && p_item->get_meta("__slot"))
+        {
+            _context_menu->add_icon_item(SceneUtils::get_editor_icon("Unlinked"), "Disconnect", CM_DISCONNECT_SLOT);
+            _context_menu->set_item_tooltip(_context_menu->get_item_index(CM_DISCONNECT_SLOT), "Disconnect the slot function from the signal.");
+        }
     }
     return true;
 }
@@ -120,6 +155,9 @@ void OrchestratorScriptGraphsComponentPanel::_handle_context_menu(int p_id)
             break;
         case CM_REMOVE_FUNCTION:
             _remove_graph_function(_tree->get_selected());
+            break;
+        case CM_DISCONNECT_SLOT:
+            _disconnect_slot(_tree->get_selected());
             break;
     }
 }
@@ -157,8 +195,7 @@ void OrchestratorScriptGraphsComponentPanel::_handle_remove(TreeItem* p_item)
         _remove_graph(p_item);
 }
 
-void OrchestratorScriptGraphsComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
-                                                                 int p_mouse_button)
+void OrchestratorScriptGraphsComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
 {
     if (_orchestration->get_type() != OrchestrationType::OT_Script)
         return;
@@ -220,7 +257,10 @@ void OrchestratorScriptGraphsComponentPanel::update()
 
                 TreeItem* func = _create_item(item, friendly_name, function_name, "PlayStart");
                 if (SceneUtils::has_any_signals_connected_to_function(function_name, base_type, script_nodes))
+                {
                     func->add_button(0, SceneUtils::get_editor_icon("Slot"));
+                    func->set_meta("__slot", true);
+                }
             }
         }
     }
