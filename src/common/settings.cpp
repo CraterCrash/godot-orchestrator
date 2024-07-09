@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
 
@@ -218,6 +219,9 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed float64 array", Color(0.38, 0.85, 0.96)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector2 array", Color(0.74, 0.57, 0.95)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector3 array", Color(0.84, 0.49, 0.93)));
+    #if GODOT_VERSION >= 0x040300
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector4 array", Color(0.84, 0.49, 0.94)));
+    #endif
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed color array", Color(0.62, 1.00, 0.44)));
 }
 
