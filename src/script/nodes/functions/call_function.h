@@ -21,26 +21,10 @@
 
 struct OScriptFunctionReference
 {
-    //! The object the function is called on.
-    Object* object{ nullptr };
-
-    //! The object class type;
-    Variant::Type target_type{ Variant::NIL };
-
-    //! The object class name
-    String target_class_name;
-
-    //! The function name to be called.
-    String name;
-
-    //! The function guid, only applicable for OScriptFunction
-    Guid guid;
-
-    //! The function return type
-    Variant::Type return_type{ Variant::NIL };
-
-    //! Godot method reference
-    MethodInfo method;
+    Guid guid;                                  //! The function's GUID, only applicable for script functions
+    MethodInfo method;                          //! The godot method reference
+    Variant::Type target_type{ Variant::NIL };  //! The target type
+    String target_class_name;                   //! The target class name
 };
 
 /// Represents a call to a function.
@@ -62,7 +46,7 @@ public:
         FF_VARARG       = 1 << 5,   //! Function accepts variable arguments
         FF_STATIC       = 1 << 6,   //! Function is marked as static
         FF_OBJECT_CORE  = 1 << 7,   //! Function is a core Object virtual method, i.e. _notification
-        FF_EDITOR       = 1 << 8    //! Function is an editor method
+        FF_EDITOR       = 1 << 8,   //! Function is an editor method
     };
 
 protected:
@@ -78,17 +62,17 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
+    /// Creates the target pin
+    /// @return the target pin, or an invalid reference if no target pin is required
+    virtual Ref<OScriptNodePin> _create_target_pin() { return nullptr; }
+
     /// Creates pins for the specified method.
     /// @param p_method the Godot method object
     virtual void _create_pins_for_method(const MethodInfo& p_method);
-
-    /// Creates the pin for a given property
-    /// @param p_property the property to source the pin from
-    /// @param p_direction the pin direction
-    /// @param p_pin_type the pin type
-    /// @param p_name the name to assign to the pin
-    /// @return the constructed pin or an invalid reference if construction failed
-    virtual Ref<OScriptNodePin> _create_pin_for_property(const PropertyInfo& p_property, EPinDirection p_direction, EPinType p_pin_type, const String& p_name);
 
     /// Set flags for the function based on the Godot method flags
     /// @param p_method the Godot method object
@@ -108,8 +92,8 @@ protected:
     virtual MethodInfo get_method_info() { return _reference.method; }
 
     /// Get the input data pin offset for where function call arguments start.
-    /// @return the function argument offset, defaults to 1
-    virtual int get_argument_offset() const { return 1; }
+    /// @return the function argument offset, defaults to 0
+    virtual int get_argument_offset() const { return 0; }
 
     /// Get the number of input arguments for the function.
     /// @return the number of input arguments, should be 0 or greater
@@ -123,6 +107,7 @@ public:
     String get_icon() const override { return "MemberMethod"; }
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
     OScriptNodeCallFunction() { _flags = ScriptNodeFlags::NONE; }

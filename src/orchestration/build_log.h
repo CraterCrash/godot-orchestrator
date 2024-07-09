@@ -23,41 +23,66 @@
 
 using namespace godot;
 
+/// Forward declarations
 class OScriptNode;
+class OScriptNodePin;
 
 /// Simple orchestration build log
 class BuildLog
 {
+public:
+    // Defines the different failure types
+    enum FailureType
+    {
+        FT_Error,
+        FT_Warning
+    };
+
+    // Defines a specific build failure observed
+    struct Failure
+    {
+        FailureType type;           //! The failure type
+        String message;             //! The failure message
+        Ref<OScriptNode> node;      //! The node that triggered the failure
+        Ref<OScriptNodePin> pin;    //! The pin that triggered the failure
+    };
+
 protected:
-    Vector<String> _messages;
-    int _errors{ 0 };
-    int _warnings{ 0 };
-    Ref<OScriptNode> _current_node;
+    Vector<Failure> _failures;
+
+    /// Adds a failure to the build log
+    /// @param p_type the failure type
+    /// @param p_node the node that triggered the failure
+    /// @param p_pin the optional pin that triggered the failure
+    /// @param p_message the message
+    void _add_failure(FailureType p_type, const OScriptNode* p_node, const Ref<OScriptNodePin>& p_pin, const String& p_message);
 
 public:
-    /// Checks if log has any errors
-    /// @return true if there are errors, false otherwise
-    bool has_errors() const { return _errors > 0; }
+    /// Register a specific node build error unrelated to pins.
+    /// @param p_node the node
+    /// @param p_message the error message
+    void error(const OScriptNode* p_node, const String& p_message);
 
-    /// Checks if log has any warnings
-    /// @return true if there are warnings, false otherwise
-    bool has_warnings() const { return _warnings > 0; }
+    /// Register a build error
+    /// @param p_node the node
+    /// @param p_pin the pin that the error is related to
+    /// @param p_message the error message
+    void error(const OScriptNode* p_node, const Ref<OScriptNodePin>& p_pin, const String& p_message);
 
-    /// Adds an error message to the log
-    /// @param p_message the message
-    void error(const String& p_message);
+    /// Register a specific node build warning unrelated to pins.
+    /// @param p_node the node
+    /// @param p_message the error message
+    void warn(const OScriptNode* p_node, const String& p_message);
 
-    /// Adds a warning message to the log
-    /// @param p_message the message
-    void warn(const String& p_message);
+    /// Register a build warning
+    /// @param p_node the node
+    /// @param p_pin the pin that the error is related to
+    /// @param p_message the error message
+    void warn(const OScriptNode* p_node, const Ref<OScriptNodePin>& p_pin, const String& p_message);
 
-    /// Return the build messages
-    /// @return the messages
-    const Vector<String>& get_messages() const { return _messages; }
-
-    /// Set the current node being analyzed
-    /// @param p_node the node being analyzed
-    void set_current_node(const Ref<OScriptNode>& p_node) { _current_node = p_node; }
+    /// Get all failures
+    /// @return a collection of all failures
+    const Vector<Failure>& get_failures() const { return _failures; }
 };
 
 #endif // ORCHESTRATOR_ORCHESTATION_BUILD_LOG_H

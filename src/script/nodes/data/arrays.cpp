@@ -16,6 +16,7 @@
 //
 #include "arrays.h"
 
+#include "common/property_utils.h"
 #include "common/variant_utils.h"
 
 class OScriptNodeMakeArrayInstance : public OScriptNodeInstance
@@ -294,6 +295,21 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeMakeArray::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup pins - make sure variant is encoded into pins
+        if (_element_count > 0)
+        {
+            const Ref<OScriptNodePin> first = find_pin(_get_pin_name_given_index(0), PD_Input);
+            if (first.is_valid() && PropertyUtils::is_nil_no_variant(first->get_property_info()))
+                reconstruct_node();
+        }
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
 
 void OScriptNodeMakeArray::post_initialize()
 {
@@ -304,12 +320,9 @@ void OScriptNodeMakeArray::post_initialize()
 void OScriptNodeMakeArray::allocate_default_pins()
 {
     for (int i = 0; i < _element_count; i++)
-    {
-        Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, _get_pin_name_given_index(i), Variant::NIL);
-        pin->set_label(vformat("[%d]", i));
-    }
+        create_pin(PD_Input, PT_Data, PropertyUtils::make_variant(_get_pin_name_given_index(i)))->set_label(vformat("[%d]", i));
 
-    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
 
     super::allocate_default_pins();
 }
@@ -371,6 +384,18 @@ void OScriptNodeMakeArray::remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeArrayGet::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        const Ref<OScriptNodePin> element = find_pin("element", PD_Output);
+        if (element.is_valid() && PropertyUtils::is_nil_no_variant(element->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeArrayGet::post_initialize()
 {
     _collection_type = find_pin("array", PD_Input)->get_type();
@@ -384,9 +409,9 @@ void OScriptNodeArrayGet::allocate_default_pins()
 {
     _collection_name = Variant::get_type_name(_collection_type);
 
-    create_pin(PD_Input, PT_Data, "array", _collection_type);
-    create_pin(PD_Input, PT_Data, "index", Variant::INT);
-    create_pin(PD_Output, PT_Data, "element", _index_type);
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("array", _collection_type));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("element", _index_type, true));
 
     super::allocate_default_pins();
 }
@@ -428,6 +453,18 @@ void OScriptNodeArrayGet::initialize(const OScriptNodeInitContext& p_context)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeArraySet::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        const Ref<OScriptNodePin> element = find_pin("element", PD_Input);
+        if (element.is_valid() && PropertyUtils::is_nil_no_variant(element->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeArraySet::post_initialize()
 {
     _collection_type = find_pin("array", PD_Input)->get_type();
@@ -441,14 +478,14 @@ void OScriptNodeArraySet::allocate_default_pins()
 {
     _collection_name = Variant::get_type_name(_collection_type);
 
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "array", _collection_type);
-    create_pin(PD_Input, PT_Data, "index", Variant::INT);
-    create_pin(PD_Input, PT_Data, "element", _index_type);
-    create_pin(PD_Input, PT_Data, "size_to_fit", Variant::BOOL);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("array", _collection_type));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("element", _index_type, true));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("size_to_fit", Variant::BOOL));
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "result", _collection_type);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("result", _collection_type));
 
     super::allocate_default_pins();
 }
@@ -490,13 +527,26 @@ void OScriptNodeArraySet::initialize(const OScriptNodeInitContext& p_context)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeArrayFind::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - make sure if item is nil, variant is encoded
+        const Ref<OScriptNodePin> item = find_pin("input", PD_Input);
+        if (item.is_valid() && PropertyUtils::is_nil_no_variant(item->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeArrayFind::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Data, "array", Variant::ARRAY);
-    create_pin(PD_Input, PT_Data, "item", Variant::NIL);
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("item"));
 
-    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
-    create_pin(PD_Output, PT_Data, "index", Variant::INT);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
 
     super::allocate_default_pins();
 }
@@ -527,11 +577,11 @@ OScriptNodeInstance* OScriptNodeArrayFind::instantiate()
 
 void OScriptNodeArrayClear::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
 
     super::allocate_default_pins();
 }
@@ -562,12 +612,12 @@ OScriptNodeInstance* OScriptNodeArrayClear::instantiate()
 
 void OScriptNodeArrayAppend::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
-    create_pin(PD_Input, PT_Data, "source_array", Variant::ARRAY)->set_label("Source");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("target_array", Variant::ARRAY))->set_label("Target");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("source_array", Variant::ARRAY))->set_label("Source");
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
 
     super::allocate_default_pins();
 }
@@ -596,15 +646,28 @@ OScriptNodeInstance* OScriptNodeArrayAppend::instantiate()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeArrayAddElement::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - make sure variant is encoded into nil pin
+        const Ref<OScriptNodePin> element = find_pin("element", PD_Input);
+        if (element.is_valid() && PropertyUtils::is_nil_no_variant(element->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeArrayAddElement::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
-    create_pin(PD_Input, PT_Data, "element", Variant::NIL);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("target_array", Variant::ARRAY))->set_label("Target");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("element"));
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
-    create_pin(PD_Output, PT_Data, "index", Variant::INT);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
 
     super::allocate_default_pins();
 }
@@ -633,15 +696,28 @@ OScriptNodeInstance* OScriptNodeArrayAddElement::instantiate()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeArrayRemoveElement::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 && p_current_version >= 2)
+    {
+        // Fixup - make sure variant is encoded into nil pin
+        const Ref<OScriptNodePin> element = find_pin("element", PD_Input);
+        if (element.is_valid() && PropertyUtils::is_nil_no_variant(element->get_property_info()))
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeArrayRemoveElement::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
-    create_pin(PD_Input, PT_Data, "element", Variant::NIL);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("target_array", Variant::ARRAY))->set_label("Target");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("element"));
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
-    create_pin(PD_Output, PT_Data, "removed", Variant::BOOL);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("removed", Variant::BOOL));
 
     super::allocate_default_pins();
 }
@@ -672,12 +748,12 @@ OScriptNodeInstance* OScriptNodeArrayRemoveElement::instantiate()
 
 void OScriptNodeArrayRemoveIndex::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "target_array", Variant::ARRAY)->set_label("Target");
-    create_pin(PD_Input, PT_Data, "index", Variant::INT);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("target_array", Variant::ARRAY))->set_label("Target");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
 
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-    create_pin(PD_Output, PT_Data, "array", Variant::ARRAY);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY));
 
     super::allocate_default_pins();
 }

@@ -16,6 +16,7 @@
 //
 #include "print_string.h"
 
+#include "common/property_utils.h"
 #include "script/script.h"
 #include "script/vm/script_state.h"
 
@@ -192,13 +193,13 @@ void OScriptNodePrintStringInstance::_ui_container_node_removed(Node* p_node)
 
 void OScriptNodePrintString::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "Text", Variant::STRING, "Hello");
-    create_pin(PD_Input, PT_Data, "PrintToScreen", Variant::BOOL, true);
-    create_pin(PD_Input, PT_Data, "PrintToLog", Variant::BOOL, true);
-    create_pin(PD_Input, PT_Data, "TextColor", Variant::COLOR, Color(1, 1, 1));
-    create_pin(PD_Input, PT_Data, "Duration", Variant::FLOAT, 2);
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("Text", Variant::STRING), "Hello");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("PrintToScreen", Variant::BOOL), true);
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("PrintToLog", Variant::BOOL), true);
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("TextColor", Variant::COLOR), Color(1, 1, 1));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("Duration", Variant::FLOAT), 2);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
     super::allocate_default_pins();
 }

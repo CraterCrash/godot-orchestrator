@@ -25,6 +25,11 @@ class OScriptNodeSceneTree : public OScriptNode
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSceneTree, OScriptNode);
     static void _bind_methods() { }
 
+protected:
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;

@@ -133,10 +133,12 @@ protected:
     OrchestratorGraphNodeSpawnerCallMemberFunction() = default;
 
     MethodInfo _method;
+    StringName _class_name;
 
 public:
-    OrchestratorGraphNodeSpawnerCallMemberFunction(const MethodInfo& p_method)
+    OrchestratorGraphNodeSpawnerCallMemberFunction(const MethodInfo& p_method, const StringName& p_class_name)
         : _method(p_method)
+        , _class_name(p_class_name)
     {
     }
 
@@ -158,7 +160,7 @@ protected:
 
 public:
     OrchestratorGraphNodeSpawnerCallScriptFunction(const MethodInfo& p_method)
-        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method)
+        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method, "")
     {
     }
 
@@ -179,7 +181,7 @@ protected:
 
 public:
     OrchestratorGraphNodeSpawnerEvent(const MethodInfo& p_method)
-        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method)
+        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method, "")
     {
     }
 
@@ -199,12 +201,9 @@ class OrchestratorGraphNodeSpawnerEmitMemberSignal : public OrchestratorGraphNod
 protected:
     OrchestratorGraphNodeSpawnerEmitMemberSignal() = default;
 
-    StringName _target_class;
-
 public:
     OrchestratorGraphNodeSpawnerEmitMemberSignal(const MethodInfo& p_method, const StringName& p_target_class)
-        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method)
-        , _target_class(p_target_class)
+        : OrchestratorGraphNodeSpawnerCallMemberFunction(p_method, p_target_class)
     {
     }
 

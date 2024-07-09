@@ -16,6 +16,7 @@
 //
 #include "engine_singleton.h"
 
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -62,11 +63,22 @@ bool OScriptNodeEngineSingleton::_set(const StringName& p_name, const Variant& p
     return false;
 }
 
+void OScriptNodeEngineSingleton::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 and p_current_version >= 2)
+    {
+        // Fixup - makes sure that singleton class type is encoded in pin
+        const Ref<OScriptNodePin> singleton = find_pin("singleton", PD_Output);
+        if (singleton.is_valid() && singleton->get_property_info().class_name != _singleton)
+            reconstruct_node();
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeEngineSingleton::allocate_default_pins()
 {
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, "singleton", Variant::OBJECT);
-    pin->set_label(_singleton, false);
-
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("singleton", _singleton))->set_label(_singleton, false);
     super::allocate_default_pins();
 }
 
@@ -104,4 +116,12 @@ OScriptNodeInstance* OScriptNodeEngineSingleton::instantiate()
         i->_value = Engine::get_singleton()->get_singleton(_singleton);
 
     return i;
+}
+
+void OScriptNodeEngineSingleton::validate_node_during_build(BuildLog& p_log) const
+{
+    if (!Engine::get_singleton()->get_singleton_list().has(_singleton))
+        p_log.error(this, "No singleton found with the name: " + _singleton);
+
+    super::validate_node_during_build(p_log);
 }

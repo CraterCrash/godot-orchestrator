@@ -36,6 +36,10 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
     String _get_target_type() const;
 
 public:
@@ -50,6 +54,7 @@ public:
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
 };

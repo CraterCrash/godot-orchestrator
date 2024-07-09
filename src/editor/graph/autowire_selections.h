@@ -41,9 +41,17 @@ protected:
     void _select();
     //~ End Signal Handlers
 
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
+    //~ Begin Wrapped Interface
     void _notification(int p_what);
+    //~ End Wrapped Interface
+
+    /// Based on eligible choices, return a list that explicitly matches pin's class type
+    /// @param p_choices possible choices
+    /// @return list of pins that match the pin's class type
+    Vector<Ref<OScriptNodePin>> _get_choices_that_match_class(const Vector<Ref<OScriptNodePin>>& p_choices);
+
+    /// Closes the autowire window
+    void _close_window();
 
 public:
 

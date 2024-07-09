@@ -19,6 +19,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "script/node.h"
+#include "script/nodes/math/operator_node.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/tree.hpp>
@@ -73,6 +74,20 @@ void OrchestratorScriptAutowireSelections::_notification(int p_what)
     }
 }
 
+Vector<Ref<OScriptNodePin>> OrchestratorScriptAutowireSelections::_get_choices_that_match_class(const Vector<Ref<OScriptNodePin>>& p_choices)
+{
+    Vector<Ref<OScriptNodePin>> exact_matches;
+    for (const Ref<OScriptNodePin>& choice : p_choices)
+        if (choice->get_property_info().class_name.match(_pin->get_property_info().class_name))
+            exact_matches.push_back(choice);
+    return exact_matches;
+}
+
+void OrchestratorScriptAutowireSelections::_close_window()
+{
+    get_ok_button()->call_deferred("emit_signal", "pressed");
+}
+
 void OrchestratorScriptAutowireSelections::popup_autowire()
 {
     get_ok_button()->set_disabled(true);
@@ -85,7 +100,7 @@ void OrchestratorScriptAutowireSelections::popup_autowire()
         if (choices.size() == 1)
             _choice = choices[0];
 
-        get_ok_button()->call_deferred("emit_signal", "pressed");
+        _close_window();
         return;
     }
 
@@ -93,7 +108,16 @@ void OrchestratorScriptAutowireSelections::popup_autowire()
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
     if (!settings->get_setting("ui/graph/show_autowire_selection_dialog", true))
     {
-        get_ok_button()->call_deferred("emit_signal", "pressed");
+        _close_window();
+        return;
+    }
+
+    // Handle case where class matches rank higher and have precedence.
+    const Vector<Ref<OScriptNodePin>> exact_class_matches = _get_choices_that_match_class(choices);
+    if (exact_class_matches.size() == 1)
+    {
+        _choice = exact_class_matches[0];
+        _close_window();
         return;
     }
 

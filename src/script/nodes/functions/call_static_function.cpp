@@ -19,12 +19,13 @@
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/property_utils.h"
+#include "common/version.h"
 
 class OScriptNodeCallStaticFunctionInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeCallStaticFunction);
 
-    int _argument_count{ 0 };
     MethodInfo _method;
     StringName _class_name;
 
@@ -45,11 +46,11 @@ public:
         }
 
         Array args;
-        for (int i = 0; i < _argument_count; i++)
+        for (int i = 0; i < _method.arguments.size(); i++)
             args.push_back(p_context.get_input(i));
 
         std::vector<const Variant*> call_args;
-        call_args.resize(_argument_count);
+        call_args.resize(_method.arguments.size());
 
         for (int i = 0; i < args.size(); i++)
             call_args[i] = &args[i];
@@ -158,50 +159,28 @@ void OScriptNodeCallStaticFunction::post_placed_new_node()
 
 void OScriptNodeCallStaticFunction::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
     const size_t default_start_index = _method.arguments.empty()
         ? 0
         : _method.arguments.size() - _method.default_arguments.size();
 
-    size_t arg_index = 0;
     size_t def_index = 0;
-    for (const PropertyInfo& pi : _method.arguments)
+    for (int arg_index = 0; arg_index < _method.arguments.size(); arg_index++)
     {
-        Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, pi.name, pi.type);
-        if (pin.is_valid())
-        {
-            pin->no_pretty_format();
-            if (pi.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
-            {
-                pin->set_flag(OScriptNodePin::Flags::ENUM);
-                pin->set_target_class(pi.class_name);
-                pin->set_type(pi.type);
-            }
-            else if (pi.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
-            {
-                pin->set_flag(OScriptNodePin::Flags::BITFIELD);
-                pin->set_target_class(pi.class_name);
-                pin->set_type(pi.type);
-            }
-
-            if (arg_index >= default_start_index)
-                pin->set_default_value(_method.default_arguments[def_index++]);
-        }
-        arg_index++;
+        const PropertyInfo& pi = _method.arguments[arg_index];
+        const Variant default_value = arg_index >= default_start_index ? _method.default_arguments[def_index++] : Variant();
+        create_pin(PD_Input, PT_Data, pi, default_value);
     }
 
     if (MethodUtils::has_return_value(_method))
     {
-        Ref<OScriptNodePin> rv = create_pin(PD_Output, PT_Data, "return_value", _method.return_val.type);
-
+        Ref<OScriptNodePin> rvalue = create_pin(PD_Output, PT_Data, PropertyUtils::as("return_value", _method.return_val));
         if (_method.return_val.type == Variant::OBJECT)
-            rv->set_label(_method.return_val.class_name);
+            rvalue->set_label(_method.return_val.class_name);
         else
-            rv->hide_label();
-
-        rv->set_target_class(_method.return_val.class_name);
+            rvalue->hide_label();
     }
 
     super::allocate_default_pins();
@@ -225,6 +204,15 @@ String OScriptNodeCallStaticFunction::get_node_title() const
 
 void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) const
 {
+    const int args_no_defs = _method.arguments.size() - _method.default_arguments.size();
+    for (int i = 0; i < args_no_defs; i++)
+    {
+        const PropertyInfo& pi = _method.arguments[i];
+        const Ref<OScriptNodePin> pin = find_pin(pi.name, PD_Input);
+        if (pin.is_valid() && !pin->has_any_connections())
+            p_log.error(this, pin, "Requires a connection.");
+    }
+
     return super::validate_node_during_build(p_log);
 }
 
@@ -233,7 +221,6 @@ OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate()
     OScriptNodeCallStaticFunctionInstance* i = memnew(OScriptNodeCallStaticFunctionInstance);
     i->_node = this;
     i->_method = _method;
-    i->_argument_count = _method.arguments.size();
     i->_class_name = _class_name;
     return i;
 }

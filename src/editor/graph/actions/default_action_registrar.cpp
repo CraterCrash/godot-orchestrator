@@ -477,10 +477,17 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
                                                                 const StringName& p_class_name)
 {
     TypedArray<Dictionary> methods;
+    StringName class_name;
     if (p_context.filter->has_target_object())
+    {
         methods = p_context.filter->target_object->get_target_method_list();
+        class_name = p_context.filter->target_object->get_class();
+    }
     else
+    {
         methods = ClassDB::class_get_method_list(p_class_name, true);
+        class_name = p_class_name;
+    }
 
     for (int i = 0; i < methods.size(); i++)
     {
@@ -501,7 +508,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
         if (OScriptNodeEvent::is_event_method(mi))
             handler_ptr = memnew(OrchestratorGraphNodeSpawnerEvent(mi));
         else
-            handler_ptr = memnew(OrchestratorGraphNodeSpawnerCallMemberFunction(mi));
+            handler_ptr = memnew(OrchestratorGraphNodeSpawnerCallMemberFunction(mi, class_name));
 
         Ref<OrchestratorGraphActionHandler> handler(handler_ptr);
         p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(spec, handler)));

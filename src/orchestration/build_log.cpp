@@ -18,17 +18,32 @@
 
 #include "script/node.h"
 
-void BuildLog::error(const String& p_message)
+void BuildLog::_add_failure(FailureType p_type, const OScriptNode* p_node, const Ref<OScriptNodePin>& p_pin, const String& p_message)
 {
-    _messages.push_back(vformat("[b][color=#a95853]ERROR[/color][/b]: Node %s ([url={\"goto_node\":\"%d\"}]#%d[/url]) - %s",
-        _current_node->get_class(), _current_node->get_id(), _current_node->get_id(), p_message));
-    _errors++;
+    Failure failure;
+    failure.type = p_type;
+    failure.node = p_node;
+    failure.pin = p_pin;
+    failure.message = p_message;
+    _failures.push_back(failure);
 }
 
-void BuildLog::warn(const String& p_message)
+void BuildLog::error(const OScriptNode* p_node, const String& p_message)
 {
-    _messages.push_back(vformat("[b][color=yellow]WARNING[/color][/b]: Node %s ([url={\"goto_node\":\"%d\"}]#%d[/url]) - %s",
-        _current_node->get_class(), _current_node->get_id(), _current_node->get_id(), p_message));
-    _warnings++;
+    error(p_node, nullptr, p_message);
 }
 
+void BuildLog::error(const OScriptNode* p_node, const Ref<OScriptNodePin>& p_pin, const String& p_message)
+{
+    _add_failure(FT_Error, p_node, p_pin, p_message);
+}
+
+void BuildLog::warn(const OScriptNode* p_node, const String& p_message)
+{
+    error(p_node, nullptr, p_message);
+}
+
+void BuildLog::warn(const OScriptNode* p_node, const Ref<OScriptNodePin>& p_pin, const String& p_message)
+{
+    _add_failure(FT_Warning, p_node, p_pin, p_message);
+}

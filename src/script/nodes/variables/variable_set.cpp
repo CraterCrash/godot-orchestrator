@@ -16,6 +16,8 @@
 //
 #include "variable_set.h"
 
+#include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 #include "common/variant_utils.h"
 
 class OScriptNodeVariableSetInstance : public OScriptNodeInstance
@@ -58,36 +60,29 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeVariableSet::_upgrade(uint32_t p_version, uint32_t p_current_version)
+{
+    if (p_version == 1 and p_current_version >= 2)
+    {
+        // Fixup - makes sure that stored property matches variable, if not reconstructs
+        if (_variable.is_valid())
+        {
+            const Ref<OScriptNodePin> input = find_pin(_variable->get_variable_name(), PD_Input);
+            if (input.is_valid() && !PropertyUtils::are_equal(_variable->get_info(), input->get_property_info()))
+                reconstruct_node();
+        }
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeVariableSet::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, _variable->get_info(), _variable->get_default_value())->no_pretty_format();
 
-    Ref<OScriptNodePin> v = create_pin(PD_Input, PT_Data, _variable_name, _variable->get_variable_type(), _variable->get_default_value());
-    v->no_pretty_format();
-
-    create_pin(PD_Output, PT_Execution, "ExecOut");
-
-    Ref<OScriptNodePin> value = create_pin(PD_Output, PT_Data, "value", _variable->get_variable_type());
-    value->hide_label();
-
-    if (_variable.is_valid())
-    {
-        PropertyInfo pi = _variable->get_info();
-        if (pi.hint == PROPERTY_HINT_FLAGS)
-        {
-            v->set_flag(OScriptNodePin::Flags::BITFIELD);
-            v->set_target_class(pi.class_name);
-            v->set_type(Variant::INT);
-        }
-        else if (pi.hint == PROPERTY_HINT_ENUM)
-        {
-            v->set_flag(OScriptNodePin::Flags::ENUM);
-            v->set_target_class(pi.class_name);
-            v->set_type(Variant::INT);
-        }
-        else if (!pi.hint_string.is_empty())
-            value->set_target_class(pi.hint_string);
-    }
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::as("value", _variable->get_info()))->hide_label();
 
     super::allocate_default_pins();
 }

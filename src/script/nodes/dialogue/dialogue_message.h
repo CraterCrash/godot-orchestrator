@@ -28,6 +28,10 @@ class OScriptNodeDialogueMessage : public OScriptEditablePinNode
 protected:
     int _choices{ 0 };
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;

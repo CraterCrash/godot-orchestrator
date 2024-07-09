@@ -32,6 +32,7 @@
 ///
 class OScriptNodeCompose : public OScriptNode
 {
+    // todo: it seems this class is no longer used?
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCompose, OScriptNode);
     static void _bind_methods();
 
@@ -44,7 +45,6 @@ protected:
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
-    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
@@ -73,7 +73,6 @@ protected:
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
-    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;

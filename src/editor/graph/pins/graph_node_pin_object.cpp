@@ -18,6 +18,7 @@
 
 #include "script/node.h"
 #include "script/nodes/functions/call_function.h"
+#include "script/nodes/variables/variable.h"
 
 OrchestratorGraphNodePinObject::OrchestratorGraphNodePinObject(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
@@ -28,20 +29,24 @@ void OrchestratorGraphNodePinObject::_bind_methods()
 {
 }
 
-Control* OrchestratorGraphNodePinObject::_get_default_value_widget()
+void OrchestratorGraphNodePinObject::_update_label()
 {
-    // Specifically checks if the node is a CallFunction node and if the pin is not the "Target" pin.
-    // In these cases, we should not render the "(self)" label.
-    if (OScriptNode* node = _pin->get_owning_node())
+    if (Object::cast_to<OScriptNodeCallFunction>(_pin->get_owning_node()))
     {
-        if (Object::cast_to<OScriptNodeCallFunction>(node))
+        if (_pin->get_pin_name().match("target"))
         {
-            if (!_pin->get_pin_name().match("target"))
-                return nullptr;
+            const String target_class = _pin->get_property_info().class_name;
+            const String base_type = _pin->get_owning_node()->get_orchestration()->get_base_type();
+            if (!target_class.is_empty() && ClassDB::is_parent_class(base_type, target_class))
+            {
+                if (!_pin->has_any_connections() || !Object::cast_to<OScriptNodeVariable>(_pin->get_owning_node()))
+                {
+                    _label->set_text("[Self]");
+                    return;
+                }
+            }
         }
     }
 
-    Label* label = memnew(Label);
-    label->set_text("(self)");
-    return label;
+    OrchestratorGraphNodePin::_update_label();
 }

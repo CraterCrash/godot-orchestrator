@@ -241,6 +241,7 @@ void OScriptTextResourceLoaderInstance::open(const Ref<FileAccess>& p_file, bool
             _error = ERR_PARSE_ERROR;
             return;
         }
+        _version = format;
     }
 
     if (tag.name == "orchestration")

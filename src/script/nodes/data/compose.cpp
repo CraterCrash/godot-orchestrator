@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -235,17 +236,8 @@ void OScriptNodeCompose::_bind_methods()
 void OScriptNodeCompose::post_initialize()
 {
     // Clone this from the output pin
-    _type = find_pin(0, PD_Output)->get_type();
+    _type = find_pin("value", PD_Output)->get_type();
     super::post_initialize();
-}
-
-void OScriptNodeCompose::post_placed_new_node()
-{
-    Ref<OScriptNodePin> output = find_pin("output");
-    if (output.is_valid() && output->get_type() != _type)
-        output->set_type(_type);
-
-    super::post_placed_new_node();
 }
 
 void OScriptNodeCompose::allocate_default_pins()
@@ -256,11 +248,11 @@ void OScriptNodeCompose::allocate_default_pins()
     for (int i = 0; i < components.size(); i++)
     {
         const Variant bit = default_value.get(components[i]);
-        create_pin(PD_Input, PT_Data, components[i], bit.get_type());
+        create_pin(PD_Input, PT_Data, PropertyUtils::make_typed(components[i], bit.get_type()));
     }
 
     // This is the pin that will be constructed from its types
-    create_pin(PD_Output, PT_Data, "value", _type);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("value", _type));
 }
 
 String OScriptNodeCompose::get_tooltip_text() const
@@ -340,7 +332,7 @@ void OScriptNodeComposeFrom::_bind_methods()
 void OScriptNodeComposeFrom::post_initialize()
 {
     // Clone this from the output pin
-    _type = find_pin(0, PD_Output)->get_type();
+    _type = find_pin("value", PD_Output)->get_type();
 
     for (const Ref<OScriptNodePin>& pin : find_pins(PD_Input))
     {
@@ -351,28 +343,19 @@ void OScriptNodeComposeFrom::post_initialize()
     super::post_initialize();
 }
 
-void OScriptNodeComposeFrom::post_placed_new_node()
-{
-    Ref<OScriptNodePin> output = find_pin("output");
-    if (output.is_valid() && output->get_type() != _type)
-        output->set_type(_type);
-
-    super::post_placed_new_node();
-}
-
 void OScriptNodeComposeFrom::allocate_default_pins()
 {
     for (int i = 0; i < _constructor_args.size(); i++)
     {
         const PropertyInfo& property = _constructor_args[i];
-        if (!property.name.is_empty())
-            create_pin(PD_Input, PT_Data, property.name, property.type);
+        if (property.name.is_empty())
+            create_pin(PD_Input, PT_Data, PropertyUtils::as("arg" + itos(i), property));
         else
-            create_pin(PD_Input, PT_Data, "arg" + itos(i), property.type);
+            create_pin(PD_Input, PT_Data, property);
     }
 
     // This is the pin that will be constructed from its types
-    create_pin(PD_Output, PT_Data, "value", _type);
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("value", _type));
 }
 
 String OScriptNodeComposeFrom::get_tooltip_text() const

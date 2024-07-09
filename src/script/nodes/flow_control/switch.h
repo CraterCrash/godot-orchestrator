@@ -35,6 +35,10 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
     void _unlink_pins(int p_new_cases);
 
 public:
@@ -156,10 +160,13 @@ class OScriptNodeSwitchEnum : public OScriptNode
 protected:
     String _enum_name; //! Transient enum name
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
-    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }

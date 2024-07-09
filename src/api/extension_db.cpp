@@ -4757,6 +4757,15 @@ namespace godot
         return ExtensionDB::_singleton->_global_enums[p_name];
     }
 
+    EnumInfo ExtensionDB::get_global_enum_by_value(const StringName& p_name)
+    {
+        for (const KeyValue<StringName, EnumInfo>& E : ExtensionDB::_singleton->_global_enums)
+            for (const EnumValue& ev : E.value.values)
+                if (ev.name.match(p_name))
+                    return E.value;
+        return {};
+    }
+
     EnumValue ExtensionDB::get_global_enum_value(const StringName& p_name)
     {
         for (const KeyValue<StringName, EnumInfo>& E : ExtensionDB::_singleton->_global_enums)

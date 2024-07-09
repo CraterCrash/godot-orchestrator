@@ -34,11 +34,19 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
+    /// Instantiates the scene
+    /// @return the root scene node, or null if the scene cannot be instantiated
+    Node* _instantiate_scene() const;
+
 public:
 
     //~ Begin OScriptNode Interface
-    void allocate_default_pins() override;
     void post_initialize() override;
+    void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "scene"; }

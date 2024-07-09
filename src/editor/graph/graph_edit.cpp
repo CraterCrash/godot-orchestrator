@@ -581,6 +581,7 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             {
                 OScriptNodeInitContext context;
                 context.node_path = root->get_path_to(dropped_node);
+                context.class_name = dropped_node->get_class();
                 spawn_node<OScriptNodeSceneNode>(context, _saved_mouse_position);
             }
         }

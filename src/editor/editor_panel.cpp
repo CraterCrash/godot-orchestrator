@@ -697,6 +697,19 @@ void OrchestratorEditorPanel::_add_script_function(Object* p_object, const Strin
     _files_context.get_selected()->viewport->add_script_function(p_object, p_function_name, p_args);
 }
 
+void OrchestratorEditorPanel::_focus_viewport(OrchestratorEditorViewport* p_viewport)
+{
+    for (int i = 0; i < _files_context.open_files.size(); i++)
+    {
+        if (_files_context.open_files[i].viewport == p_viewport)
+        {
+            _files_context.show(_files_context.open_files[i].file_name);
+            _update_file_list();
+            break;
+        }
+    }
+}
+
 #if GODOT_VERSION >= 0x040300
 void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int p_line)
 {
@@ -796,6 +809,7 @@ void OrchestratorEditorPanel::edit_script(const Ref<OScript>& p_script)
     }
 
     OrchestratorScriptEditorViewport* viewport = memnew(OrchestratorScriptEditorViewport(p_script));
+    viewport->connect("focus_requested", callable_mp(this, &OrchestratorEditorPanel::_focus_viewport).bind(viewport));
     _viewport_container->add_child(viewport);
 
     OrchestrationFile file;

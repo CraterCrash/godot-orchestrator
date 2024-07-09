@@ -166,6 +166,7 @@ void OrchestratorGraphNodeSpawnerCallMemberFunction::execute(OrchestratorGraphEd
 {
     OScriptNodeInitContext context;
     context.method = _method;
+    context.class_name = _class_name;
 
     p_graph->spawn_node<OScriptNodeCallMemberFunction>(context, p_position);
 }
@@ -269,8 +270,9 @@ bool OrchestratorGraphNodeSpawnerEvent::is_filtered(const OrchestratorGraphActio
 
 void OrchestratorGraphNodeSpawnerEmitMemberSignal::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {
+    // todo: encode as class_name?
     Dictionary data;
-    data["target_class"] = _target_class;
+    data["target_class"] = _class_name;
 
     OScriptNodeInitContext context;
     context.method = _method;

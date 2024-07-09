@@ -16,10 +16,11 @@
 //
 #include "delay.h"
 
+#include "common/property_utils.h"
 #include "script/vm/script_state.h"
 
-#include <godot_cpp/classes/main_loop.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/main_loop.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/scene_tree_timer.hpp>
 
@@ -61,7 +62,10 @@ public:
 
 void OScriptNodeDelay::post_initialize()
 {
-    _duration = find_pin("duration", PD_Input)->get_effective_default_value();
+    const Ref<OScriptNodePin> duration  = find_pin("duration", PD_Input);
+    if (duration.is_valid())
+        _duration = duration->get_effective_default_value();
+
     super::post_initialize();
 }
 
@@ -82,9 +86,9 @@ void OScriptNodeDelay::reallocate_pins_during_reconstruction(const Vector<Ref<OS
 
 void OScriptNodeDelay::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "duration", Variant::FLOAT, _duration);
-    create_pin(PD_Output, PT_Execution, "ExecOut");
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("duration", Variant::FLOAT), _duration);
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
     super::allocate_default_pins();
 }

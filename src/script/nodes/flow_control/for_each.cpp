@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
+#include "common/property_utils.h"
 
 class OScriptNodeForEachInstance : public OScriptNodeInstance
 {
@@ -88,6 +89,8 @@ bool OScriptNodeForEach::_set(const StringName& p_name, const Variant& p_value)
 
 void OScriptNodeForEach::post_initialize()
 {
+    bool reconstructed = false;
+
     // Automatically coerces old element pins to using NIL for Any rather than OBJECT
     Ref<OScriptNodePin> element = find_pin("element", PD_Output);
     if (element.is_valid() && element->get_type() == Variant::OBJECT)
@@ -101,6 +104,7 @@ void OScriptNodeForEach::post_initialize()
     if (_with_break && !find_pin("aborted", PD_Output).is_valid())
     {
         reconstruct_node();
+        reconstructed = true;
 
         // This needs to be delayed until the end of frame due to pin index caching
         callable_mp_lambda(this, [&,this]() {
@@ -115,24 +119,34 @@ void OScriptNodeForEach::post_initialize()
         }).call_deferred();
     }
 
+    // Fixup - reconstruct element pins
+    if (!reconstructed && element.is_valid())
+    {
+        if (PropertyUtils::is_nil_no_variant(element->get_property_info()))
+        {
+            reconstruct_node();
+            reconstructed = true;
+        }
+    }
+
     super::post_initialize();
 }
 
 void OScriptNodeForEach::allocate_default_pins()
 {
-    create_pin(PD_Input, PT_Execution, "ExecIn");
-    create_pin(PD_Input, PT_Data, "array", Variant::ARRAY)->set_flag(OScriptNodePin::IGNORE_DEFAULT);
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY))->set_flag(OScriptNodePin::IGNORE_DEFAULT);
 
     if (_with_break)
-        create_pin(PD_Input, PT_Execution, "break")->show_label();
+        create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("break"))->show_label();
 
-    create_pin(PD_Output, PT_Execution, "loop_body")->show_label();
-    create_pin(PD_Output, PT_Data, "element", Variant::NIL);
-    create_pin(PD_Output, PT_Data, "index", Variant::INT);
-    create_pin(PD_Output, PT_Execution, "completed")->show_label();
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("loop_body"))->show_label();
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("element"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("completed"))->show_label();
 
     if (_with_break)
-        create_pin(PD_Output, PT_Execution, "aborted")->show_label();
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("aborted"))->show_label();
 }
 
 String OScriptNodeForEach::get_tooltip_text() const
