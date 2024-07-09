@@ -277,6 +277,13 @@ String OScriptLanguage::_make_function(const String& p_class_name, const String&
     return {};
 }
 
+#if GODOT_VERSION >= 0x040300
+bool OScriptLanguage::_can_make_function() const
+{
+    return true;
+}
+#endif
+
 TypedArray<Dictionary> OScriptLanguage::_get_public_functions() const
 {
     // Returns an array of MethodInfo for the language.
