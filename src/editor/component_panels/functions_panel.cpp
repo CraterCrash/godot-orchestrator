@@ -38,6 +38,35 @@ void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p
     _tree->deselect_all();
 }
 
+void OrchestratorScriptFunctionsComponentPanel::_disconnect_slot(TreeItem* p_item)
+{
+    const Ref<OScript> script = _orchestration->get_self();
+    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+
+    const String method_name = _get_tree_item_name(p_item);
+
+    for (Node* node : nodes)
+    {
+        TypedArray<Dictionary> connections = node->get_incoming_connections();
+        for (int i = 0; i < connections.size(); i++)
+        {
+            const Dictionary& dict = connections[i];
+            const Callable& callable = dict["callable"];
+            if (callable.get_method() != method_name)
+                continue;
+
+            const Signal& signal = dict["signal"];
+
+            if (Node *source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
+            {
+                source->disconnect(signal.get_name(), callable);
+                update();
+                return;
+            }
+        }
+    }
+}
+
 PackedStringArray OrchestratorScriptFunctionsComponentPanel::_get_existing_names() const
 {
     return _orchestration->get_function_names();
@@ -64,6 +93,13 @@ bool OrchestratorScriptFunctionsComponentPanel::_populate_context_menu(TreeItem*
     _context_menu->add_item("Open in Graph", CM_OPEN_FUNCTION_GRAPH);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_FUNCTION);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
+
+    if (p_item->has_meta("__slot") && p_item->get_meta("__slot"))
+    {
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Unlinked"), "Disconnect", CM_DISCONNECT_SLOT);
+        _context_menu->set_item_tooltip(_context_menu->get_item_index(CM_DISCONNECT_SLOT), "Disconnect the slot function from the signal.");
+    }
+
     return true;
 }
 
@@ -79,6 +115,9 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_context_menu(int p_id)
             break;
         case CM_REMOVE_FUNCTION:
             _confirm_removal(_tree->get_selected());
+            break;
+        case CM_DISCONNECT_SLOT:
+            _disconnect_slot(_tree->get_selected());
             break;
     }
 }
@@ -146,7 +185,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_button_clicked(TreeItem*
 
     OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
     add_child(dialog);
-    dialog->popup_connections(p_item->get_text(0), nodes);
+    dialog->popup_connections(_get_tree_item_name(p_item), nodes);
 }
 
 Dictionary OrchestratorScriptFunctionsComponentPanel::_handle_drag_data(const Vector2& p_position)
@@ -194,7 +233,10 @@ void OrchestratorScriptFunctionsComponentPanel::update()
 
         TreeItem* item = _create_item(_tree->get_root(), friendly_name, graph->get_graph_name(), "MemberMethod");
         if (SceneUtils::has_any_signals_connected_to_function(graph->get_graph_name(), base_type, script_nodes))
+        {
             item->add_button(0, SceneUtils::get_editor_icon("Slot"));
+            item->set_meta("__slot", true);
+        }
     }
 
     if (_tree->get_root()->get_child_count() == 0)
