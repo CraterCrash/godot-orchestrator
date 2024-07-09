@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=10 format=1 uid="uid://c15sj30jfu8q2"]
+[orchestration type="OScript" load_steps=10 format=2 uid="uid://c15sj30jfu8q2"]
 
 [obj type="OScriptFunction" id="OScriptFunction_8ku1s"]
 guid = "353DC3AF-0F76-4294-89CC-2F918ED5C978"
@@ -31,7 +31,7 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"delta",
 "type": 3,
 "dir": 1,
-"flags": 2050
+"flags": 2
 }])
 
 [obj type="OScriptNodeOperator" id="OScriptNodeOperator_ljx3o"]
@@ -48,20 +48,22 @@ size = Vector2(201, 93)
 position = Vector2(480, 340)
 pin_data = Array[Dictionary]([{
 "pin_name": &"a",
-"type": 3
+"type": 3,
+"flags": 2
 }, {
 "pin_name": &"b",
 "type": 3,
+"flags": 2,
 "dv": 50.0
 }, {
 "pin_name": &"result",
 "type": 3,
-"dir": 1
+"dir": 1,
+"flags": 2
 }])
 
 [obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_f8yni"]
 function_name = &"deg_to_rad"
-flags = 1
 method = {
 "name": &"deg_to_rad",
 "return": {
@@ -78,7 +80,7 @@ position = Vector2(740, 340)
 pin_data = Array[Dictionary]([{
 "pin_name": &"deg",
 "type": 3,
-"flags": 2050
+"flags": 2
 }, {
 "pin_name": &"return_value",
 "type": 3,
@@ -88,8 +90,8 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_qrrqq"]
 function_name = &"rotate_y"
-target_class_name = "CharacterBody3D"
-flags = 8
+target_class_name = "Node3D"
+target_type = 24
 method = {
 "name": &"rotate_y",
 "args": [{
@@ -111,12 +113,13 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"target",
 "type": 24,
-"flags": 2,
-"target_class": "CharacterBody3D"
+"flags": 2050,
+"label": "Node3D",
+"target_class": "Node3D"
 }, {
 "pin_name": &"angle",
 "type": 3,
-"flags": 2050
+"flags": 2
 }])
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_0xhvy"]

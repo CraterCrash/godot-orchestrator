@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=50 format=1 uid="uid://i088ibwd6mn2"]
+[orchestration type="OScript" load_steps=50 format=2 uid="uid://i088ibwd6mn2"]
 
 [obj type="OScriptFunction" id="OScriptFunction_p5wor"]
 guid = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
@@ -6,7 +6,8 @@ method = {
 "name": &"_on_body_entered",
 "args": [{
 "name": &"body",
-"class_name": &"Node3D"
+"class_name": &"Node3D",
+"usage": 131078
 }]
 }
 id = 17
@@ -32,7 +33,8 @@ method = {
 "name": &"_on_body_exited",
 "args": [{
 "name": &"body",
-"class_name": &"Node3D"
+"class_name": &"Node3D",
+"usage": 131078
 }]
 }
 id = 32
@@ -62,8 +64,7 @@ id = 63
 
 [obj type="OScriptGraph" id="OScriptGraph_xn3em"]
 graph_name = &"EventGraph"
-offset = Vector2(-1159.04, 328.196)
-zoom = 0.826446
+offset = Vector2(-1521.5, -193.351)
 flags = 8
 nodes = Array[int]([2, 7, 8, 17, 19, 20, 29, 30, 32, 38, 43, 49, 54, 55, 56, 57, 58, 59, 60, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74])
 functions = Array[int]([17, 32, 63])
@@ -175,7 +176,8 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "dir": 1,
-"flags": 2050
+"flags": 2,
+"usage": 131078
 }])
 
 [obj type="OScriptNodeDialogueChoice" id="OScriptNodeDialogueChoice_8ueq6"]
@@ -234,7 +236,7 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"body",
 "type": 24,
 "dir": 1,
-"flags": 2050
+"flags": 2
 }])
 
 [obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_p50t4"]
@@ -248,7 +250,8 @@ pin_data = Array[Dictionary]([{
 "flags": 4
 }, {
 "pin_name": &"return_value",
-"type": 1
+"type": 1,
+"flags": 2
 }, {
 "pin_name": &"return_out",
 "type": 1,
@@ -258,7 +261,8 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_hdxsq"]
 function_name = &"is_in_group"
-target_class_name = "Area3D"
+target_class_name = "Node"
+target_type = 24
 flags = 10
 method = {
 "name": &"is_in_group",
@@ -285,12 +289,13 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"target",
 "type": 24,
-"flags": 2,
-"target_class": "Area3D"
+"flags": 2050,
+"label": "Node",
+"target_class": "Node"
 }, {
 "pin_name": &"group",
 "type": 21,
-"flags": 2050
+"flags": 2
 }, {
 "pin_name": &"return_value",
 "type": 1,
@@ -328,7 +333,7 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "type": 24,
-"flags": 2050
+"flags": 2
 }, {
 "pin_name": &"return_value",
 "type": 1,
@@ -353,7 +358,7 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "type": 24,
-"flags": 2050
+"flags": 2
 }, {
 "pin_name": &"return_value",
 "type": 1,
@@ -373,7 +378,8 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "dir": 1,
-"flags": 2050
+"flags": 2,
+"usage": 131078
 }])
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_jtxfd"]
@@ -410,11 +416,10 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_5sqwe"]
 function_name = &"quit"
-target_class_name = "Area3D"
-flags = 8
+target_class_name = "SceneTree"
+target_type = 24
 method = {
 "name": &"quit",
-"return": {},
 "default_args": [0],
 "args": [{
 "name": &"exit_code",
@@ -435,12 +440,13 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"target",
 "type": 24,
-"flags": 2,
-"target_class": "Area3D"
+"flags": 2050,
+"label": "SceneTree",
+"target_class": "SceneTree"
 }, {
 "pin_name": &"exit_code",
 "type": 2,
-"flags": 2050,
+"flags": 2,
 "dv": 0
 }])
 
@@ -504,7 +510,7 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"scene_tree",
 "type": 24,
 "dir": 1,
-"flags": 4194306,
+"flags": 2,
 "target_class": "SceneTree"
 }])
 
@@ -621,14 +627,17 @@ position = Vector2(500, 1120)
 pin_data = Array[Dictionary]([{
 "pin_name": &"a",
 "type": 2,
+"flags": 2,
 "dv": 3
 }, {
 "pin_name": &"b",
-"type": 2
+"type": 2,
+"flags": 2
 }, {
 "pin_name": &"result",
 "type": 2,
-"dir": 1
+"dir": 1,
+"flags": 2
 }])
 
 [obj type="OScriptNodeBranch" id="OScriptNodeBranch_ehc6v"]
@@ -654,7 +663,6 @@ pin_data = Array[Dictionary]([{
 }])
 
 [obj type="OScriptNodeOperator" id="OScriptNodeOperator_rvj5e"]
-op = 0
 code = &"=="
 name = &"Equal"
 left_type = 2
@@ -667,14 +675,17 @@ size = Vector2(201, 96)
 position = Vector2(760, 1060)
 pin_data = Array[Dictionary]([{
 "pin_name": &"a",
-"type": 2
+"type": 2,
+"flags": 2
 }, {
 "pin_name": &"b",
-"type": 2
+"type": 2,
+"flags": 2
 }, {
 "pin_name": &"result",
 "type": 1,
-"dir": 1
+"dir": 1,
+"flags": 2
 }])
 
 [obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_y4piu"]
@@ -696,7 +707,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeEvent" id="OScriptNodeEvent_21ug3"]
 function_id = "F0CC2314-5ACB-4476-8233-83AA27051F56"
 id = 63
-size = Vector2(261, 93)
+size = Vector2(261, 93.0001)
 position = Vector2(-2580, 760)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecOut",
@@ -706,7 +717,10 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"event",
 "type": 24,
 "dir": 1,
-"flags": 2050
+"flags": 2,
+"target_class": "InputEvent",
+"hint": 17,
+"hint_string": "InputEvent"
 }])
 
 [obj type="OScriptNodeTypeCast" id="OScriptNodeTypeCast_jkc8c"]
@@ -720,7 +734,8 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"instance",
 "type": 24,
-"flags": 4194306
+"flags": 2,
+"target_class": "Object"
 }, {
 "pin_name": &"yes",
 "dir": 1,
@@ -733,8 +748,9 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"output",
 "type": 24,
 "dir": 1,
-"flags": 4196354,
-"label": "as InputEventKey"
+"flags": 2050,
+"label": "as InputEventKey",
+"target_class": "InputEventKey"
 }])
 
 [obj type="OScriptNodeSwitchEnum" id="OScriptNodeSwitchEnum_n5bvd"]
@@ -747,14 +763,16 @@ pin_data = Array[Dictionary]([{
 "label": "value_is:"
 }, {
 "pin_name": &"value",
-"type": 24,
+"type": 2,
 "flags": 33554434,
-"target_class": "Key"
+"target_class": "Key",
+"usage": 65542
 }, {
 "pin_name": &"case_0_out",
 "dir": 1,
 "flags": 2564,
-"label": "None"
+"label": "None",
+"gdv": 0
 }, {
 "pin_name": &"case_4194304_out",
 "dir": 1,
@@ -1911,14 +1929,25 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_cn0by"]
 mode = 1
+target_class = &"InputEventKey"
 property_name = &"keycode"
+property = {
+"name": &"keycode",
+"type": 2,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 6
+}
 id = 66
-size = Vector2(205, 66)
+size = Vector2(259, 66)
 position = Vector2(-2080, 900)
 pin_data = Array[Dictionary]([{
 "pin_name": &"target",
 "type": 24,
-"flags": 2
+"flags": 2050,
+"label": "InputEventKey",
+"target_class": "InputEventKey"
 }, {
 "pin_name": &"keycode",
 "type": 2,
@@ -2004,14 +2033,25 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_f5nc0"]
 mode = 1
+target_class = &"InputEventKey"
 property_name = &"pressed"
+property = {
+"name": &"pressed",
+"type": 1,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 6
+}
 id = 69
-size = Vector2(201, 66)
+size = Vector2(255, 66)
 position = Vector2(-2080, 820)
 pin_data = Array[Dictionary]([{
 "pin_name": &"target",
 "type": 24,
-"flags": 2
+"flags": 2050,
+"label": "InputEventKey",
+"target_class": "InputEventKey"
 }, {
 "pin_name": &"pressed",
 "type": 1,
@@ -2063,17 +2103,21 @@ pin_data = Array[Dictionary]([{
 "type": 4,
 "flags": 16777218,
 "label": "Speaker",
-"dv": "Manny"
+"dv": "Manny",
+"hint": 18
 }, {
 "pin_name": &"text",
 "type": 4,
 "flags": 16777218,
 "label": "Message",
-"dv": "Nice to meet you Oscar. I have to finish doing some work around this area, please come back if you have any questions."
+"dv": "Nice to meet you Oscar. I have to finish doing some work around this area, please come back if you have any questions.",
+"hint": 18
 }, {
 "pin_name": &"scene",
 "type": 4,
-"flags": 8388610
+"flags": 8388610,
+"hint": 13,
+"hint_string": "*.scn,*.tscn; Scene Files"
 }, {
 "pin_name": &"ExecOut",
 "dir": 1,
@@ -2092,18 +2136,22 @@ pin_data = Array[Dictionary]([{
 "type": 4,
 "flags": 16777218,
 "label": "Speaker",
-"dv": "Manny	"
+"dv": "Manny	",
+"hint": 18
 }, {
 "pin_name": &"text",
 "type": 4,
 "flags": 16777218,
 "label": "Message",
-"dv": "Sounds great.  Be sure to check out the Inn, they have the best donuts in town."
+"dv": "Sounds great.  Be sure to check out the Inn, they have the best donuts in town.",
+"hint": 18
 }, {
 "pin_name": &"scene",
 "type": 4,
 "flags": 8388610,
-"dv": ""
+"dv": "",
+"hint": 13,
+"hint_string": "*.scn,*.tscn; Scene Files"
 }, {
 "pin_name": &"ExecOut",
 "dir": 1,
@@ -2122,33 +2170,37 @@ pin_data = Array[Dictionary]([{
 "type": 4,
 "flags": 16777218,
 "label": "Speaker",
-"dv": "Manny"
+"dv": "Manny",
+"hint": 18
 }, {
 "pin_name": &"text",
 "type": 4,
 "flags": 16777218,
 "label": "Message",
 "dv": "Hello Player, my name is Manny...
-How are you today?"
+How are you today?",
+"hint": 18
 }, {
 "pin_name": &"scene",
 "type": 4,
 "flags": 8388610,
-"dv": ""
+"dv": "",
+"hint": 13,
+"hint_string": "*.scn,*.tscn; Scene Files"
 }, {
 "pin_name": &"temp_0",
 "dir": 1,
 "flags": 36
 }, {
-"pin_name": &"temp_0",
+"pin_name": &"temp_1",
 "dir": 1,
 "flags": 36
 }, {
-"pin_name": &"temp_0",
+"pin_name": &"temp_2",
 "dir": 1,
 "flags": 36
 }, {
-"pin_name": &"temp_0",
+"pin_name": &"temp_3",
 "dir": 1,
 "flags": 36
 }, {
