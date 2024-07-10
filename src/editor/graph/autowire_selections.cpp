@@ -121,6 +121,14 @@ void OrchestratorScriptAutowireSelections::popup_autowire()
         return;
     }
 
+    // For operator nodes, always auto-wire the first eligible pin.
+    if (Object::cast_to<OScriptNodeOperator>(_pin->get_owning_node()))
+    {
+        _choice = choices[0];
+        _close_window();
+        return;
+    }
+
     TreeItem* root = _tree->create_item();
     for (int i = 0; i < choices.size(); i++)
     {
