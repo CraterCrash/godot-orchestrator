@@ -406,8 +406,11 @@ void OScriptNodeCallFunction::reallocate_pins_during_reconstruction(const Vector
         {
             if (old_pin->get_direction() == input->get_direction() && old_pin->get_pin_name() == input->get_pin_name())
             {
-                input->set_generated_default_value(old_pin->get_generated_default_value());
-                input->set_default_value(old_pin->get_default_value());
+                if (old_pin->get_property_info().type == input->get_property_info().type)
+                {
+                    input->set_generated_default_value(old_pin->get_generated_default_value());
+                    input->set_default_value(old_pin->get_default_value());
+                }
             }
         }
     }
