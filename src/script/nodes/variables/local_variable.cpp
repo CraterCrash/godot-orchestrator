@@ -237,7 +237,7 @@ OScriptNodeInstance* OScriptNodeAssignLocalVariable::instantiate()
 void OScriptNodeAssignLocalVariable::validate_node_during_build(BuildLog& p_log) const
 {
     Ref<OScriptNodePin> variable = find_pin("variable", PD_Input);
-    if (!variable.is_valid())
+    if (variable.is_valid())
     {
         if (!variable->has_any_connections())
             p_log.error(this, variable, "Requires a connection.");
