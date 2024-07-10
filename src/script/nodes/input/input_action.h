@@ -44,12 +44,17 @@ protected:
     bool _set(const StringName &p_name, const Variant &p_value);
     //~ End Wrapped Interface
 
+    /// Called when the project settings are modified.
+    void _settings_changed();
+
     PackedStringArray _get_action_names() const;
     String _get_mode() const;
 
 public:
 
     //~ Begin OScriptNode Interface
+    void post_initialize() override;
+    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;

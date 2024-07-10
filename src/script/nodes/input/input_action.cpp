@@ -64,6 +64,14 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void OScriptNodeInputAction::_settings_changed()
+{
+    // If the node is selected and the user modifies the project settings, this makes sure that the action
+    // list will be regenerated in the InspectorDock to reflect the changes potentially to any new InputMap
+    // actions that were defined.
+    notify_property_list_changed();
+}
+
 PackedStringArray OScriptNodeInputAction::_get_action_names() const
 {
     PackedStringArray action_names;
@@ -142,6 +150,28 @@ void OScriptNodeInputAction::_bind_methods()
     BIND_ENUM_CONSTANT(AM_RELEASED)
     BIND_ENUM_CONSTANT(AM_JUST_PRESSED)
     BIND_ENUM_CONSTANT(AM_JUST_RELEASED)
+}
+
+void OScriptNodeInputAction::post_initialize()
+{
+    if (_is_in_editor())
+    {
+        ProjectSettings* settings = ProjectSettings::get_singleton();
+        settings->connect("settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
+    }
+
+    super::post_initialize();
+}
+
+void OScriptNodeInputAction::post_placed_new_node()
+{
+    if (_is_in_editor())
+    {
+        ProjectSettings* settings = ProjectSettings::get_singleton();
+        settings->connect("settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
+    }
+
+    super::post_placed_new_node();
 }
 
 void OScriptNodeInputAction::allocate_default_pins()
