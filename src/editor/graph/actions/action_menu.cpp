@@ -158,8 +158,12 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
 {
     _tree_view->clear();
 
-    _tree_view->create_item();
     _tree_view->set_columns(3);
+    _tree_view->set_column_expand(0, true);
+    _tree_view->set_column_expand(1, false);
+    _tree_view->set_column_custom_minimum_width(1, 50);
+    _tree_view->set_column_expand(2, false);
+    _tree_view->create_item();
 
     Ref<Texture2D> broken = SceneUtils::get_editor_icon("_not_found_");
 
@@ -224,12 +228,8 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
             }
         }
 
-        TreeItem* node = _make_item(parent, item, item->get_spec().text);
-
         const bool is_favorite = action_favorites.has(item->get_spec().category);
-        node->add_button(2, SceneUtils::get_editor_icon(is_favorite ? "Favorites" : "NonFavorite"));
-        node->set_tooltip_text(2, is_favorite ? "Remove action from favorites." : "Add action to favorites.");
-        node->set_meta("favorite", is_favorite);
+        TreeItem* node = _make_item(parent, item, item->get_spec().text, true, is_favorite);
 
         if (item->get_spec().category == _selection)
             _tree_view->set_selected(node, 0);
@@ -243,22 +243,30 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
 
 TreeItem* OrchestratorGraphActionMenu::_make_item(TreeItem* p_parent,
                                                   const Ref<OrchestratorGraphActionMenuItem>& p_menu_item,
-                                                  const String& p_text)
+                                                  const String& p_text,
+                                                  bool p_favorite_icon,
+                                                  bool p_is_favorite)
 {
     TreeItem* child = p_parent->create_child();
     child->set_text(0, p_text);
+    child->set_expand_right(0, true);
     child->set_icon(0, SceneUtils::get_editor_icon(p_menu_item->get_spec().icon));
     child->set_tooltip_text(0, p_menu_item->get_spec().tooltip);
     child->set_selectable(0, p_menu_item->get_handler().is_valid());
 
+    child->set_text(1, StringUtils::default_if_empty(p_menu_item->get_spec().qualifiers, " "));
     child->set_text_alignment(1, HORIZONTAL_ALIGNMENT_RIGHT);
-    child->set_text(1, p_menu_item->get_spec().qualifiers);
-    child->set_expand_right(1, true);
 
-    child->set_icon(2, SceneUtils::get_editor_icon(p_menu_item->get_spec().type_icon));
-    child->set_expand_right(2, true);
+    child->add_button(2, SceneUtils::get_editor_icon(p_menu_item->get_spec().type_icon), -1, true);
     child->set_text_alignment(2, HORIZONTAL_ALIGNMENT_RIGHT);
-    child->set_tooltip_text(2, p_menu_item->get_handler().is_valid() ? p_menu_item->get_handler()->get_class() : "");
+    child->set_button_tooltip_text(2, 0, p_menu_item->get_handler().is_valid() ? p_menu_item->get_handler()->get_class() : "");
+
+    if (p_favorite_icon)
+    {
+        child->add_button(2, SceneUtils::get_editor_icon(p_is_favorite ? "Favorites" : "NonFavorite"));
+        child->set_button_tooltip_text(2, 1, p_is_favorite ? "Remove action from favorites." : "Add action to favorites.");
+        child->set_meta("favorite", p_is_favorite);
+    }
 
     child->set_meta("item", p_menu_item);
 
