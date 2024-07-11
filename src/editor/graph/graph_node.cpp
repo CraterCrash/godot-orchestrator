@@ -459,7 +459,9 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Unlinked"), "Break Node Link(s)", CM_BREAK_LINKS);
     _context_menu->set_item_disabled(_context_menu->get_item_index(CM_BREAK_LINKS), !_node->has_any_connections());
 
-    if (_is_editable())
+    bool multi_selections = get_graph()->get_selected_nodes().size() > 1;
+
+    if (_is_editable() && !multi_selections)
         _context_menu->add_item("Add Option Pin", CM_ADD_OPTION_PIN);
 
     _context_menu->add_separator("Organization");
@@ -471,20 +473,26 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
         _context_menu->set_item_disabled(_context_menu->get_item_index(CM_EXPAND_NODE), true);
 
     #if GODOT_VERSION >= 0x040300
-    _context_menu->add_separator("Breakpoints");
-    _context_menu->add_item("Toggle Breakpoint", CM_TOGGLE_BREAKPOINT, KEY_F9);
-    if (_node->has_breakpoint())
+    if (!multi_selections)
     {
-        _context_menu->add_item("Remove breakpoint", CM_REMOVE_BREAKPOINT);
-        if (_node->has_disabled_breakpoint())
-            _context_menu->add_item("Enable breakpoint", CM_ADD_BREAKPOINT);
-        else
-            _context_menu->add_item("Disable breakpoint", CM_DISABLE_BREAKPOINT);
+        _context_menu->add_separator("Breakpoints");
+        _context_menu->add_item("Toggle Breakpoint", CM_TOGGLE_BREAKPOINT, KEY_F9);
+        if (_node->has_breakpoint())
+        {
+            _context_menu->add_item("Remove breakpoint", CM_REMOVE_BREAKPOINT);
+            if (_node->has_disabled_breakpoint())
+                _context_menu->add_item("Enable breakpoint", CM_ADD_BREAKPOINT);
+            else
+                _context_menu->add_item("Disable breakpoint", CM_DISABLE_BREAKPOINT);
+        }
     }
     #endif
 
     _context_menu->add_separator("Documentation");
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Help"), "View Documentation", CM_VIEW_DOCUMENTATION);
+    _context_menu->set_item_disabled(_context_menu->get_item_index(CM_VIEW_DOCUMENTATION), multi_selections);
+    if (multi_selections)
+        _context_menu->set_item_tooltip(_context_menu->get_item_index(CM_VIEW_DOCUMENTATION), "Select a single node to view documentation.");
 
     _context_menu->set_position(get_screen_position() + (p_position * (real_t) get_graph()->get_zoom()));
     _context_menu->reset_size();
@@ -700,7 +708,8 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             }
             case CM_BREAK_LINKS:
             {
-                unlink_all();
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                    node->unlink_all();
                 break;
             }
             case CM_VIEW_DOCUMENTATION:
@@ -710,7 +719,8 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             }
             case CM_RESIZABLE:
             {
-                set_resizable(!is_resizable());
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                    node->set_resizable(!node->is_resizable());
                 break;
             }
             case CM_SELECT_GROUP:
