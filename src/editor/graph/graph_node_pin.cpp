@@ -80,13 +80,7 @@ void OrchestratorGraphNodePin::_update_label()
 void OrchestratorGraphNodePin::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
-    {
         _create_widgets();
-
-        _context_menu = memnew(PopupMenu);
-        _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_on_context_menu_selection));
-        add_child(_context_menu);
-    }
 }
 
 void OrchestratorGraphNodePin::_gui_input(const Ref<InputEvent>& p_event)
@@ -460,6 +454,11 @@ void OrchestratorGraphNodePin::_populate_graph_node_in_sub_menu(int p_id, const 
 
 void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
 {
+    _context_menu = memnew(PopupMenu);
+    _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_handle_context_menu));
+    _context_menu->connect("close_requested", callable_mp(this, &OrchestratorGraphNodePin::_cleanup_context_menu));
+    add_child(_context_menu);
+
     // When showing the context-menu, if the current node is not selected, we should clear the
     // selection and the operation will only be applicable for this node and its pin.
     if (!_node->is_selected())
@@ -514,7 +513,7 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
         {
             PopupMenu* sub_menu = memnew(PopupMenu);
             sub_menu->set_name("change_pin_type_options");
-            sub_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_on_context_menu_change_pin_type));
+            sub_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_change_pin_type));
 
             for (int i = 0; i < options.size(); i++)
             {
@@ -540,7 +539,7 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
 
         PopupMenu* sub_menu = memnew(PopupMenu);
         sub_menu->set_name("break_pin");
-        sub_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_on_context_menu_break_pin));
+        sub_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_link_pin));
         _populate_graph_node_in_sub_menu(CM_BREAK_LINK, "Break Pin Link to", sub_menu, connections);
         _context_menu->add_child(sub_menu);
         _context_menu->add_submenu_item("Break Link to...", sub_menu->get_name(), CM_BREAK_LINK);
@@ -550,7 +549,7 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
     {
         PopupMenu* sub_menu = memnew(PopupMenu);
         sub_menu->set_name("node_jump");
-        sub_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_on_context_menu_jump_node));
+        sub_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNodePin::_jump_to_adjacent_node));
         _populate_graph_node_in_sub_menu(CM_JUMP_NODE, "Jump to", sub_menu, connections);
         _context_menu->add_child(sub_menu);
         _context_menu->add_submenu_item("Jump to connected node...", sub_menu->get_name(), CM_JUMP_NODE);
@@ -618,7 +617,7 @@ Ref<OScriptNodePin> OrchestratorGraphNodePin::_get_connected_pin_by_sub_menu_met
     return {};
 }
 
-void OrchestratorGraphNodePin::_on_context_menu_selection(int p_id)
+void OrchestratorGraphNodePin::_handle_context_menu(int p_id)
 {
     // Handle others
     switch (p_id)
@@ -660,9 +659,20 @@ void OrchestratorGraphNodePin::_on_context_menu_selection(int p_id)
             // no-op
             break;
     }
+
+    _cleanup_context_menu();
 }
 
-void OrchestratorGraphNodePin::_on_context_menu_change_pin_type(int p_id)
+void OrchestratorGraphNodePin::_cleanup_context_menu()
+{
+    if (_context_menu)
+    {
+        _context_menu->queue_free();
+        _context_menu = nullptr;
+    }
+}
+
+void OrchestratorGraphNodePin::_change_pin_type(int p_id)
 {
     Variant metadata = _get_context_sub_menu_item_metadata(CM_CHANGE_PIN_TYPE, p_id);
     if (metadata.get_type() == Variant::INT)
@@ -670,16 +680,20 @@ void OrchestratorGraphNodePin::_on_context_menu_change_pin_type(int p_id)
         const int type = metadata;
         get_graph_node()->get_script_node()->change_pin_types(VariantUtils::to_type(type));
     }
+
+    _cleanup_context_menu();
 }
 
-void OrchestratorGraphNodePin::_on_context_menu_break_pin(int p_id)
+void OrchestratorGraphNodePin::_link_pin(int p_id)
 {
     const Ref<OScriptNodePin> connection = _get_connected_pin_by_sub_menu_metadata(CM_BREAK_LINK, p_id);
     if (connection.is_valid())
         _pin->unlink(connection);
+
+    _cleanup_context_menu();
 }
 
-void OrchestratorGraphNodePin::_on_context_menu_jump_node(int p_id)
+void OrchestratorGraphNodePin::_jump_to_adjacent_node(int p_id)
 {
     const Ref<OScriptNodePin> connection = _get_connected_pin_by_sub_menu_metadata(CM_JUMP_NODE, p_id);
     if (connection.is_valid())
@@ -687,4 +701,6 @@ void OrchestratorGraphNodePin::_on_context_menu_jump_node(int p_id)
         const int node_id = connection->get_owning_node()->get_id();
         get_graph()->focus_node(node_id);
     }
+
+    _cleanup_context_menu();
 }

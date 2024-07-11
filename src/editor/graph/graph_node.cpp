@@ -90,14 +90,6 @@ void OrchestratorGraphNode::_notification(int p_what)
 
         // Update the pin display upon entering
         _update_pins();
-
-        // IMPORTANT
-        // The context menu must be attached to the title bar or else this will cause
-        // problems with the GraphNode and slot/index logic when calling set_slot
-        // functions.
-        _context_menu = memnew(PopupMenu);
-        _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNode::_on_context_menu_selection));
-        get_titlebar_hbox()->add_child(_context_menu);
     }
 }
 
@@ -407,6 +399,15 @@ void OrchestratorGraphNode::_update_tooltip()
 
 void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
 {
+    // IMPORTANT
+    // The context menu must be attached to the title bar or else this will cause
+    // problems with the GraphNode and slot/index logic when calling set_slot
+    // functions.
+    _context_menu = memnew(PopupMenu);
+    _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNode::_handle_context_menu));
+    _context_menu->connect("close_requested", callable_mp(this, &OrchestratorGraphNode::_cleanup_context_menu));
+    get_titlebar_hbox()->add_child(_context_menu);
+
     // When showing the context-menu, if the current node is not selected, we should clear the
     // selection and the operation will only be applicable for this node and its pin.
     if (!is_selected())
@@ -655,7 +656,7 @@ void OrchestratorGraphNode::_on_add_pin_pressed()
     _add_option_pin();
 }
 
-void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
+void OrchestratorGraphNode::_handle_context_menu(int p_id)
 {
     if (p_id >= CM_NODE_ACTION)
     {
@@ -781,4 +782,15 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
 
     // Cleanup actions
     _context_actions.clear();
+    _cleanup_context_menu();
 }
+
+void OrchestratorGraphNode::_cleanup_context_menu()
+{
+    if (_context_menu)
+    {
+        _context_menu->queue_free();
+        _context_menu = nullptr;
+    }
+}
+
