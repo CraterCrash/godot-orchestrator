@@ -41,7 +41,6 @@ class OrchestratorGraphNode : public GraphNode
 {
     GDCLASS(OrchestratorGraphNode, GraphNode);
 
-private:
     enum ContextMenuId
     {
         CM_NONE,
@@ -245,9 +244,12 @@ private:
     /// Called when the "add-pin" button pressed
     void _on_add_pin_pressed();
 
-    /// Dispatched when a context-menu option is selected
+    /// Handles the selection of a context menu item
     /// @param p_id the selected context-menu option
-    void _on_context_menu_selection(int p_id);
+    void _handle_context_menu(int p_id);
+
+    /// Cleans up the context menu after it has closed
+    void _cleanup_context_menu();
 };
 
 #endif  // ORCHESTRATOR_GRAPH_NODE_H

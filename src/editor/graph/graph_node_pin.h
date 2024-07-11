@@ -257,21 +257,24 @@ private:
     /// @return the connection pin, could be invalid if the connection lookup fails
     Ref<OScriptNodePin> _get_connected_pin_by_sub_menu_metadata(int p_menu_id, int p_id);
 
-    /// Observes when a context menu item is selected
+    /// Handles the selection of a context menu item
     /// @param p_id the selected item id
-    void _on_context_menu_selection(int p_id);
+    void _handle_context_menu(int p_id);
 
-    /// Dispatched when requesting the pin's type to be changed
+    /// Cleans up the context menu after it has closed
+    void _cleanup_context_menu();
+
+    /// Changes the pin's type to the selected type
     /// @param p_id the menu id of the new pin type
-    void _on_context_menu_change_pin_type(int p_id);
+    void _change_pin_type(int p_id);
 
-    /// Dispatched when requesting to break a specific pin
+    /// Breaks or unlinks a pin's connection
     /// @param p_id the menu id of the pin to break
-    void _on_context_menu_break_pin(int p_id);
+    void _link_pin(int p_id);
 
-    /// Dispatched when requesting to jump to an adjacent node
+    /// Jumps to an adjacent node
     /// @param p_id the menu id of the node to jump to
-    void _on_context_menu_jump_node(int p_id);
+    void _jump_to_adjacent_node(int p_id);
 };
 
 #endif  // ORCHESTRATOR_GRAPH_NODE_PIN_H
