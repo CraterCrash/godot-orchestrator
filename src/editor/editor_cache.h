@@ -80,6 +80,15 @@ public:
     void set_disabled_breakpoint(const String& p_path, int p_node_id, bool p_remove = false);
     #endif
 
+    /// Get the script state
+    /// @param p_path the script path
+    /// @return the script state
+    Dictionary get_script_state(const String& p_path);
+
+    /// Set the script state
+    /// @param p_path the script path
+    /// @param p_data the state
+    void set_script_state(const String& p_path, const Dictionary& p_data);
 };
 
 #endif // ORCHESTRATOR_EDITOR_CACHE_H

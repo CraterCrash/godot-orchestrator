@@ -139,7 +139,7 @@ protected:
 
 public:
     /// Requests any pending changes to be flushed
-    void apply_changes();
+    virtual void apply_changes();
 
     /// Reload the view from disk
     void reload_from_disk();

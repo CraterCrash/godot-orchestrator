@@ -297,6 +297,12 @@ void OrchestratorScriptComponentPanel::find_and_edit(const String& p_item_name)
     _find_child_and_activate(p_item_name, true);
 }
 
+void OrchestratorScriptComponentPanel::set_collapsed(bool p_collapsed)
+{
+    _expanded = p_collapsed;
+    _toggle();
+}
+
 void OrchestratorScriptComponentPanel::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
