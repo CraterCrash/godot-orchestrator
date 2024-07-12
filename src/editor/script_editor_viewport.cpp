@@ -65,6 +65,86 @@ void OrchestratorScriptEditorViewport::_graph_opened(OrchestratorGraphEdit* p_gr
     p_graph->connect("expand_node", callable_mp(this, &OrchestratorScriptEditorViewport::_expand_node).bind(p_graph));
 }
 
+void OrchestratorScriptEditorViewport::_save_state()
+{
+    Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
+    if (cache.is_valid())
+    {
+        Dictionary state;
+
+        PackedStringArray open_graphs;
+        for (int i = 0; i < _tabs->get_tab_count(); i++)
+            open_graphs.push_back(_tabs->get_tab_control(i)->get_name());
+
+        /// For each graph, record its current transient state
+        Dictionary graph_states;
+        state["graphs"] = graph_states;
+        for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
+        {
+            Dictionary graph_state;
+            graph_state["viewport_offset"] = graph->get_viewport_offset();
+            graph_state["zoom"] = graph->get_viewport_zoom();
+            graph_state["open"] = open_graphs.has(graph->get_graph_name());
+            graph_state["active"] = _tabs->get_current_tab_control()->get_name().match(graph->get_graph_name());
+            graph_states[graph->get_graph_name()] = graph_state;
+        }
+
+        // Save panel collapse state
+        Dictionary panel_states;
+        state["panels"] = panel_states;
+        panel_states["graphs"] = _graphs->is_collapsed();
+        panel_states["functions"] = _functions->is_collapsed();
+        panel_states["macros"] = _macros->is_collapsed();
+        panel_states["variables"] = _variables->is_collapsed();
+        panel_states["signals"] = _signals->is_collapsed();
+
+        cache->set_script_state(_orchestration->get_self()->get_path(), state);
+        cache->save();
+    }
+}
+
+void OrchestratorScriptEditorViewport::_restore_state()
+{
+    Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
+    if (cache.is_valid())
+    {
+        const Dictionary& state = cache->get_script_state(_orchestration->get_self()->get_path());
+
+        // Restores graph state
+        if (state.has("graphs"))
+        {
+            const Dictionary& graphs = state["graphs"];
+            for (int i = 0; i < graphs.keys().size(); i++)
+            {
+                const String graph_name = graphs.keys()[i];
+                const Dictionary& graph_data = graphs[graph_name];
+
+                // Restore graph transient data
+                Ref<OScriptGraph> graph = _orchestration->find_graph(graph_name);
+                if (graph.is_valid())
+                {
+                    graph->set_viewport_offset(graph_data.get("viewport_offset", Vector2()));
+                    graph->set_viewport_zoom(graph_data.get("zoom", 1.0));
+                }
+
+                if (graph_data.get("open", false))
+                    _get_or_create_tab(graph_name, graph_data.get("active", false), true);
+            }
+        }
+
+        // Restores panel collapse state
+        if (state.has("panels"))
+        {
+            const Dictionary& panel_state = state["panels"];
+            _graphs->set_collapsed(panel_state.get("graphs", false));
+            _functions->set_collapsed(panel_state.get("functions", false));
+            _macros->set_collapsed(panel_state.get("macros", false));
+            _variables->set_collapsed(panel_state.get("variables", false));
+            _signals->set_collapsed(panel_state.get("signals", false));
+        }
+    }
+}
+
 Ref<OScriptFunction> OrchestratorScriptEditorViewport::_create_new_function(const String& p_name, bool p_has_return)
 {
     ERR_FAIL_COND_V_MSG(_orchestration->has_graph(p_name), {}, "Script already has graph named " + p_name);
@@ -382,6 +462,12 @@ void OrchestratorScriptEditorViewport::_expand_node(int p_node_id, OrchestratorG
     p_graph->get_orchestration()->remove_node(call_node->get_id());
 }
 
+void OrchestratorScriptEditorViewport::apply_changes()
+{
+    OrchestratorEditorViewport::apply_changes();
+    _save_state();
+}
+
 void OrchestratorScriptEditorViewport::add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
 {
     // Check whether a function already exists with the given name
@@ -485,7 +571,10 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
         _event_graph = _get_or_create_tab(EVENT_GRAPH_NAME);
 
         _update_components();
+        _restore_state();
     }
+    else if (p_what == NOTIFICATION_EXIT_TREE)
+        _save_state();
 }
 
 void OrchestratorScriptEditorViewport::_bind_methods()

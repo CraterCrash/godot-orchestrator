@@ -49,6 +49,12 @@ protected:
     void _graph_opened(OrchestratorGraphEdit* p_graph) override;
     //~ End OrchestratorEditorViewport Interface
 
+    /// Saves the editor state to the cache
+    void _save_state();
+
+    /// Restores the editor state from the cache
+    void _restore_state();
+
     /// Creates a new function in the script
     /// @param p_name the function name
     /// @param p_has_return whether function has a return node
@@ -94,6 +100,7 @@ protected:
 
 public:
     //~ Begin OrchestratorEditorViewport Interface
+    void apply_changes() override;
     void add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args) override;
     //~ End OrchestratorEditorViewport Interface
 
