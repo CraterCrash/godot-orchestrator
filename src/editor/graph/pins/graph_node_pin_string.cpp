@@ -60,7 +60,7 @@ Control* OrchestratorGraphNodePinString::_get_default_value_widget()
     {
         TextEdit* text_edit = memnew(TextEdit);
         text_edit->set_placeholder("No value...");
-        text_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        text_edit->set_h_size_flags(Control::SIZE_EXPAND);
         text_edit->set_v_size_flags(Control::SIZE_EXPAND);
         text_edit->set_h_grow_direction(Control::GROW_DIRECTION_END);
         text_edit->set_custom_minimum_size(Vector2(350, 0));
@@ -76,7 +76,7 @@ Control* OrchestratorGraphNodePinString::_get_default_value_widget()
     LineEdit* line_edit = memnew(LineEdit);
     line_edit->set_custom_minimum_size(Vector2(30, 0));
     line_edit->set_expand_to_text_length_enabled(true);
-    line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    line_edit->set_h_size_flags(Control::SIZE_EXPAND);
     line_edit->set_text(_pin->get_effective_default_value());
     line_edit->set_select_all_on_focus(true);
     line_edit->connect("text_submitted",

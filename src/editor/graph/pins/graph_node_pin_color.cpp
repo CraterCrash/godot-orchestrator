@@ -36,7 +36,7 @@ Control* OrchestratorGraphNodePinColor::_get_default_value_widget()
 {
     ColorPickerButton* button = memnew(ColorPickerButton);
     button->set_focus_mode(Control::FOCUS_NONE);
-    button->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    button->set_h_size_flags(Control::SIZE_EXPAND);
     button->set_custom_minimum_size(Vector2(24, 24));
     button->set_pick_color(_pin->get_default_value());
     button->connect("color_changed", callable_mp(this, &OrchestratorGraphNodePinColor::_on_default_value_changed));
