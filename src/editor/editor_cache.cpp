@@ -128,6 +128,16 @@ void OrchestratorEditorCache::set_disabled_breakpoint(const String& p_path, int 
 }
 #endif
 
+Dictionary OrchestratorEditorCache::get_script_state(const String& p_path)
+{
+    return _cache->get_value(p_path, "state", Dictionary());
+}
+
+void OrchestratorEditorCache::set_script_state(const String& p_path, const Dictionary& p_data)
+{
+    _cache->set_value(p_path, "state", p_data);
+}
+
 void OrchestratorEditorCache::_bind_methods()
 {
 }

@@ -195,6 +195,14 @@ public:
     /// @param p_item_name
     void find_and_edit(const String& p_item_name);
 
+    /// Return whether the component panel is collapsed
+    /// @return true if the panel is collapsed, false otherwise
+    bool is_collapsed() const { return !_expanded; }
+
+    /// Set whether the panel is collapsed
+    /// @param p_collapsed whether the panel is collapsed
+    void set_collapsed(bool p_collapsed);
+
     /// Godot's notification callback
     /// @param p_what the notification type
     void _notification(int p_what);
