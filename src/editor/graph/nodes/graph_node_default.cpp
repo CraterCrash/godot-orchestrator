@@ -110,6 +110,29 @@ void OrchestratorGraphNodeDefault::_update_pins()
         _create_row_widget(row);
     }
 
+    real_t max_left_width{ 0 };
+    real_t max_right_width{ 0 };
+    for (int row_index = 0; row_index < max_rows; row_index++)
+    {
+        if (_pin_rows[row_index].left)
+            max_left_width = Math::max(_pin_rows[row_index].left->get_size().x, max_left_width);
+        if (_pin_rows[row_index].right)
+            max_right_width = Math::max(_pin_rows[row_index].right->get_size().x, max_right_width);
+    }
+    for (int row_index = 0; row_index < max_rows; row_index++)
+    {
+        if (_pin_rows[row_index].left)
+        {
+            _pin_rows[row_index].left->set_custom_minimum_size(Vector2(max_left_width, 0));
+            _pin_rows[row_index].left->set_alignment(BoxContainer::ALIGNMENT_BEGIN);
+        }
+        if (_pin_rows[row_index].right)
+        {
+            _pin_rows[row_index].right->set_custom_minimum_size(Vector2(max_right_width, 0));
+            _pin_rows[row_index].right->set_alignment(BoxContainer::ALIGNMENT_END);
+        }
+    }
+
     OrchestratorGraphNode::_update_pins();
 }
 

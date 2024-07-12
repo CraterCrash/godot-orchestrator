@@ -60,7 +60,7 @@ Control* OrchestratorGraphNodePinNumeric::_get_default_value_widget()
 {
     LineEdit* line_edit = memnew(LineEdit);
     line_edit->set_expand_to_text_length_enabled(true);
-    line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    line_edit->set_h_size_flags(Control::SIZE_EXPAND);
     line_edit->set_text(_pin->get_effective_default_value());
     line_edit->add_theme_constant_override("minimum_character_width", 0);
     line_edit->set_select_all_on_focus(true);
