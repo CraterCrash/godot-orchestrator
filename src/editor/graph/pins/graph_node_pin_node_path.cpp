@@ -16,225 +16,229 @@
 //
 #include "graph_node_pin_node_path.h"
 
-#include "common/string_utils.h"
+#include "common/callable_lambda.h"
 #include "common/scene_utils.h"
+#include "common/string_utils.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
+#include "editor/property_selector.h"
+#include "editor/scene_node_selector.h"
+#include "script/nodes/functions/call_function.h"
+#include "script/nodes/functions/call_member_function.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/classes/h_box_container.hpp>
-#include <godot_cpp/classes/line_edit.hpp>
+#include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
-#include <godot_cpp/classes/tree.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
 
-void OrchestratorSceneTreeDialog::_bind_methods()
+#define EDSCALE OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_scale()
+
+Vector<OrchestratorGraphNodePinNodePath::MethodDescriptor> OrchestratorGraphNodePinNodePath::_descriptors;
+
+Control* OrchestratorGraphNodePinNodePath::_get_default_value_widget()
 {
-    ADD_SIGNAL(MethodInfo("node_selected", PropertyInfo(Variant::NODE_PATH, "node_path")));
+    HBoxContainer* container = memnew(HBoxContainer);
+
+    // Create button
+    _button = memnew(Button);
+    _button->set_focus_mode(FOCUS_NONE);
+    _button->set_custom_minimum_size(Vector2(28, 0));
+    _button->set_text(StringUtils::default_if_empty(_pin->get_effective_default_value(), DEFAULT_TEXT));
+    _button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinNodePath::_start_dialog_sequence));
+    container->add_child(_button);
+
+    _reset_button = memnew(Button);
+    _reset_button->set_focus_mode(FOCUS_NONE);
+    _reset_button->set_button_icon(SceneUtils::get_editor_icon("Reload"));
+    _reset_button->connect("pressed", callable_mp_lambda(this, [=, this]() { _reset(); }));
+    _reset_button->set_visible(!_button->get_text().match("Assign..."));
+    container->add_child(_reset_button);
+
+    return container;
 }
 
-void OrchestratorSceneTreeDialog::_on_close_requested()
+void OrchestratorGraphNodePinNodePath::_resolve_descriptor()
 {
-    hide();
-    queue_free();
-}
-
-void OrchestratorSceneTreeDialog::_on_confirmed()
-{
-    TreeItem* selected = _tree->get_selected();
-    if (selected)
+    if (OScriptNodeCallMemberFunction* node = Object::cast_to<OScriptNodeCallMemberFunction>(_pin->get_owning_node()))
     {
-        const NodePath node_path = selected->get_metadata(0);
-        emit_signal("node_selected", node_path);
-    }
-
-    hide();
-    queue_free();
-}
-
-void OrchestratorSceneTreeDialog::_on_filter_changed(const String& p_text)
-{
-    _update_tree(_tree->get_root());
-}
-
-void OrchestratorSceneTreeDialog::_on_item_activated()
-{
-    _on_confirmed();
-}
-
-void OrchestratorSceneTreeDialog::_on_item_selected()
-{
-    get_ok_button()->set_disabled(!_tree->get_selected());
-}
-
-bool OrchestratorSceneTreeDialog::_update_tree(TreeItem* p_item)
-{
-    bool has_filter = !_filter->get_text().strip_edges().is_empty();
-
-    p_item->set_selectable(0, true);
-    p_item->set_visible(true);
-    p_item->clear_custom_color(0);
-
-    if (has_filter)
-        p_item->set_custom_color(0, Color(0.6, 0.6, 0.6));
-
-    bool keep_for_children = false;
-    for (TreeItem* child = p_item->get_first_child(); child; child = child->get_next())
-        keep_for_children = _update_tree(child) || keep_for_children;
-
-    bool keep = false;
-
-    String text = p_item->get_text(0).to_lower();
-    if ((has_filter && text.contains(_filter->get_text().strip_edges().to_lower())) || !has_filter)
-    {
-        keep = true;
-
-        if (p_item->has_meta("__node"))
+        const MethodInfo& mi = node->get_function();
+        for (MethodDescriptor& descriptor : _descriptors)
         {
-            Node* p_node = Object::cast_to<Node>(p_item->get_meta("__node"));
-            if (p_node->can_process())
-                p_item->clear_custom_color(0);
+            if (!node->get_target_class().match(descriptor.class_name))
+                continue;
+
+            if (!descriptor.method_name.match(mi.name))
+                continue;
+
+            if (!descriptor.pin_name.match(_pin->get_pin_name()))
+                continue;
+
+            _descriptor = &descriptor;
+            break;
         }
     }
-
-    p_item->set_visible(keep || keep_for_children);
-
-    if (!keep)
-    {
-        if (p_item->is_selected(0))
-            p_item->deselect(0);
-
-        p_item->set_selectable(0, false);
-    }
-
-    return p_item->is_visible();
 }
 
-void OrchestratorSceneTreeDialog::_populate_tree()
+void OrchestratorGraphNodePinNodePath::_start_dialog_sequence()
 {
-    _tree->clear();
+    // Reset sequence node path
+    _sequence_node_path = "";
 
-    SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
-
-    TreeItem* root = _tree->create_item();
-    _tree->set_hide_root(true);
-
-    // Don't allow showing the tree unless the scene that the script is attached is opened.
-    Node* found = SceneUtils::get_node_with_script(_script, st->get_edited_scene_root(), st->get_edited_scene_root());
-    if (found)
+    if (!_has_descriptor() || _descriptor->is_node_and_property_selection)
     {
-        const String found_scene = SceneUtils::get_relative_scene_root(found)->get_scene_file_path();
-        if (st->get_edited_scene_root()->get_scene_file_path() != found_scene)
-            return;
+        // In this case, this NodePath is simply asking the user to select a scene node only.
+        _show_node_dialog();
     }
-
-    _script_node = found;
-    _populate_tree(root, st->get_edited_scene_root(), st->get_edited_scene_root());
+    else if (_descriptor->is_property_selection)
+    {
+        // This requires only a property path.
+        // The dependency for this is based on the descriptor
+        _show_property_dialog();
+    }
 }
 
-void OrchestratorSceneTreeDialog::_populate_tree(TreeItem* p_parent, Node* p_node, Node* p_root)
+void OrchestratorGraphNodePinNodePath::_show_node_dialog()
 {
-    if (!(p_node == p_root || p_node->get_owner() == p_root))
+    // Resolve the selected node
+    // When Godot's implementation eventually supports this (https://github.com/godotengine/godot/pull/94323),
+    // then we can use the default Godot API
+    Node* selected = nullptr;
+    const NodePath path = _pin->get_effective_default_value();
+    if (!path.is_empty())
+    {
+        if (Node* root = get_tree()->get_edited_scene_root())
+            selected = root->get_node_or_null(path);
+    }
+
+    _node_selector = memnew(OrchestratorSceneNodeSelector);
+    _node_selector->set_selected(selected);
+    _node_selector->connect("node_selected", callable_mp(this, &OrchestratorGraphNodePinNodePath::_node_selected));
+    add_child(_node_selector);
+
+    _node_selector->popup_centered_clamped(Size2(350, 700) * EDSCALE);
+}
+
+void OrchestratorGraphNodePinNodePath::_node_selected(const NodePath& p_path)
+{
+    if (p_path.is_empty())
+    {
+        // Nothing should be done, leave unchanged.
+        _node_selector->queue_free();
+        _node_selector = nullptr;
+        return;
+    }
+
+    if (!_has_descriptor() || (_has_descriptor() && !_descriptor->is_node_and_property_selection))
+    {
+        // Only a node selection is required
+        _set_pin_value(p_path);
+        return;
+    }
+
+    // User is selecting a property from a given node path
+    Node* node = get_tree()->get_edited_scene_root()->get_node_or_null(p_path);
+    if (!node)
         return;
 
-    if (!_script_node)
+    String value = _pin->get_effective_default_value();
+    if (!value.is_empty() && value.contains(":"))
+        value = value.substr(value.find(":") + 1);
+    else
+        value = "";
+
+    _sequence_node_path = p_path;
+    _show_property_dialog_for_object(node, value);
+}
+
+void OrchestratorGraphNodePinNodePath::_show_property_dialog()
+{
+    const Ref<OScriptNodePin> owner_pin = _pin->get_owning_node()->find_pin(_descriptor->dependency_pin_name, PD_Input);
+    if (!owner_pin.is_valid() || !owner_pin->has_any_connections())
         return;
 
-    TreeItem* child = p_parent->create_child();
-    child->set_text(0, p_node->get_name());
-    child->set_icon(0, SceneUtils::get_editor_icon(p_node->get_class()));
-    child->set_metadata(0, _script_node->get_path_to(p_node));
-    child->set_meta("__node", p_node);
-    if (!p_node->can_process())
-        child->set_custom_color(0, Color(0.6, 0.6, 0.6));
+    const Ref<OScriptTargetObject> target = owner_pin->get_connections()[0]->resolve_target();
+    if (!target.is_valid() || !target->has_target())
+        return;
 
-    if (_script_node->get_path_to(p_node) == _node_path)
-        child->select(0);
+    String value = _pin->get_effective_default_value();
+    if (!value.is_empty() && value.begins_with(":"))
+        value = value.substr(1);
 
-    for (int i = 0; i < p_node->get_child_count(); i++)
+    _show_property_dialog_for_object(target->get_target(), value);
+}
+
+void OrchestratorGraphNodePinNodePath::_property_selected(const String& p_name)
+{
+    _set_pin_value(vformat("%s:%s", _sequence_node_path, p_name));
+}
+
+void OrchestratorGraphNodePinNodePath::_show_property_dialog_for_object(Object* p_object, const String& p_selected_value)
+{
+    // When Godot's implementation eventually supports this (https://github.com/godotengine/godot/pull/94323),
+    // then we can use the default Godot API
+
+    _property_selector = memnew(OrchestratorPropertySelector);
+    _property_selector->connect("selected", callable_mp(this, &OrchestratorGraphNodePinNodePath::_property_selected));
+    add_child(_property_selector);
+
+    _property_selector->select_property_from_instance(p_object, p_selected_value);
+}
+
+void OrchestratorGraphNodePinNodePath::_reset()
+{
+    _set_pin_value(Variant());
+}
+
+void OrchestratorGraphNodePinNodePath::_set_pin_value(const Variant& p_pin_value)
+{
+    _pin->set_default_value(p_pin_value);
+    _button->set_text(StringUtils::default_if_empty(_pin->get_effective_default_value(), DEFAULT_TEXT));
+    _reset_button->set_visible(!_button->get_text().match(DEFAULT_TEXT));
+}
+
+void OrchestratorGraphNodePinNodePath::_pin_connected(int p_type, int p_index)
+{
+    const Ref<OScriptNodePin> pin = _pin->get_owning_node()->find_pin(p_index, EPinDirection(p_type));
+    if (_has_descriptor() && pin.is_valid() && pin->get_pin_name().match(_descriptor->dependency_pin_name))
+        _button->set_visible(true);
+}
+
+void OrchestratorGraphNodePinNodePath::_pin_disconnected(int p_type, int p_index)
+{
+    const Ref<OScriptNodePin> pin = _pin->get_owning_node()->find_pin(p_index, EPinDirection(p_type));
+    if (_has_descriptor() && pin.is_valid() && pin->get_pin_name().match(_descriptor->dependency_pin_name))
     {
-        Node* child_node = p_node->get_child(i);
-        _populate_tree(child, child_node, p_root);
+        _reset();
+        _button->set_visible(false);
     }
 }
 
-void OrchestratorSceneTreeDialog::_notification(int p_what)
+void OrchestratorGraphNodePinNodePath::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
-        set_title("Select a node");
+        if (_has_descriptor())
+        {
+            OScriptNode* owner = _pin->get_owning_node();
 
-        VBoxContainer* content = memnew(VBoxContainer);
-        add_child(content);
+            const Ref<OScriptNodePin> target = owner->find_pin(_descriptor->dependency_pin_name, PD_Input);
+            if (target.is_valid() && !target->has_any_connections())
+                _button->set_visible(false);
 
-        HBoxContainer* filter_container = memnew(HBoxContainer);
-        content->add_child(filter_container);
-
-        _filter = memnew(LineEdit);
-        _filter->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-        _filter->set_placeholder("Filter Nodes");
-        _filter->set_clear_button_enabled(true);
-        _filter->add_theme_constant_override("minimum_character_width", 0);
-        _filter->connect("text_changed", callable_mp(this, &OrchestratorSceneTreeDialog::_on_filter_changed));
-        filter_container->add_child(_filter);
-
-        _tree = memnew(Tree);
-        _tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-        content->add_child(_tree);
-
-        get_ok_button()->set_disabled(!_tree->get_selected());
-
-        connect("confirmed", callable_mp(this, &OrchestratorSceneTreeDialog::_on_confirmed));
-        connect("canceled", callable_mp(this, &OrchestratorSceneTreeDialog::_on_close_requested));
-
-        _tree->connect("item_activated", callable_mp(this, &OrchestratorSceneTreeDialog::_on_item_activated));
-        _tree->connect("item_selected", callable_mp(this, &OrchestratorSceneTreeDialog::_on_item_selected));
-
-        _populate_tree();
+            owner->connect("pin_connected", callable_mp(this, &OrchestratorGraphNodePinNodePath::_pin_connected));
+            owner->connect("pin_disconnected", callable_mp(this, &OrchestratorGraphNodePinNodePath::_pin_disconnected));
+        }
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-OrchestratorGraphNodePinNodePath::OrchestratorGraphNodePinNodePath(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
-    : OrchestratorGraphNodePin(p_node, p_pin)
-{
 }
 
 void OrchestratorGraphNodePinNodePath::_bind_methods()
 {
+    // Register descriptors
+    _descriptors.push_back({ "Tween", "tween_property", "property", "object", true, false });
+    _descriptors.push_back({ "AnimationMixer", "set_root_motion_track", "path", "", false, true, true });
 }
 
-void OrchestratorGraphNodePinNodePath::_on_show_scene_tree_dialog()
+OrchestratorGraphNodePinNodePath::OrchestratorGraphNodePinNodePath(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
+    : OrchestratorGraphNodePin(p_node, p_pin)
 {
-    OrchestratorSceneTreeDialog* dialog = memnew(OrchestratorSceneTreeDialog);
-    dialog->set_min_size(Size2(475, 700));
-    dialog->set_node_path(_pin->get_effective_default_value());
-    dialog->connect("node_selected", callable_mp(this, &OrchestratorGraphNodePinNodePath::_on_node_selected));
-
-    const Ref<OScript> script = _pin->get_owning_node()->get_orchestration()->get_self();
-    if (script.is_valid())
-        dialog->set_script(script);
-
-    add_child(dialog);
-
-    dialog->popup_centered();
-}
-
-void OrchestratorGraphNodePinNodePath::_on_node_selected(const NodePath& p_node_path)
-{
-    _pin->set_default_value(p_node_path);
-    _button->set_text(p_node_path);
-}
-
-Control* OrchestratorGraphNodePinNodePath::_get_default_value_widget()
-{
-    // Create button
-    _button = memnew(Button);
-    _button->set_focus_mode(FocusMode::FOCUS_NONE);
-    _button->set_custom_minimum_size(Vector2(28, 0));
-    _button->set_text(StringUtils::default_if_empty(_pin->get_effective_default_value(), "Assign..."));
-    _button->connect("pressed", callable_mp(this, &OrchestratorGraphNodePinNodePath::_on_show_scene_tree_dialog));
-    return _button;
+    _resolve_descriptor();
 }

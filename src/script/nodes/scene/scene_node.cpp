@@ -154,8 +154,8 @@ Ref<OScriptTargetObject> OScriptNodeSceneNode::resolve_target(const Ref<OScriptN
 {
     if (_is_in_editor() && p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
     {
-        if (Node* root = _get_referenced_node())
-            return memnew(OScriptTargetObject(root->get_node_or_null(_node_path), false));
+        if (Node* scene_node = _get_referenced_node())
+            return memnew(OScriptTargetObject(scene_node, false));
     }
     return super::resolve_target(p_pin);
 }

@@ -112,6 +112,17 @@ namespace PropertyUtils
         return Variant::get_type_name(p_property.type);
     }
 
+    String get_variant_type_name(const PropertyInfo& p_property)
+    {
+        if (is_variant(p_property))
+            return "Variant";
+
+        if (p_property.type == Variant::OBJECT)
+            return "MiniObject";
+
+        return Variant::get_type_name(p_property.type);
+    }
+
     String usage_to_string(uint32_t p_usage)
     {
         static HashMap<uint32_t, String> usage_names = get_property_usage_name_map();
