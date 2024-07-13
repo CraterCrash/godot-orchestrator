@@ -87,6 +87,11 @@ protected:
     /// @return true if the MethodInfo is saved as part of the node's data, false if it isn't
     virtual bool _is_method_info_serialized() const { return true; }
 
+    /// Return whether the return value pin should be labeled
+    /// @param p_pin the return value pin
+    /// @return true if the pin is labeled, false otherwise
+    virtual bool _is_return_value_labeled(const Ref<OScriptNodePin>& p_pin) const;
+
     /// Get the Godot method object.
     /// @return the available Godot MethodInfo
     virtual MethodInfo get_method_info() { return _reference.method; }
