@@ -341,7 +341,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         Ref<OScriptNodePin> rv = create_pin(PD_Output, PT_Data, PropertyUtils::as("return_value", p_method.return_val));
         if (rv.is_valid())
         {
-            if (rv->get_type() == Variant::OBJECT)
+            if (_is_return_value_labeled(rv))
                 rv->set_label(p_method.return_val.class_name);
             else
                 rv->hide_label();
@@ -361,6 +361,15 @@ bool OScriptNodeCallFunction::_has_execution_pins(const MethodInfo& p_method) co
             return false;
     }
     return true;
+}
+
+bool OScriptNodeCallFunction::_is_return_value_labeled(const Ref<OScriptNodePin>& p_pin) const
+{
+    const bool is_enum = PropertyUtils::is_enum(p_pin->get_property_info());
+    const bool is_bitfield = PropertyUtils::is_bitfield(p_pin->get_property_info());
+    const bool is_object = p_pin->get_property_info().type == Variant::OBJECT;
+
+    return is_object || is_enum || is_bitfield;
 }
 
 void OScriptNodeCallFunction::_set_function_flags(const MethodInfo& p_method)
