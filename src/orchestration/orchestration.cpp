@@ -24,7 +24,7 @@
 #include "script/nodes/variables/variable.h"
 #include "script/variable.h"
 
-#include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/classes/os.hpp>
 
 TypedArray<OScriptNode> Orchestration::_get_nodes_internal() const
 {
@@ -204,7 +204,12 @@ void Orchestration::_fix_orphans()
         }
         for (const OScriptConnection C : removals)
         {
-            WARN_PRINT(vformat("Removing orphan connection for " + C.to_string() + ", either the source or target node no longer exists."));
+            String extra = "";
+            if (OS::get_singleton()->has_feature("editor"))
+                extra += " Please save orchestration '" + get_self()->get_path() + "' to apply changes.";
+
+            WARN_PRINT(vformat("Removing orphan connection for " + C.to_string() + ", either the source or target node no longer exists." + extra));
+
             _connections.erase(C);
         }
     }
@@ -298,6 +303,8 @@ void Orchestration::post_initialize()
     // Initialize graphs
     for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs)
         G.value->post_initialize();
+
+    _fix_orphans();
 
     // Check if upgrades are required
     if (_version < OScriptResourceFormatInstance::FORMAT_VERSION)
