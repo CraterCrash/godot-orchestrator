@@ -6,6 +6,8 @@
 export.cfg
 export_presets.cfg
 *.import
+
+# Project exports
 project/export/
 
 # Build files
@@ -15,6 +17,9 @@ project/addons/orchestrator/orchestrator*.ilk
 project/addons/orchestrator/orchestrator*.lib
 project/addons/orchestrator/orchestrator*.pdb
 project/addons/orchestrator/~orchestrator*.*
+
+# Test files
+project/tests
 
 # Imported translations (automatically generated from CSV files)
 *.translation
