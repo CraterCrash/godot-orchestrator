@@ -118,6 +118,15 @@ String OScriptNodeDecompose::get_icon() const
     return "Unlinked";
 }
 
+String OScriptNodeDecompose::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class:%s", Variant::get_type_name(_type));
+    #else
+    return vformat("%s", Variant::get_type_name(_type));
+    #endif
+}
+
 OScriptNodeInstance* OScriptNodeDecompose::instantiate()
 {
     OScriptNodeDecomposeInstance* i = memnew(OScriptNodeDecomposeInstance);

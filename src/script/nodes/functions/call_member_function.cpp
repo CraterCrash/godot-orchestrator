@@ -16,6 +16,7 @@
 //
 #include "call_member_function.h"
 
+#include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
@@ -164,9 +165,17 @@ String OScriptNodeCallMemberFunction::get_node_title() const
 String OScriptNodeCallMemberFunction::get_help_topic() const
 {
     #if GODOT_VERSION >= 0x040300
-    const String class_name = MethodUtils::get_method_class(_reference.target_class_name, _reference.method.name);
-    if (!class_name.is_empty())
-        return vformat("class_method:%s:%s", class_name, _reference.method.name);
+    if (_reference.target_type != Variant::OBJECT)
+    {
+        BuiltInType type = ExtensionDB::get_builtin_type(_reference.target_type);
+        return vformat("class_method:%s:%s", type.name, _reference.method.name);
+    }
+    else
+    {
+        const String class_name = MethodUtils::get_method_class(_reference.target_class_name, _reference.method.name);
+        if (!class_name.is_empty())
+            return vformat("class_method:%s:%s", class_name, _reference.method.name);
+    }
     #endif
     return super::get_help_topic();
 }

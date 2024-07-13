@@ -37,6 +37,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "scene"; }
     String get_icon() const override;
+    String get_help_topic() const override;
     OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };

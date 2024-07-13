@@ -19,6 +19,10 @@
 #include "common/dictionary_utils.h"
 #include "script/script.h"
 
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+
 OScriptNodeProperty::OScriptNodeProperty()
 {
     _flags = ScriptNodeFlags::NONE;
@@ -221,6 +225,33 @@ String OScriptNodeProperty::get_icon() const
 {
     return "MemberProperty";
 }
+
+String OScriptNodeProperty::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    switch (_call_mode)
+    {
+        case CALL_INSTANCE:
+            return vformat("class_property:%s:%s", _base_type, _property.name);
+        case CALL_SELF:
+            return vformat("class_property:%s:%s", get_orchestration()->get_base_type(), _property.name);
+        case CALL_NODE_PATH:
+        {
+            if (SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop()))
+            {
+                Node* node = st->get_edited_scene_root()->get_node_or_null(_node_path);
+                if (node)
+                    return vformat("class_property:%s:%s", node->get_class(), _property.name);
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    #endif
+    return super::get_help_topic();
+}
+
 
 void OScriptNodeProperty::initialize(const OScriptNodeInitContext& p_context)
 {
