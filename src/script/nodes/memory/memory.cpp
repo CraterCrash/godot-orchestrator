@@ -194,6 +194,10 @@ OScriptNodeInstance* OScriptNodeNew::instantiate()
 void OScriptNodeNew::initialize(const OScriptNodeInitContext& p_context)
 {
     _class_name = "Object";
+
+    if (p_context.user_data && p_context.user_data.value().has("class_name"))
+        _class_name = p_context.user_data.value()["class_name"];
+
     super::initialize(p_context);
 }
 
