@@ -87,6 +87,15 @@ String OScriptNodeSceneTree::get_icon() const
     return "NodeInfo";
 }
 
+String OScriptNodeSceneTree::get_help_topic() const
+{
+    #if GODOT_VERSION >= 0x040300
+    return vformat("class:%s", SceneTree::get_class_static());
+    #else
+    return SceneTree::get_class_static();
+    #endif
+}
+
 OScriptNodeInstance* OScriptNodeSceneTree::instantiate()
 {
     OScriptNodeSceneTreeInstance* i = memnew(OScriptNodeSceneTreeInstance);

@@ -55,6 +55,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "scene"; }
     String get_icon() const override;
+    String get_help_topic() const override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
