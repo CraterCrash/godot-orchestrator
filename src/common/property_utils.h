@@ -130,6 +130,11 @@ namespace PropertyUtils
     /// @return the property type name
     String get_property_type_name(const PropertyInfo& p_property);
 
+    /// Get the type name based on variant types only
+    /// @param p_property the property
+    /// @return the property type name
+    String get_variant_type_name(const PropertyInfo& p_property);
+
     /// Converts a property info's <code>usage</code> bitfield to a string.
     /// @param p_usage the property usage flags bitfield value
     /// @return comma-separated string of property usage flags

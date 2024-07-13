@@ -23,62 +23,8 @@
 #include <godot_cpp/classes/script.hpp>
 
 /// Forward declarations
-namespace godot
-{
-    class Button;
-    class LineEdit;
-    class Node;
-    class Tree;
-    class TreeItem;
-}
-
-/// A confirmation dialog heavily based after the engine's SceneTreeDialog
-/// If the editor would expose SceneTreeDialog, it would be nice to use it instead.
-class OrchestratorSceneTreeDialog : public ConfirmationDialog
-{
-    GDCLASS(OrchestratorSceneTreeDialog, ConfirmationDialog);
-    static void _bind_methods();
-
-    LineEdit* _filter{ nullptr };   //! The node filter
-    Tree* _tree{ nullptr };         //! The node tree
-    Node* _script_node{ nullptr };  //! The node that the script is attached
-    NodePath _node_path;            //! The current node path for selections
-    Ref<Script> _script;            //! The script
-
-    // Callback helpers
-    void _on_close_requested();
-    void _on_confirmed();
-    void _on_filter_changed(const String& p_text);
-    void _on_item_activated();
-    void _on_item_selected();
-
-    /// Updates the state of the tree after a filter change
-    /// @param p_item the node item to update
-    /// true if the item is to be kept, false otherwise
-    bool _update_tree(TreeItem* p_item);
-
-    /// Populates the tree
-    void _populate_tree();
-
-    /// Populates the tree
-    /// @param p_parent the parent tree item
-    /// @param p_node the node associated with the tree item
-    /// @param p_root the scene node root
-    void _populate_tree(TreeItem* p_parent, Node* p_node, Node* p_root);
-
-public:
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
-    void _notification(int p_what);
-
-    /// Set the node path selection in the dialog
-    /// @param p_node_path the node path
-    void set_node_path(const NodePath& p_node_path) { _node_path = p_node_path; }
-
-    /// Sets the logical script that is triggering this dialog
-    /// @param p_script the script instance
-    void set_script(const Ref<Script>& p_script) { _script = p_script; }
-};
+class OrchestratorPropertySelector;
+class OrchestratorSceneNodeSelector;
 
 /// An implementation of OrchestratorGraphNodePin for node-path pin types.
 class OrchestratorGraphNodePinNodePath : public OrchestratorGraphNodePin
@@ -86,21 +32,87 @@ class OrchestratorGraphNodePinNodePath : public OrchestratorGraphNodePin
     GDCLASS(OrchestratorGraphNodePinNodePath, OrchestratorGraphNodePin);
     static void _bind_methods();
 
-protected:
-    Button* _button{ nullptr };  //! The button widget
+    struct MethodDescriptor
+    {
+        String class_name;
+        String method_name;
+        String pin_name;
+        String dependency_pin_name;
 
-    OrchestratorGraphNodePinNodePath() = default;
+        bool is_property_selection{ false };
+
+        bool is_node_and_property_selection{ false };
+        bool is_property_optional{ false };
+    };
+
+    static Vector<MethodDescriptor> _descriptors;
+
+protected:
+    const String DEFAULT_TEXT{ "Assign..." };
+    OrchestratorPropertySelector* _property_selector{ nullptr };
+    OrchestratorSceneNodeSelector* _node_selector{ nullptr };
+    MethodDescriptor* _descriptor{ nullptr };
+    Button* _button{ nullptr };  //! The button widget
+    Button* _reset_button{ nullptr };
+    NodePath _sequence_node_path;
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
     //~ Begin OrchestratorGraphNodePin Interface
     Control* _get_default_value_widget() override;
     //~ End OrchestratorGraphNodePin Interface
 
-    /// Dispatched to show the scene tree dialog.
-    void _on_show_scene_tree_dialog();
+    /// Checks whether this pin has a descriptor, setting it if applicable.
+    void _resolve_descriptor();
 
-    /// Dispatched when a node is selected in the scene tree dialog.
-    /// @param p_node_path the selected node path
-    void _on_node_selected(const NodePath& p_node_path);
+    /// Checks whether this pin has a descriptor assigned
+    /// @return true if there is a descriptor, false otherwise
+    _FORCE_INLINE_ bool _has_descriptor() const { return _descriptor != nullptr; }
+
+    /// There are several dialog sequences that a pin node can execute, which includes showing just
+    /// the node selection, the property selection, or both in sequential order.  This method is
+    /// responsible for setting up that sequence context.
+    void _start_dialog_sequence();
+
+    /// Show a dialog popup to select a given scene node
+    void _show_node_dialog();
+
+    /// Handles when the user selects a given node in the node dialog
+    /// @param p_path the node path of the selected node; empty if canceled
+    void _node_selected(const NodePath& p_path);
+
+    /// Show a dialog popup to select properties
+    void _show_property_dialog();
+
+    /// Handles a property selection in the property dialog
+    /// @param p_name the property name
+    void _property_selected(const String& p_name);
+
+    /// Displays a property list dialog for the given object, with optional selected value
+    /// @param p_object the object to display properties for
+    /// @param p_selected_value the current selected property
+    void _show_property_dialog_for_object(Object* p_object, const String& p_selected_value = "");
+
+    /// Resets the pin's state to its default
+    void _reset();
+
+    /// Sets the pin value
+    /// @param p_pin_value the new pin value
+    void _set_pin_value(const Variant& p_pin_value);
+
+    /// Called when a pin is connected on the owning node
+    /// @param p_type the pin type
+    /// @param p_index the pin index
+    void _pin_connected(int p_type, int p_index);
+
+    /// Called when a pin is disconnected on the owning node
+    /// @param p_type the pin type
+    /// @param p_index the pin index
+    void _pin_disconnected(int p_type, int p_index);
+
+    OrchestratorGraphNodePinNodePath() = default;
 
 public:
     OrchestratorGraphNodePinNodePath(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);
