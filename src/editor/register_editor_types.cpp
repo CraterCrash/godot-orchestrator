@@ -41,6 +41,8 @@
 #include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
+#include "editor/property_selector.h"
+#include "editor/scene_node_selector.h"
 #include "editor/script_connections.h"
 #include "editor/script_editor_viewport.h"
 #include "editor/search/search_dialog.h"
@@ -71,6 +73,8 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorVariableTypeSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptAutowireSelections)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorPropertySelector)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSceneNodeSelector)
 
     // Action components
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenu)
@@ -122,9 +126,6 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodeDefault)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodeComment)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphKnot)
-
-    // Pin Helpers
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSceneTreeDialog)
 
     // Graph Pin Types
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinBitField)

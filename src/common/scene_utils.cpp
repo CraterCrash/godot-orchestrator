@@ -59,6 +59,12 @@ namespace SceneUtils
         return vbox->has_theme_icon(p_icon_name);
     }
 
+    Color get_editor_color(const String& p_color_name, const String& p_category)
+    {
+        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        return vbox->get_theme_color(p_color_name, p_category);
+    }
+
     Ref<Texture2D> get_editor_icon(const String& p_icon_name)
     {
         VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();

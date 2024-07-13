@@ -35,6 +35,12 @@ namespace SceneUtils
     /// @return true if the icon exists; false otherwise
     bool has_editor_icon(const String& p_icon_name);
 
+    /// Get the editor theme named color
+    /// @param p_color_name the color name
+    /// @param p_category the color category, defaults to "Editor"
+    /// @return the editor color
+    Color get_editor_color(const String& p_color_name, const String& p_category = "Editor");
+
     /// Load an icon.
     ///
     /// @param p_icon_name the editor icon to load
