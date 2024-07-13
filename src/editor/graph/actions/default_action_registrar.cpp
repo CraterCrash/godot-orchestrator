@@ -211,8 +211,14 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     _register_node<OScriptNodeInputAction>(p_context, "Input/input_action");
 
     // Memory
-    _register_node<OScriptNodeNew>(p_context, "Memory/new_object");
-    _register_node<OScriptNodeFree>(p_context, "Memory/free_object");
+    {
+        Dictionary new_object;
+        if (!p_context.filter->target_classes.is_empty())
+            new_object["class_name"] = p_context.filter->target_classes[0];
+        _register_node<OScriptNodeNew>(p_context, "Memory/new_object", new_object);
+
+        _register_node<OScriptNodeFree>(p_context, "Memory/free_object");
+    }
 
     // Resource
     _register_node<OScriptNodePreload>(p_context, "Resource/preload_resource");
