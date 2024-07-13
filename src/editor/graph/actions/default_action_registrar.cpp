@@ -336,7 +336,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
                 // todo: move these to new package once tested
                 String category = vformat("Operators/%s/%s", friendly_name, op.name);
                 if (!op.right_type_name.is_empty())
-                    category += vformat("_(_%s_)", op.right_type_name);
+                    category += vformat("_(_%s_%s_%s_)", op.left_type_name, op.code, op.right_type_name);
 
                 const Dictionary data = DictionaryUtils::of({ { "op", op.op },
                                                               { "code", op.code },
