@@ -263,7 +263,49 @@ bool OrchestratorGraphNodeSpawnerEvent::is_filtered(const OrchestratorGraphActio
             return true;
     }
 
-    return OrchestratorGraphNodeSpawnerCallMemberFunction::is_filtered(p_filter, p_spec);
+    bool reject_methods = p_filter.flags & OrchestratorGraphActionFilter::Filter_RejectMethods;
+    bool reject_virtual = p_filter.flags & OrchestratorGraphActionFilter::Filter_RejectVirtualMethods;
+
+    // Simply do not add these virtual overrides to the UI
+    // Users should always use the non-virtual "get" and "set methods only
+    if (_method.name.match("_get") || _method.name.match("_set"))
+        return true;
+
+    if (reject_methods && reject_virtual)
+        return true;
+
+    if (reject_virtual && (_method.flags & METHOD_FLAG_VIRTUAL))
+        return true;
+
+    if (reject_methods && (!(_method.flags & METHOD_FLAG_VIRTUAL)))
+        return true;
+
+    if (p_filter.context_sensitive)
+    {
+        bool args_filtered = false;
+        for (OrchestratorGraphNodePin* pin : p_filter.context.pins)
+        {
+            if (pin->is_input())
+            {
+                bool found = false;
+                for (const PropertyInfo& property : _method.arguments)
+                {
+                    if (property.type == pin->get_value_type())
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    args_filtered = true;
+            }
+        }
+
+        if (args_filtered)
+            return true;
+    }
+
+    return OrchestratorGraphNodeSpawner::is_filtered(p_filter, p_spec);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
