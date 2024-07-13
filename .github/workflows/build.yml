@@ -32,7 +32,7 @@ jobs:
           - identifier: linux-riscv64-release
             name: 🐧 Linux riscv64 (Release)
             build_type: Release
-            runner: ubuntu-24.04
+            runner: ubuntu-20.04
             target: template_release
             platform: linux
             arch: riscv64
