@@ -47,6 +47,10 @@ public:
     /// @return <code>true</code> if there is a target object, <code>false</code> otherwise
     bool has_target() const { return _wrapped != nullptr; }
 
+    /// Get the wrapped object target
+    /// @return the target object
+    Object* get_target() const { return _wrapped; }
+
     /// Get the target object class name
     /// @return the class name
     StringName get_target_class() const { return _wrapped->get_class(); }
