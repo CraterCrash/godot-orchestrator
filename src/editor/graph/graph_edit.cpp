@@ -1370,6 +1370,7 @@ void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_
         return;
 
     OrchestratorGraphActionFilter filter;
+    filter.flags = OrchestratorGraphActionFilter::Filter_RejectEvents;
     filter.context.graph = this;
     filter.context.pins.push_back(pin);
 
