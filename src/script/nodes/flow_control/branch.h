@@ -33,6 +33,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
+    PackedStringArray get_keywords() const override { return Array::make("condition", "if", "else", "branch"); }
     OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 

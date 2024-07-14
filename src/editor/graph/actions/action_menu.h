@@ -76,6 +76,17 @@ private:
     /// Populates the tree with filtered actions
     void _generate_filtered_actions();
 
+    /// Traverse tree
+    /// @param p_item the tree item to traverse from
+    /// @param r_highest_score the highest score
+    /// @return the tree item with the higest score if found, nullptr otherwise
+    TreeItem* _traverse_tree(TreeItem* p_item, float& r_highest_score);
+
+    /// Calculate the score for a tree item
+    /// @param p_item the item to calculate the score for
+    /// @return the calculated score
+    float _calculate_score(TreeItem* p_item);
+
     /// Common functionality for creating action tree items
     /// @param p_parent the parent item, should not be <code>null</code>
     /// @param p_menu_item the menu item to be called, should be valid
