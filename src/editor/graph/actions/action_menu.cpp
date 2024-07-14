@@ -148,6 +148,8 @@ void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilt
     if (os && os->get_setting("ui/actions_menu/center_on_mouse"))
         set_position(get_position() - (get_size() / 2));
 
+    _on_collapse_tree(true);
+
     popup();
 
     _tree_view->scroll_to_item(_tree_view->get_root());
@@ -167,13 +169,44 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
 
     Ref<Texture2D> broken = SceneUtils::get_editor_icon("_not_found_");
 
-    const PackedStringArray action_favorites = OrchestratorSettings::get_singleton()->get_action_favorites();
+    PackedStringArray action_favorites = OrchestratorSettings::get_singleton()->get_action_favorites();
+
+    /// todo: this should be moved to a one-time thing on start-up
+    for (int index = 0; index < action_favorites.size(); ++index)
+    {
+        if (action_favorites[index].begins_with("Script/Variables/")
+            || action_favorites[index].begins_with("Script/Call Function/")
+            || action_favorites[index].begins_with("Class/Signals/")
+            || action_favorites[index].begins_with("Class/Methods/")
+            || action_favorites[index].begins_with("Class/Properties/"))
+        {
+            OrchestratorSettings::get_singleton()->remove_action_favorite(action_favorites[index]);
+            PackedStringArray parts = action_favorites[index].split("/");
+            parts.remove_at(0);
+            action_favorites[index] = StringUtils::join("/", parts);
+            OrchestratorSettings::get_singleton()->add_action_favorite(action_favorites[index]);
+        }
+        else if (action_favorites[index].begins_with("Script/Emit Signals/"))
+        {
+            OrchestratorSettings::get_singleton()->remove_action_favorite(action_favorites[index]);
+            PackedStringArray parts = action_favorites[index].split("/");
+            parts.remove_at(0);
+            parts.remove_at(0);
+            action_favorites[index] = "Signals/" + StringUtils::join("/", parts);
+            OrchestratorSettings::get_singleton()->add_action_favorite(action_favorites[index]);
+        }
+    }
 
     TreeItem* favorites = nullptr;
     if (!action_favorites.is_empty())
     {
-        favorites = _tree_view->get_root()->create_child();
-        favorites->set_text(0, "Favorites");
+        OrchestratorGraphActionSpec spec;
+        spec.category = "favorites";
+        spec.text = "Favorites";
+        spec.icon = "Favorites";
+
+        Ref<OrchestratorGraphActionMenuItem> item(memnew(OrchestratorGraphActionMenuItem(spec)));
+        favorites = _make_item(_tree_view->get_root(), item, spec.text);
         favorites->set_selectable(0, false);
     }
 
@@ -229,16 +262,71 @@ void OrchestratorGraphActionMenu::_generate_filtered_actions()
         }
 
         const bool is_favorite = action_favorites.has(item->get_spec().category);
-        TreeItem* node = _make_item(parent, item, item->get_spec().text, true, is_favorite);
-
-        if (item->get_spec().category == _selection)
-            _tree_view->set_selected(node, 0);
+        _make_item(parent, item, item->get_spec().text, true, is_favorite);
 
         if (is_favorite)
             _make_item(favorites, item, _create_favorite_item_text(parent, item));
     }
 
     _remove_empty_action_nodes(_tree_view->get_root());
+}
+
+TreeItem* OrchestratorGraphActionMenu::_traverse_tree(TreeItem* p_item, float& r_highest_score)
+{
+    if (p_item->get_child_count() > 0)
+    {
+        TreeItem* cached{ nullptr };
+        for (int i = 0; i < p_item->get_child_count(); ++i)
+        {
+            TreeItem* item = _traverse_tree(p_item->get_child(i), r_highest_score);
+            if (item != nullptr)
+                cached = item;
+        }
+        return cached;
+    }
+
+    float score = _calculate_score(p_item);
+    if (score > r_highest_score)
+    {
+        r_highest_score = score;
+        return p_item;
+    }
+
+    return nullptr;
+}
+
+float OrchestratorGraphActionMenu::_calculate_score(TreeItem* p_item)
+{
+    if (!p_item->has_meta("item"))
+        return 0.f;
+
+    Ref<OrchestratorGraphActionMenuItem> item = p_item->get_meta("item");
+    if (!item.is_valid())
+        return 0.f;
+
+    const String filter_text = _filters_text_box->get_text().trim_prefix(" ").trim_suffix(" ");
+    const String item_text = item->get_spec().text;
+
+    if (item_text.to_lower() == filter_text.to_lower())
+        return 1.f;
+
+    float inverse_length = 1.f / float(item_text.length());
+
+    // Favor types where search term is substring close to start of search filter
+    float w = 0.5f;
+    int pos = item_text.findn(filter_text);
+    float score = (pos > -1) ? 1.f - w * MIN(1, 3 * pos * inverse_length) : MAX(0.f, .9f - w);
+
+    // Favor shorter items
+    w = 0.9f;
+    score *= (1 - w) + w * MIN(1.0f, filter_text.length() * inverse_length);
+
+    // todo: add support for keywords
+
+    if (!p_item->is_selectable(0))
+        score *= 0.1f;
+
+    return score;
 }
 
 TreeItem* OrchestratorGraphActionMenu::_make_item(TreeItem* p_parent,
@@ -257,11 +345,14 @@ TreeItem* OrchestratorGraphActionMenu::_make_item(TreeItem* p_parent,
     child->set_text(1, StringUtils::default_if_empty(p_menu_item->get_spec().qualifiers, " "));
     child->set_text_alignment(1, HORIZONTAL_ALIGNMENT_RIGHT);
 
-    child->add_button(2, SceneUtils::get_editor_icon(p_menu_item->get_spec().type_icon), -1, true);
-    child->set_text_alignment(2, HORIZONTAL_ALIGNMENT_RIGHT);
-    child->set_button_tooltip_text(2, 0, p_menu_item->get_handler().is_valid() ? p_menu_item->get_handler()->get_class() : "");
+    if (!p_menu_item->get_spec().type_icon.is_empty())
+    {
+        child->add_button(2, SceneUtils::get_editor_icon(p_menu_item->get_spec().type_icon), -1, true);
+        child->set_text_alignment(2, HORIZONTAL_ALIGNMENT_RIGHT);
+        child->set_button_tooltip_text(2, 0, p_menu_item->get_handler().is_valid() ? p_menu_item->get_handler()->get_class() : "");
+    }
 
-    if (p_favorite_icon)
+    if (p_favorite_icon && p_menu_item->get_handler().is_valid())
     {
         child->add_button(2, SceneUtils::get_editor_icon(p_is_favorite ? "Favorites" : "NonFavorite"));
         child->set_button_tooltip_text(2, 1, p_is_favorite ? "Remove action from favorites." : "Add action to favorites.");
@@ -349,6 +440,9 @@ void OrchestratorGraphActionMenu::_on_context_sensitive_toggled(bool p_new_state
     _action_db.load(_filter);
 
     _generate_filtered_actions();
+
+    if (_collapse->is_pressed())
+        _on_collapse_tree(true);
 }
 
 void OrchestratorGraphActionMenu::_on_filter_text_changed(const String& p_new_text)
@@ -366,20 +460,12 @@ void OrchestratorGraphActionMenu::_on_filter_text_changed(const String& p_new_te
     _action_db.load(_filter);
     _generate_filtered_actions();
 
-    if (!_filter.keywords.is_empty())
+    float highest_score = 0;
+    TreeItem* item = _traverse_tree(_tree_view->get_root(), highest_score);
+    if (item != nullptr)
     {
-        TreeItem* child = _tree_view->get_root()->get_first_child();
-        while (child != nullptr)
-        {
-            if (child->get_child_count() > 0)
-            {
-                child = child->get_first_child();
-                continue;
-            }
-
-            _tree_view->set_selected(child, 0);
-            break;
-        }
+        item->select(0);
+        _tree_view->scroll_to_item(item, true);
     }
 }
 

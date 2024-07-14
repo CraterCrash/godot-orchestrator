@@ -118,6 +118,14 @@ OScriptNodeInstance* OScriptNodeEngineSingleton::instantiate()
     return i;
 }
 
+void OScriptNodeEngineSingleton::initialize(const OScriptNodeInitContext& p_context)
+{
+    if (p_context.user_data && p_context.user_data.value().has("singleton_name"))
+        _singleton = p_context.user_data.value()["singleton_name"];
+
+    super::initialize(p_context);
+}
+
 void OScriptNodeEngineSingleton::validate_node_during_build(BuildLog& p_log) const
 {
     if (!Engine::get_singleton()->get_singleton_list().has(_singleton))
