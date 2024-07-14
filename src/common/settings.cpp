@@ -161,6 +161,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/background_color", Color::html("#191d23")));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/border_color", Color(0.059f, 0.067f, 0.082f)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/border_selected_color", Color(0.68f, 0.44f, 0.09f)));
+    _settings.emplace_back(RANGE_SETTING("ui/nodes/border_radius", "0,16,1", 4));
     _settings.emplace_back(RANGE_SETTING("ui/nodes/border_width", "0,8,1", 2));
 
     // Nodes
