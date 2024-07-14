@@ -214,7 +214,11 @@ OrchestratorPropertySelector::OrchestratorPropertySelector()
     SceneUtils::add_margin_child(vbox, "Search:", _search_box);
 
     _search_options = memnew(Tree);
+    #if GODOT_VERSION >= 0x040300
     _search_options->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+    #else
+    _search_options->set_auto_translate(false);
+    #endif
     _search_options->set_hide_root(true);
     _search_options->set_hide_folding(true);
     SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);
