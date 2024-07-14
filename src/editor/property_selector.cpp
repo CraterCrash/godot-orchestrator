@@ -21,6 +21,7 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
@@ -84,6 +85,15 @@ void OrchestratorPropertySelector::_item_selected()
     // Leaving for now in case EditorHelpBit gets exposed
 }
 
+bool OrchestratorPropertySelector::_contains_ignore_case(const String& p_text, const String& p_what) const
+{
+    #if GODOT_VERSION >= 0x040300
+    return p_text.containsn(p_what);
+    #else
+    return p_text.to_lower().contains(p_what.to_lower());
+    #endif
+}
+
 void OrchestratorPropertySelector::_update_search()
 {
     _search_options->clear();
@@ -126,7 +136,7 @@ void OrchestratorPropertySelector::_update_search()
         if (!(E.usage & PROPERTY_USAGE_EDITOR) && !(E.usage & PROPERTY_USAGE_SCRIPT_VARIABLE))
             continue;
 
-        if (!_search_box->get_text().is_empty() && !E.name.containsn(search_text))
+        if (!_search_box->get_text().is_empty() && !_contains_ignore_case(E.name, search_text))
             continue;
 
         if (_type_filter.size() && !_type_filter.has(E.type))
@@ -137,12 +147,12 @@ void OrchestratorPropertySelector::_update_search()
         item->set_metadata(0, E.name);
         item->set_icon(0, SceneUtils::get_class_icon(PropertyUtils::get_variant_type_name(E)));
 
-        if (!found & !_search_box->get_text().is_empty() && E.name.containsn(search_text))
+        if (!found & !_search_box->get_text().is_empty() && _contains_ignore_case(E.name, search_text))
         {
             item->select(0);
             found = true;
         }
-        else if (!found && _search_box->get_text().is_empty() && E.name.containsn(_selected))
+        else if (!found && _search_box->get_text().is_empty() && _contains_ignore_case(E.name, _selected))
         {
             item->select(0);
             found = true;

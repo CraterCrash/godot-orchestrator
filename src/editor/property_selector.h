@@ -51,6 +51,11 @@ protected:
     void _item_selected();
     //~ End Signal Handlers
 
+    /// Checks whether the text contains the what
+    /// @param p_text the text to search
+    /// @param p_what what to search
+    bool _contains_ignore_case(const String& p_text, const String& p_what) const;
+
     /// Updates the search options based on the filter
     void _update_search();
 
