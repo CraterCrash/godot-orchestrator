@@ -23,8 +23,6 @@
 #include <godot_cpp/classes/graph_node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
-#include <godot_cpp/classes/window.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
 void OrchestratorThemeCache::_settings_changed()
 {
@@ -38,7 +36,8 @@ void OrchestratorThemeCache::_settings_changed()
     const Color border = settings->get_setting("ui/nodes/border_color", Color(0, 0, 0));
     const Color select = settings->get_setting("ui/nodes/border_selected_color", Color(0.68f, 0.44f, 0.09f));
     const Color bkgrnd = settings->get_setting("ui/nodes/background_color", Color::html("#191d23"));
-    const float bwidth = settings->get_setting("ui/nodes/border_width", 2);
+    const int radius = settings->get_setting("ui/nodes/border_radius", 4);
+    const int bwidth = settings->get_setting("ui/nodes/border_width", 2);
 
     Ref<StyleBoxFlat> panel = get_theme_stylebox("panel", "GraphNode");
     if (!panel.is_valid())
@@ -52,6 +51,7 @@ void OrchestratorThemeCache::_settings_changed()
             new_panel->set_border_width(SIDE_TOP, 0);
             new_panel->set_content_margin_all(2);
             new_panel->set_content_margin(SIDE_BOTTOM, 6);
+            new_panel->set_corner_radius_all(radius);
             new_panel->set_corner_radius(CORNER_TOP_LEFT, 0);
             new_panel->set_corner_radius(CORNER_TOP_RIGHT, 0);
             new_panel->set_bg_color(bkgrnd);
@@ -74,7 +74,14 @@ void OrchestratorThemeCache::_settings_changed()
         if (panel->get_bg_color() != bkgrnd)
             panel->set_bg_color(bkgrnd);
 
-        if (!UtilityFunctions::is_equal_approx(panel->get_border_width(SIDE_LEFT), bwidth))
+        if (panel->get_corner_radius(CORNER_BOTTOM_LEFT) != radius)
+        {
+            panel->set_corner_radius_all(radius);
+            panel->set_corner_radius(CORNER_TOP_LEFT, 0);
+            panel->set_corner_radius(CORNER_TOP_RIGHT, 0);
+        }
+
+        if (panel->get_border_width(SIDE_LEFT) != bwidth)
         {
             panel->set_border_width_all(bwidth);
             panel->set_border_width(SIDE_TOP, 0);
@@ -89,7 +96,14 @@ void OrchestratorThemeCache::_settings_changed()
             if (panel_selected->get_border_color() != select)
                 panel_selected->set_border_color(select);
 
-            if (!UtilityFunctions::is_equal_approx(panel_selected->get_border_width(SIDE_LEFT), bwidth))
+            if (panel_selected->get_corner_radius(CORNER_BOTTOM_LEFT) != radius)
+            {
+                panel_selected->set_corner_radius_all(radius);
+                panel_selected->set_corner_radius(CORNER_TOP_LEFT, 0);
+                panel_selected->set_corner_radius(CORNER_TOP_RIGHT, 0);
+            }
+
+            if (panel_selected->get_border_width(SIDE_LEFT) != bwidth)
             {
                 panel_selected->set_border_width_all(bwidth);
                 panel_selected->set_border_width(SIDE_TOP, 0);
@@ -115,6 +129,7 @@ void OrchestratorThemeCache::_settings_changed()
                 new_titlebar->set_bg_color(color);
                 new_titlebar->set_border_width_all(bwidth);
                 new_titlebar->set_border_width(SIDE_BOTTOM, 0);
+                new_titlebar->set_corner_radius_all(radius);
                 new_titlebar->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
                 new_titlebar->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
 
@@ -142,7 +157,14 @@ void OrchestratorThemeCache::_settings_changed()
                 titlebar->set_border_color(border);
             }
 
-            if (!UtilityFunctions::is_equal_approx(titlebar->get_border_width(SIDE_LEFT), bwidth))
+            if (titlebar->get_corner_radius(CORNER_TOP_LEFT) != radius)
+            {
+                titlebar->set_corner_radius_all(radius);
+                titlebar->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+                titlebar->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+            }
+
+            if (titlebar->get_border_width(SIDE_LEFT) != bwidth)
             {
                 titlebar->set_border_width_all(bwidth);
                 titlebar->set_border_width(SIDE_BOTTOM, 0);
@@ -156,7 +178,14 @@ void OrchestratorThemeCache::_settings_changed()
                 if (titlebar_selected->get_border_color() != select)
                     titlebar_selected->set_border_color(select);
 
-                if (!UtilityFunctions::is_equal_approx(titlebar_selected->get_border_width(SIDE_LEFT), bwidth))
+                if (titlebar_selected->get_corner_radius(CORNER_TOP_LEFT) != radius)
+                {
+                    titlebar_selected->set_corner_radius_all(radius);
+                    titlebar_selected->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+                    titlebar_selected->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+                }
+
+                if (titlebar_selected->get_border_width(SIDE_LEFT) != bwidth)
                 {
                     titlebar_selected->set_border_width_all(bwidth);
                     titlebar_selected->set_border_width(SIDE_BOTTOM, 0);
