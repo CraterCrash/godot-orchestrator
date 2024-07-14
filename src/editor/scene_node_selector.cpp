@@ -18,6 +18,7 @@
 
 #include "common/macros.h"
 #include "common/scene_utils.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -227,7 +228,11 @@ OrchestratorSceneNodeSelector::OrchestratorSceneNodeSelector()
 
     _tree = memnew(Tree);
     _tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+    #if GODOT_VERSION >= 0x040300
     _tree->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+    #else
+    _tree->set_auto_translate(false);
+    #endif
     _tree->set_anchor(SIDE_RIGHT, Control::ANCHOR_END);
     _tree->set_anchor(SIDE_BOTTOM, Control::ANCHOR_END);
     _tree->set_begin(Point2(0, 0));
