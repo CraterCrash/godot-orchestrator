@@ -97,6 +97,9 @@ void OrchestratorSceneNodeSelector::_add_nodes(Node* p_node, TreeItem* p_parent)
     item->set_icon(0, icon);
     item->set_metadata(0, _get_scene_node()->get_path_to(p_node));
 
+    if (p_node != _get_scene_node() && !p_node->get_scene_file_path().is_empty())
+        item->add_button(0, SceneUtils::get_editor_icon("InstanceOptions"));
+
     if (part_of_subscene)
     {
         const Color color = SceneUtils::get_editor_color("warning_color");
