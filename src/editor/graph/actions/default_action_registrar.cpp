@@ -19,11 +19,15 @@
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/property_utils.h"
+#include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "script/nodes/script_nodes.h"
+
+#include <godot_cpp/classes/engine.hpp>
 
 void OrchestratorDefaultGraphActionRegistrar::_register_node(const OrchestratorGraphActionRegistrarContext& p_context,
                                                        const StringName& p_class_name, const StringName& p_category,
@@ -42,7 +46,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_node(const OrchestratorG
     keywords.append_array(name_parts);
 
     OrchestratorGraphActionSpec spec;
-    spec.category = (p_category.begins_with("/") ? "Project" : "Script/Nodes/") + p_category;
+    spec.category = p_category;
     spec.tooltip = node->get_tooltip_text();
     spec.text = name_parts[int(name_parts.size()) - 1].capitalize();
     spec.keywords = StringUtils::join(",", keywords);
@@ -112,7 +116,7 @@ String OrchestratorDefaultGraphActionRegistrar::_get_method_icon(const MethodInf
         if (MethodUtils::has_return_value(p_method))
         {
             // Method has a return type
-            String return_type = Variant::get_type_name(p_method.return_val.type);
+            String return_type = PropertyUtils::get_property_type_name(p_method.return_val);
             if (!return_type.is_empty())
                 return return_type;
         }
@@ -138,6 +142,40 @@ String OrchestratorDefaultGraphActionRegistrar::_get_method_type_icon(const Meth
         return "MemberMethod";
 }
 
+String OrchestratorDefaultGraphActionRegistrar::_get_builtin_type_icon_name(Variant::Type p_type) const
+{
+    if (p_type == Variant::NIL)
+        return "Variant";
+
+    return Variant::get_type_name(p_type);
+}
+
+String OrchestratorDefaultGraphActionRegistrar::_get_builtin_type_display_name(Variant::Type p_type) const
+{
+    switch (p_type)
+    {
+        case Variant::NIL:
+            return "Any";
+        case Variant::BOOL:
+            return "Boolean";
+        case Variant::INT:
+            return "Integer";
+        case Variant::FLOAT:
+            return "Float";
+        default:
+            return Variant::get_type_name(p_type).replace(" ", "");
+    }
+}
+
+void OrchestratorDefaultGraphActionRegistrar::_register_category(const OrchestratorGraphActionRegistrarContext& p_context, const String& p_category, const String& p_display_name, const String& p_icon)
+{
+    OrchestratorGraphActionSpec spec;
+    spec.category = p_category;
+    spec.text = p_display_name;
+    spec.icon = p_icon;
+    p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(spec)));
+}
+
 void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const OrchestratorGraphActionRegistrarContext& p_context)
 {
     bool graph_function = false;
@@ -152,28 +190,47 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     const Dictionary without_break = DictionaryUtils::of({ { "with_break", false } });
     const Dictionary array_data = DictionaryUtils::of({ { "collection_type", Variant::ARRAY },{ "index_type", Variant::NIL } });
 
+    // Register several top-level categories
+    _register_category(p_context, "Project", "Project", "Godot");
+    _register_category(p_context, "Call Function", "Call Function", "ScriptExtend");
+    _register_category(p_context, "Constants", "Constants", "MemberConstant");
+    _register_category(p_context, "Dialogue", "Dialogue", "Window");
+    _register_category(p_context, "Flow Control", "Flow Control", "FileTree");
+    _register_category(p_context, "Input", "Input", "InputEventKey");
+    _register_category(p_context, "Math", "Math", "X509Certificate");
+    _register_category(p_context, "Memory", "Memory", "MiniObject");
+    _register_category(p_context, "Methods", "Methods", "MemberMethod");
+    _register_category(p_context, "Properties", "Properties", "MemberProperty");
+    _register_category(p_context, "Random Numbers", "Random Numbers", "RandomNumberGenerator");
+    _register_category(p_context, "Resource", "Resource", "File");
+    _register_category(p_context, "Scene", "Scene", "PackedScene");
+    _register_category(p_context, "Singletons", "Singletons", "MiniObject");
+    _register_category(p_context, "Static", "Static", "AudioBusSolo");
+    _register_category(p_context, "Utilities", "Utilities", "Tools");
+    _register_category(p_context, "Variables", "Variables", "Range");
+
     // Comments
-    _register_node<OScriptNodeComment>(p_context, "add_comment");
+    _register_node<OScriptNodeComment>(p_context, "Utilities/add_comment");
 
     // Constants
-    _register_node<OScriptNodeGlobalConstant>(p_context, "Constant/global_constant");
-    _register_node<OScriptNodeMathConstant>(p_context, "Constant/math_constant");
-    _register_node<OScriptNodeTypeConstant>(p_context, "Constant/type_constant");
-    _register_node<OScriptNodeClassConstant>(p_context, "Constant/class_constant");
-    _register_node<OScriptNodeSingletonConstant>(p_context, "Constant/singleton_constant");
+    _register_node<OScriptNodeGlobalConstant>(p_context, "Constants/global_constant");
+    _register_node<OScriptNodeMathConstant>(p_context, "Constants/math_constant");
+    _register_node<OScriptNodeTypeConstant>(p_context, "Constants/type_constant");
+    _register_node<OScriptNodeClassConstant>(p_context, "Constants/class_constant");
+    _register_node<OScriptNodeSingletonConstant>(p_context, "Constants/singleton_constant");
 
     // Data
-    _register_node<OScriptNodeArrayGet>(p_context, "Operators/Array/get_at_index", array_data);
-    _register_node<OScriptNodeArraySet>(p_context, "Operators/Array/set_at_index", array_data);
-    _register_node<OScriptNodeArrayFind>(p_context, "Array/find_array_element");
-    _register_node<OScriptNodeArrayClear>(p_context, "Array/clear_array");
-    _register_node<OScriptNodeArrayAppend>(p_context, "Array/append_arrays");
-    _register_node<OScriptNodeArrayAddElement>(p_context, "Array/add_element");
-    _register_node<OScriptNodeArrayRemoveElement>(p_context, "Array/remove_element");
-    _register_node<OScriptNodeArrayRemoveIndex>(p_context, "Array/remove_element_by_index");
-    _register_node<OScriptNodeMakeArray>(p_context, "Array/make_array");
-    _register_node<OScriptNodeMakeDictionary>(p_context, "Dictionary/make_dictionary");
-    _register_node<OScriptNodeDictionarySet>(p_context, "Dictionary/set");
+    _register_node<OScriptNodeArrayGet>(p_context, "Types/Array/Operators/get_at_index", array_data);
+    _register_node<OScriptNodeArraySet>(p_context, "Types/Array/Operators/set_at_index", array_data);
+    _register_node<OScriptNodeArrayFind>(p_context, "Types/Array/find_array_element");
+    _register_node<OScriptNodeArrayClear>(p_context, "Types/Array/clear_array");
+    _register_node<OScriptNodeArrayAppend>(p_context, "Types/Array/append_arrays");
+    _register_node<OScriptNodeArrayAddElement>(p_context, "Types/Array/add_element");
+    _register_node<OScriptNodeArrayRemoveElement>(p_context, "Types/Array/remove_element");
+    _register_node<OScriptNodeArrayRemoveIndex>(p_context, "Types/Array/remove_element_by_index");
+    _register_node<OScriptNodeMakeArray>(p_context, "Types/Array/make_array");
+    _register_node<OScriptNodeMakeDictionary>(p_context, "Types/Dictionary/make_dictionary");
+    _register_node<OScriptNodeDictionarySet>(p_context, "Types/Dictionary/set");
 
     // Dialogue
     _register_node<OScriptNodeDialogueChoice>(p_context, "Dialogue/choice");
@@ -205,7 +262,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     }
 
     // Functions
-    _register_node<OScriptNodeFunctionResult>(p_context, "Function/add_return_node");
+    _register_node<OScriptNodeFunctionResult>(p_context, "add_return_node");
 
     // Input
     _register_node<OScriptNodeInputAction>(p_context, "Input/input_action");
@@ -237,11 +294,19 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     _register_node<OScriptNodeEngineSingleton>(p_context, "Utilities/engine_singleton");
     _register_node<OScriptNodePrintString>(p_context, "Utilities/print_string");
 
+    // Register each Engine singleton type
+    for (const String& name : Engine::get_singleton()->get_singleton_list())
+    {
+        const String category = vformat("Singletons/%s", name);
+        const Dictionary data = DictionaryUtils::of({ { "singleton_name", name } });
+        _register_node<OScriptNodeEngineSingleton>(p_context, category, data);
+    }
+
     // Variables
     _register_node<OScriptNodeSelf>(p_context, "Variables/get_self");
 
     // Register variable assignment differently for macros
-    const String local_var_category = vformat("%s/Assign", func_or_macro_group);
+    const String local_var_category = vformat("%s/assign_local", func_or_macro_group);
     _register_node<OScriptNodeAssignLocalVariable>(p_context, local_var_category);
 
     // Register Local Object variables
@@ -254,33 +319,36 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     {
         for (const String& function_name : ExtensionDB::get_static_function_names(class_name))
         {
-            const String category = vformat("%s/%s", class_name, function_name);
+            const String category = vformat("Static/%s/%s", class_name, function_name);
             _register_node<OScriptNodeCallStaticFunction>(p_context, category,
                 DictionaryUtils::of({ { "class_name", class_name }, { "method_name", function_name } }));;
         }
     }
 
     // Builtin Types
-    for (const String& type_name : ExtensionDB::get_builtin_type_names())
+    for (const String& builtin_type_name : ExtensionDB::get_builtin_type_names())
     {
-        const BuiltInType type = ExtensionDB::get_builtin_type(type_name);
-        const String friendly_name = VariantUtils::get_friendly_type_name(type.type, true);
+        const BuiltInType type = ExtensionDB::get_builtin_type(builtin_type_name);
+        const String type_icon = _get_builtin_type_icon_name(type.type);
+        const String type_name = _get_builtin_type_display_name(type.type);
+
+        _register_category(p_context, vformat("Types/%s", type_name), type_name, type_icon);
 
         const Dictionary type_dict = DictionaryUtils::of({ { "type", type.type } });
 
         // Register local variables differently for macros
-        const String lv_name = vformat("%s/local_%s", func_or_macro_group, friendly_name);
+        const String lv_name = vformat("Types/%s/local_%s_variable", type_name, type_name);
         _register_node<OScriptNodeLocalVariable>(p_context, lv_name, type_dict);
 
         if (!type.properties.is_empty())
         {
             if (OScriptNodeCompose::is_supported(type.type))
             {
-                const String make_category = vformat("%s/make_%s", friendly_name, friendly_name.to_lower());
+                const String make_category = vformat("Types/%s/make_%s", type_name, type_name.to_lower());
                 _register_node<OScriptNodeCompose>(p_context, make_category, type_dict);
             }
 
-            const String break_category = vformat("%s/break_%s", friendly_name, friendly_name.to_lower());
+            const String break_category = vformat("Types/%s/break_%s", type_name, type_name.to_lower());
             _register_node<OScriptNodeDecompose>(p_context, break_category, type_dict);
         }
 
@@ -311,7 +379,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
                         { { "type", type.type }, { "constructor_args", properties } });
 
                     const String args = StringUtils::join(" and ", type_names);
-                    const String category = vformat("%s/make_%s_from_%s", type.name, friendly_name.to_lower(), args);
+                    const String category = vformat("Types/%s/make_%s_from_%s", type_name, type_name.to_lower(), args);
 
                     _register_node<OScriptNodeComposeFrom>(p_context, category, ctor_dict);
                 }
@@ -320,7 +388,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
 
         for (const MethodInfo& mi : type.methods)
         {
-            const String category = vformat("%s/%s", type.name, mi.name);
+            const String category = vformat("Types/%s/%s", type_name, mi.name);
             const Dictionary method_dict = DictionaryUtils::from_method(mi);
             const Dictionary data = DictionaryUtils::of({ { "target_type", type.type }, { "method", method_dict } });
             _register_node<OScriptNodeCallMemberFunction>(p_context, category, data);
@@ -333,10 +401,17 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
                 if (!OScriptNodeOperator::is_operator_supported(op))
                     continue;
 
-                // todo: move these to new package once tested
-                String category = vformat("Operators/%s/%s", friendly_name, op.name);
+                String category;
+                if (!op.name.match("Not"))
+                    category = vformat("Types/%s/Operators/%s_%s", type_name, type_name, op.name);
+                else
+                    category = vformat("Types/%s/Operators/%s", type_name, op.name);
+
                 if (!op.right_type_name.is_empty())
-                    category += vformat("_(_%s_)", op.right_type_name);
+                {
+                    String right_type_name = _get_builtin_type_display_name(op.right_type);
+                    category += vformat("_%s", right_type_name);
+                }
 
                 const Dictionary data = DictionaryUtils::of({ { "op", op.op },
                                                               { "code", op.code },
@@ -354,8 +429,8 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
 
         if (type.index_returning_type != Variant::NIL && type.type >= Variant::ARRAY)
         {
-            const String get_category = vformat("Operators/%s/%s", type.name, "Get At Index");
-            const String set_category = vformat("Operators/%s/%s", type.name, "Set At Index");
+            const String get_category = vformat("Types/%s/Operators/%s", type_name, "Get At Index");
+            const String set_category = vformat("Types/%s/Operators/%s", type_name, "Set At Index");
 
             const Dictionary data = DictionaryUtils::of({
                 { "collection_type", type.type },
@@ -387,6 +462,8 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
         String top_category = fi.category;
         if (top_category.match("general"))
             top_category = "utilities";
+        else if (top_category.match("random"))
+            top_category = "random_numbers";
 
         const String category = vformat("%s/%s", top_category.capitalize(), fi.name);
         _register_node<OScriptNodeCallBuiltinFunction>(p_context, category, DictionaryUtils::from_method(mi));
@@ -395,7 +472,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_nodes(const Orche
     // Autoloads
     for (const String& class_name : OScriptLanguage::get_singleton()->get_global_constant_names())
     {
-        String category = vformat("/Autoloads/%s", class_name);
+        String category = vformat("project/Autoloads/%s", class_name);
         _register_node<OScriptNodeAutoload>(p_context, category, DictionaryUtils::of({{ "class_name" , class_name }}));
     }
 }
@@ -428,8 +505,6 @@ void OrchestratorDefaultGraphActionRegistrar::_register_graph_items(const Orches
     {
         const OrchestratorGraphActionSpec spec(class_name, class_name, class_name);
         p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(spec)));
-
-        // todo: how to deal with "get property" and "call get property" between properties and methods?
         _register_class_properties(p_context, class_name);
         _register_class_methods(p_context, class_name);
         _register_class_signals(p_context, class_name);
@@ -439,9 +514,13 @@ void OrchestratorDefaultGraphActionRegistrar::_register_graph_items(const Orches
 void OrchestratorDefaultGraphActionRegistrar::_register_class_properties(const OrchestratorGraphActionRegistrarContext& p_context,
                                                                    const StringName& p_class_name)
 {
+    String class_name = p_class_name;
     TypedArray<Dictionary> properties;
     if (p_context.filter->has_target_object())
+    {
         properties = p_context.filter->target_object->get_target_property_list();
+        class_name = p_context.filter->target_object->get_class();
+    }
     else
         properties = ClassDB::class_get_property_list(p_class_name, true);
 
@@ -453,29 +532,33 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_properties(const O
         if (pi.usage & PROPERTY_USAGE_INTERNAL)
             continue;
 
-        OrchestratorGraphActionSpec getter_spec;
-        // todo: remove "class/properties/"
-        getter_spec.category = vformat("Class/Properties/%s/get_%s", p_class_name, pi.name);
-        getter_spec.tooltip = vformat("Return the value from the property '%s'", pi.name);
-        getter_spec.text = vformat("get_%s", pi.name).capitalize();
-        getter_spec.keywords = vformat("get,%s,%s", p_class_name, pi.name);
-        getter_spec.icon = Variant::get_type_name(pi.type);
-        getter_spec.type_icon = "MemberProperty";
+        if (!ClassDB::class_has_method(class_name, vformat("get_%s", pi.name)))
+        {
+            OrchestratorGraphActionSpec getter_spec;
+            getter_spec.category = vformat("Properties/%s/get_%s", p_class_name, pi.name);
+            getter_spec.tooltip = vformat("Return the value from the property '%s'", pi.name);
+            getter_spec.text = vformat("get_%s", pi.name).capitalize();
+            getter_spec.keywords = vformat("get,%s,%s", p_class_name, pi.name);
+            getter_spec.icon = Variant::get_type_name(pi.type);
+            getter_spec.type_icon = "MemberProperty";
 
-        Ref<OrchestratorGraphActionHandler> getter_handler(memnew(OrchestratorGraphNodeSpawnerPropertyGet(pi, p_context.filter->target_classes)));
-        p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(getter_spec, getter_handler)));
+            Ref<OrchestratorGraphActionHandler> getter_handler(memnew(OrchestratorGraphNodeSpawnerPropertyGet(pi, p_context.filter->target_classes)));
+            p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(getter_spec, getter_handler)));
+        }
 
-        OrchestratorGraphActionSpec setter_spec;
-        // todo: remove "class/properties/"
-        setter_spec.category = vformat("Class/Properties/%s/set_%s", p_class_name, pi.name);
-        setter_spec.tooltip = vformat("Set the value of property '%s'", pi.name);
-        setter_spec.text = vformat("set_%s", pi.name).capitalize();
-        setter_spec.keywords = vformat("set,%s,%s", p_class_name, pi.name);
-        setter_spec.icon = Variant::get_type_name(pi.type);
-        setter_spec.type_icon = "MemberProperty";
+        if (!ClassDB::class_has_method(class_name, vformat("set_%s", pi.name)))
+        {
+            OrchestratorGraphActionSpec setter_spec;
+            setter_spec.category = vformat("Properties/%s/set_%s", p_class_name, pi.name);
+            setter_spec.tooltip = vformat("Set the value of property '%s'", pi.name);
+            setter_spec.text = vformat("set_%s", pi.name).capitalize();
+            setter_spec.keywords = vformat("set,%s,%s", p_class_name, pi.name);
+            setter_spec.icon = Variant::get_type_name(pi.type);
+            setter_spec.type_icon = "MemberProperty";
 
-        Ref<OrchestratorGraphActionHandler> setter_handler(memnew(OrchestratorGraphNodeSpawnerPropertySet(pi, p_context.filter->target_classes)));
-        p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(setter_spec, setter_handler)));
+            Ref<OrchestratorGraphActionHandler> setter_handler(memnew(OrchestratorGraphNodeSpawnerPropertySet(pi, p_context.filter->target_classes)));
+            p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(setter_spec, setter_handler)));
+        }
     }
 }
 
@@ -495,6 +578,12 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
         class_name = p_class_name;
     }
 
+    if (ClassDB::can_instantiate(class_name))
+    {
+        const String category = vformat("Methods/%s/New Instance", class_name);
+        _register_node<OScriptNodeNew>(p_context, category, DictionaryUtils::of({ { "class_name", class_name } }));
+    }
+
     for (int i = 0; i < methods.size(); i++)
     {
         const MethodInfo mi = DictionaryUtils::to_method(methods[i]);
@@ -502,11 +591,10 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_methods(const Orch
             continue;
 
         OrchestratorGraphActionSpec spec;
-        // todo: remove "class/methods/"
-        spec.category = vformat("Class/Methods/%s/%s", p_class_name, mi.name);
+        spec.category = vformat("Methods/%s/%s", class_name, mi.name);
         spec.tooltip = _get_method_signature(mi);
         spec.text = vformat("%s", mi.name).capitalize();
-        spec.keywords = vformat("%s,%s", p_class_name, mi.name);
+        spec.keywords = vformat("%s,%s", class_name, mi.name);
         spec.icon = _get_method_icon(mi);
         spec.type_icon = _get_method_type_icon(mi);
 
@@ -534,8 +622,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_class_signals(const Orch
     {
         const MethodInfo si = DictionaryUtils::to_method(signals[i]);
         OrchestratorGraphActionSpec spec;
-        // todo: remove "class/signals/"
-        spec.category = vformat("Class/Signals/%s/%s", p_class_name, si.name);
+        spec.category = vformat("Signals/%s/%s", p_class_name, si.name);
         spec.tooltip = "Emit the signal " + si.name;
         spec.text = vformat("emit_%s", si.name).capitalize();
         spec.keywords = vformat("emit,signal,%s,%s", p_class_name, si.name);
@@ -565,6 +652,9 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_functions(const O
 
     if (OrchestratorGraphEdit* graph = p_context.graph)
     {
+        OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+        bool friendly_names = settings->get_setting("ui/components_panel/show_function_friendly_names", true);
+
         Orchestration* orchestration = graph->get_orchestration();
         for (const Ref<OScriptFunction>& function : orchestration->get_functions())
         {
@@ -574,10 +664,9 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_functions(const O
             const MethodInfo& mi = function->get_method_info();
 
             OrchestratorGraphActionSpec spec;
-            // todo: remove "script/"
-            spec.category = vformat("Script/Call Function/%s", mi.name);
+            spec.category = vformat("Call Function/%s", mi.name);
             spec.tooltip = _get_method_signature(mi);
-            spec.text = vformat("call_%s", mi.name);
+            spec.text = vformat("Call %s", friendly_names ? mi.name.capitalize() : String(mi.name));
             spec.keywords = vformat("call,%s,%s", orchestration->get_base_type(), mi.name);
             spec.icon = _get_method_icon(mi);
             spec.type_icon = _get_method_type_icon(mi);
@@ -609,24 +698,22 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_variables(const O
             const String& variable_name = variable->get_variable_name();
 
             OrchestratorGraphActionSpec getter_spec;
-            // todo: remove "script/"
-            getter_spec.category = vformat("Script/Variables/get_%s", variable_name);
+            getter_spec.category = vformat("Variables/get_%s", variable_name);
             getter_spec.tooltip = vformat("Get the value of the variable '%s'", variable_name);
             getter_spec.text = vformat("Get %s", variable_name);
             getter_spec.keywords = vformat("get,variable,%s", variable_name);
-            getter_spec.icon = Variant::get_type_name(variable->get_variable_type());
+            getter_spec.icon = variable->get_variable_type_name();
             getter_spec.type_icon = "MemberProperty";
 
             Ref<OrchestratorGraphActionHandler> getter_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
             p_context.list->push_back(memnew(OrchestratorGraphActionMenuItem(getter_spec, getter_handler)));
 
             OrchestratorGraphActionSpec setter_spec;
-            // todo: remove "script/"
-            setter_spec.category = vformat("Script/Variables/set_%s", variable_name);
+            setter_spec.category = vformat("Variables/set_%s", variable_name);
             setter_spec.tooltip = vformat("Set the value of of variable '%s'", variable_name);
             setter_spec.text = vformat("Set %s", variable_name);
             setter_spec.keywords = vformat("set,variable,%s", variable_name);
-            setter_spec.icon = Variant::get_type_name(variable->get_variable_type());
+            setter_spec.icon = variable->get_variable_type_name();
             setter_spec.type_icon = "MemberProperty";
 
             Ref<OrchestratorGraphActionHandler> setter_handler(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
@@ -655,8 +742,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_script_signals(const Orc
                 continue;
 
             OrchestratorGraphActionSpec spec;
-            // todo: remove "script/"
-            spec.category = vformat("Script/Emit Signals/emit_%s", signal->get_signal_name());
+            spec.category = vformat("Signals/emit_%s", signal->get_signal_name());
             spec.tooltip = vformat("Emit signal '%s'", signal->get_signal_name());
             spec.text = vformat("Emit %s", signal->get_signal_name());
             spec.keywords = vformat("emit,signal,%s,%s", orchestration->get_base_type(), signal->get_signal_name());

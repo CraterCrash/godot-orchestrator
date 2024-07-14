@@ -34,6 +34,9 @@ class OrchestratorDefaultGraphActionRegistrar : public OrchestratorGraphActionRe
     static void _register_node(const OrchestratorGraphActionRegistrarContext& p_context, const StringName& p_class_name,
                                const StringName& p_category, const Dictionary& p_data = Dictionary());
 
+    String _get_builtin_type_icon_name(Variant::Type p_type) const;
+    String _get_builtin_type_display_name(Variant::Type p_type) const;
+
     /// Registration that uses OrchestratorGraphNodeSpawnerScriptNode
     template <typename T>
     void _register_node(const OrchestratorGraphActionRegistrarContext& p_context, const StringName& p_category,
@@ -43,6 +46,8 @@ class OrchestratorDefaultGraphActionRegistrar : public OrchestratorGraphActionRe
     }
 
     // Registration steps
+
+    void _register_category(const OrchestratorGraphActionRegistrarContext& p_context, const String& p_category, const String& p_display_name, const String& p_icon = String());
 
     void _register_script_nodes(const OrchestratorGraphActionRegistrarContext& p_context);
     void _register_graph_items(const OrchestratorGraphActionRegistrarContext& p_context);

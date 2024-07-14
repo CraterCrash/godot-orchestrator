@@ -61,9 +61,9 @@ void OrchestratorGraphActionDB::_generate_filtered_items(const OrchestratorGraph
         {
             if (E->get_handler()->is_filtered(p_filter, E->get_spec()))
                 continue;
-
-            _filtered_items.push_back(E);
         }
+
+        _filtered_items.push_back(E);
     }
 }
 

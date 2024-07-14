@@ -210,7 +210,7 @@ String OScriptNodeGlobalConstant::get_icon() const
 
 PackedStringArray OScriptNodeGlobalConstant::get_keywords() const
 {
-    return ExtensionDB::get_global_enum_value_names();
+    return PackedStringArray();
 }
 
 OScriptNodeInstance* OScriptNodeGlobalConstant::instantiate()
