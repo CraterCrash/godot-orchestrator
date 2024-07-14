@@ -16,6 +16,7 @@
 //
 #include "graph_node.h"
 
+#include "common/callable_lambda.h"
 #include "common/logger.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
@@ -30,6 +31,7 @@
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_action.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
@@ -371,6 +373,9 @@ void OrchestratorGraphNode::_update_node_attributes()
     if (_resize_on_update())
         call_deferred("set_size", Vector2());
 
+    if (!get_position_offset().is_equal_approx(_node->get_position()))
+        set_position_offset(_node->get_position());
+
     // Some pin changes may affect the titlebar
     // We explicitly update the title here on change to capture that possibility
     _update_titlebar();
@@ -632,9 +637,13 @@ int32_t OrchestratorGraphNode::get_port_at_position(const Vector2& p_position, E
     return -1;
 }
 
-void OrchestratorGraphNode::_on_node_moved([[maybe_unused]] Vector2 p_old_pos, Vector2 p_new_pos)
+void OrchestratorGraphNode::_on_node_moved(const Vector2 p_old_pos, const Vector2 p_new_pos)
 {
-    _node->set_position(p_new_pos);
+    EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+    undo->create_action("Orchestration: Move nodes", UndoRedo::MERGE_ALL);
+    undo->add_do_method(_node.ptr(), "set_position", p_new_pos);
+    undo->add_undo_method(_node.ptr(), "set_position", p_old_pos);
+    undo->commit_action();
 }
 
 void OrchestratorGraphNode::_on_node_resized()

@@ -18,7 +18,9 @@
 
 #include "api/extension_db.h"
 #include "common/string_utils.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -31,15 +33,36 @@ void OrchestratorGraphNodePinEnum::_bind_methods()
 {
 }
 
-void OrchestratorGraphNodePinEnum::_on_item_selected(int p_index, OptionButton* p_button)
+void OrchestratorGraphNodePinEnum::_on_item_selected(int p_index)
 {
     if (p_index >= 0 && p_index < _items.size())
     {
         const ListItem& item = _items[p_index];
-        _pin->set_default_value(item.value);
+        if (uint64_t(_pin->get_effective_default_value()) != item.value)
+        {
+            int selected_index = 0;
+
+            uint64_t default_value = _pin->get_effective_default_value();
+            for (int index = 0; index < _items.size(); ++index)
+            {
+                if (_items[index].value == default_value)
+                {
+                    selected_index = index;
+                    break;
+                }
+            }
+
+            EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+            undo->create_action("Orchestration: Change enum pin");
+            undo->add_do_method(_pin.ptr(), "set_default_value", item.value);
+            undo->add_do_method(_button, "select", p_index);
+            undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_effective_default_value());
+            undo->add_undo_method(_button, "select", selected_index);
+            undo->commit_action();
+        }
     }
 
-    p_button->release_focus();
+    _button->release_focus();
 }
 
 void OrchestratorGraphNodePinEnum::_generate_items()
@@ -156,18 +179,18 @@ String OrchestratorGraphNodePinEnum::_generate_friendly_name(const String& p_pre
 
 Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
 {
-    OptionButton* button = memnew(OptionButton);
-    button->connect("item_selected", callable_mp(this, &OrchestratorGraphNodePinEnum::_on_item_selected).bind(button));
+    _button = memnew(OptionButton);
+    _button->connect("item_selected", callable_mp(this, &OrchestratorGraphNodePinEnum::_on_item_selected));
 
     _generate_items();
 
     int effective_default = _pin->get_effective_default_value();
     for (const ListItem& item : _items)
     {
-        button->add_item(item.friendly_name);
+        _button->add_item(item.friendly_name);
         if (effective_default == item.value)
-            button->select(button->get_item_count() - 1);
+            _button->select(_button->get_item_count() - 1);
     }
 
-    return button;
+    return _button;
 }

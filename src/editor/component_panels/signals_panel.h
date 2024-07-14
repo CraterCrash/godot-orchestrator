@@ -42,7 +42,8 @@ protected:
     bool _handle_add_new_item(const String& p_name) override;
     void _handle_item_selected() override;
     void _handle_item_activated(TreeItem* p_item) override;
-    bool _handle_item_renamed(const String& p_old_name, const String& p_new_name) override;
+    bool _can_be_renamed(const String& p_old_name, const String& p_new_name) override;
+    void _handle_item_renamed(const String& p_old_name, const String& p_new_name) override;
     void _handle_remove(TreeItem* p_item) override;
     Dictionary _handle_drag_data(const Vector2& p_position) override;
     //~ End OrchestratorScriptViewSection Interface

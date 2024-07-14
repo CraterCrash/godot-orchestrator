@@ -27,6 +27,7 @@
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 
@@ -185,14 +186,26 @@ void OrchestratorGraphNodePinNodePath::_show_property_dialog_for_object(Object* 
 
 void OrchestratorGraphNodePinNodePath::_reset()
 {
-    _set_pin_value(Variant());
+    _set_pin_value("");
 }
 
 void OrchestratorGraphNodePinNodePath::_set_pin_value(const Variant& p_pin_value)
 {
-    _pin->set_default_value(p_pin_value);
-    _button->set_text(StringUtils::default_if_empty(_pin->get_effective_default_value(), DEFAULT_TEXT));
-    _reset_button->set_visible(!_button->get_text().match(DEFAULT_TEXT));
+    if (_pin->get_effective_default_value() != p_pin_value)
+    {
+        const String new_button_text = StringUtils::default_if_empty(p_pin_value, DEFAULT_TEXT);
+        const bool reset_visible = !new_button_text.match(DEFAULT_TEXT);
+
+        EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+        undo->create_action("Orchestration: Change node path pin");
+        undo->add_do_method(_pin.ptr(), "set_default_value", p_pin_value);
+        undo->add_do_method(_button, "set_text", new_button_text);
+        undo->add_do_method(_reset_button, "set_visible", reset_visible);
+        undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_effective_default_value());
+        undo->add_undo_method(_button, "set_text", _button->get_text());
+        undo->add_undo_method(_reset_button, "set_visible", _reset_button->is_visible());
+        undo->commit_action();
+    }
 }
 
 void OrchestratorGraphNodePinNodePath::_pin_connected(int p_type, int p_index)

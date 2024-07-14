@@ -33,6 +33,10 @@ class OrchestratorGraphNodePinStruct : public OrchestratorGraphNodePin
 
     Vector<LineEdit*> _edits;   //! Line edits for each sub-component
 
+    /// Sets the value in the pin edits
+    /// @param p_value
+    void _set_ui_value(const Variant& p_value);
+
     /// Calculates the number of grid columns for the pin type
     /// @param p_type the pin type
     /// @return the number of grid columns

@@ -24,6 +24,7 @@
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -78,9 +79,16 @@ void OrchestratorScriptComponentPanel::_tree_item_edited()
         return;
     }
 
-    _handle_item_renamed(old_name, new_name);
-
-    update();
+    if (_can_be_renamed(old_name, new_name))
+    {
+        EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+        undo->create_action("Orchestration: Rename " + _get_item_name());
+        undo->add_do_method(this, "_rename_item", old_name, new_name);
+        undo->add_do_method(this, "update");
+        undo->add_undo_method(this, "_rename_item", new_name, old_name);
+        undo->add_undo_method(this, "update");
+        undo->commit_action();
+    }
 }
 
 void OrchestratorScriptComponentPanel::_tree_item_mouse_selected(const Vector2& p_position, int p_button)
@@ -111,6 +119,10 @@ void OrchestratorScriptComponentPanel::_remove_confirmed()
         _handle_remove(_tree->get_selected());
 
         update();
+
+        // Clear history related to component panels
+        EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+        undo->get_history_undo_redo(undo->get_object_history_id(this))->clear_history();
     }
 }
 
@@ -233,7 +245,13 @@ void OrchestratorScriptComponentPanel::_show_notification(const String& p_messag
 
 void OrchestratorScriptComponentPanel::_confirm_removal(TreeItem* p_item)
 {
-    _confirm->set_text(_get_remove_confirm_text(p_item) + "\n\nDo you want to continue?");
+    String remove_text = _get_remove_confirm_text(p_item);
+    if (!_can_remove_be_undone())
+        remove_text += "\n\nThis operation cannnot be undone.\nDo you want to continue?";
+    else
+        remove_text += "\n\nDo you want to continue?";
+
+    _confirm->set_text(remove_text);
     _confirm->set_ok_button_text("Yes");
     _confirm->set_cancel_button_text("No");
     _confirm->reset_size();
@@ -386,6 +404,10 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
 
 void OrchestratorScriptComponentPanel::_bind_methods()
 {
+    // Needed for undo/redo
+    ClassDB::bind_method(D_METHOD("update"), &OrchestratorScriptComponentPanel::update);
+    ClassDB::bind_method(D_METHOD("_rename_item", "old_name", "new_name"), &OrchestratorScriptComponentPanel::_rename_item);
+
     ADD_SIGNAL(MethodInfo("scroll_to_item", PropertyInfo(Variant::OBJECT, "item")));
 }
 

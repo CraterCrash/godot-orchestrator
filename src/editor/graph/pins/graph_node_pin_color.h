@@ -19,6 +19,8 @@
 
 #include "editor/graph/graph_node_pin.h"
 
+#include <godot_cpp/classes/color_picker_button.hpp>
+
 /// An implementation of OrchestratorGraphNodePin for color types, offering a color picker button
 /// that opens a color dialog that the user can interact with.
 class OrchestratorGraphNodePinColor : public OrchestratorGraphNodePin
@@ -28,6 +30,8 @@ class OrchestratorGraphNodePinColor : public OrchestratorGraphNodePin
     static void _bind_methods();
 
 protected:
+    ColorPickerButton* _button{ nullptr };
+
     OrchestratorGraphNodePinColor() = default;
 
     /// Called when the default value is changed in the UI.

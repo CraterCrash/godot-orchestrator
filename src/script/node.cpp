@@ -111,7 +111,11 @@ void OScriptNode::set_size(const Vector2& p_size)
 
 void OScriptNode::set_position(const Vector2& p_position)
 {
-    _position = p_position;
+    if (_position != p_position)
+    {
+        _position = p_position;
+        emit_changed();
+    }
 }
 
 #if GODOT_VERSION >= 0x040300

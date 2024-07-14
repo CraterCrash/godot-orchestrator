@@ -117,6 +117,10 @@ protected:
     /// @return the HBoxContainer child of the top panel, never null
     HBoxContainer* _get_panel_hbox() const { return _panel_hbox; }
 
+    /// Specifies whether remove can be undone.
+    /// @return true if the remove can be undone, false otherwise.
+    virtual bool _can_remove_be_undone() const { return false; }
+
     /// Get the prefix used for creating new elements
     /// @return the new unique name prefix
     virtual String _get_unique_name_prefix() const { return "item"; }
@@ -159,10 +163,21 @@ protected:
     /// Handles when an item is selected
     virtual void _handle_item_selected() { }
 
+    /// Returns whether an item can be renamed
+    /// @param p_old_name the old name
+    /// @param p_new_name the new name
+    /// @return true if the rename can be applied, false otherwise
+    virtual bool _can_be_renamed(const String& p_old_name, const String& p_new_name) { return false; }
+
+    /// Renames an item
+    /// @param p_old_name the old name
+    /// @param p_new_name the new name
+    void _rename_item(const String& p_old_name, const String& p_new_name) { _handle_item_renamed(p_old_name, p_new_name); }
+
     /// Handles when an item is renamed
     /// @param p_old_name the old name
     /// @param p_new_name the new name
-    virtual bool _handle_item_renamed(const String& p_old_name, const String& p_new_name) { return false; }
+    virtual void _handle_item_renamed(const String& p_old_name, const String& p_new_name) { }
 
     /// Handles the removal of the item
     /// @param p_item the tree item to be removed

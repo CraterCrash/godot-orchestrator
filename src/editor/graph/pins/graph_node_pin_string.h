@@ -19,11 +19,8 @@
 
 #include "editor/graph/graph_node_pin.h"
 
-namespace godot
-{
-    class LineEdit;
-    class TextEdit;
-}
+#include <godot_cpp/classes/line_edit.hpp>
+#include <godot_cpp/classes/text_edit.hpp>
 
 /// An implementation of OrchestratorGraphNodePin for types that want to represent their default values
 /// using a string-based text field for data entry.
@@ -34,6 +31,9 @@ class OrchestratorGraphNodePinString : public OrchestratorGraphNodePin
     static void _bind_methods();
 
 protected:
+    TextEdit* _text_edit{ nullptr };
+    LineEdit* _line_edit{ nullptr };
+
     OrchestratorGraphNodePinString() = default;
 
     /// Sets the default value on the pin
@@ -41,17 +41,14 @@ protected:
     void _set_default_value(const String& p_value);
 
     /// Called when the text edit's (multi-line text) text changes
-    /// @param p_text_edit the text edit widget
-    void _on_text_changed(TextEdit* p_text_edit);
+    void _on_text_changed();
 
     /// Called when the line edit's text submitted handler.
     /// @param p_value the text value submitted
-    /// @param p_line_edit the line edit widget
-    void _on_text_submitted(const String& p_value, LineEdit* p_line_edit);
+    void _on_text_submitted(const String& p_value);
 
     /// Called when focus is lost on the line edit widget.
-    /// @param p_line_edit the line edit widget
-    void _on_focus_lost(LineEdit* p_line_edit);
+    void _on_focus_lost();
 
     //~ Begin OrchestratorGraphNodePin Interface
     Control* _get_default_value_widget() override;

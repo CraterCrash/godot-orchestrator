@@ -141,6 +141,9 @@ class OrchestratorGraphEdit : public GraphEdit
 protected:
     static void _bind_methods();
 
+    void _link(const StringName& p_source, int p_source_port, const StringName& p_target, int p_target_port);
+    void _unlink(const StringName& p_source, int p_source_port, const StringName& p_target, int p_target_port);
+
 public:
     // The OrchestratorGraphEdit maintains a static clipboard so that data can be shared across different graph
     // instances easily in the tab view, and so these methods are called by the MainView during the

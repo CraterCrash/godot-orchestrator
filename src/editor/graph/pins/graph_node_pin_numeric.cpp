@@ -16,7 +16,9 @@
 //
 #include "graph_node_pin_numeric.h"
 
-#include <godot_cpp/classes/line_edit.hpp>
+#include "editor/plugins/orchestrator_editor_plugin.h"
+
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 
 OrchestratorGraphNodePinNumeric::OrchestratorGraphNodePinNumeric(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
@@ -29,42 +31,59 @@ void OrchestratorGraphNodePinNumeric::_bind_methods()
 
 bool OrchestratorGraphNodePinNumeric::_set_default_value(const String& p_value)
 {
+    if (String(_pin->get_effective_default_value()) == p_value)
+        return false;
+
     switch (_pin->get_type())
     {
         case Variant::INT:
-            _pin->set_default_value(p_value.to_int());
+        {
+            EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+            undo->create_action("Orchestration: Change integer pin");
+            undo->add_do_method(_pin.ptr(), "set_default_value", p_value.to_int());
+            undo->add_do_method(_line_edit, "set_text", p_value);
+            undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_effective_default_value());
+            undo->add_undo_method(_line_edit, "set_text", String(_pin->get_effective_default_value()));
+            undo->commit_action();
             return true;
-
+        }
         case Variant::FLOAT:
-            _pin->set_default_value(p_value.to_float());
+        {
+            EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+            undo->create_action("Orchestration: Change float pin");
+            undo->add_do_method(_pin.ptr(), "set_default_value", p_value.to_float());
+            undo->add_do_method(_line_edit, "set_text", p_value);
+            undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_effective_default_value());
+            undo->add_undo_method(_line_edit, "set_text", String(_pin->get_effective_default_value()));
+            undo->commit_action();
             return true;
-
+        }
         default:
             ERR_PRINT("Cannot set default value for an unknown numeric pin type");
             return false;
     }
 }
 
-void OrchestratorGraphNodePinNumeric::_on_text_submitted(const String& p_value, LineEdit* p_line_edit)
+void OrchestratorGraphNodePinNumeric::_on_text_submitted(const String& p_value)
 {
-    if (_set_default_value(p_value) && p_line_edit)
-        p_line_edit->release_focus();
+    if (_set_default_value(p_value))
+        _line_edit->release_focus();
 }
 
-void OrchestratorGraphNodePinNumeric::_on_focus_lost(const LineEdit* p_line_edit)
+void OrchestratorGraphNodePinNumeric::_on_focus_lost()
 {
-    _set_default_value(p_line_edit->get_text());
+    _set_default_value(_line_edit->get_text());
 }
 
 Control* OrchestratorGraphNodePinNumeric::_get_default_value_widget()
 {
-    LineEdit* line_edit = memnew(LineEdit);
-    line_edit->set_expand_to_text_length_enabled(true);
-    line_edit->set_h_size_flags(Control::SIZE_EXPAND);
-    line_edit->set_text(_pin->get_effective_default_value());
-    line_edit->add_theme_constant_override("minimum_character_width", 0);
-    line_edit->set_select_all_on_focus(true);
-    line_edit->connect("text_submitted", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_text_submitted).bind(line_edit));
-    line_edit->connect("focus_exited", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_focus_lost).bind(line_edit));
-    return line_edit;
+    _line_edit = memnew(LineEdit);
+    _line_edit->set_expand_to_text_length_enabled(true);
+    _line_edit->set_h_size_flags(Control::SIZE_EXPAND);
+    _line_edit->set_text(_pin->get_effective_default_value());
+    _line_edit->add_theme_constant_override("minimum_character_width", 0);
+    _line_edit->set_select_all_on_focus(true);
+    _line_edit->connect("text_submitted", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_text_submitted));
+    _line_edit->connect("focus_exited", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_focus_lost));
+    return _line_edit;
 }
