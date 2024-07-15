@@ -12,10 +12,14 @@ project/export/
 
 # Build files
 project/addons/orchestrator/orchestrator*.dll
+project/addons/orchestrator/orchestrator*.dylib
 project/addons/orchestrator/orchestrator*.exp
 project/addons/orchestrator/orchestrator*.ilk
 project/addons/orchestrator/orchestrator*.lib
 project/addons/orchestrator/orchestrator*.pdb
+project/addons/orchestrator/orchestrator*.so
+project/addons/orchestrator/orchestrator*.wasm
+project/addons/orchestrator/liborchestrator*.so
 project/addons/orchestrator/~orchestrator*.*
 
 # Test files
@@ -28,6 +32,11 @@ project/tests
 .mono/
 data_*/
 mono_crash.*.json
+
+# System/tool-specific ignores
+.directory
+.DS_Store
+*~
 
 # Idea-specific things
 .idea
