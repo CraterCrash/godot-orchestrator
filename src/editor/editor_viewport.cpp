@@ -177,6 +177,15 @@ OrchestratorGraphEdit* OrchestratorEditorViewport::_get_or_create_tab(const Stri
     return graph;
 }
 
+OrchestratorGraphEdit* OrchestratorEditorViewport::_get_current_tab()
+{
+    const int tab_index = _tabs->get_current_tab();
+    if (tab_index >= 0)
+        return Object::cast_to<OrchestratorGraphEdit>(_tabs->get_tab_control(tab_index));
+
+    return nullptr;
+}
+
 void OrchestratorEditorViewport::_rename_tab(const String& p_old_name, const String& p_new_name)
 {
     if (OrchestratorGraphEdit* graph = _get_or_create_tab(p_old_name, false, false))

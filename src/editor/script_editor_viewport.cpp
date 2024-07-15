@@ -223,16 +223,20 @@ void OrchestratorScriptEditorViewport::_scroll_to_item(TreeItem* p_item)
 
 void OrchestratorScriptEditorViewport::_override_godot_function()
 {
-    if (OrchestratorGraphEdit* graph = _get_or_create_tab(EVENT_GRAPH_NAME, false, false))
+    OrchestratorGraphEdit* current_graph = _get_current_tab();
+    if (!current_graph || !current_graph->is_event_graph())
+        current_graph = _get_or_create_tab(EVENT_GRAPH_NAME, false, true);
+
+    if (current_graph)
     {
-        graph->set_spawn_position_center_view();
+        current_graph->set_spawn_position_center_view();
 
         OrchestratorGraphActionFilter filter;
         filter.context_sensitive = true;
-        filter.context.graph = graph;
+        filter.context.graph = current_graph;
         filter.flags = OrchestratorGraphActionFilter::Filter_OverridesOnly;
 
-        OrchestratorGraphActionMenu* menu = graph->get_action_menu();
+        OrchestratorGraphActionMenu* menu = current_graph->get_action_menu();
         menu->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
         menu->apply_filter(filter);
     }
