@@ -29,14 +29,14 @@ jobs:
             target: template_release
             platform: windows
             arch: x86_64
-          - identifier: macos-release
+          - identifier: macos-x86_64-release
             name: 🍎 MacOS (Release)
             build_type: Release
             runner: macos-latest
             target: template_release
             platform: macos
             arch: x86_64
-          - identifier: macos-release
+          - identifier: macos-arm64-release
             name: 🍎 MacOS (Release)
             build_type: Release
             runner: macos-latest
