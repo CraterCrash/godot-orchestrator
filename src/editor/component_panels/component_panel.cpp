@@ -51,7 +51,7 @@ void OrchestratorScriptComponentPanel::_tree_add_item()
     if (_handle_add_new_item(new_name))
     {
         update();
-        _find_child_and_activate(new_name);
+        _find_child_and_activate(new_name, true, true);
     }
 }
 
@@ -245,7 +245,7 @@ String OrchestratorScriptComponentPanel::_create_unique_name_with_prefix(const S
     return NameUtils::create_unique_name(p_prefix, _get_existing_names());
 }
 
-bool OrchestratorScriptComponentPanel::_find_child_and_activate(const String& p_name, bool p_edit)
+bool OrchestratorScriptComponentPanel::_find_child_and_activate(const String& p_name, bool p_edit, bool p_activate)
 {
     TreeItem* root = _tree->get_root();
 
@@ -256,7 +256,15 @@ bool OrchestratorScriptComponentPanel::_find_child_and_activate(const String& p_
             if (_get_tree_item_name(child).match(p_name))
             {
                 emit_signal("scroll_to_item", child);
-                _tree->call_deferred("set_selected", child, 0);
+
+                if (p_activate)
+                {
+                    _tree->set_selected(child, 0);
+                    _tree->emit_signal("item_activated");
+                    _tree->set_selected(child, 0);
+                }
+                else
+                    _tree->set_selected(child, 0);
 
                 if (p_edit)
                 {
