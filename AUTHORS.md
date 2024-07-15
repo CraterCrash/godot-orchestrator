@@ -20,5 +20,6 @@ no other name is available.
 
 ## Developers
 
+    K.S. Ernest Lee (iFire)
     Malik Enes Safak (NullMember)
     Paven Ganti (gvrocksnow)
