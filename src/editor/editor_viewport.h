@@ -125,6 +125,10 @@ protected:
     /// @return the graph edit, or null if not found or created
     OrchestratorGraphEdit* _get_or_create_tab(const StringName& p_name, bool p_focus = true, bool p_create = true);
 
+    /// Gets the current tab
+    /// @return the current graph edit tab, or null if no tab is open.
+    OrchestratorGraphEdit* _get_current_tab();
+
     /// Renames a tab from the old name to the new name, if opened
     /// @param p_old_name the old name
     /// @param p_new_name the new name
