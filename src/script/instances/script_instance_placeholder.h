@@ -35,9 +35,9 @@ using namespace godot;
 ///
 class OScriptPlaceHolderInstance : public OScriptInstanceBase
 {
-    Ref<OScript> _script;  //! The script this instance represents
-    Object* _owner;        //! The owning object of the script
-    HashMap<StringName, Variant> _variables;
+    Ref<OScript> _script;                       //! The script this instance represents
+    Object* _owner;                             //! The owning object of the script
+    HashMap<StringName, Variant> _variables;    //! Script variables
 
 public:
     /// Defines details about the script instance to be passed to Godot
@@ -49,7 +49,7 @@ public:
     OScriptPlaceHolderInstance(Ref<OScript> p_script, Object* p_owner);
 
     /// OScriptPlaceHolderInstance destructor
-    ~OScriptPlaceHolderInstance() override = default;
+    ~OScriptPlaceHolderInstance() override;
 
     //~ Begin OScriptInstanceBase Interface
     bool set(const StringName& p_name, const Variant& p_value, PropertyError* r_err) override;

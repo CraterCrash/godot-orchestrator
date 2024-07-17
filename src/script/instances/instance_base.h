@@ -27,6 +27,7 @@ using namespace godot;
 
 /// Forward declarations
 class OScript;
+class OScriptLanguage;
 
 #if GODOT_VERSION >= 0x040300
 typedef GDExtensionScriptInstanceInfo3 OScriptInstanceInfo;
@@ -44,6 +45,11 @@ typedef GDExtensionScriptInstanceInfo2 OScriptInstanceInfo;
 ///
 class OScriptInstanceBase
 {
+    friend class OScript;
+    friend class OScriptLanguage;
+
+    void* _script_instance{ nullptr };          //! Godot script instance
+
 public:
     OScriptInstanceBase();
     virtual ~OScriptInstanceBase();
