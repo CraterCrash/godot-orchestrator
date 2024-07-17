@@ -96,7 +96,8 @@ void* OScript::_placeholder_instance_create(Object* p_object) const
         MutexLock lock(*_language->lock.ptr());
         _placeholders[p_object->get_instance_id()] = psi;
     }
-    return GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptPlaceHolderInstance::INSTANCE_INFO, psi);
+    psi->_script_instance = GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptPlaceHolderInstance::INSTANCE_INFO, psi);
+    return psi->_script_instance;
     #else
     return nullptr;
     #endif

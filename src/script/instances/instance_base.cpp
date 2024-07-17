@@ -92,6 +92,11 @@ void OScriptInstanceBase::init_instance(OScriptInstanceInfo& p_info)
     p_info.get_language_func = [](void* p_self) {
         return ((OScriptInstanceBase*)p_self)->get_language()->_owner;
     };
+
+    p_info.is_placeholder_func = [](void* p_self) -> GDExtensionBool {
+        return ((OScriptInstanceBase*) p_self)->is_placeholder();
+    };
+
 }
 
 void OScriptInstanceBase::get_property_state(GDExtensionScriptInstancePropertyStateAdd p_add_func, void* p_userdata)

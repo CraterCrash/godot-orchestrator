@@ -24,8 +24,6 @@
 using namespace godot;
 
 /// Forward declarations
-class OScript;
-class OScriptLanguage;
 class OScriptNode;
 class OScriptState;
 
@@ -48,7 +46,6 @@ class OScriptInstance : public OScriptInstanceBase
     Object* _owner{ nullptr };                  //! The owning object of the script
     OScriptLanguage* _language{ nullptr };      //! The language the script represents
     OScriptVirtualMachine _vm;                  //! The virtual machine instance
-    void* _script_instance{ nullptr };          //! Godot script instance
 
 public:
     /// Defines details about the script instance to be passed to Godot
