@@ -112,6 +112,12 @@ Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin()
         {
             target->set_label(VariantUtils::get_friendly_type_name(property.type));
             target->no_pretty_format();
+
+            // Target pins should never accept default values as they're implied to be provided an instance
+            // as a result of another node's output. So for example, to use a member function such as the
+            // "get_as_property_path" function on "NodePath", construct a NodePath and then connect that
+            // node to a member function call for "get_as_property_path".
+            target->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
         }
         else if (!property.class_name.is_empty())
         {
