@@ -835,7 +835,7 @@ void OrchestratorGraphEdit::_focus_node(int p_node_id, bool p_animated)
             node->set_selected(true);
 
             // Calculate position
-            Vector2 position = (node->get_position_offset() * get_zoom()) - (get_viewport_rect().get_center() / 2);
+            Vector2 position = (node->get_position_offset()) - (get_viewport_rect().get_center() / 2);
             if (!p_animated)
             {
                 set_scroll_offset(position);
@@ -843,18 +843,16 @@ void OrchestratorGraphEdit::_focus_node(int p_node_id, bool p_animated)
             }
 
             const float duration = 0.2f;
-            {
-                Ref<Tween> tween = get_tree()->create_tween();
-                tween->tween_method(Callable(this, "set_scroll_offset"), get_scroll_offset(), position, duration);
-                tween->set_ease(Tween::EASE_OUT_IN);
-                tween->play();
-            }
-            {
-                Ref<Tween> tween = get_tree()->create_tween();
+            Ref<Tween> tween = get_tree()->create_tween();
+            if (!UtilityFunctions::is_equal_approx(1.f, get_zoom()))
                 tween->tween_method(Callable(this, "set_zoom"), get_zoom(), 1.f, duration);
-                tween->set_ease(Tween::EASE_OUT_IN);
-                tween->play();
-            }
+
+            Ref<MethodTweener> scroll_tween = tween->tween_method(Callable(this, "set_scroll_offset"), get_scroll_offset(), position, duration);
+            if (!UtilityFunctions::is_equal_approx(1.f, get_zoom()))
+                scroll_tween->set_delay(duration);
+
+            tween->set_ease(Tween::EASE_IN_OUT);
+            tween->play();
         }
     }
 }
