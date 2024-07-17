@@ -31,7 +31,6 @@ static OScriptInstanceInfo init_placeholder_instance_info()
     // get_class_category_func
     // validate_property_func
     // refcount_incremented_func
-    // is_placeholder_func
     // set_fallback_func
     // get_fallback_func
 
@@ -89,6 +88,12 @@ OScriptPlaceHolderInstance::OScriptPlaceHolderInstance(Ref<OScript> p_script, Ob
 {
     _script = p_script;
     _owner = p_owner;
+}
+
+OScriptPlaceHolderInstance::~OScriptPlaceHolderInstance()
+{
+    if (_script.is_valid())
+        _script->_placeholder_erased(_owner);
 }
 
 bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_value, PropertyError* r_err)
