@@ -21,6 +21,7 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "common/version.h"
+#include "script/script_server.h"
 
 class OScriptNodeCallStaticFunctionInstance : public OScriptNodeInstance
 {
@@ -115,7 +116,12 @@ bool OScriptNodeCallStaticFunction::_set(const StringName& p_name, const Variant
 void OScriptNodeCallStaticFunction::_resolve_method_info()
 {
     // Lookup the MethodInfo
-    TypedArray<Dictionary> methods = ClassDB::class_get_method_list(_class_name, true);
+    TypedArray<Dictionary> methods;
+    if (ScriptServer::is_global_class(_class_name))
+        methods = ScriptServer::get_global_class(_class_name).get_method_list();
+    else
+        methods = ClassDB::class_get_method_list(_class_name, true);
+
     for (int i = 0; i < methods.size(); i++)
     {
         const Dictionary& dict = methods[i];

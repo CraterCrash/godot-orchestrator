@@ -16,6 +16,10 @@
 //
 #include "common/method_utils.h"
 
+#include "dictionary_utils.h"
+#include "property_utils.h"
+#include "script/script_server.h"
+
 #include <godot_cpp/core/class_db.hpp>
 
 namespace MethodUtils
@@ -60,7 +64,12 @@ namespace MethodUtils
         String class_name = p_class_name;
         while (!class_name.is_empty())
         {
-            TypedArray<Dictionary> methods = ClassDB::class_get_method_list(class_name, true);
+            TypedArray<Dictionary> methods;
+            if (ScriptServer::is_global_class(p_class_name))
+                methods = ScriptServer::get_global_class(p_class_name).get_method_list();
+            else
+                ClassDB::class_get_method_list(class_name, true);
+
             for (int i = 0; i < methods.size(); i++)
             {
                 const Dictionary& method = methods[i];
@@ -71,4 +80,59 @@ namespace MethodUtils
         }
         return {};
     }
+
+    String get_signature(const MethodInfo& p_method)
+    {
+        String signature = p_method.name.replace("_", " ").capitalize() + "\n\n";
+
+        if (MethodUtils::has_return_value(p_method))
+        {
+            if (PropertyUtils::is_variant(p_method.return_val))
+                signature += "Variant";
+            else if (p_method.return_val.hint == PROPERTY_HINT_ARRAY_TYPE)
+                signature += "Array[" + p_method.return_val.hint_string + "]";
+            else
+                signature += Variant::get_type_name(p_method.return_val.type);
+        }
+        else
+            signature += "void";
+
+        signature += " " + p_method.name + " (";
+
+        int index = 0;
+        for (const PropertyInfo& property : p_method.arguments)
+        {
+            if (!signature.ends_with("("))
+                signature += ", ";
+
+            if (property.name.is_empty())
+                signature += "p" + itos(index++);
+            else
+                signature += property.name;
+
+            signature += ":" + PropertyUtils::get_property_type_name(property);
+        }
+
+        if (p_method.flags & METHOD_FLAG_VARARG)
+        {
+            if (!p_method.arguments.empty())
+                signature += ", ";
+            signature += "...";
+        }
+
+        signature += ")";
+
+        if (p_method.flags & METHOD_FLAG_CONST)
+            signature += " const";
+        else if (p_method.flags & METHOD_FLAG_VIRTUAL)
+            signature += " virtual";
+
+        #if DEBUG_ENABLED
+        signature += "\n\n";
+        signature += vformat("%s", DictionaryUtils::from_method(p_method));
+        #endif
+
+        return signature;
+    }
+
 }

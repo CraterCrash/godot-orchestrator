@@ -207,7 +207,7 @@ int OrchestratorGraphNode::get_inputs_with_opacity(float p_opacity)
 int OrchestratorGraphNode::get_outputs_with_opacity(float p_opacity)
 {
     int count = 0;
-    for (int i = 0; i < get_input_port_count(); i++)
+    for (int i = 0; i < get_output_port_count(); i++)
     {
         if (is_slot_enabled_right(i))
         {

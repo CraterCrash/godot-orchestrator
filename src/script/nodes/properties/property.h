@@ -58,6 +58,16 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    /// Checks whether a property exists with the given name in the array
+    /// @param p_properties an array of properties
+    /// @return true if the property exists, false otherwise
+    bool _property_exists(const TypedArray<Dictionary>& p_properties) const;
+
+    /// Gets the property list for a given class name
+    /// @param p_class_name the class name
+    /// @return array of properties
+    TypedArray<Dictionary> _get_class_property_list(const String& p_class_name) const;
+
     /// Gets the class property if found
     /// @param p_class_name the class name
     /// @param p_name the property name

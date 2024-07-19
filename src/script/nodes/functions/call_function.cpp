@@ -462,16 +462,17 @@ void OScriptNodeCallFunction::validate_node_during_build(BuildLog& p_log) const
         const Ref<OScriptNodePin> property_pin = find_pin(property.name, PD_Input);
         if (property_pin.is_valid())
         {
-            switch (property_pin->get_property_info().type)
+            Variant::Type pin_type = property_pin->get_property_info().type;
+            if (pin_type == Variant::OBJECT || pin_type == Variant::CALLABLE)
             {
-                case Variant::OBJECT:
-                case Variant::CALLABLE:
-                case Variant::NODE_PATH:
-                    if (!property_pin->has_any_connections())
-                        p_log.error(this, property_pin, "Requires a connection.");
-                break;
-                default:
-                    break;
+                if (!property_pin->has_any_connections())
+                    p_log.error(this, property_pin, "Requires a connection.");
+            }
+            else if (pin_type == Variant::NODE_PATH && !property_pin->has_any_connections())
+            {
+                const NodePath value = property_pin->get_effective_default_value();
+                if (value.is_empty())
+                    p_log.error(this, property_pin, "Requires a NodePath value or a connection.");
             }
         }
     }

@@ -45,6 +45,11 @@ namespace MethodUtils
     /// @param p_method_name the name of the method to search for
     /// @return the class that contains the method, or an empty string if the method is not found
     String get_method_class(const String& p_class_name, const String& p_method_name);
+
+    /// Generates a method signature based on the specified method.
+    /// @param p_method the method
+    /// @return the signature
+    String get_signature(const MethodInfo& p_method);
 }
 
 #endif // ORCHESTRATOR_METHOD_UTILS_H
