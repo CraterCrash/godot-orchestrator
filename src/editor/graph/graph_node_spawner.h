@@ -48,7 +48,7 @@ protected:
 
     PropertyInfo _property;
     NodePath _node_path;
-    Vector<StringName> _target_classes;
+    PackedStringArray _target_classes;
 
 public:
     OrchestratorGraphNodeSpawnerProperty(const PropertyInfo& p_property, const NodePath& p_node_path)
@@ -56,7 +56,7 @@ public:
         , _node_path(p_node_path)
     {
     }
-    OrchestratorGraphNodeSpawnerProperty(const PropertyInfo& p_property, const Vector<StringName>& p_target_classes)
+    OrchestratorGraphNodeSpawnerProperty(const PropertyInfo& p_property, const PackedStringArray& p_target_classes)
         : _property(p_property)
         , _target_classes(p_target_classes)
     {
@@ -82,7 +82,7 @@ public:
         : OrchestratorGraphNodeSpawnerProperty(p_property, p_node_path)
     {
     }
-    OrchestratorGraphNodeSpawnerPropertyGet(const PropertyInfo& p_property, const Vector<StringName>& p_target_classes)
+    OrchestratorGraphNodeSpawnerPropertyGet(const PropertyInfo& p_property, const PackedStringArray& p_target_classes)
         : OrchestratorGraphNodeSpawnerProperty(p_property, p_target_classes)
     {
     }
@@ -111,7 +111,7 @@ public:
         : OrchestratorGraphNodeSpawnerProperty(p_property, p_node_path), _default_value(p_default_value)
     {
     }
-    OrchestratorGraphNodeSpawnerPropertySet(const PropertyInfo& p_property, const Vector<StringName>& p_target_classes)
+    OrchestratorGraphNodeSpawnerPropertySet(const PropertyInfo& p_property, const PackedStringArray& p_target_classes)
         : OrchestratorGraphNodeSpawnerProperty(p_property, p_target_classes)
     {
     }

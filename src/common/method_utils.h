@@ -39,6 +39,11 @@ namespace MethodUtils
     /// Sets the method to return the specified type
     /// @param p_method the method to modify
     void set_return_value_type(MethodInfo& p_method, Variant::Type p_type);
+
+    /// Generates a method signature based on the specified method.
+    /// @param p_method the method
+    /// @return the signature
+    String get_signature(const MethodInfo& p_method);
 }
 
 #endif // ORCHESTRATOR_METHOD_UTILS_H

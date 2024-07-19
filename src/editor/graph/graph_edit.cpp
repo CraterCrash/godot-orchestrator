@@ -34,6 +34,7 @@
 #include "script/language.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
@@ -581,7 +582,15 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             {
                 OScriptNodeInitContext context;
                 context.node_path = root->get_path_to(dropped_node);
-                context.class_name = dropped_node->get_class();
+
+                const Ref<Script> node_script = dropped_node->get_script();
+
+                String global_name;
+                if (node_script.is_valid())
+                    global_name = ScriptServer::get_global_name(node_script);
+
+                context.class_name = StringUtils::default_if_empty(global_name, dropped_node->get_class());
+
                 spawn_node<OScriptNodeSceneNode>(context, _saved_mouse_position);
             }
         }

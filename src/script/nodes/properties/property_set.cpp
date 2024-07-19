@@ -86,7 +86,13 @@ void OScriptNodePropertySet::allocate_default_pins()
 String OScriptNodePropertySet::get_tooltip_text() const
 {
     if (!_property.name.is_empty())
-        return vformat("Set the value for the property '%s'", _property.name);
+    {
+        String tooltip = vformat("Sets the value of the property '%s'", _property.name);
+        if (!_node_path.is_empty())
+            tooltip += "\nNode Path: " + _node_path;
+
+        return tooltip;
+    }
 
     return "Sets the value for a given property";
 }

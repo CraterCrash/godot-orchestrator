@@ -156,9 +156,7 @@ ResolvedType OrchestratorGraphNodePin::resolve_type() const
         resolved_type.class_name = "Object";
 
     // Primarily used by SceneNode to get scene attributes about the target
-    Ref<OScriptTargetObject> target = _pin->resolve_target();
-    if (target.is_valid() && target->has_target())
-        resolved_type.object = target->get_target();
+    resolved_type.object = _pin->resolve_target();
 
     return resolved_type;
 }

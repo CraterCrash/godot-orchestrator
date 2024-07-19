@@ -17,11 +17,13 @@
 #include "scene_utils.h"
 
 #include "editor/plugins/orchestrator_editor_plugin.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/label.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -48,6 +50,15 @@ namespace SceneUtils
                 return vbox->get_theme_icon(instantiable ? "Node" : "NodeDisabled", "EditorIcons");
 
             return vbox->get_theme_icon(instantiable ? "Object" : "ObjectDisabled", "EditorIcons");
+        }
+
+        if (ScriptServer::is_global_class(p_class_name))
+        {
+            const String icon = ScriptServer::get_global_class(p_class_name).icon_path;
+            if (!icon.is_empty())
+                return ResourceLoader::get_singleton()->load(icon);
+
+            return get_class_icon(ScriptServer::get_native_class_name(p_class_name));
         }
 
         return nullptr;
