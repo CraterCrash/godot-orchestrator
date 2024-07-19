@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "script/script.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -133,9 +134,28 @@ bool OScriptNodeProperty::_set(const StringName& p_name, const Variant& p_value)
     return false;
 }
 
+bool OScriptNodeProperty::_property_exists(const TypedArray<Dictionary>& p_properties) const
+{
+    for (int index = 0; index < p_properties.size(); ++index)
+    {
+        const Dictionary& property = p_properties[index];
+        if (property.has("name") && _property.name.match(property["name"]))
+            return true;
+    }
+    return false;
+}
+
+TypedArray<Dictionary> OScriptNodeProperty::_get_class_property_list(const String& p_class_name) const
+{
+    if (ScriptServer::is_global_class(p_class_name))
+        return ScriptServer::get_global_class(p_class_name).get_property_list();
+
+    return ClassDB::class_get_property_list(p_class_name);
+}
+
 bool OScriptNodeProperty::_get_class_property(const String& p_class_name, const String& p_name, PropertyInfo& r_property)
 {
-    TypedArray<Dictionary> properties = ClassDB::class_get_property_list(p_class_name);
+    const TypedArray<Dictionary> properties = _get_class_property_list(p_class_name);
     for (int index = 0; index < properties.size(); index++)
     {
         const Dictionary& dict = properties[index];
@@ -281,26 +301,54 @@ void OScriptNodeProperty::initialize(const OScriptNodeInitContext& p_context)
 
 void OScriptNodeProperty::validate_node_during_build(BuildLog& p_log) const
 {
-    if (_call_mode != CALL_NODE_PATH)
+    if (_call_mode == CALL_INSTANCE)
     {
-        bool found = false;
-
-        const String class_name = _call_mode == CALL_INSTANCE ? _base_type : get_orchestration()->get_base_type();
-        const TypedArray<Dictionary> properties = ClassDB::class_get_property_list(class_name);
-        for (int i = 0; i < properties.size(); i++)
+        const Ref<OScriptNodePin> target = find_pin("target", PD_Input);
+        if (!target->has_any_connections())
         {
-            const Dictionary& property = properties[i];
-            if (property.has("name") && _property.name.match(property["name"]))
+            p_log.error(this, "Requires a connection.");
+        }
+        else
+        {
+            const Ref<OScriptNodePin> source = target->get_connections()[0];
+            const Ref<OScriptTargetObject> target_object = source->resolve_target();
+            if (!target_object.is_valid() || !target_object->has_target())
             {
-                found = true;
-                break;
+                p_log.error(this, "No valid target was found.");
+            }
+            else
+            {
+                const Ref<Script> script = target_object->get_target()->get_script();
+                const bool script_property = script.is_valid() && _property_exists(script->get_script_property_list());
+                const bool object_property = _property_exists(target_object->get_target()->get_property_list());
+
+                if (!script_property && !object_property)
+                    p_log.error(this, vformat("No property name '%s' found", _property.name));
             }
         }
-
-        if (!found)
-            p_log.error(this, vformat("No property named '%s' on class '%s'", _property.name, class_name));
     }
+    else if (_call_mode == CALL_SELF)
+    {
+        const String base_type = get_orchestration()->get_base_type();
+        if (!_property_exists(_get_class_property_list(base_type)))
+            p_log.error(this, vformat("No property named '%s' on class '%s'", _property.name, base_type));
+    }
+    else if (_call_mode == CALL_NODE_PATH)
+    {
+        if (SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop()))
+        {
+            // Only if the node is found in the current edited scene, validate existance of property
+            if (Node* node = st->get_edited_scene_root()->get_node_or_null(_node_path))
+            {
+                const Ref<Script> script = node->get_script();
+                const bool script_property = script.is_valid() && _property_exists(script->get_script_property_list());
+                const bool object_property = _property_exists(node->get_property_list());
 
+                if (!script_property && !object_property)
+                    p_log.error(this, vformat("No property name '%s' found for node path '%s'.", _property.name, _node_path));
+            }
+        }
+    }
     super::validate_node_during_build(p_log);
 }
 

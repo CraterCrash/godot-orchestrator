@@ -33,7 +33,7 @@ void OrchestratorGraphNodePinObject::_update_label()
 {
     if (Object::cast_to<OScriptNodeCallFunction>(_pin->get_owning_node()))
     {
-        if (_pin->get_pin_name().match("target"))
+        if (_pin->get_pin_name().match("target") && !_pin->has_any_connections())
         {
             const String target_class = _pin->get_property_info().class_name;
             const String base_type = _pin->get_owning_node()->get_orchestration()->get_base_type();

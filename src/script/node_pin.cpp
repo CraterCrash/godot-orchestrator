@@ -22,6 +22,7 @@
 #include "nodes/functions/event.h"
 #include "script/node.h"
 #include "script/nodes/data/coercion_node.h"
+#include "script_server.h"
 
 void OScriptNodePin::_bind_methods()
 {
@@ -480,6 +481,10 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
         const String source_class = p_pin->get_property_info().class_name;
         if (!target_class.is_empty() && !source_class.is_empty())
         {
+            // Check inheritance of global classes
+            if (ScriptServer::is_global_class(source_class) && ScriptServer::is_parent_class(source_class, target_class))
+                return true;
+
             // Either must be the same or the target must be a super type of the source
             // The equality check is to handle enum classes that aren't registered as "classes" in Godot terms
             if (ClassDB::is_parent_class(source_class, target_class) || target_class == source_class)

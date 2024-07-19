@@ -23,6 +23,7 @@
 #include "common/variant_utils.h"
 #include "common/version.h"
 #include "script/nodes/variables/variable_get.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/node3d.hpp>
 
@@ -138,7 +139,12 @@ StringName OScriptNodeCallMemberFunction::_get_method_class_hierarchy_owner(cons
     String class_name = p_class_name;
     while (!class_name.is_empty())
     {
-        const TypedArray<Dictionary> methods = ClassDB::class_get_method_list(class_name, true);
+        TypedArray<Dictionary> methods;
+        if (ScriptServer::is_global_class(class_name))
+            methods = ScriptServer::get_global_class(class_name).get_method_list();
+        else
+            methods = ClassDB::class_get_method_list(class_name, true);
+
         for (int index = 0; index < methods.size(); ++index)
         {
             const Dictionary& dict = methods[index];

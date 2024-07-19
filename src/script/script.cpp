@@ -176,7 +176,7 @@ bool OScript::_inherits_script(const Ref<Script>& p_script) const
 
 StringName OScript::_get_global_name() const
 {
-    return "Orchestration";
+    return "";
 }
 
 StringName OScript::_get_instance_base_type() const

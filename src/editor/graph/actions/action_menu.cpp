@@ -338,7 +338,7 @@ TreeItem* OrchestratorGraphActionMenu::_make_item(TreeItem* p_parent,
     TreeItem* child = p_parent->create_child();
     child->set_text(0, p_text);
     child->set_expand_right(0, true);
-    child->set_icon(0, SceneUtils::get_editor_icon(p_menu_item->get_spec().icon));
+    child->set_icon(0, SceneUtils::get_class_icon(p_menu_item->get_spec().icon));
     child->set_tooltip_text(0, p_menu_item->get_spec().tooltip);
     child->set_selectable(0, p_menu_item->get_handler().is_valid());
 
@@ -449,6 +449,8 @@ void OrchestratorGraphActionMenu::_on_filter_text_changed(const String& p_new_te
 {
     // Update filters
     _filter.keywords.clear();
+
+    _on_expand_tree(true);
 
     const String filter_text = p_new_text.trim_prefix(" ").trim_suffix(" ");
     if (!filter_text.is_empty())
