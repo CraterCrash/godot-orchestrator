@@ -789,13 +789,26 @@ void OrchestratorDefaultGraphActionRegistrar::register_actions(const Orchestrato
             PackedStringArray classes_added;
             for (const StringName& target_class_name : p_context.filter->target_classes)
             {
-                PackedStringArray class_names = _get_class_hierarchy(target_class_name);
+                PackedStringArray class_names;
+                if (ScriptServer::is_global_class(target_class_name))
+                    class_names = ScriptServer::get_class_hierarchy(target_class_name, true);
+                else
+                    class_names = _get_class_hierarchy(target_class_name);
+
                 for (const String& class_name : class_names)
                 {
                     if (!classes_added.has(class_name))
                     {
                         classes_added.push_back(class_name);
-                        _register_class(class_name);
+                        if (ScriptServer::is_global_class(class_name))
+                        {
+                            const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(class_name);
+                            _register_methods(class_name, global_class.get_method_list());
+                            _register_properties(class_name, global_class.get_property_list());
+                            _register_signals(class_name, global_class.get_signal_list());
+                        }
+                        else
+                            _register_class(class_name);
                     }
                 }
             }

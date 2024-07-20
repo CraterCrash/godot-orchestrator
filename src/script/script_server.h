@@ -82,6 +82,10 @@ public:
     /// @return true if the source is a descendant of the target class, false otherwise
     static bool is_parent_class(const StringName& p_source_class_name, const StringName& p_target_class_name);
 
+    /// Get a list of all global classes
+    /// @return an array of global class names
+    static PackedStringArray get_global_class_list();
+
     /// Returns the global class entry for a specified class name.
     /// @param p_class_name the global class name to check
     /// @return the global class info structure, or an empty structure if not found
