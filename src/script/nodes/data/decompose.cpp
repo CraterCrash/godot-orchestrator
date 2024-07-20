@@ -118,6 +118,11 @@ String OScriptNodeDecompose::get_icon() const
     return "Unlinked";
 }
 
+PackedStringArray OScriptNodeDecompose::get_keywords() const
+{
+    return Array::make("break", "split", "separate", "decompose", Variant::get_type_name(_type));
+}
+
 OScriptNodeInstance* OScriptNodeDecompose::instantiate()
 {
     OScriptNodeDecomposeInstance* i = memnew(OScriptNodeDecomposeInstance);
