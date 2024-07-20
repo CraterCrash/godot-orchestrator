@@ -106,6 +106,20 @@ bool ScriptServer::is_parent_class(const StringName& p_source_class_name, const 
     return get_class_hierarchy(p_source_class_name, true).has(p_target_class_name);
 }
 
+PackedStringArray ScriptServer::get_global_class_list()
+{
+    const TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
+
+    PackedStringArray global_class_names;
+    for (int index = 0; index < global_classes.size(); ++index)
+    {
+        const Dictionary& entry = global_classes[index];
+        if (entry.has("class"))
+            global_class_names.push_back(entry["class"]);
+    }
+    return global_class_names;
+}
+
 ScriptServer::GlobalClass ScriptServer::get_global_class(const StringName& p_class_name)
 {
     GlobalClass global_class;

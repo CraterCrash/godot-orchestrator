@@ -22,6 +22,7 @@
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/templates/rb_set.hpp>
@@ -42,13 +43,20 @@ String OrchestratorVariableTypeSearchDialog::_create_class_hierarchy_path(const 
 PackedStringArray OrchestratorVariableTypeSearchDialog::_get_class_hiearchy(const String& p_class)
 {
     PackedStringArray hierarchy;
-    hierarchy.push_back(p_class);
-
-    String clazz = ClassDB::get_parent_class(p_class);
-    while (!clazz.is_empty())
+    if (ScriptServer::is_global_class(p_class))
     {
-        hierarchy.push_back(clazz);
-        clazz = ClassDB::get_parent_class(clazz);
+        hierarchy = ScriptServer::get_class_hierarchy(p_class, true);
+    }
+    else
+    {
+        hierarchy.push_back(p_class);
+
+        String clazz = ClassDB::get_parent_class(p_class);
+        while (!clazz.is_empty())
+        {
+            hierarchy.push_back(clazz);
+            clazz = ClassDB::get_parent_class(clazz);
+        }
     }
     hierarchy.reverse();
     return hierarchy;
@@ -162,6 +170,10 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorVariableType
         if (_is_base_type_node && class_name.begins_with("Editor"))
             continue;
 
+        // An internal class for the editor
+        if (class_name.match("MissingNode") || class_name.match("MissingResource"))
+            continue;
+
         bool excluded = false;
         for (const StringName& excluded_name : _exclusions)
         {
@@ -199,6 +211,16 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorVariableType
             item->parent = hierarchy_lookup[class_name];
             items.push_back(item);
         }
+    }
+
+    // Global Class Types
+    for (const String& class_name : ScriptServer::get_global_class_list())
+    {
+        if (_exclusions.has(class_name))
+            continue;
+
+        // Create hierarchy if it doesn't exist.
+        items.append_array(_get_class_hierarchy_search_items(class_name, hierarchy_lookup, root));
     }
 
     items.sort_custom<SearchItemSortPath>();
@@ -428,6 +450,8 @@ void OrchestratorVariableTypeSearchDialog::popup_create(bool p_dont_clear, bool 
 
     set_title("Select Variable Type");
     set_ok_button_text("Change");
+
+    register_text_enter(_search_box);
 
     OrchestratorEditorSearchDialog::popup_create(p_dont_clear, p_replace_mode, p_current_type, p_current_name);
 }
