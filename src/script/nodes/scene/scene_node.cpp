@@ -19,6 +19,7 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -81,6 +82,19 @@ bool OScriptNodeSceneNode::_set(const StringName& p_name, const Variant& p_value
     if (p_name.match("node_path"))
     {
         _node_path = p_value;
+
+        if (_initialized)
+        {
+            if (Node* node = _get_referenced_node())
+            {
+                Ref<Script> script = node->get_script();
+                if (script.is_valid() && !script->get_global_name().is_empty())
+                    _class_name = script->get_global_name();
+                else
+                    _class_name = node->get_class();
+            }
+        }
+
         _notify_pins_changed();
         return true;
     }
