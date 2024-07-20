@@ -88,10 +88,12 @@ bool OScriptNodeSceneNode::_set(const StringName& p_name, const Variant& p_value
             if (Node* node = _get_referenced_node())
             {
                 Ref<Script> script = node->get_script();
-                if (script.is_valid() && !script->get_global_name().is_empty())
-                    _class_name = script->get_global_name();
-                else
-                    _class_name = node->get_class();
+
+                String global_class;
+                if (script.is_valid())
+                    global_class = ScriptServer::get_global_name(script);
+
+                _class_name = StringUtils::default_if_empty(global_class, node->get_class());
             }
         }
 
