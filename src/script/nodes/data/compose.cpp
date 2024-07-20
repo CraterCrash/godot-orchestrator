@@ -393,6 +393,11 @@ String OScriptNodeComposeFrom::get_help_topic() const
     #endif
 }
 
+PackedStringArray OScriptNodeComposeFrom::get_keywords() const
+{
+    return Array::make("combine", "compose", "create", "make", Variant::get_type_name(_type));
+}
+
 OScriptNodeInstance* OScriptNodeComposeFrom::instantiate()
 {
     OScriptNodeComposeFromInstance* i = memnew(OScriptNodeComposeFromInstance);
