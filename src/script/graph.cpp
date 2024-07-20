@@ -389,15 +389,16 @@ Ref<OScriptNode> OScriptGraph::duplicate_node(int p_node_id, const Vector2& p_de
 
 Ref<OScriptNode> OScriptGraph::paste_node(const Ref<OScriptNode>& p_node, const Vector2& p_position)
 {
-    p_node->_orchestration = _orchestration;
-    p_node->set_id(_orchestration->get_available_id());
-    p_node->set_position(p_position);
-    p_node->post_initialize();
+    Ref<OScriptNode> node = p_node->duplicate(true);
+    node->_orchestration = _orchestration;
+    node->set_id(_orchestration->get_available_id());
+    node->set_position(p_position);
+    node->post_initialize();
 
-    _orchestration->add_node(this, p_node);
-    p_node->post_placed_new_node();
+    _orchestration->add_node(this, node);
+    node->post_placed_new_node();
 
-    return p_node;
+    return node;
 }
 
 Vector<Ref<OScriptFunction>> OScriptGraph::get_functions() const
