@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_SERVER_H
 #define ORCHESTRATOR_SCRIPT_SERVER_H
 
+#include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
@@ -96,6 +97,11 @@ public:
     /// @param p_include_native_classes if true, all native classes are included in bottom-up order
     /// @return all classes in the hierarchy, in bottom-up order
     static PackedStringArray get_class_hierarchy(const StringName& p_class_name, bool p_include_native_classes = false);
+
+    /// Get the global name of the specified script
+    /// @param p_script the script instance
+    /// @return the global name of the script, if one is present
+    static String get_global_name(const Ref<Script>& p_script);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_SERVER_H

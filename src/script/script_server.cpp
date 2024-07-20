@@ -156,3 +156,22 @@ PackedStringArray ScriptServer::get_class_hierarchy(const StringName& p_class_na
     }
     return hierarchy;
 }
+
+String ScriptServer::get_global_name(const Ref<Script>& p_script)
+{
+    if (p_script.is_valid())
+    {
+        #if GODOT_VERSION >= 0x040300
+        return p_script->get_global_name();
+        #else
+        TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
+        for (int index = 0; index < global_classes.size(); ++index)
+        {
+            const Dictionary& entry = global_classes[index];
+            if (entry.has("path") && p_script->get_path().match(entry["path"]) && entry.has("class"))
+                return entry["class"];
+        }
+        #endif
+    }
+    return "";
+}

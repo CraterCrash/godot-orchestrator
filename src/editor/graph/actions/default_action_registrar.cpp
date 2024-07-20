@@ -753,12 +753,17 @@ void OrchestratorDefaultGraphActionRegistrar::register_actions(const Orchestrato
         {
             const Object* object = p_context.filter->target_object->get_target();
             const Ref<Script> script = object->get_script();
-            if (script.is_valid() && !script->get_global_name().is_empty())
+
+            String global_name;
+            if (script.is_valid())
+                global_name = ScriptServer::get_global_name(script);
+
+            if (!global_name.is_empty())
             {
                 // The target object has a named script attached
                 // In this context,register script methods, properties, and signals using the script's
                 // class_name rather than adding these as part of the base script type.
-                const PackedStringArray script_class_names = ScriptServer::get_class_hierarchy(script->get_global_name());
+                const PackedStringArray script_class_names = ScriptServer::get_class_hierarchy(global_name);
                 for (const String& class_name : script_class_names)
                 {
                     const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(class_name);

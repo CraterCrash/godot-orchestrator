@@ -19,6 +19,7 @@
 #include "common/callable_lambda.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "common/version.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/property_selector.h"
 #include "editor/scene_node_selector.h"
@@ -27,7 +28,6 @@
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 
 #define EDSCALE OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_scale()
@@ -214,6 +214,10 @@ void OrchestratorGraphNodePinNodePath::_pin_disconnected(int p_type, int p_index
 
 void OrchestratorGraphNodePinNodePath::_notification(int p_what)
 {
+    #if GODOT_VERSION < 0x040300
+    OrchestratorGraphNodePin::_notification(p_what);
+    #endif
+
     if (p_what == NOTIFICATION_READY)
     {
         if (_has_descriptor())
