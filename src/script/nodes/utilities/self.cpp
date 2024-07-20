@@ -17,7 +17,11 @@
 #include "self.h"
 
 #include "common/property_utils.h"
+#include "common/scene_utils.h"
 #include "common/version.h"
+
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 
 class OScriptNodeSelfInstance : public OScriptNodeInstance
 {
@@ -92,6 +96,28 @@ String OScriptNodeSelf::get_icon() const
         return get_orchestration()->get_base_type();
 
     return super::get_icon();
+}
+
+Ref<OScriptTargetObject> OScriptNodeSelf::resolve_target(const Ref<OScriptNodePin>& p_pin) const
+{
+    if (_is_in_editor())
+    {
+        Ref<OScript> script = get_orchestration()->get_self();
+        if (script.is_valid())
+        {
+            // For now look at the current edited scene, and if one exists, try and find the node
+            // that has the attached script to refer to as "self". This is just an approximation,
+            // as multiple nodes could have the script attached.
+            Node* root = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
+            if (root)
+            {
+                Node* node = SceneUtils::get_node_with_script(script, root, root);
+                return memnew(OScriptTargetObject(node, false));
+            }
+        }
+    }
+
+    return super::resolve_target(p_pin);
 }
 
 OScriptNodeInstance* OScriptNodeSelf::instantiate()

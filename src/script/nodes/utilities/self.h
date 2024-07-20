@@ -44,6 +44,7 @@ public:
     String get_help_topic() const override;
     bool should_draw_as_bead() const override { return true; }
     String get_icon() const override;
+    Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
