@@ -22,6 +22,7 @@
 #include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
 
@@ -144,16 +145,19 @@ void OrchestratorScriptVariablesComponentPanel::_handle_item_activated(TreeItem*
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(variable);
 }
 
-bool OrchestratorScriptVariablesComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+bool OrchestratorScriptVariablesComponentPanel::_can_be_renamed(const String& p_old_name, const String& p_new_name)
 {
     if (_get_existing_names().has(p_new_name))
     {
         _show_notification("A variable with the name '" + p_new_name + "' already exists.");
         return false;
     }
-
-    _orchestration->rename_variable(p_old_name, p_new_name);
     return true;
+}
+
+void OrchestratorScriptVariablesComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+{
+    _orchestration->rename_variable(p_old_name, p_new_name);
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_remove(TreeItem* p_item)
@@ -183,7 +187,11 @@ void OrchestratorScriptVariablesComponentPanel::_handle_button_clicked(TreeItem*
     else if (p_column == 0 && p_id == 3)
     {
         // Visibility changed on variable
-        variable->set_exported(!variable->is_exported());
+        EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+        undo->create_action("Toggle Variable Visibility");
+        undo->add_do_method(variable.ptr(), "set_exported", !variable->is_exported());
+        undo->add_undo_method(variable.ptr(), "set_exported", variable->is_exported());
+        undo->commit_action();
         update();
     }
 }

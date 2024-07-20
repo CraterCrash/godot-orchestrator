@@ -39,6 +39,7 @@
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/geometry2d.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_action.hpp>
@@ -280,11 +281,49 @@ void OrchestratorGraphEdit::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("_synchronize_child_order"), &OrchestratorGraphEdit::_synchronize_child_order);
 
+    // Needed for undo/redo
+    ClassDB::bind_method(D_METHOD("_link", "source", "source_port", "target", "target_port"), &OrchestratorGraphEdit::_link);
+    ClassDB::bind_method(D_METHOD("_unlink", "source", "source_port", "target", "target_port"), &OrchestratorGraphEdit::_unlink);
+
     ADD_SIGNAL(MethodInfo("nodes_changed"));
     ADD_SIGNAL(MethodInfo("focus_requested", PropertyInfo(Variant::OBJECT, "target")));
     ADD_SIGNAL(MethodInfo("collapse_selected_to_function"));
     ADD_SIGNAL(MethodInfo("expand_node", PropertyInfo(Variant::INT, "node_id")));
     ADD_SIGNAL(MethodInfo("validation_requested"));
+}
+
+void OrchestratorGraphEdit::_link(const StringName& p_source, int p_source_port, const StringName& p_target, int p_target_port)
+{
+    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_source))
+    {
+        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_target))
+        {
+            OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_source_port);
+            OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_target_port);
+            if (!source_pin || !target_pin)
+                return;
+
+            // Connect the two pins
+            source_pin->link(target_pin);
+        }
+    }
+}
+
+void OrchestratorGraphEdit::_unlink(const StringName& p_source, int p_source_port, const StringName& p_target, int p_target_port)
+{
+    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_source))
+    {
+        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_target))
+        {
+            OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_source_port);
+            OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_target_port);
+            if (!source_pin || !target_pin)
+                return;
+
+            // Disconnect the two pins
+            source_pin->unlink(target_pin);
+        }
+    }
 }
 
 void OrchestratorGraphEdit::clear_selection()
@@ -1296,42 +1335,24 @@ void OrchestratorGraphEdit::_on_action_menu_action_selected(OrchestratorGraphAct
     p_handler->execute(this, _saved_mouse_position);
 }
 
-void OrchestratorGraphEdit::_on_connection(const StringName& p_from_node, int p_from_port, const StringName& p_to_node,
-                                 int p_to_port)
+void OrchestratorGraphEdit::_on_connection(const StringName& p_from_node, int p_from_port, const StringName& p_to_node, int p_to_port)
 {
     _drag_context.reset();
 
-    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from_node))
-    {
-        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_to_node))
-        {
-            OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_from_port);
-            OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_to_port);
-            if (!source_pin || !target_pin)
-                return;
-
-            // Connect the two pins
-            source_pin->link(target_pin);
-        }
-    }
+    EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+    undo->create_action("Orchestration: Connect nodes");
+    undo->add_do_method(this, "_link", p_from_node, p_from_port, p_to_node, p_to_port);
+    undo->add_undo_method(this, "_unlink", p_from_node, p_from_port, p_to_node, p_to_port);
+    undo->commit_action();
 }
 
-void OrchestratorGraphEdit::_on_disconnection(const StringName& p_from_node, int p_from_port, const StringName& p_to_node,
-                                    int p_to_port)
+void OrchestratorGraphEdit::_on_disconnection(const StringName& p_from_node, int p_from_port, const StringName& p_to_node, int p_to_port)
 {
-    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from_node))
-    {
-        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_to_node))
-        {
-            OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_from_port);
-            OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_to_port);
-            if (!source_pin || !target_pin)
-                return;
-
-            // Disconnect the two pins
-            source_pin->unlink(target_pin);
-        }
-    }
+    EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+    undo->create_action("Orchestration: Disconnect nodes");
+    undo->add_do_method(this, "_unlink", p_from_node, p_from_port, p_to_node, p_to_port);
+    undo->add_undo_method(this, "_link", p_from_node, p_from_port, p_to_node, p_to_port);
+    undo->commit_action();
 }
 
 void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& p_to_node, int p_to_port, const Vector2& p_position)

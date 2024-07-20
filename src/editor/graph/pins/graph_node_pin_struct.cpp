@@ -18,7 +18,9 @@
 
 #include "api/extension_db.h"
 #include "common/variant_utils.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/grid_container.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
 
@@ -29,6 +31,21 @@ OrchestratorGraphNodePinStruct::OrchestratorGraphNodePinStruct(OrchestratorGraph
 
 void OrchestratorGraphNodePinStruct::_bind_methods()
 {
+    // Needed for undo/redo
+    ClassDB::bind_method(D_METHOD("_set_ui_value", "value"), &OrchestratorGraphNodePinStruct::_set_ui_value);
+}
+
+void OrchestratorGraphNodePinStruct::_set_ui_value(const Variant& p_value)
+{
+    const PackedStringArray property_paths = _get_property_paths(_pin->get_type());
+    for (int i = 0; i < property_paths.size(); i++)
+    {
+        const String& property_path = property_paths[i];
+        PackedStringArray property_name_parts = property_path.split(".");
+
+        Variant value = p_value.get(property_name_parts[0]);
+        _set_ui_value_by_property_path(property_path, i, value);
+    }
 }
 
 int OrchestratorGraphNodePinStruct::_get_grid_columns(Variant::Type p_type) const
@@ -156,7 +173,18 @@ void OrchestratorGraphNodePinStruct::_set_default_value_from_line_edits()
         _get_ui_value_by_property_path(property_path, i, value);
         pin_value.set(property_name_parts[0], value);
     }
-    _pin->set_default_value(pin_value);
+
+    Variant value = _pin->get_effective_default_value();
+    if (value != pin_value)
+    {
+        EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+        undo->create_action("Orchestration: Change struct pin");
+        undo->add_do_method(_pin.ptr(), "set_default_value", pin_value);
+        undo->add_do_method(this, "_set_ui_value", pin_value);
+        undo->add_undo_method(_pin.ptr(), "set_default_value", value);
+        undo->add_undo_method(this, "_set_ui_value", value);
+        undo->commit_action();
+    }
 }
 
 Control* OrchestratorGraphNodePinStruct::_get_default_value_widget()

@@ -45,7 +45,8 @@ protected:
     void _handle_context_menu(int p_id) override;
     bool _handle_add_new_item(const String& p_name) override;
     void _handle_item_activated(TreeItem* p_item) override;
-    bool _handle_item_renamed(const String& p_old_name, const String& p_new_name) override;
+    bool _can_be_renamed(const String& p_old_name, const String& p_new_name) override;
+    void _handle_item_renamed(const String& p_old_name, const String& p_new_name) override;
     void _handle_remove(TreeItem* p_item) override;
     void _handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button) override;
     //~ End OrchestratorScriptComponentPanel Interface

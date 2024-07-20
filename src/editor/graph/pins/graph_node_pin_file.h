@@ -36,7 +36,8 @@ class OrchestratorGraphNodePinFile : public OrchestratorGraphNodePin
     static void _bind_methods();
 
 protected:
-    Button* _clear_button;
+    Button* _file_button{ nullptr };
+    Button* _clear_button{ nullptr };
 
     OrchestratorGraphNodePinFile() = default;
 
@@ -48,23 +49,19 @@ protected:
     String _get_default_text() const;
 
     /// Dispatched when the clear button is clicked
-    /// @param p_button the button control, should not be null
-    void _on_clear_file(Button* p_button);
+    void _on_clear_file();
 
     /// Dispatched when the button is clicked
-    /// @param p_button the button control, should not be null
-    void _on_show_file_dialog(Button* p_button);
+    void _on_show_file_dialog();
 
     /// Dispatched when a file is selected
     /// @param p_file_name the selected file
     /// @param p_dialog the file dialog, should not be null
-    /// @param p_button the button control, should not be null
-    void _on_file_selected(const String& p_file_name, FileDialog* p_dialog, Button* p_button);
+    void _on_file_selected(const String& p_file_name, FileDialog* p_dialog);
 
     /// Dispatched when the file dialog window is closed or cancelled
     /// @param p_dialog the file dialog, should not be null
-    /// @param p_button the button control, should not be null
-    void _on_file_canceled(FileDialog* p_dialog, Button* p_button);
+    void _on_file_canceled(FileDialog* p_dialog);
 
 public:
     OrchestratorGraphNodePinFile(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);

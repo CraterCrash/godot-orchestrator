@@ -16,7 +16,9 @@
 //
 #include "graph_node_pin_color.h"
 
-#include <godot_cpp/classes/color_picker_button.hpp>
+#include "editor/plugins/orchestrator_editor_plugin.h"
+
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 
 OrchestratorGraphNodePinColor::OrchestratorGraphNodePinColor(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
@@ -29,16 +31,22 @@ void OrchestratorGraphNodePinColor::_bind_methods()
 
 void OrchestratorGraphNodePinColor::_on_default_value_changed(const Color& p_new_value)
 {
-    _pin->set_default_value(p_new_value);
+    EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+    undo->create_action("Orchestration: Change color pin", UndoRedo::MERGE_ENDS);
+    undo->add_do_method(_pin.ptr(), "set_default_value", p_new_value);
+    undo->add_do_method(_button, "set_pick_color", p_new_value);
+    undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_default_value());
+    undo->add_undo_method(_button, "set_pick_color", _pin->get_default_value());
+    undo->commit_action();
 }
 
 Control* OrchestratorGraphNodePinColor::_get_default_value_widget()
 {
-    ColorPickerButton* button = memnew(ColorPickerButton);
-    button->set_focus_mode(Control::FOCUS_NONE);
-    button->set_h_size_flags(Control::SIZE_EXPAND);
-    button->set_custom_minimum_size(Vector2(24, 24));
-    button->set_pick_color(_pin->get_default_value());
-    button->connect("color_changed", callable_mp(this, &OrchestratorGraphNodePinColor::_on_default_value_changed));
-    return button;
+    _button = memnew(ColorPickerButton);
+    _button->set_focus_mode(Control::FOCUS_NONE);
+    _button->set_h_size_flags(Control::SIZE_EXPAND);
+    _button->set_custom_minimum_size(Vector2(24, 24));
+    _button->set_pick_color(_pin->get_default_value());
+    _button->connect("color_changed", callable_mp(this, &OrchestratorGraphNodePinColor::_on_default_value_changed));
+    return _button;
 }

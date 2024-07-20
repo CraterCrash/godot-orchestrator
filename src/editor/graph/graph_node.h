@@ -220,7 +220,7 @@ private:
     /// Called when the graph node is moved
     /// @param p_old_pos old position
     /// @param p_new_pos new position
-    void _on_node_moved(Vector2 p_old_pos, Vector2 p_new_pos);
+    void _on_node_moved(const Vector2 p_old_pos, const Vector2 p_new_pos);
 
     /// Called when the graph node is resized
     void _on_node_resized();

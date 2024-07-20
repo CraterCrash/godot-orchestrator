@@ -26,6 +26,10 @@
 
 void OScriptNodePin::_bind_methods()
 {
+    // Needed for undo/redo
+    ClassDB::bind_method(D_METHOD("set_default_value", "value"), &OScriptNodePin::set_default_value);
+    ClassDB::bind_method(D_METHOD("get_default_value"), &OScriptNodePin::get_default_value);
+
     BIND_ENUM_CONSTANT(EPinDirection::PD_Input)
     BIND_ENUM_CONSTANT(EPinDirection::PD_Output)
     BIND_ENUM_CONSTANT(EPinDirection::PD_MAX)
@@ -343,7 +347,7 @@ void OScriptNodePin::set_default_value(const Variant& p_default_value)
         {
             set_block_signals(true);
             node->pin_default_value_changed(Ref<OScriptNodePin>(this));
-            set_block_signals(true);
+            set_block_signals(false);
         }
         emit_changed();
     }

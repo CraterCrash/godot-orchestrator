@@ -152,7 +152,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_item_activated(TreeItem*
     _show_function_graph(p_item);
 }
 
-bool OrchestratorScriptFunctionsComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+bool OrchestratorScriptFunctionsComponentPanel::_can_be_renamed(const String& p_old_name, const String& p_new_name)
 {
     if (_get_existing_names().has(p_new_name))
     {
@@ -160,9 +160,13 @@ bool OrchestratorScriptFunctionsComponentPanel::_handle_item_renamed(const Strin
         return false;
     }
 
+    return true;
+}
+
+void OrchestratorScriptFunctionsComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+{
     _orchestration->rename_function(p_old_name, p_new_name);
     emit_signal("graph_renamed", p_old_name, p_new_name);
-    return true;
 }
 
 void OrchestratorScriptFunctionsComponentPanel::_handle_remove(TreeItem* p_item)

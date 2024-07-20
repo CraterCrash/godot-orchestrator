@@ -16,7 +16,10 @@
 //
 #include "graph_node_pin_bool.h"
 
-#include <godot_cpp/classes/check_box.hpp>
+#include "common/callable_lambda.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
+
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 
 OrchestratorGraphNodePinBool::OrchestratorGraphNodePinBool(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
@@ -29,15 +32,21 @@ void OrchestratorGraphNodePinBool::_bind_methods()
 
 void OrchestratorGraphNodePinBool::_on_default_value_changed(bool p_new_value)
 {
-    _pin->set_default_value(p_new_value);
+    EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+    undo->create_action("Orchestration: Change boolean pin");
+    undo->add_do_method(_pin.ptr(), "set_default_value", p_new_value);
+    undo->add_do_method(_check_box, "set_pressed_no_signal", p_new_value);
+    undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_default_value());
+    undo->add_undo_method(_check_box, "set_pressed_no_signal", _pin->get_default_value());
+    undo->commit_action();
 }
 
 Control* OrchestratorGraphNodePinBool::_get_default_value_widget()
 {
-    CheckBox* check_box = memnew(CheckBox);
-    check_box->set_focus_mode(FOCUS_NONE);
-    check_box->set_h_size_flags(SIZE_EXPAND_FILL);
-    check_box->set_pressed(_pin->get_default_value());
-    check_box->connect("toggled", callable_mp(this, &OrchestratorGraphNodePinBool::_on_default_value_changed));
-    return check_box;
+    _check_box = memnew(CheckBox);
+    _check_box->set_focus_mode(FOCUS_NONE);
+    _check_box->set_h_size_flags(SIZE_EXPAND_FILL);
+    _check_box->set_pressed(_pin->get_default_value());
+    _check_box->connect("toggled", callable_mp(this, &OrchestratorGraphNodePinBool::_on_default_value_changed));
+    return _check_box;
 }

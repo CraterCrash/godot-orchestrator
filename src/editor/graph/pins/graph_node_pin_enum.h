@@ -42,12 +42,12 @@ class OrchestratorGraphNodePinEnum : public OrchestratorGraphNodePin
     };
 
 protected:
+    OptionButton* _button{ nullptr };
     List<ListItem> _items; //! All the items that are in the drop-down list
 
     /// Dispatched when the user makes a selection.
     /// @param p_index the choice index that was selected
-    /// @param p_button the button widget
-    void _on_item_selected(int p_index, OptionButton* p_button);
+    void _on_item_selected(int p_index);
 
     /// Generate the list of items for the drop-down
     void _generate_items();

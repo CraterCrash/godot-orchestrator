@@ -82,16 +82,19 @@ void OrchestratorScriptSignalsComponentPanel::_handle_item_activated(TreeItem* p
     OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
 }
 
-bool OrchestratorScriptSignalsComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+bool OrchestratorScriptSignalsComponentPanel::_can_be_renamed(const String& p_old_name, const String& p_new_name)
 {
     if (_get_existing_names().has(p_new_name))
     {
         _show_notification("A signal with the name '" + p_new_name + "' already exists.");
         return false;
     }
-
-    _orchestration->rename_custom_user_signal(p_old_name, p_new_name);
     return true;
+}
+
+void OrchestratorScriptSignalsComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+{
+    _orchestration->rename_custom_user_signal(p_old_name, p_new_name);
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_remove(TreeItem* p_item)

@@ -17,8 +17,10 @@
 #include "graph_node_pin_input_action.h"
 
 #include "common/callable_lambda.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/config_file.hpp>
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/option_button.hpp>
@@ -74,7 +76,27 @@ Control* OrchestratorGraphNodePinInputAction::_get_default_value_widget()
 
     _button->connect("item_selected", callable_mp_lambda(this, [&](int index) {
         const String action_name = _button->get_item_text(index);
-        _pin->set_default_value(action_name);
+        if (_pin->get_effective_default_value() != action_name)
+        {
+            int selected_index = 0;
+            for (int i = 0; i < _button->get_item_count(); ++i)
+            {
+                const String button_item = _button->get_item_text(i);
+                if (_pin->get_effective_default_value() == button_item)
+                {
+                    selected_index = i;
+                    break;
+                }
+            }
+
+            EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+            undo->create_action("Orchestration: Change input action pin");
+            undo->add_do_method(_pin.ptr(), "set_default_value", action_name);
+            undo->add_do_method(_button, "select", index);
+            undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_effective_default_value());
+            undo->add_undo_method(_button, "select", selected_index);
+            undo->commit_action();
+        }
         _button->release_focus();
     }));
 

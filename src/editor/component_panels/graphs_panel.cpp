@@ -176,17 +176,20 @@ void OrchestratorScriptGraphsComponentPanel::_handle_item_activated(TreeItem* p_
         _focus_graph_function(p_item);
 }
 
-bool OrchestratorScriptGraphsComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+bool OrchestratorScriptGraphsComponentPanel::_can_be_renamed(const String& p_old_name, const String& p_new_name)
 {
     if (_get_existing_names().has(p_new_name))
     {
         _show_notification("A graph with the name '" + p_new_name + "' already exists.");
         return false;
     }
+    return true;
+}
 
+void OrchestratorScriptGraphsComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)
+{
     _orchestration->rename_graph(p_old_name, p_new_name);
     emit_signal("graph_renamed", p_old_name, p_new_name);
-    return true;
 }
 
 void OrchestratorScriptGraphsComponentPanel::_handle_remove(TreeItem* p_item)

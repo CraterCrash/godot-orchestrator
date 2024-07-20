@@ -19,9 +19,11 @@
 #include "api/extension_db.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/check_box.hpp>
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/grid_container.hpp>
 #include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/popup_panel.hpp>
@@ -35,6 +37,8 @@ OrchestratorGraphNodePinBitField::OrchestratorGraphNodePinBitField(OrchestratorG
 
 void OrchestratorGraphNodePinBitField::_bind_methods()
 {
+    // Needed for undo/redo
+    ClassDB::bind_method(D_METHOD("_update_button_value"), &OrchestratorGraphNodePinBitField::_update_button_value);
 }
 
 String OrchestratorGraphNodePinBitField::_get_enum_prefix(const PackedStringArray& p_values)
@@ -121,8 +125,13 @@ void OrchestratorGraphNodePinBitField::_on_bit_toggle(bool p_state, int64_t p_en
     else
         current_value &= ~p_enum_value;
 
-    _pin->set_default_value(current_value);
-    _update_button_value();
+    EditorUndoRedoManager* undo = OrchestratorPlugin::get_singleton()->get_undo_redo();
+    undo->create_action("Orchestration: Change bitfield pin", UndoRedo::MERGE_ENDS);
+    undo->add_do_method(_pin.ptr(), "set_default_value", current_value);
+    undo->add_do_method(this, "_update_button_value");
+    undo->add_undo_method(_pin.ptr(), "set_default_value", _pin->get_effective_default_value());
+    undo->add_undo_method(this, "_update_button_value");
+    undo->commit_action();
 }
 
 void OrchestratorGraphNodePinBitField::_on_hide_flags(PopupPanel* p_panel)

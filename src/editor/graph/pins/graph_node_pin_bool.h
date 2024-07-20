@@ -19,6 +19,8 @@
 
 #include "editor/graph/graph_node_pin.h"
 
+#include <godot_cpp/classes/check_box.hpp>
+
 /// An implementation of OrchestratorGraphNodePin for boolean pin types that provides a check-box
 /// to represent the default value associated with the pin.
 class OrchestratorGraphNodePinBool : public OrchestratorGraphNodePin
@@ -28,6 +30,8 @@ class OrchestratorGraphNodePinBool : public OrchestratorGraphNodePin
     static void _bind_methods();
 
 protected:
+    CheckBox* _check_box{ nullptr };
+
     OrchestratorGraphNodePinBool() = default;
 
     /// Called when the default value is changed in the UI.
