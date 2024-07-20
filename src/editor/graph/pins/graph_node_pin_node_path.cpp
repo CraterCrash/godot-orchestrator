@@ -25,6 +25,7 @@
 #include "editor/scene_node_selector.h"
 #include "script/nodes/functions/call_function.h"
 #include "script/nodes/functions/call_member_function.h"
+#include "script/nodes/utilities/self.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -157,7 +158,24 @@ void OrchestratorGraphNodePinNodePath::_show_property_dialog()
 
     const Ref<OScriptTargetObject> target = owner_pin->get_connections()[0]->resolve_target();
     if (!target.is_valid() || !target->has_target())
+    {
+        // In the event that the self node cannot be resolved, inform user about the edited scene needing to
+        // include the reference to the node with the Orchestration for this lookup to resolve correctly.
+        OScriptNodeSelf* self = Object::cast_to<OScriptNodeSelf>(owner_pin->get_connections()[0]->get_owning_node());
+        if (self)
+        {
+            AcceptDialog* accept = memnew(AcceptDialog);
+            accept->set_text("This Orchestration is not attached to any node in the current edited\nscene, so the reference cannot be resolved and no properties selected.");
+            accept->set_title("Error");
+            accept->set_exclusive(true);
+            add_child(accept);
+
+            accept->connect("canceled", callable_mp_lambda(this, [=, this] { accept->queue_free(); }));
+            accept->connect("confirmed", callable_mp_lambda(this, [=, this] { accept->queue_free(); }));
+            accept->popup_centered();
+        }
         return;
+    }
 
     String value = _pin->get_effective_default_value();
     if (!value.is_empty() && value.begins_with(":"))
