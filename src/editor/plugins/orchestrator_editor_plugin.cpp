@@ -20,7 +20,6 @@
 #include "editor/graph/graph_edit.h"
 #include "editor/editor_panel.h"
 #include "editor/plugins/inspector_plugins.h"
-#include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/window_wrapper.h"
 #include "script/script.h"
