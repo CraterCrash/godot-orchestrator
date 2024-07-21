@@ -85,7 +85,10 @@ void OScriptNodeFunctionResult::validate_node_during_build(BuildLog& p_log) cons
         {
             // Check hidden first because those are not assigned cached pin indices
             if (!pin->is_hidden() && !pin->has_any_connections())
-                p_log.error(this, pin, "Requires a connection.");
+            {
+                if (pin->get_property_info().type >= Variant::RID)
+                    p_log.error(this, pin, "Requires a connection.");
+            }
         }
     }
 }
