@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
+#include "nodes/functions/function_entry.h"
 #include "nodes/functions/function_result.h"
 #include "script/script.h"
 
@@ -294,6 +295,27 @@ void OScriptFunction::set_return(const PropertyInfo& p_property)
     {
         _method.return_val = p_property;
         _returns_value = MethodUtils::has_return_value(_method);
+
+        if (_returns_value)
+        {
+            // Since function returns a value, if there is no result node, add one.
+            // If the function entry exec pin is not yet wired, autowire it to the result node.
+            Ref<OScriptNodeFunctionResult> result = get_return_node();
+            if (!result.is_valid())
+            {
+                const Ref<OScriptNodeFunctionEntry> entry = get_owning_node();
+                const Vector2 position = entry->get_position() + Vector2(400, 0);
+
+                OScriptNodeInitContext context;
+                context.method = get_method_info();
+
+                result = get_function_graph()->create_node<OScriptNodeFunctionResult>(context, position);
+
+                const Ref<OScriptNodePin> entry_exec_out = entry->get_execution_pin();
+                if (entry_exec_out.is_valid() && !entry_exec_out->has_any_connections() && result.is_valid())
+                    get_function_graph()->link(entry->get_id(), 0, result->get_id(), 0);
+            }
+        }
 
         emit_changed();
         notify_property_list_changed();
