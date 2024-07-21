@@ -225,13 +225,6 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _script_graph->connect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
         _script_graph->connect("knots_updated", callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots));
 
-        if (_script_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION))
-        {
-            Ref<OScriptFunction> function = _script_graph->get_functions()[0];
-            if (function.is_valid())
-                function->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_function_changed));
-        }
-
         // Wire up action menu
         _action_menu->connect("canceled", callable_mp(this, &OrchestratorGraphEdit::_on_action_menu_cancelled));
         _action_menu->connect("action_selected", callable_mp(this, &OrchestratorGraphEdit::_on_action_menu_action_selected));
@@ -1191,42 +1184,6 @@ void OrchestratorGraphEdit::_show_drag_hint(const godot::String& p_message) cons
 void OrchestratorGraphEdit::_hide_drag_hint()
 {
     _drag_hint->hide();
-}
-
-void OrchestratorGraphEdit::_function_changed()
-{
-    Vector<Ref<OScriptFunction>> functions = _script_graph->get_functions();
-    if (functions.is_empty())
-        return;
-
-    const Ref<OScriptFunction> function = functions[0];
-    if (function.is_valid() && function->has_return_type())
-    {
-        Ref<OScriptNodeFunctionResult> result = function->get_return_node();
-        if (!result.is_valid())
-        {
-            Ref<OScriptNodeFunctionEntry> entry = function->get_owning_node();
-
-            // Check whether we should autowire the return to the entry
-            bool autowire = false;
-            Ref<OScriptNodePin> entry_exec_out = entry->get_execution_pin();
-            if (entry_exec_out.is_valid() && !entry_exec_out->has_any_connections())
-                autowire = true;
-
-            // The spawn location
-            const Vector2 position = entry->get_position() + Vector2(400, 0);
-
-            // Create context
-            OScriptNodeInitContext context;
-            context.method = function->get_method_info();
-
-            spawn_node<OScriptNodeFunctionResult>(context, position,
-                callable_mp_lambda(this, [&] (const Ref<OScriptNodeFunctionResult>& node) {
-                    if (autowire)
-                        _script_graph->link(entry->get_id(), 0, node->get_id(), 0);
-                }));
-        }
-    }
 }
 
 void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from, int p_from_port, bool p_output)
