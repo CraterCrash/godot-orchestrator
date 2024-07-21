@@ -18,6 +18,8 @@
 
 #include "common/dictionary_utils.h"
 #include "editor/inspector/property_info_container_property.h"
+#include "editor/inspector/property_type_button_property.h"
+#include "orchestrator_editor_plugin.h"
 #include "script/nodes/functions/function_terminator.h"
 #include "script/nodes/signals/emit_signal.h"
 
@@ -133,4 +135,41 @@ bool OrchestratorEditorInspectorPluginSignal::_parse_property(Object* p_object, 
     }
 
     return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool OrchestratorEditorInspectorPluginVariable::_can_handle(Object* p_object) const
+{
+    return p_object->get_class() == OScriptVariable::get_class_static();
+}
+
+bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage, bool p_wide)
+{
+    Ref<OScriptVariable> variable = Object::cast_to<OScriptVariable>(p_object);
+    if (variable.is_null())
+        return false;
+
+    if (p_name.match("classification"))
+    {
+        OrchestratorEditorPropertyVariableClassification* editor = memnew(OrchestratorEditorPropertyVariableClassification);
+        _classification = editor;
+        add_property_editor(p_name, editor, true, "Variable Type");
+        return true;
+    }
+
+    return false;
+}
+
+void OrchestratorEditorInspectorPluginVariable::edit_classification(Object* p_object)
+{
+    Ref<OScriptVariable> variable = Object::cast_to<OScriptVariable>(p_object);
+    if (variable.is_null())
+        return;
+
+    // This is done to clear and reset the editor interface
+    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_node(nullptr);
+    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(variable);
+
+    _classification->edit();
 }

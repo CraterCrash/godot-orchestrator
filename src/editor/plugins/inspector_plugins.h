@@ -23,6 +23,9 @@
 
 using namespace godot;
 
+/// Forward declarations
+class OrchestratorEditorPropertyVariableClassification;
+
 /// A simple EditorInspectorPlugin that adds custom UI widgets for function input/output properties.
 class OrchestratorEditorInspectorPluginFunction : public EditorInspectorPlugin
 {
@@ -60,6 +63,25 @@ public:
     bool _can_handle(Object* p_object) const override;
     bool _parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint_type, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage_flags, bool p_wide) override;
     //~ End EditorInspectorPlugin Interface
+};
+
+/// An EditorInspectorPlugin that handles selecting the variable type for OScriptVariable objects
+class OrchestratorEditorInspectorPluginVariable : public EditorInspectorPlugin
+{
+    GDCLASS(OrchestratorEditorInspectorPluginVariable, EditorInspectorPlugin);
+    static void _bind_methods() { }
+
+    mutable OrchestratorEditorPropertyVariableClassification* _classification;
+
+public:
+    //~ Begin EditorInspectorPlugin Interface
+    bool _can_handle(Object* p_object) const override;
+    bool _parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage, bool p_wide) override;
+    //~ End EditorInspectorPlugin Interface
+
+    /// Allows external callers to edit the currently active variable's classification
+    /// @param p_object the object to edit
+    void edit_classification(Object* p_object);
 };
 
 #endif // ORCHESTRATOR_EDITOR_INSPECTOR_PLUGINS_H

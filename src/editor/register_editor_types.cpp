@@ -39,8 +39,8 @@
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
 #include "editor/inspector/property_info_container_property.h"
+#include "editor/inspector/property_type_button_property.h"
 #include "editor/plugins/inspector_plugins.h"
-#include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/property_selector.h"
@@ -48,7 +48,6 @@
 #include "editor/script_connections.h"
 #include "editor/script_editor_viewport.h"
 #include "editor/search/search_dialog.h"
-#include "editor/search/variable_classification_dialog.h"
 #include "editor/select_type_dialog.h"
 #include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
@@ -77,7 +76,6 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSelectTypeSearchDialog)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorVariableTypeSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptAutowireSelections)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorPropertySelector)

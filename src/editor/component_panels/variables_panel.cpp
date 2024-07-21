@@ -19,7 +19,7 @@
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
-#include "editor/plugins/inspector_plugin_variable.h"
+#include "editor/plugins/inspector_plugins.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/popup_menu.hpp>
@@ -59,6 +59,7 @@ void OrchestratorScriptVariablesComponentPanel::_create_variable_item(TreeItem* 
     }
 
     item->add_button(0, SceneUtils::get_class_icon(p_variable->get_variable_type_name()), 2);
+    item->set_button_tooltip_text(0, 0, "Change variable type");
 
     if (!p_variable->get_description().is_empty())
     {
