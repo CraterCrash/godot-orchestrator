@@ -17,6 +17,7 @@
 #include "editor/plugins/inspector_plugins.h"
 
 #include "common/dictionary_utils.h"
+#include "common/version.h"
 #include "editor/inspector/property_info_container_property.h"
 #include "editor/inspector/property_type_button_property.h"
 #include "orchestrator_editor_plugin.h"
@@ -154,7 +155,11 @@ bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object
     {
         OrchestratorEditorPropertyVariableClassification* editor = memnew(OrchestratorEditorPropertyVariableClassification);
         _classification = editor;
+        #if GODOT_VERSION >= 0x040300
         add_property_editor(p_name, editor, true, "Variable Type");
+        #else
+        add_property_editor(p_name, editor, true);
+        #endif
         return true;
     }
 
