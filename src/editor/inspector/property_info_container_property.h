@@ -77,6 +77,11 @@ protected:
     /// Writes the internal list of properties to the edited object.
     void _set_properties();
 
+    /// Updates the pass by button details
+    /// @param p_index the slot index
+    /// @param p_property the property details
+    void _update_pass_by_details(int p_index, const PropertyInfo& p_property);
+
     /// Updates move button state
     /// @param p_force_disable force buttons disabled
     void _update_move_buttons(bool p_force_disable = false);
