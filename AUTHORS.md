@@ -20,6 +20,7 @@ no other name is available.
 
 ## Developers
 
+    Aaron Franke (aaronfranke)
     K.S. Ernest Lee (iFire)
     Malik Enes Safak (NullMember)
     Paven Ganti (gvrocksnow)
