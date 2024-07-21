@@ -43,12 +43,30 @@ void OrchestratorPropertyInfoContainerEditorProperty::_set_properties()
     emit_changed(get_edited_property(), properties);
 }
 
+void OrchestratorPropertyInfoContainerEditorProperty::_update_pass_by_details(int p_index, const PropertyInfo& p_property)
+{
+    Button* pass_by = Object::cast_to<Button>(_slots[p_index].button_group->get_child(0));
+    if (!pass_by)
+        return;
+
+    if (PropertyUtils::is_passed_by_reference(p_property))
+    {
+        pass_by->set_button_icon(SceneUtils::get_editor_icon("KeyXScale"));
+        pass_by->set_tooltip_text("Property is passed by reference");
+    }
+    else
+    {
+        pass_by->set_button_icon(SceneUtils::get_editor_icon("KeyValue"));
+        pass_by->set_tooltip_text("Property is passed by value");
+    }
+}
+
 void OrchestratorPropertyInfoContainerEditorProperty::_update_move_buttons(bool p_force_disable)
 {
     for (int index = 0; index < _slots.size(); ++index)
     {
-        Button* move_up = Object::cast_to<Button>(_slots[index].button_group->get_child(1));
-        Button* move_down = Object::cast_to<Button>(_slots[index].button_group->get_child(2));
+        Button* move_up = Object::cast_to<Button>(_slots[index].button_group->get_child(2));
+        Button* move_down = Object::cast_to<Button>(_slots[index].button_group->get_child(3));
 
         if (_allow_rearrange)
         {
@@ -76,6 +94,7 @@ void OrchestratorPropertyInfoContainerEditorProperty::_add_property()
     property.hint = PROPERTY_HINT_NONE;
 
     _properties.push_back(property);
+
     _set_properties();
 }
 
@@ -262,6 +281,12 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
 
             new_slot.button_group = memnew(HBoxContainer);
 
+            Button* pass_by = memnew(Button);
+            pass_by->set_flat(true);
+            pass_by->set_disabled(false);
+            pass_by->set_focus_mode(FOCUS_NONE);
+            new_slot.button_group->add_child(pass_by);
+
             Button* remove = memnew(Button);
             remove->set_button_icon(SceneUtils::get_editor_icon("Remove"));
             remove->set_tooltip_text("Remove this property");
@@ -303,6 +328,8 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
 
         _slots[index].type->set_text(friendly_type_name);
         _slots[index].type->set_button_icon(SceneUtils::get_class_icon(PropertyUtils::get_property_type_name(property)));
+
+        _update_pass_by_details(index, property);
     }
 
     while (_slots.size() > _properties.size())
