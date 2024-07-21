@@ -267,7 +267,10 @@ TreeItem* OrchestratorEditorSearchDialog::_populate_search_results()
         for (const Ref<SearchItem>& item : item_hierarchy)
         {
             TreeItem* child = parent ? parent->create_child() : _search_options->create_item();
-            child->set_text(0, item->text);
+            if (!item->script_filename.is_empty())
+                child->set_text(0, vformat("%s (%s)", item->text, item->script_filename));
+            else
+                child->set_text(0, item->text);
             child->set_icon(0, item->icon.is_valid() ? item->icon : nullptr);
             child->set_selectable(0, item->selectable);
             child->set_collapsed(false); //item->collapsed);
