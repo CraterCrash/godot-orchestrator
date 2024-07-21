@@ -60,4 +60,4 @@ public:
     void setup(const String& p_base_type, const String& p_selected_type);
 };
 
-#endif ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_TYPE_BUTTON_PROPERTY_H
+#endif // ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_TYPE_BUTTON_PROPERTY_H

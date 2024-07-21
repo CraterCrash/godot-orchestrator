@@ -23,6 +23,7 @@
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
