@@ -449,7 +449,5 @@ void OrchestratorSelectTypeSearchDialog::popup_create(bool p_dont_clear, bool p_
     set_title(_title);
     set_ok_button_text("Change");
 
-    register_text_enter(_search_box);
-
     OrchestratorEditorSearchDialog::popup_create(p_dont_clear, p_replace_mode, p_current_type, p_current_name);
 }
