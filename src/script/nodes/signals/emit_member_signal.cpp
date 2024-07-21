@@ -74,9 +74,8 @@ void OScriptNodeEmitMemberSignal::_script_changed()
 
 void OScriptNodeEmitMemberSignal::_get_property_list(List<PropertyInfo>* r_list) const
 {
-    constexpr int64_t usage = PROPERTY_USAGE_STORAGE;
-    r_list->push_back(PropertyInfo(Variant::STRING, "target_class", PROPERTY_HINT_TYPE_STRING, "", usage));
-    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", usage));
+    r_list->push_back(PropertyInfo(Variant::STRING, "target_class", PROPERTY_HINT_TYPE_STRING, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
 bool OScriptNodeEmitMemberSignal::_get(const StringName& p_name, Variant& r_value) const
