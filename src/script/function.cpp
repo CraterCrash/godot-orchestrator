@@ -220,8 +220,10 @@ bool OScriptFunction::resize_argument_list(size_t p_new_size)
     }
 
     if (result)
+    {
         emit_changed();
-
+        notify_property_list_changed();
+    }
     return result;
 }
 
@@ -237,6 +239,18 @@ void OScriptFunction::set_argument_type(size_t p_index, Variant::Type p_type)
             pi.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
         else
             pi.usage &= ~PROPERTY_USAGE_NIL_IS_VARIANT;
+
+        emit_changed();
+    }
+}
+
+void OScriptFunction::set_arguments(const TypedArray<Dictionary>& p_arguments)
+{
+    if (_user_defined)
+    {
+        _method.arguments.clear();
+        for (int index = 0; index < p_arguments.size(); ++index)
+            _method.arguments.push_back(DictionaryUtils::to_property(p_arguments[index]));
 
         emit_changed();
     }
@@ -271,6 +285,18 @@ void OScriptFunction::set_return_type(Variant::Type p_type)
             MethodUtils::set_no_return_value(_method);
 
         emit_changed();
+    }
+}
+
+void OScriptFunction::set_return(const PropertyInfo& p_property)
+{
+    if (_user_defined)
+    {
+        _method.return_val = p_property;
+        _returns_value = MethodUtils::has_return_value(_method);
+
+        emit_changed();
+        notify_property_list_changed();
     }
 }
 

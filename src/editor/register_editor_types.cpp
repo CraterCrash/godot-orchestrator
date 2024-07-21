@@ -38,6 +38,8 @@
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
+#include "editor/inspector/property_info_container_property.h"
+#include "editor/plugins/inspector_plugins.h"
 #include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
@@ -61,7 +63,10 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorDebuggerPlugin)
     #endif
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorExportPlugin)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginFunction)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginSignal)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
+    ORCHESTRATOR_REGISTER_CLASS(OrchestratorPropertyInfoContainerEditorProperty)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)
     ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorCache)

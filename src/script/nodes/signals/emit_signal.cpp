@@ -99,24 +99,7 @@ public:
 
 void OScriptNodeEmitSignal::_get_property_list(List<PropertyInfo>* r_list) const
 {
-    int32_t read_only_serialize = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY;
-
-    r_list->push_back(PropertyInfo(Variant::STRING, "signal_name", PROPERTY_HINT_NONE, "", read_only_serialize));
-
-    if (_signal.is_valid())
-    {
-        int32_t usage = PROPERTY_USAGE_EDITOR;
-        r_list->push_back(PropertyInfo(Variant::INT, "argument_count", PROPERTY_HINT_RANGE, "0,32", usage));
-
-        static String types = VariantUtils::to_enum_list();
-        const MethodInfo& mi = _signal->get_method_info();
-        for (size_t i = 1; i <= mi.arguments.size(); i++)
-        {
-            r_list->push_back(PropertyInfo(Variant::INT, "argument_" + itos(i) + "/type", PROPERTY_HINT_ENUM, types, usage));
-            r_list->push_back(PropertyInfo(Variant::STRING, "argument_" + itos(i) + "/name", PROPERTY_HINT_NONE, "", usage));
-        }
-    }
-
+    r_list->push_back(PropertyInfo(Variant::STRING, "signal_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY));
 }
 
 bool OScriptNodeEmitSignal::_get(const StringName& p_name, Variant& r_value) const
@@ -125,33 +108,6 @@ bool OScriptNodeEmitSignal::_get(const StringName& p_name, Variant& r_value) con
     {
         r_value = _signal_name;
         return true;
-    }
-    else if (p_name.match("argument_count"))
-    {
-        r_value = _signal.is_valid() ? static_cast<int64_t>(_signal->get_argument_count()) : 0;
-        return true;
-    }
-    else if (p_name.begins_with("argument_"))
-    {
-        if (_signal.is_valid())
-        {
-            const MethodInfo &mi = _signal->get_method_info();
-
-            const size_t index = p_name.get_slicec('_', 1).get_slicec('/', 0).to_int() - 1;
-            ERR_FAIL_INDEX_V(index, mi.arguments.size(), false);
-
-            const String what = p_name.get_slicec('/', 1);
-            if (what == "type")
-            {
-                r_value = mi.arguments[index].type;
-                return true;
-            }
-            else if (what == "name")
-            {
-                r_value = mi.arguments[index].name;
-                return true;
-            }
-        }
     }
     return false;
 }
@@ -165,37 +121,6 @@ bool OScriptNodeEmitSignal::_set(const StringName& p_name, const Variant& p_valu
             _signal_name = p_value;
             _notify_pins_changed();
             return true;
-        }
-    }
-    else if (p_name.match("argument_count"))
-    {
-        if (_signal.is_valid())
-        {
-            if (_signal->resize_argument_list(static_cast<int64_t>(p_value)))
-                notify_property_list_changed();
-            return true;
-        }
-    }
-    else if (p_name.begins_with("argument_"))
-    {
-        if (_signal.is_valid())
-        {
-            const MethodInfo &mi = _signal->get_method_info();
-
-            const size_t index = p_name.get_slicec('_', 1).get_slicec('/', 0).to_int() - 1;
-            ERR_FAIL_INDEX_V(index, mi.arguments.size(), false);
-
-            const String what = p_name.get_slicec('/', 1);
-            if (what == "type")
-            {
-                _signal->set_argument_type(index, VariantUtils::to_type(p_value));
-                return true;
-            }
-            else if (what == "name")
-            {
-                _signal->set_argument_name(index, p_value);
-                return true;
-            }
         }
     }
     return false;

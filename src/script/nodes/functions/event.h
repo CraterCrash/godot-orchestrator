@@ -34,7 +34,7 @@ class OScriptNodeEvent : public OScriptNodeFunctionEntry
 protected:
 
     //~ Begin OScriptNodeFunctionTerminator Interface
-    bool _supports_return_values() const override { return false; }
+    bool _is_inputs_outputs_mutable() const override { return false; }
     //~ End OScriptNodeFunctionTerminator Interface
 
     //~ Begin OScriptNodeFunctionEntry Interface

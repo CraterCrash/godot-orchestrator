@@ -153,6 +153,10 @@ public:
     /// @param p_type the new argument type
     void set_argument_type(size_t p_index, Variant::Type p_type);
 
+    /// Sets the arguments for this function
+    /// @param p_arguments the argument list
+    void set_arguments(const TypedArray<Dictionary>& p_arguments);
+
     /// Utility function to check whether the function returns a value. This is determined by
     /// looking at the Variant::Type in the method's return definition and if it is NIL, then
     /// it's considered to have a void (or no) return value.
@@ -166,6 +170,10 @@ public:
     /// Set the return value type for user-defined functions. Built-in functions act as a no-op.
     /// @param p_type the new return value type
     void set_return_type(Variant::Type p_type);
+
+    /// Set the return
+    /// @param p_property the return property
+    void set_return(const PropertyInfo& p_property);
 
     /// Sets whether the function has a return value
     /// @param p_has_return_value value true if the function has a return value, false otherwise
