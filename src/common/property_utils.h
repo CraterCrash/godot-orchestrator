@@ -125,6 +125,11 @@ namespace PropertyUtils
     /// @return true if the property is <code>NIL</code> but has no variant flag set
     bool is_nil_no_variant(const PropertyInfo& p_property);
 
+    /// Returns whether the specified property uses pass-by-reference semantics.
+    /// @param p_property the property
+    /// @return true if the property is passed by reference, false if its passed by value
+    bool is_passed_by_reference(const PropertyInfo& p_property);
+
     /// Get the type name for the specified property
     /// @param p_property the property
     /// @return the property type name

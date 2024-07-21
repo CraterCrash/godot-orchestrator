@@ -98,6 +98,35 @@ namespace PropertyUtils
         return is_nil(p_property) && !(p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
     }
 
+    bool is_passed_by_reference(const PropertyInfo& p_property)
+    {
+        switch (p_property.type)
+        {
+            // These are all types that are explicitly passed by reference, always
+            case Variant::OBJECT:
+            case Variant::PACKED_INT32_ARRAY:
+            case Variant::PACKED_INT64_ARRAY:
+            case Variant::PACKED_BYTE_ARRAY:
+            case Variant::PACKED_COLOR_ARRAY:
+            case Variant::PACKED_FLOAT32_ARRAY:
+            case Variant::PACKED_FLOAT64_ARRAY:
+            case Variant::PACKED_STRING_ARRAY:
+            case Variant::PACKED_VECTOR2_ARRAY:
+            case Variant::PACKED_VECTOR3_ARRAY:
+            #if GODOT_VERSION >= 0x040300
+            case Variant::PACKED_VECTOR4_ARRAY:
+            #endif
+            case Variant::ARRAY:
+            case Variant::DICTIONARY:
+                return true;
+
+            // Handle cases where pass by value/reference varies
+            default:
+                // Variant is always passed by reference
+                return is_variant(p_property);
+        }
+    }
+
     String get_property_type_name(const PropertyInfo& p_property)
     {
         if (is_variant(p_property))
