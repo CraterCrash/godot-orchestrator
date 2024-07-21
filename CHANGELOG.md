@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## [2.1.beta1](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.beta1) - 2024-07-21
+
+- [53c628a](http://github.com/Vahera/godot-orchestrator/commit/53c628ad2b8a18eccbbc1ce5cd82187042285ca2) - GH-563 Relax validation on function result node
+- [8d50ade](http://github.com/Vahera/godot-orchestrator/commit/8d50ade7516e6e89a143e6f2a59e44a657042d7b) - GH-560 Add global script filename to search results
+- [f263523](http://github.com/Vahera/godot-orchestrator/commit/f263523340cfb4e0abbed514bf7db33b8a314cb3) - GH-555 Add custom icons for pass-by reference/value
+- [922ac98](http://github.com/Vahera/godot-orchestrator/commit/922ac9880afa5195d4dcf07ab9a2880b20f80cf7) - GH-555 Add pass-by- value/reference to property container UI
+- [a1f3f1a](http://github.com/Vahera/godot-orchestrator/commit/a1f3f1aff7767f37b7ec32f599b36d2f95d3a8c6) - GH-559 Fix `text_submitted` due to multiple registration calls
+- [b52afce](http://github.com/Vahera/godot-orchestrator/commit/b52afceb24ff873a06e1e6be7ac7807c9c95c87c) - Fix API compatibility with Godot 4.2.1
+- [796a680](http://github.com/Vahera/godot-orchestrator/commit/796a6802d7c049dfc39002a2aece071b880542f8) - Fix build errors
+- [c9df854](http://github.com/Vahera/godot-orchestrator/commit/c9df854fbc40c636a8ffc3f8a0c90ac5329c8efe) - GH-556 Align variable type plugin with new search type
+- [6147e28](http://github.com/Vahera/godot-orchestrator/commit/6147e280bfe0c4ac93974cd2c669b3a5a2993d50) - GH-556 Generalize "select type" dialog
+- [1768f9a](http://github.com/Vahera/godot-orchestrator/commit/1768f9a735e57659ee346215fb1a7fdf5d407aea) - GH-551 Avoid duplicating return nodes on rename
+- [d50b28c](http://github.com/Vahera/godot-orchestrator/commit/d50b28cf8ce2261862f8c65b0657c45867dad260) - GH-497 Function/Signals support all class/argument types
+- [d3ba7c9](http://github.com/Vahera/godot-orchestrator/commit/d3ba7c9c5dffc8552d56eddf1b6002c06d9e6ad2) - GH-549 Add additional keywords for ComposeFrom/Decompose nodes
+- [88d2df0](http://github.com/Vahera/godot-orchestrator/commit/88d2df06d4c64b3683d7af31ca30286c07c9ad75) - GH-547 Duplicate node instances on paste
+- [77466fe](http://github.com/Vahera/godot-orchestrator/commit/77466febb878cb31224c7f40a2acd8f878bbbeac) - GH-338 Support variables as script global class types
+- [ab763ab](http://github.com/Vahera/godot-orchestrator/commit/ab763ab39ae83d20504e51683d3a49627f311e63) - GH-534 Correctly resolve self for NodePath popups
+- [a04a9d9](http://github.com/Vahera/godot-orchestrator/commit/a04a9d9d785dba4b61171056a2ff979ed60d08c7) - GH-532 Fix Godot 4.2.1 compatibility
+- [43379ec](http://github.com/Vahera/godot-orchestrator/commit/43379ecce7ceb2ad2baedaf9f9c791e9119877d0) - GH-532 Align Get Scene Node class on path change
+- [674fb74](http://github.com/Vahera/godot-orchestrator/commit/674fb7480378bb660bbe4416e4c0f10921ac020b) - GH-537 Fix Godot 4.2.1 compatibility
+- [c011903](http://github.com/Vahera/godot-orchestrator/commit/c0119037d32b3122a93e884558669bccc1f369b2) - GH-537 Fix target resolution
+- [dbced0d](http://github.com/Vahera/godot-orchestrator/commit/dbced0dedcb1dbd68875ba215b284aa802f50e4f) - GH-542 Fix tween animation for focusing graph nodes
+- [5f6de0e](http://github.com/Vahera/godot-orchestrator/commit/5f6de0e698db7c4e58f7d204461a606c20f1517d) - GH-533 Ignore default value widgets on target pins
+- [7df2f18](http://github.com/Vahera/godot-orchestrator/commit/7df2f18d79ac813360480010457c1eb65bbde699) - Add Mac, Linux, and Web ignores to .gitignore file
+- [1230949](http://github.com/Vahera/godot-orchestrator/commit/1230949ede0ce318f0cc113e208c65dbae9f48e4) - GH-539 Fix placeholder instance clean-up
+
 ## [2.1.dev4](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.dev4) - 2024-07-15
 
 - [b642c29](http://github.com/Vahera/godot-orchestrator/commit/b642c29884fe472dc38110c55fcc0b8aad46ed91) - GH-529 Improve add component item workflow
