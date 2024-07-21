@@ -173,7 +173,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what)
         _help_bit = memnew(OrchestratorEditorSearchHelpBit);
         SceneUtils::add_margin_child(vbox, "Description:", _help_bit);
 
-        // register_text_enter(_search_box);
+        register_text_enter(_search_box);
         set_hide_on_ok(false);
 
         connect("confirmed", callable_mp(this, &OrchestratorEditorSearchDialog::_on_confirmed));
