@@ -51,12 +51,12 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_pass_by_details(in
 
     if (PropertyUtils::is_passed_by_reference(p_property))
     {
-        pass_by->set_button_icon(SceneUtils::get_editor_icon("KeyXScale"));
+        pass_by->set_button_icon(SceneUtils::get_icon("CircleReference"));
         pass_by->set_tooltip_text("Property is passed by reference");
     }
     else
     {
-        pass_by->set_button_icon(SceneUtils::get_editor_icon("KeyValue"));
+        pass_by->set_button_icon(SceneUtils::get_icon("CircleValue"));
         pass_by->set_tooltip_text("Property is passed by value");
     }
 }

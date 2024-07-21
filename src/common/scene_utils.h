@@ -41,6 +41,11 @@ namespace SceneUtils
     /// @return the editor color
     Color get_editor_color(const String& p_color_name, const String& p_category = "Editor");
 
+    /// Gets an Orchestrator editor icon
+    /// @param p_name the icon name
+    /// @return a reference to the icon
+    Ref<Texture2D> get_icon(const String& p_name);
+    
     /// Load an icon.
     ///
     /// @param p_icon_name the editor icon to load
