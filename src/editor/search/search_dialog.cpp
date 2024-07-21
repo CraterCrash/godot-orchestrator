@@ -87,6 +87,7 @@ void OrchestratorEditorSearchHelpBit::_on_meta_clicked()
 void OrchestratorEditorSearchDialog::_bind_methods()
 {
     ADD_SIGNAL(MethodInfo("selected"));
+    ADD_SIGNAL(MethodInfo("closed"));
 }
 
 void OrchestratorEditorSearchDialog::_notification(int p_what)
@@ -620,6 +621,7 @@ void OrchestratorEditorSearchDialog::_on_confirmed()
 
 void OrchestratorEditorSearchDialog::_on_canceled()
 {
+    emit_signal("canceled");
     _cleanup();
 }
 

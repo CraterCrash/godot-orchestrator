@@ -19,6 +19,7 @@
 #include "common/version.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/editor_panel.h"
+#include "editor/plugins/inspector_plugins.h"
 #include "editor/plugins/inspector_plugin_variable.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/window_wrapper.h"
@@ -58,6 +59,8 @@ void OrchestratorPlugin::_notification(int p_what)
         // It's safe then to cache the plugin reference here.
         _plugin = this;
 
+        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginFunction));
+        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginSignal));
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginVariable));
         for (const Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
             add_inspector_plugin(plugin);

@@ -28,18 +28,16 @@ class OScriptNodeFunctionTerminator : public OScriptNode
 protected:
     Guid _guid;                      //! Function guid
     Ref<OScriptFunction> _function;  //! Function reference
-    bool _return_value{ false };     //! Whether the function has a return value
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
-    void _validate_property(PropertyInfo& p_property) const;
     //~ End Wrapped Interface
 
-    /// Returns whether the terminator node supports return values.
-    /// @return true by default, but derived node classes can override this behavior.
-    virtual bool _supports_return_values() const { return true; }
+    /// Defines whether input and output pins are mutable
+    /// @return true if pins are mutable, false otherwise
+    virtual bool _is_inputs_outputs_mutable() const { return true; }
 
     /// Callback when the underlying function is changed.
     void _on_function_changed();

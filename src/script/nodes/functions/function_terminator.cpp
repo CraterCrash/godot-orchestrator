@@ -22,41 +22,13 @@
 
 void OScriptNodeFunctionTerminator::_get_property_list(List<PropertyInfo>* r_list) const
 {
-    Ref<OScriptFunction> function = get_function();
+    r_list->push_back(PropertyInfo(Variant::STRING, "function_id", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR));
 
-    // Setup flags
-    int32_t read_only_serialize = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY;
-    int32_t read_only_editor    = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_READ_ONLY;
-
-    int32_t usage = read_only_editor;
-    if (function.is_valid() && function->is_user_defined())
-        usage = PROPERTY_USAGE_EDITOR;
-
-    r_list->push_back(PropertyInfo(Variant::STRING, "function_id", PROPERTY_HINT_NONE, "", read_only_serialize));
-    r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", read_only_editor));
-
-    if (function.is_valid())
-    {
-        if (_supports_return_values())
-        {
-            r_list->push_back(PropertyInfo(Variant::BOOL, "has_return_value", PROPERTY_HINT_NONE, "", usage));
-            if (function->has_return_type())
-            {
-                static String return_types = VariantUtils::to_enum_list();
-                r_list->push_back(PropertyInfo(Variant::INT, "return_type", PROPERTY_HINT_ENUM, return_types));
-            }
-        }
-
-        r_list->push_back(PropertyInfo(Variant::INT, "argument_count", PROPERTY_HINT_RANGE, "0,32", usage));
-
-        static String types = VariantUtils::to_enum_list();
-        const MethodInfo& mi = function->get_method_info();
-        for (size_t i = 1; i <= mi.arguments.size(); i++)
-        {
-            r_list->push_back(PropertyInfo(Variant::INT, "argument_" + itos(i) + "/type", PROPERTY_HINT_ENUM, types, usage));
-            r_list->push_back(PropertyInfo(Variant::STRING, "argument_" + itos(i) + "/name", PROPERTY_HINT_NONE, "", usage));
-        }
-    }
+    uint32_t usage = (!_is_inputs_outputs_mutable() ? PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR : PROPERTY_USAGE_EDITOR);
+    r_list->push_back(PropertyInfo(Variant::STRING, "Inputs/Outputs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "inputs", PROPERTY_HINT_NONE, "", usage));
+    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "outputs", PROPERTY_HINT_NONE, "", usage));
 }
 
 bool OScriptNodeFunctionTerminator::_get(const StringName& p_name, Variant& r_value) const
@@ -72,48 +44,27 @@ bool OScriptNodeFunctionTerminator::_get(const StringName& p_name, Variant& r_va
         r_value = function.is_valid() ? function->get_function_name() : "";
         return true;
     }
-    else if (p_name.match("argument_count"))
+    else if (p_name.match("inputs"))
     {
-        Ref<OScriptFunction> function = get_function();
-        r_value = function.is_valid() ? static_cast<int64_t>(function->get_argument_count()) : 0;
-        return true;
-    }
-    else if (p_name.begins_with("argument_"))
-    {
+        TypedArray<Dictionary> inputs;
         Ref<OScriptFunction> function = get_function();
         if (function.is_valid())
         {
-            const MethodInfo &mi = function->get_method_info();
-
-            const size_t index = p_name.get_slicec('_', 1).get_slicec('/', 0).to_int() - 1;
-            ERR_FAIL_INDEX_V(index, mi.arguments.size(), false);
-
-            const String what = p_name.get_slicec('/', 1);
-            if (what == "type")
-            {
-                r_value = mi.arguments[index].type;
-                return true;
-            }
-            else if (what == "name")
-            {
-                r_value = mi.arguments[index].name;
-                return true;
-            }
+            for (const PropertyInfo& property : function->get_method_info().arguments)
+                inputs.push_back(DictionaryUtils::from_property(property));
         }
-    }
-    else if (_supports_return_values() && p_name.match("has_return_value"))
-    {
-        r_value = _return_value;
+        r_value = inputs;
         return true;
     }
-    else if (_supports_return_values() && p_name.match("return_type"))
+    else if (p_name.match("outputs"))
     {
+        TypedArray<Dictionary> outputs;
         Ref<OScriptFunction> function = get_function();
-        if (function.is_valid())
-        {
-            r_value = function->get_return_type();
-            return true;
-        }
+        if (function.is_valid() && get_function()->has_return_type())
+            outputs.push_back(DictionaryUtils::from_property(function->get_method_info().return_val));
+
+        r_value = outputs;
+        return true;
     }
     return false;
 }
@@ -125,77 +76,40 @@ bool OScriptNodeFunctionTerminator::_set(const StringName& p_name, const Variant
         _guid = Guid(p_value);
         return true;
     }
-    else if (p_name.match("argument_count"))
+    else if (p_name.match("inputs"))
     {
         Ref<OScriptFunction> function = get_function();
         if (function.is_valid())
         {
-            if (function->resize_argument_list(static_cast<int64_t>(p_value)))
+            TypedArray<Dictionary> value = p_value;
+            const bool refresh_required = function->get_argument_count() != size_t(value.size());
+
+            function->set_arguments(p_value);
+
+            if (refresh_required)
                 notify_property_list_changed();
+
             return true;
         }
     }
-    else if (p_name.begins_with("argument_"))
+    else if (p_name.match("outputs"))
     {
         Ref<OScriptFunction> function = get_function();
         if (function.is_valid())
         {
-            const MethodInfo &mi = function->get_method_info();
-
-            const size_t index = p_name.get_slicec('_', 1).get_slicec('/', 0).to_int() - 1;
-            ERR_FAIL_INDEX_V(index, mi.arguments.size(), false);
-
-            const String what = p_name.get_slicec('/', 1);
-            if (what == "type")
-            {
-                function->set_argument_type(index, VariantUtils::to_type(p_value));
-                return true;
-            }
-            else if (what == "name")
-            {
-                function->set_argument_name(index, p_value);
-                return true;
-            }
-        }
-    }
-    else if (_supports_return_values() && p_name.match("has_return_value"))
-    {
-        Ref<OScriptFunction> function = get_function();
-        if (function.is_valid() && function->is_user_defined())
-        {
-            _return_value = p_value;
-            function->set_has_return_value(_return_value);
-            notify_property_list_changed();
-            return true;
-        }
-    }
-    else if (_supports_return_values() && p_name.match("return_type"))
-    {
-        Ref<OScriptFunction> function = get_function();
-        if (function.is_valid() && function->is_user_defined())
-        {
-            function->set_return_type(VariantUtils::to_type(p_value));
+            const TypedArray<Dictionary> value = p_value;
+            if (value.is_empty())
+                function->set_has_return_value(false);
+            else
+                function->set_return(DictionaryUtils::to_property(value[0]));
             return true;
         }
     }
     return false;
 }
 
-void OScriptNodeFunctionTerminator::_validate_property(PropertyInfo& p_property) const
-{
-    if (p_property.name.match("return_type"))
-    {
-        Ref<OScriptFunction> function = get_function();
-        if (function.is_valid())
-            p_property.type = function->get_return_type();
-    }
-}
-
 void OScriptNodeFunctionTerminator::_on_function_changed()
 {
-    if (_function.is_valid() && _supports_return_values())
-        _return_value = _function->has_return_type();
-
     reconstruct_node();
 }
 
@@ -223,6 +137,9 @@ bool OScriptNodeFunctionTerminator::create_pins_for_function_entry_exit(const Re
         {
             const MethodInfo mi = p_function->get_method_info();
             Ref<OScriptNodePin> pin = create_pin(PD_Input, PT_Data, PropertyUtils::as("return_value", mi.return_val));
+            if (!mi.return_val.name.is_empty())
+                pin->set_label(mi.return_val.name);
+
             pins_good = pin.is_valid() & pins_good;
 
             // Create hidden output pin to transfer value to caller
@@ -244,7 +161,6 @@ void OScriptNodeFunctionTerminator::post_initialize()
     {
         if (_is_in_editor())
             _function->connect("changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
-        _return_value = _function->has_return_type();
     }
 
     // Always reconstruct entry/exit nodes
@@ -259,6 +175,5 @@ void OScriptNodeFunctionTerminator::post_placed_new_node()
     {
         if (_is_in_editor())
             _function->connect("changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
-        _return_value = _function->has_return_type();
     }
 }
