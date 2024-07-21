@@ -76,6 +76,11 @@ namespace SceneUtils
         return vbox->get_theme_color(p_color_name, p_category);
     }
 
+    Ref<Texture2D> get_icon(const String& p_name)
+    {
+        return ResourceLoader::get_singleton()->load(vformat("res://addons/orchestrator/editor/icons/%s.svg", p_name));
+    }
+
     Ref<Texture2D> get_editor_icon(const String& p_icon_name)
     {
         VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
