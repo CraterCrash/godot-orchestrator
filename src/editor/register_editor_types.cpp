@@ -49,6 +49,7 @@
 #include "editor/script_editor_viewport.h"
 #include "editor/search/search_dialog.h"
 #include "editor/search/variable_classification_dialog.h"
+#include "editor/select_type_dialog.h"
 #include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
@@ -75,6 +76,7 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorFileDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSelectTypeSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorVariableTypeSearchDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptAutowireSelections)

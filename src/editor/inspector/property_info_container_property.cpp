@@ -21,7 +21,7 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
-#include "editor/search/variable_classification_dialog.h"
+#include "editor/select_type_dialog.h"
 
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -152,10 +152,11 @@ void OrchestratorPropertyInfoContainerEditorProperty::_argument_type_selected(in
 
 void OrchestratorPropertyInfoContainerEditorProperty::_show_type_selection(int p_index, const String& p_value)
 {
-    _dialog = memnew(OrchestratorVariableTypeSearchDialog);
-    _dialog->set_title(_args ? "Select argument type" : "Select return type");
+    _dialog = memnew(OrchestratorSelectTypeSearchDialog);
+    _dialog->set_data_suffix("inspector_property_container");
+    _dialog->set_popup_title(_args ? "Select argument type" : "Select return type");
     _dialog->connect("selected", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_argument_type_selected).bind(p_index));
-    _dialog->connect("canceled", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_cleanup_selection));
+    _dialog->connect("closed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_cleanup_selection));
     add_child(_dialog);
 
     _dialog->popup_create(true, true, p_value, p_value);
@@ -240,6 +241,8 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
         else
             type_name = PropertyUtils::get_property_type_name(property);
 
+        const String friendly_type_name = type_name == "Variant" ? "Any" : type_name;
+
         if (index >= _slots.size())
         {
             Slot new_slot;
@@ -253,7 +256,7 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
             new_slot.type->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
             new_slot.type->set_custom_minimum_size(Vector2(100, 0));
             new_slot.type->set_tooltip_text("Set property type");
-            new_slot.type->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_show_type_selection).bind(index, type_name));
+            new_slot.type->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_show_type_selection).bind(index, friendly_type_name));
             new_slot.type->set_disabled(is_read_only());
             add_focusable(new_slot.type);
 
@@ -298,7 +301,7 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
         else
             _slots[index].name->set_text(property.name);
 
-        _slots[index].type->set_text(type_name);
+        _slots[index].type->set_text(friendly_type_name);
         _slots[index].type->set_button_icon(SceneUtils::get_class_icon(PropertyUtils::get_property_type_name(property)));
     }
 

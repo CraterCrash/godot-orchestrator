@@ -416,8 +416,12 @@ float OrchestratorEditorSearchDialog::_calculate_score(const Ref<SearchItem>& p_
 void OrchestratorEditorSearchDialog::_cleanup()
 {
     _favorite_list.clear();
-    _favorites->clear();
-    _recent->clear();
+
+    if (_favorites)
+        _favorites->clear();
+
+    if (_recent)
+        _recent->clear();
 }
 
 void OrchestratorEditorSearchDialog::_select_item(TreeItem* p_item, bool p_center_on_item)
@@ -621,7 +625,7 @@ void OrchestratorEditorSearchDialog::_on_confirmed()
 
 void OrchestratorEditorSearchDialog::_on_canceled()
 {
-    emit_signal("canceled");
+    emit_signal("closed");
     _cleanup();
 }
 
