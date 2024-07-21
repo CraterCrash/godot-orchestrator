@@ -272,6 +272,9 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
             item->disabled = true;
         }
 
+        if (ScriptServer::is_global_class(clazz_name))
+            item->script_filename = ScriptServer::get_global_class(clazz_name).path.get_file();
+
         items.push_back(item);
 
         r_cache[clazz_name] = item;

@@ -69,6 +69,7 @@ public:
     String path;                                     //! Defines the render path, allowing for nested hierarchies
     String name;                                     //! Logical name for the item
     String text;                                     //! Text shown for the item
+    String script_filename;                          //! Name of the script that contributes type
     Ref<Texture2D> icon;                             //! The icon to be shown, if applicable
     bool selectable{ true };                         //! Whether the item can be selected
     bool disabled{ false };                          //! Whether the item is shaded as disabled
