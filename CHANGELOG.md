@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [2.1.rc2](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.rc2) - 2024-07-21
+
+- [5f9f3f4](http://github.com/Vahera/godot-orchestrator/commit/5f9f3f4fbb4a1561e57df5cde982d247aa38161c) - GH-567 Correctly validate local variable node connection
+- [6647c3a](http://github.com/Vahera/godot-orchestrator/commit/6647c3af4d3249d21d90cac200f81a26fd8f98fd) - GH-568 Relax property validation
+
 ## [2.1.rc1](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.rc1) - 2024-07-21
 
 - [53c628a](http://github.com/Vahera/godot-orchestrator/commit/53c628ad2b8a18eccbbc1ce5cd82187042285ca2) - GH-563 Relax validation on function result node
