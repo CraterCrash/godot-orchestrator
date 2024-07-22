@@ -243,9 +243,12 @@ void OScriptNodeAssignLocalVariable::validate_node_during_build(BuildLog& p_log)
             p_log.error(this, variable, "Requires a connection.");
         else
         {
-            Ref<OScriptNodeLocalVariable> local_variable = variable->get_connections()[0];
-            if (!local_variable.is_valid())
-                p_log.error(this, variable, "Connection expected with a Local Variable node.");
+            Ref<OScriptNodePin> source_pin = variable->get_connections()[0];
+            if (source_pin.is_valid())
+            {
+                if (!Object::cast_to<OScriptNodeLocalVariable>(source_pin->get_owning_node()))
+                    p_log.error(this, variable, "Connection expected with a Local Variable node.");
+            }
         }
     }
 }
