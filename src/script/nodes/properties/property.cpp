@@ -287,7 +287,8 @@ void OScriptNodeProperty::validate_node_during_build(BuildLog& p_log) const
             const Ref<OScriptTargetObject> target_object = source->resolve_target();
             if (!target_object.is_valid() || !target_object->has_target())
             {
-                p_log.error(this, "No valid target was found.");
+                if (!_property_exists(ClassDB::class_get_property_list(target->get_property_info().class_name)))
+                    p_log.error(this, vformat("No property name '%s' found in class '%s'", _property.name, _property.class_name));
             }
             else
             {
