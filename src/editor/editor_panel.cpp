@@ -725,9 +725,16 @@ void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int
                 _show_editor_viewport(file.file_name);
                 // Goto node
                 file.viewport->goto_node(p_line + 1);
-                break;
+                // Update files list
+                _update_file_list();
+                return;
             }
         }
+
+        edit_script(p_script);
+
+        // Goto the node in the script
+        _files_context.get_selected()->viewport->goto_node(p_line + 1);
     }
 }
 
