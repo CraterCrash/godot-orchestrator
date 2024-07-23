@@ -69,7 +69,7 @@ public:
             bool is_default = String(scene_file).match(DEFAULT_SCENE);
             if (is_default || (!is_default && !_file_exists(DEFAULT_SCENE)))
             {
-                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Failed to find default scene.");
+                p_context.set_error(vformat("Failed to find default scene: %s", DEFAULT_SCENE));
                 return -1;
             }
 

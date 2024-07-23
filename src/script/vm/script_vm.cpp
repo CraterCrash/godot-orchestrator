@@ -598,7 +598,7 @@ OScriptNodeInstance* OScriptVirtualMachine::_resolve_next_node(OScriptExecutionC
             return p_instance->execution_outputs[p_next_node_id];
 
         // No exit bit was set and node has an execution output
-        p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD,
+        p_context.set_error(
             vformat("Node %s: %d returned an invalid execution pin output %d",
                 p_instance->get_base_node()->get_class(),
                 p_instance->get_id(),
@@ -636,44 +636,45 @@ void OScriptVirtualMachine::_report_error(OScriptExecutionContext& p_context, OS
     const int err_line = p_context.get_current_node();
 
     String error_str = p_context.get_error_reason();
-
-    if (p_instance && (p_context.get_error().error != GDEXTENSION_CALL_ERROR_INVALID_METHOD || error_str.is_empty()))
+    if (error_str.is_empty())
     {
-        if (!error_str.is_empty())
-            error_str += " ";
-
         switch (p_context.get_error().error)
         {
             case GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT:
             {
-                error_str += "Cannot convert argument " + itos(p_context.get_error().argument) + " to "
-                             + Variant::get_type_name(Variant::Type(p_context.get_error().expected)) + ".";
+                error_str = "Invalid argument detected.";
                 break;
             }
             case GDEXTENSION_CALL_ERROR_TOO_MANY_ARGUMENTS:
+            {
+                error_str = "Too many arguments detected.";
+                break;
+            }
             case GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS:
             {
-                error_str += "Expected " + itos(p_context.get_error().argument) + " arguments.";
+                error_str = "Too few arguments detected.";
                 break;
             }
             case GDEXTENSION_CALL_ERROR_INVALID_METHOD:
             {
-                error_str += "Invalid call.";
+                error_str = vformat("An unexpected error happened inside the '%s' method.", p_method);
                 break;
             }
             case GDEXTENSION_CALL_ERROR_METHOD_NOT_CONST:
             {
-                error_str += "Method not const in a const instance.";
+                error_str = vformat("The method '%s' is not const, but called in a const instance.", p_method);
                 break;
             }
             case GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL:
             {
-                error_str += "Instance is null";
+                error_str = vformat("Method '%s' exception detected for a null instance", p_method);
                 break;
             }
             default:
-                // no-op
+            {
+                error_str = vformat("An unexpected error inside method '%s'.", p_method);
                 break;
+            }
         }
     }
 
@@ -747,7 +748,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
             // This is invalid and we should immediately terminate the function call in this use case.
             if (node->get_working_memory_size() == 0)
             {
-                context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Yielded without any working memory.");
+                context.set_error("Execution yielded without any working memory");
                 break;
             }
 
@@ -756,7 +757,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
             Ref<OScriptState> state = context.get_working_memory();
             if (!state.is_valid())
             {
-                context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Yield failed to create memory state.");
+                context.set_error("Execution yield failed to create memory state");
                 break;
             }
 
@@ -777,7 +778,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
             state->_stack.resize(stack_size);
             memcpy(state->_stack.ptrw(), context._get_stack(), stack_size);
 
-            context.set_error(GDEXTENSION_CALL_OK);
+            context.clear_error();
             r_return = state;
 
             #if GODOT_VERSION >= 0x040300
@@ -794,7 +795,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
             if (node->get_working_memory_size() > 0)
                 r_return = context.get_working_memory();
             else
-                context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Return value should be assigned to node's working memory.");
+                context.set_error("Return value should be assigned to node's working memory");
             break;
         }
 
@@ -865,7 +866,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
                     }
                     if (!found)
                     {
-                        context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Found execution bit but not the node in the stack.");
+                        context.set_error("Found execution bit but not the node in the stack.");
                         break;
                     }
 
@@ -878,7 +879,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
                     // Check for overflow
                     if (context._get_flow_stack_position() + 1 >= context._get_flow_stack_size())
                     {
-                        context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Stack overflow");
+                        context.set_error("Stack overflow");
                         break;
                     }
 

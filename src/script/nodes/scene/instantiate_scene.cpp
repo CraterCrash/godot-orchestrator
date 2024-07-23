@@ -35,7 +35,7 @@ public:
             _scene = ResourceLoader::get_singleton()->load(p_context.get_input(0));
             if (!_scene.is_valid())
             {
-                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Failed to load scene");
+                p_context.set_error(vformat("Failed to load scene: %s", p_context.get_input(0)));
                 return -1;
             }
         }

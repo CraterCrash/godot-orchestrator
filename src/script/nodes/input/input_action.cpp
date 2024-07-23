@@ -36,13 +36,19 @@ public:
         Input* input = Input::get_singleton();
         if (!input)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL, "Failed to find Input singleton");
+            p_context.set_error("Unable to locate Input singleton.");
             return -1 | STEP_FLAG_END;
         }
 
         if (_action_name.is_empty())
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "An action name must be specified.");
+            p_context.set_error("An action name must be specified.");
+            return -1 | STEP_FLAG_END;
+        }
+
+        if (_action_name.is_empty())
+        {
+            p_context.set_error("An action name must be specified.");
             return -1 | STEP_FLAG_END;
         }
 

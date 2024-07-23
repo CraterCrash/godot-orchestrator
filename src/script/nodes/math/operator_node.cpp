@@ -40,7 +40,7 @@ class OScriptNodeOperatorInstance : public OScriptNodeInstance
                                            _operator,
                                            Variant::get_type_name(p_arg0.get_type()), p_arg0,
                                            Variant::get_type_name(p_arg1.get_type()), p_arg1);
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, message);
+            p_context.set_error(message);
             return -1 | STEP_FLAG_END;
         }
         p_context.set_output(0, &_result);

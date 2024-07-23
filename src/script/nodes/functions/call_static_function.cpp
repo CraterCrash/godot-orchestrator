@@ -42,7 +42,7 @@ public:
 
         if (!mb)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Failed to find the method");
+            p_context.set_error(vformat("Failed to find method '%s'", _method.name));
             return -1 | STEP_FLAG_END;
         }
 
@@ -63,7 +63,7 @@ public:
 
         if (r_error.error != GDEXTENSION_CALL_OK)
         {
-            p_context.set_error(r_error.error, "");
+            p_context.set_error(r_error);
             return -1 | STEP_FLAG_END;
         }
 
