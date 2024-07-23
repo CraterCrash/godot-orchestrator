@@ -51,11 +51,13 @@ class OScriptNodeArrayGetInstance : public OScriptNodeInstance
         T array = p_context.get_input(0);
         int index = p_context.get_input(1);
 
-        if (array.size() > index)
-            p_context.set_output(0, array[index]);
-        else
-            p_context.set_output(0, Variant());
+        if (array.size() <= index)
+        {
+            p_context.set_error(vformat("Out of bounds get index '%d' (on base '%s')", index, "Array"));
+            return -1;
+        }
 
+        p_context.set_output(0, array[index]);
         return 0;
     }
 
@@ -85,8 +87,7 @@ public:
             case Variant::PACKED_COLOR_ARRAY:
                 return _step_internal<PackedColorArray>(p_context);
             default:
-                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                    "The collection type " + itos(_collection_type) + " is not supported.");
+                p_context.set_type_unexpected_type_error(0, _collection_type);
             return -1;
         }
     }
@@ -101,13 +102,6 @@ class OScriptNodeArraySetInstance : public OScriptNodeInstance
     Variant::Type _collection_type;
     Variant::Type _index_type;
 
-    int _invalid_index(OScriptExecutionContext& p_context, int p_index)
-    {
-        p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-            "Size is too small to index at index " + itos(p_index));
-        return -1;
-    }
-
     template<typename T>
     int _step_internal(OScriptExecutionContext& p_context)
     {
@@ -119,8 +113,7 @@ class OScriptNodeArraySetInstance : public OScriptNodeInstance
         const int size = array.size();
         if (size <= index && !size_to_fit)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                "Collection size is too small to insert at index " + itos(index));
+            p_context.set_error(vformat("Invalid assignment of index '%d' (on base: '%s') with value of type '%s'", index, "Array", Variant::get_type_name(item.get_type())));
             return -1;
         }
         else if (size <= index)
@@ -159,8 +152,7 @@ public:
             case Variant::PACKED_COLOR_ARRAY:
                 return _step_internal<PackedColorArray>(p_context);
             default:
-                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                    "The collection type " + itos(_collection_type) + " is not supported.");
+                p_context.set_type_unexpected_type_error(0, _collection_type);
                 return -1;
         }
     }

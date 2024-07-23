@@ -221,8 +221,14 @@ public:
     _FORCE_INLINE_ bool has_error() const { return _error && _error->error != GDEXTENSION_CALL_OK; }
     GDExtensionCallError& get_error() { return *_error; }
     String get_error_reason() const { return _error_reason; }
-    void set_error(GDExtensionCallErrorType p_type, const String& p_reason = String());
-    void set_invalid_argument(OScriptNodeInstance* p_instance, int p_index, Variant::Type p_type, Variant::Type p_expected_type);
+    // Useful for passing Godot API errors
+    void set_error(GDExtensionCallError& p_error, const String& p_reason = String());
+    void set_error(const String& p_reason); // Useful for generic errors
+    // More error-specific use cases
+    void set_expected_type_error(int p_argument_index, Variant::Type p_type, Variant::Type p_expected_type);
+    void set_type_unexpected_type_error(int p_argument_index, Variant::Type p_type);
+    void set_too_few_arguments_error(int p_argument_count, int p_expected);
+    void set_too_many_arguments_error(int p_argument_count, int p_expected);
     void clear_error();
     //~ End Error Interface
 

@@ -41,8 +41,7 @@ public:
         const String signal_name = p_context.get_input(1);
         if (!target->has_signal(signal_name))
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "No signal defined on target.");
-            p_context.set_invalid_argument(this, 1, Variant::STRING_NAME, Variant::STRING_NAME);
+            p_context.set_error(vformat("No signal '%s' defined on target object.", signal_name));
             return -1;
         }
 

@@ -28,7 +28,7 @@ public:
         Variant& condition = p_context.get_input(0);
         if (condition.get_type() != Variant::BOOL)
         {
-            p_context.set_invalid_argument(this, 0, condition.get_type(), Variant::BOOL);
+            p_context.set_expected_type_error(0, condition.get_type(), Variant::BOOL);
             return -1;
         }
 

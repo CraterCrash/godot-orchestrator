@@ -56,24 +56,61 @@ Object* OScriptExecutionContext::get_owner()
     return _instance->get_owner();
 }
 
-void OScriptExecutionContext::set_error(GDExtensionCallErrorType p_type, const String& p_reason)
+void OScriptExecutionContext::set_error(GDExtensionCallError& p_error, const String& p_reason)
 {
     if (_error)
     {
-        _error->error = p_type;
+        _error->error = p_error.error;
+        _error->argument = p_error.argument;
+        _error->expected = p_error.expected;
         _error_reason = p_reason;
     }
 }
 
-void OScriptExecutionContext::set_invalid_argument(OScriptNodeInstance* p_instance, int p_index, Variant::Type p_type, Variant::Type p_expected_type)
+void OScriptExecutionContext::set_error(const String& p_reason)
 {
-    if (_error)
-    {
-        _error->error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
-        _error->argument = p_index;
-        _error->expected = p_expected_type;
-        _error_reason = vformat("%s: %d type %s", p_instance->get_base_node()->get_class(), p_instance->get_id(), Variant::get_type_name(p_type));
-    }
+    // For generic errors, simply use the GDEXTENSION_CALL_ERROR_INVALID_METHOD
+    GDExtensionCallError error;
+    error.error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
+    error.argument = 0;
+    error.expected = 0;
+    set_error(error, p_reason);
+}
+
+void OScriptExecutionContext::set_expected_type_error(int p_argument_index, Variant::Type p_type, Variant::Type p_expected_type)
+{
+    GDExtensionCallError error;
+    error.error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
+    error.argument = p_argument_index;
+    error.expected = p_expected_type;
+    set_error(error, vformat("Expected argument %d with type %s but found %s.", p_argument_index, Variant::get_type_name(p_type), Variant::get_type_name(p_expected_type)));
+}
+
+void OScriptExecutionContext::set_type_unexpected_type_error(int p_argument_index, Variant::Type p_type)
+{
+    GDExtensionCallError error;
+    error.error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
+    error.argument = p_argument_index;
+    error.expected = 0;
+    set_error(error, vformat("Unexpected argument %d with type %s.", p_argument_index, Variant::get_type_name(p_type)));
+}
+
+void OScriptExecutionContext::set_too_few_arguments_error(int p_argument_count, int p_expected)
+{
+    GDExtensionCallError error;
+    error.error = GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS;
+    error.argument = p_argument_count;
+    error.expected = p_expected;
+    set_error(error, vformat("Expected %d arguments, but found %d.", p_expected, p_argument_count));
+}
+
+void OScriptExecutionContext::set_too_many_arguments_error(int p_argument_count, int p_expected)
+{
+    GDExtensionCallError error;
+    error.error = GDEXTENSION_CALL_ERROR_TOO_MANY_ARGUMENTS;
+    error.argument = p_argument_count;
+    error.expected = p_expected;
+    set_error(error, vformat("Expected %d arguments, but found %d.", p_expected, p_argument_count));
 }
 
 void OScriptExecutionContext::clear_error()
@@ -81,7 +118,11 @@ void OScriptExecutionContext::clear_error()
     if (_error && _error->error != GDEXTENSION_CALL_OK)
     {
         _error->error = GDEXTENSION_CALL_OK;
-        _error_reason = "";
+        _error->argument = 0;
+        _error->expected = 0;
+
+        if (_error_reason.length() > 0)
+            _error_reason = "";
     }
 }
 

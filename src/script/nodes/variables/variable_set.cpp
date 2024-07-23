@@ -36,21 +36,20 @@ public:
             // Value is currently assigned
             if (!Variant::can_convert(value.get_type(), current_value.get_type()))
             {
-                p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT);
-                p_context.set_invalid_argument(this, 0, value.get_type(), current_value.get_type());
+                p_context.set_expected_type_error(0, value.get_type(), current_value.get_type());
                 return -1;
             }
         }
 
         if (!p_context.get_runtime()->set_variable(_variable_name, value))
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Variable " + _variable_name + " not found.");
+            p_context.set_error(vformat("Variable '%s' not found.", _variable_name));
             return -1;
         }
 
         if (!p_context.set_output(0, &value))
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Failed to set output");
+            p_context.set_error("Failed to set variable value on output stack.");
             return -1;
         }
 

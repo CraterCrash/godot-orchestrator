@@ -39,7 +39,7 @@ public:
         SceneTree *tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
         if (!tree)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Main loop is not a scene tree");
+            p_context.set_error("Main loop is not a scene tree.");
             return -1;
         }
 

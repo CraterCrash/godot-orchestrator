@@ -31,15 +31,14 @@ public:
         Node* owner = Object::cast_to<Node>(p_context.get_owner());
         if (!owner)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Orchestration owner is not a Node");
+            p_context.set_error("Orchestration owner is not a Node type");
             return 0;
         }
 
         SceneTree* tree = owner->get_tree();
         if (!tree)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                                "Orchestrator owner node is not currently in a tree.");
+            p_context.set_error("Orchestrator owner node is not currently in the scene.");
             return 0;
         }
 
