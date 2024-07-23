@@ -31,9 +31,7 @@ public:
     {
         if (!OScriptLanguage::get_singleton()->has_any_global_constant(_autoload))
         {
-            p_context.set_error(
-                GDEXTENSION_CALL_ERROR_INVALID_METHOD,
-                "No autoload with name " + _autoload + " found.");
+            p_context.set_error(vformat("No autoload with name %s found.", _autoload));
             return -1;
         }
 

@@ -173,16 +173,14 @@ public:
 
                         if (expression->parse(ctor_expression) != Error::OK)
                         {
-                            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                                                "Failed to parse expression: " + ctor_expression);
+                            p_context.set_error(vformat("Failed to parse expression: %s", ctor_expression));
                             return -1 | STEP_FLAG_END;
                         }
 
                         Variant result = expression->execute();
                         if (expression->has_execute_failed())
                         {
-                            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT,
-                                                "Failed to evaluate expression: " + ctor_expression);
+                            p_context.set_error(vformat("Failed to evaluate expression: %s", ctor_expression));
                             return -1 | STEP_FLAG_END;
                         }
 

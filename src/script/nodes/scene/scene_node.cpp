@@ -36,14 +36,14 @@ public:
         Node* owner = Object::cast_to<Node>(p_context.get_owner());
         if (!owner)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Orchestration owner is not a Node");
+            p_context.set_error("Orchestration owner is not a Node");
             return 0;
         }
 
         Node* scene_node = SceneUtils::get_relative_scene_root(owner)->get_node_or_null(_node_path);
         if (!scene_node)
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "Node path does not exist");
+            p_context.set_error(vformat("Node path '%s' does not exist", _node_path));
             return 0;
         }
 

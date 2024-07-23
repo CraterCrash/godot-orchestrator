@@ -30,13 +30,13 @@ public:
         Variant value;
         if (!p_context.get_runtime()->get_variable(_variable_name, value))
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Variable " + _variable_name + " not found.");
+            p_context.set_error(vformat("Variable '%s' not found.", _variable_name));
             return -1;
         }
 
         if (!p_context.set_output(0, &value))
         {
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, "Unable to set output");
+            p_context.set_error("Failed to set variable value on output stack.");
             return -1;
         }
 

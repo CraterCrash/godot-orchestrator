@@ -70,11 +70,11 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
                 return 0;
             }
 
-            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_METHOD, parser->get_error_text());
+            p_context.set_error(vformat("Failed to evaluate expression: %s", parser->get_error_text()));
             return -1 | STEP_FLAG_END;
         }
 
-        p_context.set_error(GDExtensionCallErrorType(err), "Failed to parse expression: " + expression);
+        p_context.set_error(vformat("Error %d: Failed to parse expression: %s", err, expression));
         return -1 | STEP_FLAG_END;
     }
 
@@ -88,7 +88,7 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
         target.callp(_reference.method.name, pargs, _argument_count, result, err);
         if (err.error != GDEXTENSION_CALL_OK)
         {
-            p_context.set_error(err.error, "Failed executing method " + _reference.method.name);
+            p_context.set_error(err);
             return -1 | STEP_FLAG_END;
         }
 
