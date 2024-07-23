@@ -40,6 +40,12 @@ public:
             return -1 | STEP_FLAG_END;
         }
 
+        if (_action_name.is_empty())
+        {
+            p_context.set_error(GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT, "An action name must be specified.");
+            return -1 | STEP_FLAG_END;
+        }
+
         bool result = false;
         switch (_mode)
         {
