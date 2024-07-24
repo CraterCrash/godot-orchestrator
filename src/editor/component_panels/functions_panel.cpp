@@ -160,7 +160,15 @@ bool OrchestratorScriptFunctionsComponentPanel::_handle_item_renamed(const Strin
         return false;
     }
 
-    _orchestration->rename_function(p_old_name, p_new_name);
+    if (!p_new_name.is_valid_identifier())
+    {
+        _show_invalid_name("function");
+        return false;
+    }
+
+    if (!_orchestration->rename_function(p_old_name, p_new_name))
+        return false;
+
     emit_signal("graph_renamed", p_old_name, p_new_name);
     return true;
 }

@@ -69,7 +69,7 @@ void OrchestratorScriptComponentPanel::_tree_item_edited()
     ERR_FAIL_COND_MSG(!item, "Cannot edit item when no item selected");
 
     const String old_name = item->get_meta("__name");
-    const String new_name = item->get_text(0);
+    String new_name = item->get_text(0);
 
     // Nothing to edit if they're identical
     if (old_name.match(new_name))
@@ -78,7 +78,12 @@ void OrchestratorScriptComponentPanel::_tree_item_edited()
         return;
     }
 
-    _handle_item_renamed(old_name, new_name);
+    new_name = NameUtils::create_unique_name(new_name, _get_existing_names());
+    if (!_handle_item_renamed(old_name, new_name))
+    {
+        item->set_text(0, item->get_meta("__rollback_name"));
+        return;
+    }
 
     update();
 }
@@ -231,6 +236,23 @@ void OrchestratorScriptComponentPanel::_show_notification(const String& p_messag
     _notify->popup_centered();
 }
 
+void OrchestratorScriptComponentPanel::_show_invalid_name(const String& p_type, bool p_supports_friendly_names)
+{
+    String message = vformat("The %s name is not valid. Names must follow these requirements:\n\n", p_type);
+    message += "* Must start with a letter (A-Z, a-z) or an underscore ('_')\n";
+    message += "* Can include letters (A-Z, a-z), numbers (0-9), and underscores ('_')\n";
+    message += "* Should not start with a number (0-9)\n";
+    message += "* Cannot contain spaces or special characters\n";
+
+    if (p_supports_friendly_names)
+    {
+        message += vformat("\nIf you want a space to appear in the %s name, please use camel-case (MyName).\n", p_type);
+        message += "With friendly names enabled, the name will be rendered as 'My Name' automatically.";
+    }
+
+    _show_notification(message);
+}
+
 void OrchestratorScriptComponentPanel::_confirm_removal(TreeItem* p_item)
 {
     _confirm->set_text(_get_remove_confirm_text(p_item) + "\n\nDo you want to continue?");
@@ -270,7 +292,7 @@ bool OrchestratorScriptComponentPanel::_find_child_and_activate(const String& p_
                 {
                     Ref<SceneTreeTimer> timer = get_tree()->create_timer(0.1f);
                     if (timer.is_valid())
-                        timer->connect("timeout", callable_mp(_tree, &Tree::edit_selected).bind(true));
+                        timer->connect("timeout", callable_mp(this, &OrchestratorScriptComponentPanel::_edit_selected_tree_item));
                 }
 
                 return true;
