@@ -97,6 +97,11 @@ protected:
     /// @param p_message the text to notify
     void _show_notification(const String& p_message);
 
+    /// Shows a common dialog error about invalid identifier names.
+    /// @param p_type the type
+    /// @param p_supports_friendly_names true to show detail about friendly names
+    void _show_invalid_name(const String& p_type, bool p_supports_friendly_names = true);
+
     /// Presents the user a dialog, confirming the removal of the tree item.
     /// @param p_item the item to be removed, should not be null
     void _confirm_removal(TreeItem* p_item);

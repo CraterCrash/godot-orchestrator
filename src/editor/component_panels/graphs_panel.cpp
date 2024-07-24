@@ -184,7 +184,15 @@ bool OrchestratorScriptGraphsComponentPanel::_handle_item_renamed(const String& 
         return false;
     }
 
-    _orchestration->rename_graph(p_old_name, p_new_name);
+    if (!p_new_name.is_valid_identifier())
+    {
+        _show_invalid_name("graph");
+        return false;
+    }
+
+    if (!_orchestration->rename_graph(p_old_name, p_new_name))
+        return false;
+
     emit_signal("graph_renamed", p_old_name, p_new_name);
     return true;
 }

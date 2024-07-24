@@ -190,7 +190,7 @@ public:
     Ref<OScriptGraph> get_graph(const StringName& p_name) const;
     Ref<OScriptGraph> find_graph(const StringName& p_name) const;
     Ref<OScriptGraph> find_graph(const Ref<OScriptNode>& p_node);
-    void rename_graph(const StringName& p_old_name, const StringName& p_new_name);
+    bool rename_graph(const StringName& p_old_name, const StringName& p_new_name);
     Vector<Ref<OScriptGraph>> get_graphs() const;
     //~ End Graph Interface
 
@@ -200,7 +200,7 @@ public:
     void remove_function(const StringName& p_name);
     Ref<OScriptFunction> find_function(const StringName& p_name) const;
     Ref<OScriptFunction> find_function(const Guid& p_guid) const;
-    void rename_function(const StringName& p_old_name, const StringName& p_new_name);
+    bool rename_function(const StringName& p_old_name, const StringName& p_new_name);
     PackedStringArray get_function_names() const;
     int get_function_node_id(const StringName& p_name) const;
     Vector<Ref<OScriptFunction>> get_functions() const;
@@ -211,7 +211,7 @@ public:
     Ref<OScriptVariable> create_variable(const StringName& p_name, Variant::Type p_type = Variant::NIL);
     void remove_variable(const StringName& p_name);
     Ref<OScriptVariable> get_variable(const StringName& p_name);
-    void rename_variable(const StringName& p_old_name, const StringName& p_new_name);
+    bool rename_variable(const StringName& p_old_name, const StringName& p_new_name);
     Vector<Ref<OScriptVariable>> get_variables() const;
     PackedStringArray get_variable_names() const;
     bool can_remove_variable(const StringName& p_name) const;
@@ -223,7 +223,7 @@ public:
     void remove_custom_signal(const StringName& p_name);
     Ref<OScriptSignal> get_custom_signal(const StringName& p_name);
     Ref<OScriptSignal> find_custom_signal(const StringName& p_name) const;
-    void rename_custom_user_signal(const StringName& p_old_name, const StringName& p_new_name);
+    bool rename_custom_user_signal(const StringName& p_old_name, const StringName& p_new_name);
     Vector<Ref<OScriptSignal>> get_custom_signals() const;
     PackedStringArray get_custom_signal_names() const;
     bool can_remove_custom_signal(const StringName& p_name) const;

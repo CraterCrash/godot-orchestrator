@@ -153,8 +153,13 @@ bool OrchestratorScriptVariablesComponentPanel::_handle_item_renamed(const Strin
         return false;
     }
 
-    _orchestration->rename_variable(p_old_name, p_new_name);
-    return true;
+    if (!p_new_name.is_valid_identifier())
+    {
+        _show_invalid_name("variable", false);
+        return false;
+    }
+
+    return _orchestration->rename_variable(p_old_name, p_new_name);
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_remove(TreeItem* p_item)

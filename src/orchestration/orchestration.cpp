@@ -514,6 +514,7 @@ Ref<OScriptGraph> Orchestration::create_graph(const StringName& p_name, int p_fl
 {
     ERR_FAIL_COND_V_MSG(has_graph(p_name), nullptr, "A graph with that name already exists: " + p_name);
     ERR_FAIL_COND_V_MSG(p_name.is_empty(), nullptr, "A name is required to create a graph.");
+    ERR_FAIL_COND_V_MSG(!p_name.is_valid_identifier(), nullptr, "The name is not a valid graph name.");
 
     Ref<OScriptGraph> graph(memnew(OScriptGraph));
     graph->_orchestration = this;
@@ -571,16 +572,23 @@ Ref<OScriptGraph> Orchestration::find_graph(const Ref<OScriptNode>& p_node)
     ERR_FAIL_V_MSG(nullptr, "No graph contains the node with the unique ID: " + itos(p_node->get_id()));
 }
 
-void Orchestration::rename_graph(const StringName& p_old_name, const StringName& p_new_name)
+bool Orchestration::rename_graph(const StringName& p_old_name, const StringName& p_new_name)
 {
-    ERR_FAIL_COND_MSG(!has_graph(p_old_name), "No graph exists with the old name: " + p_old_name);
-    ERR_FAIL_COND_MSG(has_graph(p_new_name), "A graph already exists with the new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!has_graph(p_old_name), false, "No graph exists with the old name: " + p_old_name);
+    ERR_FAIL_COND_V_MSG(has_graph(p_new_name), false, "A graph already exists with the new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!p_new_name.is_valid_identifier(), false, "The new graph name is not a valid.");
+
+    UtilityFunctions::print("Create Graph with name [", p_old_name, "] to [", p_new_name, "]");
 
     Ref<OScriptGraph> graph = get_graph(p_old_name);
+    if (!graph.is_valid())
+        return false;
+
     graph->set_graph_name(p_new_name);
 
     _graphs[p_new_name] = graph;
     _graphs.erase(p_old_name);
+    return true;
 }
 
 Vector<Ref<OScriptGraph>> Orchestration::get_graphs() const
@@ -675,31 +683,38 @@ Ref<OScriptFunction> Orchestration::find_function(const Guid& p_guid) const
     return nullptr;
 }
 
-void Orchestration::rename_function(const StringName& p_old_name, const StringName& p_new_name)
+bool Orchestration::rename_function(const StringName& p_old_name, const StringName& p_new_name)
 {
     // Ignore if the old/new names are the same
     if (p_old_name == p_new_name)
-        return;
+        return false;
 
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot rename function, instances exist.");
-    ERR_FAIL_COND_MSG(!has_function(p_old_name), "Cannot rename, no function found with old name: " + p_old_name);
-    ERR_FAIL_COND_MSG(has_function(p_new_name), "Cannot rename, a function already exists with new name: " + p_new_name);
-    ERR_FAIL_COND_MSG(!String(p_new_name).is_valid_identifier(), "New function name is invalid: " + p_new_name);
-    ERR_FAIL_COND_MSG(has_variable(p_new_name), "Cannot rename function, a variable with name already exists: " + p_new_name);
-    ERR_FAIL_COND_MSG(has_custom_signal(p_new_name), "Cannot rename function, a signal with the name already exists: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot rename function, instances exist.");
+    ERR_FAIL_COND_V_MSG(!has_function(p_old_name), false, "Cannot rename, no function found with old name: " + p_old_name);
+    ERR_FAIL_COND_V_MSG(has_function(p_new_name), false, "Cannot rename, a function already exists with new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "New function name is invalid: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(has_variable(p_new_name), false, "Cannot rename function, a variable with name already exists: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(has_custom_signal(p_new_name), false, "Cannot rename function, a signal with the name already exists: " + p_new_name);
 
     const Ref<OScriptFunction> function = _functions[p_old_name];
+    if (!function.is_valid() || !function->can_be_renamed())
+        return false;
+
+    // Rename function graph, if found
+    const Ref<OScriptGraph> function_graph = find_graph(p_old_name);
+    if (function_graph.is_valid() && function_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION))
+    {
+        if (!rename_graph(p_old_name, p_new_name))
+            return false;
+    }
+
     function->rename(p_new_name);
 
     _functions.erase(p_old_name);
     _functions[p_new_name] = function;
 
-    // Rename function graph, if found
-    const Ref<OScriptGraph> function_graph = find_graph(p_old_name);
-    if (function_graph.is_valid() && function_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION))
-        rename_graph(p_old_name, p_new_name);
-
     _self->emit_signal("functions_changed");
+    return true;
 }
 
 PackedStringArray Orchestration::get_function_names() const
@@ -789,15 +804,15 @@ Ref<OScriptVariable> Orchestration::get_variable(const StringName& p_name)
     return has_variable(p_name) ? _variables[p_name] : nullptr;
 }
 
-void Orchestration::rename_variable(const StringName& p_old_name, const StringName& p_new_name)
+bool Orchestration::rename_variable(const StringName& p_old_name, const StringName& p_new_name)
 {
     if (p_old_name == p_new_name)
-        return;
+        return false;
 
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot rename variable, instances exist.");
-    ERR_FAIL_COND_MSG(!has_variable(p_old_name), "Cannot rename, no variable exists with the old name: " + p_old_name);
-    ERR_FAIL_COND_MSG(has_variable(p_new_name), "Cannot rename, a variable already exists with the new name: " + p_new_name);
-    ERR_FAIL_COND_MSG(!String(p_new_name).is_valid_identifier(), "Cannot rename, variable name is not valid: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot rename variable, instances exist.");
+    ERR_FAIL_COND_V_MSG(!has_variable(p_old_name), false, "Cannot rename, no variable exists with the old name: " + p_old_name);
+    ERR_FAIL_COND_V_MSG(has_variable(p_new_name), false, "Cannot rename, a variable already exists with the new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "Cannot rename, variable name is not valid: " + p_new_name);
 
     const Ref<OScriptVariable> variable = _variables[p_old_name];
     variable->set_variable_name(p_new_name);
@@ -812,6 +827,8 @@ void Orchestration::rename_variable(const StringName& p_old_name, const StringNa
     #ifdef TOOLS_ENABLED
     _update_placeholders();
     #endif
+
+    return true;
 }
 
 Vector<Ref<OScriptVariable>> Orchestration::get_variables() const
@@ -849,6 +866,7 @@ bool Orchestration::has_custom_signal(const StringName& p_name) const
 Ref<OScriptSignal> Orchestration::create_custom_signal(const StringName& p_name)
 {
     ERR_FAIL_COND_V_MSG(has_custom_signal(p_name), nullptr, "A custom signal already exists with the name: " + p_name);
+    ERR_FAIL_COND_V_MSG(!p_name.is_valid_identifier(), nullptr, "The name is not a valid signal name.");
 
     MethodInfo method;
     method.name = p_name;
@@ -894,15 +912,15 @@ Ref<OScriptSignal> Orchestration::find_custom_signal(const StringName& p_name) c
     return has_custom_signal(p_name) ? _signals[p_name] : nullptr;
 }
 
-void Orchestration::rename_custom_user_signal(const StringName& p_old_name, const StringName& p_new_name)
+bool Orchestration::rename_custom_user_signal(const StringName& p_old_name, const StringName& p_new_name)
 {
     if (p_old_name == p_new_name)
-        return;
+        return false;
 
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot rename custom signal, instances exist.");
-    ERR_FAIL_COND_MSG(!has_custom_signal(p_old_name), "No custom signal exists with the old name: " + p_old_name);
-    ERR_FAIL_COND_MSG(has_custom_signal(p_new_name), "A custom signal already exists with the new name: " + p_new_name);
-    ERR_FAIL_COND_MSG(!String(p_new_name).is_valid_identifier(), "The custom signal name is invalid: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot rename custom signal, instances exist.");
+    ERR_FAIL_COND_V_MSG(!has_custom_signal(p_old_name), false, "No custom signal exists with the old name: " + p_old_name);
+    ERR_FAIL_COND_V_MSG(has_custom_signal(p_new_name), false, "A custom signal already exists with the new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "The custom signal name is invalid: " + p_new_name);
 
     const Ref<OScriptSignal> signal = find_custom_signal(p_old_name);
     signal->rename(p_new_name);
@@ -917,6 +935,8 @@ void Orchestration::rename_custom_user_signal(const StringName& p_old_name, cons
     #ifdef TOOLS_ENABLED
     _update_placeholders();
     #endif
+
+    return true;
 }
 
 Vector<Ref<OScriptSignal>> Orchestration::get_custom_signals() const
