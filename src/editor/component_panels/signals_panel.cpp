@@ -90,8 +90,13 @@ bool OrchestratorScriptSignalsComponentPanel::_handle_item_renamed(const String&
         return false;
     }
 
-    _orchestration->rename_custom_user_signal(p_old_name, p_new_name);
-    return true;
+    if (!p_new_name.is_valid_identifier())
+    {
+        _show_invalid_name("signal", false);
+        return false;
+    }
+
+    return _orchestration->rename_custom_user_signal(p_old_name, p_new_name);
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_remove(TreeItem* p_item)
