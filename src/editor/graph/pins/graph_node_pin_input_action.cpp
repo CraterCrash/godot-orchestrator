@@ -62,7 +62,10 @@ void OrchestratorGraphNodePinInputAction::_populate_action_list()
     }
 
     if (!found)
-        _pin->set_default_value(Variant());
+    {
+        _button->select(0);
+        _pin->set_default_value(_button->get_item_text(0));
+    }
 }
 
 Control* OrchestratorGraphNodePinInputAction::_get_default_value_widget()
