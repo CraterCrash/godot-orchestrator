@@ -170,8 +170,8 @@ void OrchestratorGraphNodePinNodePath::_show_property_dialog()
             accept->set_exclusive(true);
             add_child(accept);
 
-            accept->connect("canceled", callable_mp_lambda(this, [=, this] { accept->queue_free(); }));
-            accept->connect("confirmed", callable_mp_lambda(this, [=, this] { accept->queue_free(); }));
+            accept->connect("canceled", callable_mp_lambda(this, [&] { accept->queue_free(); }));
+            accept->connect("confirmed", callable_mp_lambda(this, [&] { accept->queue_free(); }));
             accept->popup_centered();
         }
         return;
