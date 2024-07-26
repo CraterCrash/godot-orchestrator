@@ -47,7 +47,7 @@ public:
         }
 
         Array args;
-        for (int i = 0; i < _method.arguments.size(); i++)
+        for (size_t i = 0; i < _method.arguments.size(); i++)
             args.push_back(p_context.get_input(i));
 
         std::vector<const Variant*> call_args;
@@ -173,7 +173,7 @@ void OScriptNodeCallStaticFunction::allocate_default_pins()
         : _method.arguments.size() - _method.default_arguments.size();
 
     size_t def_index = 0;
-    for (int arg_index = 0; arg_index < _method.arguments.size(); arg_index++)
+    for (size_t arg_index = 0; arg_index < _method.arguments.size(); arg_index++)
     {
         const PropertyInfo& pi = _method.arguments[arg_index];
         const Variant default_value = arg_index >= default_start_index ? _method.default_arguments[def_index++] : Variant();

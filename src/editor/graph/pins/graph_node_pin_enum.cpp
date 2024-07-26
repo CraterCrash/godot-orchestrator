@@ -161,7 +161,7 @@ Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
 
     _generate_items();
 
-    int effective_default = _pin->get_effective_default_value();
+    uint64_t effective_default = _pin->get_effective_default_value();
     for (const ListItem& item : _items)
     {
         button->add_item(item.friendly_name);
