@@ -246,6 +246,11 @@ public:
     void sync();
 
 private:
+    /// Checks whether the specified position is within any node rect.
+    /// @param p_position the position to check
+    /// @return true if the position is within any node rect, false otherwise
+    bool _is_position_within_node_rect(const Vector2& p_position) const;
+
     /// Caches the graph knots for use.
     /// Copies the knot data from the OScriptGraph to this GraphEdit instance.
     void _cache_connection_knots();
