@@ -46,7 +46,6 @@
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
-#include <godot_cpp/classes/script_create_dialog.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
@@ -534,14 +533,12 @@ void OrchestratorEditorPanel::_show_create_new_script_dialog()
     const String inherits = OrchestratorSettings::get_singleton()->get_setting("settings/default_type");
 
     // Get dialog and cache current position
-    ScriptCreateDialog* dialog = OrchestratorPlugin::get_singleton()->get_script_create_dialog();
-    const Window::WindowInitialPosition initial_position = dialog->get_initial_position();
-    dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
+    _script_create_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
 
     // Find LanguageMenu option and force Orchestrator as the selected choice
     // Must be called before "config" to guarantee that the dialog logic for templates and language works properly.
     const String language_name = OScriptLanguage::get_singleton()->_get_name();
-    TypedArray<Node> nodes = dialog->find_children("*", OptionButton::get_class_static(), true, false);
+    TypedArray<Node> nodes = _script_create_dialog->find_children("*", OptionButton::get_class_static(), true, false);
     if (!nodes.is_empty())
     {
         OptionButton* menu = Object::cast_to<OptionButton>(nodes[0]);
@@ -555,16 +552,13 @@ void OrchestratorEditorPanel::_show_create_new_script_dialog()
         }
     }
 
-    dialog->set_title("Create Orchestration");
-    dialog->config(inherits, "new_orchestration.os", false, false);
+    _script_create_dialog->set_title("Create Orchestration");
+    _script_create_dialog->config(inherits, "new_script.os", false, false);
 
     Ref<EditorSettings> editor_settings = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_settings();
     editor_settings->set_project_metadata("script_setup", "last_selected_language", language_name);
 
-    OCONNECT(dialog, "script_created", callable_mp(this, &OrchestratorEditorPanel::_script_file_created));
-
-    dialog->popup_centered();
-    dialog->set_initial_position(initial_position); // restore old position
+    _script_create_dialog->popup_centered();
 }
 
 void OrchestratorEditorPanel::_script_file_created(const Ref<Script>& p_script)
@@ -1107,6 +1101,11 @@ void OrchestratorEditorPanel::_notification(int p_what)
             _recent_files = metadata->get_value(RECENT_HISTORY_SECTION, RECENT_HISTORY_KEY, PackedStringArray());
 
             _update_recent_history();
+
+            _script_create_dialog = memnew(ScriptCreateDialog);
+            _script_create_dialog->connect("script_created", callable_mp(this, &OrchestratorEditorPanel::_script_file_created));
+            add_child(_script_create_dialog);
+
             break;
         }
         case NOTIFICATION_ENTER_TREE:

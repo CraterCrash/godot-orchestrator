@@ -26,6 +26,7 @@
 #include <godot_cpp/classes/menu_button.hpp>
 #include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/script.hpp>
+#include <godot_cpp/classes/script_create_dialog.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
@@ -139,6 +140,7 @@ protected:
     Container* _viewport_container{ nullptr };                //! Main viewport container
     String _file_name_filter;                                 //! The filter text
     PackedStringArray _recent_files;                          //! The recent files list
+    ScriptCreateDialog* _script_create_dialog{ nullptr };     //! Script creation dialog window
 
     //~ Begin Godot Interface
     void _notification(int p_what);
