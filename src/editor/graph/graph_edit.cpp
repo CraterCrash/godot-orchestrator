@@ -501,29 +501,37 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
         }
     }
 
+    // todo:
+    // There is a bug where if the mouse hovers a connection and a node concurrently,
+    // the connection color is changed, even if the mouse is inside the node.
     GraphEdit::_gui_input(p_event);
 
-    Ref<InputEventMouseMotion> mm = p_event;
-    if (mm.is_valid())
+    // This is to avoid triggering the display text or our internal hover_connection logic.
+    Ref<InputEventMouse> me = p_event;
+    if (me.is_valid() && !_is_position_within_node_rect(me->get_position()))
     {
-        _hovered_connection = get_closest_connection_at_point(mm->get_position());
-        if (!_hovered_connection.is_empty())
+        Ref<InputEventMouseMotion> mm = p_event;
+        if (mm.is_valid())
         {
-            _show_drag_hint("Use Ctrl+LMB to add a knot to the connection.\n"
-                "Hover over an existing knot and pressing Ctrl+LMB will remove it.");
-        }
-    }
-
-    Ref<InputEventMouseButton> mb = p_event;
-    if (mb.is_valid())
-    {
-        if (mb->get_button_index() == MOUSE_BUTTON_LEFT && mb->is_pressed())
-        {
-            if (mb->get_modifiers_mask().has_flag(KEY_MASK_CTRL))
+            _hovered_connection = get_closest_connection_at_point(mm->get_position());
+            if (!_hovered_connection.is_empty())
             {
-                // CTRL+LMB adds a knot to the connection that can then be moved.
-                if (!_hovered_connection.is_empty())
-                    _create_connection_knot(_hovered_connection, mb->get_position());
+                _show_drag_hint("Use Ctrl+LMB to add a knot to the connection.\n"
+                    "Hover over an existing knot and pressing Ctrl+LMB will remove it.");
+            }
+        }
+
+        Ref<InputEventMouseButton> mb = p_event;
+        if (mb.is_valid())
+        {
+            if (mb->get_button_index() == MOUSE_BUTTON_LEFT && mb->is_pressed())
+            {
+                if (mb->get_modifiers_mask().has_flag(KEY_MASK_CTRL))
+                {
+                    // CTRL+LMB adds a knot to the connection that can then be moved.
+                    if (!_hovered_connection.is_empty())
+                        _create_connection_knot(_hovered_connection, mb->get_position());
+                }
             }
         }
     }
@@ -698,6 +706,17 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             spawn_node<OScriptNodeEmitSignal>(context, _saved_mouse_position);
         }
     }
+}
+
+bool OrchestratorGraphEdit::_is_position_within_node_rect(const Vector2& p_position) const
+{
+    for (int i = 0; i < get_child_count(); ++i)
+    {
+        GraphNode* child = Object::cast_to<GraphNode>(get_child(i));
+        if (child && child->get_rect().has_point(p_position))
+            return true;
+    }
+    return false;
 }
 
 void OrchestratorGraphEdit::_cache_connection_knots()
