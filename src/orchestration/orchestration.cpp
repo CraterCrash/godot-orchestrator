@@ -578,8 +578,6 @@ bool Orchestration::rename_graph(const StringName& p_old_name, const StringName&
     ERR_FAIL_COND_V_MSG(has_graph(p_new_name), false, "A graph already exists with the new name: " + p_new_name);
     ERR_FAIL_COND_V_MSG(!p_new_name.is_valid_identifier(), false, "The new graph name is not a valid.");
 
-    UtilityFunctions::print("Create Graph with name [", p_old_name, "] to [", p_new_name, "]");
-
     Ref<OScriptGraph> graph = get_graph(p_old_name);
     if (!graph.is_valid())
         return false;
