@@ -155,6 +155,10 @@ protected:
     /// @param p_focus whether to focus to the search box
     virtual void _update_search_box(bool p_clear, bool p_replace, const String& p_text, bool p_focus);
 
+    /// Whether the dialog should collapse nodes on empty search terms
+    /// @returns whether to collapse non-root tree nodes when search box is empty, defaults to false.
+    virtual bool _should_collapse_on_empty_search() const { return false; }
+
     /// Sets the search item's collapse state
     /// @param p_item the tree item
     virtual void _set_search_item_collapse_state(TreeItem* p_item);
@@ -210,7 +214,6 @@ protected:
     void _select_item(TreeItem* p_item, bool p_center_on_item);
 
 public:
-
     /// Opens the dialog
     /// @param p_dont_clear whether the dialog should clear the search field
     /// @param p_replace_mode whether the dialog should replace the current type

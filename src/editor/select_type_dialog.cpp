@@ -76,6 +76,11 @@ bool OrchestratorSelectTypeSearchDialog::_is_preferred(const String& p_type) con
     return OrchestratorEditorSearchDialog::_is_preferred(p_type);
 }
 
+bool OrchestratorSelectTypeSearchDialog::_should_collapse_on_empty_search() const
+{
+    return _filters->get_selected_id() == FT_ALL_TYPES;
+}
+
 bool OrchestratorSelectTypeSearchDialog::_get_search_item_collapse_suggestion(TreeItem* p_item) const
 {
     if (p_item->get_parent())
@@ -98,6 +103,28 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     root->collapsed = false; // Root always expanded
     root->set_meta("can_instantiate", false);
     items.push_back(root);
+
+    Ref<SearchItem> global_enums(memnew(SearchItem));
+    global_enums->path = "Types/Global_Enums";
+    global_enums->name = "Global Enums";
+    global_enums->text = "Global Enums";
+    global_enums->selectable = false;
+    global_enums->collapsed = false;
+    global_enums->icon = SceneUtils::get_editor_icon("Enum");
+    global_enums->set_meta("can_instantiate", false);
+    global_enums->parent = root;
+    items.push_back(global_enums);
+
+    Ref<SearchItem> global_bitfields(memnew(SearchItem));
+    global_bitfields->path = "Types/Global_Bitfields";
+    global_bitfields->name = "Global Bitfields";
+    global_bitfields->text = "Global Bitfields";
+    global_bitfields->selectable = false;
+    global_bitfields->collapsed = false;
+    global_bitfields->icon = SceneUtils::get_editor_icon("Enum");
+    global_bitfields->set_meta("can_instantiate", false);
+    global_bitfields->parent = root;
+    items.push_back(global_bitfields);
 
     // Basic Types
     for (int i = 0; i < Variant::VARIANT_MAX; i++)
@@ -149,12 +176,12 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
         const EnumInfo& ei = ExtensionDB::get_global_enum(enum_name);
 
         Ref<SearchItem> item(memnew(SearchItem));
-        item->path = vformat("Types/%s", enum_name);
+        item->path = vformat("Types/%s/%s", ei.is_bitfield ? "Global_Bitfields" : "Global_Enums", enum_name);
         item->name = vformat("%s:%s", ei.is_bitfield ? "bitfield" : "enum", enum_name);
         item->text = enum_name;
         item->icon = SceneUtils::get_editor_icon("Enum");
         item->selectable = true;
-        item->parent = root;
+        item->parent = ei.is_bitfield ? global_bitfields : global_enums;
         items.push_back(item);
     }
 
