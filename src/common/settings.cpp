@@ -148,6 +148,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_graph_friendly_names", true));
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_function_friendly_names", true));
 
+    _settings.emplace_back(BOOL_SETTING("ui/graph/confirm_on_delete", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/disconnect_control_flow_when_dragged", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_autowire_selection_dialog", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
