@@ -55,6 +55,7 @@ class OrchestratorSelectTypeSearchDialog : public OrchestratorEditorSearchDialog
 protected:
     //~ Begin OrchestratorEditorSearchDialog Interface
     bool _is_preferred(const String& p_type) const override;
+    bool _should_collapse_on_empty_search() const override;
     bool _get_search_item_collapse_suggestion(TreeItem* p_item) const override;
     void _update_help(const Ref<SearchItem>& p_item) override;
     Vector<Ref<SearchItem>> _get_search_items() override;
