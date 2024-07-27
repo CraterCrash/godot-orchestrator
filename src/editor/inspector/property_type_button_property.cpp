@@ -93,6 +93,7 @@ void OrchestratorEditorPropertyVariableClassification::_notification(int p_what)
         _dialog->set_popup_title("Select variable type");
         _dialog->set_data_suffix("variable_type");
         _dialog->set_base_type(_base_type);
+        _dialog->set_allow_abstract_types(true);
         add_child(_dialog);
 
         _dialog->connect("selected", callable_mp(this, &OrchestratorEditorPropertyVariableClassification::_search_selected));
