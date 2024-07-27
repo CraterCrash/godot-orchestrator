@@ -87,6 +87,10 @@ protected:
     /// @return true if the MethodInfo is saved as part of the node's data, false if it isn't
     virtual bool _is_method_info_serialized() const { return true; }
 
+    /// Specifies whether arguments that are class types should be labeled by class names
+    /// @return true to use class names, return false to use pin label or name
+    virtual bool _use_argument_class_name() const { return true; }
+
     /// Return whether the return value pin should be labeled
     /// @param p_pin the return value pin
     /// @return true if the pin is labeled, false otherwise

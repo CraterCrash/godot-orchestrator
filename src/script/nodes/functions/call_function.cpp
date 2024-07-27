@@ -313,7 +313,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         if (pin.is_valid())
         {
             const String arg_class_name = pin->get_property_info().class_name;
-            if (!arg_class_name.is_empty())
+            if (!arg_class_name.is_empty() && _use_argument_class_name())
             {
                 if (arg_class_name.contains("."))
                     pin->set_label(arg_class_name.substr(arg_class_name.find(".") + 1));
