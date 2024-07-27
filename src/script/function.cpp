@@ -245,6 +245,15 @@ void OScriptFunction::set_argument_type(size_t p_index, Variant::Type p_type)
     }
 }
 
+void OScriptFunction::set_argument(size_t p_index, const PropertyInfo& p_property)
+{
+    if (_method.arguments.size() > p_index && _user_defined)
+    {
+        _method.arguments[p_index] = p_property;
+        emit_changed();
+    }
+}
+
 void OScriptFunction::set_arguments(const TypedArray<Dictionary>& p_arguments)
 {
     if (_user_defined)

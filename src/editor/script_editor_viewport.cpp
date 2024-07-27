@@ -265,7 +265,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
     ERR_FAIL_COND_EDMSG(connections.outputs.size() > 2, "Cannot output more than one execution and one data pin.");
 
     const String new_function_name = NameUtils::create_unique_name("NewFunction", _orchestration->get_function_names());
-    Ref<OScriptFunction> function = _create_new_function(new_function_name, true);
+    Ref<OScriptFunction> function = _create_new_function(new_function_name, !connections.outputs.is_empty());
     if (!function.is_valid())
         return;
 
@@ -328,8 +328,20 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
         {
             const size_t size = function->get_argument_count() + 1;
             function->resize_argument_list(size);
-            function->set_argument_name(size - 1, target_pin->get_pin_name());
-            function->set_argument_type(size - 1, target_pin->get_type());
+
+            PropertyInfo property = target_pin->get_property_info();
+            if (!target_pin->get_label().is_empty() && property.name != target_pin->get_label())
+                property.name = target_pin->get_label();
+
+            PackedStringArray names;
+            for (const PropertyInfo& argument : function->get_method_info().arguments)
+                if (!names.has(argument.name))
+                    names.push_back(argument.name);
+
+            if (names.has(property.name))
+                property.name = NameUtils::create_unique_name(property.name, names);
+
+            function->set_argument(size - 1, property);
 
             // Wire entry data output to this connection
             target_graph->link(entry->get_id(), input_index++, E.to_node, E.to_port);

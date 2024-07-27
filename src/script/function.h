@@ -153,6 +153,11 @@ public:
     /// @param p_type the new argument type
     void set_argument_type(size_t p_index, Variant::Type p_type);
 
+    /// Sets the argument property details
+    /// @param p_index the argument index
+    /// @param p_property the argument details
+    void set_argument(size_t p_index, const PropertyInfo& p_property);
+
     /// Sets the arguments for this function
     /// @param p_arguments the argument list
     void set_arguments(const TypedArray<Dictionary>& p_arguments);
