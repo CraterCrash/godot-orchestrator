@@ -119,7 +119,6 @@ class OrchestratorGraphEdit : public GraphEdit
     #endif
     Ref<OScriptGraph> _script_graph;                       //! The underlying orchestration script graph
     OrchestratorGraphActionMenu* _action_menu{ nullptr };  //! Actions menu
-    ConfirmationDialog* _confirm_window{ nullptr };        //! Confirmation window
     Vector2 _saved_mouse_position;                         //! Mouse position where node/dialog is placed
     DragContext _drag_context;                             //! Drag context details
     int _deferred_tween_node{ -1 };                        //! Node id to tween to upon load
@@ -246,6 +245,17 @@ public:
     void sync();
 
 private:
+    /// Displays a yes/no confirmation dialog to the user.
+    /// @param p_text the text to be shown.
+    /// @param p_title the confirmation window title text
+    /// @param p_confirm_callback the callback if the user presses 'yes'
+    void _confirm_yes_no(const String& p_text, const String& p_title, Callable p_confirm_callback);
+
+    /// Displays a notification to the user
+    /// @param p_text the text to be shown.
+    /// @param p_title the notification window title text
+    void _notify(const String& p_text, const String& p_title);
+
     /// Checks whether the specified position is within any node rect.
     /// @param p_position the position to check
     /// @return true if the position is within any node rect, false otherwise
@@ -411,6 +421,10 @@ private:
     /// Dispatched when a user has selected one or more nodes and uses the delete key
     /// @param p_node_names the nodes to be deleted
     void _on_delete_nodes_requested(const PackedStringArray& p_node_names);
+
+    /// Deletes nodes with the given names
+    /// @param p_node_names the nodes to be deleted
+    void _delete_nodes(const PackedStringArray& p_node_names);
 
     /// Dispatched when the user right clicks the graph edit
     /// @param p_position position where the click event occurred

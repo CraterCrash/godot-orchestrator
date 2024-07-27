@@ -211,12 +211,6 @@ void OrchestratorGraphEdit::_notification(int p_what)
         validate_and_build->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_validate_and_build));
         get_menu_hbox()->add_child(validate_and_build);
 
-        _confirm_window = memnew(ConfirmationDialog);
-        _confirm_window->set_hide_on_ok(true);
-        _confirm_window->get_cancel_button()->hide();
-        _confirm_window->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
-        add_child(_confirm_window);
-
         const Ref<Resource> self = get_orchestration()->get_self();
         self->connect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
         self->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
@@ -706,6 +700,37 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             spawn_node<OScriptNodeEmitSignal>(context, _saved_mouse_position);
         }
     }
+}
+
+void OrchestratorGraphEdit::_confirm_yes_no(const String& p_text, const String& p_title, Callable p_confirm_callback)
+{
+    ConfirmationDialog* dialog = memnew(ConfirmationDialog);
+    dialog->set_title(p_title);
+    dialog->set_text(p_text);
+    dialog->set_ok_button_text("Yes");
+    dialog->set_cancel_button_text("No");
+    dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
+    add_child(dialog);
+
+    dialog->connect("confirmed", p_confirm_callback);
+    dialog->connect("close_requested", callable_mp_lambda(this, [dialog] { dialog->queue_free(); }));
+
+    dialog->popup_centered();
+}
+
+void OrchestratorGraphEdit::_notify(const String& p_text, const String& p_title)
+{
+    ConfirmationDialog* dialog = memnew(ConfirmationDialog);
+    dialog->set_title(p_title);
+    dialog->set_text(p_text);
+    dialog->set_ok_button_text("OK");
+    dialog->get_cancel_button()->hide();
+    dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
+    add_child(dialog);
+
+    dialog->connect("close_requested", callable_mp_lambda(this, [dialog] { dialog->queue_free(); }));
+
+    dialog->popup_centered();
 }
 
 bool OrchestratorGraphEdit::_is_position_within_node_rect(const Vector2& p_position) const
@@ -1494,6 +1519,18 @@ void OrchestratorGraphEdit::_on_node_deselected(Node* p_node)
 
 void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& p_node_names)
 {
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    if (settings->get_setting("ui/graph/confirm_on_delete", true))
+    {
+        const String message = vformat("Do you wish to delete %d node(s)?", p_node_names.size());
+        _confirm_yes_no(message, "Confirm deletion", callable_mp(this, &OrchestratorGraphEdit::_delete_nodes).bind(p_node_names));
+    }
+    else
+        _delete_nodes(p_node_names);
+}
+
+void OrchestratorGraphEdit::_delete_nodes(const PackedStringArray& p_node_names)
+{
     for (const String& node_name : p_node_names)
     {
         if (OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(node_name))
@@ -1504,11 +1541,7 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
                     "It may be that this node represents a function entry or some other node type that requires "
                     "deletion via the component menu instead.";
 
-                _confirm_window->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
-                _confirm_window->set_text(vformat(message, node->get_script_node_id(), node->get_title().strip_edges()));
-                _confirm_window->set_title("Delete canceled");
-                _confirm_window->reset_size();
-                _confirm_window->show();
+                _notify(vformat(message, node->get_script_node_id(), node->get_script_node()->get_node_title()), "Delete canceled");
                 return;
             }
         }
