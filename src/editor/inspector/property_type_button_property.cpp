@@ -22,7 +22,7 @@
 
 void OrchestratorEditorPropertyVariableClassification::_property_selected()
 {
-    _dialog->popup_create(true, true, get_edited_object()->get(get_edited_property()), get_edited_property());
+    _dialog->popup_create(true, false, get_edited_object()->get(get_edited_property()), get_edited_property());
 }
 
 void OrchestratorEditorPropertyVariableClassification::_search_selected()
@@ -82,7 +82,7 @@ void OrchestratorEditorPropertyVariableClassification::_update_property()
 
 void OrchestratorEditorPropertyVariableClassification::edit()
 {
-    _dialog->popup_create(true, true, get_edited_object()->get(get_edited_property()), get_edited_property());
+    _dialog->popup_create(true, false, get_edited_object()->get(get_edited_property()), get_edited_property());
 }
 
 void OrchestratorEditorPropertyVariableClassification::setup(const String& p_base_type, const String& p_selected_type)

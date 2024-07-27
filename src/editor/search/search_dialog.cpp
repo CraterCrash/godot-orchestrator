@@ -329,6 +329,12 @@ void OrchestratorEditorSearchDialog::_set_search_item_collapse_state(TreeItem* p
     }
     else if (p_item->get_parent())
     {
+        if (_search_box->get_text().is_empty() && _should_collapse_on_empty_search())
+        {
+            p_item->set_collapsed(true);
+            return;
+        }
+
         bool should_collapse = _get_search_item_collapse_suggestion(p_item);
 
         Ref<EditorSettings> settings = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_settings();
@@ -452,6 +458,7 @@ void OrchestratorEditorSearchDialog::_update_search()
 
     if (_search_box->get_text().is_empty())
     {
+        _favorite->set_pressed_no_signal(false);
         _search_options->scroll_to_item(_search_options->get_root());
         _search_options->deselect_all();
     }
