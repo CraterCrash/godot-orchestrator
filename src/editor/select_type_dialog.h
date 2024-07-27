@@ -45,6 +45,7 @@ class OrchestratorSelectTypeSearchDialog : public OrchestratorEditorSearchDialog
     HashSet<StringName> _exclusions;                  //! Set of types to be excluded
     Vector<String> _variant_type_names;               //! All valid variant type names
     bool _is_base_type_node{ false };                 //! Specifies if base type is a Node
+    bool _allow_abstract_types{ false };              //! Allow selecting abstract types
     String _base_type;                                //! The base type
     String _fallback_icon{ "Object" };                //! The fallback icon
     String _preferred_search_result_type;             //! The preferred search result type
@@ -100,6 +101,10 @@ public:
     /// Sets the data suffix for history and favorite tracking
     /// @param p_data_suffix the data file suffix
     void set_data_suffix(const String& p_data_suffix) { _data_suffix = p_data_suffix; }
+
+    /// Sets whether abstract types should be selectable
+    /// @param p_allow_abstract_types true to allow selecting abstract types
+    void set_allow_abstract_types(bool p_allow_abstract_types) { _allow_abstract_types = p_allow_abstract_types; }
 
     /// Sets the dialog's title
     /// @param p_title the title to be used

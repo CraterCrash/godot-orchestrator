@@ -261,15 +261,23 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
         item->icon = SceneUtils::get_class_icon(clazz_name);
         item->parent = parent;
 
-        if (!ClassDB::can_instantiate(clazz_name))
+        if (!_allow_abstract_types)
         {
-            item->selectable = false;
-            item->disabled = true;
+            if (!ClassDB::can_instantiate(clazz_name))
+            {
+                item->selectable = false;
+                item->disabled = true;
+            }
+            else if (Engine::get_singleton()->get_singleton_list().has(clazz_name))
+            {
+                item->selectable = false;
+                item->disabled = true;
+            }
         }
-        else if (Engine::get_singleton()->get_singleton_list().has(clazz_name))
+        else
         {
-            item->selectable = false;
-            item->disabled = true;
+            item->selectable = true;
+            item->disabled = false;
         }
 
         if (ScriptServer::is_global_class(clazz_name))
