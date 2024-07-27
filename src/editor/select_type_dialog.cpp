@@ -102,17 +102,35 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     // Basic Types
     for (int i = 0; i < Variant::VARIANT_MAX; i++)
     {
-        const String variant_type = Variant::get_type_name(VariantUtils::to_type(i));
+        const Variant::Type type = VariantUtils::to_type(i);
+        const String variant_type = Variant::get_type_name(type);
         _variant_type_names.push_back(variant_type);
 
         if (_exclusions.has(variant_type))
             continue;
 
+        String friendly_name;
+        switch (type)
+        {
+            case Variant::INT:
+                friendly_name = "Integer";
+                break;
+            case Variant::BOOL:
+                friendly_name = "Boolean";
+                break;
+            case Variant::FLOAT:
+                friendly_name = "Float";
+                break;
+            default:
+                friendly_name = variant_type;
+                break;
+        };
+
         Ref<SearchItem> item(memnew(SearchItem));
         item->path = vformat("Types/%s", i == 0 ? "Any" : variant_type);
         item->name = vformat("type:%s", variant_type);
-        item->text = i == 0 ? "Any" : variant_type;
-        item->icon = SceneUtils::get_editor_icon(i == 0 ? "Variant" : item->text);
+        item->text = i == 0 ? "Any" : friendly_name;
+        item->icon = SceneUtils::get_editor_icon(i == 0 ? "Variant" : variant_type);
         item->selectable = true;
         item->parent = root;
         items.push_back(item);
