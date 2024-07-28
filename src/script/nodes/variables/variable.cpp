@@ -53,6 +53,9 @@ void OScriptNodeVariable::_on_variable_changed()
     {
         _variable_name = _variable->get_variable_name();
         reconstruct_node();
+
+        // This must be triggered after reconstruction
+        _variable_changed();
     }
 }
 

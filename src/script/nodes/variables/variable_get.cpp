@@ -62,6 +62,22 @@ void OScriptNodeVariableGet::_upgrade(uint32_t p_version, uint32_t p_current_ver
     super::_upgrade(p_version, p_current_version);
 }
 
+void OScriptNodeVariableGet::_variable_changed()
+{
+    if (_is_in_editor())
+    {
+        Ref<OScriptNodePin> output = find_pin("value", PD_Output);
+        if (output.is_valid() && output->has_any_connections())
+        {
+            Ref<OScriptNodePin> target = output->get_connections()[0];
+            if (target.is_valid() && !target->can_accept(output))
+                output->unlink_all();
+        }
+    }
+
+    super::_variable_changed();
+}
+
 void OScriptNodeVariableGet::allocate_default_pins()
 {
     create_pin(PD_Output, PT_Data, PropertyUtils::as("value", _variable->get_info()))->set_label(_variable_name, false);

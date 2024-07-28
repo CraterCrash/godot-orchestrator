@@ -62,6 +62,10 @@ protected:
     /// @return true if the property can be exported, false otherwise
     bool _is_exportable_type(const PropertyInfo& p_property) const;
 
+    /// Attempt to convert the default value to the new type
+    /// @return true if the conversion was successful, false otherwise
+    bool _convert_default_value(Variant::Type p_new_type);
+
     /// Constructor
     /// Intentionally protected, variables created via an Orchestration
     OScriptVariable();

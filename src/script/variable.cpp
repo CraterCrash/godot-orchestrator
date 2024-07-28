@@ -163,6 +163,12 @@ bool OScriptVariable::_is_exportable_type(const PropertyInfo& p_property) const
     return true;
 }
 
+bool OScriptVariable::_convert_default_value(Variant::Type p_new_type)
+{
+    set_default_value(VariantUtils::convert(get_default_value(), p_new_type));
+    return true;
+}
+
 OScriptVariable::OScriptVariable()
 {
     _info.type = Variant::NIL;
@@ -224,7 +230,7 @@ void OScriptVariable::set_classification(const String& p_classification)
                     if (Variant::get_type_name(type).match(type_name))
                     {
                         if (_info.type != type)
-                            set_default_value(VariantUtils::make_default(type));
+                            _convert_default_value(type);
 
                         _info.type = type;
                         _info.hint = PROPERTY_HINT_NONE;
