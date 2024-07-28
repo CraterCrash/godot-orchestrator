@@ -57,6 +57,12 @@ namespace VariantUtils
     /// @return the default Variant value of the specified type
     Variant make_default(Variant::Type p_type);
 
+    /// Converts the value to the specified type
+    /// @param p_value the value to convert
+    /// @param p_target_type the target type
+    /// @return the converted type
+    Variant convert(const Variant& p_value, Variant::Type p_target_type);
+
     /// Cast to a desired type.
     /// @param p_value the value to be cast
     /// @param T the cast type

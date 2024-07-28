@@ -507,7 +507,7 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
     }
 
     // Coercion is allowed here
-    if (_property.type == Variant::STRING || p_pin->get_type() == Variant::STRING)
+    if (_property.type == Variant::STRING)
     {
         // File targets should only accept string sources
         if (_property.hint == PROPERTY_HINT_FILE)
