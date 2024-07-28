@@ -16,6 +16,7 @@
 //
 #include "editor/inspector/property_type_button_property.h"
 
+#include "common/callable_lambda.h"
 #include "common/scene_utils.h"
 #include "editor/select_type_dialog.h"
 
@@ -27,8 +28,28 @@ void OrchestratorEditorPropertyVariableClassification::_property_selected()
 void OrchestratorEditorPropertyVariableClassification::_search_selected()
 {
     _selected_name = _dialog->get_selected_type();
-    emit_changed(get_edited_property(), _selected_name);
-    update_property();
+    if (get_edited_object()->get(get_edited_property()) != _selected_name)
+    {
+        ConfirmationDialog* confirm = memnew(ConfirmationDialog);
+        confirm->set_text("This could break connections and reset default values on variable set nodes.\nDo you want to change the variable type?");
+        confirm->set_title("Change Variable Type");
+        confirm->set_ok_button_text("Change Variable Type");
+        add_child(confirm);
+
+        confirm->connect("confirmed", callable_mp_lambda(this, [confirm, this] {
+            emit_changed(get_edited_property(), _selected_name);
+            update_property();
+            if (confirm)
+                confirm->queue_free();
+        }));
+
+        confirm->connect("canceled", callable_mp_lambda(this, [confirm, this] {
+            if (confirm)
+                confirm->queue_free();
+        }));
+
+        confirm->popup_centered();
+    }
 }
 
 void OrchestratorEditorPropertyVariableClassification::_update_property()

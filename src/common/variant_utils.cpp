@@ -120,4 +120,179 @@ namespace VariantUtils
 
         return UtilityFunctions::type_convert(Variant(), p_type);
     }
+
+    Variant convert(const Variant& p_value, Variant::Type p_target_type)
+    {
+        if (Variant::can_convert(p_value.get_type(), p_target_type))
+            return UtilityFunctions::type_convert(p_value, p_target_type);
+
+        const Variant::Type type = p_value.get_type();
+
+        if (p_target_type == Variant::BOOL)
+        {
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
+                return p_value.operator Vector2().x;
+
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
+                return p_value.operator Vector3().x;
+
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
+                return p_value.operator Vector4().x;
+
+            if (type == Variant::INT || type == Variant::FLOAT)
+                return p_value.operator int64_t();
+
+            if (type == Variant::STRING || type == Variant::STRING_NAME)
+            {
+                const String value = p_value;
+                return value.to_lower().match("true") || value.strip_edges() == "1";
+            }
+        }
+
+        if (p_target_type == Variant::INT || p_target_type == Variant::FLOAT)
+        {
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
+                return p_value.operator Vector2().x;
+
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
+                return p_value.operator Vector3().x;
+
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
+                return p_value.operator Vector4().x;
+
+            if (type == Variant::STRING || type == Variant::STRING_NAME)
+            {
+                String value = p_value;
+                if (value.begins_with("(") && value.ends_with(")"))
+                {
+                    value = value.substr(1, value.length() - 1);
+                    convert(value.split(",")[0], p_target_type);
+                }
+                else if (value.to_lower().match("true"))
+                    return convert(true, p_target_type);
+                else if (value.strip_edges().match("1"))
+                    return convert(true, p_target_type);
+            }
+        }
+
+        if (p_target_type == Variant::VECTOR2 || p_target_type == Variant::VECTOR2I)
+        {
+            if (type == Variant::BOOL || type == Variant::INT || type == Variant::FLOAT)
+                return Vector2(p_value, p_value);
+
+            if (type == Variant::STRING || type == Variant::STRING_NAME)
+            {
+                String value = p_value;
+                if (value.begins_with("(") && value.ends_with(")"))
+                {
+                    value = value.substr(1, value.length() - 1);
+
+                    Vector2 result;
+                    const PackedStringArray parts = value.split(",");
+                    for (int i = 0; i < parts.size() && i < 2; i++)
+                        result[i] = parts[i].to_float();
+                    return result;
+                }
+                else if (value.to_lower().match("true"))
+                    return convert(true, p_target_type);
+                else if (value.strip_edges().match("1"))
+                    return convert(true, p_target_type);
+            }
+
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
+            {
+                const Vector3 v3 = p_value;
+                return Vector2(v3.x, v3.y);
+            }
+
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
+            {
+                const Vector4 v4 = p_value;
+                return Vector2(v4.x, v4.y);
+            }
+        }
+
+        if (p_target_type == Variant::VECTOR3 || p_target_type == Variant::VECTOR3I)
+        {
+            if (type == Variant::INT || type == Variant::FLOAT || type == Variant::BOOL)
+                return Vector3(p_value, p_value, p_value);
+
+            if (type == Variant::STRING || type == Variant::STRING_NAME)
+            {
+                String value = p_value;
+                if (value.begins_with("(") && value.ends_with(")"))
+                {
+                    value = value.substr(1, value.length() - 1);
+
+                    Vector3 result;
+                    const PackedStringArray parts = value.split(",");
+                    for (int i = 0; i < parts.size() && i < 3; i++)
+                        result[i] = parts[i].to_float();
+                    return result;
+                }
+                else if (value.to_lower().match("true"))
+                    return convert(true, p_target_type);
+                else if (value.strip_edges().match("1"))
+                    return convert(true, p_target_type);
+            }
+
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
+            {
+                const Vector2 v2 = p_value;
+                return Vector3(v2.x, v2.y, 0);
+            }
+
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
+            {
+                const Vector4 v4 = p_value;
+                return Vector3(v4.x, v4.y, v4.z);
+            }
+        }
+
+        if (p_target_type == Variant::VECTOR4 || p_target_type == Variant::VECTOR4I)
+        {
+            if (type == Variant::INT || type == Variant::FLOAT || type == Variant::BOOL)
+                return Vector4(p_value, p_value, p_value, p_value);
+
+            if (type == Variant::STRING || type == Variant::STRING_NAME)
+            {
+                String value = p_value;
+                if (value.begins_with("(") && value.ends_with(")"))
+                {
+                    value = value.substr(1, value.length() - 1);
+
+                    Vector4 result;
+                    const PackedStringArray parts = value.split(",");
+                    for (int i = 0; i < parts.size() && i < 4; i++)
+                        result[i] = parts[i].to_float();
+                    return result;
+                }
+                else if (value.to_lower().match("true"))
+                    return convert(true, p_target_type);
+                else if (value.strip_edges().match("1"))
+                    return convert(true, p_target_type);
+            }
+
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
+            {
+                const Vector2 v2 = p_value;
+                return Vector4(v2.x, v2.y, 0, 0);
+            }
+
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
+            {
+                const Vector3 v3 = p_value;
+                return Vector4(v3.x, v3.y, v3.z, 0);
+            }
+        }
+
+        if (p_target_type == Variant::STRING_NAME)
+            return StringName(convert(p_value, Variant::STRING));
+
+        if (p_value.get_type() == Variant::STRING_NAME)
+            return convert(String(p_value), p_target_type);
+
+        return make_default(p_target_type);
+    }
+
 }

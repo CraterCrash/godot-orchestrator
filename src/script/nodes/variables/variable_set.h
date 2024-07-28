@@ -30,11 +30,16 @@ protected:
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
 
+    //~ Begin OScriptNodeVariable Interface
+    void _variable_changed() override;
+    //~ End OScriptNodeVariable Interface
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
+    void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
     OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };

@@ -75,10 +75,34 @@ void OScriptNodeVariableSet::_upgrade(uint32_t p_version, uint32_t p_current_ver
     super::_upgrade(p_version, p_current_version);
 }
 
+void OScriptNodeVariableSet::_variable_changed()
+{
+    if (_is_in_editor())
+    {
+        Ref<OScriptNodePin> input = find_pin(1, PD_Input);
+        if (input.is_valid() && input->has_any_connections())
+        {
+            Ref<OScriptNodePin> source = input->get_connections()[0];
+            if (!input->can_accept(source))
+                input->unlink_all();
+        }
+
+        Ref<OScriptNodePin> output = find_pin("value", PD_Output);
+        if (output.is_valid() && output->has_any_connections())
+        {
+            Ref<OScriptNodePin> target = output->get_connections()[0];
+            if (!target->can_accept(output))
+                output->unlink_all();
+        }
+    }
+
+    super::_variable_changed();
+}
+
 void OScriptNodeVariableSet::allocate_default_pins()
 {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
-    create_pin(PD_Input, PT_Data, _variable->get_info(), _variable->get_default_value())->no_pretty_format();
+    create_pin(PD_Input, PT_Data, _variable->get_info())->no_pretty_format();
 
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
     create_pin(PD_Output, PT_Data, PropertyUtils::as("value", _variable->get_info()))->hide_label();
@@ -97,6 +121,27 @@ String OScriptNodeVariableSet::get_tooltip_text() const
 String OScriptNodeVariableSet::get_node_title() const
 {
     return vformat("Set %s", _variable->get_variable_name());
+}
+
+void OScriptNodeVariableSet::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins)
+{
+    super::reallocate_pins_during_reconstruction(p_old_pins);
+
+    // Keep old default value if one was set that differs from the variable's default value
+    for (const Ref<OScriptNodePin>& old_pin : p_old_pins)
+    {
+        if (old_pin->is_input() && !old_pin->is_execution())
+        {
+            if (old_pin->get_effective_default_value() != _variable->get_default_value())
+            {
+                Ref<OScriptNodePin> value_pin = find_pin(_variable->get_variable_name(), PD_Input);
+                if (value_pin.is_valid() && !value_pin->has_any_connections())
+                    value_pin->set_default_value(VariantUtils::convert(old_pin->get_effective_default_value(), value_pin->get_type()));
+
+                break;
+            }
+        }
+    }
 }
 
 OScriptNodeInstance* OScriptNodeVariableSet::instantiate()

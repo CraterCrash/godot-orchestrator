@@ -38,6 +38,9 @@ protected:
     /// Called when the script variable is modified
     void _on_variable_changed();
 
+    /// Allows subclasses to handle variable changed 
+    virtual void _variable_changed() { }
+
 public:
     OScriptNodeVariable();
 
