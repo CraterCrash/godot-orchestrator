@@ -16,55 +16,65 @@
 //
 #include "graph_node_pin_numeric.h"
 
-#include <godot_cpp/classes/line_edit.hpp>
-
-OrchestratorGraphNodePinNumeric::OrchestratorGraphNodePinNumeric(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
-    : OrchestratorGraphNodePin(p_node, p_pin)
+bool OrchestratorGraphNodePinNumeric::_set_default_value(const String& p_value)
 {
+    if (_pin->get_type() == Variant::INT)
+    {
+        // We allow float to coerce to int
+        if (p_value.is_valid_int() || p_value.is_valid_float())
+        {
+            _pin->set_default_value(p_value.to_int());
+            _line_edit->set_text(_pin->get_effective_default_value());
+            return true;
+        }
+    }
+
+    if (_pin->get_type() == Variant::FLOAT)
+    {
+        if (p_value.is_valid_float())
+        {
+            _pin->set_default_value(p_value.to_float());
+            _line_edit->set_text(_pin->get_effective_default_value());
+            return true;
+        }
+    }
+
+    _line_edit->set_text(_pin->get_effective_default_value());
+    _line_edit->call_deferred("grab_focus");
+    _line_edit->call_deferred("select_all");
+    return false;
+}
+
+void OrchestratorGraphNodePinNumeric::_on_text_submitted(const String& p_value)
+{
+    if (_set_default_value(p_value))
+        _line_edit->release_focus();
+}
+
+void OrchestratorGraphNodePinNumeric::_on_focus_lost()
+{
+    _set_default_value(_line_edit->get_text());
+}
+
+Control* OrchestratorGraphNodePinNumeric::_get_default_value_widget()
+{
+    _line_edit = memnew(LineEdit);
+    _line_edit->set_expand_to_text_length_enabled(true);
+    _line_edit->set_h_size_flags(SIZE_EXPAND);
+    _line_edit->set_text(_pin->get_effective_default_value());
+    _line_edit->add_theme_constant_override("minimum_character_width", 0);
+    _line_edit->set_select_all_on_focus(true);
+    _line_edit->connect("text_submitted", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_text_submitted));
+    _line_edit->connect("focus_exited", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_focus_lost));
+    return _line_edit;
 }
 
 void OrchestratorGraphNodePinNumeric::_bind_methods()
 {
 }
 
-bool OrchestratorGraphNodePinNumeric::_set_default_value(const String& p_value)
+OrchestratorGraphNodePinNumeric::OrchestratorGraphNodePinNumeric(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
+    : OrchestratorGraphNodePin(p_node, p_pin)
 {
-    switch (_pin->get_type())
-    {
-        case Variant::INT:
-            _pin->set_default_value(p_value.to_int());
-            return true;
-
-        case Variant::FLOAT:
-            _pin->set_default_value(p_value.to_float());
-            return true;
-
-        default:
-            ERR_PRINT("Cannot set default value for an unknown numeric pin type");
-            return false;
-    }
 }
 
-void OrchestratorGraphNodePinNumeric::_on_text_submitted(const String& p_value, LineEdit* p_line_edit)
-{
-    if (_set_default_value(p_value) && p_line_edit)
-        p_line_edit->release_focus();
-}
-
-void OrchestratorGraphNodePinNumeric::_on_focus_lost(const LineEdit* p_line_edit)
-{
-    _set_default_value(p_line_edit->get_text());
-}
-
-Control* OrchestratorGraphNodePinNumeric::_get_default_value_widget()
-{
-    LineEdit* line_edit = memnew(LineEdit);
-    line_edit->set_expand_to_text_length_enabled(true);
-    line_edit->set_h_size_flags(Control::SIZE_EXPAND);
-    line_edit->set_text(_pin->get_effective_default_value());
-    line_edit->add_theme_constant_override("minimum_character_width", 0);
-    line_edit->set_select_all_on_focus(true);
-    line_edit->connect("text_submitted", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_text_submitted).bind(line_edit));
-    line_edit->connect("focus_exited", callable_mp(this, &OrchestratorGraphNodePinNumeric::_on_focus_lost).bind(line_edit));
-    return line_edit;
-}
