@@ -58,20 +58,20 @@
 void register_editor_types()
 {
     // Plugin bits
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorPlugin)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorPlugin)
     #if GODOT_VERSION >= 0x040300
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorDebuggerPlugin)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorDebuggerPlugin)
     #endif
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorExportPlugin)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginFunction)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginSignal)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorInspectorPluginVariable)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorPropertyInfoContainerEditorProperty)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorPropertyVariableClassification)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorThemeCache)
-    ORCHESTRATOR_REGISTER_CLASS(OrchestratorEditorCache)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorExportPlugin)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginFunction)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginSignal)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorThemeCache)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorCache)
 
     // Editor bits
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorPropertyInfoContainerEditorProperty)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyVariableClassification)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorFileDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
