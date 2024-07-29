@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeInputAction" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Returns whether a specific action is pressed, released, just pressed, or just released.
+    </brief_description>
+    <description>
+        The [OScriptNodeInputAction] node allows you to check whether a specific [InputEventAction] has just been pressed, released, or is pressed or released. The specific action to check is defined in the inspector with the [param action] property. The specific state or mode to check is defined in the inspector with the [param mode] property.
+        In GDScript, this is the equivalent to:
+        [codeblock]
+        Input.is_action_just_pressed("ui_left")
+        Input.is_action_pressed("jump")
+        [/codeblock]
+        See [InputEventAction] on how to define input actions in Godot.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/input</link>
+    </tutorials>
+</class>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArrayFind" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Finds the specified element within the given array, returning its position.
+    </brief_description>
+    <description>
+        This node iterates each element in an [Array], locating the provided element. If it exists, the node returns the position within the [Array]. If the element does not exist, the node returns [code]-1[/code].
+        The [param array] pin specifies the [Array] that will be searched. The [param item] pin specifies the element item to find within the given array.
+        The output [param array] pin returns the input [Array] should additional operations need to be performed on the array. The output [param index] pin returns the index where the [param item] was found, or [code]-1[/code] if it was not found.
+    </description>
+</class>

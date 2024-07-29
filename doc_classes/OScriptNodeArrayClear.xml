@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArrayClear" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Clears the contents of the given array.
+    </brief_description>
+    <description>
+        Removes all elements from the provided [Array].
+        The [param array] pin provides the [Array] instance that should be cleared. Once the array's elements have been cleared, the same [Array] instance is returned in the output [param array] pin.
+    </description>
+</class>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeCallStaticFunction" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Executes a static function.
+    </brief_description>
+    <description>
+        The [OScriptNodeCallStaticFunction] node is a special node that executes free-standing, static functions. An example is [method FileAccess.exists].
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/functions#calling-functions</link>
+    </tutorials>
+</class>

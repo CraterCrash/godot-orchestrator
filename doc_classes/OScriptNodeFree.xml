@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeFree" inherits="OScriptNode" experimental="This node is experimental and may change in the future." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Frees the memory used by a Godot object.
+    </brief_description>
+    <description>
+        The [OScriptNodeFree] node accepts a single [param instance] input value that represents the object to be freed.
+        Godot provides two mechanisms for freeing the memory used by an object, they're the [method Object.free] and [method Object.queue_free] methods. The subtle differences on when to use one versus the other can be complicated to understand for newcomers, and [OScriptNodeFree] abstracts that subtle detail away such that you just need to worry with deallocating the object. Internally the node handles whether to use [method Object.free] or [method Object.queue_free] automatically.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/memory#freeing-objects</link>
+    </tutorials>
+</class>

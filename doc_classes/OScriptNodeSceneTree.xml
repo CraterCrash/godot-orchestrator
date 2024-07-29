@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSceneTree" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Returns a reference to the top-level [SceneTree].
+    </brief_description>
+    <description>
+        The [OScriptNodeSceneTree] returns a reference to the top-level [SceneTree].
+        The [SceneTree] instance is useful for creating various scene-specific objects such as [Timer]s or [Tween]s. If your orchestration base type extends [Node], you can also directly access the [SceneTree] using the [method Node.get_tree] method.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/scene#scene-tree</link>
+    </tutorials>
+</class>

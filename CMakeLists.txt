@@ -59,6 +59,7 @@ INCLUDE(generate-license)
 INCLUDE(generate-version)
 INCLUDE(generate-donors)
 INCLUDE(godot-extension-db-generator)
+INCLUDE(godot-docs-generator)
 
 # Generation steps
 GENERATE_LICENSE()
@@ -66,6 +67,7 @@ GENERATE_VERSION()
 GENERATE_AUTHORS()
 GENERATE_DONORS()
 GENERATE_GODOT_EXTENSION_DB()
+GENERATE_GODOT_DOCUMENTATION()
 
 # MacOS universal binary support
 IF (APPLE)
@@ -87,6 +89,8 @@ FILE(GLOB_RECURSE gdext_sources
         CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.[hc]"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.[hc]pp"
+        # Includes the generated doc data from /doc_classes
+        "${CMAKE_BINARY_DIR}/_generated/*.cpp"
 )
 
 # GDExtension library

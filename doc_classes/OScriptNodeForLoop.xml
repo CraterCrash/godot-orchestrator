@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeForLoop" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Performs a for-loop based on the difference between the start and end index values.
+    </brief_description>
+    <description>
+        The [OScriptNodeForLoop] provides a simple for-loop mechanism, iterating from start to end, inclusive.
+        The node begins iterating based on the [param start_index] pin's value, and continually increments the counter until it reaches the [param end_index] input pin. For each iteration, the node will send an output pulse to the [param loop_body] output pin, allowing your orchestration to perform logic for each iteration. Additionally, the node will output the current value of the loop index through the [param index] output pin. Once the loop reaches the [param end_index] input pin's value, the loop ends and outputs an impulse through the [param completed] output pin.
+        Additionally, the [OScriptNodeForLoop] node can be toggled with a [param break] input pin when selecting the [code]For Loop with Break[/code] choice in the [param All Actions] window. The [param break] input pin allows the loop's iteration to be broken based on an impulse. The [param break] input pin is usually triggered by having a node in the [param loop_body] connecting its output control flow pin to the [param break] input pin. When control flow passes into the [param break] input pin, the for-loop exits immediately.
+        [b]NOTE:[/b] When the for-loop breaks early, the node exits the [param aborted] output pin rather than the [param completed] output pin. If its unimportant that the loop exits early, connect both the [param completed] and [param aborted] output pins to the same node.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#for-loop</link>
+        <link title="Node reference using Break">https://docs.cratercrash.com/orchestrator/nodes/flow-control#for-loop-with-break</link>
+    </tutorials>
+</class>

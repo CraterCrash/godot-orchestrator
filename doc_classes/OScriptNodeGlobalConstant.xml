@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeGlobalConstant" inherits="OScriptNodeConstant" experimental="This node is experimental and may change in the future." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        A node that outputs a specific global constant, such as [code]KEY_ESCAPE[/code] from the [enum Key] enumeration.
+    </brief_description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#global-constants</link>
+    </tutorials>
+</class>

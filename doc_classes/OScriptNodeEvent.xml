@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeEvent" inherits="OScriptNodeFunctionEntry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        A specialized function entry point for Godot event callbacks such as [method _ready].
+    </brief_description>
+    <description>
+        An [OScriptNodeEvent] represents the entrypoint for a Godot event callback. These nodes can only exist within an [param EventGraph], and consist of a single output control flow pin and zero or more output data pins, each which represent arguments to the event function.
+        A specific [OScriptNodeEvent] for a given event callback can only exist within an orchestration once. For example, you cannot define two [OScriptNodeEvent] nodes for [method _ready].
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/events</link>
+    </tutorials>
+</class>

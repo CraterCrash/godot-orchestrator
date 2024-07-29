@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeFunctionResult" inherits="OScriptNodeFunctionTerminator" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Represents the exit point into a user-defined function graph.
+    </brief_description>
+    <description>
+        When creating a function in an orchestration, the function's graph may contain an [OScriptNodeFunctionResult] node, which is where control is passed back to the caller of the function. The result node will have at least one input control pin and an optional input data pin for passing a single value back to the caller.
+        Multiple [OScriptNodeFunctionResult] can exist in the same function graph if it makes it easier to pass control back to the caller to keep connection wire logic simple and readable.
+        [b]NOTE:[/b] If a [OScriptNodeFunctionResult] node does not exist in the function graph, select the [OScriptNodeFunctionEntry] node in the function graph or select the function in the component panel, and click [param Add Outputs] to add an [OScriptNodeFunctionResult] node.
+    </description>
+</class>

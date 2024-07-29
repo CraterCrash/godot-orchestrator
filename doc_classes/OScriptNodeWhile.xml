@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeWhile" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Provides a simple while-loop based on a condition.
+    </brief_description>
+    <description>
+        The [OScriptNodeWhile] node continuously executes the logic connected to the [param repeat] output pin while the [param condition] input pin is [code]true[/code]. When the [param condition] input pin is [code]false[/code], the while loop exits through the [param done] output pin.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#while</link>
+    </tutorials>
+</class>

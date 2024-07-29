@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeConstant" inherits="OScriptNode" experimental="This node is experimental and may change in the future." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        An abstract base class for all constant-based Orchestrator nodes.
+    </brief_description>
+</class>

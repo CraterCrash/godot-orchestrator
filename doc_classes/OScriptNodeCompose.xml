@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeCompose" inherits="OScriptNode" deprecated="This node is no longer available." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Compose a [Variant] type based on it's defined constructor arguments.
+    </brief_description>
+    <description>
+        This node creates the specified [Variant] type based on it's constructor arguments.
+        [b]Deprecated:[/b] This node is now deprecated, and replaced by the [OScriptNodeComposeFrom] node.
+        [i]This node is scheduled for removal in a future build of Orchestrator.[/i]
+    </description>
+</class>

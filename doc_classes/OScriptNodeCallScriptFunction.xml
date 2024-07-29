@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeCallScriptFunction" inherits="OScriptNodeCallFunction" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Executes an Orchestration function.
+    </brief_description>
+    <description>
+        The [OScriptNodeCallScriptFunction] node is a specialized [OScriptNodeCallFunction] node that executes a function defined within an [Orchestration].
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/functions#creating-a-function</link>
+    </tutorials>
+</class>

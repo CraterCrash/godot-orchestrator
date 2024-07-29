@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeComposeFrom" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Compose a [Variant] type based on it's defined constructor arguments.
+    </brief_description>
+    <description>
+        This node replaces the old [OScriptNodeCompose] implementation, allowing you to create [Variant] derived types based from various values.
+        For example, this node allows the creation of a [Vector3] from its components of [code]x[/code], [code]y[/code], and [code]z[/code]. Additionally, other variants exist creating a [Vector3] from a [Vector3i] or another [Vector3].
+        This node can be found in the [param All Actions] window using the keywords [code]make[/code], [code]create[/code], or [code]compose[/code].
+    </description>
+</class>

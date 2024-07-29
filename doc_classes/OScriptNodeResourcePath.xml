@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeResourcePath" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Returns the path for a given resource.
+    </brief_description>
+    <description>
+        The [OScriptNodeResourcePath] node returns the path associated with a specific resource. The [param path] can be specified in the inspector, and will be returned in the output pin.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/resources#resource-paths</link>
+    </tutorials>
+</class>

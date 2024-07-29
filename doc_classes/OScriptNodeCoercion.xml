@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeCoercion" inherits="OScriptNode" deprecated="This node is no longer available." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Provides an implicit conversion between two Godot types.
+    </brief_description>
+    <description>
+        This node provides the Orchestration with an implicit cast between two unique Godot types, such as between [int] and [String]. These nodes are automatically added when connecting two pins that are not compatible but can be coerced (cast to) the target type.
+        [b]Deprecated:[/b] This node is now deprecated and no longer available. An [OScriptNodeTypeCast] node should be used instead to explicitly cast between two types, where needed.
+        [i]This node is scheduled for removal in a future build of Orchestrator.[/i]
+    </description>
+</class>

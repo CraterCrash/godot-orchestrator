@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSwitch" inherits="OScriptEditablePinNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Provides a simple match/switch based construct for varying control flow based on comparisons.
+    </brief_description>
+    <description>
+        The [OScriptNodeSwitch] node accepts a value in the [param value] input pin and compares it to one of the [param case_n] input pins, if specified. If a [param case_n] value matches [param value], it's associated output control flow pin will be the exit point for the node. If none of the [param case_n] input values match, the node exits through the [param default] output pin. Once the [param case_n] or [param default] output pin's logic has completed, the control returns back to the [OScriptNodeSwitch] node where it will send a final output pulse to the [param done] output pin.
+        This node can be extremely useful in if-elseif-else logic operations, as shown here in GDScript:
+        [codeblock]
+        func my_function():
+          if value == 12345:
+            # exits the case where the value 12345 is connected
+          elif value == 67890:
+            # exits the case where the value 67890 is connected
+          else:
+            # exits the default output pin
+
+          # exits the done pin, passing control to the next part of the logic
+          print("Hello World")
+        [/codeblock]
+        [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove case input/output pins.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#switch</link>
+    </tutorials>
+</class>

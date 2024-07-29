@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptEditablePinNode" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        An abstract node that enables an Orchestrator node to have editable input or output pins.
+    </brief_description>
+    <description>
+        Most Orchestrator nodes have a finite number of defined input and output pins based on what the node does. There are, however, use cases where it's helpful for a node to provide an unbounded number of input or output arguments.
+        For example, Godot provides a utility function called [method str].  This is a variable-argument method, meaning that the method accepts zero or more arguments to create a [code]String[/code] output.
+        [codeblock]
+        func _my_function():
+            var data1 = str("Hello", " ", "World")
+            var data2 = str("Hello", " ", 12345)
+        [/codeblock]
+        When a [OScriptNodeCallFunction] node is added to call [method str] in an Orchestration, you can add any number of input arguments due to the behavior provided by this node.
+        [b]Adding Inputs/Outputs:[/b][br]Use the [code]+[/code] button in the bottom-right corner to add new input/outputs.
+        [b]Removing Inputs/Outputs:[/b][br]Right-click the input/output pin's name and select [code]Remove Pin[/code] from the context-menu.
+    </description>
+</class>

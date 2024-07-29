@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeEmitSignal" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Emits an orchestration signal.
+    </brief_description>
+    <description>
+        The [OScriptNodeEmitSignal] node allows for emitting a [Signal] defined in the orchestration.
+        This is equivalent to:
+        [codeblock]
+        signal my_signal(data: int)
+
+        func _ready():
+          emit_signal("my_signal", 25)
+        [/codeblock]
+        While emitting an orchestration signal can be added using the [param All Actions] window, users can also drag the signal from the [param Signal] component panel onto the orchestration.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/signals#emit-a-signal</link>
+    </tutorials>
+</class>

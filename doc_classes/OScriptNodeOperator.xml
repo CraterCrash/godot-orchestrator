@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeOperator" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Executes a specific mathematical operation between one or two operands.
+    </brief_description>
+    <description>
+        The [OScriptNodeOperator] node is a mega node that takes one or two operands and performs a specific mathematical operation on the input values.
+        For unary operations, a single input parameter named [param a] is used to pass the value into node. The node performs the operation and outputs the final result in the [param result] output pin.
+        For binary operations, two input parameters named [param a] and [param b] are used to pass values into the node. The node performs the operation and outputs the final result in the [param result] output pin.
+        [b]NOTE:[/b] The operation and argument types are determined when adding the operation node to the graph. If the operand types or operation need to change, you will need to add a new operator node to the graph.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/math</link>
+    </tutorials>
+</class>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeAssignLocalVariable" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Assigns a value to a local variable.
+    </brief_description>
+    <description>
+        The [OScriptNodeAssignLocalVariable] node is used for assigning a value to a temporary local variable.
+        The [param variable] input pin should be connected with a [OScriptNodeLocalVariable] node, which specifies the variable that is to be assigned. The [param value] input pin specifies the value that should be assigned to the local variable.
+    </description>
+</class>

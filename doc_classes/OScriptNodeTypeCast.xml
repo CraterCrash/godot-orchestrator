@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeTypeCast" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        A node that allows explicitly casting from one Godot type to another.
+    </brief_description>
+    <description>
+        The [OScriptNodeTypeCast] node takes a [Variant] in the [param instance] pin, and attempts to convert the instance to the desired type. The type is selected from within the inspector.
+        If the type cast is successful, the node exits through the [param yes] output pin, returning the cast object in the output instance pin. If the type cast fails, the node exits through the [param no] output pin, with the output instance pin as [code]null[/code].
+        There are multiple use cases where Godot will provide a value as a [Variant] or as a super class type, such as [InputEvent]. When dragging from an orchestration node pin that uses such types, you won't get the same context-sensitive detail about properties, methods, or signals for the concrete types these represent without first applying a cast operation. In GDScript, you would do something like the following:
+        [codeblock]
+        func _unhandled_input(event: InputEvent):
+          if event is InputEventKey:
+            var key_event := event as InputEventKey
+            if key_event.keycode == KEY_ESCAPE:
+              get_tree().quit()
+        [/codeblock]
+        In this example, the [code]is[/code] keyword is used to check whether the [param event] is of the desired type [InputEventKey]. If that is [code]true[/code], the code then casts the [param event] argument to [InputEventKey] using the [code]as[/code] keyword, allowing the code to access the [code]keycode[/code] property on [InputEventKey].
+        GDScript uses what is called duck-typing, meaning that these casts are unnecessary for runtime; however, if you want the script editor to provide you with context-sensitive details about the properties, methods, and signals related to an argument, this is necessary.
+        The [OScriptNodeTypeCast] node encapsulates the above behind into a single logical step.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#type-cast</link>
+    </tutorials>
+</class>

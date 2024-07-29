@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArrayAddElement" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Adds an element to an [Array].
+    </brief_description>
+    <description>
+        This node takes the [param target] pin [Array] and appends the specified [param element] pin item to the end of the array. The output [param index] pin returns the position in the [Array] where the item was added.
+    </description>
+</class>

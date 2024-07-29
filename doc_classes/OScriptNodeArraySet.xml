@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArraySet" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Set an element in an array by its index position.
+    </brief_description>
+    <description>
+        This node modifies an existing [Array] by adding the specified element into the [Array] at the given position.
+        The [param array] pin specifies the [Array] that will be modified by this node. The [param index] pin specifies the position within the array where the element is placed. The [param element] pin specifies the element value to be placed into the [Array].
+        If the [param index] position is outside the bounds of the array, the [param size_to_fit] pin can be used to control whether the provided [Array] will be automatically resized so that the write operation succeeds. If [param size_to_fit] is [code]false[/code] and the provided [param index] is out of bounds, an error will occur.
+        The output returns the modified [Array].
+    </description>
+</class>

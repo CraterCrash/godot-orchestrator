@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeComment" inherits="OScriptNode" experimental="This node is experimental and may change in the future." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Provides a comment-based frame around nodes, providing a description for a collection of nodes.
+    </brief_description>
+    <description>
+        The [OScriptNodeComment] is a utility node that allows for providing a graph visual description for what a collection of nodes do.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/comments</link>
+    </tutorials>
+</class>

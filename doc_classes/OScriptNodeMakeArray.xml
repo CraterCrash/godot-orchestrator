@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeMakeArray" inherits="OScriptEditablePinNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Create an array from a series of items.
+    </brief_description>
+    <description>
+        This node accepts a variable number of [Variant] input types, adding to the output [Array] in input pin order.
+        [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove output pins.
+    </description>
+</class>

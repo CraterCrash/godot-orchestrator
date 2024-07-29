@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeDictionarySet" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Adds the specified key/valur pair to a given dictionary, replacing any existing pair with the same key.
+    </brief_description>
+    <description>
+        This node takes the specified [param target] pin [Dictionary] and adds the key/value pair tuple represented by the [param key] and [param value] input pins. The output [param dictionary] pin returns the modified [Dictionary].
+        If the [param key] existed in the [Dictionary], the output [param replaced] pin will be [code]true[/code], otherwise [code]false[/code]. If a value was replaced, the previous [Dictionary] value is output by the [param old value] pin. If no value is replaced, the [param old value] pin returns [code]null[/code].
+    </description>
+</class>

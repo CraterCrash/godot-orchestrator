@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeRandom" inherits="OScriptEditablePinNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Randomly picks one of the output choices.
+    </brief_description>
+    <description>
+        The [OScriptNodeRandom] node allows you to specify one or more output choices, picking one of the output choices at random. Each output pin has equal chance to be picked.
+        [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove random choice pins.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#random</link>
+    </tutorials>
+</class>
