@@ -210,6 +210,21 @@ String OScriptNodePrintString::get_tooltip_text() const
                    "If Print To Log is true, it will be shown in the output window.");
 }
 
+void OScriptNodePrintString::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins)
+{
+    super::reallocate_pins_during_reconstruction(p_old_pins);
+
+    for (const Ref<OScriptNodePin>& pin : p_old_pins)
+    {
+        if (pin->is_input() && !pin->is_execution())
+        {
+            Ref<OScriptNodePin> new_pin = find_pin(pin->get_pin_name(), PD_Input);
+            if (new_pin.is_valid())
+                new_pin->set_default_value(pin->get_effective_default_value());
+        }
+    }
+}
+
 OScriptNodeInstance* OScriptNodePrintString::instantiate()
 {
     OScriptNodePrintStringInstance* i = memnew(OScriptNodePrintStringInstance);
