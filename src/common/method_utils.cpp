@@ -68,7 +68,7 @@ namespace MethodUtils
             if (ScriptServer::is_global_class(p_class_name))
                 methods = ScriptServer::get_global_class(p_class_name).get_method_list();
             else
-                ClassDB::class_get_method_list(class_name, true);
+                methods = ClassDB::class_get_method_list(class_name, true);
 
             for (int i = 0; i < methods.size(); i++)
             {
