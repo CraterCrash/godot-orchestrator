@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSceneNode" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Returns a reference to a scene node by [NodePath].
+    </brief_description>
+    <description>
+        The [OScriptNodeSceneNode] returns a reference a scene node using the specified [NodePath].
+        An [OScriptNodeSceneNode] can be created by dragging a scene node from the editor's scene tree dock onto the orchestration graph canvas. If the [NodePath] associated with the node needs to be adjusted, the [param node_path] property can be modified in the inspector. If the scene node cannot be found in the scene at runtime, the node returns [code]null[/code].
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/scene#scene-nodes</link>
+    </tutorials>
+</class>

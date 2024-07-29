@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeVariable" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        The abstract base class for variable accessor (getter) and mutators (setters).
+    </brief_description>
+</class>

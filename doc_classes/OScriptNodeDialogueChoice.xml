@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeDialogueChoice" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Specifies a selectable dialogue choice for [OScriptNodeDialogueMessage] nodes.
+    </brief_description>
+    <description>
+        The [OScriptNodeDialogueChoice] node is used conjunction with the [OScriptNodeDialogueMessage] node to create a RPG-based conversation with the player.
+        The [param text] input pin specifies the text to be shown to the user for the option while the [param visible] pin controls whether the choice is visible. These input pins can be combined with other nodes to control the conversation sequence, such as choosing to show an option based on current game state like having a quest or reaching a specific level.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/dialogue#dialogue-choice-node</link>
+    </tutorials>
+</class>

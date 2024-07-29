@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodePropertySet" inherits="OScriptNodeProperty" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Sets the value for a specific object property.
+    </brief_description>
+    <description>
+        The [OScriptNodePropertySet] node is used to set the value of a property.
+        The node can be used with three specific modes, [code]self[/code], [code]instance[/code], and [code]node path[/code].
+        [b]Self mode:[/b][br]When the node operates in [i]self mode[/i], the property that is being modified exists on the orchestration's base class type or one of its super types. The value to set is specified on the input value pin. The property cannot be changed once the node is placed and requires adding a new node if the property needs to change.
+        [b]Instance mode:[/b][br]When the node operates in [i]instance mode[/i], the property node takes an object instance as an input argument and the property value to be set on the object. The property cannot be changed once the node is placed and requires adding a new node if the property needs to change.
+        [b]NodePath mode:[/b][br]When the node operates in [i]node path mode[/i], the property is resolved using a [NodePath] argument. The value to set is specified on the input value pin. The [NodePath] and property cannot be changed once the node is placed and requires adding the reference again if either change.
+        [i]This specific node implementation will be expanded in a future build to relax the placement restrictions and to make working with properties significantly easier.[/i]
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/properties#set-property</link>
+    </tutorials>
+</class>

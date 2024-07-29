@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeFunctionEntry" inherits="OScriptNodeFunctionTerminator" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Represents the entry point into a user-defined function graph.
+    </brief_description>
+    <description>
+        When creating a function in an orchestration, the function's graph will contain one [OScriptNodeFunctionEntry] node, which is where control is passed into the graph when the function is called. The entry node consists of a single output control flow pin and zero or more output data pins, each which represent an input argument for the function graph.
+        An [OScriptNodeFunctionEntry] node cannot be deleted like other nodes, and will only be removed when the containing function is deleted from the orchestration.
+    </description>
+</class>

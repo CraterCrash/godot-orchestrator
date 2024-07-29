@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeDelay" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Yields the execution of the orchestration based on the specified delay.
+    </brief_description>
+    <description>
+        The [OScriptNodeDelay] node yields the execution of the control flow based on the specified [param duration] number of seconds.
+        Internally, the node creates a scene-based [Timer] with the specified [param duration], and yields execution. When the [Timer] raises the [code]timeout[/code] signal, the Orchestration resumes where it left off, continuing the execution flow.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#delay</link>
+    </tutorials>
+</class>

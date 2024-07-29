@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSwitchEditablePin" inherits="OScriptEditablePinNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        An abstract class that provides extended editable pin behavior for switch-based nodes.
+    </brief_description>
+    <description>
+        [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove pins.
+    </description>
+</class>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeCallMemberFunction" inherits="OScriptNodeCallFunction" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Executes a Godot class-specific function.
+    </brief_description>
+    <description>
+        The [OScriptNodeCallMemberFunction] node is a specialized [OScriptNodeCallFunction] node that executes one of many Godot functions that are member methods on classes, such as [method Vector3.abs] or [method InputEventKey.get_key_code].
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/functions#calling-functions</link>
+    </tutorials>
+</class>

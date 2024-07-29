@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeForEach" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Performs a for-each-loop over an array of elements.
+    </brief_description>
+    <description>
+        The [OScriptNodeForEach] provides a simple for-each-loop mechanism, iterating over each element in an [Array].
+        For each element found in the [param array] input, the node will send an output pulse to the [param loop_body] output pin, allowing your orchestration to perform logic on each array element. Additionally, the node will output the array element through the [param element] output pin, as well as the current position the element is at within the [Array] through the [param index] output pin. The loop ends and outputs an impulse through the [param completed] output pin after all [Array] elements have been iterated.
+        Additionally, the [OScriptNodeForEach] node can be toggled with a [param break] input pin when selecting the [code]For Each with Break[/code] choice in the [param All Actions] window. The [param break] input pin allows the loop's iteration to exit early. The [param break] input pin is usually triggered by having a node in the [param loop_body] connecting its output control flow pin to the [param break] input pin. When control flow passes into the [param break] input pin, the for-each-loop exits immediately.
+        [b]NOTE:[/b] When the for-each-loop breaks early, the node exits the [param aborted] output pin rather than the [param completed] output pin. If its unimportant that the loop exits early, connect both the [param completed] and [param aborted] output pins to the same node.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#for-each</link>
+        <link title="Node reference using Break">https://docs.cratercrash.com/orchestrator/nodes/flow-control#for-each-with-break</link>
+    </tutorials>
+</class>

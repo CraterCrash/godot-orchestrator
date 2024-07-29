@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeCallBuiltinFunction" inherits="OScriptNodeCallFunction" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Executes a Godot built-in function.
+    </brief_description>
+    <description>
+        The [OScriptNodeCallBuiltinFunction] node is a specialized [OScriptNodeCallFunction] node that executes one of many Godot built-in functions such as [method str], [method print], and even [method floor]. Many of these functions are found under the [code]Utilities[/code] category in the [param All Actions] window.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/functions#built-in-functions</link>
+    </tutorials>
+</class>

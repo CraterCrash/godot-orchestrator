@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSelf" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Returns a reference to the node that the orchestration is attached.
+    </brief_description>
+    <description>
+        The [OScriptNodeSelf] node returns a reference to the node that orchestration is attached to, equivalent to using python's [code]self[/code] keyword.
+        This node is a short-cut node for adding a [OScriptNodeSceneNode] that uses the [code].[/code] [NodePath] to refer to [code]this[/code].
+    </description>
+</class>

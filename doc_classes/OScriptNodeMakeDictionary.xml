@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeMakeDictionary" inherits="OScriptEditablePinNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Create a dictionary from a series of key/value pairs.
+    </brief_description>
+    <description>
+        This node accepts a variable number of [Variant] key/valur pairs, adding the pair to the output [Dictionary].
+        [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove output pins. A key/value pair can be removed by right-clicking either the [code]Key n[/code] or the [code]Value n[/code] pin for the tuple, where [code]n[/code] is 0 or higher.
+    </description>
+</class>

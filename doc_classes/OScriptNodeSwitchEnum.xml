@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSwitchEnum" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Provides match/switch based logic for enum types.
+    </brief_description>
+    <description>
+        The [OScriptNodeSwitchEnum] node accepts a value in the [param value] input pin and compares to the values of the specific enumeration type.
+        If the [param value] input matches an output pin, the node exits through that specific output pin. This can be useful if you want different behavior to be executed based on a specific value, such as a key press.
+        [codeblock]
+        func _unhandled_key_input(input: InputEventKey):
+          if input.is_pressed():
+            match input.keycode:
+              KEY_ESCAPE:
+                # handles when the ESCAPE key is pressed
+              KEY_SPACE:
+                # handles when the SPACE key is pressed
+        [/codeblock]
+        In the prior GDScript code block, an [OScriptNodeSwitchEnum] node can represent the [code]match[/code] operation. By adding a [code]Switch on Key[/code] node and connecting the input event's [code]keycode[/code] value into the [param value] input pin and adding output connections on the [code]Escape[/code] and [code]Space[/code] output pins, the above [code]match[/code] can be represented in an orchestration.
+    </description>
+</class>

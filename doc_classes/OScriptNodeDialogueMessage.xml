@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeDialogueMessage" inherits="OScriptEditablePinNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Spawns a conversation dialogue to the player.
+    </brief_description>
+    <description>
+        The [OScriptNodeDialogueMessage] node is responsible for spawning a scene overlay on the current playing scene.
+        The [param speaker] input pin specifies the name of the object or character that is initiating the conversation. The [param message] input pin specifies the main dialogue conversation text that should be presented to the player, which represents what the [param speaker] is saying. The [param scene] specifies an optional custom scene to render the conversation. If the [param scene] is left its default of [code]Default Scene[/code], Orchestrator's default simple scene is used instead.
+        The [OScriptNodeDialogueMessage] node can also specify any number of responses that the player can click as part of the conversation. If no choices are specified, its expected the player would be asked to press a continue button to move forward and to exit the node through the output pin. If choice pins are added to the node, each pin should be connected with an [OScriptNodeDialogueChoice] node to specify the properties for that choice. Selecting a choice outputs through the choice's specific output pin instead.
+        [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove choice pins.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/dialogue#show-message-node</link>
+    </tutorials>
+</class>

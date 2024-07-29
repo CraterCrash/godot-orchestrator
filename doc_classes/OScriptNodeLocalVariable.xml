@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeLocalVariable" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Provides a variable for storing a temporary value.
+    </brief_description>
+    <description>
+        The [OScriptNodeLocalVariable] node is used for storing a value in a temporary variable location, equivalent to the following:
+        [codeblock]
+        func _process(delta:float):
+          var local_variable = 25
+        [/codeblock]
+        The [OScriptNodeLocalVariable] nodes can only be added to user-defined functions in an orchestration. They are used to store a temporary reference to a value while the function executes. The output pin returns the current value assigned to the local variable. To assign a value to the local variable, use an [OScriptNodeAssignLocalVariable] node.
+    </description>
+</class>

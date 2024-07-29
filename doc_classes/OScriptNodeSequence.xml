@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSequence" inherits="OScriptEditablePinNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        The sequence node allows for a single input pulse to trigger the execution of two or more events in sequence.
+    </brief_description>
+    <description>
+        The sequence node may have two or more outputs, of which all are called as soon as the [code]Sequence[/code] node receives the input. They will always get called in order, but without any delay.
+        [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove output pins.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#sequence</link>
+    </tutorials>
+</class>

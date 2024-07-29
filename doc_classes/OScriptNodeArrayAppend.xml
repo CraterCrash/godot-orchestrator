@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArrayAppend" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Appends one [Array] into another [Array].
+    </brief_description>
+    <description>
+        This node takes the [param target] [Array] and appends the contents of the [param source] [Array], returning the modified [param target] [Array] as the output.
+        [b]NOTE:[/b] The [param source] [Array] is not modified by this node, only the [param target] [Array].
+    </description>
+</class>

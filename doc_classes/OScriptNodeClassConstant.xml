@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeClassConstant" inherits="OScriptNodeClassConstantBase" experimental="This node is experimental and may change in the future." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        A node that provides access to specific constants in Godot classes, such as [code]FOCUS_ALL[/code].
+    </brief_description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#class-specific-constants</link>
+    </tutorials>
+</class>

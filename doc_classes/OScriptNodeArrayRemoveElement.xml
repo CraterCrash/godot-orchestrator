@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArrayRemoveElement" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Removes an element from an [Array].
+    </brief_description>
+    <description>
+        This node attempts to remove the element specified by the [param element] pin from the [Array] specified by the [param target] pin. The [Array] is returned in the [param array] output pin regardless if the [param element] pin value is found and removed.
+        If the [Array] element is removed, the output [param removed] pin will be [code]true[/code], otherwise it will be [code]false[/code].
+    </description>
+</class>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeChance" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Picks one of two outputs based on chance.
+    </brief_description>
+    <description>
+        The [OScriptNodeChance] node calculates a value between [code]0[/code] and [code]100[/code] (inclusive). The node will exit the top output pin if the calculated value is between 0 and the top pin's value (inclusive); otherwise, the node will exit the bottom output pin.
+        The node's chance breakpoint is set in the inspector.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#chance</link>
+    </tutorials>
+</class>

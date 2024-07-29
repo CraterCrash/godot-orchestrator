@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeVariableGet" inherits="OScriptNodeVariable" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Returns the value of a specific orchestration variable.
+    </brief_description>
+    <description>
+        The [OScriptNodeVariableGet] node is used to return the value of an orchestration variable.
+        The output pin returns the value currently assigned in the orchestration variable. If the variable has not been assigned, it will return the variable type's default value, which may be [code]null[/code].
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/variables#get-nodes</link>
+        <link title="Variables reference">https://docs.cratercrash.com/orchestrator/nodes/variables</link>
+    </tutorials>
+</class>

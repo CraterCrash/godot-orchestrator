@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArrayGet" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Get an element in an array by its index position.
+    </brief_description>
+    <description>
+        This node reads an element from a given [Array] at the specified position.
+        The [param Array] pin specifies the [Array] that will be read by this node. The [param index] pin specifies the position where the element will be read from. If the specified [param index] is out of bounds, meaning it is negative or greater-than or equal-to the size of the [Array], an error occurs.
+        The output [param element] pin provides the array element at the specified position as a [Variant].
+        [b]NOTE:[/b] An [OScriptNodeTypeCast] node can be used to access context-specific methods or properties on the element.
+    </description>
+</class>

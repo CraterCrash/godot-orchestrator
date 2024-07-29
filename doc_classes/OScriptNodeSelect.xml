@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSelect" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Select between two inputs based on a condition.
+    </brief_description>
+    <description>
+        The [OScriptNodeSelect] node accepts two inputs using the [param a] and [param b] input pins. When the [param pick_a] input pin is [code]true[/code], the value of [param a] is returned in the [param result] output pin. When [param pick_a] input pin is [code]false[/code], the value of [param b] is returned in the [param result] output pin.
+        By default, the [OScriptNodeSelect] specifies that the [param a], [param b], and [param result] pins accept and output [Variant] types; however, you can customize the node to use a specific type by right-clicking any one of those pins. In the change pin type context-menu, select any available type to change the pin's type to limit what values can be connected to the pins.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#select</link>
+    </tutorials>
+</class>

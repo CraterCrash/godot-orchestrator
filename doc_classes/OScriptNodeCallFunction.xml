@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeCallFunction" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Abstract base class for all nodes that execute different function types.
+    </brief_description>
+</class>

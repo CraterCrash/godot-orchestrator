@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeAutoload" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Returns an instance of the specified autoload.
+    </brief_description>
+    <description>
+        An autoload in Godot is similar to a singleton, where there is only ever a singular instance of the object with the given name available. Autoloads are instrumental for providing access to common behavior and data within the scene.
+        The [OScriptNodeAutoload] node returns the autoload instance through the output pin. The specific autoload instance to return is specified by the [param autoload] property in the inspector. When looking for autoloads in the [param All Actions] window, autoloads are listed by their registered name.
+        To register an autoload, go to [b]Project > Project Settings[/b] and select the [b]Global[/b] tab. Under the subtab [b]Autoloads[/b], the specific autoload script can be registered with a unique name. Once registered, the autoload can be picked from the [OScriptNodeAutoload] node's inspector view or by searching for the autoload in the [param All Actions] window.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/autoloads</link>
+    </tutorials>
+</class>

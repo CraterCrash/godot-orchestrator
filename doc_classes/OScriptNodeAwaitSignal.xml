@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeAwaitSignal" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Yields execution of the orchestration until the specified [Signal] is raised.
+    </brief_description>
+    <description>
+        The [OScriptNodeAwaitSignal] node provides coroutine behavior to an orchestration.
+        The node accepts two key input values, the [param target] pin specifies the object that will fire the signal while the [param signal_name] specifies the name of the signal to wait for. When this node executes, it registers a callback for the specified signal, and yields execution back to Godot. Only once the signal is fired will the orchestration resume; otherwise it continues to wait for the signal to be raised.
+        This is quite useful if you need to submit a long-running task to a background thread without blocking the main engine loop. Once the background thread has completed the long-running task, it can schedule the signal to fire on the main thread, causing the orchestration to resume from where it left off.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/signals#await-a-signal</link>
+    </tutorials>
+</class>

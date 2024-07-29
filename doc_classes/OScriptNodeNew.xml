@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeNew" inherits="OScriptNode" experimental="This node is experimental and may change in the future." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Creates a new instance of a specific object type.
+    </brief_description>
+    <description>
+        The [OScriptNodeNew] node creates a new instance of a specific object type, similar to using GDScript's [method Object.new] method.
+        The object type that will be created is specified by modifying the [param class_name] property in the inspector.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/memory#creating-objects</link>
+    </tutorials>
+</class>

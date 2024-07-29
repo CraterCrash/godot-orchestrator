@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeArrayRemoveIndex" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Removes an element from an [Array] by the specified index.
+    </brief_description>
+    <description>
+        This node attempts to remove the element at the position specified by the [param index] pin from the [Array] specified by the [param target] pin. The [Array] is returned in the [param array] output pin if the [param index] position is valid. If the [param index] is out of bounds, meaning negative or greater-than or equal-to the size of the [Array], an error occurs.
+    </description>
+</class>

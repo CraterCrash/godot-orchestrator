@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodePreload" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Preloads a resource while the Orchestration is being initialized.
+    </brief_description>
+    <description>
+        The [OScriptNodePreload] node will automatically load the specified resource when the orchestration script is being loaded. The [param resource] can be specified in the inspector, and will be returned in the output pin.
+        This node works similar to [method @GDScript.preload] in GDScript:
+        [codeblock]
+        var my_data = preload("res://my_data.tres")
+        [/codeblock]
+        In an orchestration, the resource will be loaded once at script load time so that its available immediately during the script's runtime.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/resources#preload-resources</link>
+    </tutorials>
+</class>

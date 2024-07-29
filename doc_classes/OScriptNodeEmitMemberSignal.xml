@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeEmitMemberSignal" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Emits a signal on a target object.
+    </brief_description>
+    <description>
+        The [OScriptNodeEmitMemberSignal] node allows for emitting a [Signal] defined on a specific object.
+        The node takes a single input value, the [param object] instance that the signal is emitted for. This is equivalent to:
+        [codeblock]
+        my_obj.emit("my_signal")
+        [/codeblock]
+        The [OScriptNodeEmitMemberSignal] automatically encodes the specific signal being fired and cannot be changed.
+    </description>
+</class>

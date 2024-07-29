@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeInstantiateScene" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Instantiates a scene from disk, returning the detached root node of the loaded scene.
+    </brief_description>
+    <description>
+        Instantiating a scene in Godot requires multiple steps, which includes loading the scene resource as a [PackedScene] and then instantiating the scene using the [method PackedScene.instantiate] method. This process requires making sure that the scene resource is successfully loaded and that the scene can be instantiated.
+        The [OScriptNodeInstantiateScene] node handles all the technical details for you. The [param scene] input pin specifies the name of the scene resource to be loaded. The [param scene_root] output pin specifies the root scene node of the detached loaded scene, which can be [code]null[/code] if the scene failed to load.
+    </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/scene#instantiating-scenes</link>
+    </tutorials>
+</class>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeSwitchInteger" inherits="OScriptNodeSwitchEditablePin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Provides match/switch based logic for integer values.
+    </brief_description>
+    <description>
+        The [OScriptNodeSwitchInteger] node accepts a value in the [param value] input pin and compares it to name of the output pins, if any exist.
+        Output pins can be added to the node using the [code]+[/code] button. The names for output pins are based on the [param start_index], which can be set in the inspector. If the name of an output pin matches the [param value] input pin value, the node exits through that specific output pin. If none of the output pins match, the [param default] output pin will be used at the exit point.
+        Additionally, the [param default] output pin can be disabled in the inspector. When the [param default] output pin is disabled and none of the output pin names match the input value, execution ends.
+        [b]NOTE:[/b] See documentation for [OScriptNodeSwitchEditablePin] for details on how to add/remove case input/output pins.
+    </description>
+</class>

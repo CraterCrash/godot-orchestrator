@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeDecompose" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Breaks a [Variant] type down into its subcomponents.
+    </brief_description>
+    <description>
+        This node allows breaking a given [Variant] type into its subcomponent types.
+        For example, taking a [Vector3] and splitting it into its scalar subcomponents of [code]x[/code], [code]y[/code], and [code]z[/code].
+        This node can be found in the [param All Actions] window using the keywords [code]break[/code], [code]decompose[/code], or [code]split[/code].
+    </description>
+</class>

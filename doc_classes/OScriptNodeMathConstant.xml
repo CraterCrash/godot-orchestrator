@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeMathConstant" inherits="OScriptNodeConstant" experimental="This node is experimental and may change in the future." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        A node that outputs a specific math constant, such as [code]PI[/code] or [code]TAU[/code].
+    </brief_description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#math-specific-constants</link>
+    </tutorials>
+</class>
