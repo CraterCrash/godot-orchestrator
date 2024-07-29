@@ -109,11 +109,11 @@ void OrchestratorAboutDialog::_notification(int p_what)
 
         // Donors
         List<String> donor_sections;
-        // donor_sections.push_back("Gold donors");
+        donor_sections.push_back("Gold donors");
         // donor_sections.push_back("Silver donors");
-        // donor_sections.push_back("Bronze donors");
+        donor_sections.push_back("Bronze donors");
         donor_sections.push_back("Supporters");
-        const char *const *donor_src[] = { /*DONORS_GOLD, DONORS_SILVER, DONORS_BRONZE,*/ SUPPORTERS };
+        const char *const *donor_src[] = { DONORS_GOLD/*, DONORS_SILVER*/, DONORS_BRONZE, SUPPORTERS };
         tc->add_child(_populate_list("Donors", donor_sections, donor_src, /*0b1*/ 0b0, true, true));
 
         // License
