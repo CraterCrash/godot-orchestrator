@@ -10,7 +10,7 @@
 
 ## Bronze donors
 
-    None currently, become one! <https://patreon.com/vahera>
+    Rawin
 
 ## Supporters
 
