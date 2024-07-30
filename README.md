@@ -47,7 +47,7 @@ Using the wrong version of Orchestrator with the Godot editor may result in unex
 
 ## 📑 Documentation
 
-For complete documentation, see https://docs.vahera.com/orchestrator.
+For complete documentation, see https://docs.cratercrash.com/orchestrator.
 
 ## 🗒️ Changelog
 
