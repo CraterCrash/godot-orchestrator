@@ -1,8 +1,8 @@
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/20bdd53e-9a27-4326-1b11-65fe443e0400/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/2b976034-587b-49a3-eb43-2f6444680e00/public)
 
 ![Godot v4.2](https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white&style=flat-square)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/Vahera/godot-orchestrator?&style=flat-square)
-[![LICENSE](https://img.shields.io/badge/license-Apache--2.0-blue?logo=apache)](https://github.com/Vahera/godot-orchestrator/blob/main/LICENSE)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/CraterCrash/godot-orchestrator?&style=flat-square)
+[![LICENSE](https://img.shields.io/badge/license-Apache--2.0-blue?logo=apache)](https://github.com/CraterCrash/godot-orchestrator/blob/main/LICENSE)
 
 # Godot Orchestrator
 
@@ -14,15 +14,15 @@ Whether you are an experienced Godot veteran or an aspiring developer eager to g
 
 The following screenshots only scratch the surface of what the plug-in offers out of the box, with much more in future builds.
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/f1f2e971-aa40-485e-19e2-9ba8834cb500/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/aca99d6d-9685-44bf-87b1-17c2345cac00/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/4c99bdef-ed17-46b4-bcad-e71d3ddb7700/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/9edf6540-8164-45b3-a609-81664dda2100/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/db3d458e-3bfd-4e15-ea71-cc75dbb90e00/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/fc4d84a2-8ab2-4f4a-007d-85cdfcceef00/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/b5ca95e3-1a3c-4376-dacb-df463ef3fa00/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/74f38a8d-8afe-420b-b7e7-db6ef75e9800/public)
 
-## 🚀 Features
+## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Features
 
 * A complete visual scripting solution for Godot.
 * Compatible with Godot 4.2+ using Godot GDExtension plug-in technology.
@@ -34,28 +34,27 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 * Design complex dialogue conversations for NPCs for any game.
 * Work with any Godot engine data type, including complex types like Arrays or Dictionaries.
 
-## 📑 Documentation
+## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Documentation
 
-For complete documentation, see https://docs.vahera.com/orchestrator.
+For complete documentation, see https://docs.cratercrash.com/orchestrator.
 
-## 🗒️ Changelog
+## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Changelog
 
-See [CHANGELOG](https://github.com/Vahera/godot-orchestrator/blob/main/CHANGELOG.md).
+See [CHANGELOG](https://github.com/CraterCrash/godot-orchestrator/blob/main/CHANGELOG.md).
 
-## 📝 Licenses
+## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Licenses
 
 - Source code: [Apache-2.0 License](/LICENSE)
 - Godot logo: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- Orchestrator logo: [&copy; 2023-present Vahera Studios. All Rights Reserved](https://www.vahera.com/legal/webcn.html)
+- Orchestrator logo: [&copy; 2023-present Crater Crash Studios, LLC. All Rights Reserved](https://www.cratercrash.com/legal/webcn)
 
-## 💬 Community
+## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Community
 
-- [Vahera Forums](https://forums.vahera.com)
 - [Discord](https://discord.com/invite/J3UWtzWSkT)
-- [Mastodon](https://vahera.social/@orchestrator)
+- [Mastodon](https://cratercrash.social/@orchestrator)
 
-## 👏 Contributors
+## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Contributors
 
-<a href="https://github.com/Vahera/godot-orchestrator/graphs/contributors">
-  <img src="https://contributors-img.web.app/image?repo=vahera/godot-orchestrator" />
+<a href="https://github.com/CraterCrash/godot-orchestrator/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=CraterCrash/godot-orchestrator" />
 </a>
