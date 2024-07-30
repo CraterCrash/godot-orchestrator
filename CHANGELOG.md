@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## [2.1.rc3](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.rc3) - 2024-07-29
+
+- [1e12d00](http://github.com/Vahera/godot-orchestrator/commit/1e12d009c0af686f74968fde6ecd1d176c176ac9) - Update about dialog details
+- [ac097d0](http://github.com/Vahera/godot-orchestrator/commit/ac097d0be937b2d91606354fbe72ff3c967410dd) - GH-622 Revert commit 8f15816b092c9a92b878db319a496430925f8816
+- [5388fa3](http://github.com/Vahera/godot-orchestrator/commit/5388fa35b8ed5d59f30196a408a26839f25bd7b8) - GH-595 Improve initial rendering of variable type selection
+- [51947b2](http://github.com/Vahera/godot-orchestrator/commit/51947b2ea98dc8ad6e23587f591db4028f8589bb) - GH-610 Add in-editor script node documentation
+- [bfd94ff](http://github.com/Vahera/godot-orchestrator/commit/bfd94ff17c6468445b27878ebd3a0e9a5a2562d7) - GH-607 Improve changing variable types
+- [129ce72](http://github.com/Vahera/godot-orchestrator/commit/129ce72aa3024fd7d620984f8000897c2f1f47de) - GH-617 Retain `PrintString` defaults across node refreshes
+- [97e1ed1](http://github.com/Vahera/godot-orchestrator/commit/97e1ed1b458018b888fc654422d6193e5b619d18) - GH-612 Fix view documentation not rendering
+- [d089784](http://github.com/Vahera/godot-orchestrator/commit/d089784055580b4b656cc4155ce278012a14b4f5) - GH-614 Mark several classes as internal
+- [3fefdbb](http://github.com/Vahera/godot-orchestrator/commit/3fefdbb2db6e384ac8ce31618aa1405b66eb603a) - GH-605 Improve numeric default value widget validation
+- [5c4babd](http://github.com/Vahera/godot-orchestrator/commit/5c4babd81727d74ad0f96e05fbbac77c37cadae4) - GH-596 Render `int`, `float`, and `bool` with user-friendly names
+- [26b28b1](http://github.com/Vahera/godot-orchestrator/commit/26b28b1a5cf781b3124b380d328de1ba89fc20ca) - GH-592 Add optional delete node confirmation dialog
+- [b7e2622](http://github.com/Vahera/godot-orchestrator/commit/b7e26221a0a93376dd1b0c454c8c8a50ab054586) - GH-593 Fix collapse to function bugs
+- [b6f8ddc](http://github.com/Vahera/godot-orchestrator/commit/b6f8ddce8254c79efae3f0280dc83daa1bcd47cd) - GH-603 Permit selecting abstract types for variable definitions
+- [f1cda9f](http://github.com/Vahera/godot-orchestrator/commit/f1cda9f164582a0b09a5c986684de72221c9eb0b) - Remove random UtilityFunction::print call
+- [055870b](http://github.com/Vahera/godot-orchestrator/commit/055870b251fff93db832980faf49b7e3d468379f) - GH-590 Use our own instance of ScriptCreateDialog
+- [bee5a48](http://github.com/Vahera/godot-orchestrator/commit/bee5a48c4c5e4e833fced578a832fe1e3b727f5e) - Fix lambda capture warnings
+- [aed1d08](http://github.com/Vahera/godot-orchestrator/commit/aed1d08bae4cf890eb12e6dbbf2696cdb2acbfaa) - Fix some signed/unsigned build warnings
+- [679c0f6](http://github.com/Vahera/godot-orchestrator/commit/679c0f6bfba93f908cefce3697bad12ce33cde7f) - GH-584 Disable knot creation inside node rect
+- [ebbdfff](http://github.com/Vahera/godot-orchestrator/commit/ebbdfff590b60026efc1dc63cb03b3dcd7cd6c44) - GH-574 Strengthen validation for adding/renaming component items
+- [8dd4e2f](http://github.com/Vahera/godot-orchestrator/commit/8dd4e2f59bd14179ca9c421cc390d43ef2b8320f) - GH-582 Auto-select first action when node first placed
+- [8f15816](http://github.com/Vahera/godot-orchestrator/commit/8f15816b092c9a92b878db319a496430925f8816) - GH-583 Always show execution pins on user-defined script functions
+- [7c8f566](http://github.com/Vahera/godot-orchestrator/commit/7c8f5660837d0e40c29038ff3ba3ed22be04473e) - GH-578 Make debugger errors more clear
+- [b9ea73f](http://github.com/Vahera/godot-orchestrator/commit/b9ea73f34590eb2a57920835b49580f3d9aefb1e) - GH-575 Correctly focus script on editor breakpoints
+- [98fdb36](http://github.com/Vahera/godot-orchestrator/commit/98fdb36ae7d5d1de95a1e072e3d21ee5f1665c00) - GH-579 Raise breakpoint when input action has no action name
+
 ## [2.1.rc2](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.rc2) - 2024-07-21
 
 - [5f9f3f4](http://github.com/Vahera/godot-orchestrator/commit/5f9f3f4fbb4a1561e57df5cde982d247aa38161c) - GH-567 Correctly validate local variable node connection
