@@ -295,4 +295,10 @@ namespace VariantUtils
         return make_default(p_target_type);
     }
 
+    bool evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right, Variant& r_value)
+    {
+        bool valid = true;
+        Variant::evaluate(p_operator, p_left, p_right, r_value, valid);
+        return valid;
+    }
 }

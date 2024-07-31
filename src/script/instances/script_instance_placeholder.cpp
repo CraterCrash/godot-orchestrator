@@ -18,8 +18,10 @@
 
 #include "common/dictionary_utils.h"
 #include "common/memory_utils.h"
+#include "common/variant_utils.h"
 #include "script/script.h"
 
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 
 static OScriptInstanceInfo init_placeholder_instance_info()
@@ -101,35 +103,33 @@ bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_
     if (_script->_is_placeholder_fallback_enabled())
         return false;
 
-    if (_variables.has(p_name))
+    if (r_err)
+        *r_err = PROP_OK;
+
+    if (_values.has(p_name))
     {
-        Variant def_value = _script->get_property_default_value(p_name);
+        if (_script->_has_property_default_value(p_name))
+        {
+            Variant def_value = _script->get_property_default_value(p_name);
 
-        bool valid = true;
-        Variant result;
-        Variant::evaluate(Variant::OP_EQUAL, def_value, p_value, result, valid);
-        if (valid && bool(result))
-            _variables.erase(p_name);
-        else
-            _variables[p_name] = p_value;
-
-        if (r_err)
-            *r_err = PROP_OK;
-
+            Variant result;
+            if (VariantUtils::evaluate(Variant::OP_EQUAL, def_value, p_value, result))
+            {
+                _values.erase(p_name);
+                return true;
+            }
+        }
+        _values[p_name] = p_value;
         return true;
     }
     else
     {
-        Variant def_value = _script->get_property_default_value(p_name);
-
-        bool valid = true;
-        Variant result;
-        Variant::evaluate(Variant::OP_NOT_EQUAL, def_value, p_value, result, valid);
-        if (valid && bool(result))
+        if (_script->_has_property_default_value(p_name))
         {
-            _variables[p_name] = p_value;
-            if (r_err)
-                *r_err = PROP_OK;
+            Variant def_value = _script->get_property_default_value(p_name);
+            Variant result;
+            if (VariantUtils::evaluate(Variant::OP_NOT_EQUAL, def_value, p_value, result))
+                _values[p_name] = p_value;
             return true;
         }
     }
@@ -142,24 +142,20 @@ bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_
 
 bool OScriptPlaceHolderInstance::get(const StringName& p_name, Variant& r_value, PropertyError* r_err)
 {
-    if (_variables.has(p_name))
-    {
-        r_value = _variables[p_name];
-        if (r_err)
-            *r_err = PROP_OK;
+    if (r_err)
+        *r_err = PROP_OK;
 
+    if (_values.has(p_name))
+    {
+        r_value = _values[p_name];
         return true;
     }
 
     if (!_script->_is_placeholder_fallback_enabled())
     {
-        Variant def_value = _script->get_property_default_value(p_name);
-        if (def_value.get_type() != Variant::NIL)
+        if (_script->_has_property_default_value(p_name))
         {
-            r_value = def_value;
-            if (r_err)
-                *r_err = PROP_OK;
-
+            r_value = _script->get_property_default_value(p_name);
             return true;
         }
     }
@@ -279,4 +275,43 @@ void OScriptPlaceHolderInstance::to_string(GDExtensionBool* r_is_valid, String* 
 {
     *r_is_valid = true;
     *r_out = "OrchestratorPlaceHolderScriptInstance[" + _script->get_name() + "]";
+}
+
+void OScriptPlaceHolderInstance::update(const List<PropertyInfo>& p_properties, const HashMap<StringName, Variant>& p_values)
+{
+    HashSet<StringName> new_values;
+    for (const PropertyInfo& E : p_properties)
+    {
+        if (E.usage & (PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP | PROPERTY_USAGE_CATEGORY))
+            continue;
+
+        StringName n = E.name;
+        new_values.insert(n);
+        if (!_values.has(n) || _values[n].get_type() != E.type)
+        {
+            if (p_values.has(n))
+                _values[n] = p_values[n];
+        }
+    }
+
+    _properties = p_properties;
+
+    List<StringName> to_remove;
+    for (KeyValue<StringName, Variant>& E : _values)
+    {
+        if (!new_values.has(E.key))
+            to_remove.push_back(E.key);
+
+        Variant defval = _script->get_property_default_value(E.key);
+        if (defval == E.value)
+            to_remove.push_back(E.key);
+    }
+
+    while (to_remove.size())
+    {
+        _values.erase(to_remove.front()->get());
+        to_remove.pop_front();
+    }
+
+    _owner->notify_property_list_changed();
 }
