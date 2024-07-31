@@ -37,7 +37,8 @@ class OScriptPlaceHolderInstance : public OScriptInstanceBase
 {
     Ref<OScript> _script;                       //! The script this instance represents
     Object* _owner;                             //! The owning object of the script
-    HashMap<StringName, Variant> _variables;    //! Script variables
+    HashMap<StringName, Variant> _values;
+    List<PropertyInfo> _properties;
 
 public:
     /// Defines details about the script instance to be passed to Godot
@@ -71,6 +72,8 @@ public:
     void notification(int32_t p_what, bool p_reversed);
     void to_string(GDExtensionBool* r_is_valid, String* r_out);
     //~ End ScriptInstanceInfo2 Interface
+
+    void update(const List<PropertyInfo>& p_properties, const HashMap<StringName, Variant>& p_values);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_PLACEHOLDER_INSTANCE_H

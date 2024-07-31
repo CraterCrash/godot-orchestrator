@@ -68,6 +68,14 @@ namespace VariantUtils
     /// @param T the cast type
     /// @return the value cast to the specified type <T>
     template<typename T> T cast_to(const Variant& p_value) { return T(p_value); }
+
+    /// Evaluates two variants
+    /// @param p_operator the operation to be performed
+    /// @param p_left the left operand
+    /// @param p_right the right operand
+    /// @param r_value the return value
+    /// @return true if the evaluation was successful, false otherwise
+    bool evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right, Variant& r_value);
 }
 
 #endif  // ORCHESTRATOR_VARIANT_UTILS_H
