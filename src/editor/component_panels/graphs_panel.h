@@ -19,6 +19,8 @@
 
 #include "editor/component_panels/component_panel.h"
 
+#include <godot_cpp/classes/timer.hpp>
+
 class OrchestratorScriptGraphsComponentPanel : public OrchestratorScriptComponentPanel
 {
     GDCLASS(OrchestratorScriptGraphsComponentPanel, OrchestratorScriptComponentPanel);
@@ -33,6 +35,8 @@ class OrchestratorScriptGraphsComponentPanel : public OrchestratorScriptComponen
         CM_REMOVE_FUNCTION,
         CM_DISCONNECT_SLOT
     };
+
+    Timer* _slot_update_timer{ nullptr };
 
 protected:
     //~ Begin OrchestratorScriptComponentPanel Interface
@@ -49,6 +53,9 @@ protected:
     void _handle_remove(TreeItem* p_item) override;
     void _handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button) override;
     //~ End OrchestratorScriptComponentPanel Interface
+
+    /// Updates the slot icons on tree items
+    void _update_slots();
 
     /// Notifies the script view to show the specified graph associated with the tree item
     /// @param p_item the graph tree item, should not be null
@@ -67,9 +74,6 @@ protected:
     /// @param p_item the graph function item, should not be null
     void _remove_graph_function(TreeItem* p_item);
 
-    /// Handles disconnecting a signal slot function from the signal
-    void _disconnect_slot(TreeItem* p_item);
-
     /// Default constructor
     OrchestratorScriptGraphsComponentPanel() = default;
 
@@ -77,6 +81,10 @@ public:
     //~ Begin OrchestratorScriptViewSection Interface
     void update() override;
     //~ End OrchestratorScriptViewSection Interface
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
     /// Constructs the graphs component panel
     /// @param p_orchestration the orchestration

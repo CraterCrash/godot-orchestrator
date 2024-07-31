@@ -38,33 +38,38 @@ void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p
     _tree->deselect_all();
 }
 
-void OrchestratorScriptFunctionsComponentPanel::_disconnect_slot(TreeItem* p_item)
+void OrchestratorScriptFunctionsComponentPanel::_update_slots()
 {
+    if (_orchestration->get_type() != OrchestrationType::OT_Script)
+        return;
+
     const Ref<OScript> script = _orchestration->get_self();
-    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+    const String base_type = script->get_instance_base_type();
 
-    const String method_name = _get_tree_item_name(p_item);
-
-    for (Node* node : nodes)
-    {
-        TypedArray<Dictionary> connections = node->get_incoming_connections();
-        for (int i = 0; i < connections.size(); i++)
+    _iterate_tree_items(callable_mp_lambda(this, [&](TreeItem* item) {
+        if (item->has_meta("__name"))
         {
-            const Dictionary& dict = connections[i];
-            const Callable& callable = dict["callable"];
-            if (callable.get_method() != method_name)
-                continue;
-
-            const Signal& signal = dict["signal"];
-
-            if (Node *source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
+            Ref<OScriptGraph> graph = _orchestration->get_graph(item->get_meta("__name"));
+            if (graph.is_valid() && graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION))
             {
-                source->disconnect(signal.get_name(), callable);
-                update();
-                return;
+                const String function_name = item->get_meta("__name");
+                if (SceneUtils::has_any_signals_connected_to_function(function_name, base_type, script_nodes))
+                {
+                    if (item->get_button_count(0) == 0)
+                    {
+                        item->add_button(0, SceneUtils::get_editor_icon("Slot"));
+                        item->set_meta("__slot", true);
+                    }
+                }
+                else if (item->get_button_count(0) > 0)
+                {
+                    item->erase_button(0, 0);
+                    item->remove_meta("__slot");
+                }
             }
         }
-    }
+    }));
 }
 
 PackedStringArray OrchestratorScriptFunctionsComponentPanel::_get_existing_names() const
@@ -217,16 +222,6 @@ void OrchestratorScriptFunctionsComponentPanel::update()
 {
     _clear_tree();
 
-    Vector<Node*> script_nodes;
-    String base_type;
-
-    if (_orchestration->get_type() == OrchestrationType::OT_Script)
-    {
-        const Ref<OScript> script = _orchestration->get_self();
-        script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
-        base_type = script->get_instance_base_type();
-    }
-
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
     bool use_friendly_names = settings->get_setting("ui/components_panel/show_function_friendly_names", true);
 
@@ -239,12 +234,7 @@ void OrchestratorScriptFunctionsComponentPanel::update()
         if (use_friendly_names)
             friendly_name = graph->get_graph_name().capitalize();
 
-        TreeItem* item = _create_item(_tree->get_root(), friendly_name, graph->get_graph_name(), "MemberMethod");
-        if (SceneUtils::has_any_signals_connected_to_function(graph->get_graph_name(), base_type, script_nodes))
-        {
-            item->add_button(0, SceneUtils::get_editor_icon("Slot"));
-            item->set_meta("__slot", true);
-        }
+        _create_item(_tree->get_root(), friendly_name, graph->get_graph_name(), "MemberMethod");
     }
 
     if (_tree->get_root()->get_child_count() == 0)
@@ -254,6 +244,8 @@ void OrchestratorScriptFunctionsComponentPanel::update()
         item->set_selectable(0, false);
         return;
     }
+
+    _update_slots();
 
     OrchestratorScriptComponentPanel::update();
 }
@@ -267,6 +259,12 @@ void OrchestratorScriptFunctionsComponentPanel::_notification(int p_what)
 
     if (p_what == NOTIFICATION_READY)
     {
+        _slot_update_timer = memnew(Timer);
+        _slot_update_timer->set_wait_time(1);
+        _slot_update_timer->set_autostart(true);
+        _slot_update_timer->connect("timeout", callable_mp(this, &OrchestratorScriptFunctionsComponentPanel::_update_slots));
+        add_child(_slot_update_timer);
+
         HBoxContainer* container = _get_panel_hbox();
 
         _override_button = memnew(Button);
