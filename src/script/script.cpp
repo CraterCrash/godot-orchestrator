@@ -97,6 +97,7 @@ void* OScript::_placeholder_instance_create(Object* p_object) const
         _placeholders[p_object->get_instance_id()] = psi;
     }
     psi->_script_instance = GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptPlaceHolderInstance::INSTANCE_INFO, psi);
+    _update_exports_placeholder(nullptr, false, psi);
     return psi->_script_instance;
     #else
     return nullptr;
@@ -297,6 +298,13 @@ Variant OScript::_get_property_default_value(const StringName& p_property) const
 
 void OScript::_update_exports()
 {
+    #ifdef TOOLS_ENABLED
+    _update_exports_down(false);
+    #endif
+}
+
+void OScript::_update_placeholders()
+{
 }
 
 int32_t OScript::_get_member_line(const StringName& p_member) const
@@ -325,18 +333,39 @@ String OScript::_get_class_icon_path() const
     return {};
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Internal API
+void OScript::_update_export_values(HashMap<StringName, Variant>& r_values, List<PropertyInfo>& r_properties) const
+{
+    for (const Ref<OScriptVariable>& variable : get_variables())
+    {
+        PropertyInfo property = variable->get_info();
+        if (variable->is_grouped_by_category())
+            property.name = vformat("%s/%s", variable->get_category(), variable->get_variable_name());
 
-bool OScript::_update_exports_placeholder(bool* r_err, bool p_recursive_call, OScriptInstance* p_instance) const
+        r_values[property.name] = variable->get_default_value();
+        r_properties.push_back(property);
+    }
+}
+
+bool OScript::_update_exports_placeholder(bool* r_err, bool p_recursive_call, OScriptPlaceHolderInstance* p_instance, bool p_base_exports_changed) const
 {
 #ifdef TOOLS_ENABLED
+    HashMap<StringName, Variant> values;
+    List<PropertyInfo> properties;
+    _update_export_values(values, properties);
+
+    for (const KeyValue<uint64_t, OScriptPlaceHolderInstance*>& E : _placeholders)
+        E.value->update(properties, values);
+
     return true;
 #else
     return false;
 #endif
 }
 
-void OScript::_update_placeholders()
+void OScript::_update_exports_down(bool p_base_exports_changed)
 {
+    bool cyclic_error = false;
+    _update_exports_placeholder(&cyclic_error, false, nullptr, p_base_exports_changed);
+    // todo: add inheriters_cache
 }
+
