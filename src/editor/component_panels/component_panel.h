@@ -44,6 +44,8 @@ class OrchestratorScriptComponentPanel : public VBoxContainer
     GDCLASS(OrchestratorScriptComponentPanel, VBoxContainer);
     static void _bind_methods();
 
+    void _iterate_tree_item(TreeItem* p_item, const Callable& p_callable);
+
 protected:
     String _title;                            //! Title
     Orchestration* _orchestration;            //! The owning orchestration
@@ -68,6 +70,14 @@ protected:
     void _tree_item_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button);
     Variant _tree_drag_data(const Vector2& p_position);
     //~ End Signal handlers
+
+    /// Iterates all tree items, calling the callable
+    /// @param p_callback the callback to call for all tree items
+    void _iterate_tree_items(const Callable& p_callback);
+
+    /// Disconnect a slot
+    /// @param p_item the tree item
+    void _disconnect_slot(TreeItem* p_item);
 
     /// Creates an item in the tree.
     /// @param p_parent the parent

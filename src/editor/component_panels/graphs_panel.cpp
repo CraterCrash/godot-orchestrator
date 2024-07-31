@@ -16,6 +16,7 @@
 //
 #include "editor/component_panels/graphs_panel.h"
 
+#include "common/callable_lambda.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "editor/script_connections.h"
@@ -51,35 +52,6 @@ void OrchestratorScriptGraphsComponentPanel::_remove_graph_function(TreeItem* p_
 {
     _orchestration->remove_function(_get_tree_item_name(p_item));
     update();
-}
-
-void OrchestratorScriptGraphsComponentPanel::_disconnect_slot(TreeItem* p_item)
-{
-    const Ref<OScript> script = _orchestration->get_self();
-    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
-
-    const String method_name = _get_tree_item_name(p_item);
-
-    for (Node* node : nodes)
-    {
-        TypedArray<Dictionary> connections = node->get_incoming_connections();
-        for (int i = 0; i < connections.size(); i++)
-        {
-            const Dictionary& dict = connections[i];
-            const Callable& callable = dict["callable"];
-            if (callable.get_method() != method_name)
-                continue;
-
-            const Signal& signal = dict["signal"];
-
-            if (Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
-            {
-                source->disconnect(signal.get_name(), callable);
-                update();
-                return;
-            }
-        }
-    }
 }
 
 PackedStringArray OrchestratorScriptGraphsComponentPanel::_get_existing_names() const
@@ -216,6 +188,36 @@ void OrchestratorScriptGraphsComponentPanel::_handle_button_clicked(TreeItem* p_
     dialog->popup_connections(_get_tree_item_name(p_item), nodes);
 }
 
+void OrchestratorScriptGraphsComponentPanel::_update_slots()
+{
+    if (_orchestration->get_type() != OrchestrationType::OT_Script)
+        return;
+
+    const Ref<OScript> script = _orchestration->get_self();
+    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+    const String base_type = script->get_instance_base_type();
+
+    _iterate_tree_items(callable_mp_lambda(this, [&](TreeItem* item) {
+        if (item->has_meta("__name"))
+        {
+            const String function_name = item->get_meta("__name");
+            if (SceneUtils::has_any_signals_connected_to_function(function_name, base_type, script_nodes))
+            {
+                if (item->get_button_count(0) == 0)
+                {
+                    item->add_button(0, SceneUtils::get_editor_icon("Slot"));
+                    item->set_meta("__slot", true);
+                }
+            }
+            else if (item->get_button_count(0) > 0)
+            {
+                item->erase_button(0, 0);
+                item->remove_meta("__slot");
+            }
+        }
+    }));
+}
+
 void OrchestratorScriptGraphsComponentPanel::update()
 {
     _clear_tree();
@@ -227,16 +229,6 @@ void OrchestratorScriptGraphsComponentPanel::update()
         item->set_text(0, "No graphs defined");
         item->set_selectable(0, false);
         return;
-    }
-
-    Vector<Node*> script_nodes;
-    String base_type;
-
-    if (_orchestration->get_type() == OrchestrationType::OT_Script)
-    {
-        const Ref<OScript> script = _orchestration->get_self();
-        script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
-        base_type = script->get_instance_base_type();
     }
 
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
@@ -263,17 +255,31 @@ void OrchestratorScriptGraphsComponentPanel::update()
                 if (use_friendly_names)
                     friendly_name = vformat("%s Event", function_name.capitalize());
 
-                TreeItem* func = _create_item(item, friendly_name, function_name, "PlayStart");
-                if (SceneUtils::has_any_signals_connected_to_function(function_name, base_type, script_nodes))
-                {
-                    func->add_button(0, SceneUtils::get_editor_icon("Slot"));
-                    func->set_meta("__slot", true);
-                }
+                _create_item(item, friendly_name, function_name, "PlayStart");
             }
         }
     }
 
+    _update_slots();
+
     OrchestratorScriptComponentPanel::update();
+}
+
+void OrchestratorScriptGraphsComponentPanel::_notification(int p_what)
+{
+    #if GODOT_VERSION < 0x040300
+    // Godot does not dispatch to parent (shrugs)
+    OrchestratorScriptComponentPanel::_notification(p_what);
+    #endif
+
+    if (p_what == NOTIFICATION_READY)
+    {
+        _slot_update_timer = memnew(Timer);
+        _slot_update_timer->set_wait_time(1);
+        _slot_update_timer->set_autostart(true);
+        _slot_update_timer->connect("timeout", callable_mp(this, &OrchestratorScriptGraphsComponentPanel::_update_slots));
+        add_child(_slot_update_timer);
+    }
 }
 
 void OrchestratorScriptGraphsComponentPanel::_bind_methods()

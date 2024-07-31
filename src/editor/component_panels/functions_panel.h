@@ -19,6 +19,8 @@
 
 #include "editor/component_panels/component_panel.h"
 
+#include <godot_cpp/classes/timer.hpp>
+
 class OrchestratorScriptFunctionsComponentPanel : public OrchestratorScriptComponentPanel
 {
     GDCLASS(OrchestratorScriptFunctionsComponentPanel, OrchestratorScriptComponentPanel);
@@ -34,6 +36,8 @@ class OrchestratorScriptFunctionsComponentPanel : public OrchestratorScriptCompo
 
     Button* _override_button{ nullptr };
     Callable _new_function_callback;
+
+    Timer* _slot_update_timer{ nullptr };
 
 protected:
     //~ Begin OrchestratorScriptComponentPanel Interface
@@ -55,8 +59,10 @@ protected:
 
     //~ Begin Signal handlers
     void _show_function_graph(TreeItem* p_item);
-    void _disconnect_slot(TreeItem* p_item);
     //~ End Signal handlers
+
+    /// Updates the slot icons on tree items
+    void _update_slots();
 
     /// Default constructor
     OrchestratorScriptFunctionsComponentPanel() = default;
@@ -66,9 +72,9 @@ public:
     void update() override;
     //~ End OrchestratorScriptViewSection Interface
 
-    /// Godot's notification callback
-    /// @param p_what the notification type
+    //~ Begin Wrapped Interface
     void _notification(int p_what);
+    //~ End Wrapped Interface
 
     /// Construct the function component panel
     /// @param p_orchestration the orchestration

@@ -153,6 +153,65 @@ Variant OrchestratorScriptComponentPanel::_tree_drag_data(const Vector2& p_posit
     return data;
 }
 
+void OrchestratorScriptComponentPanel::_iterate_tree_item(TreeItem* p_item, const Callable& p_callable)
+{
+    p_callable.call(p_item);
+
+    TreeItem* item = p_item->get_first_child();
+    while (item)
+    {
+        _iterate_tree_item(item, p_callable);
+        item = item->get_next();
+    }
+}
+
+void OrchestratorScriptComponentPanel::_iterate_tree_items(const Callable& p_callback)
+{
+    if (TreeItem* root = _tree->get_root())
+        _iterate_tree_item(root, p_callback);
+}
+
+void OrchestratorScriptComponentPanel::_disconnect_slot(TreeItem* p_item)
+{
+    const Ref<OScript> script = _orchestration->get_self();
+    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+
+    const String method_name = _get_tree_item_name(p_item);
+
+    for (Node* node : nodes)
+    {
+        TypedArray<Dictionary> connections = node->get_incoming_connections();
+        for (int i = 0; i < connections.size(); i++)
+        {
+            const Dictionary& dict = connections[i];
+            const Callable& callable = dict["callable"];
+            if (callable.get_method() != method_name)
+                continue;
+
+            const Signal& signal = dict["signal"];
+
+            if (Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
+            {
+                source->disconnect(signal.get_name(), callable);
+
+                // When disconnecting a slot from within Orchestrator, the SceneTreeDock and ConnectionsDock
+                // editor windows need to be updated, so they redraw the new state of the connections.
+                if (Node* editor_node = get_tree()->get_root()->get_child(0))
+                {
+                    if (Node* signals_node = editor_node->find_child("Signals", true, false))
+                        signals_node->call("update_tree");
+
+                    if (Node* scene_editor = editor_node->find_child("*SceneTreeEditor*", true, false))
+                        scene_editor->call("update_tree");
+                }
+
+                update();
+                return;
+            }
+        }
+    }
+}
+
 TreeItem* OrchestratorScriptComponentPanel::_create_item(TreeItem* p_parent, const String& p_text, const String& p_item_name, const String& p_icon_name)
 {
     TreeItem* item = p_parent->create_child();
