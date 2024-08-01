@@ -95,7 +95,7 @@ OScriptPlaceHolderInstance::OScriptPlaceHolderInstance(Ref<OScript> p_script, Ob
 OScriptPlaceHolderInstance::~OScriptPlaceHolderInstance()
 {
     if (_script.is_valid())
-        _script->_placeholder_erased(_owner);
+        _script->_placeholder_erased(this);
 }
 
 bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_value, PropertyError* r_err)
