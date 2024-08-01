@@ -22,11 +22,24 @@
 class OScriptNodeLocalVariableInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeLocalVariable)
+    Variant::Type _type{ Variant::NIL };
+    bool _initialized{ false };
+
 public:
     int get_working_memory_size() const override { return 1; }
 
     int step(OScriptExecutionContext& p_context) override
     {
+        if (!_initialized)
+        {
+            // First time a Local Variable node is accessed, if it's not a reference type, it
+            // automatically generate its default value and store it in working memory.
+            if (_type != Variant::NIL && _type != Variant::OBJECT)
+                p_context.set_working_memory(0, VariantUtils::make_default(_type));
+
+            _initialized = true;
+        }
+
         p_context.set_output(0, p_context.get_working_memory());
         return 0;
     }
@@ -151,6 +164,7 @@ OScriptNodeInstance* OScriptNodeLocalVariable::instantiate()
 {
     OScriptNodeLocalVariableInstance* i = memnew(OScriptNodeLocalVariableInstance);
     i->_node = this;
+    i->_type = _type;
     return i;
 }
 
@@ -255,7 +269,7 @@ void OScriptNodeAssignLocalVariable::validate_node_during_build(BuildLog& p_log)
 
 void OScriptNodeAssignLocalVariable::on_pin_connected(const Ref<OScriptNodePin>& p_pin)
 {
-    if (p_pin->is_input())
+    if (p_pin->is_input() && p_pin->get_pin_name().match("variable"))
     {
         Vector<Ref<OScriptNodePin>> pin_connections = p_pin->get_connections();
         Variant::Type pin_type = pin_connections[0]->get_type();
@@ -270,7 +284,7 @@ void OScriptNodeAssignLocalVariable::on_pin_connected(const Ref<OScriptNodePin>&
 
 void OScriptNodeAssignLocalVariable::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin)
 {
-    if (p_pin->is_input())
+    if (p_pin->is_input() && p_pin->get_pin_name().match("variable"))
     {
         // Check if any inputs remain connected
         bool still_connected = false;
