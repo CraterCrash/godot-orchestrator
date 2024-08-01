@@ -174,6 +174,14 @@ String OScriptNodeCallMemberFunction::get_node_title() const
     return super::get_node_title();
 }
 
+String OScriptNodeCallMemberFunction::get_node_title_color_name() const
+{
+    if (!ClassDB::class_exists(_reference.target_class_name))
+        return "other_script_function_call";
+
+    return "function_call";
+}
+
 String OScriptNodeCallMemberFunction::get_help_topic() const
 {
     #if GODOT_VERSION >= 0x040300

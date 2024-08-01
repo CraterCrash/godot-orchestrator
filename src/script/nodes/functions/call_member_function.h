@@ -48,7 +48,7 @@ public:
     //~ Begin OScriptNode Interface
     String get_tooltip_text() const override;
     String get_node_title() const override;
-    String get_node_title_color_name() const override { return "function_call"; }
+    String get_node_title_color_name() const override;
     String get_help_topic() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
