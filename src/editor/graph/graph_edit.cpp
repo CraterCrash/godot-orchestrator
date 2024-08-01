@@ -679,16 +679,23 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
         }
         else
         {
+            const bool validated = get_orchestration()->get_variable(variable_name)->get_variable_type() == Variant::OBJECT;
+
             // Create context-menu handlers
             Ref<OrchestratorGraphActionHandler> get_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
             Ref<OrchestratorGraphActionHandler> set_handler(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
+            Ref<OrchestratorGraphActionHandler> get_validated_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name, true)));
 
             // Create context-menu to specify variable get or set choice
             _context_menu->clear();
             _context_menu->add_separator("Variable " + variable_name);
             _context_menu->add_item("Get " + variable_name, CM_VARIABLE_GET);
+            if (validated)
+                _context_menu->add_item("Get " + variable_name + " with validation", CM_VARIABLE_GET_VALIDATED);
             _context_menu->add_item("Set " + variable_name, CM_VARIABLE_SET);
             _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET), get_handler);
+            if (validated)
+                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET_VALIDATED), get_validated_handler);
             _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_SET), set_handler);
             _context_menu->reset_size();
             _context_menu->set_position(get_screen_position() + p_position);
@@ -1642,6 +1649,7 @@ void OrchestratorGraphEdit::_on_context_menu_selection(int p_id)
     switch (p_id)
     {
         case CM_VARIABLE_GET:
+        case CM_VARIABLE_GET_VALIDATED:
         case CM_VARIABLE_SET:
         case CM_PROPERTY_GET:
         case CM_PROPERTY_SET:
