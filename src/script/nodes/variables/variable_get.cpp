@@ -62,6 +62,7 @@ bool OScriptNodeVariableGet::_get(const StringName& p_name, Variant& r_value) co
     }
 
     // todo: GodotCPP expects this to be done by the developer, Wrapped::get_bind doesn't do this
+    // see https://github.com/godotengine/godot-cpp/pull/1539
     return OScriptNodeVariable::_get(p_name, r_value);
 }
 
@@ -74,6 +75,7 @@ bool OScriptNodeVariableGet::_set(const StringName& p_name, const Variant& p_val
     }
 
     // todo: GodotCPP expects this to be done by the developer, Wrapped::set_bind doesn't do this
+    // see https://github.com/godotengine/godot-cpp/pull/1539
     return OScriptNodeVariable::_set(p_name, p_value);
 }
 
