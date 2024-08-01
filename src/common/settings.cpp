@@ -170,6 +170,8 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/events", Color(0.467, 0.0, 0.0)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/flow_control", Color(0.132, 0.258, 0.266)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/function_call", Color(0.0, 0.2, 0.396)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/orchestration_function_call", Color(0.0, 0.316, 0.601)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/other_script_function_call", Color(0.027, 0.341, 0.504)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/pure_function_call", Color(0.133, 0.302, 0.114)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/function_terminator", Color(0.294, 0.0, 0.506)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/function_result", Color(1.0, 0.65, 0.4)));

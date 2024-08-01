@@ -173,6 +173,14 @@ String OScriptNodeCallMemberFunction::get_node_title() const
     return super::get_node_title();
 }
 
+String OScriptNodeCallMemberFunction::get_node_title_color_name() const
+{
+    if (!ClassDB::class_exists(_reference.target_class_name))
+        return "other_script_function_call";
+
+    return "function_call";
+}
+
 void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_context)
 {
     MethodInfo mi;
