@@ -26,6 +26,7 @@
 #include "script/nodes/editable_pin_node.h"
 #include "script/nodes/functions/call_function.h"
 #include "script/nodes/functions/call_script_function.h"
+#include "script/nodes/variables/variable_get.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -495,6 +496,16 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     if (multi_selections)
         _context_menu->set_item_tooltip(_context_menu->get_item_index(CM_VIEW_DOCUMENTATION), "Select a single node to view documentation.");
 
+    Ref<OScriptNodeVariableGet> variable_get = _node;
+    if (variable_get.is_valid() && variable_get->can_be_validated())
+    {
+        _context_menu->add_separator("Variable Get");
+        if (variable_get->is_validated())
+            _context_menu->add_item("Make Pure", CM_MAKE_PURE_GETTER);
+        else
+            _context_menu->add_item("Make Validated", CM_MAKE_VALIDATED_GETTER);
+    }
+
     _context_menu->set_position(get_screen_position() + (p_position * (real_t) get_graph()->get_zoom()));
     _context_menu->reset_size();
     _context_menu->popup();
@@ -747,6 +758,18 @@ void OrchestratorGraphNode::_handle_context_menu(int p_id)
             case CM_EXPAND_NODE:
             {
                 get_graph()->emit_signal("expand_node", _node->get_id());
+                break;
+            }
+            case CM_MAKE_PURE_GETTER:
+            {
+                Ref<OScriptNodeVariableGet> getter = _node;
+                getter->set_validated(false);
+                break;
+            }
+            case CM_MAKE_VALIDATED_GETTER:
+            {
+                Ref<OScriptNodeVariableGet> getter = _node;
+                getter->set_validated(true);
                 break;
             }
             #if GODOT_VERSION >= 0x040300

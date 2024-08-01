@@ -6,6 +6,8 @@
     <description>
         The [OScriptNodeVariableGet] node is used to return the value of an orchestration variable.
         The output pin returns the value currently assigned in the orchestration variable. If the variable has not been assigned, it will return the variable type's default value, which may be [code]null[/code].
+        [b]Return Value Validation:[/b][br]Variables that derive from [Object] will return a [code]null[/code] value if they have not been assigned. The [OScriptNodeVariableGet] node can provide validation for [code]null[/code] automatically by right-clicking the node's titlebar and select [param Make Validated]. In validated mode, the node will have two execution output pins and the node exits one of those based on the variable's current state. If the variable is not [code]null[/code], the node exits the [param Is Valid] output pin; otherwise the node exits the [param Is Not Valid] output pin. This validation mode reduces the need to add extra validation branch conditions to the graph.
+        To convert the node back to its pure mode, select [param Make Pure] in the node's context-menu.
     </description>
     <tutorials>
         <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/variables#get-nodes</link>

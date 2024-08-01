@@ -268,11 +268,14 @@ class OrchestratorGraphNodeSpawnerVariableGet : public OrchestratorGraphNodeSpaw
     static void _bind_methods() { }
 
 protected:
+    bool _validation{ false };
+
     OrchestratorGraphNodeSpawnerVariableGet() = default;
 
 public:
-    OrchestratorGraphNodeSpawnerVariableGet(const StringName& p_variable_name)
+    OrchestratorGraphNodeSpawnerVariableGet(const StringName& p_variable_name, bool p_validation = false)
         : OrchestratorGraphNodeSpawnerVariable(p_variable_name)
+        , _validation(p_validation)
     {
     }
 
