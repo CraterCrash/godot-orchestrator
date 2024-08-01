@@ -1523,6 +1523,11 @@ void OrchestratorGraphEdit::_on_node_deselected(Node* p_node)
 
 void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& p_node_names)
 {
+    // In Godot 4.2, there is a use case where this callback fires twice, once with no node names.
+    // As sanity sake, guard against that by doing nothing if the node names array is empty.
+    if (p_node_names.is_empty())
+        return;
+
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
     if (settings->get_setting("ui/graph/confirm_on_delete", true))
     {
