@@ -17,6 +17,7 @@
 #include "input_action.h"
 
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/string_utils.h"
 
@@ -169,7 +170,7 @@ void OScriptNodeInputAction::post_initialize()
     if (_is_in_editor())
     {
         ProjectSettings* settings = ProjectSettings::get_singleton();
-        settings->connect("settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
+        OCONNECT(settings, "settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
     }
 
     super::post_initialize();
@@ -180,7 +181,7 @@ void OScriptNodeInputAction::post_placed_new_node()
     if (_is_in_editor())
     {
         ProjectSettings* settings = ProjectSettings::get_singleton();
-        settings->connect("settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
+        OCONNECT(settings, "settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
     }
 
     super::post_placed_new_node();
