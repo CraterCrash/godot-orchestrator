@@ -66,6 +66,7 @@ class OrchestratorGraphEdit : public GraphEdit
     enum ContextMenuIds
     {
         CM_VARIABLE_GET,
+        CM_VARIABLE_GET_VALIDATED,
         CM_VARIABLE_SET,
         CM_PROPERTY_GET,
         CM_PROPERTY_SET,

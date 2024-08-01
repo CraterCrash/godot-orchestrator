@@ -397,6 +397,10 @@ void OrchestratorGraphNodeSpawnerVariableGet::execute(OrchestratorGraphEdit* p_g
     OScriptNodeInitContext context;
     context.variable_name = _variable_name;
 
+    Dictionary data;
+    data["validation"] = _validation;
+    context.user_data = data;
+
     p_graph->spawn_node<OScriptNodeVariableGet>(context, p_position);
 }
 
