@@ -145,6 +145,25 @@ bool OScriptNodeGlobalConstant::_set(const StringName& p_name, const Variant& p_
     return false;
 }
 
+bool OScriptNodeGlobalConstant::_property_can_revert(const StringName& p_name) const
+{
+    return p_name.match("constant");
+}
+
+bool OScriptNodeGlobalConstant::_property_get_revert(const StringName& p_name, Variant& r_value) const
+{
+    if (p_name.match("constant"))
+    {
+        const PackedStringArray enum_names = ExtensionDB::get_global_enum_value_names();
+        if (!enum_names.is_empty())
+        {
+            r_value = StringName(enum_names[0]);
+            return true;
+        }
+    }
+    return false;
+}
+
 void OScriptNodeGlobalConstant::_upgrade(uint32_t p_version, uint32_t p_current_version)
 {
     if (p_version == 1 && p_current_version >= 2)
@@ -313,7 +332,7 @@ void OScriptNodeTypeConstant::_get_property_list(List<PropertyInfo>* r_list) con
         array.push_back(VariantUtils::get_friendly_type_name(E.key));
 
     const String types = StringUtils::join(",", array);
-    r_list->push_front(PropertyInfo(Variant::INT, "basic_type", PROPERTY_HINT_ENUM, types));
+    r_list->push_front(PropertyInfo(Variant::INT, "basic_type", PROPERTY_HINT_ENUM, types, PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED));
 
     PackedStringArray array_values;
     if (_type_constants.has(_type))
@@ -344,17 +363,50 @@ bool OScriptNodeTypeConstant::_set(const StringName& p_name, const Variant& p_va
 {
     if (p_name.match("basic_type"))
     {
-        _type = _types[p_value];
-        _constant_name = _type_constants[_type].begin()->key;
-        _notify_pins_changed();
-        notify_property_list_changed();
-        return true;
+        const int index = p_value;
+        if (index >= 0 && !_types.is_empty() && _type != _types[p_value])
+        {
+            _type = _types[p_value];
+            _constant_name = _type_constants[_type].begin()->key;
+            _notify_pins_changed();
+            notify_property_list_changed();
+            return true;
+        }
     }
     else if (p_name.match("constant"))
     {
-        _constant_name = p_value;
-        _notify_pins_changed();
+        if (_constant_name != p_value)
+        {
+            _constant_name = p_value;
+            _notify_pins_changed();
+            return true;
+        }
+    }
+    return false;
+}
+
+bool OScriptNodeTypeConstant::_property_can_revert(const StringName& p_name) const
+{
+    if (p_name.match("basic_type") || p_name.match("constant"))
         return true;
+
+    return false;
+}
+
+bool OScriptNodeTypeConstant::_property_get_revert(const StringName& p_name, Variant& r_value) const
+{
+    if (!_type_constants.is_empty())
+    {
+        if (p_name.match("basic_type"))
+        {
+            r_value = _type_constants.begin()->key;
+            return true;
+        }
+        else if (p_name.match("constant"))
+        {
+            r_value = String(_type_constants[_type].begin()->key);
+            return true;
+        }
     }
     return false;
 }
@@ -501,16 +553,23 @@ bool OScriptNodeClassConstantBase::_set(const StringName& p_name, const Variant&
 {
     if (p_name.match("class_name"))
     {
-        _class_name = p_value;
-        _notify_pins_changed();
-        notify_property_list_changed();
-        return true;
+        if (_class_name != p_value)
+        {
+            _class_name = p_value;
+            _constant_name = "";
+            _notify_pins_changed();
+            notify_property_list_changed();
+            return true;
+        }
     }
     else if (p_name.match("constant"))
     {
-        _constant_name = p_value;
-        _notify_pins_changed();
-        return true;
+        if (_constant_name != p_value)
+        {
+            _constant_name = p_value;
+            _notify_pins_changed();
+            return true;
+        }
     }
     return false;
 }

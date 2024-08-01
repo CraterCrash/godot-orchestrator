@@ -46,6 +46,8 @@ protected:
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
+    bool _property_can_revert(const StringName& p_name) const;
+    bool _property_get_revert(const StringName& p_name, Variant& r_value) const;
     //~ End Wrapped Interface
 
     //~ Begin OScriptNode Interface
@@ -114,6 +116,8 @@ protected:
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
+    bool _property_can_revert(const StringName& p_name) const;
+    bool _property_get_revert(const StringName& p_name, Variant& r_value) const;
     //~ End Wrapped Interface
 
     //~ Begin OScriptNode Interface
