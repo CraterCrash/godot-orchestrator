@@ -527,6 +527,10 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
     if (PropertyUtils::is_variant(_property) || PropertyUtils::is_variant(p_pin->get_property_info()))
         return true;
 
+    // Allow Object to boolean for conditional tests
+    if (_property.type == Variant::BOOL && p_pin->get_property_info().type == Variant::OBJECT)
+        return true;
+
     return false;
 }
 
