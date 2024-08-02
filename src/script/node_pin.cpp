@@ -518,6 +518,9 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
         return true;
     }
 
+    if (_property.type == Variant::STRING_NAME && p_pin->get_property_info().type == Variant::STRING)
+        return true;
+
     // Numeric conversions allows
     if (_property.type == Variant::INT || _property.type == Variant::FLOAT)
         if (p_pin->get_type() == Variant::INT || p_pin->get_type() == Variant::FLOAT)
