@@ -195,7 +195,7 @@ void OrchestratorEditorPanel::_update_scene_tab_signals(bool p_connect)
 
 void OrchestratorEditorPanel::_update_file_system_dock_signals(bool p_connect)
 {
-    FileSystemDock* file_system_dock = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_file_system_dock();
+    FileSystemDock* file_system_dock = EditorInterface::get_singleton()->get_file_system_dock();
     if (!file_system_dock)
         return;
 
@@ -405,7 +405,7 @@ bool OrchestratorEditorPanel::_has_open_files() const
 
 void OrchestratorEditorPanel::_show_editor_viewport(const String& p_file_name)
 {
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->inspect_object(nullptr);
+    EditorInterface::get_singleton()->inspect_object(nullptr);
 
     _files_context.show(p_file_name);
 
@@ -567,7 +567,7 @@ void OrchestratorEditorPanel::_show_create_new_script_dialog()
     _script_create_dialog->set_title("Create Orchestration");
     _script_create_dialog->config(inherits, "new_script.os", false, false);
 
-    Ref<EditorSettings> editor_settings = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_settings();
+    Ref<EditorSettings> editor_settings = EditorInterface::get_singleton()->get_editor_settings();
     editor_settings->set_project_metadata("script_setup", "last_selected_language", language_name);
 
     _script_create_dialog->popup_centered();
@@ -821,7 +821,7 @@ void OrchestratorEditorPanel::_navigate_to_file_in_filesystem()
 
     const String file_name = _files_context.get_selected_file_name();
     if (!file_name.is_empty())
-        OrchestratorPlugin::get_singleton()->get_editor_interface()->get_file_system_dock()->navigate_to_path(file_name);
+        EditorInterface::get_singleton()->get_file_system_dock()->navigate_to_path(file_name);
 }
 
 void OrchestratorEditorPanel::edit_resource(const Ref<Resource>& p_resource)

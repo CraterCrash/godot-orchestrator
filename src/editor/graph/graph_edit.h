@@ -36,7 +36,6 @@ using namespace godot;
 class OScriptNode;
 class OrchestratorScriptAutowireSelections;
 class OrchestratorGraphKnot;
-class OrchestratorPlugin;
 
 /// Helper class for storing a reference to a position for the knot in the graph
 class OrchestratorKnotPoint : public RefCounted
@@ -126,7 +125,6 @@ class OrchestratorGraphEdit : public GraphEdit
     DragContext _drag_context;                             //! Drag context details
     int _deferred_tween_node{ -1 };                        //! Node id to tween to upon load
     PopupMenu* _context_menu{ nullptr };                   //! Graph context menu
-    OrchestratorPlugin* _plugin{ nullptr };                //! The plugin
     Control* _status{ nullptr };                           //! Displays status in the center of graphs
     Label* _drag_hint{ nullptr };                          //! Displays the drag status at the bottom of the graph
     Timer* _drag_hint_timer{ nullptr };                    //! Timer for drag hint messages
@@ -155,9 +153,8 @@ public:
     static void free_clipboard();
 
     /// Creates the Orchestration OrchestratorGraphEdit instance.
-    /// @param p_plugin the plugin instance, should never be null
     /// @param p_graph the orchestration graph, should never be invalid
-    OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, const Ref<OScriptGraph>& p_graph);
+    OrchestratorGraphEdit(const Ref<OScriptGraph>& p_graph);
 
     /// Godot callback that handles notifications
     /// @param p_what the notification to be handled

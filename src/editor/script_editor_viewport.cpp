@@ -495,8 +495,7 @@ void OrchestratorScriptEditorViewport::add_script_function(Object* p_object, con
         return;
     }
 
-    EditorInterface* editor_interface = OrchestratorPlugin::get_singleton()->get_editor_interface();
-    editor_interface->set_main_screen_editor(OrchestratorPlugin::get_singleton()->_get_plugin_name());
+    OrchestratorPlugin::get_singleton()->make_active();
 
     MethodInfo method;
     method.name = p_function_name;

@@ -18,9 +18,8 @@
 
 #include "common/dictionary_utils.h"
 #include "common/scene_utils.h"
-#include "common/settings.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
 
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
 
@@ -73,13 +72,13 @@ void OrchestratorScriptSignalsComponentPanel::_handle_item_selected()
     TreeItem* item = _tree->get_selected();
 
     Ref<OScriptSignal> signal = _orchestration->get_custom_signal(_get_tree_item_name(item));
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
+    EditorInterface::get_singleton()->edit_resource(signal);
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_item_activated(TreeItem* p_item)
 {
     Ref<OScriptSignal> signal = _orchestration->get_custom_signal(_get_tree_item_name(p_item));
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(signal);
+    EditorInterface::get_singleton()->edit_resource(signal);
 }
 
 bool OrchestratorScriptSignalsComponentPanel::_handle_item_renamed(const String& p_old_name, const String& p_new_name)

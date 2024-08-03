@@ -19,11 +19,11 @@
 #include "common/callable_lambda.h"
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -112,7 +112,7 @@ void OrchestratorScriptComponentPanel::_remove_confirmed()
 {
     if (_tree->get_selected())
     {
-        OrchestratorPlugin::get_singleton()->get_editor_interface()->inspect_object(nullptr);
+        EditorInterface::get_singleton()->inspect_object(nullptr);
         _handle_remove(_tree->get_selected());
 
         update();
@@ -234,7 +234,7 @@ void OrchestratorScriptComponentPanel::_update_theme()
     if (!_theme_changing)
         return;
 
-    Ref<Theme> theme = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_theme();
+    Ref<Theme> theme = EditorInterface::get_singleton()->get_editor_theme();
     if (theme.is_valid() && _panel)
     {
         Ref<StyleBoxFlat> sb = theme->get_stylebox("panel", "ItemList")->duplicate();
