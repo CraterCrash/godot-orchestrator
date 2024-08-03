@@ -20,11 +20,11 @@
 #include "common/dictionary_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/script_connections.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
@@ -147,7 +147,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_item_selected()
         {
             const Ref<OScriptNode> node = function->get_owning_node();
             if (node.is_valid())
-                OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(node);
+                EditorInterface::get_singleton()->edit_resource(node);
         }
     }
 }

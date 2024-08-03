@@ -17,7 +17,6 @@
 #include "editor/search/search_dialog.h"
 
 #include "common/scene_utils.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -337,7 +336,7 @@ void OrchestratorEditorSearchDialog::_set_search_item_collapse_state(TreeItem* p
 
         bool should_collapse = _get_search_item_collapse_suggestion(p_item);
 
-        Ref<EditorSettings> settings = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_settings();
+        Ref<EditorSettings> settings = EditorInterface::get_singleton()->get_editor_settings();
         if (should_collapse && bool(settings->get_setting("docks/scene_tree/start_create_dialog_fully_expanded")))
             should_collapse = false;
 
@@ -497,8 +496,7 @@ void OrchestratorEditorSearchDialog::popup_create(bool p_dont_clear, bool p_repl
 
     _save_and_update_favorites_list();
 
-    EditorInterface* ei = OrchestratorPlugin::get_singleton()->get_editor_interface();
-    Rect2 saved_size = ei->get_editor_settings()->get_project_metadata("dialog_bounds", "create_new_node", Rect2());
+    Rect2 saved_size = EditorInterface::get_singleton()->get_editor_settings()->get_project_metadata("dialog_bounds", "create_new_node", Rect2());
     if (saved_size != Rect2())
         popup(saved_size);
     else

@@ -44,7 +44,6 @@ class OrchestratorPlugin : public EditorPlugin
 
     static OrchestratorPlugin* _plugin;
 
-    EditorInterface& _editor;                                 //! Godot editor interface reference
     OrchestratorEditorPanel* _editor_panel{ nullptr };        //! Plugin's editor panel
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
@@ -143,7 +142,6 @@ public:
 
 private:
     void _on_window_visibility_changed(bool p_visible);
-    void _on_editor_restart();
 };
 
 #endif  // ORCHESTRATOR_EDITOR_PLUGIN_H
