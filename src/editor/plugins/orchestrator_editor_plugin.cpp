@@ -17,8 +17,8 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include "common/version.h"
-#include "editor/graph/graph_edit.h"
 #include "editor/editor_panel.h"
+#include "editor/graph/graph_edit.h"
 #include "editor/plugins/inspector_plugins.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/window_wrapper.h"
@@ -30,10 +30,11 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/image.hpp>
+#include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/theme.hpp>
-#include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
@@ -74,7 +75,7 @@ void OrchestratorPlugin::_notification(int p_what)
         #endif
 
         // Register the plugin's icon for CreateScript Dialog
-        Ref<Theme> theme = ThemeDB::get_singleton()->get_default_theme();
+        Ref<Theme> theme = get_editor_interface()->get_editor_theme();
         if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons"))
             theme->set_icon(_get_plugin_name(), "EditorIcons", _get_plugin_icon());
 
@@ -146,7 +147,18 @@ String OrchestratorPlugin::_get_plugin_name() const
 
 Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const
 {
-    return ResourceLoader::get_singleton()->load(OScriptLanguage::ICON);
+    Ref<Texture2D> icon = ResourceLoader::get_singleton()->load(OScriptLanguage::ICON);
+
+    const double scale = EditorInterface::get_singleton()->get_editor_scale();
+    if (UtilityFunctions::is_equal_approx(1.0, scale))
+        return icon;
+
+    // Godot automatically scales icons that are part of the Editor pack but does not do
+    // that with custom icons, we must do this when the display size changes.
+    const Ref<Image> image = icon->get_image();
+    image->resize(static_cast<int>(image->get_width() * scale), static_cast<int>(image->get_height() * scale));
+
+    return ImageTexture::create_from_image(image);
 }
 
 String OrchestratorPlugin::get_plugin_online_documentation_url() const
