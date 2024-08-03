@@ -218,6 +218,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _script_graph->connect("node_added", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_added));
         _script_graph->connect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
         _script_graph->connect("knots_updated", callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots));
+        _script_graph->connect("connection_knots_removed", callable_mp(this, &OrchestratorGraphEdit::_remove_connection_knots));
 
         // Wire up action menu
         _action_menu->connect("canceled", callable_mp(this, &OrchestratorGraphEdit::_on_action_menu_cancelled));
@@ -1121,6 +1122,15 @@ void OrchestratorGraphEdit::_synchronize_graph_knots()
                _on_delete_nodes_requested(Array::make(name));
             }));
         }
+    }
+}
+
+void OrchestratorGraphEdit::_remove_connection_knots(uint64_t p_connection_id)
+{
+    if (_knots.erase(p_connection_id))
+    {
+        _store_connection_knots();
+        _synchronize_graph_knots();
     }
 }
 
