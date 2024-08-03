@@ -64,6 +64,7 @@ void OScriptGraph::_bind_methods()
     ADD_SIGNAL(MethodInfo("node_added", PropertyInfo(Variant::INT, "node_id")));
     ADD_SIGNAL(MethodInfo("node_removed", PropertyInfo(Variant::INT, "node_id")));
     ADD_SIGNAL(MethodInfo("knots_updated"));
+    ADD_SIGNAL(MethodInfo("connection_knots_removed", PropertyInfo(Variant::INT, "connection_id")));
 }
 
 TypedArray<int> OScriptGraph::_get_nodes() const
@@ -426,8 +427,8 @@ void OScriptGraph::set_knots(const HashMap<uint64_t, PackedVector2Array>& p_knot
 
 void OScriptGraph::remove_connection_knot(uint64_t p_connection_id)
 {
-    _knots.erase(p_connection_id);
-    emit_signal("knots_updated");
+    if (_knots.erase(p_connection_id))
+        emit_signal("connection_knots_removed", p_connection_id);
 }
 
 Ref<OScriptNode> OScriptGraph::create_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position)

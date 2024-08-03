@@ -329,6 +329,10 @@ private:
     /// Synchronizes the graph knots
     void _synchronize_graph_knots();
 
+    /// Remove all knots related to the specific connection id
+    /// @param p_connection_id
+    void _remove_connection_knots(uint64_t p_connection_id);
+
     /// Updates only the specific graph node
     /// @param p_node the node to update.
     void _synchronize_graph_node(Ref<OScriptNode> p_node);
