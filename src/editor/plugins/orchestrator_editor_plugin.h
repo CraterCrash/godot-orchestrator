@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_EDITOR_PLUGIN_H
 #define ORCHESTRATOR_EDITOR_PLUGIN_H
 
+#include "editor/build_output_panel.h"
 #include "editor/editor_cache.h"
 #include "editor/plugins/orchestrator_editor_debugger_plugin.h"
 #include "editor/theme/theme_cache.h"
@@ -50,6 +51,7 @@ class OrchestratorPlugin : public EditorPlugin
     Vector<Ref<EditorExportPlugin>> _export_plugins;
     Ref<OrchestratorThemeCache> _theme_cache;
     Ref<OrchestratorEditorCache> _editor_cache;               //! Script editor cache
+    OrchestratorBuildOutputPanel* _build_panel{ nullptr };    //! Build panel
     #if GODOT_VERSION >= 0x040300
     Ref<OrchestratorEditorDebuggerPlugin> _debugger_plugin;   //! Debugger plugin
     #endif
@@ -101,6 +103,13 @@ public:
 
     Ref<OrchestratorThemeCache> get_theme_cache() { return _theme_cache; }
     Ref<OrchestratorEditorCache> get_editor_cache() { return _editor_cache; }
+
+    /// Sets the build panel as active
+    void make_build_panel_active();
+
+    /// Get a reference to the build output panel
+    /// @return the build output panel, should never be <code>null</code>
+    OrchestratorBuildOutputPanel* get_build_panel() const { return _build_panel; }
 
     //~ Begin EditorPlugin interface
     String get_plugin_version() const;

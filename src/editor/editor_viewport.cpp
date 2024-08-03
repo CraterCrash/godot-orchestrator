@@ -23,7 +23,6 @@
 #include "plugins/orchestrator_editor_debugger_plugin.h"
 #include "plugins/orchestrator_editor_plugin.h"
 
-#include <godot_cpp/classes/json.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
@@ -192,18 +191,6 @@ void OrchestratorEditorViewport::_rename_tab(const String& p_old_name, const Str
         graph->set_name(p_new_name);
 }
 
-void OrchestratorEditorViewport::_meta_clicked(const Variant& p_meta)
-{
-    _build_errors_dialog->hide();
-
-    const Dictionary value = JSON::parse_string(String(p_meta));
-    if (value.has("goto_node"))
-    {
-        emit_signal("focus_requested");
-        goto_node(String(value["goto_node"]).to_int());
-    }
-}
-
 void OrchestratorEditorViewport::apply_changes()
 {
     for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
@@ -264,27 +251,18 @@ bool OrchestratorEditorViewport::build(bool p_show_success)
     BuildLog log;
     _orchestration->validate_and_build(log);
 
-    const Vector<BuildLog::Failure> failures = log.get_failures();
+    OrchestratorPlugin::get_singleton()->make_build_panel_active();
+    OrchestratorBuildOutputPanel* build_panel = OrchestratorPlugin::get_singleton()->get_build_panel();
 
-    _build_errors->clear();
-    _build_errors->append_text(vformat("[b]File:[/b] %s\n\n", _resource->get_path()));
+    const Vector<BuildLog::Failure> failures = log.get_failures();
 
     if (!failures.is_empty())
     {
-        _build_errors_dialog->set_title("Orchestration Build Errors");
+        build_panel->reset();
+        build_panel->add_message(vformat("[b]Orchestration File:[/b] %s\n\n", _resource->get_path()));
+
         for (const BuildLog::Failure& failure : failures)
         {
-            String preamble;
-            switch (failure.type)
-            {
-                case BuildLog::FailureType::FT_Warning:
-                    preamble = "[color=yellow]WARNING[/color]";
-                    break;
-                default:
-                    preamble = "[color=#a95853]ERROR[/color]";
-                    break;
-            }
-
             String message = failure.message;
             if (failure.pin.is_valid())
             {
@@ -293,27 +271,45 @@ bool OrchestratorEditorViewport::build(bool p_show_success)
                     message = vformat("Pin '%s' : %s", pin_name, message);
             }
 
-            _build_errors->append_text(
-                vformat("* [b]%s[/b] : Node #[url={\"goto_node\":\"%d\",\"script\":\"%s\"}]%d - %s[/url]\n\t%s\n\n",
-                    preamble,
-                    failure.node->get_id(),
-                    failure.node->get_orchestration()->get_self()->get_path(),
-                    failure.node->get_id(),
-                    failure.node->get_node_title(),
-                    message));
+            const String text = vformat("Node #[url={\"goto_node\":\"%d\",\"script\":\"%s\"}]%d - %s[/url]\n\t%s",
+                failure.node->get_id(),
+                failure.node->get_orchestration()->get_self()->get_path(),
+                failure.node->get_id(),
+                failure.node->get_node_title(),
+                message);
+
+            switch (failure.type)
+            {
+                case BuildLog::FailureType::FT_Warning:
+                {
+                    build_panel->add_warning(text);
+                    break;
+                }
+                default:
+                {
+                    build_panel->add_error(text);
+                    break;
+                }
+            }
         }
 
-        _build_errors_dialog->popup_centered_ratio(0.5);
+        _confirm_dialog->set_title("Orchestration Build");
+        _confirm_dialog->set_text("Orchestration build failed, see Orchestration Build panel for details.");
+        _confirm_dialog->reset_size();
+        _confirm_dialog->popup_centered();
         return false;
     }
 
+    build_panel->add_message(vformat("[b]Orchestration File:[/b] %s\n\n", _resource->get_path()));
+    build_panel->add_message("* [color=green]OK[/color]: Orchestration is valid\n\n");
+
     if (p_show_success)
     {
-        _build_errors_dialog->set_title("Orchestration Validation Results");
-        _build_errors->append_text(vformat("* [color=green]OK[/color]: Script is valid."));
-        _build_errors_dialog->popup_centered_ratio(0.25);
+        _confirm_dialog->set_title("Orchestration Build");
+        _confirm_dialog->set_text("Orchestration build was successful.");
+        _confirm_dialog->reset_size();
+        _confirm_dialog->popup_centered();
     }
-
     return true;
 }
 
@@ -401,14 +397,8 @@ void OrchestratorEditorViewport::_notification(int p_what)
         _component_container->set_h_size_flags(SIZE_EXPAND_FILL);
         _scroll_container->add_child(_component_container);
 
-        _build_errors = memnew(RichTextLabel);
-        _build_errors->set_use_bbcode(true);
-        _build_errors->connect("meta_clicked", callable_mp(this, &OrchestratorEditorViewport::_meta_clicked));
-
-        _build_errors_dialog = memnew(AcceptDialog);
-        _build_errors_dialog->set_title("Orchestrator Build Errors");
-        _build_errors_dialog->add_child(_build_errors);
-        add_child(_build_errors_dialog);
+        _confirm_dialog = memnew(ConfirmationDialog);
+        add_child(_confirm_dialog);
     }
 }
 

@@ -184,6 +184,7 @@ protected:
     void _folder_removed(const String& p_folder_name);
     void _add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args);
     void _focus_viewport(OrchestratorEditorViewport* p_viewport);
+    void _build_log_meta_clicked(const Variant& p_meta);
 
     #if GODOT_VERSION >= 0x040300
     void _goto_script_line(const Ref<Script>& p_script, int p_line);

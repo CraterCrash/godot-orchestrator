@@ -20,6 +20,7 @@
 #include "common/version.h"
 
 #include <godot_cpp/classes/accept_dialog.hpp>
+#include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -64,8 +65,7 @@ protected:
     Orchestration* _orchestration{ nullptr };        //! The orchestration instance
     TabContainer* _tabs{ nullptr };                  //! The graph editor tab container
     ScrollContainer* _scroll_container{ nullptr };   //! The right component container
-    RichTextLabel* _build_errors{ nullptr };         //! Build errors text
-    AcceptDialog* _build_errors_dialog{ nullptr };   //! Build errors dialog window
+    ConfirmationDialog* _confirm_dialog{ nullptr };  //! Build confirmation dialog
     VBoxContainer* _component_container{ nullptr };  //! VBoxContainer
 
     //~ Begin Godot Interface
@@ -133,10 +133,6 @@ protected:
     /// @param p_old_name the old name
     /// @param p_new_name the new name
     void _rename_tab(const String& p_old_name, const String& p_new_name);
-
-    /// Called when the user clicks a meta link in the build error dialog.
-    /// @param p_meta the meta that was clicked
-    void _meta_clicked(const Variant& p_meta);
 
     /// Default constructor, intentionally protected
     OrchestratorEditorViewport() = default;

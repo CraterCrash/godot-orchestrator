@@ -39,6 +39,7 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
+#include <godot_cpp/classes/json.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/option_button.hpp>
@@ -704,6 +705,29 @@ void OrchestratorEditorPanel::_focus_viewport(OrchestratorEditorViewport* p_view
     }
 }
 
+void OrchestratorEditorPanel::_build_log_meta_clicked(const Variant& p_meta)
+{
+    const Dictionary value = JSON::parse_string(String(p_meta));
+    if (value.has("script"))
+    {
+        for (const OrchestrationFile& file : _files_context.open_files)
+        {
+            if (file.file_name == value["script"])
+            {
+                if (value.has("goto_node"))
+                    file.viewport->goto_node(value["goto_node"]);
+                return;
+            }
+        }
+
+        if (value.has("goto_node"))
+        {
+            _open_script_file(value["script"]);
+            _files_context.get_selected()->viewport->goto_node(value["goto_node"]);
+        }
+    }
+}
+
 #if GODOT_VERSION >= 0x040300
 void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int p_line)
 {
@@ -794,6 +818,9 @@ void OrchestratorEditorPanel::edit_resource(const Ref<Resource>& p_resource)
 void OrchestratorEditorPanel::edit_script(const Ref<OScript>& p_script)
 {
     ERR_FAIL_COND_MSG(p_script->get_path().is_empty(), "Script has no path, cannot be opened.");
+
+    // When editing an Orchestration; make panel active
+    OrchestratorPlugin::get_singleton()->make_active();
 
     // Before opening a new file, all existing file viewports should be hidden.
     // Unlike the Script tab, we do not use tabs but rather control which editor is visible.
@@ -1105,6 +1132,10 @@ void OrchestratorEditorPanel::_notification(int p_what)
             _script_create_dialog = memnew(ScriptCreateDialog);
             _script_create_dialog->connect("script_created", callable_mp(this, &OrchestratorEditorPanel::_script_file_created));
             add_child(_script_create_dialog);
+
+            OrchestratorPlugin::get_singleton()->get_build_panel()->connect(
+                "meta_clicked",
+                callable_mp(this, &OrchestratorEditorPanel::_build_log_meta_clicked));
 
             break;
         }
