@@ -43,7 +43,7 @@ void OrchestratorEditorPropertyVariableClassification::_search_selected()
                 confirm->queue_free();
         }));
 
-        confirm->connect("canceled", callable_mp_lambda(this, [confirm, this] {
+        confirm->connect("canceled", callable_mp_lambda(this, [confirm] {
             if (confirm)
                 confirm->queue_free();
         }));
