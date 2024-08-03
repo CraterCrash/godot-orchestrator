@@ -31,7 +31,6 @@
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/style_box_empty.hpp>
-#include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -259,7 +258,7 @@ void OrchestratorAboutDialog::_on_theme_changed()
         }
     }
 
-    Ref<Theme> theme = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_theme();
+    Ref<Theme> theme = EditorInterface::get_singleton()->get_editor_theme();
     if (theme.is_valid())
     {
         Ref<StyleBox> sb = theme->get_stylebox("panel", "EditorAbout");

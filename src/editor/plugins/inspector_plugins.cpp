@@ -173,8 +173,8 @@ void OrchestratorEditorInspectorPluginVariable::edit_classification(Object* p_ob
         return;
 
     // This is done to clear and reset the editor interface
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_node(nullptr);
-    OrchestratorPlugin::get_singleton()->get_editor_interface()->edit_resource(variable);
+    EditorInterface::get_singleton()->edit_node(nullptr);
+    EditorInterface::get_singleton()->edit_resource(variable);
 
     _classification->edit();
 }
