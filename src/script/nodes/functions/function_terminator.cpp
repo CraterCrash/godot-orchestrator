@@ -17,6 +17,7 @@
 #include "function_terminator.h"
 
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/variant_utils.h"
 
@@ -157,11 +158,8 @@ void OScriptNodeFunctionTerminator::post_initialize()
     super::post_initialize();
 
     _function = get_orchestration()->find_function(_guid);
-    if (_function.is_valid())
-    {
-        if (_is_in_editor())
-            _function->connect("changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
-    }
+    if (_function.is_valid() && _is_in_editor())
+        OCONNECT(_function, "changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
 
     // Always reconstruct entry/exit nodes
     reconstruct_node();
@@ -171,9 +169,6 @@ void OScriptNodeFunctionTerminator::post_placed_new_node()
 {
     super::post_placed_new_node();
 
-    if (_function.is_valid())
-    {
-        if (_is_in_editor())
-            _function->connect("changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
-    }
+    if (_function.is_valid() && _is_in_editor())
+        OCONNECT(_function, "changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
 }
