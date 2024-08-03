@@ -29,7 +29,6 @@
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "nodes/graph_node_factory.h"
 #include "script/language.h"
 #include "script/nodes/script_nodes.h"
@@ -40,6 +39,7 @@
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/geometry2d.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_action.hpp>
@@ -99,7 +99,7 @@ EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
     return output_port ? PD_Output : PD_Input;
 }
 
-OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, const Ref<OScriptGraph>& p_graph)
+OrchestratorGraphEdit::OrchestratorGraphEdit(const Ref<OScriptGraph>& p_graph)
 {
     internal::gdextension_interface_get_godot_version(&_version);
     _is_43p = _version.major == 4 && _version.minor >= 3;
@@ -109,7 +109,6 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(OrchestratorPlugin* p_plugin, const
     set_show_arrange_button(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_arrange_button", false));
     set_right_disconnects(true);
 
-    _plugin = p_plugin;
     _script_graph = p_graph;
 
     _cache_connection_knots();
@@ -357,10 +356,10 @@ void OrchestratorGraphEdit::set_spawn_position_center_view()
 void OrchestratorGraphEdit::goto_class_help(const String& p_class_name)
 {
     #if GODOT_VERSION >= 0x040300
-    _plugin->get_editor_interface()->get_script_editor()->goto_help(p_class_name);
+    EditorInterface::get_singleton()->get_script_editor()->goto_help(p_class_name);
     #else
-    _plugin->get_editor_interface()->set_main_screen_editor("Script");
-    _plugin->get_editor_interface()->get_script_editor()->call("_help_class_open", p_class_name);
+    EditorInterface::get_singleton()->set_main_screen_editor("Script");
+    EditorInterface::get_singleton()->get_script_editor()->call("_help_class_open", p_class_name);
     #endif
 }
 
@@ -1638,12 +1637,12 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
     // object to resolve whether the object has any property default values so
     // it can properly revert values accordingly with the rollback button.
     //
-    _plugin->get_editor_interface()->edit_resource(node->get_inspect_object());
+    EditorInterface::get_singleton()->edit_resource(node->get_inspect_object());
 }
 
 void OrchestratorGraphEdit::_on_node_deselected(Node* p_node)
 {
-    _plugin->get_editor_interface()->inspect_object(nullptr);
+    EditorInterface::get_singleton()->inspect_object(nullptr);
 
     OrchestratorSettings* os = OrchestratorSettings::get_singleton();
     if (os->get_setting("ui/nodes/highlight_selected_connections", false))
@@ -1878,9 +1877,9 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
 
 void OrchestratorGraphEdit::_on_inspect_script()
 {
-    _plugin->get_editor_interface()->inspect_object(get_orchestration()->get_self().ptr());
+    EditorInterface::get_singleton()->inspect_object(get_orchestration()->get_self().ptr());
 
-    EditorInspector* inspector = _plugin->get_editor_interface()->get_inspector();
+    EditorInspector* inspector = EditorInterface::get_singleton()->get_inspector();
 
     TypedArray<Node> fields = inspector->find_children("*", "EditorPropertyClassName", true, false);
     if (!fields.is_empty())
