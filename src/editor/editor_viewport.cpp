@@ -162,7 +162,7 @@ OrchestratorGraphEdit* OrchestratorEditorViewport::_get_or_create_tab(const Stri
     if (!script_graph.is_valid())
         return nullptr;
 
-    OrchestratorGraphEdit* graph = memnew(OrchestratorGraphEdit(OrchestratorPlugin::get_singleton(), script_graph));
+    OrchestratorGraphEdit* graph = memnew(OrchestratorGraphEdit(script_graph));
     _tabs->add_child(graph);
 
     const String tab_icon = graph->is_function() ? "MemberMethod" : "ClassList";

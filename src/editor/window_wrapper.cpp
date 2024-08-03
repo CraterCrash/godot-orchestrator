@@ -17,7 +17,6 @@
 #include "window_wrapper.h"
 
 #include "common/scene_utils.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -27,7 +26,6 @@
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/panel.hpp>
 #include <godot_cpp/classes/popup.hpp>
-#include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
 OrchestratorWindowWrapper::OrchestratorWindowWrapper()
@@ -136,7 +134,7 @@ void OrchestratorWindowWrapper::_set_window_rect(const Rect2 p_rect)
     _window->set_position(p_rect.position);
     _window->set_size(p_rect.size);
 
-    Ref<EditorSettings> es = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_settings();
+    Ref<EditorSettings> es = EditorInterface::get_singleton()->get_editor_settings();
     if (es.is_valid() && es->get_setting("interface/multi_window/maximize_window"))
         _window->set_mode(Window::MODE_MAXIMIZED);
 }
@@ -253,7 +251,7 @@ void OrchestratorWindowWrapper::enable_window_on_screen(int p_screen, bool p_aut
     int current_screen = Object::cast_to<Window>(get_viewport())->get_current_screen();
     int screen = p_screen < 0 ? current_screen : p_screen;
 
-    Ref<EditorSettings> es = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_settings();
+    Ref<EditorSettings> es = EditorInterface::get_singleton()->get_editor_settings();
     bool auto_scale = p_auto_scale && !es->get_setting("interface/multi_window/maximize_window");
 
     if (auto_scale && current_screen != screen)

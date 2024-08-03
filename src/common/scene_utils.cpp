@@ -16,7 +16,6 @@
 //
 #include "scene_utils.h"
 
-#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -36,7 +35,7 @@ namespace SceneUtils
     {
         ERR_FAIL_COND_V_MSG(p_class_name.is_empty(), nullptr, "Class name cannot be empty.");
 
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         if (vbox->has_theme_icon(p_class_name, "EditorIcons"))
             return vbox->get_theme_icon(p_class_name, "EditorIcons");
 
@@ -66,13 +65,13 @@ namespace SceneUtils
 
     bool has_editor_icon(const String& p_icon_name)
     {
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         return vbox->has_theme_icon(p_icon_name);
     }
 
     Color get_editor_color(const String& p_color_name, const String& p_category)
     {
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         return vbox->get_theme_color(p_color_name, p_category);
     }
 
@@ -83,31 +82,31 @@ namespace SceneUtils
 
     Ref<Texture2D> get_editor_icon(const String& p_icon_name)
     {
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         return vbox->get_theme_icon(p_icon_name, "EditorIcons");
     }
 
     Ref<StyleBox> get_editor_style(const String& p_style_name)
     {
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         return vbox->get_theme_stylebox(p_style_name, "EditorStyles");
     }
 
     Ref<Font> get_editor_font(const String& p_font_name)
     {
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         return vbox->get_theme_font(p_font_name, "EditorFonts");
     }
 
     int get_editor_font_size(const String& p_font_name)
     {
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         return vbox->get_theme_font_size(p_font_name, "EditorFonts");
     }
 
     Ref<StyleBox> get_editor_stylebox(const String& p_stylebox_name, const String& p_class_name)
     {
-        VBoxContainer* vbox = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_main_screen();
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
         return vbox->get_theme_stylebox(p_stylebox_name, p_class_name);
     }
 

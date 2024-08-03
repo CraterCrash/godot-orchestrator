@@ -20,7 +20,6 @@
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "common/version.h"
-#include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/property_selector.h"
 #include "editor/scene_node_selector.h"
 #include "script/nodes/functions/call_function.h"
@@ -29,9 +28,10 @@
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 
-#define EDSCALE OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_scale()
+#define EDSCALE EditorInterface::get_singleton()->get_editor_scale()
 
 Vector<OrchestratorGraphNodePinNodePath::MethodDescriptor> OrchestratorGraphNodePinNodePath::_descriptors;
 
