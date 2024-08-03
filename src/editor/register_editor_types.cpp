@@ -68,6 +68,7 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorThemeCache)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorEditorCache)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorBuildOutputPanel)
 
     // Editor bits
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorPropertyInfoContainerEditorProperty)

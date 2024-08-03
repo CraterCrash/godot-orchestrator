@@ -62,6 +62,11 @@ namespace SceneUtils
     /// @return the font reference or an invalid reference if the font isn't found
     Ref<Font> get_editor_font(const String& p_font_name);
 
+    /// Get an editor font size
+    /// @param p_font_name the font name
+    /// @return the font size
+    int get_editor_font_size(const String& p_font_name);
+
     /// Get an editor stylebox
     /// @return the stylebox or an invalid reference if it wasn't found
     Ref<StyleBox> get_editor_stylebox(const String& p_stylebox_name, const String& p_class_type);
