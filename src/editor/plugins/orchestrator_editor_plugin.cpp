@@ -58,6 +58,10 @@ void OrchestratorPlugin::_notification(int p_what)
         // It's safe then to cache the plugin reference here.
         _plugin = this;
 
+        _build_panel = memnew(OrchestratorBuildOutputPanel);
+        Button* button = add_control_to_bottom_panel(_build_panel, "Orchestration Build");
+        _build_panel->set_tool_button(button);
+
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginFunction));
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginSignal));
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginVariable));
@@ -100,6 +104,10 @@ void OrchestratorPlugin::_notification(int p_what)
     else if (p_what == NOTIFICATION_EXIT_TREE)
     {
         OrchestratorGraphEdit::free_clipboard();
+
+        remove_control_from_bottom_panel(_build_panel);
+        memdelete(_build_panel);
+        _build_panel = nullptr;
 
         memdelete(_editor_panel);
         _editor_panel = nullptr;
@@ -227,6 +235,11 @@ void OrchestratorPlugin::make_active()
     _editor.set_main_screen_editor(_get_plugin_name());
 }
 
+void OrchestratorPlugin::make_build_panel_active()
+{
+    make_bottom_panel_item_visible(_build_panel);
+}
+
 void OrchestratorPlugin::request_editor_restart()
 {
     AcceptDialog* request = memnew(AcceptDialog);
@@ -305,8 +318,10 @@ void OrchestratorPlugin::_get_window_layout(const Ref<ConfigFile>& p_configurati
 bool OrchestratorPlugin::_build()
 {
     if (_editor_panel)
+    {
+        _build_panel->reset();
         return _editor_panel->build();
-
+    }
     return true;
 }
 
