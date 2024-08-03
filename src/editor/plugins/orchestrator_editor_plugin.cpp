@@ -16,6 +16,7 @@
 //
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
+#include "common/callable_lambda.h"
 #include "common/version.h"
 #include "editor/editor_panel.h"
 #include "editor/graph/graph_edit.h"
@@ -41,7 +42,6 @@
 OrchestratorPlugin* OrchestratorPlugin::_plugin = nullptr;
 
 OrchestratorPlugin::OrchestratorPlugin()
-    : _editor(*get_editor_interface())
 {
 }
 
@@ -92,7 +92,7 @@ void OrchestratorPlugin::_notification(int p_what)
 
         _editor_panel = memnew(OrchestratorEditorPanel(_window_wrapper));
 
-        _editor.get_editor_main_screen()->add_child(_window_wrapper);
+        get_editor_interface()->get_editor_main_screen()->add_child(_window_wrapper);
         _window_wrapper->set_wrapped_control(_editor_panel);
         _window_wrapper->set_v_size_flags(Control::SIZE_EXPAND_FILL);
         _window_wrapper->hide();
@@ -244,7 +244,7 @@ void OrchestratorPlugin::save_metadata(const Ref<ConfigFile>& p_metadata)
 
 void OrchestratorPlugin::make_active()
 {
-    _editor.set_main_screen_editor(_get_plugin_name());
+    get_editor_interface()->set_main_screen_editor(_get_plugin_name());
 }
 
 void OrchestratorPlugin::make_build_panel_active()
@@ -266,7 +266,7 @@ void OrchestratorPlugin::request_editor_restart()
 
     request->add_child(container);
 
-    request->connect("confirmed", callable_mp(this, &OrchestratorPlugin::_on_editor_restart));
+    request->connect("confirmed", callable_mp_lambda(this, []{ EditorInterface::get_singleton()->restart_editor(true); }));
     request->popup_centered();
 }
 
@@ -360,9 +360,4 @@ PackedStringArray OrchestratorPlugin::_get_breakpoints() const
 void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)
 {
     // todo: see script_editor_plugin.cpp
-}
-
-void OrchestratorPlugin::_on_editor_restart()
-{
-    get_editor_interface()->restart_editor(true);
 }

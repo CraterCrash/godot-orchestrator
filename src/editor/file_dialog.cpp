@@ -16,7 +16,7 @@
 //
 #include "editor/file_dialog.h"
 
-#include "plugins/orchestrator_editor_plugin.h"
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
 
 void OrchestratorFileDialog::_focus_file_text()
@@ -37,8 +37,7 @@ void OrchestratorFileDialog::_focus_file_text()
 
 void OrchestratorFileDialog::popup_file_dialog()
 {
-    const float EDSCALE = OrchestratorPlugin::get_singleton()->get_editor_interface()->get_editor_scale();
-    popup_centered_clamped(Size2(1050, 700) * EDSCALE, 0.8);
+    popup_centered_clamped(Size2(1050, 700) * EditorInterface::get_singleton()->get_editor_scale(), 0.8);
     _focus_file_text();
 }
 

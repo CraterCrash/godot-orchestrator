@@ -33,7 +33,7 @@ namespace FileUtils
     /// For the specified file, reads each line and calls the specified callback function with the line.
     /// @param p_file the file to read
     /// @param p_callback the callback function to call for each line
-    void for_each_line(const Ref<FileAccess>& p_file, std::function<void(const String&)> p_callback);
+    void for_each_line(const Ref<FileAccess>& p_file, const std::function<void(const String&)>& p_callback);
 }
 
 #endif // ORCHESTRATOR_FILE_UTILS_H

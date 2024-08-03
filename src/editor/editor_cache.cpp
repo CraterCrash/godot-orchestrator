@@ -16,8 +16,8 @@
 //
 #include "editor/editor_cache.h"
 #include "plugins/orchestrator_editor_debugger_plugin.h"
-#include "plugins/orchestrator_editor_plugin.h"
 
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_paths.hpp>
 
 #if GODOT_VERSION >= 0x040300
@@ -29,7 +29,7 @@ PackedInt64Array OrchestratorEditorCache::_get_breakpoints_for_path(const String
 
 Error OrchestratorEditorCache::load()
 {
-    const EditorInterface* ei = OrchestratorPlugin::get_singleton()->get_editor_interface();
+    const EditorInterface* ei = EditorInterface::get_singleton();
 
     _cache = Ref<ConfigFile>(memnew(ConfigFile));
 
@@ -65,7 +65,7 @@ Error OrchestratorEditorCache::save()
 {
     if (_cache.is_valid())
     {
-        const EditorInterface* ei = OrchestratorPlugin::get_singleton()->get_editor_interface();
+        const EditorInterface* ei = EditorInterface::get_singleton();
         return _cache->save(ei->get_editor_paths()->get_project_settings_dir().path_join(CACHE_FILE));
     }
 
