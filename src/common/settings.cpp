@@ -115,6 +115,18 @@ void OrchestratorSettings::remove_action_favorite(const String& p_action_name)
     }
 }
 
+void OrchestratorSettings::set_notify_prerelease_builds(bool p_notify_about_prereleases)
+{
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+
+    const String key = "orchestrator/settings/notify_about_pre-releases";
+    if (!ps->has_setting(key))
+        return;
+
+    ps->set_setting(key, p_notify_about_prereleases);
+    ps->save();
+}
+
 void OrchestratorSettings::_register_deprecated_settings()
 {
     // Default settings (Orchestrator v1)
@@ -139,6 +151,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(RESOURCE_SETTING("settings/default_type", "Object", "Node"));
     _settings.emplace_back(SENUM_SETTING("settings/storage_format", "Text,Binary", "Text"));
     _settings.emplace_back(SENUM_SETTING("settings/log_level", "FATAL,ERROR,WARN,INFO,DEBUG,TRACE", "INFO"));
+    _settings.emplace_back(BOOL_SETTING("settings/notify_about_pre-releases", true));
 
     _settings.emplace_back(RANGE_SETTING("settings/runtime/max_call_stack", "256,1024,256", 1024));
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
