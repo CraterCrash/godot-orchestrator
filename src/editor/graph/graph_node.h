@@ -106,6 +106,9 @@ public:
     /// @return the script node reference
     Ref<OScriptNode> get_script_node() { return _node; }
 
+    /// Toggles breakpoint on this node
+    void toggle_breakpoint() { _handle_context_menu(CM_TOGGLE_BREAKPOINT); }
+
     /// Get the graph node input pin at a given port
     /// @param p_port the port or slot index
     /// @return the editor graph node pin, or null if not found
