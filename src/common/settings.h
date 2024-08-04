@@ -72,6 +72,14 @@ public:
     /// @param p_action_name the action category to be removed
     void remove_action_favorite(const String& p_action_name);
 
+    /// Return whether to notify about pre-releases
+    /// @return true to notify about pre-releases, false otherwise
+    bool is_notify_about_prereleases() { return get_setting("settings/notify_about_pre-releases", true); }
+
+    /// Set whether to notify pre-release builds
+    /// @param p_notify_prerelease_builds true to notify about pre-releases, false for only stable releases
+    void set_notify_prerelease_builds(bool p_notify_prerelease_builds);
+
     const std::vector<Setting>& get_settings() const { return _settings; }
 
 private:

@@ -37,7 +37,7 @@ class OrchestratorFileDialog;
 class OrchestratorGettingStarted;
 class OrchestratorGotoNodeDialog;
 class OrchestratorScreenSelect;
-class OrchestratorUpdater;
+class OrchestratorUpdaterButton;
 class OrchestratorWindowWrapper;
 class OScript;
 
@@ -134,7 +134,7 @@ protected:
     OrchestratorScreenSelect* _screen_select{ nullptr };      //! Window screen selector
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
     OrchestratorGettingStarted* _getting_started{ nullptr };  //! Getting started landing
-    OrchestratorUpdater* _updater{ nullptr };                 //! Updater
+    OrchestratorUpdaterButton* _updater{ nullptr };           //! Updater
     Control* _select_separator{ nullptr };                    //! Separator that is hidden based on float state
     Control* _left_panel{ nullptr };                          //! Togglable left panel
     Container* _viewport_container{ nullptr };                //! Main viewport container
