@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## [2.1.stable](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.stable) - 2024-08-15
+
+- [0413239](http://github.com/CraterCrash/godot-orchestrator/commit/041323953b3accec5ab93e954faa6c2a87678943) - GH-741 Bump godot-engine/godot-cpp to 4.3.stable
+- [20b5362](http://github.com/CraterCrash/godot-orchestrator/commit/20b5362e615044adb3e7b24e52a8fcc58015867a) - GH-716 Include knots in movement with arrow keys
+- [94b0204](http://github.com/CraterCrash/godot-orchestrator/commit/94b02042f96641d3eac2cab55d613afbf377a6e3) - Fix broken help
+- [45496a9](http://github.com/CraterCrash/godot-orchestrator/commit/45496a9880762aab3ad5d41cf2a4e6fb07a0212e) - GH-727 Add constant variable support
+- [23d6427](http://github.com/CraterCrash/godot-orchestrator/commit/23d64278ed633189cbdc43388bedb770cc29064d) - GH-722 Correctly copy node state using `ui_copy` action
+- [8f882c9](http://github.com/CraterCrash/godot-orchestrator/commit/8f882c9c058ab15a4d87eb5ea3d3990df0dca94e) - GH-715 Alphabetically sort singleton list in inspector
+- [c163185](http://github.com/CraterCrash/godot-orchestrator/commit/c163185edefccaea83e56f66c6d855fedb0ae13b) - GH-729 Graph grid settings & cache left/right panel layouts
+- [b8b306a](http://github.com/CraterCrash/godot-orchestrator/commit/b8b306a37cee4909373f84119d5acbaa757c23e9) - GH-718 Add variable descriptions to get/set node tooltips
+- [a01c35d](http://github.com/CraterCrash/godot-orchestrator/commit/a01c35d502b7646350d7d9b197dcbeeff2dfbc15) - GH-716 Allow moving nodes using arrow keys
+- [34f0374](http://github.com/CraterCrash/godot-orchestrator/commit/34f037445b17e284404638afd6a940bf876dcd39) - Set min height on Orchestration build output panel
+- [112cc20](http://github.com/CraterCrash/godot-orchestrator/commit/112cc201d6dd8d996f3146c86279d8053528196c) - GH-705 Correctly size controls based on editor scale
+- [f727883](http://github.com/CraterCrash/godot-orchestrator/commit/f727883e9b4e7d0cf5830c32232bf06c809d0b3f) - GH-707 Add GraphNode alignment options
+- [c280586](http://github.com/CraterCrash/godot-orchestrator/commit/c280586ea802e6bf2c71a230f3d36a63e7db0d04) - GH-680 Fix crash on load
+- [57ec042](http://github.com/CraterCrash/godot-orchestrator/commit/57ec042d66b49f6886408cf675ae034568d0d19c) - GH-680 Support several serialization methods: `get_dependencies`, `rename_dependencies`, and `get_resource_script_class`
+- [bb10544](http://github.com/CraterCrash/godot-orchestrator/commit/bb10544bdbd3d8a79b7bb36e98c7e95521a33fa3) - GH-680 Fix loading external resources
+- [beeeb84](http://github.com/CraterCrash/godot-orchestrator/commit/beeeb847def000c0a30e1b1aa74ec70d3a02cf0f) - GH-703 Update FileSystemDock on file save as
+- [20ba58a](http://github.com/CraterCrash/godot-orchestrator/commit/20ba58a9194853486d760f328382e3d1dad2a0b8) - GH-693 Disable conversion to binary format on export
+- [11ddf96](http://github.com/CraterCrash/godot-orchestrator/commit/11ddf96977b40f67f6de966d289614adabcaf1d2) - GH-693 Emit resolved target object for method chain
+- [bb5cb4d](http://github.com/CraterCrash/godot-orchestrator/commit/bb5cb4d436522ddeadb8cbb36f5cfb19de69bbc4) - GH-701 Fix type cast honoring global script classes
+- [e539db6](http://github.com/CraterCrash/godot-orchestrator/commit/e539db620783516c23dbf7695379ff9b33402b5d) - Update copyright headers
+- [32c9ea3](http://github.com/CraterCrash/godot-orchestrator/commit/32c9ea34432dba333de3f4df74c5a8111021951a) - GH-697 Synchronize graph on theme changes
+- [cccc3a5](http://github.com/CraterCrash/godot-orchestrator/commit/cccc3a542587690e4998ee7c43e7bc93a60082cd) - GH-696 Avoid error when disabling recent files option
+- [7190c7c](http://github.com/CraterCrash/godot-orchestrator/commit/7190c7c388610d610186b965701df56f5aa96131) - GH-684 Fix call mode semantics
+- [98eedaa](http://github.com/CraterCrash/godot-orchestrator/commit/98eedaa05c40f7045e00d58b37925873d82d2167) - GH-640 Fix Godot 4.2 compatibility
+- [adf4c7e](http://github.com/CraterCrash/godot-orchestrator/commit/adf4c7eb1a663497abf8fa8639e24fee7d77c82a) - GH-640 Add dragging function creates callable
+- [90120ad](http://github.com/CraterCrash/godot-orchestrator/commit/90120ad22d48d574711526423cacf1b3392a712a) - GH-689 Introduce `PackedVector4Array` serialization handlers
+- [cecce3c](http://github.com/CraterCrash/godot-orchestrator/commit/cecce3c66d197f2e1e22d1ee181755b1ef7fb726) - GH-691 Use function argument names rather than class names
+- [624856e](http://github.com/CraterCrash/godot-orchestrator/commit/624856e9144c03f6b029f89b52c9b9befaeba2b6) - GH-682 Fix type resolution
+- [af6f01a](http://github.com/CraterCrash/godot-orchestrator/commit/af6f01a80a3ab883f5b07ab727e9b4b1025b4358) - GH-682 Fix exporting `Node` based variable types
+- [0b4de3a](http://github.com/CraterCrash/godot-orchestrator/commit/0b4de3ab75e62ddd2970e12be8a0a0a4bec322a0) - GH-687 Fix usage of script vs p_script
+- [44e310d](http://github.com/CraterCrash/godot-orchestrator/commit/44e310d6054f913c7b3a051f4e83129c586d7895) - GH-687 Check script type on debugger signals
+
 ## [2.1.rc4](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.rc4) - 2024-08-08
 
 - [cfa9b38](http://github.com/CraterCrash/godot-orchestrator/commit/cfa9b3885b08e9cda6e6803f53999e9a3ecd143e) - GH-657 Bump godot-engine/godot-cpp to 4.3.rc2
