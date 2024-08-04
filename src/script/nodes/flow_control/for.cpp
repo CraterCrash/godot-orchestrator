@@ -175,6 +175,12 @@ String OScriptNodeForLoop::get_icon() const
     return "Loop";
 }
 
+bool OScriptNodeForLoop::is_loop_port(int p_port) const
+{
+    // Body & Index
+    return p_port <= 1;
+}
+
 void OScriptNodeForLoop::get_actions(List<Ref<OScriptAction>>& p_action_list)
 {
     if (_with_break)
