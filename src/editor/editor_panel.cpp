@@ -1017,7 +1017,7 @@ void OrchestratorEditorPanel::_notification(int p_what)
             version->set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER);
             right_menu->add_child(version);
 
-            _updater = memnew(OrchestratorUpdater);
+            _updater = memnew(OrchestratorUpdaterButton);
             right_menu->add_child(_updater);
 
             if (_window_wrapper->is_window_available())
