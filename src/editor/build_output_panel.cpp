@@ -35,7 +35,7 @@ void OrchestratorBuildOutputPanel::reset()
         _button->set_button_icon(Ref<Texture2D>());
 
     _rtl->clear();
-    _rtl->append_text(vformat("%s - (c) 2023-present Vahera Studios, LCC and its contributors.\n\n", VERSION_FULL_NAME));
+    _rtl->append_text(vformat("%s - (c) 2023-present Vahera Studios, LLC and its contributors.\n\n", VERSION_FULL_NAME));
 }
 
 void OrchestratorBuildOutputPanel::add_error(const String& p_text)
