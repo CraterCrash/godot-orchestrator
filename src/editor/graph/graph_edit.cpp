@@ -1817,7 +1817,7 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
     }
 
     Vector2 mouse_up_position = get_screen_position() + get_local_mouse_position();
-    Vector2 position_offset = (get_scroll_offset() + (mouse_up_position - get_global_position())) / get_zoom();
+    Vector2 position_offset = (get_scroll_offset() + (mouse_up_position - get_screen_position())) / get_zoom();
     if (is_snapping_enabled())
     {
         int snap = get_snapping_distance();
