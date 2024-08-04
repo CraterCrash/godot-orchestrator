@@ -30,6 +30,7 @@
 #include <godot_cpp/classes/progress_bar.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/tree.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
