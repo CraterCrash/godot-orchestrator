@@ -63,6 +63,12 @@ String OScriptNodeWhile::get_icon() const
     return "Loop";
 }
 
+bool OScriptNodeWhile::is_loop_port(int p_port) const
+{
+    // Repeat
+    return p_port <= 0;
+}
+
 OScriptNodeInstance* OScriptNodeWhile::instantiate()
 {
     OScriptNodeWhileInstance* i = memnew(OScriptNodeWhileInstance);

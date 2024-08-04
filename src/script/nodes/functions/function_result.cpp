@@ -17,9 +17,6 @@
 #include "function_result.h"
 
 #include "common/property_utils.h"
-#include "script/nodes/flow_control/for.h"
-#include "script/nodes/flow_control/for_each.h"
-#include "script/nodes/flow_control/while.h"
 
 class OScriptNodeFunctionResultInstance : public OScriptNodeInstance
 {
@@ -140,13 +137,7 @@ void OScriptNodeFunctionResult::validate_node_during_build(BuildLog& p_log) cons
                     const Ref<OScriptNode> source = graph_nodes[E.from_node];
                     if (source.is_valid())
                     {
-                        Ref<OScriptNodeForEach> for_each_node = source;
-                        Ref<OScriptNodeForLoop> for_loop_node = source;
-                        Ref<OScriptNodeWhile> while_node = source;
-
-                        if ((for_each_node.is_valid() && E.from_port <= 2)
-                            || (for_loop_node.is_valid() && E.from_port <= 1)
-                            || (while_node.is_valid() && E.from_port <= 0))
+                        if (source->is_loop_port(E.from_port))
                             skipped.insert(E.to_node);
                     }
 
@@ -172,7 +163,7 @@ void OScriptNodeFunctionResult::validate_node_during_build(BuildLog& p_log) cons
                 {
                     for (const Ref<OScriptNodePin>& output : node->find_pins(PD_Output))
                     {
-                        if (output.is_valid() && output->is_execution() && !output->has_any_connections())
+                        if (output.is_valid() && output->is_execution() && !output->has_any_connections() && !node->is_loop_port(output->get_pin_index()))
                             p_log.error(node.ptr(), output, "This pin should be connected to the return node.");
                     }
                 }
