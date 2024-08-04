@@ -43,6 +43,7 @@
 #include <godot_cpp/classes/geometry2d.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_action.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
@@ -529,6 +530,15 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
                 }
             }
         }
+    }
+
+    Ref<InputEventKey> key_event = p_event;
+    if (key_event.is_valid() && key_event->is_pressed() && key_event->get_keycode() == KEY_F9)
+    {
+        for_each_graph_node([](OrchestratorGraphNode* node) {
+            if (node->is_selected())
+                node->toggle_breakpoint();
+        });
     }
 }
 
