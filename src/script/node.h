@@ -391,6 +391,9 @@ public:
     /// @return if the node can be duplicated
     virtual bool can_duplicate() const { return true; }
 
+    /// Return whether the specified port is a loop-based port
+    virtual bool is_loop_port(int p_port) const { return false; }
+
 protected:
     /// Notify that node pins have been changed.
     void _notify_pins_changed();

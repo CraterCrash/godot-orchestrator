@@ -52,6 +52,7 @@ public:
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
     PackedStringArray get_keywords() const override { return Array::make("for", "loop"); }
+    bool is_loop_port(int p_port) const override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
     OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
