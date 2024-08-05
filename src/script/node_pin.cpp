@@ -474,6 +474,10 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
     if ((!is_execution() && p_pin->is_execution()) || (is_execution() && !p_pin->is_execution()))
         return false;
 
+    // Any pin can connect to a Boolean input pin.
+    if (_property.type == Variant::BOOL)
+        return true;
+
     // Types match
     if (_property.type == p_pin->get_type())
     {
@@ -528,10 +532,6 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
 
     // Allow any-to-specific or specific-to-any
     if (PropertyUtils::is_variant(_property) || PropertyUtils::is_variant(p_pin->get_property_info()))
-        return true;
-
-    // Allow Object to boolean for conditional tests
-    if (_property.type == Variant::BOOL && p_pin->get_property_info().type == Variant::OBJECT)
         return true;
 
     return false;
