@@ -204,6 +204,17 @@ void OScriptNodeAssignLocalVariable::post_initialize()
     super::post_initialize();
 }
 
+void OScriptNodeAssignLocalVariable::post_placed_new_node()
+{
+    Ref<OScriptNodePin> variable = find_pin("variable");
+    if (variable.is_valid() && _type != Variant::NIL && !variable->has_any_connections())
+    {
+        _type = Variant::NIL;
+        reconstruct_node();
+    }
+    super::post_placed_new_node();
+}
+
 void OScriptNodeAssignLocalVariable::allocate_default_pins()
 {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
