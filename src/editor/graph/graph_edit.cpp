@@ -668,9 +668,18 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
     {
         if (data.has("functions"))
         {
-            OScriptNodeInitContext context;
-            context.method = DictionaryUtils::to_method(data["functions"]);
-            spawn_node<OScriptNodeCallScriptFunction>(context, _saved_mouse_position);
+            MethodInfo method = DictionaryUtils::to_method(data["functions"]);
+
+            // Create context-menu to specify variable get or set choice
+            _context_menu->clear();
+            _context_menu->add_separator("Function " + method.name);
+            _context_menu->add_item("Add Call Function", CM_FUNCTION_CALL);
+            _context_menu->add_item("Add Callable", CM_FUNCTION_CALLABLE);
+            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALL), data["functions"]);
+            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALLABLE), data["functions"]);
+            _context_menu->reset_size();
+            _context_menu->set_position(get_screen_position() + p_position);
+            _context_menu->popup();
         }
     }
     else if (type == "variable")
@@ -1243,6 +1252,9 @@ void OrchestratorGraphEdit::_show_action_menu(const Vector2& p_position, const O
 void OrchestratorGraphEdit::_update_saved_mouse_position(const Vector2& p_position)
 {
     _saved_mouse_position = (p_position + get_scroll_offset()) / get_zoom();
+
+    if (is_snapping_enabled())
+        _saved_mouse_position = _saved_mouse_position.snappedf(get_snapping_distance());
 }
 
 void OrchestratorGraphEdit::_show_drag_hint(const godot::String& p_message) const
@@ -1259,6 +1271,56 @@ void OrchestratorGraphEdit::_show_drag_hint(const godot::String& p_message) cons
 void OrchestratorGraphEdit::_hide_drag_hint()
 {
     _drag_hint->hide();
+}
+
+void OrchestratorGraphEdit::_create_script_function_callable(const StringName& p_function_name)
+{
+    BuiltInType callable_type = ExtensionDB::get_builtin_type(Variant::CALLABLE);
+
+    int ctor_index = 0;
+    bool found = false;
+    for (; ctor_index < callable_type.constructors.size(); ++ctor_index)
+    {
+        const ConstructorInfo& ctor = callable_type.constructors[ctor_index];
+        if (ctor.arguments.size() == 2
+            && ctor.arguments[0].type == Variant::OBJECT
+            && ctor.arguments[1].type == Variant::STRING_NAME)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+        return;
+
+    const Vector<PropertyInfo>& properties = callable_type.constructors[ctor_index].arguments;
+    const Array arguments = DictionaryUtils::from_properties(properties);
+
+    Dictionary spawn_data;
+    spawn_data["type"] = Variant::CALLABLE;
+    spawn_data["constructor_args"] = arguments;
+
+    OScriptNodeInitContext compose_context;
+    compose_context.user_data = spawn_data;
+
+    spawn_node<OScriptNodeComposeFrom>(
+        compose_context,
+        _saved_mouse_position,
+        callable_mp_lambda(this, [=](OScriptNodeComposeFrom* compose) {
+            compose->find_pin(1, PD_Input)->set_default_value(p_function_name);
+            compose->reconstruct_node();
+
+            const Vector2 self_position = _saved_mouse_position - Vector2(200, 0);
+
+            OScriptNodeInitContext self_context;
+            spawn_node<OScriptNodeSelf>(
+                self_context,
+                self_position,
+                callable_mp_lambda(this, [=](OScriptNodeSelf* self) {
+                    self->find_pin(0, PD_Output)->link(compose->find_pin(0, PD_Input));
+                }));
+        }));
 }
 
 void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from, int p_from_port, bool p_output)
@@ -1678,6 +1740,21 @@ void OrchestratorGraphEdit::_on_context_menu_selection(int p_id)
             Ref<OrchestratorGraphActionHandler> handler = _context_menu->get_item_metadata(index);
             if (handler.is_valid())
                 handler->execute(this, _saved_mouse_position);
+            break;
+        }
+        case CM_FUNCTION_CALL:
+        {
+            int index = _context_menu->get_item_index(p_id);
+            OScriptNodeInitContext context;
+            context.method = DictionaryUtils::to_method(_context_menu->get_item_metadata(index));
+            spawn_node<OScriptNodeCallScriptFunction>(context, _saved_mouse_position);
+            break;
+        }
+        case CM_FUNCTION_CALLABLE:
+        {
+            int index = _context_menu->get_item_index(p_id);
+            MethodInfo method = DictionaryUtils::to_method(_context_menu->get_item_metadata(index));
+            _create_script_function_callable(method.name);
             break;
         }
         case CM_FILE_GET_PATH:
