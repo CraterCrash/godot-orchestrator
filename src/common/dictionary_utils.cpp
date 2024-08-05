@@ -200,4 +200,13 @@ namespace DictionaryUtils
 
         return properties;
     }
+
+    Array from_properties(const Vector<PropertyInfo>& p_properties)
+    {
+        TypedArray<Dictionary> result;
+        for (const PropertyInfo& property : p_properties)
+            result.push_back(from_property(property));
+
+        return result;
+    }
 }

@@ -19,6 +19,7 @@
 
 #include <godot_cpp/core/method_bind.hpp>
 #include <godot_cpp/core/property_info.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
@@ -71,6 +72,11 @@ namespace DictionaryUtils
     /// @param p_sorted whether to sort the properties by name
     /// @return the list of property info objects
     List<PropertyInfo> to_properties(const TypedArray<Dictionary>& p_array, bool p_sorted = false);
+
+    /// Converts a vector of property infos to an array of dictionary entries
+    /// @param p_properties the properties
+    /// @return an array of dictionaries
+    Array from_properties(const Vector<PropertyInfo>& p_properties);
 }
 
 #endif  // ORCHESTRATOR_DICTIONARY_UTILS_H
