@@ -71,7 +71,9 @@ class OrchestratorGraphEdit : public GraphEdit
         CM_PROPERTY_GET,
         CM_PROPERTY_SET,
         CM_FILE_GET_PATH,
-        CM_FILE_PRELOAD
+        CM_FILE_PRELOAD,
+        CM_FUNCTION_CALL,
+        CM_FUNCTION_CALLABLE
     };
 
     /// Simple drag state for the graph
@@ -372,6 +374,10 @@ private:
 
     /// Hides the drag status hint
     void _hide_drag_hint();
+
+    /// Creates a callable mapping for the script function
+    /// @param p_function_name the name of the function to call
+    void _create_script_function_callable(const StringName& p_function_name);
 
     /// Connection drag started
     /// @param p_from the source node
