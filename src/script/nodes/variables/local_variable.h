@@ -68,6 +68,7 @@ protected:
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
+    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "variable"; }
