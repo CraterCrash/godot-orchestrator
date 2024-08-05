@@ -101,6 +101,8 @@ int OScriptNodePrintStringInstance::step(OScriptExecutionContext& p_context)
             label->set_fit_content(true);
             label->set_use_bbcode(true);
             label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+            label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+            label->set_autowrap_mode(TextServer::AUTOWRAP_OFF);
             container->add_child(label);
 
             label->push_color(p_context.get_input(3));
