@@ -113,4 +113,8 @@ namespace MethodUtils
         return signature;
     }
 
+    size_t get_argument_count_without_defaults(const MethodInfo& p_method)
+    {
+        return p_method.arguments.size() - p_method.default_arguments.size();
+    }
 }

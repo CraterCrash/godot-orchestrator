@@ -457,8 +457,10 @@ void OScriptNodeCallFunction::initialize(const OScriptNodeInitContext& p_context
 
 void OScriptNodeCallFunction::validate_node_during_build(BuildLog& p_log) const
 {
-    for (const PropertyInfo& property : _reference.method.arguments)
+    const size_t non_default_arguments = MethodUtils::get_argument_count_without_defaults(_reference.method);
+    for (size_t i = 0; i < non_default_arguments; i++)
     {
+        const PropertyInfo& property = _reference.method.arguments[i];
         const Ref<OScriptNodePin> property_pin = find_pin(property.name, PD_Input);
         if (property_pin.is_valid())
         {

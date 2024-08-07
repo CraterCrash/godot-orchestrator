@@ -44,6 +44,11 @@ namespace MethodUtils
     /// @param p_method the method
     /// @return the signature
     String get_signature(const MethodInfo& p_method);
+
+    /// Calculates the number of arguments that have no default values
+    /// @param p_method the method
+    /// @return the number of arguments that have no default values
+    size_t get_argument_count_without_defaults(const MethodInfo& p_method);
 }
 
 #endif // ORCHESTRATOR_METHOD_UTILS_H
