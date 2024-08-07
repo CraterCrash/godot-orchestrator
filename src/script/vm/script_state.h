@@ -56,9 +56,11 @@ protected:
     int _flow_stack_pos{ 0 };                               //! The flow stack position
     int _pass{ 0 };                                         //! The current number of passes
 
-    /// The signal callbac, which is dispatched when the resume signal is triggered.
-    /// @param p_args the callback arguments, if any
-    void _signal_callback(const Array& p_args);
+    /// The signal callback, which is dispatched when the resume signal is triggered.
+    /// @param p_args the signal argument list, if any
+    /// @param p_argcount the number of arguments, or 0 if no arguments supplied
+    /// @param r_err the callback error to return after the callback is processed
+    void _signal_callback(const Variant** p_args, GDExtensionInt p_argcount, GDExtensionCallError& r_err);
 
     /// Call the method
     /// @param r_error the error code
