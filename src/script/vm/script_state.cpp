@@ -18,45 +18,34 @@
 
 #include "script/instances/node_instance.h"
 
-void OScriptState::_signal_callback(const Array& p_args)
+void OScriptState::_signal_callback(const Variant** p_args, GDExtensionInt p_argcount, GDExtensionCallError& r_err)
 {
     // If no function is set, we cannot resume execution.
     ERR_FAIL_COND(!is_valid());
 
-    GDExtensionCallError err;
-    err.error = GDEXTENSION_CALL_OK;
+    r_err.error = GDEXTENSION_CALL_OK;
 
     // NOTE:
-    // This callback should always be called with a minimum of 1 argument, which is a reference
-    // to the OScriptState. If there isn't at least 1 argument supplied, resume should fail.
-
-    Array args;
-    const int arg_count = p_args.size();
-    if (arg_count == 0)
+    // This callback should always be called with a minimum of 1 argument, which is a reference to
+    // the state object. If there isn't at least 1 argument, resume should fail.
+    if (p_argcount <=  0)
     {
-        err.error = GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS;
-        err.argument = 1;
+        r_err.error = GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS;
+        r_err.argument = 1;
         return;
     }
-    else if (arg_count > 1)
-    {
-        // State with arguments
-        for (int i = 0; i < arg_count - 1; i++)
-            args.push_back(p_args[i]);
-    }
 
-    const Ref<OScriptState> state = p_args[arg_count - 1];
+    const Ref<OScriptState> state = *p_args[p_argcount - 1];
     if (state.is_null())
     {
-        err.error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
-        err.argument = arg_count - 1;
-        err.expected = Variant::OBJECT;
+        r_err.error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
+        r_err.argument = p_argcount - 1;
+        r_err.expected = Variant::OBJECT;
         return;
     }
 
-    err.error = GDEXTENSION_CALL_OK;
-
-    _call_method(err);
+    r_err.error = GDEXTENSION_CALL_OK;
+    _call_method(r_err);
 }
 
 Variant OScriptState::_call_method(GDExtensionCallError& r_error)
@@ -77,15 +66,7 @@ void OScriptState::connect_to_signal(Object* p_object, const String& p_signal, c
 {
     // Cannot bind if the provided object instance is null
     ERR_FAIL_NULL(p_object);
-
-    Array bindings;
-    for (int i = 0; i < p_bindings.size(); i++)
-        bindings.push_back(p_bindings[i]);
-
-    // Cache a reference to this object
-    bindings.push_back(Ref<OScriptState>(this));
-
-    p_object->connect(p_signal, callable_mp(this, &OScriptState::_signal_callback).bind(bindings), CONNECT_ONE_SHOT);
+    p_object->connect(p_signal, Callable(this, "_signal_callback").bind(Ref<OScriptState>(this)), CONNECT_ONE_SHOT);
 }
 
 bool OScriptState::is_valid() const
@@ -108,7 +89,11 @@ void OScriptState::_bind_methods()
     ClassDB::bind_method(D_METHOD("connect_to_signal", "object", "signals", "args"), &OScriptState::connect_to_signal);
     ClassDB::bind_method(D_METHOD("resume", "args"), &OScriptState::resume, DEFVAL(Array()));
     ClassDB::bind_method(D_METHOD("is_valid"), &OScriptState::is_valid);
-    ClassDB::bind_method(D_METHOD("_signal_callback", "args"), &OScriptState::_signal_callback);
+
+    MethodInfo mi;
+    mi.name = "_signal_callback";
+    mi.arguments.push_back(PropertyInfo(Variant::OBJECT, "data"));
+    ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "_signal_callback", &OScriptState::_signal_callback, mi); //, std::vector<Variant>(), true);
 }
 
 OScriptState::~OScriptState()
