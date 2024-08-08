@@ -36,6 +36,10 @@
     "godot_compatibility": "4.2"
   },
   {
+    "version": "v2.0.2.rc3",
+    "godot_compatibility": "4.2"
+  },  
+  {
     "version": "v2.1.dev1",
     "godot_compatibility": "4.2"
   },
