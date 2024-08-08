@@ -1,6 +1,6 @@
 // This file is part of the Godot Orchestrator project.
 //
-// Copyright (c) 2023-present Vahera Studios LLC and its contributors.
+// Copyright (c) 2023-present Crater Crash Studios LLC and its contributors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ void OrchestratorBuildOutputPanel::reset()
         _button->set_button_icon(Ref<Texture2D>());
 
     _rtl->clear();
-    _rtl->append_text(vformat("%s - (c) 2023-present Vahera Studios, LLC and its contributors.\n\n", VERSION_FULL_NAME));
+    _rtl->append_text(vformat("%s - (c) 2023-present Crater Crash Studios, LLC and its contributors.\n\n", VERSION_FULL_NAME));
 }
 
 void OrchestratorBuildOutputPanel::add_error(const String& p_text)

@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=10 format=2 uid="uid://c15sj30jfu8q2"]
+[orchestration type="OScript" load_steps=10 format=3 uid="uid://c15sj30jfu8q2"]
 
 [obj type="OScriptFunction" id="OScriptFunction_8ku1s"]
 guid = "353DC3AF-0F76-4294-89CC-2F918ED5C978"
@@ -14,6 +14,7 @@ id = 0
 
 [obj type="OScriptGraph" id="OScriptGraph_8e6ng"]
 graph_name = &"EventGraph"
+offset = Vector2(0, -25)
 flags = 8
 nodes = Array[int]([0, 1, 2, 3, 4, 5])
 functions = Array[int]([0])
@@ -22,7 +23,7 @@ functions = Array[int]([0])
 function_id = "353DC3AF-0F76-4294-89CC-2F918ED5C978"
 id = 0
 size = Vector2(221, 93)
-position = Vector2(260, 260)
+position = Vector2(280, 260)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecOut",
 "dir": 1,
@@ -44,8 +45,8 @@ right_type = 3
 right_type_name = &"float"
 return_type = 3
 id = 1
-size = Vector2(201, 93)
-position = Vector2(480, 340)
+size = Vector2(158, 93)
+position = Vector2(560, 340)
 pin_data = Array[Dictionary]([{
 "pin_name": &"a",
 "type": 3,
@@ -75,8 +76,8 @@ method = {
 }]
 }
 id = 2
-size = Vector2(244, 66)
-position = Vector2(740, 340)
+size = Vector2(147, 66)
+position = Vector2(780, 340)
 pin_data = Array[Dictionary]([{
 "pin_name": &"deg",
 "type": 3,
@@ -92,6 +93,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"rotate_y"
 target_class_name = "Node3D"
 target_type = 24
+flags = 520
 method = {
 "name": &"rotate_y",
 "args": [{
@@ -101,8 +103,8 @@ method = {
 }
 chain = false
 id = 3
-size = Vector2(198, 120)
-position = Vector2(1020, 260)
+size = Vector2(129, 120)
+position = Vector2(1040, 260)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -135,13 +137,14 @@ position = Vector2(240, 160)
 variable_name = &"rotation_speed"
 id = 5
 size = Vector2(203, 66)
-position = Vector2(260, 380)
+position = Vector2(280, 380)
 pin_data = Array[Dictionary]([{
 "pin_name": &"value",
 "type": 3,
 "dir": 1,
 "flags": 2050,
-"label": "rotation_speed"
+"label": "rotation_speed",
+"usage": 4102
 }])
 
 [obj type="OScriptVariable" id="OScriptVariable_730ue"]
