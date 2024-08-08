@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=50 format=2 uid="uid://i088ibwd6mn2"]
+[orchestration type="OScript" load_steps=50 format=3 uid="uid://i088ibwd6mn2"]
 
 [obj type="OScriptFunction" id="OScriptFunction_p5wor"]
 guid = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
@@ -224,7 +224,6 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_n64y0"]
 function_id = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
-return_type = 1
 id = 25
 size = Vector2(108, 83.0001)
 position = Vector2(-840, -40)
@@ -241,7 +240,6 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_p50t4"]
 function_id = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
-return_type = 1
 id = 26
 size = Vector2(203, 83)
 position = Vector2(-360, -40)
@@ -263,7 +261,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"is_in_group"
 target_class_name = "Node"
 target_type = 24
-flags = 10
+flags = 522
 method = {
 "name": &"is_in_group",
 "return": {
@@ -418,6 +416,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"quit"
 target_class_name = "SceneTree"
 target_type = 24
+flags = 520
 method = {
 "name": &"quit",
 "default_args": [0],

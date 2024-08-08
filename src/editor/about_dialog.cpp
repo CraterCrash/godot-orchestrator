@@ -1,6 +1,6 @@
 // This file is part of the Godot Orchestrator project.
 //
-// Copyright (c) 2023-present Vahera Studios LLC and its contributors.
+// Copyright (c) 2023-present Crater Crash Studios LLC and its contributors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ void OrchestratorAboutDialog::_notification(int p_what)
 
         Label* about_text = memnew(Label);
         about_text->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-        about_text->set_text(String::utf8("\xc2\xa9 2023-present ") + ("Vahera Studios, LLC and it's contributors."));
+        about_text->set_text(String::utf8("\xc2\xa9 2023-present ") + ("Crater Crash Studios, LLC and it's contributors."));
         version_info_vbc->add_child(about_text);
 
         hbc->add_child(version_info_vbc);

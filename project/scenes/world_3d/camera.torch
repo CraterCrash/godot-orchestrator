@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=139 format=2 uid="uid://bvc44327ha4lf"]
+[orchestration type="OScript" load_steps=139 format=3 uid="uid://bvc44327ha4lf"]
 
 [obj type="OScriptFunction" id="OScriptFunction_0w1iy"]
 guid = "73F97A0E-9DFA-4E67-975E-1891E54657F2"
@@ -888,7 +888,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"is_mouse_button_pressed"
 target_class_name = "Input"
 target_type = 24
-flags = 10
+flags = 522
 method = {
 "name": &"is_mouse_button_pressed",
 "return": {
@@ -922,8 +922,7 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"button",
 "type": 2,
-"flags": 33556482,
-"label": "MouseButton",
+"flags": 33554434,
 "target_class": "MouseButton",
 "dv": 1,
 "usage": 65542
@@ -1020,6 +1019,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"get_hit_length"
 target_class_name = "SpringArm3D"
 target_type = 24
+flags = 520
 method = {
 "name": &"get_hit_length",
 "return": {
@@ -1319,7 +1319,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"get_parent"
 target_class_name = "Node"
 target_type = 24
-flags = 10
+flags = 522
 method = {
 "name": &"get_parent",
 "return": {
@@ -1663,7 +1663,6 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_b1d2n"]
 function_id = "93BAA331-ABC4-4A2C-B873-5643395F4868"
-return_type = 1
 id = 108
 size = Vector2(175, 56)
 pin_data = Array[Dictionary]([{
@@ -1674,7 +1673,6 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_wiovc"]
 function_id = "93BAA331-ABC4-4A2C-B873-5643395F4868"
-return_type = 1
 id = 109
 size = Vector2(203, 83)
 position = Vector2(680, 0)
@@ -1872,6 +1870,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"warp_mouse"
 target_class_name = "Input"
 target_type = 24
+flags = 520
 method = {
 "name": &"warp_mouse",
 "args": [{
@@ -2557,7 +2556,7 @@ pin_data = Array[Dictionary]([{
 function_name = &"get_global_transform"
 target_class_name = "Node3D"
 target_type = 24
-flags = 10
+flags = 522
 method = {
 "name": &"get_global_transform",
 "return": {
