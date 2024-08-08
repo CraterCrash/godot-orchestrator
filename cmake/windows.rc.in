@@ -17,14 +17,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Vahera Studios, LLC"
+            VALUE "CompanyName", "Crater Crash Studios, LLC"
             VALUE "FileDescription", "@win32_file_description@"
             VALUE "InternalName", "@gde_lib_name@"
             VALUE "OriginalFileName", "@gde_lib_name@"
             VALUE "ProductName", "@win32_product_name@"
             VALUE "ProductVersion", "@win32_product_version@"
             VALUE "FileVersion", "@win32_file_version@"
-            VALUE "LegalCopyright", "2023-present Vahera Studios LLC and its contributors\0"
+            VALUE "LegalCopyright", "2023-present Crater Crash Studios LLC and its contributors\0"
         END
     END
     BLOCK "VarFileInfo"

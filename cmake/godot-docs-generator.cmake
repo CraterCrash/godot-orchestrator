@@ -1,6 +1,6 @@
 ## This file is part of the Godot Orchestrator project.
 ##
-## Copyright (c) 2023-present Vahera Studios LLC and its contributors.
+## Copyright (c) 2023-present Crater Crash Studios LLC and its contributors.
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
 ## you may not use this file except in compliance with the License.
