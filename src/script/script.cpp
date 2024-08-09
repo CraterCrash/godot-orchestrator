@@ -276,14 +276,10 @@ TypedArray<Dictionary> OScript::_get_script_signal_list() const
 
 bool OScript::_has_property_default_value(const StringName& p_property) const
 {
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
-    {
-        if (E.key.match(p_property))
-        {
-            if (E.value->get_default_value().get_type() != Variant::NIL)
-                return true;
-        }
-    }
+    HashMap<StringName, Ref<OScriptVariable>>::ConstIterator E = _variables.find(p_property);
+    if (E)
+        return true;
+
     return false;
 }
 

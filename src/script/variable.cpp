@@ -71,7 +71,9 @@ void OScriptVariable::_validate_property(PropertyInfo& p_property) const
         p_property.class_name = _info.class_name;
         p_property.hint = _info.hint;
         p_property.hint_string = _info.hint_string;
-        p_property.usage = _info.usage;
+        p_property.usage = _info.hint == PROPERTY_HINT_NODE_TYPE
+            ? PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_SCRIPT_VARIABLE
+            : _info.usage;
     }
     else if (p_property.name.match("value_list"))
     {
@@ -283,6 +285,14 @@ void OScriptVariable::set_classification(const String& p_classification)
                     _info.class_name = "";
                     _info.usage = PROPERTY_USAGE_DEFAULT;
                 }
+                else if (ClassDB::is_parent_class(class_name, "Node"))
+                {
+                    _info.type = Variant::OBJECT;
+                    _info.hint = PROPERTY_HINT_NODE_TYPE;
+                    _info.hint_string = class_name;
+                    _info.class_name = "";
+                    _info.usage = PROPERTY_USAGE_DEFAULT;
+                }
                 else
                 {
                     _info.type = Variant::OBJECT;
@@ -326,6 +336,7 @@ void OScriptVariable::set_classification(const String& p_classification)
         }
 
         _exportable = _is_exportable_type(_info);
+        _info.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
 
         notify_property_list_changed();
         emit_changed();
