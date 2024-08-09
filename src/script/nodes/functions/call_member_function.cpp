@@ -110,6 +110,7 @@ Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin()
     Ref<OScriptNodePin> target = create_pin(PD_Input, PT_Data, property);
     if (target.is_valid())
     {
+        _function_flags.set_flag(FF_TARGET);
         if (property.type != Variant::OBJECT && !PropertyUtils::is_nil(property))
         {
             target->set_label(VariantUtils::get_friendly_type_name(property.type));
