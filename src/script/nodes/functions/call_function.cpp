@@ -33,6 +33,8 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
     int _argument_count{ 0 };
     int _argument_offset{ 2 };
     bool _pure{ false };
+    bool _self{ false };
+    bool _target{ false };
     bool _chained{ false };
     Array _args;
 
@@ -103,8 +105,10 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
         if (_argument_offset == 0)
             return p_context.get_owner();
 
-        Variant target = p_context.get_input(0);
-        return !target ? p_context.get_owner() : Object::cast_to<Object>(target);
+        if (_self)
+            return p_context.get_owner();
+
+        return Object::cast_to<Object>(p_context.get_input(0));
     }
 
 public:
@@ -121,7 +125,9 @@ public:
         Object* instance = _get_call_instance(p_context);
         if (!instance)
         {
-            ERR_PRINT("Cannot call function " + _reference.method.name + " on null target");
+            GDExtensionCallError error;
+            error.error = GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL;
+            p_context.set_error(error, "Cannot call function " + _reference.method.name + " on null target");
             return -1 | STEP_FLAG_END;
         }
 
@@ -445,6 +451,16 @@ OScriptNodeInstance* OScriptNodeCallFunction::instantiate()
     i->_argument_offset = get_argument_offset();
     i->_reference = _reference;
     i->_pure = _function_flags.has_flag(FF_PURE);
+
+    if (_function_flags.has_flag(FF_TARGET))
+    {
+        Ref<OScriptNodePin> target = find_pin("target", PD_Input);
+        if (!target.is_valid() || !target->has_any_connections())
+            i->_self = true;
+        else
+            i->_target = true;
+    }
+
     i->_chained = _chain;
     return i;
 }

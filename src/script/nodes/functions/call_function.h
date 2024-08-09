@@ -47,6 +47,7 @@ public:
         FF_STATIC       = 1 << 6,   //! Function is marked as static
         FF_OBJECT_CORE  = 1 << 7,   //! Function is a core Object virtual method, i.e. _notification
         FF_EDITOR       = 1 << 8,   //! Function is an editor method
+        FF_TARGET       = 1 << 9,   //! Function has a target object
     };
 
 protected:
