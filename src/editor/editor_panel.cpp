@@ -737,7 +737,7 @@ void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int
 
     for (const OrchestrationFile& file : _files_context.open_files)
     {
-        if (file.file_name == p_script->get_path())
+        if (file.file_name == script->get_path())
         {
             // Make plugin active
             OrchestratorPlugin::get_singleton()->make_active();
