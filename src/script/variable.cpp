@@ -290,7 +290,7 @@ void OScriptVariable::set_classification(const String& p_classification)
                     _info.type = Variant::OBJECT;
                     _info.hint = PROPERTY_HINT_NODE_TYPE;
                     _info.hint_string = class_name;
-                    _info.class_name = "";
+                    _info.class_name = class_name;
                     _info.usage = PROPERTY_USAGE_DEFAULT;
                 }
                 else
