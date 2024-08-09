@@ -30,9 +30,7 @@
 #include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/classes/scene_state.hpp>
 #include <godot_cpp/classes/script.hpp>
-#include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/templates/vector.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
 String OScriptTextResourceSaverInstance::_write_resources(void* p_userdata, const Ref<Resource>& p_resource)
 {
@@ -46,7 +44,7 @@ String OScriptTextResourceSaverInstance::_write_resource(const Ref<Resource>& p_
         return "null";
 
     if (_external_resources.has(p_resource))
-        return vformat("ExternalResource(\"%s\")", _external_resources[p_resource]);
+        return vformat("ExtResource(\"%s\")", _external_resources[p_resource]);
 
     if (_internal_resources.has(p_resource))
         return vformat("SubResource(\"%s\")", _internal_resources[p_resource]);
@@ -79,10 +77,10 @@ void OScriptTextResourceSaverInstance::_find_resources_object(const Variant& p_v
             return;
         }
 
-        // Use a numeric ID as a base, beacuse they are sorted in natural order before saving.
+        // Use a numeric ID as a base, because they are sorted in natural order before saving.
         // This increases the chances of thread loading to fetch them first.
         #if GODOT_VERSION >= 0x040300
-        String id = itos(_external_resources.size() + 1) + "-" + Resource::generate_scene_unique_id();
+        String id = itos(_external_resources.size() + 1) + "_" + Resource::generate_scene_unique_id();
         #else
         String id = itos(_external_resources.size() + 1) + "_" + _generate_scene_unique_id();
         #endif
@@ -387,9 +385,9 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
         String s = "[ext_resource type=\"" + sorted_external_resources[i].resource->get_class() + "\"";
 
         #if GODOT_VERSION >= 0x040300
-        int uid = _get_resource_id_for_path(p, false);
+        int64_t uid = _get_resource_id_for_path(p, false);
         #else
-        int uid = ResourceUID::INVALID_ID;
+        int64_t uid = ResourceUID::INVALID_ID;
         #endif
         if (uid != ResourceUID::INVALID_ID)
             s += " uid=\"" + ResourceUID::get_singleton()->id_to_text(uid) + "\"";
