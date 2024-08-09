@@ -731,29 +731,30 @@ void OrchestratorEditorPanel::_build_log_meta_clicked(const Variant& p_meta)
 #if GODOT_VERSION >= 0x040300
 void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int p_line)
 {
-    if (p_script.is_valid())
+    const Ref<OScript> script = p_script;
+    if (!script.is_valid())
+        return;
+
+    for (const OrchestrationFile& file : _files_context.open_files)
     {
-        for (const OrchestrationFile& file : _files_context.open_files)
+        if (file.file_name == p_script->get_path())
         {
-            if (file.file_name == p_script->get_path())
-            {
-                // Make plugin active
-                OrchestratorPlugin::get_singleton()->make_active();
-                // Show viewport
-                _show_editor_viewport(file.file_name);
-                // Goto node
-                file.viewport->goto_node(p_line + 1);
-                // Update files list
-                _update_file_list();
-                return;
-            }
+            // Make plugin active
+            OrchestratorPlugin::get_singleton()->make_active();
+            // Show viewport
+            _show_editor_viewport(file.file_name);
+            // Goto node
+            file.viewport->goto_node(p_line + 1);
+            // Update files list
+            _update_file_list();
+            return;
         }
-
-        edit_script(p_script);
-
-        // Goto the node in the script
-        _files_context.get_selected()->viewport->goto_node(p_line + 1);
     }
+
+    edit_script(script);
+
+    // Goto the node in the script
+    _files_context.get_selected()->viewport->goto_node(p_line + 1);
 }
 
 void OrchestratorEditorPanel::_clear_all_breakpoints()
@@ -768,15 +769,19 @@ void OrchestratorEditorPanel::_clear_all_breakpoints()
 
 void OrchestratorEditorPanel::_set_breakpoint(const Ref<Script>& p_script, int p_line, bool p_enabled)
 {
+    Ref<OScript> script = p_script;
+    if (!script.is_valid())
+        return;
+
     const int node_id = p_line + 1;
 
     Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
-    cache->set_breakpoint(p_script->get_path(), node_id, p_enabled);
-    cache->set_disabled_breakpoint(p_script->get_path(), node_id, true); // todo: is this right?
+    cache->set_breakpoint(script->get_path(), node_id, p_enabled);
+    cache->set_disabled_breakpoint(script->get_path(), node_id, true);
 
     for (const OrchestrationFile& file : _files_context.open_files)
     {
-        if (file.viewport->is_same_script(p_script))
+        if (file.viewport->is_same_script(script))
             file.viewport->set_breakpoint(node_id, p_enabled);
     }
 }
