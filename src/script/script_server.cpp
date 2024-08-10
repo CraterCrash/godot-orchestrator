@@ -16,6 +16,7 @@
 //
 #include "script/script_server.h"
 
+#include "common/version.h"
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
