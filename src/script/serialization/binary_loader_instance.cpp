@@ -555,6 +555,24 @@ Error OScriptBinaryResourceLoaderInstance::_parse_variant(Variant& r_val)
             r_val = array;
             break;
         }
+        case VARIANT_PACKED_VECTOR4_ARRAY:
+        {
+            uint32_t size = _file->get_32();
+
+            PackedVector4Array array;
+            array.resize(size);
+
+            for (uint32_t i = 0; i < size; i++)
+            {
+                array[i].x = _file->get_double();
+                array[i].y = _file->get_double();
+                array[i].z = _file->get_double();
+                array[i].w = _file->get_double();
+            }
+
+            r_val = array;
+            break;
+        }
         default:
             ERR_FAIL_V(ERR_FILE_CORRUPT);
     }

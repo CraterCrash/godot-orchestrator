@@ -17,7 +17,8 @@
 #include "script/serialization/instance.h"
 
 // The file format version
-uint32_t OScriptResourceFormatInstance::FORMAT_VERSION = 2;
+// 3: Introduced PackedVector4Array
+uint32_t OScriptResourceFormatInstance::FORMAT_VERSION = 3;
 
 // Remaining reserved fields in the file format (binary only)
 uint32_t OScriptResourceFormatInstance::RESERVED_FIELDS = 10;
