@@ -89,7 +89,7 @@ protected:
 
     /// Specifies whether arguments that are class types should be labeled by class names
     /// @return true to use class names, return false to use pin label or name
-    virtual bool _use_argument_class_name() const { return true; }
+    virtual bool _use_argument_class_name() const { return false; }
 
     /// Return whether the return value pin should be labeled
     /// @param p_pin the return value pin
