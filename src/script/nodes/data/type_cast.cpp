@@ -18,11 +18,28 @@
 
 #include "common/property_utils.h"
 #include "common/string_utils.h"
+#include "script/script_server.h"
 
 class OScriptNodeTypeCastInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeTypeCast);
     StringName _target_class;
+
+    bool _is_script_castable(const Ref<Script>& p_script) const
+    {
+        if (p_script.is_valid())
+        {
+            const String global_class_name = ScriptServer::get_global_name(p_script);
+            if (!global_class_name.is_empty() && ScriptServer::is_parent_class(global_class_name, _target_class))
+                return true;
+        }
+        return false;
+    }
+
+    bool _is_native_castable(const String& p_class_name) const
+    {
+        return ClassDB::is_parent_class(p_class_name, _target_class);
+    }
 
 public:
     int step(OScriptExecutionContext& p_context) override
@@ -31,7 +48,7 @@ public:
         if (input.get_type() == Variant::OBJECT)
         {
             Object* object = Object::cast_to<Object>(input);
-            if (object && ClassDB::is_parent_class(object->get_class(), _target_class))
+            if (object && (_is_native_castable(object->get_class()) || _is_script_castable(object->get_script())))
             {
                 p_context.set_output(0, &input);
                 return 0;
