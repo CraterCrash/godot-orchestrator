@@ -284,7 +284,7 @@ void OrchestratorEditorPanel::_update_recent_history()
     _recent_history->add_item("Clear Recent Files");
 
     if (_recent_files.is_empty())
-        _recent_history->set_item_disabled(_recent_history->get_item_count(), true);
+        _recent_history->set_item_disabled(_recent_history->get_item_count() - 1, true);
 }
 
 void OrchestratorEditorPanel::_save_recent_history()
