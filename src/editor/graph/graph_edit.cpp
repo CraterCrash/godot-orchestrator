@@ -263,6 +263,9 @@ void OrchestratorGraphEdit::_notification(int p_what)
             hbox_panel->set_border_color(hbox_panel->get_shadow_color());
             pc->add_theme_stylebox_override("panel", hbox_panel);
         }
+
+        if (is_visible_in_tree())
+            _synchronize_graph_with_script();
     }
 }
 
