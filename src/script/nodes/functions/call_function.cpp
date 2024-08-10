@@ -141,19 +141,21 @@ public:
                 _args[i] = p_context.get_input(i + _argument_offset);
         }
 
+        int chain_index = 0;
         if (MethodUtils::has_return_value(_reference.method))
         {
             Variant result = instance->callv(_reference.method.name, _args);
             p_context.set_output(0, result);
-            if (_chained)
-                p_context.set_output(1, p_context.get_input(0));
+            chain_index = 1;
         }
         else
         {
             instance->callv(_reference.method.name, _args);
-            if (_chained)
-                p_context.set_output(0, p_context.get_input(0));
         }
+
+        if (_chained)
+            p_context.set_output(chain_index, instance);
+
         return 0;
     }
 };
