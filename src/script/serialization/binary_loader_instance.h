@@ -22,6 +22,7 @@
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_format_loader.hpp>
+#include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -32,7 +33,7 @@ using namespace godot;
 class OScriptBinaryResourceLoader;
 
 /// A runtime instance that can load a binary Orchestrator resource format
-class OScriptBinaryResourceLoaderInstance : protected OScriptResourceFormatInstance
+class OScriptBinaryResourceLoaderInstance : protected OScriptResourceBinaryFormatInstance
 {
     friend class OScriptBinaryResourceLoader;
 
@@ -43,7 +44,12 @@ class OScriptBinaryResourceLoaderInstance : protected OScriptResourceFormatInsta
         uint64_t offset;
     };
 
-
+    struct ExternalResource
+    {
+        String path;
+        String type;
+        int64_t uid{ ResourceUID::INVALID_ID };
+    };
 
     // todo: add support for _uid & flags
 
@@ -54,6 +60,7 @@ class OScriptBinaryResourceLoaderInstance : protected OScriptResourceFormatInsta
     String _local_path;                                    //! The local resource path
     String _resource_path;                                 //! The resource path
     String _type;                                          //! The resource type
+    String _script_class;                                  //! The script class
     uint32_t _version;                                     //! The resource file format version
     uint64_t _godot_version;                               //! The Godot version used to save the resource last
     uint64_t _uid;                                         //! The resource's unique identifier
@@ -61,8 +68,11 @@ class OScriptBinaryResourceLoaderInstance : protected OScriptResourceFormatInsta
     List<Ref<Resource>> _resource_cache;                   //! The resource cache
     Vector<StringName> _string_map;                        //! The string map
     Vector<InternalResource> _internal_resources;          //! Collection of internal resources
+    Vector<ExternalResource> _external_resources;          //! Collection of external resources
     HashMap<String, Ref<Resource>> _internal_index_cache;  //! The internal index cache
     ResourceFormatLoader::CacheMode _cache_mode;           //! The cache mode
+    ResourceFormatLoader::CacheMode _cache_mode_ext;       //! The cache mode for external resources
+    HashMap<String, String> _remaps;                       //! Remap cache
 
     /// Check whether the path has been cached
     /// @param p_path the resource path
@@ -73,10 +83,6 @@ class OScriptBinaryResourceLoaderInstance : protected OScriptResourceFormatInsta
     /// @param p_path the resource path
     /// @return the cached resource if it exists, otherwise an invalid reference
     static Ref<Resource> _get_cached_ref(const String& p_path);
-
-    /// Reads the unicode encoded string from the file
-    /// @return the string value
-    String _read_unicode_string();
 
     /// Read the string from the file
     /// @return the string value
@@ -93,6 +99,24 @@ class OScriptBinaryResourceLoaderInstance : protected OScriptResourceFormatInsta
     static void _advance_padding(const Ref<FileAccess>& p_file, int p_size);
 
 public:
+    /// Gets all dependencies
+    /// @param p_file the opened file stream
+    /// @param p_add_types whether to add types
+    /// @return the list of dependencies
+    PackedStringArray get_dependencies(const Ref<FileAccess>& p_file, bool p_add_types);
+
+    /// Rename dependencies
+    /// @param p_file the opened file stream
+    /// @param p_path the file path that was opened
+    /// @param p_renames the dependencies to be renamed, mapped old to new filenames
+    /// @return the error status code
+    Error rename_dependencies(const Ref<FileAccess>& p_file, const String& p_path, const Dictionary& p_renames);
+
+    /// Get the script class
+    /// @param p_file the opened file stream
+    /// @return the script class name
+    String recognize_script_class(const Ref<FileAccess>& p_file);
+
     /// Opens the resource file stream
     /// @param p_file the opened file stream
     /// @param p_no_resources whether to load the resources

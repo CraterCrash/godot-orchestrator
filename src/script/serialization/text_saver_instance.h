@@ -28,7 +28,7 @@
 using namespace godot;
 
 /// Defines a resource format instance implementation for saving Orchestrator scripts as text.
-class OScriptTextResourceSaverInstance : public OScriptResourceFormatInstance
+class OScriptTextResourceSaverInstance : public OScriptResourceTextFormatInstance
 {
 protected:
     struct ResourceSort
@@ -85,11 +85,6 @@ protected:
     /// @param p_variant the variant
     /// @param p_main whether the resource is the main resource
     void _find_resources_dictionary(const Variant& p_variant, bool p_main = false);
-    //
-    /// Checks if the resource is considered built-in
-    /// @param p_resource the resource
-    /// @return <code>true</code> if the resource is built-in, <code>false</code> otherwise
-    bool _is_resource_built_in(const Ref<Resource>& p_resource) const;
 
     /// Get the resource class name
     /// @param p_resource the resource
@@ -100,12 +95,6 @@ protected:
     #if GODOT_VERSION < 0x040300
     String _generate_scene_unique_id();
     #endif
-
-    /// Get the resource ID for a specific path
-    /// @param p_path the file path
-    /// @param p_generate whether to generate a resource ID if not found
-    /// @return the resource ID
-    int64_t _get_resource_id_for_path(const String& p_path, bool p_generate);
 
     /// Find resources
     /// @param p_variant the variant

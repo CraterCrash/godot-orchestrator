@@ -16,10 +16,12 @@
 //
 #include "script/serialization/text_loader_instance.h"
 
+#include "common/string_utils.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "script/script.h"
 #include "script/serialization/resource_cache.h"
 
+#include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -30,7 +32,7 @@
 
 bool OScriptTextResourceLoaderInstance::_is_creating_missing_resources_if_class_unavailable_enabled() const
 {
-    // EditorNode sets this to true, existance of our plugin should be sufficient?
+    // EditorNode sets this to true, existence of our plugin should be sufficient?
     // todo: not exposed on ResourceLoader
     return OrchestratorPlugin::get_singleton() != nullptr;
 }
@@ -212,6 +214,237 @@ Error OScriptTextResourceLoaderInstance::_parse_ext_resource(OScriptVariantParse
     return err;
 }
 
+PackedStringArray OScriptTextResourceLoaderInstance::get_dependencies(const Ref<FileAccess>& p_file, bool p_add_types)
+{
+    PackedStringArray deps;
+
+    open(p_file);
+    _ignore_resource_parsing = true;
+    ERR_FAIL_COND_V(_error != OK, PackedStringArray());
+
+    while (_next_tag.name == "ext_resource")
+    {
+        if (!_next_tag.fields.has("type"))
+        {
+            _error = ERR_FILE_CORRUPT;
+            _error_text = "Missing 'type' in external resource tag";
+            _printerr();
+            return {};
+        }
+
+        if (!_next_tag.fields.has("id"))
+        {
+            _error = ERR_FILE_CORRUPT;
+            _error_text = "Missing 'id' in external resource tag";
+            _printerr();
+            return {};
+        }
+
+        String path = _next_tag.fields["path"];
+        String type = _next_tag.fields["type"];
+        String fallback_path;
+
+        bool using_uid = false;
+        if (_next_tag.fields.has("uid"))
+        {
+            String uidt = _next_tag.fields["uid"];
+            int64_t uid = ResourceUID::get_singleton()->text_to_id(uidt);
+            if (uid != ResourceUID::INVALID_ID)
+            {
+                fallback_path = path;
+                path = ResourceUID::get_singleton()->id_to_text(uid);
+                using_uid = true;
+            }
+        }
+
+        if (!using_uid && !path.contains("://") && path.is_relative_path())
+        {
+            // Path is relative, convert to resource path
+            path = ProjectSettings::get_singleton()->localize_path(_local_path.get_base_dir().path_join(path));
+        }
+
+        if (p_add_types)
+            path += "::" + type;
+
+        if (!fallback_path.is_empty())
+        {
+            if (!p_add_types)
+                path += "::"; // Ensure path comes third
+
+            path += "::" + fallback_path;
+        }
+
+        deps.push_back(path);
+
+        Error err = OScriptVariantParser::parse_tag(&_stream, _lines, _next_tag, _error_text, &_rp);
+        if (err)
+        {
+            UtilityFunctions::print(_error_text + " - " + itos(_lines));
+            _error_text = "Unexpected end of file";
+            _printerr();
+
+            _error = ERR_FILE_CORRUPT;
+            return {};
+        }
+    }
+
+    return deps;
+}
+
+Error OScriptTextResourceLoaderInstance::rename_dependencies(const Ref<FileAccess>& p_file, const String& p_path, const Dictionary& p_renames)
+{
+    open(p_file, true);
+    ERR_FAIL_COND_V(_error != OK, _error);
+    _ignore_resource_parsing = true;
+
+    Ref<FileAccess> fw;
+
+    String base_path = _local_path.get_base_dir();
+
+    uint64_t tag_end = _file->get_position();
+
+    while (true)
+    {
+        Error err = OScriptVariantParser::parse_tag(&_stream, _lines, _next_tag, _error_text, &_rp);
+        if (err != OK)
+        {
+            _error = ERR_FILE_CORRUPT;
+            ERR_FAIL_V(_error);
+        }
+
+        if (_next_tag.name != "ext_resource")
+        {
+            // Nothing was done
+            if (fw.is_null())
+                return OK;
+            break;
+        }
+        else
+        {
+            if (fw.is_null())
+            {
+                fw = FileAccess::open(vformat("%s.depren", p_path), FileAccess::WRITE);
+                if (_res_uid == ResourceUID::INVALID_ID)
+                    _res_uid =  _get_resource_id_for_path(p_path, false);
+
+                String script_res_text;
+                if (!_script_class.is_empty())
+                    script_res_text = "script_class=\"" + _script_class + "\" ";
+
+                fw->store_line(_create_start_tag(_res_type, script_res_text, _resources_total, _version, _res_uid));
+            }
+
+            if (!_next_tag.fields.has("path") || !_next_tag.fields.has("id") || !_next_tag.fields.has("type"))
+            {
+                _error = ERR_FILE_CORRUPT;
+                ERR_FAIL_V(_error);
+            }
+
+            String path = _next_tag.fields["path"];
+            String id = _next_tag.fields["id"];
+            String type = _next_tag.fields["type"];
+
+            if (_next_tag.fields.has("uid"))
+            {
+                String uidt = _next_tag.fields["uid"];
+                int64_t uid = ResourceUID::get_singleton()->text_to_id(uidt);
+                if (uid != ResourceUID::INVALID_ID && ResourceUID::get_singleton()->has_id(uid))
+                {
+                    // If a UID is found then the path is valid
+                    path = ResourceUID::get_singleton()->get_id_path(uid);
+                }
+            }
+
+            bool relative = false;
+            if (!path.begins_with("res://"))
+            {
+                path = base_path.path_join(path).simplify_path();
+                relative = true;
+            }
+
+            if (p_renames.has(path))
+                path = p_renames[path];
+
+            if (relative)
+                path = StringUtils::path_to_file(base_path, path);
+
+            String s = _create_ext_resource_tag(type, path, id, false);
+            fw->store_line(s);
+
+            tag_end = _file->get_position();
+        }
+    }
+
+    _file->seek(tag_end);
+
+    const uint32_t buffer_size = 2048;
+    uint8_t* buffer = (uint8_t*) alloca(buffer_size);
+    uint32_t num_read;
+
+    num_read = _file->get_buffer(buffer, buffer_size);
+    ERR_FAIL_COND_V_MSG(num_read == UINT32_MAX, ERR_CANT_CREATE, "Failed to allocate memory for buffer.");
+    ERR_FAIL_COND_V(num_read == 0, ERR_FILE_CORRUPT);
+
+    if (*buffer == '\n')
+    {
+        // Skip first newline character since we added one.
+        if (num_read > 1)
+            fw->store_buffer(buffer + 1, num_read - 1);
+    }
+    else
+    {
+        fw->store_buffer(buffer, num_read);
+    }
+
+    while (!_file->eof_reached())
+    {
+        num_read = _file->get_buffer(buffer, buffer_size);
+        fw->store_buffer(buffer, num_read);
+    }
+
+    bool all_ok = fw->get_error() == OK;
+    if (!all_ok)
+        return ERR_CANT_CREATE;
+
+    return OK;
+}
+
+String OScriptTextResourceLoaderInstance::recognize_script_class(const Ref<FileAccess>& p_file)
+{
+    _error = OK;
+    _lines = 1;
+    _file = p_file;
+    _stream.data = _file;
+    _ignore_resource_parsing = true;
+
+    OScriptVariantParser::Tag tag;
+    Error err = OScriptVariantParser::parse_tag(&_stream, _lines, tag, _error_text);
+    if (err)
+    {
+        _printerr();
+        return {};
+    }
+
+    if (tag.fields.has("format"))
+    {
+        uint32_t fmt = tag.fields["format"];
+        if (fmt > FORMAT_VERSION)
+        {
+            _error_text = "Saved with a new format version";
+            _printerr();
+            return {};
+        }
+    }
+
+    if (tag.name != "orchestration")
+        return {};
+
+    if (tag.fields.has("script_class"))
+        return tag.fields["script_class"];
+
+    return {};
+}
+
 void OScriptTextResourceLoaderInstance::open(const Ref<FileAccess>& p_file, bool p_skip_first_tag)
 {
     // Initialize state
@@ -238,7 +471,7 @@ void OScriptTextResourceLoaderInstance::open(const Ref<FileAccess>& p_file, bool
         {
             _error_text = "Saved with a newer version of the format";
             _printerr();
-            _error = ERR_PARSE_ERROR;
+            _error = ERR_FILE_UNRECOGNIZED;
             return;
         }
         _version = format;
@@ -273,13 +506,13 @@ void OScriptTextResourceLoaderInstance::open(const Ref<FileAccess>& p_file, bool
         _res_uid = ResourceUID::INVALID_ID;
 
     if (tag.fields.has("load_steps"))
-        _resources_total = tag.fields["load_step"];
+        _resources_total = tag.fields["load_steps"];
     else
         _resources_total = 0;
 
     if (!p_skip_first_tag)
     {
-        if (const Error err = OScriptVariantParser::parse_tag(&_stream, _lines, _next_tag, _error_text))
+        if (const Error err = OScriptVariantParser::parse_tag(&_stream, _lines, _next_tag, _error_text, &_rp))
         {
             _error_text = "Unexpected end of file";
             _printerr();
@@ -789,6 +1022,7 @@ PackedStringArray OScriptTextResourceLoaderInstance::get_classes_used(const Ref<
 }
 
 OScriptTextResourceLoaderInstance::OScriptTextResourceLoaderInstance()
+    : _stream(false)
 {
     _error = OK;
     // _version = 0;
