@@ -17,10 +17,28 @@
 #ifndef ORCHESTRATOR_SCRIPT_SERIALIZATION_INSTANCE_H
 #define ORCHESTRATOR_SCRIPT_SERIALIZATION_INSTANCE_H
 
-#include <godot_cpp/classes/object.hpp>
+#include "godot_cpp/classes/ref.hpp"
 
+#include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/resource.hpp>
+
+using namespace godot;
+
+/// Base class for all Orchestrator resource format instances
 class OScriptResourceFormatInstance
 {
+protected:
+    /// Get the resource unique ID for a given resource path
+    /// @param p_path the resource path
+    /// @param p_generate whether to generate a UID if none found
+    /// @return the unique ID or <code>ResourceUID::INVALID_ID</code> if not found and not generated
+    int64_t _get_resource_id_for_path(const String& p_path, bool p_generate = false);
+
+    /// Checks if the resource is considered built-in
+    /// @param p_resource the resource
+    /// @return <code>true</code> if the resource is built-in, <code>false</code> otherwise
+    bool _is_resource_built_in(const Ref<Resource>& p_resource) const;
+
 public:
     static uint32_t FORMAT_VERSION;
     static uint32_t RESERVED_FIELDS;
@@ -77,6 +95,40 @@ public:
         OBJECT_INTERNAL_RESOURCE = 2,
         OBJECT_EXTERNAL_RESOURCE_INDEX = 3,
     };
+
+    virtual ~OScriptResourceFormatInstance() = default;
+};
+
+/// A common class for binary-based resource format instances
+class OScriptResourceBinaryFormatInstance : public OScriptResourceFormatInstance
+{
+protected:
+    enum
+    {
+        // FORMAT_FLAG_NAMED_SCENE_IDS = 1, - Should not be applicable
+        FORMAT_FLAG_UIDS = 2,
+        // FORMAT_FLAG_REAL_T_IS_DOUBLE = 4, - Not yet possible, FileAccess does not expose this
+        FORMAT_FLAG_HAS_SCRIPT_CLASS = 8,
+    };
+
+    /// Reads a unicode string from the given file
+    /// @param p_file the file reference
+    /// @return the unicode string
+    String _read_unicode_string(const Ref<FileAccess>& p_file);
+
+    /// Save the specified string in the given file in unicode format.
+    /// @param p_file the file reference
+    /// @param p_value the string to be stored
+    /// @param p_bit_on_length ??
+    void _save_unicode_string(const Ref<FileAccess>& p_file, const String& p_value, bool p_bit_on_length = false);
+};
+
+/// A common class for text-based resource format instances
+class OScriptResourceTextFormatInstance : public OScriptResourceFormatInstance
+{
+protected:
+    String _create_start_tag(const String& p_resource_class, const String& p_script_class, uint32_t p_load_steps, uint32_t p_version, int64_t p_uid);
+    String _create_ext_resource_tag(const String& p_type, const String& p_path, const String& p_id, bool p_newline = true);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_SERIALIZATION_INSTANCE_H

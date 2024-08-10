@@ -17,22 +17,20 @@
 #include "script/serialization/binary_saver_instance.h"
 
 #include "common/dictionary_utils.h"
+#include "common/string_utils.h"
 #include "common/version.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
+#include <godot_cpp/classes/script.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 bool OScriptBinaryResourceSaverInstance::NonPersistentKey::operator<(const NonPersistentKey& p_key) const
 {
     return base == p_key.base ? property < p_key.property : base < p_key.base;
-}
-
-bool OScriptBinaryResourceSaverInstance::_is_resource_built_in(Ref<Resource> p_resource)
-{
-    // taken from resource.h
-    String path_cache = p_resource->get_path();
-    return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
 }
 
 void OScriptBinaryResourceSaverInstance::_pad_buffer(Ref<FileAccess> p_file, int p_size)
@@ -47,7 +45,7 @@ void OScriptBinaryResourceSaverInstance::_pad_buffer(Ref<FileAccess> p_file, int
 
 void OScriptBinaryResourceSaverInstance::_write_variant(
     const Ref<FileAccess>& p_file, const Variant& p_value, HashMap<Ref<Resource>, int>& p_resource_map,
-    HashMap<StringName, int>& p_string_map, const PropertyInfo& p_hint)
+    HashMap<Ref<Resource>, int>& p_external_resources, HashMap<StringName, int>& p_string_map, const PropertyInfo& p_hint)
 {
 switch (p_value.get_type())
     {
@@ -335,14 +333,22 @@ switch (p_value.get_type())
                 return;
             }
 
-            if (!p_resource_map.has(res))
+            if (!_is_resource_built_in(res))
             {
-                p_file->store_32(OBJECT_EMPTY);
-                ERR_FAIL_MSG("Resource was not pre-cached, most likely a circular resource problem.");
+                p_file->store_32(OBJECT_EXTERNAL_RESOURCE_INDEX);
+                p_file->store_32(p_external_resources[res]);
             }
+            else
+            {
+                if (!p_resource_map.has(res))
+                {
+                    p_file->store_32(OBJECT_EMPTY);
+                    ERR_FAIL_MSG("Resource was not pre-cached, most likely a circular resource problem.");
+                }
 
-            p_file->store_32(OBJECT_INTERNAL_RESOURCE);
-            p_file->store_32(p_resource_map[res]);
+                p_file->store_32(OBJECT_INTERNAL_RESOURCE);
+                p_file->store_32(p_resource_map[res]);
+            }
             break;
         }
         case Variant::CALLABLE:
@@ -366,8 +372,8 @@ switch (p_value.get_type())
             Array keys = d.keys();
             for (int i = 0; i < keys.size(); i++)
             {
-                _write_variant(p_file, keys[i], p_resource_map, p_string_map);
-                _write_variant(p_file, d[keys[i]], p_resource_map, p_string_map);
+                _write_variant(p_file, keys[i], p_resource_map, p_external_resources, p_string_map);
+                _write_variant(p_file, d[keys[i]], p_resource_map, p_external_resources, p_string_map);
             }
             break;
         }
@@ -377,7 +383,7 @@ switch (p_value.get_type())
             Array array = p_value;
             p_file->store_32(array.size());
             for (int i = 0; i < array.size(); i++)
-                _write_variant(p_file, array[i], p_resource_map, p_string_map);
+                _write_variant(p_file, array[i], p_resource_map, p_external_resources, p_string_map);
             break;
         }
         case Variant::PACKED_BYTE_ARRAY:
@@ -497,12 +503,19 @@ void OScriptBinaryResourceSaverInstance::_find_resources(const Variant& p_varian
         case Variant::OBJECT:
         {
             Ref<Resource> res = p_variant;
-            if (res.is_null() || res->get_meta(StringName("_skip_save_"), false))
+            if (res.is_null() || _external_resources.has(res) || res->get_meta(StringName("_skip_save_"), false))
                 return;
 
             if (!p_main && !_is_resource_built_in(res))
             {
-                ERR_PRINT("External resources are not supported by the OrchestratorScript format");
+                if (res->get_path() == _path)
+                {
+                    ERR_PRINT(vformat("Circular references to resource being saved found: '%s' will be null next time its loaded.", _local_path));
+                    return;
+                }
+
+                int idx = _external_resources.size();
+                _external_resources[res] = idx;
                 return;
             }
 
@@ -591,20 +604,6 @@ void OScriptBinaryResourceSaverInstance::_find_resources(const Variant& p_varian
     }
 }
 
-void OScriptBinaryResourceSaverInstance::_save_unicode_string(Ref<FileAccess> p_file, const String& p_value, bool p_bit_on_length)
-{
-    CharString utf8 = p_value.utf8();
-
-    size_t length;
-    if (p_bit_on_length)
-        length = (utf8.length() + 1) | 0x8000000;
-    else
-        length = (utf8.length() + 1);
-
-    p_file->store_32(length);
-    p_file->store_buffer((const uint8_t*)utf8.get_data(), utf8.length() + 1);
-}
-
 int OScriptBinaryResourceSaverInstance::_get_string_index(const String& p_value)
 {
     StringName sn = p_value;
@@ -676,6 +675,25 @@ Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<R
     // This means that if the class is renamed, this will yield the file unloadable.
     // Therefore, if classes are renamed, a version bump and migration step will be necessary to reload.
     _save_unicode_string(file, p_resource->get_class());
+
+    // Format 3 - script class, format flags, and uid
+    String script_class;
+    {
+        uint32_t format_flags = FORMAT_FLAG_UIDS;
+        Ref<Script> s = p_resource->get_script();
+        if (s.is_valid())
+        {
+            script_class = ScriptServer::get_global_name(s);
+            if (!script_class.is_empty())
+                format_flags |= FORMAT_FLAG_HAS_SCRIPT_CLASS;
+        }
+        file->store_32(format_flags);
+    }
+
+    int64_t uid = _get_resource_id_for_path(p_path, true);
+    file->store_64(uid);
+    if (!script_class.is_empty())
+        _save_unicode_string(file, script_class);
 
     // We explicitly leave some buffer for extended resource bits later on.
     // These fields will allow extension points without compromising the format.
@@ -753,7 +771,24 @@ Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<R
     for (int i = 0; i < _strings.size(); i++)
         _save_unicode_string(file, _strings[i]);
 
-    // Store external resources (if needed)
+    // Store external resources
+    file->store_32(_external_resources.size());
+    Vector<Ref<Resource>> save_order;
+    save_order.resize(_external_resources.size());
+    for (const KeyValue<Ref<Resource>, int>& E : _external_resources)
+        save_order.write[E.value] = E.key;
+
+    for (int i = 0; i < save_order.size(); i++)
+    {
+        // get_save_class() delegates to get_class()
+        _save_unicode_string(file, save_order[i]->get_class());
+        String res_path = save_order[i]->get_path();
+        res_path = _relative_paths ? StringUtils::path_to_file(_local_path, res_path) : res_path;
+        _save_unicode_string(file, res_path);
+
+        int64_t ruid = _get_resource_id_for_path(save_order[i]->get_path(), false);
+        file->store_64(ruid);
+    }
 
     // Store internal resources
     file->store_32(_saved_resources.size());
@@ -836,7 +871,7 @@ Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<R
         for (const Property& property : ri.properties)
         {
             file->store_32(property.name_index);
-            _write_variant(file, property.value, resource_map, _string_map, property.info);
+            _write_variant(file, property.value, resource_map, _external_resources, _string_map, property.info);
         }
     }
 

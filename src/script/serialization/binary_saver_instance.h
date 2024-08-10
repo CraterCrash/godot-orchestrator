@@ -34,7 +34,7 @@ using namespace godot;
 class OScriptBinaryResourceSaver;
 
 /// A runtime instance that can save a binary Orchestrator resource format
-class OScriptBinaryResourceSaverInstance : protected OScriptResourceFormatInstance
+class OScriptBinaryResourceSaverInstance : protected OScriptResourceBinaryFormatInstance
 {
     friend class OScriptBinaryResourceSaver;
 
@@ -74,12 +74,8 @@ class OScriptBinaryResourceSaverInstance : protected OScriptResourceFormatInstan
     RBMap<NonPersistentKey, Variant> _non_persistent_map;
     HashMap<StringName, int> _string_map;
     Vector<StringName> _strings;
+    HashMap<Ref<Resource>, int> _external_resources;
     List<Ref<Resource>> _saved_resources;
-
-    /// Checks if the resource is built-in
-    /// @param p_resource the resource
-    /// @return true if its a built-in resource, otherwise false
-    static bool _is_resource_built_in(Ref<Resource> p_resource);
 
     /// Pad the buffer with the given size
     /// @param p_file the file to write
@@ -90,21 +86,17 @@ class OScriptBinaryResourceSaverInstance : protected OScriptResourceFormatInstan
     /// @param p_file the file reference
     /// @param p_value the value to be written
     /// @param p_resource_map the resource map
+    /// @param p_external_resources the external resources
     /// @param p_string_map the string map
     /// @param p_hint the property information
     void _write_variant(const Ref<FileAccess>& p_file, const Variant& p_value, HashMap<Ref<Resource>, int>& p_resource_map,
-                        HashMap<StringName, int>& p_string_map, const PropertyInfo& p_hint = PropertyInfo());
+                        HashMap<Ref<Resource>, int>& p_external_resources, HashMap<StringName, int>& p_string_map,
+                        const PropertyInfo& p_hint = PropertyInfo());
 
     /// Find resources within the provided variant
     /// @param p_variant the variant to inspect
     /// @param p_main whether the variant is the main resource
     void _find_resources(const Variant& p_variant, bool p_main = false);
-
-    /// Save the specified string in the given file in unicode format.
-    /// @param p_file the file reference
-    /// @param p_value the string to be stored
-    /// @param p_bit_on_length ??
-    static void _save_unicode_string(Ref<FileAccess> p_file, const String& p_value, bool p_bit_on_length = false);
 
     /// Gets the string's index from the string map, adding it if it doesn't exist.
     /// @param p_value the string to lookup and add.

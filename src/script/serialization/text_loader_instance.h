@@ -34,7 +34,7 @@ class OrchestratorEditorExportPlugin;
 class OScriptTextResourceLoader;
 
 /// Defines a resource format instance implementation for loading Orchestrator scripts from text.
-class OScriptTextResourceLoaderInstance : public OScriptResourceFormatInstance
+class OScriptTextResourceLoaderInstance : public OScriptResourceTextFormatInstance
 {
     friend class OScriptTextResourceLoader;
     friend class OrchestratorEditorExportPlugin;
@@ -114,6 +114,24 @@ class OScriptTextResourceLoaderInstance : public OScriptResourceFormatInstance
     Error _parse_ext_resource(OScriptVariantParser::Stream* p_stream, Ref<Resource>& r_res, int& r_line, String& r_err_string);
 
 public:
+    /// Gets all dependencies
+    /// @param p_file the opened file stream
+    /// @param p_add_types whether to add types
+    /// @return the list of dependencies
+    PackedStringArray get_dependencies(const Ref<FileAccess>& p_file, bool p_add_types);
+
+    /// Rename dependencies
+    /// @param p_file the opened file stream
+    /// @param p_path the file path that was opened
+    /// @param p_renames the dependencies to be renamed, mapped old to new filenames
+    /// @return the error status code
+    Error rename_dependencies(const Ref<FileAccess>& p_file, const String& p_path, const Dictionary& p_renames);
+
+    /// Get the resource's script class, if any applies
+    /// @param p_file the opened file stream
+    /// @return the script class, if applicable
+    String recognize_script_class(const Ref<FileAccess>& p_file);
+
     /// Opens the file provided
     /// @param p_file the file resource to open/read
     /// @param p_skip_first_tag whether to skip the first tag
