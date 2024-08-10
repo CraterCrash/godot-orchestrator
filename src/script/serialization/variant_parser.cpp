@@ -1492,6 +1492,23 @@ Error OScriptVariantParser::parse_value(Stream* p_stream, Token& p_token, int& p
             }
             r_value = array;
         }
+        else if (id == "PackedVector4Array")
+        {
+            Vector<real_t> args;
+            if (const Error err = _parse_construct<real_t>(p_stream, args, p_line, r_err_string))
+                return err;
+
+            PackedVector4Array array;
+            {
+                int size = args.size() / 4;
+                array.resize(size);
+
+                Vector4* w = array.ptrw();
+                for (int i = 0; i < size; i++)
+                    w[i] = Vector4(args[i * 3 + 0], args[i * 3 + 1], args[i * 3 + 2], args[i * 3 + 3]);
+            }
+            r_value = array;
+        }
         else
         {
             r_err_string = "Unknown identifier: '" + id + "'.";
@@ -2392,6 +2409,20 @@ Error OScriptVariantWriter::write(const Variant& p_variant, StoreStringFunction 
                 if (i > 0)
                     p_store_string(p_store_userdata, ", ");
                 p_store_string(p_store_userdata, rtos_fix(data[i].r) + ", " + rtos_fix(data[i].g) + ", " + rtos_fix(data[i].b) + ", " + rtos(data[i].a));
+            }
+            p_store_string(p_store_userdata, ")");
+            break;
+        }
+        case Variant::PACKED_VECTOR4_ARRAY:
+        {
+            p_store_string(p_store_userdata, "PackedVector4Array(");
+            const PackedVector4Array data = p_variant;
+            int size = data.size();
+            for (int i = 0; i < size; i++)
+            {
+                if (i > 0)
+                    p_store_string(p_store_userdata, ", ");
+                p_store_string(p_store_userdata, rtos_fix(data[i].x) + ", " + rtos_fix(data[i].y) + ", " + rtos_fix(data[i].z) + ", " + rtos_fix(data[i].w));
             }
             p_store_string(p_store_userdata, ")");
             break;

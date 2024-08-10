@@ -483,6 +483,21 @@ switch (p_value.get_type())
             }
             break;
         }
+        case Variant::PACKED_VECTOR4_ARRAY:
+        {
+            p_file->store_32(VARIANT_PACKED_VECTOR4_ARRAY);
+            PackedVector4Array array = p_value;
+            const int size = array.size();
+            p_file->store_32(size);
+            for (int i = 0; i < size; i++)
+            {
+                p_file->store_double(array[i].x);
+                p_file->store_double(array[i].y);
+                p_file->store_double(array[i].z);
+                p_file->store_double(array[i].w);
+            }
+            break;
+        }
         default:
         {
             ERR_FAIL_MSG(vformat("Unable to serialize property type %s with name %s", p_value.get_type(), p_hint.name));

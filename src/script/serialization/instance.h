@@ -70,6 +70,7 @@ public:
         VARIANT_VECTOR4 = 50,
         VARIANT_VECTOR4I = 51,
         VARIANT_PROJECTION = 52,
+        VARIANT_PACKED_VECTOR4_ARRAY = 53,
 
         // Other static values
         OBJECT_EMPTY = 0,
