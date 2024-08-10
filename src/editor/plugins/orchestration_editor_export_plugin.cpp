@@ -41,54 +41,54 @@ void OrchestratorEditorExportPlugin::_export_begin(const PackedStringArray& p_fe
 
 void OrchestratorEditorExportPlugin::_export_file(const String& p_path, const String& p_type, const PackedStringArray& p_features)
 {
-    if (p_path.get_extension() != "torch")
-        return;
-
-    PackedByteArray bytes = FileAccess::get_file_as_bytes(p_path);
-    if (bytes.is_empty())
-        return;
-
-    Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
-    if (!file.is_valid())
-    {
-        ERR_PRINT("Failed to open the file: " + p_path);
-        return;
-    }
-
-    // Load the text-based orchestration from disk
-    OScriptTextResourceLoaderInstance loader;
-    loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
-    loader._cache_mode = ResourceFormatLoader::CacheMode::CACHE_MODE_IGNORE;
-    loader._res_path = loader._local_path;
-
-    loader.open(file, false);
-    if (loader.load() != OK)
-    {
-        ERR_PRINT("Failed to load the text-based script: " + p_path);
-        return;
-    }
-
-    Ref<DirAccess> user = DirAccess::open("user://");
-    if (!user.is_valid())
-    {
-        ERR_PRINT("Failed to open user:// directory.");
-        return;
-    }
-    user->make_dir_recursive("user://orchestrator");
-
-
-    OScriptBinaryResourceSaverInstance saver;
-    const String temp_path = "user://orchestrator/exported-orchestration.tmp";
-    if (saver.save(temp_path, loader._resource, FileAccess::WRITE) != OK)
-    {
-        ERR_PRINT("Failed to cache binary instance of " + p_path);
-        return;
-    }
-
-    bytes = FileAccess::get_file_as_bytes(temp_path);
-
-    const String save_path = vformat("res://.godot/exported/orchestrator/export-%s-%s.os", p_path.md5_text(), p_path.get_file().get_basename());
-    add_file(save_path, bytes, true);
+    // if (p_path.get_extension() != "torch")
+    //     return;
+    //
+    // PackedByteArray bytes = FileAccess::get_file_as_bytes(p_path);
+    // if (bytes.is_empty())
+    //     return;
+    //
+    // Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
+    // if (!file.is_valid())
+    // {
+    //     ERR_PRINT("Failed to open the file: " + p_path);
+    //     return;
+    // }
+    //
+    // // Load the text-based orchestration from disk
+    // OScriptTextResourceLoaderInstance loader;
+    // loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
+    // loader._cache_mode = ResourceFormatLoader::CacheMode::CACHE_MODE_IGNORE;
+    // loader._res_path = loader._local_path;
+    //
+    // loader.open(file, false);
+    // if (loader.load() != OK)
+    // {
+    //     ERR_PRINT("Failed to load the text-based script: " + p_path);
+    //     return;
+    // }
+    //
+    // Ref<DirAccess> user = DirAccess::open("user://");
+    // if (!user.is_valid())
+    // {
+    //     ERR_PRINT("Failed to open user:// directory.");
+    //     return;
+    // }
+    // user->make_dir_recursive("user://orchestrator");
+    //
+    //
+    // OScriptBinaryResourceSaverInstance saver;
+    // const String temp_path = "user://orchestrator/exported-orchestration.tmp";
+    // if (saver.save(temp_path, loader._resource, FileAccess::WRITE) != OK)
+    // {
+    //     ERR_PRINT("Failed to cache binary instance of " + p_path);
+    //     return;
+    // }
+    //
+    // bytes = FileAccess::get_file_as_bytes(temp_path);
+    //
+    // const String save_path = vformat("res://.godot/exported/orchestrator/export-%s-%s.os", p_path.md5_text(), p_path.get_file().get_basename());
+    // add_file(save_path, bytes, true);
 }
 
 void OrchestratorEditorExportPlugin::_bind_methods()
