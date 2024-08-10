@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/string_utils.h"
+#include "common/version.h"
 #include "script/serialization/resource_cache.h"
 #include "script/serialization/variant_parser.h"
 
@@ -31,6 +32,11 @@
 #include <godot_cpp/classes/scene_state.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/templates/vector.hpp>
+
+#if GODOT_VERSION < 0x040300
+#include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
+#endif
 
 String OScriptTextResourceSaverInstance::_write_resources(void* p_userdata, const Ref<Resource>& p_resource)
 {
@@ -153,13 +159,6 @@ void OScriptTextResourceSaverInstance::_find_resources_dictionary(const Variant&
     }
 }
 
-bool OScriptTextResourceSaverInstance::_is_resource_built_in(const Ref<Resource>& p_resource) const
-{
-    // Taken from resource.h
-    String path_cache = p_resource->get_path();
-    return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
-}
-
 String OScriptTextResourceSaverInstance::_resource_get_class(const Ref<Resource>& p_resource) const
 {
     Ref<MissingResource> missing_resource = p_resource;
@@ -202,18 +201,6 @@ String OScriptTextResourceSaverInstance::_generate_scene_unique_id()
     return id;
 }
 #endif
-
-int64_t OScriptTextResourceSaverInstance::_get_resource_id_for_path(const String& p_path, bool p_generate)
-{
-    int64_t fallback = ResourceLoader::get_singleton()->get_resource_uid(p_path);
-    if (fallback != ResourceUID::INVALID_ID)
-        return fallback;
-
-    if (p_generate)
-        return ResourceUID::get_singleton()->create_id();
-
-    return ResourceUID::INVALID_ID;
-}
 
 Variant OScriptTextResourceSaverInstance::_class_get_property_default_value(const StringName& p_class_name,
                                                                          const StringName& p_property)
@@ -381,18 +368,11 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
 
     for (int i = 0; i < sorted_external_resources.size(); i++)
     {
-        String p = sorted_external_resources[i].resource->get_path();
-        String s = "[ext_resource type=\"" + sorted_external_resources[i].resource->get_class() + "\"";
+        String res_class = sorted_external_resources[i].resource->get_class();
+        String res_path = sorted_external_resources[i].resource->get_path();
+        String res_id = sorted_external_resources[i].id;
 
-        #if GODOT_VERSION >= 0x040300
-        int64_t uid = _get_resource_id_for_path(p, false);
-        #else
-        int64_t uid = ResourceUID::INVALID_ID;
-        #endif
-        if (uid != ResourceUID::INVALID_ID)
-            s += " uid=\"" + ResourceUID::get_singleton()->id_to_text(uid) + "\"";
-
-        s += " path=\"" + p + "\" id=\"" + sorted_external_resources[i].id + "\"]\n";
+        String s = _create_ext_resource_tag(res_class, res_path, res_id);
         file->store_string(s); // Bundled
     }
 

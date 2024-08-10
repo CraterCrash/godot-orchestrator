@@ -23,8 +23,8 @@
 #include "script/serialization/text_loader_instance.h"
 #include "script/serialization/text_saver_instance.h"
 
+#include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/resource_saver.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 
 PackedStringArray OScriptBinaryResourceLoader::_get_recognized_extensions() const
@@ -52,7 +52,15 @@ String OScriptBinaryResourceLoader::_get_resource_type(const String& p_path) con
 
 String OScriptBinaryResourceLoader::_get_resource_script_class(const String& p_path) const
 {
-    return "";
+    Ref<FileAccess> file = FileAccess::open_compressed(p_path, FileAccess::READ);
+    if (!file.is_valid())
+        return {};
+
+    OScriptBinaryResourceLoaderInstance loader;
+    loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
+    loader._resource_path = loader._local_path;
+
+    return loader.recognize_script_class(file);
 }
 
 int64_t OScriptBinaryResourceLoader::_get_resource_uid(const String& p_path) const
@@ -77,12 +85,51 @@ int64_t OScriptBinaryResourceLoader::_get_resource_uid(const String& p_path) con
 
 PackedStringArray OScriptBinaryResourceLoader::_get_dependencies(const String& p_path, bool p_add_types) const
 {
-    return {}; // no dependencies yet
+    Ref<FileAccess> file = FileAccess::open_compressed(p_path, FileAccess::READ);
+    ERR_FAIL_COND_V_MSG(file.is_null(), PackedStringArray(), vformat("Cannot open file '%s'.", p_path));
+
+    OScriptBinaryResourceLoaderInstance loader;
+    loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
+    loader._resource_path = loader._local_path;
+
+    return loader.get_dependencies(file, p_add_types);
 }
 
 Error OScriptBinaryResourceLoader::_rename_dependencies(const String& p_path, const Dictionary& p_renames) const
 {
-    return OK; // no dependencies yet
+    Error err;
+    {
+        Ref<FileAccess> file = FileAccess::open_compressed(p_path, FileAccess::READ);
+        if (!file.is_valid())
+            return {};
+
+        OScriptBinaryResourceLoaderInstance loader;
+        loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
+        loader._resource_path = loader._local_path;
+
+        err = loader.rename_dependencies(file, p_path, p_renames);
+    }
+
+    if (err == OK)
+    {
+        // todo: the problem is that if the orchestration is opened & modified,
+        //       this will cause any pending edits to be lost if the user does
+        //       not save the orchestration. This is a universal Godot issue.
+
+        Ref<DirAccess> dir = DirAccess::open("res://");
+        if (dir.is_valid())
+        {
+            const String depren_file = vformat("%s.depren", p_path);
+            if (dir->remove(p_path) != OK)
+            {
+                dir->remove(depren_file);
+                return FAILED;
+            }
+
+            dir->rename(depren_file, p_path);
+        }
+    }
+    return err;
 }
 
 bool OScriptBinaryResourceLoader::_exists(const String& p_path) const
@@ -173,7 +220,19 @@ String OScriptTextResourceLoader::_get_resource_type(const String& p_path) const
 
 String OScriptTextResourceLoader::_get_resource_script_class(const String& p_path) const
 {
-    return "";
+    const String ext = p_path.get_extension().to_lower();
+    if (ext != ORCHESTRATOR_SCRIPT_QUALIFY_EXTENSION(ORCHESTRATOR_SCRIPT_TEXT_EXTENSION))
+        return {};
+
+    Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
+    if (!file.is_valid())
+        return {};
+
+    OScriptTextResourceLoaderInstance loader;
+    loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
+    loader._res_path = loader._local_path;
+
+    return loader.recognize_script_class(file);
 }
 
 int64_t OScriptTextResourceLoader::_get_resource_uid(const String& p_path) const
@@ -194,12 +253,55 @@ int64_t OScriptTextResourceLoader::_get_resource_uid(const String& p_path) const
 
 PackedStringArray OScriptTextResourceLoader::_get_dependencies(const String& p_path, bool p_add_types) const
 {
-    return {}; // no dependencies yet
+    PackedStringArray deps;
+
+    Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
+    if (file.is_null())
+        return deps;
+
+    OScriptTextResourceLoaderInstance loader;
+    loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
+    loader._res_path = loader._local_path;
+
+    return loader.get_dependencies(file, p_add_types);
 }
 
 Error OScriptTextResourceLoader::_rename_dependencies(const String& p_path, const Dictionary& p_renames) const
 {
-    return OK; // no dependencies yet
+    Error err;
+    {
+        Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
+        if (file.is_null())
+        {
+            ERR_FAIL_V(ERR_CANT_OPEN);
+        }
+
+        OScriptTextResourceLoaderInstance loader;
+        loader._local_path = ProjectSettings::get_singleton()->localize_path(p_path);
+        loader._res_path = loader._local_path;
+        err = loader.rename_dependencies(file, p_path, p_renames);
+    }
+
+    if (err == OK)
+    {
+        // todo: the problem is that if the orchestration is opened & modified,
+        //       this will cause any pending edits to be lost if the user does
+        //       not save the orchestration. This is a universal Godot issue.
+
+        Ref<DirAccess> dir = DirAccess::open("res://");
+        if (dir.is_valid())
+        {
+            const String depren_file = vformat("%s.depren", p_path);
+            if (dir->remove(p_path) != OK)
+            {
+                dir->remove(depren_file);
+                return FAILED;
+            }
+
+            dir->rename(depren_file, p_path);
+        }
+    }
+    return err;
 }
 
 bool OScriptTextResourceLoader::_exists(const String& p_path) const
