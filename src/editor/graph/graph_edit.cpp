@@ -1254,7 +1254,14 @@ void OrchestratorGraphEdit::_update_saved_mouse_position(const Vector2& p_positi
     _saved_mouse_position = (p_position + get_scroll_offset()) / get_zoom();
 
     if (is_snapping_enabled())
+    {
+        #if GODOT_VERSION >= 0x040300
         _saved_mouse_position = _saved_mouse_position.snappedf(get_snapping_distance());
+        #else
+        const float step = static_cast<float>(get_snapping_distance());
+        _saved_mouse_position = _saved_mouse_position.snapped(Vector2(step, step));
+        #endif
+    }
 }
 
 void OrchestratorGraphEdit::_show_drag_hint(const godot::String& p_message) const
@@ -1307,7 +1314,7 @@ void OrchestratorGraphEdit::_create_script_function_callable(const StringName& p
     spawn_node<OScriptNodeComposeFrom>(
         compose_context,
         _saved_mouse_position,
-        callable_mp_lambda(this, [=](OScriptNodeComposeFrom* compose) {
+        callable_mp_lambda(this, [=, this](OScriptNodeComposeFrom* compose) {
             compose->find_pin(1, PD_Input)->set_default_value(p_function_name);
             compose->reconstruct_node();
 
@@ -1317,7 +1324,7 @@ void OrchestratorGraphEdit::_create_script_function_callable(const StringName& p
             spawn_node<OScriptNodeSelf>(
                 self_context,
                 self_position,
-                callable_mp_lambda(this, [=](OScriptNodeSelf* self) {
+                callable_mp_lambda(this, [=, this](OScriptNodeSelf* self) {
                     self->find_pin(0, PD_Output)->link(compose->find_pin(0, PD_Input));
                 }));
         }));
