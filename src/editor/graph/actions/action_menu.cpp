@@ -142,7 +142,7 @@ void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilt
     _action_db.load(_filter);
     _generate_filtered_actions();
 
-    set_size(Vector2(350, 700));
+    set_size(Vector2(350, 700) * EditorInterface::get_singleton()->get_editor_scale());
 
     OrchestratorSettings* os = OrchestratorSettings::get_singleton();
     if (os && os->get_setting("ui/actions_menu/center_on_mouse"))
