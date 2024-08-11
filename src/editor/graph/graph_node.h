@@ -66,6 +66,12 @@ class OrchestratorGraphNode : public GraphNode
         CM_RESIZABLE,
         CM_MAKE_PURE_GETTER,
         CM_MAKE_VALIDATED_GETTER,
+        CM_ALIGN_TOP,
+        CM_ALIGN_MIDDLE,
+        CM_ALIGN_BOTTOM,
+        CM_ALIGN_LEFT,
+        CM_ALIGN_CENTER,
+        CM_ALIGN_RIGHT,
         CM_NODE_ACTION = 1000
     };
 
