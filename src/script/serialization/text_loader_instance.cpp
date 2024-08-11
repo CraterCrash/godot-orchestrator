@@ -512,7 +512,7 @@ void OScriptTextResourceLoaderInstance::open(const Ref<FileAccess>& p_file, bool
 
     if (!p_skip_first_tag)
     {
-        if (const Error err = OScriptVariantParser::parse_tag(&_stream, _lines, _next_tag, _error_text, &_rp))
+        if (const Error err = OScriptVariantParser::parse_tag(&_stream, _lines, _next_tag, _error_text))
         {
             _error_text = "Unexpected end of file";
             _printerr();
