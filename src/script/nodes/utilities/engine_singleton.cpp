@@ -39,7 +39,10 @@ public:
 
 void OScriptNodeEngineSingleton::_get_property_list(List<PropertyInfo>* r_list) const
 {
-    const String singleton_names = StringUtils::join(",", Engine::get_singleton()->get_singleton_list());
+    PackedStringArray singleton_names_list = Engine::get_singleton()->get_singleton_list();
+    singleton_names_list.sort();
+
+    const String singleton_names = StringUtils::join(",", singleton_names_list);
     r_list->push_back(PropertyInfo(Variant::STRING, "singleton", PROPERTY_HINT_ENUM, singleton_names));
 }
 
