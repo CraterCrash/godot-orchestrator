@@ -20,6 +20,7 @@
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "common/version.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
@@ -474,6 +475,21 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     if (!call_script_function.is_valid())
         _context_menu->set_item_disabled(_context_menu->get_item_index(CM_EXPAND_NODE), true);
 
+    PopupMenu* alignment_menu = memnew(PopupMenu);
+    alignment_menu->add_icon_item(SceneUtils::get_editor_icon("ControlAlignTopWide"), "Align Top", CM_ALIGN_TOP);
+    alignment_menu->add_icon_item(SceneUtils::get_editor_icon("ControlAlignHCenterWide"), "Align Middle", CM_ALIGN_MIDDLE);
+    alignment_menu->add_icon_item(SceneUtils::get_editor_icon("ControlAlignBottomWide"), "Align Bottom", CM_ALIGN_BOTTOM);
+    alignment_menu->add_icon_item(SceneUtils::get_editor_icon("ControlAlignLeftWide"), "Align Left", CM_ALIGN_LEFT);
+    alignment_menu->add_icon_item(SceneUtils::get_editor_icon("ControlAlignVCenterWide"), "Align Center", CM_ALIGN_CENTER);
+    alignment_menu->add_icon_item(SceneUtils::get_editor_icon("ControlAlignRightWide"), "Align Right", CM_ALIGN_RIGHT);
+    alignment_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphNode::_handle_context_menu));
+    #if GODOT_VERSION < 0x040300
+    _context_menu->add_child(alignment_menu);
+    _context_menu->add_submenu_item("Alignment", alignment_menu->get_name());
+    #else
+    _context_menu->add_submenu_node_item("Alignment", alignment_menu);
+    #endif
+
     #if GODOT_VERSION >= 0x040300
     if (!multi_selections)
     {
@@ -726,7 +742,7 @@ void OrchestratorGraphNode::_handle_context_menu(int p_id)
             }
             case CM_VIEW_DOCUMENTATION:
             {
-                get_graph()->goto_class_help(_node->get_help_topic());
+                get_graph()->goto_class_help(_node->get_class());
                 break;
             }
             case CM_RESIZABLE:
@@ -805,6 +821,78 @@ void OrchestratorGraphNode::_handle_context_menu(int p_id)
                 break;
             }
             #endif
+            case CM_ALIGN_TOP:
+            {
+                // Align all selected nodes to match top of this specific node.
+                const float top = get_position_offset().y;
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                {
+                    const float adjust = top - node->get_position_offset().y;
+                    node->set_position_offset(node->get_position_offset() + Vector2(0, adjust));
+                    node->get_script_node()->set_position(node->get_position_offset());
+                }
+                break;
+            }
+            case CM_ALIGN_MIDDLE:
+            {
+                // Align all selected nodes to center to this specific node.
+                const float mid_y = get_position_offset().y + (get_size().y / 2);
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                {
+                    const float node_mid_y = node->get_position_offset().y + (node->get_size().y / 2);
+                    node->set_position_offset(node->get_position_offset() + Vector2(0, mid_y - node_mid_y));
+                    node->get_script_node()->set_position(node->get_position_offset());
+                }
+                break;
+            }
+            case CM_ALIGN_BOTTOM:
+            {
+                // Align all selected nodes to match bottom of this specific node.
+                const float bottom = get_position_offset().y + get_size().y;
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                {
+                    const float adjust = bottom - (node->get_position_offset().y + node->get_size().y);
+                    node->set_position_offset(node->get_position_offset() + Vector2(0, adjust));
+                    node->get_script_node()->set_position(node->get_position_offset());
+                }
+                break;
+            }
+            case CM_ALIGN_LEFT:
+            {
+                // Align all selected nodes to this specific node.
+                const Vector2 pos = _node->get_position();
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                {
+                    const float left = node->get_position_offset().x;
+                    node->set_position_offset(node->get_position_offset() + Vector2(pos.x - left, 0));
+                    node->get_script_node()->set_position(node->get_position_offset());
+                }
+                break;
+            }
+            case CM_ALIGN_CENTER:
+            {
+                // Align all selected nodes to center to this specific node.
+                const float mid_x = get_position_offset().x + (get_size().x / 2);
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                {
+                    const float node_mid_x = node->get_position_offset().x + (node->get_size().x / 2);
+                    node->set_position_offset(node->get_position_offset() + Vector2(mid_x - node_mid_x, 0));
+                    node->get_script_node()->set_position(node->get_position_offset());
+                }
+                break;
+            }
+            case CM_ALIGN_RIGHT:
+            {
+                // Align all selected nodes to this specific node.
+                const float right = get_position_offset().x + get_size().x;
+                for (OrchestratorGraphNode* node : get_graph()->get_selected_nodes())
+                {
+                    const float adjust = right - (node->get_position_offset().x + node->get_size().x);
+                    node->set_position_offset(node->get_position_offset() + Vector2(adjust, 0));
+                    node->get_script_node()->set_position(node->get_position_offset());
+                }
+                break;
+            }
             default:
             {
                 WARN_PRINT("Feature not yet implemented");
