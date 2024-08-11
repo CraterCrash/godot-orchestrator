@@ -102,6 +102,9 @@ void OrchestratorBuildOutputPanel::_bind_methods()
 
 OrchestratorBuildOutputPanel::OrchestratorBuildOutputPanel()
 {
+    // Makes sure the output panel is same min height as Output panel
+    set_custom_minimum_size(Size2(0, 208 * EditorInterface::get_singleton()->get_editor_scale()));
+
     _rtl = memnew(RichTextLabel);
     _rtl->set_h_size_flags(SIZE_EXPAND_FILL);
     _rtl->set_v_size_flags(SIZE_EXPAND_FILL);
