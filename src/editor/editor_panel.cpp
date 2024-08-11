@@ -36,6 +36,7 @@
 
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/editor_file_system.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
@@ -430,6 +431,8 @@ void OrchestratorEditorPanel::_save_script_file(const String& p_file_name)
             _update_file_list();
         }
     }
+
+    EditorInterface::get_singleton()->get_resource_filesystem()->update_file(p_file_name);
 }
 
 void OrchestratorEditorPanel::_save_script()
