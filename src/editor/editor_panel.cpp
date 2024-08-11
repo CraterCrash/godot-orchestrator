@@ -368,7 +368,7 @@ void OrchestratorEditorPanel::_handle_menu_option(int p_option)
             OS::get_singleton()->shell_open(plugin->get_patreon_url());
             break;
         case HELP_ABOUT:
-            _about_dialog->popup_centered(ABOUT_DIALOG_SIZE);
+            _about_dialog->popup_centered(ABOUT_DIALOG_SIZE * EditorInterface::get_singleton()->get_editor_scale());
             break;
         case FILE_SHOW_IN_FILESYSTEM:
             _navigate_to_file_in_filesystem();
