@@ -52,6 +52,8 @@ void OrchestratorAboutDialog::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        const double scale = EditorInterface::get_singleton()->get_editor_scale();
+
         VBoxContainer* vbc = memnew(VBoxContainer);
         add_child(vbc);
 
@@ -93,7 +95,7 @@ void OrchestratorAboutDialog::_notification(int p_what)
 
         TabContainer* tc = memnew(TabContainer);
         tc->set_tab_alignment(TabBar::ALIGNMENT_CENTER);
-        tc->set_custom_minimum_size(Size2(400, 200));
+        tc->set_custom_minimum_size(Size2(400 * scale, 200 * scale));
         tc->set_v_size_flags(Control::SIZE_EXPAND_FILL);
         tc->set_theme_type_variation("TabContainerOdd");
         vbc->add_child(tc);

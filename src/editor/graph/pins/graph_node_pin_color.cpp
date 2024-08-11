@@ -17,6 +17,7 @@
 #include "graph_node_pin_color.h"
 
 #include <godot_cpp/classes/color_picker_button.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 
 OrchestratorGraphNodePinColor::OrchestratorGraphNodePinColor(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
@@ -34,10 +35,12 @@ void OrchestratorGraphNodePinColor::_on_default_value_changed(const Color& p_new
 
 Control* OrchestratorGraphNodePinColor::_get_default_value_widget()
 {
+    const double scale = EditorInterface::get_singleton()->get_editor_scale();
+
     ColorPickerButton* button = memnew(ColorPickerButton);
-    button->set_focus_mode(Control::FOCUS_NONE);
-    button->set_h_size_flags(Control::SIZE_EXPAND);
-    button->set_custom_minimum_size(Vector2(24, 24));
+    button->set_focus_mode(FOCUS_NONE);
+    button->set_h_size_flags(SIZE_EXPAND);
+    button->set_custom_minimum_size(Vector2(24.f * scale, 24.f * scale));
     button->set_pick_color(_pin->get_default_value());
     button->connect("color_changed", callable_mp(this, &OrchestratorGraphNodePinColor::_on_default_value_changed));
     return button;
