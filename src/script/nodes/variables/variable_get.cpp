@@ -128,9 +128,15 @@ void OScriptNodeVariableGet::allocate_default_pins()
 String OScriptNodeVariableGet::get_tooltip_text() const
 {
     if (_variable.is_valid())
-        return vformat("Read the value of variable %s", _variable->get_variable_name());
-    else
-        return "Read the value of a variable";
+    {
+        String tooltip_text = vformat("Read the value of variable %s", _variable->get_variable_name());
+        if (!_variable->get_description().is_empty())
+            tooltip_text += "\n\nDescription:\n" + _variable->get_description();
+
+        return tooltip_text;
+    }
+
+    return "Read the value of a variable";
 }
 
 String OScriptNodeVariableGet::get_node_title() const
