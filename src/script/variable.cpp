@@ -35,6 +35,10 @@ void OScriptVariable::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_category"), &OScriptVariable::get_category);
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "category"), "set_category", "get_category");
 
+    ClassDB::bind_method(D_METHOD("set_constant", "constant"), &OScriptVariable::set_constant);
+    ClassDB::bind_method(D_METHOD("is_constant"), &OScriptVariable::is_constant);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "constant"), "set_constant", "is_constant");
+
     ClassDB::bind_method(D_METHOD("set_exported", "exported"), &OScriptVariable::set_exported);
     ClassDB::bind_method(D_METHOD("is_exported"), &OScriptVariable::is_exported);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "exported"), "set_exported", "is_exported");
@@ -97,7 +101,7 @@ void OScriptVariable::_validate_property(PropertyInfo& p_property) const
 
 bool OScriptVariable::_property_can_revert(const StringName& p_name) const
 {
-    static Array properties = Array::make("name", "category", "exported", "classification", "default_value", "description");
+    static Array properties = Array::make("name", "category", "exported", "classification", "default_value", "description", "constant");
     return properties.has(p_name);
 }
 
@@ -133,11 +137,20 @@ bool OScriptVariable::_property_get_revert(const StringName& p_name, Variant& r_
         r_property = "";
         return true;
     }
+    else if (p_name.match("constant"))
+    {
+        r_property = false;
+        return true;
+    }
     return false;
 }
 
 bool OScriptVariable::_is_exportable_type(const PropertyInfo& p_property) const
 {
+    // Constants cannot be exported
+    if (_constant)
+        return false;
+
     switch (p_property.type)
     {
         // These are all not exportable
@@ -393,6 +406,21 @@ void OScriptVariable::set_default_value(const Variant& p_default_value)
     if (_default_value != p_default_value)
     {
         _default_value = p_default_value;
+        emit_changed();
+    }
+}
+
+void OScriptVariable::set_constant(bool p_constant)
+{
+    if (_constant != p_constant)
+    {
+        _constant = p_constant;
+
+        _exportable = _is_exportable_type(_info);
+        if (!_exportable && _constant)
+            _exported = false;
+
+        notify_property_list_changed();
         emit_changed();
     }
 }

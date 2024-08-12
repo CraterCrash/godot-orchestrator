@@ -622,8 +622,12 @@ bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Vari
     if (allowed_types.has(type))
     {
         if (type == "variable")
-            _show_drag_hint("Use Ctrl to drop a Setter, Shift to drop a Getter");
-
+        {
+            const String variable_name = String(Array(data["variables"])[0]);
+            const Ref<OScriptVariable> variable = _script_graph->get_orchestration()->get_variable(variable_name);
+            if (variable.is_valid() && !variable->is_constant())
+                _show_drag_hint("Use Ctrl to drop a Setter, Shift to drop a Getter");
+        }
         return true;
     }
 
@@ -741,36 +745,46 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
         _hide_drag_hint();
 
         const String variable_name = String(Array(data["variables"])[0]);
-        if (Input::get_singleton()->is_key_pressed(Key::KEY_CTRL))
+
+        Ref<OScriptVariable> variable = get_orchestration()->get_variable(variable_name);
+        if (!variable.is_valid())
+            return;
+
+        const bool is_constant = variable->is_constant();
+        const bool is_validated = variable->get_variable_type() == Variant::OBJECT;
+
+        if (Input::get_singleton()->is_key_pressed(KEY_CTRL))
         {
-            OrchestratorGraphNodeSpawnerVariableSet setter(variable_name);
-            setter.execute(this, _saved_mouse_position);
+            if (!is_constant)
+            {
+                Ref<OrchestratorGraphNodeSpawnerVariableSet> setter(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
+                setter->execute(this, _saved_mouse_position);
+            }
         }
-        else if (Input::get_singleton()->is_key_pressed(Key::KEY_SHIFT))
+        else if (Input::get_singleton()->is_key_pressed(KEY_SHIFT))
         {
-            OrchestratorGraphNodeSpawnerVariableGet getter(variable_name);
-            getter.execute(this, _saved_mouse_position);
+            Ref<OrchestratorGraphNodeSpawnerVariableGet> getter(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
+            getter->execute(this, _saved_mouse_position);
         }
         else
         {
-            const bool validated = get_orchestration()->get_variable(variable_name)->get_variable_type() == Variant::OBJECT;
-
-            // Create context-menu handlers
-            Ref<OrchestratorGraphActionHandler> get_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
-            Ref<OrchestratorGraphActionHandler> set_handler(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
-            Ref<OrchestratorGraphActionHandler> get_validated_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name, true)));
-
-            // Create context-menu to specify variable get or set choice
             _context_menu->clear();
             _context_menu->add_separator("Variable " + variable_name);
             _context_menu->add_item("Get " + variable_name, CM_VARIABLE_GET);
-            if (validated)
+            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET), memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
+
+            if (is_validated)
+            {
                 _context_menu->add_item("Get " + variable_name + " with validation", CM_VARIABLE_GET_VALIDATED);
-            _context_menu->add_item("Set " + variable_name, CM_VARIABLE_SET);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET), get_handler);
-            if (validated)
-                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET_VALIDATED), get_validated_handler);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_SET), set_handler);
+                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET_VALIDATED), memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name, true)));
+            }
+
+            if (!is_constant)
+            {
+                _context_menu->add_item("Set " + variable_name, CM_VARIABLE_SET);
+                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_SET), memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
+            }
+
             _context_menu->reset_size();
             _context_menu->set_position(get_screen_position() + p_position);
             _context_menu->popup();

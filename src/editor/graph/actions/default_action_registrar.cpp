@@ -699,6 +699,10 @@ void OrchestratorDefaultGraphActionRegistrar::_register_orchestration_variables(
             Ref<OrchestratorGraphActionHandler> getter_handler(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
             _context->list->push_back(memnew(OrchestratorGraphActionMenuItem(getter_spec, getter_handler)));
 
+            // Constants don't allow spawning using setters
+            if (variable->is_constant())
+                continue;
+
             OrchestratorGraphActionSpec setter_spec;
             setter_spec.category = vformat("Variables/set_%s", variable_name);
             setter_spec.tooltip = vformat("Set the value of of variable '%s'", variable_name);
