@@ -182,6 +182,8 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _theme_update_timer->set_one_shot(true);
         add_child(_theme_update_timer);
 
+        OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+
         #if GODOT_VERSION >= 0x040300
         _grid_pattern = memnew(OptionButton);
         _grid_pattern->add_item("Lines");
@@ -192,8 +194,20 @@ void OrchestratorGraphEdit::_notification(int p_what)
         get_menu_hbox()->add_child(_grid_pattern);
         get_menu_hbox()->move_child(_grid_pattern, 5);
 
-        set_grid_pattern(GRID_PATTERN_LINES);
+        if (String(settings->get_setting("ui/graph/grid_pattern", "Lines")) == "Lines")
+        {
+            _grid_pattern->select(0);
+            set_grid_pattern(GRID_PATTERN_LINES);
+        }
+        else
+        {
+            _grid_pattern->select(1);
+            set_grid_pattern(GRID_PATTERN_DOTS);
+        }
         #endif
+
+        set_show_grid(settings->get_setting("ui/graph/grid_enabled", true));
+        set_snapping_enabled(settings->get_setting("ui/graph/grid_snapping_enabled", true));
 
         get_menu_hbox()->add_child(memnew(VSeparator));
 

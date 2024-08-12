@@ -145,6 +145,14 @@ bool OrchestratorEditorPanel::FileListContext::is_index_valid(int p_index) const
     return p_index >= 0 && p_index < open_files.size();
 }
 
+void OrchestratorEditorPanel::_right_panel_offset_changed(int p_offset)
+{
+    _right_panel_split_offset = p_offset;
+
+    for (const OrchestrationFile& file : _files_context.open_files)
+        file.viewport->set_split_offset(_right_panel_split_offset);
+}
+
 void OrchestratorEditorPanel::_update_scene_tab_signals(bool p_connect)
 {
     Node* editor_node = get_tree()->get_root()->get_child(0);
@@ -845,7 +853,9 @@ void OrchestratorEditorPanel::edit_script(const Ref<OScript>& p_script)
     }
 
     OrchestratorScriptEditorViewport* viewport = memnew(OrchestratorScriptEditorViewport(p_script));
+    viewport->set_split_offset(_right_panel_split_offset);
     viewport->connect("focus_requested", callable_mp(this, &OrchestratorEditorPanel::_focus_viewport).bind(viewport));
+    viewport->connect("dragged", callable_mp(this, &OrchestratorEditorPanel::_right_panel_offset_changed));
     _viewport_container->add_child(viewport);
 
     OrchestrationFile file;
@@ -884,8 +894,14 @@ bool OrchestratorEditorPanel::build()
 void OrchestratorEditorPanel::get_window_layout(const Ref<ConfigFile>& p_configuration)
 {
     p_configuration->set_value(LAYOUT_SECTION, LAYOUT_OPEN_FILES, _files_context.get_open_file_names());
+
+    HSplitContainer* parent = Object::cast_to<HSplitContainer>(_left_panel->get_parent());
+
     p_configuration->set_value(LAYOUT_SECTION, LAYOUT_LEFT_PANEL, _left_panel_visible);
+    p_configuration->set_value(LAYOUT_SECTION, LAYOUT_LEFT_PANEL_OFFSET, parent->get_split_offset());
+
     p_configuration->set_value(LAYOUT_SECTION, LAYOUT_RIGHT_PANEL, _right_panel_visible);
+    p_configuration->set_value(LAYOUT_SECTION, LAYOUT_RIGHT_PANEL_OFFSET, _right_panel_split_offset);
 
     if (_has_open_files())
         p_configuration->set_value(LAYOUT_SECTION, LAYOUT_OPEN_FILES_SELECTED, _files_context.get_selected_file_name());
@@ -902,7 +918,11 @@ void OrchestratorEditorPanel::set_window_layout(const Ref<ConfigFile>& p_configu
     _left_panel_visible = p_configuration->get_value(LAYOUT_SECTION, LAYOUT_LEFT_PANEL, true);
     _left_panel->set_visible(_left_panel_visible);
 
+    HSplitContainer* parent = Object::cast_to<HSplitContainer>(_left_panel->get_parent());
+    parent->set_split_offset(p_configuration->get_value(LAYOUT_SECTION, LAYOUT_LEFT_PANEL_OFFSET, 0));
+
     _right_panel_visible = p_configuration->get_value(LAYOUT_SECTION, LAYOUT_RIGHT_PANEL, true);
+    _right_panel_split_offset = p_configuration->get_value(LAYOUT_SECTION, LAYOUT_RIGHT_PANEL_OFFSET, 0);
 
     PackedStringArray open_files = p_configuration->get_value(LAYOUT_SECTION, LAYOUT_OPEN_FILES, PackedStringArray());
     for (const String& file_name : open_files)

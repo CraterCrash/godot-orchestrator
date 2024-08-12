@@ -108,7 +108,9 @@ class OrchestratorEditorPanel : public PanelContainer
     const String RECENT_HISTORY_KEY{ "orchestrations" };
     const String LAYOUT_SECTION{ "Orchestrator" };
     const String LAYOUT_LEFT_PANEL{ "file_list_visibility" };
+    const String LAYOUT_LEFT_PANEL_OFFSET{ "file_list_width" };
     const String LAYOUT_RIGHT_PANEL{ "component_panel_visibility" };
+    const String LAYOUT_RIGHT_PANEL_OFFSET{ "component_panel_width" };
     const String LAYOUT_OPEN_FILES{ "open_files" };
     const String LAYOUT_OPEN_FILES_SELECTED{ "open_files_selected" };
     const Vector2i SEPARATOR_SIZE{ 0, 24 };
@@ -119,6 +121,7 @@ protected:
     FileListContext _files_context;                           //! File list context
     bool _left_panel_visible{ true };                         //! Whether the left panel is visible
     bool _right_panel_visible{ true };                        //! Whether the right panel is visible
+    int _right_panel_split_offset{ 0 };                       //! The right panel split offset
     bool _floating{ false };                                  //! Whether the panel is floating
     MenuButton* _file_menu{ nullptr };                        //! File menu
     MenuButton* _goto_menu{ nullptr };                        //! Goto menu
@@ -146,6 +149,7 @@ protected:
     void _notification(int p_what);
     //~ End Godot interface
 
+    void _right_panel_offset_changed(int p_offset);
     void _update_scene_tab_signals(bool p_connect = true);
     void _update_file_system_dock_signals(bool p_connect = true);
     void _update_file_list();

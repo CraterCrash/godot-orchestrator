@@ -162,6 +162,11 @@ void OrchestratorSettings::_register_settings()
 
     _settings.emplace_back(BOOL_SETTING("ui/graph/confirm_on_delete", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/disconnect_control_flow_when_dragged", true));
+    _settings.emplace_back(BOOL_SETTING("ui/graph/grid_enabled", true));
+    _settings.emplace_back(BOOL_SETTING("ui/graph/grid_snapping_enabled", true));
+    #if GODOT_VERSION >= 0x040300
+    _settings.emplace_back(SENUM_SETTING("ui/graph/grid_pattern", "Dots,Lines", "Lines"));
+    #endif
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_autowire_selection_dialog", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_arrange_button", false));
