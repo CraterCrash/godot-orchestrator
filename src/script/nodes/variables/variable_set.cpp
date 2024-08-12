@@ -24,10 +24,17 @@ class OScriptNodeVariableSetInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeVariableSet);
     StringName _variable_name;
+    bool _constant{ false };
 
 public:
     int step(OScriptExecutionContext& p_context) override
     {
+        if (_constant)
+        {
+            p_context.set_error(vformat("Cannot modify a constant variable '%s'", _variable_name));
+            return -1 | STEP_FLAG_END;
+        }
+
         Variant value = p_context.get_input(0);
 
         Variant current_value;
@@ -144,10 +151,19 @@ void OScriptNodeVariableSet::reallocate_pins_during_reconstruction(const Vector<
     }
 }
 
+void OScriptNodeVariableSet::validate_node_during_build(BuildLog& p_log) const
+{
+    if (_variable.is_valid() && _variable->is_constant())
+        p_log.error(this, "Cannot modify constant variable value.");
+
+    super::validate_node_during_build(p_log);
+}
+
 OScriptNodeInstance* OScriptNodeVariableSet::instantiate()
 {
     OScriptNodeVariableSetInstance *i = memnew(OScriptNodeVariableSetInstance);
     i->_node = this;
     i->_variable_name = _variable->get_variable_name();
+    i->_constant = _variable->is_constant();
     return i;
 }

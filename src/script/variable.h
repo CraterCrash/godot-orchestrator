@@ -49,6 +49,7 @@ class OScriptVariable : public Resource
     int _type_category{ 0 };                   //! Defaults to basic
     Variant _type_subcategory;                 //! Subcategory type
     String _value_list;                        //! Enum/Bitfield custom value list
+    bool _constant{ false };                   //! Whether variable is a constant
 
 protected:
     //~ Begin Wrapped Interface
@@ -160,6 +161,14 @@ public:
     /// Set the variable's default value
     /// @param p_default_value the default value
     void set_default_value(const Variant& p_default_value);
+
+    /// Return whether the variable is a constant value
+    /// @return true if the variable is a constant and cannot be set, false otherwise
+    bool is_constant() const { return _constant; }
+
+    /// Sets whether the variable is a constant
+    /// @param p_constant whether the variable is constant
+    void set_constant(bool p_constant);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_VARIABLE_H
