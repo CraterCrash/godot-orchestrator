@@ -359,6 +359,25 @@ void OScriptGraph::move_node_to(const Ref<OScriptNode>& p_node, const Ref<OScrip
     p_target->add_node(p_node);
 }
 
+Ref<OScriptNode> OScriptGraph::copy_node(int p_node_id, bool p_duplicate_resources)
+{
+    const Ref<OScriptNode> node = get_node(p_node_id);
+    if (!node.is_valid())
+    {
+        ERR_PRINT("Cannot copy node with id " + itos(p_node_id));
+        return nullptr;
+    }
+
+    // Duplicate node
+    Ref<OScriptNode> duplicate = node->duplicate(p_duplicate_resources);
+
+    // Partially initialize, only so state gets copied/set
+    duplicate->_orchestration = _orchestration;
+    duplicate->post_initialize();
+
+    return duplicate;
+}
+
 Ref<OScriptNode> OScriptGraph::duplicate_node(int p_node_id, const Vector2& p_delta, bool p_duplicate_resources)
 {
     const Ref<OScriptNode> node = get_node(p_node_id);
