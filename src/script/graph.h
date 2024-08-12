@@ -175,6 +175,12 @@ public:
     /// @param p_target the target graph
     void move_node_to(const Ref<OScriptNode>& p_node, const Ref<OScriptGraph>& p_target);
 
+    /// Creates a copy of the specified node
+    /// @param p_node_id the node to copy
+    /// @param p_duplicate_resources whether to duplicate sub-resources, defaults o false
+    /// @return the copied node reference
+    Ref<OScriptNode> copy_node(int p_node_id, bool p_duplicate_resources = false);
+
     /// Duplicate the specified node
     /// @param p_node_id the node to duplicate
     /// @param p_delta the position to add to the existing node's position

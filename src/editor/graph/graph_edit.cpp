@@ -1851,8 +1851,7 @@ void OrchestratorGraphEdit::_on_copy_nodes_request()
 
             const int id = script_node->get_id();
             _clipboard->positions[id] = script_node->get_position();
-            // Be sure to clone to create new copies of pins
-            _clipboard->nodes[id] = script_node->duplicate(true);
+            _clipboard->nodes[id] = _script_graph->copy_node(id, true);
         }
     });
 
