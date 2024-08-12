@@ -480,6 +480,19 @@ Dictionary OrchestratorGraphEdit::get_closest_connection_at_point(const Vector2&
 }
 #endif
 
+void OrchestratorGraphEdit::_move_selected(const Vector2& p_delta)
+{
+    const Vector<OrchestratorGraphNode*> selected_nodes = get_selected_nodes();
+    if (!selected_nodes.is_empty())
+    {
+        for (OrchestratorGraphNode* node : selected_nodes)
+        {
+            node->set_position_offset(node->get_position_offset() + p_delta);
+            node->get_script_node()->set_position(node->get_position_offset());
+        }
+    }
+}
+
 void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
 {
     // In Godot 4.2, the UI delete events only apply to GraphNode and not GraphElement objects
@@ -535,13 +548,37 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
         }
     }
 
-    Ref<InputEventKey> key_event = p_event;
-    if (key_event.is_valid() && key_event->is_pressed() && key_event->get_keycode() == KEY_F9)
+    const Ref<InputEventKey> key = p_event;
+    if (key.is_valid() && key->is_pressed())
     {
-        for_each_graph_node([](OrchestratorGraphNode* node) {
-            if (node->is_selected())
-                node->toggle_breakpoint();
-        });
+        if (key->is_action("ui_left", true))
+        {
+            _move_selected(Vector2(is_snapping_enabled() ? -get_snapping_distance() : -1, 0));
+            accept_event();
+        }
+        else if (key->is_action("ui_right", true))
+        {
+            _move_selected(Vector2(is_snapping_enabled() ? get_snapping_distance() : 1, 0));
+            accept_event();
+        }
+        else if (key->is_action("ui_up", true))
+        {
+            _move_selected(Vector2(0, is_snapping_enabled() ? -get_snapping_distance() : -1));
+            accept_event();
+        }
+        else if (key->is_action("ui_down", true))
+        {
+            _move_selected(Vector2(0, is_snapping_enabled() ? get_snapping_distance() : 1));
+            accept_event();
+        }
+        else if (key->get_keycode() == KEY_F9)
+        {
+            for_each_graph_node([](OrchestratorGraphNode* node) {
+                if (node->is_selected())
+                    node->toggle_breakpoint();
+            });
+            accept_event();
+        }
     }
 }
 
