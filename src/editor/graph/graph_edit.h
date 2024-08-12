@@ -143,6 +143,10 @@ class OrchestratorGraphEdit : public GraphEdit
 protected:
     static void _bind_methods();
 
+    /// Move the selected nodes by the delta
+    /// @param p_delta the delta to move selected nodes by
+    void _move_selected(const Vector2& p_delta);
+
 public:
     // The OrchestratorGraphEdit maintains a static clipboard so that data can be shared across different graph
     // instances easily in the tab view, and so these methods are called by the MainView during the
