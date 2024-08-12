@@ -74,6 +74,15 @@ void OrchestratorScriptVariablesComponentPanel::_create_variable_item(TreeItem* 
         item->set_button_tooltip_text(0, index, "Variable is exported and visible outside the orchestration.");
         item->set_button_disabled(0, index, false);
     }
+    else if (p_variable->is_constant())
+    {
+        String tooltip = "Variable is a constant.";
+
+        int32_t index = item->get_button_count(0);
+        item->add_button(0, SceneUtils::get_editor_icon("MemberConstant"), 4);
+        item->set_button_tooltip_text(0, index, tooltip);
+        item->set_button_disabled(0, index, false);
+    }
     else
     {
         String tooltip = "Variable is private and not exported.";
