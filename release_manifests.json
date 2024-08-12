@@ -70,5 +70,9 @@
   {
     "version": "v2.1.rc4",
     "godot_compatibility": "4.3"
+  },
+  {
+    "version": "v2.1.stable",
+    "godot_compatibility": "4.3"
   }
 ]
