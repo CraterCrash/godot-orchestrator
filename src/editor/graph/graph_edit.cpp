@@ -500,13 +500,16 @@ Dictionary OrchestratorGraphEdit::get_closest_connection_at_point(const Vector2&
 
 void OrchestratorGraphEdit::_move_selected(const Vector2& p_delta)
 {
-    const Vector<OrchestratorGraphNode*> selected_nodes = get_selected_nodes();
-    if (!selected_nodes.is_empty())
+    for (int i = 0; i < get_child_count(); i++)
     {
-        for (OrchestratorGraphNode* node : selected_nodes)
+        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
         {
             node->set_position_offset(node->get_position_offset() + p_delta);
             node->get_script_node()->set_position(node->get_position_offset());
+        }
+        else if (OrchestratorGraphKnot* knot = Object::cast_to<OrchestratorGraphKnot>(get_child(i)))
+        {
+            knot->set_position_offset(knot->get_knot()->point + p_delta);
         }
     }
 }
