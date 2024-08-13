@@ -742,7 +742,7 @@ void OrchestratorGraphNode::_handle_context_menu(int p_id)
             }
             case CM_VIEW_DOCUMENTATION:
             {
-                get_graph()->goto_class_help(_node->get_class());
+                get_graph()->goto_class_help(_node->get_help_topic());
                 break;
             }
             case CM_RESIZABLE:
