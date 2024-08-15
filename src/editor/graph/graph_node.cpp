@@ -618,12 +618,12 @@ void OrchestratorGraphNode::_add_option_pin()
         function_call_node->add_dynamic_pin();
 }
 
-List<OrchestratorGraphNode*> OrchestratorGraphNode::get_nodes_within_global_rect()
+List<GraphElement*> OrchestratorGraphNode::get_elements_within_global_rect()
 {
     Rect2 rect = get_global_rect();
 
-    List<OrchestratorGraphNode*> results;
-    _graph->for_each_graph_node([&](OrchestratorGraphNode* other) {
+    List<GraphElement*> results;
+    _graph->for_each_graph_element([&](GraphElement* other) {
         if (other && other != this)
         {
             Rect2 other_rect = other->get_global_rect();

@@ -121,8 +121,8 @@ void OrchestratorGraphNodeComment::_on_raise_request()
 
 bool OrchestratorGraphNodeComment::is_group_selected()
 {
-    List<OrchestratorGraphNode*> intersections = get_nodes_within_global_rect();
-    for (OrchestratorGraphNode* child : intersections)
+    List<GraphElement*> intersections = get_elements_within_global_rect();
+    for (GraphElement* child : intersections)
         if (!child->is_selected())
             return false;
     return true;
@@ -131,16 +131,16 @@ bool OrchestratorGraphNodeComment::is_group_selected()
 void OrchestratorGraphNodeComment::select_group()
 {
     // Select all child nodes
-    List<OrchestratorGraphNode*> intersections = get_nodes_within_global_rect();
-    for (OrchestratorGraphNode* child : intersections)
+    List<GraphElement*> intersections = get_elements_within_global_rect();
+    for (GraphElement* child : intersections)
         child->set_selected(true);
 }
 
 void OrchestratorGraphNodeComment::deselect_group()
 {
     // Deselects all child nodes
-    List<OrchestratorGraphNode*> intersections = get_nodes_within_global_rect();
-    for (OrchestratorGraphNode* child : intersections)
+    List<GraphElement*> intersections = get_elements_within_global_rect();
+    for (GraphElement* child : intersections)
         child->set_selected(false);
 }
 
@@ -148,7 +148,7 @@ void OrchestratorGraphNodeComment::raise_request_node_reorder()
 {
     // This guarantees that any node that intersects with a comment node will be repositioned
     // in the scene after the comment, so that the rendering order appears correct.
-    List<OrchestratorGraphNode*> intersections = get_nodes_within_global_rect();
-    for (OrchestratorGraphNode* node : intersections)
+    List<GraphElement*> intersections = get_elements_within_global_rect();
+    for (GraphElement* node : intersections)
         get_parent()->move_child(node, -1);
 }
