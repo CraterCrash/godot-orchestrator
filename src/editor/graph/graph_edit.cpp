@@ -368,6 +368,23 @@ void OrchestratorGraphEdit::for_each_graph_node(std::function<void(OrchestratorG
     }
 }
 
+void OrchestratorGraphEdit::for_each_graph_element(const std::function<void(GraphElement*)>& p_func, bool p_nodes, bool p_knots)
+{
+    const int child_count = get_child_count();
+    for (int index = 0; index < child_count; index++)
+    {
+        GraphElement* element = Object::cast_to<GraphElement>(get_child(index));
+        if (!element)
+            continue;
+
+        const OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(element);
+        const OrchestratorGraphKnot* knot = Object::cast_to<OrchestratorGraphKnot>(element);
+
+        if ((p_nodes && node) || (p_knots && knot))
+            p_func(element);
+    }
+}
+
 void OrchestratorGraphEdit::execute_action(const String& p_action_name)
 {
     Ref<InputEventAction> action = memnew(InputEventAction);
