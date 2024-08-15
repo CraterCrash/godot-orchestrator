@@ -159,8 +159,8 @@ public:
     /// Set whether node icons are shown
     virtual void show_icons(bool p_show_icons) { }
 
-    /// Get a list of nodes within this node's global rect.
-    List<OrchestratorGraphNode*> get_nodes_within_global_rect();
+    /// Get a list of elements within this node's global rect.
+    List<GraphElement*> get_elements_within_global_rect();
 
     /// Get the specified point index at the given position and direction
     /// @param p_position the position
