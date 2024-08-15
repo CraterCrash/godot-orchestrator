@@ -209,6 +209,12 @@ public:
     /// @param p_func the lambda to be applied
     void for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func);
 
+    /// Perform an action for each <code>GraphNode</code> object type
+    /// @param p_func the function to call for each graph element
+    /// @param p_nodes whether <code>OrchestratorGraphNode</code> objects are included, defaults to <code>true</code>
+    /// @param p_knots whether <code>OrchestratorGraphKnot</code> objects are included, defaults to <code>true</code>
+    void for_each_graph_element(const std::function<void(GraphElement*)>& p_func, bool p_nodes = true, bool p_knots = true);
+
     /// Execute the specified action
     /// @param p_action_name the action to execute
     void execute_action(const String& p_action_name);
