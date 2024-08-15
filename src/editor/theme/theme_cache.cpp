@@ -18,6 +18,7 @@
 
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_node.hpp>
@@ -38,6 +39,51 @@ void OrchestratorThemeCache::_settings_changed()
     const Color bkgrnd = settings->get_setting("ui/nodes/background_color", Color::html("#191d23"));
     const int radius = settings->get_setting("ui/nodes/border_radius", 4);
     const int bwidth = settings->get_setting("ui/nodes/border_width", 2);
+
+    #if GODOT_VERSION >= 0x040300
+    Ref<StyleBoxFlat> frame_panel = get_theme_stylebox("panel", "GraphFrame");
+    if (!frame_panel.is_valid())
+    {
+        Ref<StyleBoxFlat> new_frame_panel = _get_editor_theme_stylebox("panel", "GraphFrame")->duplicate(true);
+        if (new_frame_panel.is_valid())
+        {
+            new_frame_panel->set_border_color(border);
+            new_frame_panel->set_border_width_all(bwidth);
+            new_frame_panel->set_corner_radius_all(4);
+
+            add_theme_stylebox("panel", "GraphFrame", new_frame_panel);
+
+            Ref<StyleBoxFlat> new_frame_panel_selected = new_frame_panel->duplicate(true);
+            if (new_frame_panel_selected.is_valid())
+            {
+                new_frame_panel_selected->set_border_color(select);
+                add_theme_stylebox("panel_selected", "GraphFrame", new_frame_panel_selected);
+            }
+        }
+    }
+    else
+    {
+        Ref<StyleBoxFlat> panel = get_theme_stylebox("panel", "GraphFrame");
+        if (panel.is_valid())
+        {
+            if (panel->get_border_color() != border)
+                panel->set_border_color(border);
+
+            if (!UtilityFunctions::is_equal_approx(panel->get_border_width(SIDE_LEFT), bwidth))
+                panel->set_border_width_all(bwidth);
+        }
+
+        Ref<StyleBoxFlat> panel_selected = get_theme_stylebox("panel_selected", "GraphFrame");
+        if (panel_selected.is_valid())
+        {
+            if (panel_selected->get_border_color() != select)
+                panel_selected->set_border_color(select);
+
+            if (!UtilityFunctions::is_equal_approx(panel_selected->get_border_width(SIDE_LEFT), bwidth))
+                panel_selected->set_border_width_all(bwidth);
+        }
+    }
+    #endif
 
     Ref<StyleBoxFlat> panel = get_theme_stylebox("panel", "GraphNode");
     if (!panel.is_valid())
@@ -69,10 +115,16 @@ void OrchestratorThemeCache::_settings_changed()
     else
     {
         if (panel->get_border_color() != border)
+        {
             panel->set_border_color(border);
+            _theme_changed = true;
+        }
 
         if (panel->get_bg_color() != bkgrnd)
+        {
             panel->set_bg_color(bkgrnd);
+            _theme_changed = true;
+        }
 
         if (panel->get_corner_radius(CORNER_BOTTOM_LEFT) != radius)
         {
@@ -85,16 +137,23 @@ void OrchestratorThemeCache::_settings_changed()
         {
             panel->set_border_width_all(bwidth);
             panel->set_border_width(SIDE_TOP, 0);
+            _theme_changed = true;
         }
 
         Ref<StyleBoxFlat> panel_selected = get_theme_stylebox("panel_selected", "GraphNode");
         if (panel_selected.is_valid())
         {
             if (panel_selected->get_bg_color() != bkgrnd)
+            {
                 panel_selected->set_bg_color(bkgrnd);
+                _theme_changed = true;
+            }
 
             if (panel_selected->get_border_color() != select)
+            {
                 panel_selected->set_border_color(select);
+                _theme_changed = true;
+            }
 
             if (panel_selected->get_corner_radius(CORNER_BOTTOM_LEFT) != radius)
             {
@@ -107,6 +166,7 @@ void OrchestratorThemeCache::_settings_changed()
             {
                 panel_selected->set_border_width_all(bwidth);
                 panel_selected->set_border_width(SIDE_TOP, 0);
+                _theme_changed = true;
             }
         }
     }
@@ -155,6 +215,7 @@ void OrchestratorThemeCache::_settings_changed()
                 // Primed, but color changed
                 titlebar->set_bg_color(color);
                 titlebar->set_border_color(border);
+                _theme_changed = true;
             }
 
             if (titlebar->get_corner_radius(CORNER_TOP_LEFT) != radius)
@@ -168,15 +229,23 @@ void OrchestratorThemeCache::_settings_changed()
             {
                 titlebar->set_border_width_all(bwidth);
                 titlebar->set_border_width(SIDE_BOTTOM, 0);
+                _theme_changed = true;
             }
 
             const Ref<StyleBoxFlat> titlebar_selected = get_theme_stylebox("titlebar_selected", type_name);
             if (titlebar_selected.is_valid())
             {
                 if (titlebar_selected->get_bg_color() != color)
+                {
                     titlebar_selected->set_bg_color(color);
+                    _theme_changed = true;
+                }
+
                 if (titlebar_selected->get_border_color() != select)
+                {
                     titlebar_selected->set_border_color(select);
+                    _theme_changed = true;
+                }
 
                 if (titlebar_selected->get_corner_radius(CORNER_TOP_LEFT) != radius)
                 {
@@ -189,10 +258,22 @@ void OrchestratorThemeCache::_settings_changed()
                 {
                     titlebar_selected->set_border_width_all(bwidth);
                     titlebar_selected->set_border_width(SIDE_BOTTOM, 0);
+                    _theme_changed = true;
                 }
             }
         }
     }
+
+    if (_theme_changed)
+    {
+        _theme_changed = false;
+        emit_signal("theme_changed");
+    }
+}
+
+Ref<StyleBox> OrchestratorThemeCache::_get_editor_theme_stylebox(const String& p_name, const String& p_type_name) const
+{
+    return SceneUtils::get_editor_stylebox(p_name, p_type_name);
 }
 
 void OrchestratorThemeCache::add_theme_stylebox(const StringName& p_name, const String& p_type_name, const Ref<StyleBox>& p_stylebox)
@@ -201,6 +282,7 @@ void OrchestratorThemeCache::add_theme_stylebox(const StringName& p_name, const 
         _stylebox_cache[p_type_name] = HashMap<StringName, Ref<StyleBox>>();
 
     _stylebox_cache[p_type_name][p_name] = p_stylebox;
+    _theme_changed = true;
 }
 
 Ref<StyleBox> OrchestratorThemeCache::get_theme_stylebox(const StringName& p_name, const String& p_type_name) const
@@ -214,13 +296,13 @@ Ref<StyleBox> OrchestratorThemeCache::get_theme_stylebox(const StringName& p_nam
     return nullptr;
 }
 
-Ref<StyleBox> OrchestratorThemeCache::_get_editor_theme_stylebox(const String& p_name, const String& p_type_name) const
-{
-    return SceneUtils::get_editor_stylebox(p_name, p_type_name);
-}
 void OrchestratorThemeCache::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_POSTINITIALIZE)
         callable_mp(this, &OrchestratorThemeCache::_settings_changed).call_deferred();
 }
 
+void OrchestratorThemeCache::_bind_methods()
+{
+    ADD_SIGNAL(MethodInfo("theme_changed"));
+}

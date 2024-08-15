@@ -72,6 +72,7 @@ class OrchestratorGraphNode : public GraphNode
         CM_ALIGN_LEFT,
         CM_ALIGN_CENTER,
         CM_ALIGN_RIGHT,
+        CM_DETACH_FRAME,
         CM_NODE_ACTION = 1000
     };
 

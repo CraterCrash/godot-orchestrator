@@ -26,6 +26,13 @@ void OScriptNodeComment::_get_property_list(List<PropertyInfo>* r_list) const
     r_list->push_back(PropertyInfo(Variant::INT, "font_size", PROPERTY_HINT_RANGE, "0,64"));
     r_list->push_back(PropertyInfo(Variant::COLOR, "text_color", PROPERTY_HINT_COLOR_NO_ALPHA));
     r_list->push_back(PropertyInfo(Variant::STRING, "comments", PROPERTY_HINT_MULTILINE_TEXT));
+
+    #if GODOT_VERSION >= 0x040300
+    // Tracks the internal logic version for this node type
+    r_list->push_back(PropertyInfo(Variant::INT, "state", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    // Tracks the nodes that are attached/bounded to the comment frame
+    r_list->push_back(PropertyInfo(Variant::PACKED_INT64_ARRAY, "attachments", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    #endif
 }
 
 bool OScriptNodeComment::_get(const StringName& p_name, Variant& r_value) const
@@ -60,6 +67,18 @@ bool OScriptNodeComment::_get(const StringName& p_name, Variant& r_value) const
         r_value = _title;
         return true;
     }
+    #if GODOT_VERSION >= 0x040300
+    else if (p_name.match("state"))
+    {
+        r_value = _state;
+        return true;
+    }
+    else if (p_name.match("attachments"))
+    {
+        r_value = _attachments;
+        return true;
+    }
+    #endif
     return false;
 }
 
@@ -101,6 +120,20 @@ bool OScriptNodeComment::_set(const StringName& p_name, const Variant& p_value)
         _notify_pins_changed();
         return true;
     }
+    #if GODOT_VERSION >= 0x040300
+    else if (p_name.match("state"))
+    {
+        _state = p_value;
+        _notify_pins_changed();
+        return true;
+    }
+    else if (p_name.match("attachments"))
+    {
+        _attachments = p_value;
+        _notify_pins_changed();
+        return true;
+    }
+    #endif
     return false;
 }
 
@@ -121,3 +154,16 @@ String OScriptNodeComment::get_icon() const
 {
     return "VisualShaderNodeComment";
 }
+
+#if GODOT_VERSION >= 0x040300
+void OScriptNodeComment::set_attachments(const PackedInt64Array& p_attachments)
+{
+    if (_attachments != p_attachments)
+    {
+        _attachments = p_attachments;
+        _state = State_Tracks_Attachments;
+
+        emit_changed();
+    }
+}
+#endif

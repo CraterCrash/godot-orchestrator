@@ -24,6 +24,11 @@
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/label.hpp>
 
+#if GODOT_VERSION >= 0x040300
+#include <godot_cpp/classes/graph_frame.hpp>
+#include <godot_cpp/classes/texture_rect.hpp>
+#endif
+
 /// A simple OrchestratorGraphNode implementation to render comment nodes.
 class OrchestratorGraphNodeComment : public OrchestratorGraphNode
 {
@@ -68,5 +73,50 @@ public:
     void _gui_input(const Ref<InputEvent>& p_event) override;
     //~ End Control Interface
 };
+
+#if GODOT_VERSION >= 0x040300
+class OrchestratorGraphFrameComment : public GraphFrame
+{
+    GDCLASS(OrchestratorGraphFrameComment, GraphFrame);
+    static void _bind_methods();
+
+    struct ThemeCache
+    {
+        Ref<StyleBox> titlebar;
+        Ref<StyleBox> titlebar_selected;
+    };
+
+    const int TITLEBAR_HEIGHT{ 30 };
+
+protected:
+    OrchestratorGraphEdit* _graph{ nullptr };
+    Ref<OScriptNodeComment> _node;
+    Label* _text{ nullptr };
+    TextureRect* _icon{ nullptr };
+    ThemeCache _theme_cache;
+
+    //~ Begin Object Interface
+    void _notification(int p_what);
+    //~ End Object Interface
+
+    void _node_moved(Vector2 p_old_pos, Vector2 p_new_pos);
+    void _node_resized();
+    void _script_node_changed();
+    void _update_theme();
+
+    /// Default constructor, intentionally protected
+    OrchestratorGraphFrameComment() = default;
+
+public:
+    /// Get a reference to the underlying comment node
+    /// @return the comment node or an invalid reference if its invalid.
+    Ref<OScriptNodeComment> get_comment_node() { return _node; }
+
+    /// Constructor
+    /// @param p_graph the graph edit instance
+    /// @param p_node the comment node
+    OrchestratorGraphFrameComment(OrchestratorGraphEdit* p_graph, const Ref<OScriptNodeComment>& p_node);
+};
+#endif
 
 #endif // ORCHESTRATOR_GRAPH_NODE_COMMENT_H

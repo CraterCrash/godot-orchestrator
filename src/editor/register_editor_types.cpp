@@ -133,6 +133,9 @@ void register_editor_types()
     // Graph Node Type
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodeDefault)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphNodeComment)
+    #if GODOT_VERSION >= 0x040300
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphFrameComment)
+    #endif
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphKnot)
 
     // Graph Pin Types

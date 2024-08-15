@@ -207,7 +207,21 @@ public:
 
     /// Perform an action for each graph node
     /// @param p_func the lambda to be applied
+    /// @deprecated use for_each_child_type
     void for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func);
+
+    /// Perform an action for each child type
+    /// @tparam T the child class type to only operate on
+    /// @param p_func the lambda to be applied
+    template <typename T>
+    void for_each_child_type(std::function<void(T*)> p_func)
+    {
+        for (int i = 0; i < get_child_count(); i++)
+        {
+            if (T* child = Object::cast_to<T>(get_child(i)))
+                p_func(child);
+        }
+    }
 
     /// Execute the specified action
     /// @param p_action_name the action to execute
@@ -338,7 +352,7 @@ private:
 
     /// Updates only the specific graph node
     /// @param p_node the node to update.
-    void _synchronize_graph_node(Ref<OScriptNode> p_node);
+    void _synchronize_graph_node(const Ref<OScriptNode>& p_node);
 
     /// Synchronizes the child order
     void _synchronize_child_order();
@@ -486,6 +500,11 @@ private:
     /// Dispatched when a grid style option is selected
     /// @param p_index the selected item index
     void _on_grid_style_selected(int p_index);
+
+    /// Dispatched when dragging nodes to be attached to a frame
+    /// @param p_elements graph elements to be attached
+    /// @param p_frame_name the frame name to be linked
+    void _on_attach_to_frame(const TypedArray<StringName>& p_elements, const StringName& p_frame_name);
     #endif
 };
 

@@ -29,7 +29,7 @@
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
-#include "nodes/graph_node_factory.h"
+#include "editor/graph/nodes/graph_node_default.h"
 #include "script/language.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
@@ -252,6 +252,9 @@ void OrchestratorGraphEdit::_notification(int p_what)
         connect("copy_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_copy_nodes_request));
         connect("duplicate_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_duplicate_nodes_request));
         connect("paste_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_paste_nodes_request));
+        #if GODOT_VERSION >= 0x040300
+        connect("graph_elements_linked_to_frame_request", callable_mp(this, &OrchestratorGraphEdit::_on_attach_to_frame));
+        #endif
 
         _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphEdit::_on_context_menu_selection));
 
@@ -365,11 +368,7 @@ void OrchestratorGraphEdit::goto_class_help(const String& p_class_name)
 
 void OrchestratorGraphEdit::for_each_graph_node(std::function<void(OrchestratorGraphNode*)> p_func)
 {
-    for (int i = 0; i < get_child_count(); i++)
-    {
-        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
-            p_func(node);
-    }
+    for_each_child_type<OrchestratorGraphNode>(p_func);
 }
 
 void OrchestratorGraphEdit::execute_action(const String& p_action_name)
@@ -1223,7 +1222,7 @@ void OrchestratorGraphEdit::_remove_connection_knots(uint64_t p_connection_id)
     }
 }
 
-void OrchestratorGraphEdit::_synchronize_graph_node(Ref<OScriptNode> p_node)
+void OrchestratorGraphEdit::_synchronize_graph_node(const Ref<OScriptNode>& p_node)
 {
     if (!p_node.is_valid())
         return;
@@ -1233,11 +1232,32 @@ void OrchestratorGraphEdit::_synchronize_graph_node(Ref<OScriptNode> p_node)
     {
         const Vector2 node_size = p_node->get_size();
 
-        OrchestratorGraphNode* graph_node = OrchestratorGraphNodeFactory::create_node(this, p_node);
-        graph_node->set_title(p_node->get_node_title());
-        graph_node->set_position_offset(p_node->get_position());
-        graph_node->set_size(node_size.is_zero_approx() ? graph_node->get_size() : node_size);
-        add_child(graph_node);
+        Ref<OScriptNodeComment> comment = p_node;
+        if (comment.is_valid())
+        {
+            #if GODOT_VERSION >= 0x040300
+            OrchestratorGraphFrameComment* frame = memnew(OrchestratorGraphFrameComment(this, p_node));
+            frame->set_title(p_node->get_node_title());
+            frame->set_position_offset(p_node->get_position());
+            frame->set_size(node_size.is_zero_approx() ? frame->get_size() : node_size);
+            frame->set_name(vformat("%s", node_id));
+            add_child(frame);
+            #else
+            OrchestratorGraphNodeComment* node = memnew(OrchestratorGraphNodeComment(this, p_node));
+            node->set_title(p_node->get_node_title());
+            node->set_position_offset(p_node->get_position());
+            node->set_size(node_size.is_zero_approx() ? node->get_size() : node_size);
+            add_child(node);
+            #endif
+        }
+        else
+        {
+            OrchestratorGraphNode* graph_node = memnew(OrchestratorGraphNodeDefault(this, p_node));
+            graph_node->set_title(p_node->get_node_title());
+            graph_node->set_position_offset(p_node->get_position());
+            graph_node->set_size(node_size.is_zero_approx() ? graph_node->get_size() : node_size);
+            add_child(graph_node);
+        }
     }
     else
     {
@@ -1256,6 +1276,51 @@ void OrchestratorGraphEdit::_synchronize_child_order()
             comment->call_deferred("raise_request_node_reorder");
         }
     });
+
+    #if GODOT_VERSION >= 0x040300
+    // Performs a small update synchronization step for comment nodes to track their frame attachments
+    bool any_upgraded = false;
+    for_each_child_type<OrchestratorGraphFrameComment>([&, this](OrchestratorGraphFrameComment* frame) {
+        Ref<OScriptNodeComment> comment = frame->get_comment_node();
+        if (comment.is_valid())
+        {
+            if (comment->get_state() == OScriptNodeComment::State_Initial)
+            {
+                // Collect a list of nodes that overlap but are not attached to the frame
+                Vector<StringName> overlaps;
+                for_each_child_type<OrchestratorGraphNode>([&](OrchestratorGraphNode* node) {
+                    if (frame->get_rect().intersects(node->get_rect()))
+                        overlaps.push_back(node->get_name());
+                });
+
+                // Compare existing attachments with overlaps
+                PackedInt64Array attachment_node_ids;
+                for (const StringName& overlap : overlaps)
+                {
+                    if (OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(overlap))
+                    {
+                        attach_graph_element_to_frame(overlap, frame->get_name());
+                        attachment_node_ids.push_back(node->get_script_node_id());
+                    }
+                }
+
+                // Update attachment list
+                comment->set_attachments(attachment_node_ids);
+                any_upgraded = true;
+            }
+            else if (comment->get_state() >= OScriptNodeComment::State_Tracks_Attachments)
+            {
+                const PackedInt64Array attachments = comment->get_attachments();
+                for (int i = 0; i < attachments.size(); i++)
+                    attach_graph_element_to_frame(itos(attachments[i]), frame->get_name());
+            }
+        }
+    });
+
+    if (any_upgraded)
+        UtilityFunctions::print(get_orchestration()->get_self()->get_path(), ": Graph '", _script_graph->get_graph_name(), "': Comment nodes have been upgraded to GraphFrame(s).");
+
+    #endif
 }
 
 void OrchestratorGraphEdit::_complete_spawn(const Ref<OScriptNode>& p_spawned, const Callable& p_callback)
@@ -1578,15 +1643,21 @@ void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
         return;
 
     OrchestratorGraphNode* graph_node = Object::cast_to<OrchestratorGraphNode>(p_node);
+    #if GODOT_VERSION >= 0x040300
+    OrchestratorGraphFrameComment* frame_node = Object::cast_to<OrchestratorGraphFrameComment>(p_node);
+    if (!graph_node && !frame_node)
+        return;
+    #else
     if (!graph_node)
         return;
+    #endif
 
     Ref<OScriptNode> node = p_node->get_meta("__script_node");
     if (node.is_null())
         return;
 
     OrchestratorSettings* os = OrchestratorSettings::get_singleton();
-    if (os->get_setting("ui/nodes/highlight_selected_connections", false))
+    if (os->get_setting("ui/nodes/highlight_selected_connections", false) && !frame_node)
     {
         // Get list of all selected nodes
         List<Ref<OScriptNode>> selected_nodes;
@@ -2035,4 +2106,22 @@ void OrchestratorGraphEdit::_on_grid_style_selected(int p_index)
     const GridPattern pattern = static_cast<GridPattern>(int(_grid_pattern->get_item_metadata(p_index)));
     set_grid_pattern(pattern);
 }
+
+void OrchestratorGraphEdit::_on_attach_to_frame(const TypedArray<StringName>& p_elements, const StringName& p_frame_name)
+{
+    for (int i = 0; i < p_elements.size(); i++)
+    {
+        OrchestratorGraphFrameComment* frame = _get_by_name<OrchestratorGraphFrameComment>(p_frame_name);
+        OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(p_elements[i]);
+        if (frame && node)
+        {
+            PackedInt64Array attachments = frame->get_comment_node()->get_attachments();
+            attachments.push_back(node->get_script_node_id());
+
+            attach_graph_element_to_frame(p_elements[i], p_frame_name);
+            frame->get_comment_node()->set_attachments(attachments);
+        }
+    }
+}
+
 #endif
