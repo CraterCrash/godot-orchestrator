@@ -102,13 +102,16 @@ bool OrchestratorVersion::is_after(const OrchestratorVersion& p_other) const
     if (major == p_other.major && minor == p_other.minor && patch > p_other.patch)
         return true;
 
-    const int64_t build_name_index = builds.find(build.name);
-    const int64_t other_build_name_index = builds.find(p_other.build.name);
-    if (build_name_index < other_build_name_index)
-        return false;
+    if (major == p_other.major && minor == p_other.minor && patch == p_other.patch)
+    {
+        const int64_t build_name_index = builds.find(build.name);
+        const int64_t other_build_name_index = builds.find(p_other.build.name);
+        if (build_name_index < other_build_name_index)
+            return true;
 
-    if (build_name_index == other_build_name_index && build.version > p_other.build.version)
-        return true;
+        if (build_name_index == other_build_name_index && build.version > p_other.build.version)
+            return true;
+    }
 
     return false;
 }
