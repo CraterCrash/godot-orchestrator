@@ -97,28 +97,28 @@ void OrchestratorGraphNode::_notification(int p_what)
 
 void OrchestratorGraphNode::_gui_input(const Ref<InputEvent>& p_event)
 {
-    Ref<InputEventMouseButton> button = p_event;
-    if (button.is_null() || !button->is_pressed())
-        return;
-
-    if (button->is_double_click() && button->get_button_index() == MOUSE_BUTTON_LEFT)
+    const Ref<InputEventMouseButton> button = p_event;
+    if (button.is_valid() && button->is_pressed())
     {
-        if (_node->can_jump_to_definition())
+        if (button->is_double_click() && button->get_button_index() == MOUSE_BUTTON_LEFT)
         {
-            if (Object* target = _node->get_jump_target_for_double_click())
+            if (_node->can_jump_to_definition())
             {
-                _graph->request_focus(target);
-                accept_event();
+                if (Object* target = _node->get_jump_target_for_double_click())
+                {
+                    _graph->request_focus(target);
+                    accept_event();
+                }
             }
         }
-        return;
+        else if (button->get_button_index() == MOUSE_BUTTON_RIGHT)
+        {
+            // Show menu
+            _show_context_menu(button->get_position());
+            accept_event();
+        }
     }
-    else if (button->get_button_index() == MOUSE_BUTTON_RIGHT)
-    {
-        // Show menu
-        _show_context_menu(button->get_position());
-        accept_event();
-    }
+    return GraphNode::_gui_input(p_event);
 }
 
 OrchestratorGraphEdit* OrchestratorGraphNode::get_graph()

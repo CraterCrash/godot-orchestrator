@@ -26,6 +26,9 @@ OrchestratorGraphNodeComment::OrchestratorGraphNodeComment(OrchestratorGraphEdit
     : OrchestratorGraphNode(p_graph, p_node)
     , _comment_node(p_node)
 {
+    // Since _has_point is const, we need to cache this
+    _title_hbox = get_titlebar_hbox();
+
     MarginContainer* container = memnew(MarginContainer);
     container->add_theme_constant_override("margin_top", 4);
     container->add_theme_constant_override("margin_bottom", 4);
@@ -46,7 +49,6 @@ OrchestratorGraphNodeComment::OrchestratorGraphNodeComment(OrchestratorGraphEdit
 
 void OrchestratorGraphNodeComment::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("raise_request_node_reorder"), &OrchestratorGraphNodeComment::raise_request_node_reorder);
 }
 
 void OrchestratorGraphNodeComment::_update_pins()
@@ -92,31 +94,68 @@ void OrchestratorGraphNodeComment::_notification(int p_what)
         connect("raise_request", callable_mp(this, &OrchestratorGraphNodeComment::_on_raise_request));
 }
 
+bool OrchestratorGraphNodeComment::_has_point(const Vector2& p_point) const
+{
+    Ref<StyleBox> sb_panel = get_theme_stylebox("panel");
+    Ref<StyleBox> sb_titlebar = get_theme_stylebox("titlebar");
+    Ref<Texture2D> resizer = get_theme_icon("resizer");
+
+    if (Rect2(get_size() - resizer->get_size(), resizer->get_size()).has_point(p_point))
+        return true;
+
+    // Grab titlebar
+    int titlebar_height = _title_hbox->get_size().height + sb_titlebar->get_minimum_size().height;
+    if (Rect2(0, 0, get_size().width, titlebar_height).has_point(p_point))
+        return true;
+
+    // Allow grabbing on all sides of comment
+    Rect2 rect = Rect2(0, 0, get_size().width, get_size().height);
+    Rect2 no_drag_rect = rect.grow(-16);
+
+    if (rect.has_point(p_point) && !no_drag_rect.has_point(p_point))
+        return true;
+
+    return false;
+}
+
 void OrchestratorGraphNodeComment::_gui_input(const Ref<InputEvent>& p_event)
 {
-    Ref<InputEventMouseButton> mb = p_event;
-    if (mb.is_valid())
-    {
-        if (mb->is_double_click() && mb->get_button_index() == MOUSE_BUTTON_LEFT)
-        {
-            if (is_group_selected())
-                deselect_group();
-            else
-                select_group();
+     Ref<InputEventMouseButton> mb = p_event;
+     if (mb.is_valid())
+     {
+         if (mb->is_double_click() && mb->get_button_index() == MOUSE_BUTTON_LEFT)
+         {
+             if (is_group_selected())
+                 deselect_group();
+             else
+                 select_group();
 
-            accept_event();
-            return;
-        }
-    }
-    return OrchestratorGraphNode::_gui_input(p_event);
+             accept_event();
+             return;
+         }
+     }
+     return OrchestratorGraphNode::_gui_input(p_event);
 }
 
 void OrchestratorGraphNodeComment::_on_raise_request()
 {
-    // This call must be deferred because the Godot GraphNode implementation raises this node
-    // after this method has been called, so we want to guarantee that we reorder the nodes
-    // of the scene after this node has been properly raised.
-    call_deferred("raise_request_node_reorder");
+    // When comment nodes are raised, their order must always be behind the connection layer.
+    // This guarantees that connection wires render properly.
+    if (OrchestratorGraphEdit* graph_edit = Object::cast_to<OrchestratorGraphEdit>(get_parent()))
+    {
+        int position = 0;
+        for (int index = 0; index < graph_edit->get_child_count(); index++)
+        {
+            Node* child = graph_edit->get_child(index);
+
+            OrchestratorGraphNodeComment* comment = Object::cast_to<OrchestratorGraphNodeComment>(child);
+            if (comment && comment != this)
+                graph_edit->call_deferred("move_child", comment, position++);
+        }
+
+        graph_edit->call_deferred("move_child", this, position);
+        graph_edit->call_deferred("move_child", graph_edit->find_child("_connection_layer", false, false), position + 1);
+    }
 }
 
 bool OrchestratorGraphNodeComment::is_group_selected()
@@ -142,13 +181,4 @@ void OrchestratorGraphNodeComment::deselect_group()
     List<GraphElement*> intersections = get_elements_within_global_rect();
     for (GraphElement* child : intersections)
         child->set_selected(false);
-}
-
-void OrchestratorGraphNodeComment::raise_request_node_reorder()
-{
-    // This guarantees that any node that intersects with a comment node will be repositioned
-    // in the scene after the comment, so that the rendering order appears correct.
-    List<GraphElement*> intersections = get_elements_within_global_rect();
-    for (GraphElement* node : intersections)
-        get_parent()->move_child(node, -1);
 }
