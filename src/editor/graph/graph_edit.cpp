@@ -239,6 +239,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _action_menu->connect("action_selected", callable_mp(this, &OrchestratorGraphEdit::_on_action_menu_action_selected));
 
         // Wire up our signals
+        connect("child_entered_tree", callable_mp(this, &OrchestratorGraphEdit::_resort_child_nodes_on_add));
         connect("connection_from_empty", callable_mp(this, &OrchestratorGraphEdit::_on_attempt_connection_from_empty));
         connect("connection_to_empty", callable_mp(this, &OrchestratorGraphEdit::_on_attempt_connection_to_empty));
         connect("connection_request", callable_mp(this, &OrchestratorGraphEdit::_on_connection));
@@ -284,8 +285,6 @@ void OrchestratorGraphEdit::_notification(int p_what)
 
 void OrchestratorGraphEdit::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("_synchronize_child_order"), &OrchestratorGraphEdit::_synchronize_child_order);
-
     ADD_SIGNAL(MethodInfo("nodes_changed"));
     ADD_SIGNAL(MethodInfo("focus_requested", PropertyInfo(Variant::OBJECT, "target")));
     ADD_SIGNAL(MethodInfo("collapse_selected_to_function"));
@@ -530,6 +529,34 @@ void OrchestratorGraphEdit::_move_selected(const Vector2& p_delta)
     }
 }
 
+void OrchestratorGraphEdit::_resort_child_nodes_on_add(Node* p_node)
+{
+    if (_is_comment_node(p_node))
+    {
+        const int position = _get_connection_layer_index();
+
+        // Comment nodes should always be before the "_connection_layer"
+        // This needs to be deferred, don't change.
+        call_deferred("move_child", p_node, position);
+    }
+}
+
+int OrchestratorGraphEdit::_get_connection_layer_index() const
+{
+    int index = 0; // generally this is the first child; however, comments will causes resorts
+    for (; index < get_child_count(); index++)
+    {
+        if (get_child(index)->get_name().match("_connection_layer"))
+            break;
+    }
+    return index;
+}
+
+bool OrchestratorGraphEdit::_is_comment_node(Node* p_node) const
+{
+    return Object::cast_to<OrchestratorGraphNodeComment>(p_node);
+}
+
 void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
 {
     // In Godot 4.2, the UI delete events only apply to GraphNode and not GraphElement objects
@@ -557,7 +584,7 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
 
     // This is to avoid triggering the display text or our internal hover_connection logic.
     Ref<InputEventMouse> me = p_event;
-    if (me.is_valid() && !_is_position_within_node_rect(me->get_position()))
+    if (me.is_valid() && !_is_position_valid_for_knot(me->get_position()))
     {
         Ref<InputEventMouseMotion> mm = p_event;
         if (mm.is_valid())
@@ -582,6 +609,71 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
                         _create_connection_knot(_hovered_connection, mb->get_position());
                 }
             }
+        }
+    }
+
+    Ref<InputEventMouseButton> mb = p_event;
+    if (mb.is_valid())
+    {
+        if (mb->get_button_index() == MOUSE_BUTTON_LEFT && mb->is_pressed())
+        {
+            // This checks whether the LMB click should trigger box-selection
+            //
+            // While GraphEdit manages this, this information isn't directly exposed as signals, and our
+            // implementation needs this detail to know if we should ignore selecting specific custom
+            // graph elements, like GraphEdit does for GraphFrame in Godot 4.3.
+            GraphElement* element = nullptr;
+            for (int i = get_child_count() - 1; i >= 0; i--)
+            {
+                // Only interested in graph elements
+                GraphElement* selected = Object::cast_to<GraphElement>(get_child(i));
+                if (!selected)
+                    continue;
+
+                const Rect2 rect2(Point2(), selected->get_size());
+                if (rect2.has_point((mb->get_position() - selected->get_position()) / get_zoom()))
+                {
+                    OrchestratorGraphNodeComment* comment = Object::cast_to<OrchestratorGraphNodeComment>(selected);
+                    if (comment && comment->_has_point((mb->get_position() - selected->get_position()) / get_zoom()))
+                    {
+                        element = selected;
+                        break;
+                    }
+                }
+            }
+
+            if (!element)
+            {
+                _box_selection = true;
+                _box_selection_from = mb->get_position();
+            }
+        }
+
+        if (mb->get_button_index() == MOUSE_BUTTON_LEFT && !mb->is_pressed() && _box_selection)
+            _box_selection = false;
+    }
+
+    // Our implementation needs to detect box selection and its rect to know whether the selection
+    // fully encloses our comment node implementations, similar to GraphFrame in Godot 4.3
+    Ref<InputEventMouseMotion> mm = p_event;
+    if (mm.is_valid() && _box_selection)
+    {
+        const Vector2 selection_to = mm->get_position();
+        const Rect2 select_rect = Rect2(_box_selection_from.min(selection_to), (_box_selection_from - selection_to).abs());
+
+        for (int i = get_child_count() - 1; i >= 0; i--)
+        {
+            GraphElement* element = Object::cast_to<GraphElement>(get_child(i));
+            if (!element)
+                continue;
+
+            const bool is_comment = _is_comment_node(element);
+            const Rect2 r = element->get_rect();
+            const bool should_be_selected = is_comment ? select_rect.encloses(r) : select_rect.intersects(r);
+
+            // This must be deferred, don't change
+            if (is_comment && !should_be_selected)
+                element->call_deferred("set_selected", false);
         }
     }
 
@@ -851,11 +943,16 @@ void OrchestratorGraphEdit::_notify(const String& p_text, const String& p_title)
     dialog->popup_centered();
 }
 
-bool OrchestratorGraphEdit::_is_position_within_node_rect(const Vector2& p_position) const
+bool OrchestratorGraphEdit::_is_position_valid_for_knot(const Vector2& p_position) const
 {
     for (int i = 0; i < get_child_count(); ++i)
     {
         GraphNode* child = Object::cast_to<GraphNode>(get_child(i));
+
+        // Skip/ignore any comment nodes from knot logic validity
+        if (_is_comment_node(child))
+            continue;
+
         if (child && child->get_rect().has_point(p_position))
             return true;
     }
@@ -1164,8 +1261,6 @@ void OrchestratorGraphEdit::_synchronize_graph_with_script(bool p_apply_position
 
     _synchronize_graph_connections_with_script();
 
-    call_deferred("_synchronize_child_order");
-
     if (p_apply_position)
     {
         // These must be deferred, don't change.
@@ -1260,19 +1355,6 @@ void OrchestratorGraphEdit::_synchronize_graph_node(Ref<OScriptNode> p_node)
     {
         p_node->reconstruct_node();
     }
-}
-
-void OrchestratorGraphEdit::_synchronize_child_order()
-{
-    // Always place comment nodes above the nodes that are contained within their rects.
-    for_each_graph_node([&](OrchestratorGraphNode* node) {
-        if (OrchestratorGraphNodeComment* comment = Object::cast_to<OrchestratorGraphNodeComment>(node))
-        {
-            // Raises the child
-            move_child(comment, -1);
-            comment->call_deferred("raise_request_node_reorder");
-        }
-    });
 }
 
 void OrchestratorGraphEdit::_complete_spawn(const Ref<OScriptNode>& p_spawned, const Callable& p_callback)

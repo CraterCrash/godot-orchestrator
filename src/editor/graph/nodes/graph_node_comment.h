@@ -33,14 +33,11 @@ class OrchestratorGraphNodeComment : public OrchestratorGraphNode
 
 protected:
     Label* _label{ nullptr };
+    HBoxContainer* _title_hbox{ nullptr };
     Ref<OScriptNodeComment> _comment_node;
     bool _selected{ false };
 
     OrchestratorGraphNodeComment() = default;
-
-    /// Reorders graph nodes that intersect the comment node, making sure that any
-    /// other nodes that intersect are positioned after this comment node.
-    void raise_request_node_reorder();
 
     /// Called when the comment node is raised, brought to the front.
     void _on_raise_request();
@@ -65,6 +62,7 @@ public:
     //~ End Object Interface
 
     //~ Begin Control Interface
+    bool _has_point(const Vector2& p_point) const override;
     void _gui_input(const Ref<InputEvent>& p_event) override;
     //~ End Control Interface
 };
