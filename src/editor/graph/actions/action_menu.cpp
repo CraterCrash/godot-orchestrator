@@ -26,6 +26,7 @@
 #include "editor/graph/graph_node_spawner.h"
 
 #include <godot_cpp/classes/check_box.hpp>
+#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -142,11 +143,24 @@ void OrchestratorGraphActionMenu::apply_filter(const OrchestratorGraphActionFilt
     _action_db.load(_filter);
     _generate_filtered_actions();
 
-    set_size(Vector2(350, 700) * EditorInterface::get_singleton()->get_editor_scale());
-
     OrchestratorSettings* os = OrchestratorSettings::get_singleton();
-    if (os && os->get_setting("ui/actions_menu/center_on_mouse"))
-        set_position(get_position() - (get_size() / 2));
+    bool center_on_mouse = os->get_setting("ui/actions/center_on_mouse", true);
+
+    const int32_t screenId = DisplayServer::get_singleton()->get_keyboard_focus_screen();
+    Rect2 screen_rect = DisplayServer::get_singleton()->screen_get_usable_rect(screenId);
+    screen_rect.grow_by(-32);
+    screen_rect = screen_rect.grow_side(SIDE_TOP, -8);
+
+    Size2 size = Vector2(350, 700);
+
+    // Adjust position first
+    Vector2 position = center_on_mouse ? (get_position() - (get_size() / 2)) : get_position();
+    position = position.clamp(screen_rect.position, screen_rect.position + screen_rect.size - size);
+    set_position(position);
+
+    // Adjust size
+    size = size.clamp(Vector2(), screen_rect.position + screen_rect.size - position);
+    set_size(size);
 
     _on_collapse_tree(true);
 
