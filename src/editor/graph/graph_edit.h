@@ -134,6 +134,8 @@ class OrchestratorGraphEdit : public GraphEdit
     HashMap<uint64_t, Vector<Ref<KnotPoint>>> _knots;      //! Knots for each graph connection
     GDExtensionGodotVersion _version;                      //! Godot version
     bool _is_43p{ false };                                 //! Is Godot 4.3+
+    bool _box_selection{ false };                          //! Is graph doing box selection?
+    Vector2 _box_selection_from;                           //! Mouse position box selection started from
     OrchestratorScriptAutowireSelections* _autowire{ nullptr };
 
     OrchestratorGraphEdit() = default;
@@ -144,6 +146,19 @@ protected:
     /// Move the selected nodes by the delta
     /// @param p_delta the delta to move selected nodes by
     void _move_selected(const Vector2& p_delta);
+
+    /// Sorts child nodes after a node is added as a child.
+    /// @param p_node the node that was added
+    void _resort_child_nodes_on_add(Node* p_node);
+
+    /// Gets the child index for the GraphEdit's <code>_connection_layer</code> control.
+    /// @return the child index of the connection layer control
+    int _get_connection_layer_index() const;
+
+    /// Checks whether the specified node is a comment node
+    /// @param p_node the node to check
+    /// @return true if it's a comment node, false otherwise
+    bool _is_comment_node(Node* p_node) const;
 
 public:
     // The OrchestratorGraphEdit maintains a static clipboard so that data can be shared across different graph
@@ -266,10 +281,10 @@ private:
     /// @param p_title the notification window title text
     void _notify(const String& p_text, const String& p_title);
 
-    /// Checks whether the specified position is within any node rect.
+    /// Checks whether the specified position is valid for knot operations
     /// @param p_position the position to check
-    /// @return true if the position is within any node rect, false otherwise
-    bool _is_position_within_node_rect(const Vector2& p_position) const;
+    /// @return true if the position is valid for knot operations, false otherwise
+    bool _is_position_valid_for_knot(const Vector2& p_position) const;
 
     /// Caches the graph knots for use.
     /// Copies the knot data from the OScriptGraph to this GraphEdit instance.
@@ -345,9 +360,6 @@ private:
     /// Updates only the specific graph node
     /// @param p_node the node to update.
     void _synchronize_graph_node(Ref<OScriptNode> p_node);
-
-    /// Synchronizes the child order
-    void _synchronize_child_order();
 
     /// Perform any post-steps after spawning a node
     /// @param p_spawned the spawned node
