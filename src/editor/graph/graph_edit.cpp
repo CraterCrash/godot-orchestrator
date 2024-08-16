@@ -513,12 +513,16 @@ void OrchestratorGraphEdit::_move_selected(const Vector2& p_delta)
 {
     for (int i = 0; i < get_child_count(); i++)
     {
-        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(get_child(i)))
+        GraphElement* element = Object::cast_to<GraphElement>(get_child(i));
+        if (!element || !element->is_selected())
+            continue;
+
+        if (OrchestratorGraphNode* node = Object::cast_to<OrchestratorGraphNode>(element))
         {
             node->set_position_offset(node->get_position_offset() + p_delta);
             node->get_script_node()->set_position(node->get_position_offset());
         }
-        else if (OrchestratorGraphKnot* knot = Object::cast_to<OrchestratorGraphKnot>(get_child(i)))
+        else if (OrchestratorGraphKnot* knot = Object::cast_to<OrchestratorGraphKnot>(element))
         {
             knot->set_position_offset(knot->get_knot()->point + p_delta);
         }
