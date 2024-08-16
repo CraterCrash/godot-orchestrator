@@ -680,6 +680,14 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
     const Ref<InputEventKey> key = p_event;
     if (key.is_valid() && key->is_pressed())
     {
+        // todo: Submitted https://github.com/godotengine/godot/pull/95614
+        // Can eventually rely on the "cut_nodes_request" signal rather than this approach
+        if (key->is_action("ui_cut", true))
+        {
+            _on_cut_nodes_request();
+            accept_event();
+        }
+
         if (key->is_action("ui_left", true))
         {
             _move_selected(Vector2(is_snapping_enabled() ? -get_snapping_distance() : -1, 0));
@@ -1794,7 +1802,7 @@ void OrchestratorGraphEdit::_on_delete_nodes_requested(const PackedStringArray& 
         return;
 
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
-    if (settings->get_setting("ui/graph/confirm_on_delete", true))
+    if (!_disable_delete_confirmation && settings->get_setting("ui/graph/confirm_on_delete", true))
     {
         const String message = vformat("Do you wish to delete %d node(s)?", p_node_names.size());
         _confirm_yes_no(message, "Confirm deletion", callable_mp(this, &OrchestratorGraphEdit::_delete_nodes).bind(p_node_names));
@@ -2024,6 +2032,25 @@ void OrchestratorGraphEdit::_on_copy_nodes_request()
     for (const OScriptConnection& E : get_orchestration()->get_connections())
         if (_clipboard->nodes.has(E.from_node) && _clipboard->nodes.has(E.to_node))
             _clipboard->connections.insert(E);
+}
+
+void OrchestratorGraphEdit::_on_cut_nodes_request()
+{
+    _clipboard->reset();
+
+    _on_copy_nodes_request();
+
+    PackedStringArray selected_names;
+    for (int index = 0; index < get_child_count(); index++)
+    {
+        GraphElement* element = Object::cast_to<GraphElement>(get_child(index));
+        if (element && element->is_selected())
+            selected_names.push_back(element->get_name());
+    }
+
+    _disable_delete_confirmation = true;
+    _on_delete_nodes_requested(selected_names);
+    _disable_delete_confirmation = false;
 }
 
 void OrchestratorGraphEdit::_on_duplicate_nodes_request()
