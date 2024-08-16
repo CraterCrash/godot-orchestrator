@@ -35,8 +35,9 @@ protected:
     OScriptConnection _connection;     //! The connection this knot belongs
     Ref<OScriptGraph> _graph;          //! The owning graph
     Ref<OrchestratorKnotPoint> _knot;  //! The knot
-    TextureRect* _icon;                //! The icon
     Color _color;                      //! The knot color
+    Color _draw_color;                 //! The knot draw color
+    Ref<Texture2D> _icon;              //! Port icon
 
     //~ Begin Signal Handlers
     void _connections_changed(const String& p_caller);
@@ -45,9 +46,6 @@ protected:
     void _node_deselected();
     //~ End Signal Handlers
 
-    const Vector2 RENDER_OFFSET{ 8, 8 };
-    const Vector2 RENDER_ICON_SIZE = RENDER_OFFSET * 2;
-
 public:
     //~ Begin Wrapped Interface
     void _notification(int p_what);
@@ -55,6 +53,7 @@ public:
 
     //~ Begin Control Interface
     void _gui_input(const Ref<InputEvent>& p_event) override;
+    bool _has_point(const Vector2& p_point) const override;
     //~ End Control Interface
 
     /// Set the owning graph
@@ -79,7 +78,9 @@ public:
 
     /// Set the knot's color
     /// @param p_color the color
-    void set_color(const Color& p_color) { _color = p_color; }
+    void set_color(const Color& p_color);
+
+    OrchestratorGraphKnot();
 };
 
 #endif  // ORCHESTRATOR_GRAPH_KNOT_H
