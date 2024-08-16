@@ -135,6 +135,7 @@ class OrchestratorGraphEdit : public GraphEdit
     GDExtensionGodotVersion _version;                      //! Godot version
     bool _is_43p{ false };                                 //! Is Godot 4.3+
     bool _box_selection{ false };                          //! Is graph doing box selection?
+    bool _disable_delete_confirmation{ false };            //! Allows temporarily disabling delete confirmation
     Vector2 _box_selection_from;                           //! Mouse position box selection started from
     OrchestratorScriptAutowireSelections* _autowire{ nullptr };
 
@@ -486,6 +487,9 @@ private:
 
     /// Dispatched when the user presses {@code Ctrl+C} to copy selected nodes to the clipboard.
     void _on_copy_nodes_request();
+
+    /// Dispatched when the user pressed {@code Ctrl+X} to cut selected nodes to the clipboard.
+    void _on_cut_nodes_request();
 
     /// Dispatched when the user wants to duplicate a graph node.
     void _on_duplicate_nodes_request();
