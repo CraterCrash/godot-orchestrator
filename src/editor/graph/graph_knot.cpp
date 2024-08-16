@@ -31,23 +31,18 @@ void OrchestratorGraphKnot::_connections_changed(const String& p_caller)
 void OrchestratorGraphKnot::_position_changed()
 {
     _knot->point = get_position_offset();
-
-    set_block_signals(true);
-    set_position_offset(get_position_offset() - RENDER_OFFSET);
-    set_block_signals(false);
-
     emit_signal("knot_position_changed", _knot->point);
 }
 
 void OrchestratorGraphKnot::_node_selected()
 {
     OrchestratorSettings* os = OrchestratorSettings::get_singleton();
-    _icon->set_modulate(os->get_setting("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f)));
+    _draw_color = os->get_setting("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f));
 }
 
 void OrchestratorGraphKnot::_node_deselected()
 {
-    _icon->set_modulate(_color);
+    _draw_color = _color;
 }
 
 void OrchestratorGraphKnot::set_graph(const Ref<OScriptGraph>& p_graph)
@@ -62,7 +57,15 @@ void OrchestratorGraphKnot::set_knot(const Ref<OrchestratorKnotPoint>& p_knot)
 {
     _knot = p_knot;
 
-    set_position_offset(_knot->point - RENDER_OFFSET);
+    set_position_offset(_knot->point);
+}
+
+void OrchestratorGraphKnot::set_color(const Color& p_color)
+{
+    _color = p_color;
+
+    if (!is_selected())
+        _draw_color = _color;
 }
 
 void OrchestratorGraphKnot::_gui_input(const Ref<InputEvent>& p_event)
@@ -85,24 +88,39 @@ void OrchestratorGraphKnot::_gui_input(const Ref<InputEvent>& p_event)
     GraphElement::_gui_input(p_event);
 }
 
+bool OrchestratorGraphKnot::_has_point(const Vector2& p_point) const
+{
+    // Wrap mouse actions around the top-left point rather than around the snapped GraphElement
+    return Rect2(-(get_size() /2), get_size()).has_point(p_point);
+}
+
 void OrchestratorGraphKnot::_notification(int p_what)
 {
-    if (p_what == NOTIFICATION_READY)
+    switch (p_what)
     {
-        set_mouse_filter(MOUSE_FILTER_STOP);
+        case NOTIFICATION_ENTER_TREE:
+        {
+            const double scale = EditorInterface::get_singleton()->get_editor_scale();
 
-        VBoxContainer* vbox = memnew(VBoxContainer);
-        add_child(vbox);
+            _icon = SceneUtils::get_editor_icon("GuiGraphNodePort");
+            set_custom_minimum_size(_icon.is_valid() ? scale * _icon->get_size() : Size2(16, 16) * scale);
+            break;
+        }
+        case NOTIFICATION_READY:
+        {
+            connect("position_offset_changed", callable_mp(this, &OrchestratorGraphKnot::_position_changed));
+            connect("node_selected", callable_mp(this, &OrchestratorGraphKnot::_node_selected));
+            connect("node_deselected", callable_mp(this, &OrchestratorGraphKnot::_node_deselected));
+            break;
+        }
+        case NOTIFICATION_DRAW:
+        {
+            const Vector2 icon_position = -get_size() / 2.0;
 
-        _icon = memnew(TextureRect);
-        _icon->set_texture(SceneUtils::get_editor_icon("GuiGraphNodePort"));
-        _icon->set_custom_minimum_size(RENDER_ICON_SIZE);
-        _icon->set_modulate(_color);
-        vbox->add_child(_icon);
-
-        connect("position_offset_changed", callable_mp(this, &OrchestratorGraphKnot::_position_changed));
-        connect("node_selected", callable_mp(this, &OrchestratorGraphKnot::_node_selected));
-        connect("node_deselected", callable_mp(this, &OrchestratorGraphKnot::_node_deselected));
+            // todo: add rim color
+            draw_texture(_icon, icon_position, _draw_color);
+            break;
+        }
     }
 }
 
@@ -110,4 +128,14 @@ void OrchestratorGraphKnot::_bind_methods()
 {
     ADD_SIGNAL(MethodInfo("knot_position_changed", PropertyInfo(Variant::VECTOR2, "position")));
     ADD_SIGNAL(MethodInfo("knot_delete_requested", PropertyInfo(Variant::STRING, "name")));
+}
+
+OrchestratorGraphKnot::OrchestratorGraphKnot()
+{
+    set_mouse_filter(MOUSE_FILTER_STOP);
+
+    VBoxContainer* vbox = memnew(VBoxContainer);
+    vbox->set_h_size_flags(SIZE_EXPAND_FILL);
+    vbox->set_v_size_flags(SIZE_EXPAND_FILL);
+    add_child(vbox);
 }
