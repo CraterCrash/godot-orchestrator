@@ -42,6 +42,8 @@ protected:
     void _variable_changed() override;
     //~ End OScriptNodeVariable Interface
 
+    void _validate_output_connection();
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
