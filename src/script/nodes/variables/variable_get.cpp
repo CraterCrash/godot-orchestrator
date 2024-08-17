@@ -99,16 +99,29 @@ void OScriptNodeVariableGet::_variable_changed()
 {
     if (_is_in_editor())
     {
-        Ref<OScriptNodePin> output = find_pin("value", PD_Output);
-        if (output.is_valid() && output->has_any_connections())
-        {
-            Ref<OScriptNodePin> target = output->get_connections()[0];
-            if (target.is_valid() && !target->can_accept(output))
-                output->unlink_all();
-        }
+        if (!can_be_validated() && _validated)
+            set_validated(false);
+
+        // Defer this so that all nodes have updated
+        // This is necessary so that all target types that may have changed (i.e. get connected to set)
+        // have updated to make sure that the "can_accept" logic works as expected.
+        callable_mp(this, &OScriptNodeVariableGet::_validate_output_connection).call_deferred();
     }
 
     super::_variable_changed();
+}
+
+void OScriptNodeVariableGet::_validate_output_connection()
+{
+    Ref<OScriptNodePin> output = find_pin("value", PD_Output);
+    if (output.is_valid() && output->has_any_connections())
+    {
+        for (const Ref<OScriptNodePin>& target : output->get_connections())
+        {
+            if (target.is_valid() && !target->can_accept(output))
+                output->unlink(target);
+        }
+    }
 }
 
 void OScriptNodeVariableGet::allocate_default_pins()
@@ -196,22 +209,27 @@ void OScriptNodeVariableGet::set_validated(bool p_validated)
         }
 
         // Record the connection before the change
-        Ref<OScriptNodePin> connection;
+        Vector<Ref<OScriptNodePin>> connections;
         Ref<OScriptNodePin> value = find_pin("value", PD_Output);
         if (value.is_valid() && value->has_any_connections())
         {
-            connection = value->get_connections()[0];
+            for (const Ref<OScriptNodePin>& target : value->get_connections())
+                connections.push_back(target);
+
             value->unlink_all();
         }
 
         _notify_pins_changed();
 
-        if (connection.is_valid())
+        if (!connections.is_empty())
         {
             // Relink connection on change
             value = find_pin("value", PD_Output);
             if (value.is_valid())
-                value->link(connection);
+            {
+                for (const Ref<OScriptNodePin>& target : connections)
+                    value->link(target);
+            }
         }
     }
 }
