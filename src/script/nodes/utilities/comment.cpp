@@ -16,11 +16,14 @@
 //
 #include "comment.h"
 
+#include "common/string_utils.h"
+
 void OScriptNodeComment::_get_property_list(List<PropertyInfo>* r_list) const
 {
     const String movement_modes = "Group Movement,Comment";
 
     r_list->push_back(PropertyInfo(Variant::STRING, "title"));
+    r_list->push_back(PropertyInfo(Variant::STRING, "icon", PROPERTY_HINT_FILE));
     r_list->push_back(PropertyInfo(Variant::BOOL, "align_center"));
     r_list->push_back(PropertyInfo(Variant::COLOR, "background_color"));
     r_list->push_back(PropertyInfo(Variant::INT, "font_size", PROPERTY_HINT_RANGE, "0,64"));
@@ -58,6 +61,11 @@ bool OScriptNodeComment::_get(const StringName& p_name, Variant& r_value) const
     else if (p_name.match("title"))
     {
         r_value = _title;
+        return true;
+    }
+    else if (p_name.match("icon"))
+    {
+        r_value = _icon;
         return true;
     }
     return false;
@@ -101,6 +109,12 @@ bool OScriptNodeComment::_set(const StringName& p_name, const Variant& p_value)
         _notify_pins_changed();
         return true;
     }
+    else if (p_name.match("icon"))
+    {
+        _icon = p_value;
+        _notify_pins_changed();
+        return true;
+    }
     return false;
 }
 
@@ -119,5 +133,5 @@ String OScriptNodeComment::get_node_title() const
 
 String OScriptNodeComment::get_icon() const
 {
-    return "VisualShaderNodeComment";
+    return StringUtils::default_if_empty(_icon, "VisualShaderNodeComment");
 }
