@@ -51,15 +51,7 @@ void OrchestratorScriptLocalVariablesComponentPanel::_create_variable_item(TreeI
 
     TreeItem* item = _create_item(category, p_variable->get_variable_name(), p_variable->get_variable_name(), "MemberProperty");
 
-    // if (p_variable->is_exported() && p_variable->get_variable_name().begins_with("_"))
-    // {
-    //     int32_t index = item->get_button_count(0);
-    //     item->add_button(0, SceneUtils::get_editor_icon("NodeWarning"), 1);
-    //     item->set_button_tooltip_text(0, index, "Variable is exported but defined as private using underscore prefix.");
-    //     item->set_button_disabled(0, index, true);
-    // }
-
-    item->add_button(0, SceneUtils::get_class_icon(p_variable->get_variable_type_name()), 2);
+    item->add_button(0, SceneUtils::get_class_icon(p_variable->get_variable_type_name()), 0);
     item->set_button_tooltip_text(0, 0, "Change variable type");
 
     if (!p_variable->get_description().is_empty())
@@ -67,34 +59,6 @@ void OrchestratorScriptLocalVariablesComponentPanel::_create_variable_item(TreeI
         const String tooltip = p_variable->get_variable_name() + "\n\n" + p_variable->get_description();
         item->set_tooltip_text(0, SceneUtils::create_wrapped_tooltip_text(tooltip));
     }
-
-    // if (p_variable->is_exported())
-    // {
-    //     int32_t index = item->get_button_count(0);
-    //     item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityVisible"), 3);
-    //     item->set_button_tooltip_text(0, index, "Variable is exported and visible outside the orchestration.");
-    //     item->set_button_disabled(0, index, false);
-    // }
-    // else if (p_variable->is_constant())
-    // {
-    //     String tooltip = "Variable is a constant.";
-    //
-    //     int32_t index = item->get_button_count(0);
-    //     item->add_button(0, SceneUtils::get_editor_icon("MemberConstant"), 4);
-    //     item->set_button_tooltip_text(0, index, tooltip);
-    //     item->set_button_disabled(0, index, false);
-    // }
-    // else
-    // {
-    //     String tooltip = "Variable is private and not exported.";
-    //     if (!p_variable->is_exportable())
-    //         tooltip += "\nType cannot be exported.";
-    //
-    //     int32_t index = item->get_button_count(0);
-    //     item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityHidden"), 3);
-    //     item->set_button_tooltip_text(0, index, tooltip);
-    //     item->set_button_disabled(0, index, !p_variable->is_exportable());
-    // }
 }
 
 PackedStringArray OrchestratorScriptLocalVariablesComponentPanel::_get_existing_names() const
@@ -211,17 +175,15 @@ void OrchestratorScriptLocalVariablesComponentPanel::_handle_button_clicked(Tree
 
     _tree->set_selected(p_item, 0);
 
-    // id 1 => warning
+    if (p_column == 0 && p_id == 0)
+    {
+        // Type clicked
+        Ref<OrchestratorEditorInspectorPluginVariable> plugin = OrchestratorPlugin::get_singleton()
+            ->get_editor_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
 
-    // if (p_column == 0 && p_id == 2)
-    // {
-    //     // Type clicked
-    //     Ref<OrchestratorEditorInspectorPluginVariable> plugin = OrchestratorPlugin::get_singleton()
-    //         ->get_editor_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
-    //
-    //     if (plugin.is_valid())
-    //         plugin->edit_classification(variable.ptr());
-    // }
+        if (plugin.is_valid())
+            plugin->edit_classification(variable.ptr());
+    }
 }
 
 Dictionary OrchestratorScriptLocalVariablesComponentPanel::_handle_drag_data(const Vector2& p_position)
