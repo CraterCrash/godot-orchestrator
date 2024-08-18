@@ -98,36 +98,36 @@ INCLUDE(GodotCompilerWarnings)
 # Setup compiler options for GDExtension Library based on the compiler used
 TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
         $<${compiler_is_msvc}:
-        /EHsc
-        /utf-8
-        /Zc:preprocessor
-        /wd5054 # operator '|' deprecated between enumerations of different types
-        $<$<CONFIG:Debug>:
-        /MDd
-        >
-        $<$<CONFIG:Release>:
-        /MD
-        /O2
-        >
+            /EHsc
+            /utf-8
+            /Zc:preprocessor
+            /wd5054 # operator '|' deprecated between enumerations of different types
+            $<$<CONFIG:Debug>:
+                /MDd
+            >
+            $<$<CONFIG:Release>:
+                /MD
+                /O2
+            >
         >
         $<$<NOT:${compiler_is_msvc}>:
-        -g
-        -Wno-unused-value
-        $<${compiler_is_gnu}:
-        -Wno-attributes
-        -Wno-attributes=r1::
-        >
-        $<${compiler_is_clang}:
-        -Wno-ignored-attributes
-        -Wno-unknown-attributes
-        >
-        $<$<CONFIG:Debug>:
-        -fno-omit-frame-pointer
-        -O0
-        >
-        $<$<CONFIG:Release>:
-        -O3
-        >
+            -Wno-unused-value
+            $<${compiler_is_gnu}:
+                -Wno-attributes
+                -Wno-attributes=r1::
+            >
+            $<${compiler_is_clang}:
+                -Wno-ignored-attributes
+                -Wno-unknown-attributes
+            >
+            $<$<CONFIG:Debug>:
+                -g
+                -fno-omit-frame-pointer
+                -O0
+            >
+            $<$<CONFIG:Release>:
+                -O3
+            >
         >
 )
 
@@ -147,9 +147,12 @@ IF (NOT APPLE)
     # Linker options for the GDExtension library
     TARGET_LINK_OPTIONS(${PROJECT_NAME} PRIVATE
             $<$<NOT:${compiler_is_msvc}>:
-            -static-libgcc
-            -static-libstdc++
-            -Wl,-R,'$$ORIGIN'
+                -static-libgcc
+                -static-libstdc++
+                -Wl,-R,'$$ORIGIN'
+                $<$<CONFIG:Release>:
+                    $<$<PLATFORM_ID:Android>:-s>
+                >
             >
     )
 ENDIF ()
