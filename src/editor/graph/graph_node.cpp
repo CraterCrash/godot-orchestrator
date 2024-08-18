@@ -37,6 +37,7 @@
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 
@@ -306,15 +307,21 @@ void OrchestratorGraphNode::_update_titlebar()
     {
         Ref<Texture2D> icon_texture;
         if (!_node->get_icon().is_empty())
-            icon_texture = SceneUtils::get_editor_icon(_node->get_icon());
+        {
+            if (_node->get_icon().begins_with("res://"))
+                icon_texture = ResourceLoader::get_singleton()->load(_node->get_icon());
+            else
+                icon_texture = SceneUtils::get_editor_icon(_node->get_icon());
+        }
 
         TextureRect* rect = Object::cast_to<TextureRect>(titlebar->get_child(0));
         if (!rect && icon_texture.is_valid())
         {
             // Add node's icon to the UI
             rect = memnew(TextureRect);
-            rect->set_custom_minimum_size(Vector2(0, 24));
             rect->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+            rect->set_expand_mode(TextureRect::EXPAND_FIT_WIDTH_PROPORTIONAL);
+            rect->set_size(Vector2(24, 24));
             rect->set_texture(icon_texture);
 
             // Add the icon and move it to the start of the HBox.
