@@ -131,7 +131,6 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
             >
             $<$<CONFIG:Release>:
                 -O3
-                $<$<PLATFORM_ID:Android>:-s>
             >
         >
 )
@@ -152,9 +151,12 @@ IF (NOT APPLE)
     # Linker options for the GDExtension library
     TARGET_LINK_OPTIONS(${PROJECT_NAME} PRIVATE
             $<$<NOT:${compiler_is_msvc}>:
-            -static-libgcc
-            -static-libstdc++
-            -Wl,-R,'$$ORIGIN'
+                -static-libgcc
+                -static-libstdc++
+                -Wl,-R,'$$ORIGIN'
+                $<$<CONFIG:Release>:
+                    $<$<PLATFORM_ID:Android>:-s>
+                >
             >
     )
 ENDIF ()
