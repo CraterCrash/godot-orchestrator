@@ -115,7 +115,6 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
         >
         >
         $<$<NOT:${compiler_is_msvc}>:
-        -g
         -Wno-unused-value
         $<${compiler_is_gnu}:
         -Wno-attributes
@@ -126,6 +125,7 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
         -Wno-unknown-attributes
         >
         $<$<CONFIG:Debug>:
+        -g
         -fno-omit-frame-pointer
         -O0
         >
