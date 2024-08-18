@@ -47,6 +47,10 @@ void OrchestratorEditorViewport::_graph_opened(OrchestratorGraphEdit* p_graph)
     p_graph->connect("validation_requested", callable_mp(this, &OrchestratorEditorViewport::build).bind(true));
 }
 
+void OrchestratorEditorViewport::_graph_selected(OrchestratorGraphEdit* p_graph)
+{
+}
+
 void OrchestratorEditorViewport::_resolve_node_set_connections(const Vector<Ref<OScriptNode>>& p_nodes, NodeSetConnections& r_connections)
 {
     // Create a map of the nodes
@@ -118,6 +122,15 @@ void OrchestratorEditorViewport::_close_tab_requested(int p_tab_index)
 {
     if (p_tab_index >= 0 && p_tab_index < _tabs->get_tab_count())
         _close_tab(p_tab_index);
+}
+
+void OrchestratorEditorViewport::_tab_changed(int p_tab_index)
+{
+    if (p_tab_index >= 0 && p_tab_index < _tabs->get_tab_count())
+    {
+        if (OrchestratorGraphEdit* graph = Object::cast_to<OrchestratorGraphEdit>(_tabs->get_child(p_tab_index)))
+            _graph_selected(graph);
+    }
 }
 
 void OrchestratorEditorViewport::_graph_nodes_changed()
@@ -386,6 +399,7 @@ void OrchestratorEditorViewport::_notification(int p_what)
         _tabs = memnew(TabContainer);
         _tabs->get_tab_bar()->set_tab_close_display_policy(TabBar::CLOSE_BUTTON_SHOW_ACTIVE_ONLY);
         _tabs->get_tab_bar()->connect("tab_close_pressed", callable_mp(this, &OrchestratorEditorViewport::_close_tab_requested));
+        _tabs->get_tab_bar()->connect("tab_changed", callable_mp(this, &OrchestratorEditorViewport::_tab_changed));
         margin->add_child(_tabs);
 
         _scroll_container = memnew(ScrollContainer);

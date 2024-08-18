@@ -19,8 +19,10 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
+#include "common/variant_utils.h"
 #include "nodes/functions/function_entry.h"
 #include "nodes/functions/function_result.h"
+#include "nodes/variables/variable.h"
 #include "script/script.h"
 
 void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const
@@ -29,6 +31,7 @@ void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const
     r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method"));
     r_list->push_back(PropertyInfo(Variant::BOOL, "user_defined"));
     r_list->push_back(PropertyInfo(Variant::INT, "id"));
+    r_list->push_back(PropertyInfo(Variant::ARRAY, "locals", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
 bool OScriptFunction::_get(const StringName &p_name, Variant &r_value)
@@ -51,6 +54,14 @@ bool OScriptFunction::_get(const StringName &p_name, Variant &r_value)
     else if (p_name.match("user_defined"))
     {
         r_value = _user_defined;
+        return true;
+    }
+    else if (p_name.match("locals"))
+    {
+        TypedArray<OScriptLocalVariable> variables;
+        for (const KeyValue<StringName, Ref<OScriptLocalVariable>>& E : _local_variables)
+            variables.push_back(E.value);
+        r_value = variables;
         return true;
     }
     return false;
@@ -94,6 +105,18 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
     else if (p_name.match("user_defined"))
     {
         _user_defined = p_value;
+        result = true;
+    }
+    else if (p_name.match("locals"))
+    {
+        _local_variables.clear();
+
+        const TypedArray<OScriptLocalVariable> variables = p_value;
+        for (int i = 0; i < variables.size(); i++)
+        {
+            const Ref<OScriptLocalVariable> local = variables[i];
+            _local_variables[local->get_variable_name()] = local;
+        }
         result = true;
     }
 
@@ -344,3 +367,86 @@ void OScriptFunction::set_has_return_value(bool p_has_return_value)
         emit_changed();
     }
 }
+
+Vector<Ref<OScriptLocalVariable>> OScriptFunction::get_local_variables() const
+{
+    Vector<Ref<OScriptLocalVariable>> results;
+    for (const KeyValue<StringName, Ref<OScriptLocalVariable>>& E : _local_variables)
+        results.push_back(E.value);
+    return results;
+}
+
+Ref<OScriptLocalVariable> OScriptFunction::create_local_variable(const StringName& p_name)
+{
+    ERR_FAIL_COND_V_MSG(!String(p_name).is_valid_identifier(), nullptr, "Cannot create local variable, invalid name: " + p_name);
+    ERR_FAIL_COND_V_MSG(has_local_variable(p_name), nullptr, "A local variable with that name already exists: " + p_name);
+
+    PropertyInfo property;
+    property.name = p_name;
+    property.type = Variant::BOOL;
+
+    Ref<OScriptLocalVariable> variable(memnew(OScriptLocalVariable));
+    variable->_info = property;
+    variable->_default_value = VariantUtils::make_default(property.type);
+    variable->_category = "Default";
+    variable->_classification = "type:" + Variant::get_type_name(property.type);
+    variable->_info.hint = PROPERTY_HINT_NONE;
+    variable->_info.hint_string = "";
+    variable->_info.class_name = "";
+    variable->_info.usage = PROPERTY_USAGE_STORAGE;
+    _local_variables[p_name] = variable;
+
+    return variable;
+}
+
+void OScriptFunction::remove_local_variable(const StringName& p_name)
+{
+    ERR_FAIL_COND_MSG(!has_local_variable(p_name), "No local variable defined with name: " + p_name);
+
+    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
+    {
+        const Ref<OScriptNodeLocalVariableBase> variable = node;
+        if (variable.is_valid() && variable->get_variable_name().match(p_name))
+            _orchestration->remove_node(node->get_id());
+    }
+
+    _local_variables.erase(p_name);
+
+    emit_changed();
+}
+
+bool OScriptFunction::has_local_variable(const StringName& p_name) const
+{
+    return _local_variables.has(p_name);
+}
+
+Ref<OScriptLocalVariable> OScriptFunction::get_local_variable(const StringName& p_name) const
+{
+    if (has_local_variable(p_name))
+        return _local_variables[p_name];
+
+    return nullptr;
+}
+
+bool OScriptFunction::rename_local_variable(const String& p_old_name, const String& p_new_name)
+{
+    if (p_old_name == p_new_name)
+        return false;
+
+    ERR_FAIL_COND_V_MSG(!has_local_variable(p_old_name), false, "Cannot rename, no local variable exists with the old name: " + p_old_name);
+    ERR_FAIL_COND_V_MSG(has_local_variable(p_new_name), false, "Cannot rename, a local variable already exists with the new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "Cannot rename, local variable name is not valid: " + p_new_name);
+
+    const Ref<OScriptLocalVariable> variable = _local_variables[p_old_name];
+    variable->set_variable_name(p_new_name);
+
+    _local_variables[p_new_name] = variable;
+    _local_variables.erase(p_old_name);
+
+    emit_changed();
+    notify_property_list_changed();
+
+    return true;
+}
+
+

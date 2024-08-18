@@ -399,9 +399,16 @@ void OrchestratorGraphNodeSpawnerVariableGet::execute(OrchestratorGraphEdit* p_g
 
     Dictionary data;
     data["validation"] = _validation;
+
+    if (_local && p_graph->get_owning_graph()->is_function())
+        data["function_guid"] = p_graph->get_owning_graph()->get_function_guid();
+
     context.user_data = data;
 
-    p_graph->spawn_node<OScriptNodeVariableGet>(context, p_position);
+    if (_local)
+        p_graph->spawn_node<OScriptNodeLocalVariableGet>(context, p_position);
+    else
+        p_graph->spawn_node<OScriptNodeVariableGet>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerVariableGet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -409,11 +416,23 @@ bool OrchestratorGraphNodeSpawnerVariableGet::is_filtered(const OrchestratorGrap
 {
     if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
     {
-        if (Orchestration* orchestration = p_filter.get_orchestration())
+        if (_local)
         {
-            const Ref<OScriptVariable> variable = orchestration->get_variable(_variable_name);
-            if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
-                return true;
+            if (OrchestratorGraphEdit* graph = p_filter.context.graph)
+            {
+                const Ref<OScriptLocalVariable> variable = graph->get_owning_graph()->get_local_variable(_variable_name);
+                if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
+                    return true;
+            }
+        }
+        else
+        {
+            if (Orchestration* orchestration = p_filter.get_orchestration())
+            {
+                const Ref<OScriptVariable> variable = orchestration->get_variable(_variable_name);
+                if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
+                    return true;
+            }
         }
     }
     return OrchestratorGraphNodeSpawnerVariable::is_filtered(p_filter, p_spec);
@@ -426,7 +445,20 @@ void OrchestratorGraphNodeSpawnerVariableSet::execute(OrchestratorGraphEdit* p_g
     OScriptNodeInitContext context;
     context.variable_name = _variable_name;
 
-    p_graph->spawn_node<OScriptNodeVariableSet>(context, p_position);
+    if (_local)
+    {
+        Dictionary data;
+        const Ref<OScriptGraph> graph = p_graph->get_owning_graph();
+        if (graph->is_function())
+        {
+            data["function_guid"] = graph->get_function_guid();
+            context.user_data = data;
+        }
+
+        p_graph->spawn_node<OScriptNodeLocalVariableSet>(context, p_position);
+    }
+    else
+        p_graph->spawn_node<OScriptNodeVariableSet>(context, p_position);
 }
 
 bool OrchestratorGraphNodeSpawnerVariableSet::is_filtered(const OrchestratorGraphActionFilter& p_filter,
@@ -434,9 +466,21 @@ bool OrchestratorGraphNodeSpawnerVariableSet::is_filtered(const OrchestratorGrap
 {
     if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
     {
-        const Ref<OScriptVariable> variable = p_filter.get_orchestration()->get_variable(_variable_name);
-        if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
-            return true;
+        if (_local)
+        {
+            if (OrchestratorGraphEdit* graph_edit = p_filter.context.graph)
+            {
+                const Ref<OScriptLocalVariable> variable = graph_edit->get_owning_graph()->get_local_variable(_variable_name);
+                if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
+                    return true;
+            }
+        }
+        else
+        {
+            const Ref<OScriptVariable> variable = p_filter.get_orchestration()->get_variable(_variable_name);
+            if (variable.is_valid() && variable->get_variable_type() != p_filter.target_type)
+                return true;
+        }
     }
     return OrchestratorGraphNodeSpawnerVariable::is_filtered(p_filter, p_spec);
 }

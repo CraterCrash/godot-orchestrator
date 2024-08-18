@@ -20,6 +20,8 @@
 #include "orchestration/orchestration.h"
 #include "script/instances/node_instance.h"
 #include "script/nodes/variables/local_variable.h"
+#include "script/nodes/variables/variable_get.h"
+#include "script/nodes/variables/variable_set.h"
 #include "script/vm/script_state.h"
 
 #include <godot_cpp/classes/engine_debugger.hpp>
@@ -692,6 +694,7 @@ void OScriptVirtualMachine::_call_method_internal(const StringName& p_method, OS
     context._step_mode = OScriptNodeInstance::StepMode::STEP_MODE_BEGIN;
     context._error = &r_err;
     context._current_node_id = p_function->node;
+    context._function = p_function;
 
     OScriptNodeInstance* node = p_instance;
     int node_port = 0; // always assumes 0 for now
@@ -1007,6 +1010,10 @@ bool OScriptVirtualMachine::register_function(const Ref<OScriptFunction>& p_func
 
     // Calculate the maximum number of input arguments based on the function definition.
     _max_inputs = Math::max(_max_inputs, function.argument_count);
+
+    // Populate the function's local variables
+    for (const Ref<OScriptLocalVariable>& local : p_function->get_local_variables())
+        function._variables[local->get_variable_name()] = local->get_default_value();
 
     // Initialize the function's node graph
     HashMap<String, int> local_variable_indices;

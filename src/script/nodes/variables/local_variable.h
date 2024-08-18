@@ -41,7 +41,7 @@ public:
     void allocate_default_pins() override;
     String get_node_title() const override;
     String get_icon() const override;
-    String get_node_title_color_name() const override { return "variable"; }
+    String get_node_title_color_name() const override { return "local_variable"; }
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     bool can_duplicate() const override { return false; }
@@ -51,6 +51,8 @@ public:
 
     /// Get the associated variable GUID
     String get_variable_guid() const { return _guid.to_string(); }
+
+    OScriptNodeLocalVariable();
 };
 
 class OScriptNodeAssignLocalVariable : public OScriptNode
@@ -71,7 +73,7 @@ public:
     void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_node_title() const override;
-    String get_node_title_color_name() const override { return "variable"; }
+    String get_node_title_color_name() const override { return "local_variable"; }
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     OScriptNodeInstance* instantiate() override;
@@ -82,6 +84,8 @@ public:
 
     /// Get the associated variable GUID
     String get_variable_guid() const;
+
+    OScriptNodeAssignLocalVariable();
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_LOCAL_VARIABLE_H

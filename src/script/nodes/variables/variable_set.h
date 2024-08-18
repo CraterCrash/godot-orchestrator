@@ -20,9 +20,9 @@
 #include "variable.h"
 
 /// A variable implementation that sets the value of a variable.
-class OScriptNodeVariableSet : public OScriptNodeVariable
+class OScriptNodeVariableSet : public OScriptNodeScriptVariableBase
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeVariableSet, OScriptNodeVariable);
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeVariableSet, OScriptNodeScriptVariableBase);
     static void _bind_methods() { }
 
 protected:
@@ -41,6 +41,27 @@ public:
     String get_node_title() const override;
     void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    OScriptNodeInstance* instantiate() override;
+    //~ End OScriptNode Interface
+};
+
+/// A variable implementation that sets the value of a local variable.
+class OScriptNodeLocalVariableSet : public OScriptNodeLocalVariableBase
+{
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeLocalVariableSet, OScriptNodeLocalVariableBase);
+    static void _bind_methods() { }
+
+protected:
+    //~ Begin OScriptNodeVariable Interface
+    void _variable_changed() override;
+    //~ End OScriptNodeVariable Interface
+
+public:
+    //~ Begin OScriptNode Interface
+    void allocate_default_pins() override;
+    String get_tooltip_text() const override;
+    String get_node_title() const override;
+    void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
     OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };

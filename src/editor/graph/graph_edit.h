@@ -67,8 +67,12 @@ class OrchestratorGraphEdit : public GraphEdit
         CM_VARIABLE_GET,
         CM_VARIABLE_GET_VALIDATED,
         CM_VARIABLE_SET,
+        CM_LOCAL_VARIABLE_GET,
+        CM_LOCAL_VARIABLE_GET_VALIDATED,
+        CM_LOCAL_VARIABLE_SET,
         CM_PROPERTY_GET,
         CM_PROPERTY_SET,
+        CM_SPAWN_HANDLER,
         CM_FILE_GET_PATH,
         CM_FILE_PRELOAD,
         CM_FUNCTION_CALL,
@@ -270,6 +274,38 @@ public:
     void sync();
 
 private:
+    /// Show the file drop menu
+    /// @param p_position the position within the parent to show the context window
+    /// @param p_file_name the file name
+    void _show_file_drop_menu(const Vector2& p_position, const String& p_file_name);
+
+    /// Show the property drop context menu
+    /// @param p_position the position within the parent to show the context window
+    /// @param p_property the property details
+    /// @param p_node_path the node path
+    /// @param p_value the value
+    void _show_property_drop_menu(const Vector2& p_position, const PropertyInfo& p_property, const NodePath& p_node_path, const Variant& p_value);
+
+    /// Show the function drop context menu
+    /// @param p_position the position within the parent to show the context window
+    /// @param p_method the method details
+    /// @param p_handler the context menu spawner handler
+    void _show_function_drop_menu(const Vector2& p_position, const MethodInfo& p_method, const Variant& p_handler);
+
+    /// Show variable drop context menu
+    /// @param p_position the position within the parent to show the context window
+    /// @param p_variable_name the variable name
+    /// @param p_validated whether the variable is validated
+    /// @param p_constant whether the variable is read-only, aka constant
+    /// @param p_local whether the variable is a local variable
+    void _show_variable_drop_menu(const Vector2& p_position, const String& p_variable_name, bool p_validated, bool p_constant, bool p_local);
+
+    /// Check whether the variable drop shortcut is executed
+    /// @param p_variable_name the variable name
+    /// @param p_local whether the variable is a local variable
+    /// @return true if the shortcut was fired and the node auto-spawned, false otherwise
+    bool _has_variable_drop_shortcut(const String& p_variable_name, bool p_local);
+
     /// Displays a yes/no confirmation dialog to the user.
     /// @param p_text the text to be shown.
     /// @param p_title the confirmation window title text

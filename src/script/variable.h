@@ -23,152 +23,185 @@ using namespace godot;
 
 /// Forward declarations
 class Orchestration;
+class OScriptFunction;
 
-/// Defines a script variable
-///
-/// Variables are defined as resources which provides multiple benefits. First, it allows
-/// us to use Godot's serialization technique for them as embedded elements in the script
-/// while also exposing the directly in the Editor's InspectorDock.
-///
-class OScriptVariable : public Resource
+/// The base implementation for all variable types (orchestration and local function variables)
+class OScriptVariableBase : public Resource
 {
-    friend class Orchestration;
-
-    GDCLASS(OScriptVariable, Resource);
-
+    GDCLASS(OScriptVariableBase, Resource);
     static void _bind_methods();
 
-    Orchestration* _orchestration{ nullptr };  //! The owning orchestration
-    PropertyInfo _info;                        //! Basic property details
-    Variant _default_value;                    //! Optional defined default value
-    String _description;                       //! An optional description for the variable
-    String _category;                          //! Category for variables
-    bool _exported{ false };                   //! Whether the variable is exposed on the node
-    bool _exportable{ false };                 //! Tracks whether the variable can be exported
-    String _classification;                    //! Variable classification
-    int _type_category{ 0 };                   //! Defaults to basic
-    Variant _type_subcategory;                 //! Subcategory type
-    String _value_list;                        //! Enum/Bitfield custom value list
-    bool _constant{ false };                   //! Whether variable is a constant
-
 protected:
+    PropertyInfo _info;         //! Variable property details
+    String _description;        //! Description
+    String _category;           //! Category
+    Variant _default_value;     //! Default value
+    String _classification;     //! Variable type classification
+    bool _constant{ false };    //! Is variable a constant
+    bool _exportable{ false };  //! Whether the variable can be exported
+    bool _exported{ false };    //! Is variable exported
+    String _custom_value_list;  //! Custom value list for enum/bitfields
+
     //~ Begin Wrapped Interface
     void _validate_property(PropertyInfo& p_property) const;
     bool _property_can_revert(const StringName& p_name) const;
     bool _property_get_revert(const StringName& p_name, Variant& r_property);
     //~ End Wrapped Interface
 
-    /// Get whether the specified property is exportable.
-    /// @param p_property the property
-    /// @return true if the property can be exported, false otherwise
-    bool _is_exportable_type(const PropertyInfo& p_property) const;
+    /// Whether the variable type supports constants
+    virtual bool _supports_constants() const { return false; }
 
-    /// Attempt to convert the default value to the new type
-    /// @return true if the conversion was successful, false otherwise
-    bool _convert_default_value(Variant::Type p_new_type);
+    /// Whether the variable supports exporting
+    virtual bool _supports_exported() const { return false; }
 
-    /// Constructor
-    /// Intentionally protected, variables created via an Orchestration
-    OScriptVariable();
+    /// Whether the variable supports legacy "type" attributes
+    virtual bool _supports_legacy_type() const { return false; }
+
+    /// Gets the variable type, if supported
+    /// @return the variable type
+    Variant::Type _get_variable_type() const { return _info.type; }
+
+    /// Sets the variable type, if supported
+    /// @param p_type the variable type
+    void _set_variable_type(Variant::Type p_type);
+
+    /// Returns whether the property definition is an exportable type
+    /// @param p_property the property to check if it can be exported
+    /// @return true if the property can be marked as exported, false otherwise
+    virtual bool _is_exportable_type(const PropertyInfo& p_property) const;
+
+    // Abstract class, cannot be constructed
+    OScriptVariableBase() = default;
 
 public:
-    /// Performs post resource initialization.
-    /// This is used to align and fix-up state across versions.
-    void post_initialize();
+    /// Perform post initialization steps after orchestration is loaded
+    virtual void post_initialize();
 
-    /// Get a reference to the orchestration that owns this variable.
-    /// @return the owning orchestration reference, should always be valid
-    Orchestration* get_orchestration() const;
+    /// Returns if the category name should be used in grouping.
+    /// @return true if the category should apply grouping, false otherwise
+    bool is_grouped_by_category() const;
 
-    /// Get the variable's PropertyInfo structure
+    /// Get the variable's property details
     /// @return the property info
     const PropertyInfo& get_info() const { return _info; }
 
-    /// Get the variable's name
+    /// Get the variable type
+    /// @return the variable type
+    [[deprecated("Use get_info().type instead")]]
+    Variant::Type get_variable_type() const
+    {
+        return _info.type;
+    }
+
+    /// Get the variable type name
+    /// @return variable type name
+    String get_variable_type_name() const;
+
+    /// Get the variable name
     /// @return the variable's name
     String get_variable_name() const { return _info.name; }
 
-    /// Set the variable's name
-    /// @param p_name the variable name
+    /// Set the variable name
+    /// @param p_name the new variable name
     void set_variable_name(const String& p_name);
 
-    /// Returns whether the category name should be used in grouping.
-    /// This centralizes the logic as using "Default", "None", or an empty string will validate
-    /// at not being grouped where-as any other value will.
-    /// @return true if the variable should be categorized, false to show it uncategorized.
-    bool is_grouped_by_category() const;
-
-    /// Get the variable's category
-    /// @return the category for the variable
-    String get_category() const { return _category; }
-
-    /// Sets the category
-    /// @param p_category the variable's category
-    void set_category(const String& p_category);
-
-    /// Get the variable's type
-    /// @return the variable type
-    String get_classification() const { return _classification; }
-
-    /// Set the variable's type
-    /// @param p_classification the variable type
-    void set_classification(const String& p_classification);
-
-    /// Get the custom value list for enum/bitfields
-    /// @return the custom value list
-    String get_custom_value_list() const { return _value_list; }
-
-    /// Sets the custom value list for enum/bitfields
-    /// @param p_value_list the custom value list
-    void set_custom_value_list(const String& p_value_list);
-
-    /// Get the variable type
-    /// @return the variable type
-    Variant::Type get_variable_type() const { return _info.type; }
-
-    /// Set the variable type
-    /// @param p_type the variable type
-    void set_variable_type(Variant::Type p_type);
-
-    /// Get the variable type name
-    /// @return the variable type name
-    String get_variable_type_name() const;
-
-    /// Get the variable's description
-    /// @return description for the variable
+    /// Get the variable description
+    /// @return the description
     String get_description() const { return _description; }
 
     /// Set the variable's description
-    /// @param p_description the description
+    /// @param p_description the variable's description
     void set_description(const String& p_description);
 
-    /// Is the variable to be exported
-    /// @return true if the variable is exported, false otherwise
-    bool is_exported() const { return _exported; }
+    /// Get the variable's category
+    /// @return the category
+    String get_category() const { return _category; }
 
-    /// Set the variable as exported.
-    /// @param p_exported true exports the variable, false otherwise
-    void set_exported(bool p_exported);
+    /// Set the variable's category
+    /// @param p_category the category
+    void set_category(const String& p_category);
 
-    /// Is the variable exportable.
-    /// @return true if the variable can be exported, false otherwise
-    bool is_exportable() const { return _is_exportable_type(_info); }
-
-    /// Get the default value for the variable, if one is defined
-    /// @return variable's default value
+    /// Get the variable's default value
+    /// @return the default value
     Variant get_default_value() const { return _default_value; }
 
-    /// Set the variable's default value
-    /// @param p_default_value the default value
-    void set_default_value(const Variant& p_default_value);
+    /// Sets the default value for the variable
+    /// @param p_value the default value to be set
+    void set_default_value(const Variant& p_value);
 
-    /// Return whether the variable is a constant value
-    /// @return true if the variable is a constant and cannot be set, false otherwise
+    /// Get the variable type classification
+    /// @return the classification
+    String get_classification() const { return _classification; }
+
+    /// Sets the variable type's classification
+    /// @param p_classification the type classification
+    void set_classification(const String& p_classification);
+
+    /// Gets the custom value list
+    /// @return the custom value list for enum/bitfields
+    String get_custom_value_list() const { return _custom_value_list; }
+
+    /// Sets the custom value list, used for custom enums/bitfields
+    /// @param p_custom_value_list
+    void set_custom_value_list(const String& p_custom_value_list);
+
+    /// Get whether the variable is a constant
+    /// @return whether the variable is read-only, constant
     bool is_constant() const { return _constant; }
 
     /// Sets whether the variable is a constant
-    /// @param p_constant whether the variable is constant
+    /// @param p_constant whether the variable is a constant
     void set_constant(bool p_constant);
+
+    /// Get whether the variable can be exported
+    /// @return true if the variable can be exported, false otherwise
+    bool is_exportable() const { return _exportable; }
+
+    /// Get whether the variable is exported
+    /// @return whether the variable is exported
+    bool is_exported() const { return _exported; }
+
+    /// Set whether the variable is exported
+    /// @param p_exported is the variable exported
+    void set_exported(bool p_exported);
+
+    /// Check whether the variable supports validated getters
+    /// @return true if validated getters are allowed, false otherwise
+    bool supports_validated_getter() const;
+};
+
+/// Variable implementation for function local variables
+class OScriptLocalVariable : public OScriptVariableBase
+{
+    friend class OScriptFunction;
+
+    GDCLASS(OScriptLocalVariable, OScriptVariableBase);
+    static void _bind_methods() { }
+
+protected:
+    /// Intentionally protected, created via OScriptFunction
+    OScriptLocalVariable() = default;
+};
+
+/// Defines a top-level script variable that can be exported and available to the outside world.
+class OScriptVariable : public OScriptVariableBase
+{
+    friend class Orchestration;
+
+    GDCLASS(OScriptVariable, OScriptVariableBase);
+    static void _bind_methods() { }
+
+protected:
+    Orchestration* _orchestration{ nullptr };  //! Owning orchestration
+
+    //~ Begin OScriptVariableBase Interface
+    bool _supports_constants() const override { return true; }
+    bool _supports_exported() const override { return true; }
+    bool _supports_legacy_type() const override { return true; }
+    //~ End OScriptVariableBase Interface
+
+    /// Intentionally protected, created via OScriptFunction
+    OScriptVariable() = default;
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_VARIABLE_H

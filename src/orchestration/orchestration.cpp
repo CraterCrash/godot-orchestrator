@@ -778,10 +778,10 @@ void Orchestration::remove_variable(const StringName& p_name)
 {
     ERR_FAIL_COND_MSG(!has_variable(p_name), "Cannot remove a variable that does not exist: " + p_name);
 
-    const List<int> node_ids = _get_node_type_node_ids<OScriptNodeVariable>();
+    const List<int> node_ids = _get_node_type_node_ids<OScriptNodeScriptVariableBase>();
     for (int node_id : node_ids)
     {
-        const Ref<OScriptNodeVariable> variable = get_node(node_id);
+        const Ref<OScriptNodeScriptVariableBase> variable = get_node(node_id);
         if (variable.is_valid() && variable->get_variable()->get_variable_name().match(p_name))
             remove_node(node_id);
     }
@@ -849,7 +849,7 @@ bool Orchestration::can_remove_variable(const StringName& p_name) const
 {
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
     {
-        Ref<OScriptNodeVariable> variable = E.value;
+        const Ref<OScriptNodeScriptVariableBase> variable = E.value;
         if (variable.is_valid() && variable->get_variable()->get_variable_name().match(p_name))
             return false;
     }

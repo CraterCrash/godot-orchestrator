@@ -142,12 +142,12 @@ bool OrchestratorEditorInspectorPluginSignal::_parse_property(Object* p_object, 
 
 bool OrchestratorEditorInspectorPluginVariable::_can_handle(Object* p_object) const
 {
-    return p_object->get_class() == OScriptVariable::get_class_static();
+    return ClassDB::is_parent_class(p_object->get_class(), OScriptVariableBase::get_class_static());
 }
 
 bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage, bool p_wide)
 {
-    Ref<OScriptVariable> variable = Object::cast_to<OScriptVariable>(p_object);
+    Ref<OScriptVariableBase> variable = Object::cast_to<OScriptVariableBase>(p_object);
     if (variable.is_null())
         return false;
 
@@ -168,13 +168,12 @@ bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object
 
 void OrchestratorEditorInspectorPluginVariable::edit_classification(Object* p_object)
 {
-    Ref<OScriptVariable> variable = Object::cast_to<OScriptVariable>(p_object);
-    if (variable.is_null())
-        return;
-
-    // This is done to clear and reset the editor interface
-    EditorInterface::get_singleton()->edit_node(nullptr);
-    EditorInterface::get_singleton()->edit_resource(variable);
-
-    _classification->edit();
+    Ref<OScriptVariableBase> variable = Object::cast_to<OScriptVariableBase>(p_object);
+    if (variable.is_valid())
+    {
+        // This is done to clear and reset the editor interface
+        EditorInterface::get_singleton()->edit_node(nullptr);
+        EditorInterface::get_singleton()->edit_resource(variable);
+        _classification->edit();
+    }
 }

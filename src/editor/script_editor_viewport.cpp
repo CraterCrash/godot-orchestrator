@@ -20,6 +20,7 @@
 #include "common/name_utils.h"
 #include "editor/component_panels/functions_panel.h"
 #include "editor/component_panels/graphs_panel.h"
+#include "editor/component_panels/local_variables_panel.h"
 #include "editor/component_panels/macros_panel.h"
 #include "editor/component_panels/signals_panel.h"
 #include "editor/component_panels/variables_panel.h"
@@ -39,6 +40,7 @@ void OrchestratorScriptEditorViewport::_update_components()
     _macros->update();
     _variables->update();
     _signals->update();
+    _local_variables->update();
 }
 
 bool OrchestratorScriptEditorViewport::_can_graph_be_closed(OrchestratorGraphEdit* p_graph)
@@ -63,6 +65,26 @@ void OrchestratorScriptEditorViewport::_graph_opened(OrchestratorGraphEdit* p_gr
 
     p_graph->connect("collapse_selected_to_function", callable_mp(this, &OrchestratorScriptEditorViewport::_collapse_selected_to_function).bind(p_graph));
     p_graph->connect("expand_node", callable_mp(this, &OrchestratorScriptEditorViewport::_expand_node).bind(p_graph));
+}
+
+void OrchestratorScriptEditorViewport::_graph_selected(OrchestratorGraphEdit* p_graph)
+{
+    OrchestratorEditorViewport::_graph_selected(p_graph);
+
+    Ref<OScriptGraph> graph = p_graph->get_owning_graph();
+    if (graph.is_valid())
+    {
+        const Ref<OScriptFunction> function = graph->get_function();
+        if (function.is_valid())
+        {
+            _local_variables->set_function(function);
+            _local_variables->set_visible(true);
+            return;
+        }
+    }
+
+    _local_variables->set_function(nullptr);
+    _local_variables->set_visible(false);
 }
 
 void OrchestratorScriptEditorViewport::_save_state()
@@ -97,6 +119,7 @@ void OrchestratorScriptEditorViewport::_save_state()
         panel_states["macros"] = _macros->is_collapsed();
         panel_states["variables"] = _variables->is_collapsed();
         panel_states["signals"] = _signals->is_collapsed();
+        panel_states["local_variables"] = _local_variables->is_collapsed();
 
         cache->set_script_state(_orchestration->get_self()->get_path(), state);
         cache->save();
@@ -141,6 +164,7 @@ void OrchestratorScriptEditorViewport::_restore_state()
             _macros->set_collapsed(panel_state.get("macros", false));
             _variables->set_collapsed(panel_state.get("variables", false));
             _signals->set_collapsed(panel_state.get("signals", false));
+            _local_variables->set_collapsed(panel_state.get("local_variables", false));
         }
     }
 }
@@ -581,6 +605,10 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
         _signals = memnew(OrchestratorScriptSignalsComponentPanel(_orchestration));
         _signals->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_signals);
+
+        _local_variables = memnew(OrchestratorScriptLocalVariablesComponentPanel(_orchestration));
+        _local_variables->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
+        _component_container->add_child(_local_variables);
 
         // Always open the event graph
         _event_graph = _get_or_create_tab(EVENT_GRAPH_NAME);

@@ -48,6 +48,33 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class OScriptNodeLocalVariableGetInstance : public OScriptNodeInstance
+{
+    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeLocalVariableGet);
+    StringName _variable_name;
+    bool _validated{ false };
+
+public:
+    int step(OScriptExecutionContext& p_context) override
+    {
+        OScriptVirtualMachine::Function* function = reinterpret_cast<OScriptVirtualMachine::Function*>(p_context.get_function());
+        if (!function)
+        {
+            p_context.set_error("Failed to resolve current executing function.");
+            return -1 | STEP_FLAG_END;
+        }
+
+        p_context.set_output(0, function->_variables[_variable_name]);
+
+        if (_validated)
+            return Object::cast_to<Object>(p_context.get_working_memory()) ? 0 : 1;
+
+        return 0;
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void OScriptNodeVariableGet::_get_property_list(List<PropertyInfo>* r_list) const
 {
     r_list->push_back(PropertyInfo(Variant::BOOL, "validated", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
@@ -63,7 +90,7 @@ bool OScriptNodeVariableGet::_get(const StringName& p_name, Variant& r_value) co
 
     // todo: GodotCPP expects this to be done by the developer, Wrapped::get_bind doesn't do this
     // see https://github.com/godotengine/godot-cpp/pull/1539
-    return OScriptNodeVariable::_get(p_name, r_value);
+    return OScriptNodeVariableBase::_get(p_name, r_value);
 }
 
 bool OScriptNodeVariableGet::_set(const StringName& p_name, const Variant& p_value)
@@ -76,7 +103,7 @@ bool OScriptNodeVariableGet::_set(const StringName& p_name, const Variant& p_val
 
     // todo: GodotCPP expects this to be done by the developer, Wrapped::set_bind doesn't do this
     // see https://github.com/godotengine/godot-cpp/pull/1539
-    return OScriptNodeVariable::_set(p_name, p_value);
+    return OScriptNodeVariableBase::_set(p_name, p_value);
 }
 
 void OScriptNodeVariableGet::_upgrade(uint32_t p_version, uint32_t p_current_version)
@@ -174,6 +201,168 @@ bool OScriptNodeVariableGet::can_be_validated()
 }
 
 void OScriptNodeVariableGet::set_validated(bool p_validated)
+{
+    if (_validated != p_validated)
+    {
+        _validated = p_validated;
+
+        if (!_validated)
+        {
+            // Disconnect any control flow pins, if they exist
+            Ref<OScriptNodePin> exec_in = find_pin("ExecIn", PD_Input);
+            if (exec_in.is_valid())
+                exec_in->unlink_all();
+
+            Ref<OScriptNodePin> is_valid = find_pin("is_valid", PD_Output);
+            if (is_valid.is_valid())
+                is_valid->unlink_all();
+
+            Ref<OScriptNodePin> is_not_valid = find_pin("is_not_valid", PD_Output);
+            if (is_not_valid.is_valid())
+                is_not_valid->unlink_all();
+        }
+
+        // Record the connection before the change
+        Ref<OScriptNodePin> connection;
+        Ref<OScriptNodePin> value = find_pin("value", PD_Output);
+        if (value.is_valid() && value->has_any_connections())
+        {
+            connection = value->get_connections()[0];
+            value->unlink_all();
+        }
+
+        _notify_pins_changed();
+
+        if (connection.is_valid())
+        {
+            // Relink connection on change
+            value = find_pin("value", PD_Output);
+            if (value.is_valid())
+                value->link(connection);
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OScriptNodeLocalVariableGet::_get_property_list(List<PropertyInfo>* r_list) const
+{
+    r_list->push_back(PropertyInfo(Variant::BOOL, "validated", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+}
+
+bool OScriptNodeLocalVariableGet::_get(const StringName& p_name, Variant& r_value) const
+{
+    if (p_name.match("validated"))
+    {
+        r_value = _validated;
+        return true;
+    }
+
+    #if GODOT_VERSION < 0x04300
+    // todo: GodotCPP expects this to be done by the developer, Wrapped::get_bind doesn't do this
+    // see https://github.com/godotengine/godot-cpp/pull/1539
+    return OScriptNodeVariableBase::_get(p_name, r_value);
+    #else
+    return false;
+    #endif
+}
+
+bool OScriptNodeLocalVariableGet::_set(const StringName& p_name, const Variant& p_value)
+{
+    if (p_name.match("validated"))
+    {
+        _validated = p_value;
+        return true;
+    }
+
+    #if GODOT_VERSION < 0x040300
+    // todo: GodotCPP expects this to be done by the developer, Wrapped::set_bind doesn't do this
+    // see https://github.com/godotengine/godot-cpp/pull/1539
+    return OScriptNodeVariableBase::_set(p_name, p_value);
+    #else
+    return false;
+    #endif
+}
+
+void OScriptNodeLocalVariableGet::_variable_changed()
+{
+    if (_is_in_editor())
+    {
+        Ref<OScriptNodePin> output = find_pin("value", PD_Output);
+        if (output.is_valid() && output->has_any_connections())
+        {
+            Ref<OScriptNodePin> target = output->get_connections()[0];
+            if (target.is_valid() && !target->can_accept(output))
+                output->unlink_all();
+        }
+    }
+
+    super::_variable_changed();
+}
+
+void OScriptNodeLocalVariableGet::allocate_default_pins()
+{
+    if (_validated)
+    {
+        create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("is_valid"))->set_label("Is Valid");
+        create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("is_invalid"))->set_label("Is Invalid");
+    }
+
+    create_pin(PD_Output, PT_Data, PropertyUtils::as("value", _variable->get_info()))->set_label(_variable_name, false);
+
+    super::allocate_default_pins();
+}
+
+String OScriptNodeLocalVariableGet::get_tooltip_text() const
+{
+    if (_variable.is_valid())
+    {
+        String tooltip_text = vformat("Read the value of local variable %s", _variable->get_variable_name());
+        if (!_variable->get_description().is_empty())
+            tooltip_text += "\n\nDescription:\n" + _variable->get_description();
+
+        return tooltip_text;
+    }
+
+    return "Read the value of a local variable";
+}
+
+String OScriptNodeLocalVariableGet::get_node_title() const
+{
+    return vformat("Get %s", _variable_name);
+}
+
+OScriptNodeInstance* OScriptNodeLocalVariableGet::instantiate()
+{
+    OScriptNodeLocalVariableGetInstance *i = memnew(OScriptNodeLocalVariableGetInstance);
+    i->_node = this;
+    i->_variable_name = _variable_name;
+    i->_validated = _validated;
+    return i;
+}
+
+void OScriptNodeLocalVariableGet::initialize(const OScriptNodeInitContext& p_context)
+{
+    if (p_context.user_data)
+    {
+        const Dictionary& data = p_context.user_data.value();
+        if (data.has("validation"))
+            _validated = data["validation"];
+    }
+
+    super::initialize(p_context);
+}
+
+bool OScriptNodeLocalVariableGet::can_be_validated()
+{
+    if (_variable.is_valid())
+        return _variable->supports_validated_getter();
+
+    return false;
+}
+
+void OScriptNodeLocalVariableGet::set_validated(bool p_validated)
 {
     if (_validated != p_validated)
     {

@@ -20,9 +20,9 @@
 #include "variable.h"
 
 /// A variable implementation that gets the value of a variable.
-class OScriptNodeVariableGet : public OScriptNodeVariable
+class OScriptNodeVariableGet : public OScriptNodeScriptVariableBase
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeVariableGet, OScriptNodeVariable);
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeVariableGet, OScriptNodeScriptVariableBase);
     static void _bind_methods() { }
 
 protected:
@@ -37,6 +37,48 @@ protected:
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
+
+    //~ Begin OScriptNodeVariable Interface
+    void _variable_changed() override;
+    //~ End OScriptNodeVariable Interface
+
+public:
+    //~ Begin OScriptNode Interface
+    void allocate_default_pins() override;
+    String get_tooltip_text() const override;
+    String get_node_title() const override;
+    bool should_draw_as_bead() const override { return true; }
+    OScriptNodeInstance* instantiate() override;
+    void initialize(const OScriptNodeInitContext& p_context) override;
+    //~ End OScriptNode Interface
+
+    /// Return whether the node can be validated
+    /// @return true if the node can be validated, false otherwise
+    bool can_be_validated();
+
+    /// Return whether the variable is validated
+    /// @return true if the node is rendered as a validated node, false otherwise.
+    bool is_validated() const { return _validated; }
+
+    /// Change whether the node is rendered as a validated get
+    /// @param p_validated when true, rendered as validated get
+    void set_validated(bool p_validated);
+};
+
+/// A variable implementation that gets the value of a function local variable.
+class OScriptNodeLocalVariableGet : public OScriptNodeLocalVariableBase
+{
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeLocalVariableGet, OScriptNodeLocalVariableBase);
+    static void _bind_methods() { }
+
+protected:
+    bool _validated{ false };  //! Whether to represent get as validated get
+
+    // //~ Begin Wrapped Interface
+    void _get_property_list(List<PropertyInfo>* r_list) const;
+    bool _get(const StringName& p_name, Variant& r_value) const;
+    bool _set(const StringName& p_name, const Variant& p_value);
+    // //~ End Wrapped Interface
 
     //~ Begin OScriptNodeVariable Interface
     void _variable_changed() override;

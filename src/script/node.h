@@ -77,7 +77,8 @@ public:
         NONE = 1 << 0,              //! No specific flags
         CATALOGABLE = 1 << 1,       //! Node should appear in the action catalog
         DEVELOPMENT_ONLY = 1 << 2,  //! Node should be marked in the UI as development only
-        EXPERIMENTAL = 1 << 3       //! Node is experimental and may change
+        EXPERIMENTAL = 1 << 3,      //! Node is experimental and may change
+        DEPRECATED = 1 << 4         //! Node is deprecated and scheduled for removal
     };
 
     #if GODOT_VERSION >= 0x040300
