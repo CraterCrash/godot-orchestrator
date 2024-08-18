@@ -122,7 +122,7 @@ jobs:
         shell: sh
         run: |
           cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=em++ -DCMAKE_C_COMPILER=emcc -DCMAKE_TOOLCHAIN_FILE=${{ env.EMSDK }}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -S '${{ github.workspace }}'
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} -- target orchestrator -j 18
+          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
 
       - name: Prepare addon files
         shell: bash
