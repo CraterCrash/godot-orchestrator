@@ -28,6 +28,7 @@ class OScriptNodeComment : public OScriptNode
 protected:
     String _comments;
     String _title{ "Comment" };
+    String _icon;
     bool _align_center{ false };
     Color _background_color{ 0.6, 0.6, 0.6, 0.05 };
     Color _text_color{ 1.0, 1.0, 1.0, 1.0 };
