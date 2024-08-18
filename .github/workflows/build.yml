@@ -52,6 +52,12 @@ jobs:
             platform: armeabi-v7a
             arch: armeabi-v7a
 
+          - identifier: wasm32
+            name: 🌐 Web (wasm32)
+            build_type: Release
+            runner: ubuntu-20.04
+            platform: web
+
     runs-on: ${{ matrix.runner }}
     name: ${{ matrix.name }}
 
@@ -77,6 +83,10 @@ jobs:
       - name: Setup Android Dependencies
         if: startsWith(matrix.identifier, 'android-')
         uses: ./.github/actions/android-deps
+
+      - name: Setup Web Dependencies
+        if: startsWith(matrix.identifier, 'wasm')
+        uses: ./.github/actions/web-deps
 
       - name: Setup Base Dependencies
         uses: ./.github/actions/base-deps
