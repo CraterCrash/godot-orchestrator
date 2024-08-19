@@ -94,9 +94,9 @@ jobs:
         shell: sh
         working-directory: ./extern/godot-engine
         run: |
-          scons precision=double -j 18
-          ./godot.linux.editor.double.x86_64 --dump-gdextension-interface
-          ./godot.linux.editor.double.x86_64 --dump-extension-api
+          scons precision=double
+          ./godot.linuxbsd.editor.double.x86_64 --dump-gdextension-interface
+          ./godot.linuxbsd.editor.double.x86_64 --dump-extension-api
 
       - name: Prepare double precision
         if: ${{ matrix.precision == 'double' }}
