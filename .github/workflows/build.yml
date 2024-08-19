@@ -22,13 +22,20 @@ jobs:
 #            target: template_debug
 #            platform: linux
 #            arch: x86_64
-          - identifier: linux-release
-            name: 🐧 Linux (Release)
+          - identifier: linux-x86_64-release
+            name: 🐧 Linux x86_64 (Release)
             build_type: Release
             runner: ubuntu-20.04
             target: template_release
             platform: linux
             arch: x86_64
+          - identifier: linux-riscv64-release
+            name: 🐧 Linux riscv64 (Release)
+            build_type: Release
+            runner: ubuntu-20.04
+            target: template_release
+            platform: linux
+            arch: riscv64
 #          - identifier: windows-debug
 #            name: 🪟 Windows (Debug)
 #            build_type: Debug
@@ -55,6 +62,7 @@ jobs:
             runner: macos-latest
             target: template_release
             platform: macos
+            precision: double
           - identifier: android-arm64
             name: 🤖 Android Arm64
             build_type: Release
@@ -104,9 +112,13 @@ jobs:
 
       - name: Build Orchestrator (Linux/MacOS)
         if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
-        shell: sh
+        shell: bash
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja          
+          if [[ "${{ matrix.arch }}" == "riscv64" ]]; then
+            cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja -DCMAKE_TOOLCHAIN_FILE=riscv64-toolchain.cmake
+          else
+            cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja
+          fi
           cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
 
       - name: Build Orchestrator (Windows)
