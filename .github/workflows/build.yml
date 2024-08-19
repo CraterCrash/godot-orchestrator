@@ -42,14 +42,14 @@ jobs:
             name: 🤖 Android Arm64
             build_type: Release
             runner: ubuntu-20.04
-            platform: android
+            platform: arm64-v8a
             arch: arm64-v8a
 
           - identifier: android-arm32
             name: 🤖 Android Arm32
             build_type: Release
             runner: ubuntu-20.04
-            platform: android
+            platform: armeabi-v7a
             arch: armeabi-v7a
 
           - identifier: wasm32
@@ -104,7 +104,7 @@ jobs:
       - name: Build Orchestrator (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18 --preset ${{ matrix.plaform }}
+          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18 --preset ${{ matrix.platform }}
 
 #      - name: Build Orchestrator (Linux/MacOS)
 #        if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
