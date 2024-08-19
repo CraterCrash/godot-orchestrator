@@ -96,33 +96,43 @@ jobs:
         with:
           key: ccache-${{ matrix.identifier }}
 
-      - name: Build Orchestrator (Linux/MacOS)
-        if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
+      - name: Generate Orchestrator CMake build files (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} --preset ${{ matrix.platform }} -S ${{ github.workspace }} 
 
-      - name: Build Orchestrator (Windows)
-        if: startsWith(matrix.identifier, 'windows-')
-        shell: bash
-        run: |
-          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER=cl -S '${{ github.workspace }}' -G Ninja
-          cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18
-
-      - name: Build Orchestrator (Android)
-        if: startsWith(matrix.identifier, 'android-')
+      - name: Build Orchestrator (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_ANDROID_ARCH_ABI=${{ matrix.arch }} -DANDROID_ABI=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.9 -DANDROID_PLATFORM=android-23 -DANDROID_TOOLCHAIN=clang -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }}
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18 --preset ${{ matrix.plaform }}
 
-      - name: Build Orchestrator (Web)
-        if: startsWith(matrix.identifier, 'wasm')
-        shell: sh
-        run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=em++ -DCMAKE_C_COMPILER=emcc -DCMAKE_TOOLCHAIN_FILE=${{ env.EMSDK }}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -S '${{ github.workspace }}'
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+#      - name: Build Orchestrator (Linux/MacOS)
+#        if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
+#        shell: sh
+#        run: |
+#          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja
+#          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+#
+#      - name: Build Orchestrator (Windows)
+#        if: startsWith(matrix.identifier, 'windows-')
+#        shell: bash
+#        run: |
+#          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER=cl -S '${{ github.workspace }}' -G Ninja
+#          cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18
+#
+#      - name: Build Orchestrator (Android)
+#        if: startsWith(matrix.identifier, 'android-')
+#        shell: sh
+#        run: |
+#          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_ANDROID_ARCH_ABI=${{ matrix.arch }} -DANDROID_ABI=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.9 -DANDROID_PLATFORM=android-23 -DANDROID_TOOLCHAIN=clang -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }}
+#          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+#
+#      - name: Build Orchestrator (Web)
+#        if: startsWith(matrix.identifier, 'wasm')
+#        shell: sh
+#        run: |
+#          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=em++ -DCMAKE_C_COMPILER=emcc -DCMAKE_TOOLCHAIN_FILE=${{ env.EMSDK }}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -S '${{ github.workspace }}'
+#          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
 
       - name: Prepare addon files
         shell: bash
