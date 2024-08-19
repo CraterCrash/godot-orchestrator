@@ -58,6 +58,9 @@ jobs:
             arch: armeabi-v7a
             precision: single
 
+    env:
+      SCONS_CACHE: ${{ github.workspace }}/.scons-cache/
+
     steps:
 
       - name: Checkout project
