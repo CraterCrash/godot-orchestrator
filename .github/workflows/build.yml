@@ -89,12 +89,36 @@ jobs:
         with:
           key: ccache-${{ matrix.identifier }}
 
+      - name: Restore scons cache
+        if: ${{ matrix.precision == 'double' }}
+        uses: actions/cache/restore@v3
+        with:
+          path: ${{ github.workspace }}/.scons-cache/
+          key: ${{ matrix.identifier }}-scons-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.identifier }}-scons-${{ github.ref }}-${{ github.sha }}
+            ${{ matrix.identifier }}-scons-${{ github.ref }}
+            ${{ matrix.identifier }}-scons
+
       - name: Compile Godot (Double Precision)
         if: ${{ matrix.precision == 'double' }}
         shell: sh
         working-directory: ./extern/godot-engine
         run: |
           scons precision=double
+
+      - name: Save scons cache
+        if: ${{ matrix.precision == 'double' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.scons-cache/
+          key: ${{ matrix.identifier }}-scons-${{ github.ref }}-${{ github.sha }}
+
+      - name: Dump API
+        if: ${{ matrix.precision == 'double' }}
+        shell: sh
+        working-directory: ./extern/godot-engine/bin
+        run: |
           ./godot.linuxbsd.editor.double.x86_64 --dump-gdextension-interface
           ./godot.linuxbsd.editor.double.x86_64 --dump-extension-api
 
