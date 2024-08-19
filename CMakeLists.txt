@@ -23,6 +23,8 @@ SET(GDEXTENSION_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/project/addons/orchestrato
 # ADD_COMPILE_DEFINITIONS(HOT_RELOAD_ENABLED)
 add_compile_definitions(TOOLS_ENABLED)
 
+set(FLOAT_PRECISION "single" CACHE STRING "")
+
 OPTION(
         AUTOFORMAT_SRC_ON_CONFIGURE
         "If enabled, clang-format will be used to format all sources in src/ during configuration"
@@ -93,6 +95,10 @@ FILE(GLOB_RECURSE gdext_sources
         "${CMAKE_BINARY_DIR}/_generated/*.cpp"
 )
 
+if ("${FLOAT_PRECISION}" STREQUAL "double")
+    add_compile_definitions(REAL_T_IS_DOUBLE)
+endif()
+
 # GDExtension library
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${gdext_sources})
 
@@ -104,6 +110,7 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
         $<${compiler_is_msvc}:
             /EHsc
             /utf-8
+            $<$<STREQUAL:${FLOAT_PRECISION},double>:/DREAL_T_IS_DOUBLE>
             /Zc:preprocessor
             /wd5054 # operator '|' deprecated between enumerations of different types
             $<$<CONFIG:Debug>:
@@ -186,7 +193,11 @@ ELSE ()
     ENDIF ()
 ENDIF ()
 
-STRING(TOLOWER "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}.${system_bits}.${CMAKE_BUILD_TYPE}" gde_lib_name)
+if ("${FLOAT_PRECISION}" STREQUAL "double")
+    STRING(TOLOWER "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}.${system_bits}.double.${CMAKE_BUILD_TYPE}" gde_lib_name)
+ELSE ()
+    STRING(TOLOWER "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}.${system_bits}.${CMAKE_BUILD_TYPE}" gde_lib_name)
+ENDIF ()
 
 # Generate library resource
 IF(WIN32)
