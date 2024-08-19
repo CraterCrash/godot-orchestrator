@@ -122,8 +122,8 @@ jobs:
         shell: sh
         working-directory: ./extern/godot-engine/bin
         run: |
-          ./godot.linuxbsd.editor.double.x86_64 --dump-gdextension-interface
-          ./godot.linuxbsd.editor.double.x86_64 --dump-extension-api
+          ./godot.linuxbsd.editor.double.x86_64 --headless --dump-gdextension-interface
+          ./godot.linuxbsd.editor.double.x86_64 --headless --dump-extension-api
 
       - name: Prepare double precision
         if: ${{ matrix.precision == 'double' }}
