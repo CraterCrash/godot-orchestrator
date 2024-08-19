@@ -60,6 +60,7 @@ jobs:
 
     env:
       SCONS_CACHE: ${{ github.workspace }}/.scons-cache/
+      BUILD_NAME: official
 
     steps:
 
