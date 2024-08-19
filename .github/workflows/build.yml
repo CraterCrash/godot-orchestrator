@@ -99,12 +99,12 @@ jobs:
       - name: Generate Orchestrator CMake build files (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} --preset ${{ matrix.platform }} -S ${{ github.workspace }} 
+          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' --preset ${{ matrix.platform }} -S '${{ github.workspace }}'
 
       - name: Build Orchestrator (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+          cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18
 
 #      - name: Build Orchestrator (Linux/MacOS)
 #        if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
