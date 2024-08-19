@@ -15,57 +15,41 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - identifier: linux-debug
-#            name: 🐧 Linux (Debug)
-#            build_type: Debug
-#            runner: ubuntu-20.04
-#            target: template_debug
-#            platform: linux
-#            arch: x86_64
           - identifier: linux-release
-            name: 🐧 Linux (Release)
+            name: 🐧 Linux
             build_type: Release
             runner: ubuntu-20.04
             target: template_release
             platform: linux
             arch: x86_64
-#          - identifier: windows-debug
-#            name: 🪟 Windows (Debug)
-#            build_type: Debug
-#            runner: windows-latest
-#            target: template_debug
-#            platform: windows
-#            arch: x86_64
+
           - identifier: windows-release
-            name: 🪟 Windows (Release)
+            name: 🪟 Windows
             build_type: Release
             runner: windows-latest
             target: template_release
             platform: windows
             arch: x86_64
-#          - identifier: macos-debug
-#            name: 🍎 MacOS (Debug)
-#            build_type: Debug
-#            runner: macos-latest
-#            target: template_debug
-#            platform: macos
+
           - identifier: macos-release
-            name: 🍎 MacOS (Release)
+            name: 🍎 MacOS
             build_type: Release
             runner: macos-latest
             target: template_release
             platform: macos
+
           - identifier: android-arm64
-            name: 🤖 Android Arm64
+            name: 🤖 Android (arm64)
             build_type: Release
             runner: ubuntu-20.04
-            platform: android
+            platform: arm64-v8a
             arch: arm64-v8a
+
           - identifier: android-arm32
-            name: 🤖 Android Arm32
+            name: 🤖 Android (arm32)
             build_type: Release
             runner: ubuntu-20.04
-            platform: android
+            platform: armeabi-v7a
             arch: armeabi-v7a
 
     runs-on: ${{ matrix.runner }}
@@ -97,31 +81,20 @@ jobs:
       - name: Setup Base Dependencies
         uses: ./.github/actions/base-deps
 
-      - name: ccache (Linux/Mac)
+      - name: Install ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ccache-${{ matrix.identifier }}
 
-      - name: Build Orchestrator (Linux/MacOS)
-        if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
+      - name: Generate Build Files (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }} -G Ninja          
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' --preset ${{ matrix.platform }} -S '${{ github.workspace }}'
 
-      - name: Build Orchestrator (Windows)
-        if: startsWith(matrix.identifier, 'windows-')
-        shell: bash
-        run: |
-          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER=cl -S '${{ github.workspace }}' -G Ninja
-          cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18        
-
-      - name: Build Orchestrator (Android)
-        if: startsWith(matrix.identifier, 'android-')
+      - name: Build Orchestrator (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake -B ${{ github.workspace }}/.out-${{ matrix.identifier }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_ANDROID_ARCH_ABI=${{ matrix.arch }} -DANDROID_ABI=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.9 -DANDROID_PLATFORM=android-23 -DANDROID_TOOLCHAIN=clang -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -S ${{ github.workspace }}
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
+          cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18
 
       - name: Prepare addon files
         shell: bash
@@ -166,13 +139,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-plugin
-          retention-days: 1
+          retention-days: 7
           path: |
             ${{ github.workspace }}
 
-#      - name: Remove Transient Artifacts
-#        uses: geekyeggo/delete-artifact@v4
-#        with:
-#          name: |
-#            ${{ github.event.repository.name}}-plugin-*
-#          failOnError: false
+      - name: Delete Incremental Plugin Artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            godot-orchestrator-plugin-*

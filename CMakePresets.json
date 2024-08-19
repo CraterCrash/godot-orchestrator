@@ -28,118 +28,58 @@
       }
     },
     {
-      "name": "msvc",
-      "inherits": "default",
-      "hidden": true,
+      "name": "linux",
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+      }
+    },
+    {
+      "name": "windows",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_C_COMPILER": "cl",
-        "CMAKE_CXX_COMPILER": "cl",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
+        "CMAKE_CXX_COMPILER": "cl"
       }
     },
     {
-      "displayName": "MSVC Debug",
-      "name": "msvc-debug",
-      "inherits": "msvc",
+      "name": "macos",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
       }
     },
     {
-      "displayName": "MSVC Release",
-      "name": "msvc-release",
-      "inherits": "msvc",
+      "name": "arm64-v8a",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a",
+        "ANDROID_ABI": "arm64-v8a",
+        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
+        "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
+        "ANDROID_PLATFORM": "android-23",
+        "ANDROID_TOOLCHAIN": "clang",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
       }
     },
     {
-      "displayName": "MSVC RelWithDebInfo",
-      "name": "msvc-relwdebinfo",
-      "inherits": "msvc",
+      "name": "armeabi-v7a",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "gcc",
-      "inherits": "default",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-    {
-      "displayName": "GCC Debug",
-      "name": "gcc-debug",
-      "inherits": "gcc",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "displayName": "GCC Release",
-      "name": "gcc-release",
-      "inherits": "gcc",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "displayName": "GCC RelWithDebInfo",
-      "name": "gcc-relwdebinfo",
-      "inherits": "gcc",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "clang",
-      "inherits": "default",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      },
-      "condition": {
-        "type": "notEquals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
-      "displayName": "Clang Debug",
-      "name": "clang-debug",
-      "inherits": "clang",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "displayName": "Clang Release",
-      "name": "clang-release",
-      "inherits": "clang",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "displayName": "Clang RelWithDebInfo",
-      "name": "clang-relwdebinfo",
-      "inherits": "clang",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_ANDROID_ARCH_ABI": "armeabi-v7a",
+        "ANDROID_ABI": "armeabi-v7a",
+        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
+        "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
+        "ANDROID_PLATFORM": "android-23",
+        "ANDROID_TOOLCHAIN": "clang",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
       }
     }
   ]
