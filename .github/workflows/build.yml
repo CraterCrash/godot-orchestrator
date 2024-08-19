@@ -11,49 +11,52 @@ concurrency:
 
 jobs:
   build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - identifier: linux-release
-            name: 🐧 Linux
-            build_type: Release
+          - name: 🐧 Linux
+            identifier: linux-release
             runner: ubuntu-20.04
-            target: template_release
             platform: linux
             arch: x86_64
+            precision: single
 
-          - identifier: windows-release
-            name: 🪟 Windows
-            build_type: Release
+          - name: 🐧 Linux (Double Precision)
+            identifier: linux-double-release
+            runner: ubuntu-20.04
+            platform: linux
+            arch: x86_64
+            precision: double
+
+          - name: 🪟 Windows
+            identifier: windows-release
             runner: windows-latest
-            target: template_release
             platform: windows
             arch: x86_64
+            precision: single
 
-          - identifier: macos-release
-            name: 🍎 MacOS
-            build_type: Release
+          - name: 🍎 MacOS
+            identifier: macos-release
             runner: macos-latest
-            target: template_release
             platform: macos
+            precision: single
 
-          - identifier: android-arm64
-            name: 🤖 Android (arm64)
-            build_type: Release
+          - name: 🤖 Android (arm64)
+            identifier: android-arm64
             runner: ubuntu-20.04
             platform: arm64-v8a
             arch: arm64-v8a
+            precision: single
 
-          - identifier: android-arm32
-            name: 🤖 Android (arm32)
-            build_type: Release
+          - name: 🤖 Android (arm32)
+            identifier: android-arm32
             runner: ubuntu-20.04
             platform: armeabi-v7a
             arch: armeabi-v7a
-
-    runs-on: ${{ matrix.runner }}
-    name: ${{ matrix.name }}
+            precision: single
 
     steps:
 
@@ -86,10 +89,26 @@ jobs:
         with:
           key: ccache-${{ matrix.identifier }}
 
+      - name: Compile Godot (Double Precision)
+        if: ${{ matrix.precision == 'double' }}
+        shell: sh
+        working-directory: ./extern/godot-engine
+        run: |
+          scons precision=double -j 18
+          ./godot.linux.editor.double.x86_64 --dump-gdextension-interface
+          ./godot.linux.editor.double.x86_64 --dump-extension-api
+
+      - name: Prepare double precision
+        if: ${{ matrix.precision == 'double' }}
+        shell: sh
+        run: |
+          cp 'extern/godot-engine/bin/extension_api.json' 'extern/godot-cpp/gdextension/extension_api.json'
+          cp 'extern/godot-engine/bin/gdextension_interface.h' 'extern/godot-cpp/gdextension/gdextension_interface.h'
+
       - name: Generate Build Files (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' --preset ${{ matrix.platform }} -S '${{ github.workspace }}'
+          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' --preset ${{ matrix.platform }} -S '${{ github.workspace }}' -DFLOAT_PRECISION=${{ matrix.precision }}
 
       - name: Build Orchestrator (${{ matrix.identifier }})
         shell: sh
