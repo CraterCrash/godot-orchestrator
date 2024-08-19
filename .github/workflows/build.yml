@@ -94,7 +94,7 @@ jobs:
 
       - name: Restore scons cache
         if: ${{ matrix.precision == 'double' }}
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/.scons-cache/
           key: ${{ matrix.identifier }}-scons-${{ github.ref }}-${{ github.sha }}
