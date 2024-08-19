@@ -104,7 +104,7 @@ jobs:
       - name: Build Orchestrator (${{ matrix.identifier }})
         shell: sh
         run: |
-          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18 --preset ${{ matrix.platform }}
+          cmake --build ${{ github.workspace }}/.out-${{ matrix.identifier }} --target orchestrator -j 18
 
 #      - name: Build Orchestrator (Linux/MacOS)
 #        if: startsWith(matrix.identifier, 'linux-') || startsWith(matrix.identifier, 'macos-')
