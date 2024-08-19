@@ -20,3 +20,5 @@ android.arm32 = "res://addons/orchestrator/liborchestrator.android.32.release.so
 
 android.arm64 = "res://addons/orchestrator/liborchestrator.android.64.release.so"
 #android.debug.arm64 = "res://addons/orchestrator/liborchestrator.android.64.debug.so"
+
+web.wasm32 = "res://addons/orchestrator/orchestrator.emscripten.32.release.a"
