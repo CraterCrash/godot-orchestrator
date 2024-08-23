@@ -776,7 +776,7 @@ void OrchestratorDefaultGraphActionRegistrar::register_actions(const Orchestrato
                     _register_signals(class_name, global_class.get_signal_list());
                 }
             }
-            else if (script.is_valid() && !script->get_class().match(OScript::get_class_static()))
+            else if (script.is_valid())
             {
                 const String script_class_name = p_context.filter->get_target_class();
                 _register_methods(script_class_name, script->get_script_method_list());
