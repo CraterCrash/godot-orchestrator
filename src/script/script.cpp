@@ -241,7 +241,12 @@ TypedArray<Dictionary> OScript::_get_script_method_list() const
 
 TypedArray<Dictionary> OScript::_get_script_property_list() const
 {
-    return {};
+    TypedArray<Dictionary> results;
+    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
+        if (E.value->is_exported())
+            results.push_back(DictionaryUtils::from_property(E.value->get_info()));
+
+    return results;
 }
 
 bool OScript::_is_tool() const
