@@ -58,6 +58,9 @@ public:
     void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) override;
     String get_pin_prefix() const override { return "then"; }
     //~ End OScriptEditablePinNode Interface
+
+    // Get the number of configured steps
+    int get_steps() const { return _steps; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_SEQUENCE_H
