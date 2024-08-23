@@ -17,6 +17,7 @@
 #include "function_result.h"
 
 #include "common/property_utils.h"
+#include "script/nodes/flow_control/sequence.h"
 
 class OScriptNodeFunctionResultInstance : public OScriptNodeInstance
 {
@@ -137,8 +138,22 @@ void OScriptNodeFunctionResult::validate_node_during_build(BuildLog& p_log) cons
                     const Ref<OScriptNode> source = graph_nodes[E.from_node];
                     if (source.is_valid())
                     {
+                        const Ref<OScriptNodeSequence> sequence = source;
+
                         if (source->is_loop_port(E.from_port))
+                        {
                             skipped.insert(E.to_node);
+                        }
+                        else if (sequence.is_valid())
+                        {
+                            // Sequence nodes are designed to execute each "Then X" output pin in sequential
+                            // order and therefore, only the last sequence output port should be mandated to
+                            // connect to a return node, skipping the prior branches similar to loops.
+                            const int steps = sequence->get_steps();
+                            if (E.from_port < (steps - 1))
+                                skipped.insert(E.to_node);
+                        }
+
                     }
 
                     if (skipped.has(E.from_node))
