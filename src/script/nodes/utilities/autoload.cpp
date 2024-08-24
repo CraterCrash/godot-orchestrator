@@ -72,7 +72,7 @@ bool OScriptNodeAutoload::_set(const StringName& p_name, const Variant& p_value)
 
 void OScriptNodeAutoload::_upgrade(uint32_t p_version, uint32_t p_current_version)
 {
-    if (p_version == 1 and p_current_version >= 2)
+    if (p_version == 1 && p_current_version >= 2)
     {
         // Fixup - makes sure that autoload class type is encoded in pin
         Ref<OScriptNodePin> pin = find_pin("autoload", PD_Output);

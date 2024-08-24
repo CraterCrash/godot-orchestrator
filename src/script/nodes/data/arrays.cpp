@@ -355,7 +355,7 @@ void OScriptNodeMakeArray::add_dynamic_pin()
 
 bool OScriptNodeMakeArray::can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const
 {
-    return _element_count > 0 and p_pin->is_input();
+    return _element_count > 0 && p_pin->is_input();
 }
 
 void OScriptNodeMakeArray::remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin)
