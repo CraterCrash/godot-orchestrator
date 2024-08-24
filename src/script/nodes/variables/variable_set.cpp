@@ -68,7 +68,7 @@ public:
 
 void OScriptNodeVariableSet::_upgrade(uint32_t p_version, uint32_t p_current_version)
 {
-    if (p_version == 1 and p_current_version >= 2)
+    if (p_version == 1 && p_current_version >= 2)
     {
         // Fixup - makes sure that stored property matches variable, if not reconstructs
         if (_variable.is_valid())
