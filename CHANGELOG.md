@@ -1,6 +1,24 @@
 # CHANGELOG
 
-## [2.1.stable](https://github.com/Vahera/godot-orchestrator/releases/tag/v2.1.stable) - 2024-08-15
+## [2.1.1.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.1.stable) - 2024-08-25
+
+- [24aacdd](http://github.com/CraterCrash/godot-orchestrator/commit/24aacdda6bd4f2f8cb5203d21d28eda04ffea2f8) - GH-778 Fix crash on Windows 10 - Revert GH-653
+- [932498e](http://github.com/CraterCrash/godot-orchestrator/commit/932498e9b432ca8e9bd782c94b420e2b8c79a760) - Prefer `&&` rather than `and` operator
+- [f6e8964](http://github.com/CraterCrash/godot-orchestrator/commit/f6e8964a22ba89dad22d751dfe89ccc5f914fdef) - GH-774 Relax return node validation for sequence nodes
+- [cd22df4](http://github.com/CraterCrash/godot-orchestrator/commit/cd22df4f72d351268373ebe724636b08c418ef13) - GH-765 Disable debug symbols on Linux/Android builds
+- [ba1059f](http://github.com/CraterCrash/godot-orchestrator/commit/ba1059f932035394d216ba9be2c29dc9301734b0) - GH-427 Support custom icons for comment nodes
+- [4e3e99f](http://github.com/CraterCrash/godot-orchestrator/commit/4e3e99f725b58ef0dcd372d6ca4d5e4808418f3a) - GH-756 Fix validated variable getter state consistency
+- [9682629](http://github.com/CraterCrash/godot-orchestrator/commit/9682629c7ebea056aed19027632c57efbe635de2) - GH-712 Clamp `All Actions` dialog within screen rect.
+- [8d173e3](http://github.com/CraterCrash/godot-orchestrator/commit/8d173e3491557f8b1f3b772ef064a653b9e51778) - GH-752 Restrict arrow-key movement to only selected elements
+- [6594fa0](http://github.com/CraterCrash/godot-orchestrator/commit/6594fa0e7b1bbeebe2ffdb7346d735e9c001f81d) - GH-736 Fix knot movement/alignment
+- [36ca3ec](http://github.com/CraterCrash/godot-orchestrator/commit/36ca3ecba757985addb97039c40413b99f7c1456) - GH-737 Allow knot node operations within comment nodes
+- [48fa31d](http://github.com/CraterCrash/godot-orchestrator/commit/48fa31de7f049aafd3fa968d111ab7a24a83b49a) - GH-738 Fix `Select Group` to include Knots and Nodes
+- [0fd2856](http://github.com/CraterCrash/godot-orchestrator/commit/0fd2856ae642bbab88af283bda31df4ff94c2646) - GH-655 Use `EditorInterface::get_singleton` where possible
+- [57dc0bb](http://github.com/CraterCrash/godot-orchestrator/commit/57dc0bb410b87875ffc7ed673183e0cae2e8f96e) - GH-743 Fix update picker is_after logic
+- [8baff22](http://github.com/CraterCrash/godot-orchestrator/commit/8baff226ac903259f15d3d2dddb9d418b84fa749) - GH-771 Make exported variables searchable in `All Actions`
+- [8cd1c18](http://github.com/CraterCrash/godot-orchestrator/commit/8cd1c186ffcb95b4c02b81b15c93fa3e77c01eb9) - [ci] Cleanup CI build configuration
+
+## [2.1.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.stable) - 2024-08-15
 
 - [0413239](http://github.com/CraterCrash/godot-orchestrator/commit/041323953b3accec5ab93e954faa6c2a87678943) - GH-741 Bump godot-engine/godot-cpp to 4.3.stable
 - [20b5362](http://github.com/CraterCrash/godot-orchestrator/commit/20b5362e615044adb3e7b24e52a8fcc58015867a) - GH-716 Include knots in movement with arrow keys
