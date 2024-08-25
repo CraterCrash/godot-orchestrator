@@ -31,8 +31,6 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
-#include <godot_cpp/classes/image.hpp>
-#include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -155,18 +153,7 @@ String OrchestratorPlugin::_get_plugin_name() const
 
 Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const
 {
-    Ref<Texture2D> icon = ResourceLoader::get_singleton()->load(OScriptLanguage::ICON);
-
-    const double scale = EditorInterface::get_singleton()->get_editor_scale();
-    if (UtilityFunctions::is_equal_approx(1.0, scale))
-        return icon;
-
-    // Godot automatically scales icons that are part of the Editor pack but does not do
-    // that with custom icons, we must do this when the display size changes.
-    const Ref<Image> image = icon->get_image();
-    image->resize(static_cast<int>(image->get_width() * scale), static_cast<int>(image->get_height() * scale));
-
-    return ImageTexture::create_from_image(image);
+    return ResourceLoader::get_singleton()->load(OScriptLanguage::ICON);
 }
 
 String OrchestratorPlugin::get_plugin_online_documentation_url() const
