@@ -14,6 +14,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
+INCLUDE_GUARD()
 
 INCLUDE(markdown-utils)
 
@@ -35,5 +36,5 @@ FUNCTION( GENERATE_AUTHORS )
         ENDIF()
         MATH(EXPR index "${index} + 1")
     ENDWHILE()
-    CONFIGURE_FILE(cmake/authors.h.in _generated/authors.gen.h @ONLY)
+    CONFIGURE_FILE(cmake/templates/authors.h.in _generated/authors.gen.h @ONLY)
 ENDFUNCTION()
