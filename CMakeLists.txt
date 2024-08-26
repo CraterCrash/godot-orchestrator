@@ -14,46 +14,48 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20 FATAL_ERROR)
 
 SET(GDEXTENSION_LIB_NAME orchestrator)
 SET(GDEXTENSION_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/project/addons/orchestrator")
 
-# This doesn't work for editor plugins
-# ADD_COMPILE_DEFINITIONS(HOT_RELOAD_ENABLED)
-add_compile_definitions(TOOLS_ENABLED)
+# Configurable options
+OPTION(AUTOFORMAT_SRC_ON_CONFIGURE "If enabled, clang-format will be used to format all sources in /src during configuration" OFF)
 
-OPTION(
-        AUTOFORMAT_SRC_ON_CONFIGURE
-        "If enabled, clang-format will be used to format all sources in src/ during configuration"
-        OFF
-)
-
+# Set basic CMAKE properties
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_EXTENSIONS ON)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_COLOR_DIAGNOSTICS ON)
 SET(CMAKE_MESSAGE_LOG_LEVEL STATUS)
 
+# Get the current repository Git commit hash
+# This is used when creating the data from VERSION to show the commit hash in the about box
 FIND_PACKAGE(Git QUIET)
-IF(GIT_FOUND)
+IF (GIT_FOUND)
     EXECUTE_PROCESS(
             COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
             OUTPUT_VARIABLE GIT_COMMIT_HASH
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-ELSE()
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    EXECUTE_PROCESS(
+            COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp"
+            OUTPUT_VARIABLE GODOT_CPP_GIT_COMMIT_HASH
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+ELSE ()
+    # In this case the about box will simply show an unknown git commit
     SET(GIT_COMMIT_HASH "<Unknown>")
-ENDIF()
+    SET(GODOT_CPP_GIT_COMMIT_HASH "<Unknown>")
+ENDIF ()
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/_generated)
-
+# Setup the CMAKE_MODULE_PATH
 LIST(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
-        "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/cmake/"
-)
+        "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/cmake/")
 
+# Include and execute various CMAKE modules
 INCLUDE(generate-authors)
 INCLUDE(generate-license)
 INCLUDE(generate-version)
@@ -61,18 +63,31 @@ INCLUDE(generate-donors)
 INCLUDE(godot-extension-db-generator)
 
 # Generation steps
+GENERATE_AUTHORS()
 GENERATE_LICENSE()
 GENERATE_VERSION()
-GENERATE_AUTHORS()
 GENERATE_DONORS()
 GENERATE_GODOT_EXTENSION_DB()
+
+# Configure project
+PROJECT("${GDEXTENSION_LIB_NAME}" LANGUAGES C CXX VERSION ${RESOLVED_VERSION})
+
+# Generate library resource
+IF (WIN32)
+    SET(win32_product_name "${RESOLVED_VERSION_NAME}")
+    SET(win32_file_version "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
+    SET(win32_product_version "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
+    SET(win32_file_description "Godot ${win32_product_name} Plug-in")
+    CONFIGURE_FILE(cmake/templates/windows.rc.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc @ONLY)
+ENDIF ()
+
+# Orchestrator is an editor plug-in, force TOOLS_ENABLED
+ADD_COMPILE_DEFINITIONS(TOOLS_ENABLED)
 
 # MacOS universal binary support
 IF (APPLE)
     SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for OSX" FORCE)
 ENDIF ()
-
-PROJECT("${GDEXTENSION_LIB_NAME}" LANGUAGES C CXX VERSION ${RESOLVED_VERSION})
 
 # Compiler Identification
 SET(compiler_is_clang "$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>>")
@@ -87,7 +102,8 @@ FILE(GLOB_RECURSE gdext_sources
         CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.[hc]"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.[hc]pp"
-)
+        # Include windows version resource, if exists
+        "${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc")
 
 # GDExtension library
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${gdext_sources})
@@ -128,17 +144,16 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
             $<$<CONFIG:Release>:
                 -O3
             >
-        >
-)
+        >)
 
 find_program(ccache_exe ccache)
-if (ccache_exe)
-    set(CMAKE_VS_GLOBALS
-            "TrackFileAccess=false"
-            "UseMultiToolTask=true"
-            "DebugInformationFormat=OldStyle"
-    )
-endif()
+IF (ccache_exe)
+    SET(CMAKE_VS_GLOBALS "TrackFileAccess=false" "UseMultiToolTask=true" "DebugInformationFormat=OldStyle")
+ENDIF ()
+
+# Add the special "_generated" directory to the include list
+# This is where the generator CMAKE module steps creates automated files
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/_generated)
 
 # Include directories for GDExtension library
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -153,20 +168,18 @@ IF (NOT APPLE)
                 $<$<CONFIG:Release>:
                     $<$<PLATFORM_ID:Android>:-s>
                 >
-            >
-    )
+            >)
 ENDIF ()
 
-if (AUTOFORMAT_SRC_ON_CONFIGURE MATCHES ON)
+IF (AUTOFORMAT_SRC_ON_CONFIGURE MATCHES ON)
     include(clang-format)
 ENDIF ()
 
 # Dependency linking
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-        PUBLIC godot::cpp
-)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC godot::cpp)
 
 SET(GDEXTENSION_LIB_PREFIX "")
+
 IF (NOT ANDROID)
     IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
         SET(system_bits 64)
@@ -182,20 +195,7 @@ ELSE ()
     ENDIF ()
 ENDIF ()
 
-STRING(TOLOWER "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}.${system_bits}.${CMAKE_BUILD_TYPE}" gde_lib_name)
-
-# Generate library resource
-IF(WIN32)
-    SET(win32_product_name "${RESOLVED_VERSION_NAME}")
-    SET(win32_file_version "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
-    SET(win32_product_version "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
-    SET(win32_file_description "Godot ${win32_product_name}")
-    CONFIGURE_FILE(cmake/windows.rc.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc @ONLY)
-ENDIF()
-
-IF (WIN32)
-    LIST(APPEND gdext_sources "${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc")
-ENDIF()
+STRING(TOLOWER "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}.${system_bits}.${CMAKE_BUILD_TYPE}" GDEXTENSION_LIB_NAME)
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
@@ -208,8 +208,8 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME}
         RUNTIME_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
-        OUTPUT_NAME "${gde_lib_name}"
-)
+        OUTPUT_NAME "${GDEXTENSION_LIB_NAME}")
 
 INCLUDE(cmake-utils)
+
 PRINT_PROJECT_VARIABLES()
