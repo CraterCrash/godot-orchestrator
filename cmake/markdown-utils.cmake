@@ -14,6 +14,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
+INCLUDE_GUARD()
 
 FUNCTION( TRIM text out )
     STRING(REGEX REPLACE "^[ \t\n\r]+" "" text "${text}")

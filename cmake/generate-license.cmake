@@ -14,11 +14,12 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
+INCLUDE_GUARD()
 
 FUNCTION( GENERATE_LICENSE )
     FILE(READ LICENSE license_text)
     STRING(REPLACE "\"" "\\042" license_text_formatted "${license_text}")
     STRING(REPLACE "\n" "\\n\"\n    \"" license_text_formatted "${license_text_formatted}")
-    CONFIGURE_FILE(cmake/license.h.in _generated/license.gen.h @ONLY)
+    CONFIGURE_FILE(cmake/templates/license.h.in _generated/license.gen.h @ONLY)
 ENDFUNCTION()
 

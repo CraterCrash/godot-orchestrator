@@ -14,10 +14,11 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
+INCLUDE_GUARD()
 
 FUNCTION( GENERATE_GODOT_EXTENSION_DB )
     EXECUTE_PROCESS(
-            COMMAND cmd /c py ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_godot_extension_db.py ${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/gdextension/extension_api.json
+            COMMAND cmd /c py ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/generate_godot_extension_db.py ${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/gdextension/extension_api.json
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             OUTPUT_VARIABLE godot_extension_db
     )
@@ -26,7 +27,7 @@ FUNCTION( GENERATE_GODOT_EXTENSION_DB )
         STRING(SUBSTRING "${godot_extension_db}" 0 ${pos} godot_extension_db_hpp)
         MATH(EXPR pos "${pos} + 5")
         STRING(SUBSTRING "${godot_extension_db}" ${pos} -1 godot_extension_db_cpp)
-        CONFIGURE_FILE(cmake/extension_db.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/api/extension_db.h @ONLY NEWLINE_STYLE LF)
-        CONFIGURE_FILE(cmake/extension_db.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/api/extension_db.cpp @ONLY NEWLINE_STYLE LF)
+        CONFIGURE_FILE(cmake/templates/extension_db.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/api/extension_db.h @ONLY NEWLINE_STYLE LF)
+        CONFIGURE_FILE(cmake/templates/extension_db.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/api/extension_db.cpp @ONLY NEWLINE_STYLE LF)
     ENDIF()
 ENDFUNCTION()

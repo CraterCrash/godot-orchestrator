@@ -24,7 +24,7 @@ FUNCTION( GENERATE_GODOT_DOCUMENTATION )
     STRING(JOIN "," DOC_DATA_CPP_STR ${DOC_DATA_CPP_FILE})
     # Run python to generate the doc_data.cpp file
     EXECUTE_PROCESS(
-            COMMAND cmd /c py ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_godot_docs.py ${DOC_DATA_CPP_STR} ${XML_FILES_STR}
+            COMMAND cmd /c py ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/generate_godot_docs.py ${DOC_DATA_CPP_STR} ${XML_FILES_STR}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 ENDFUNCTION()
