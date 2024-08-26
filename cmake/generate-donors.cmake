@@ -14,6 +14,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
+INCLUDE_GUARD()
 
 INCLUDE(markdown-utils)
 
@@ -37,5 +38,5 @@ FUNCTION( GENERATE_DONORS )
         ENDIF()
         MATH(EXPR index "${index} + 1")
     ENDWHILE()
-    CONFIGURE_FILE(cmake/donors.h.in _generated/donors.gen.h @ONLY)
+    CONFIGURE_FILE(cmake/templates/donors.h.in _generated/donors.gen.h @ONLY)
 ENDFUNCTION()
