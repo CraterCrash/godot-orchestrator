@@ -14,6 +14,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
+INCLUDE_GUARD()
 
 FUNCTION( GENERATE_VERSION )
     FILE(READ VERSION version_text)
@@ -54,7 +55,7 @@ FUNCTION( GENERATE_VERSION )
     ENDFOREACH()
     PAD_STRING("VERSION_HASH" ${version_max_length} version_hash)
     SET(version_formatted "${version_formatted}#define ${version_hash}\t\"${GIT_COMMIT_HASH}\"")
-    CONFIGURE_FILE(cmake/version.h.in _generated/version.gen.h @ONLY)
+    CONFIGURE_FILE(cmake/templates/version.h.in _generated/version.gen.h @ONLY)
 
     # Pass certain values up to the parent scope
     # These are used to create windows DLL resource file details
