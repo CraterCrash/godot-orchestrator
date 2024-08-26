@@ -58,6 +58,9 @@ void OrchestratorBuildOutputPanel::add_message(const String& p_text)
 void OrchestratorBuildOutputPanel::set_tool_button(Button* p_button)
 {
     _button = p_button;
+
+    if (_button)
+        _button->set_tooltip_text("Toggle Orchestrator Build Bottom Panel");
 }
 
 void OrchestratorBuildOutputPanel::_notification(int p_what)
