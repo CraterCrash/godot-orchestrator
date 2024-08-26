@@ -233,8 +233,14 @@ private:
     /// @param p_new_pos new position
     void _on_node_moved(Vector2 p_old_pos, Vector2 p_new_pos);
 
+    #if GODOT_VERSION < 0x040300
     /// Called when the graph node is resized
     void _on_node_resized();
+    #else
+    /// Called when the graph node manual resize finishes
+    /// @param p_size the new size
+    void _on_resize_end(const Vector2& p_size);
+    #endif
 
     /// Called when any pin detail has changed for this node
     void _on_pins_changed();

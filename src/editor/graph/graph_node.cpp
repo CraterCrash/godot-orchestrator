@@ -79,7 +79,15 @@ void OrchestratorGraphNode::_notification(int p_what)
 
         // Used to replicate size/position state to underlying node resource
         connect("dragged", callable_mp(this, &OrchestratorGraphNode::_on_node_moved));
+
+        // Godot 4.3 introduced a new resize_end callback that we will use now to handle triggering the
+        // final size of a node. This helps avoid issues with editor scale changes being problematic by
+        // leaving nodes too large after scale up.
+        #if GODOT_VERSION < 0x040300
         connect("resized", callable_mp(this, &OrchestratorGraphNode::_on_node_resized));
+        #else
+        connect("resize_end", callable_mp(this, &OrchestratorGraphNode::_on_resize_end));
+        #endif
 
         // Used to replicate state changes from node resource to the UI
         _node->connect("pins_changed", callable_mp(this, &OrchestratorGraphNode::_on_pins_changed));
@@ -671,10 +679,17 @@ void OrchestratorGraphNode::_on_node_moved([[maybe_unused]] Vector2 p_old_pos, V
     _node->set_position(p_new_pos);
 }
 
+#if GODOT_VERSION < 0x040300
 void OrchestratorGraphNode::_on_node_resized()
 {
     _node->set_size(get_size());
 }
+#else
+void OrchestratorGraphNode::_on_resize_end(const Vector2& p_size)
+{
+    _node->set_size(p_size);
+}
+#endif
 
 void OrchestratorGraphNode::_on_pins_changed()
 {
