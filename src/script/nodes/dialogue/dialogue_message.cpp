@@ -25,6 +25,7 @@
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/window.hpp>
 
 class OScriptNodeDialogueMessageInstance : public OScriptNodeInstance
 {
@@ -105,6 +106,15 @@ public:
                 state->connect_to_signal(_ui, "show_message_finished", Array());
 
                 Node* root = node->get_tree()->get_current_scene();
+                if (!root)
+                    root = node->get_tree()->get_root()->get_child(0);
+
+                if (!root)
+                {
+                    p_context.set_error("Cannot find root node");
+                    return -1 | STEP_FLAG_END;
+                }
+
                 if (!root->is_node_ready())
                     root->call_deferred("add_child", _ui);
                 else
