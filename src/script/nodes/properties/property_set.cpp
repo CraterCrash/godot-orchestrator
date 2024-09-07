@@ -21,6 +21,7 @@
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/window.hpp>
 
 class OScriptNodePropertySetInstance : public OScriptNodeInstance
 {
@@ -34,7 +35,7 @@ class OScriptNodePropertySetInstance : public OScriptNodeInstance
     Node* _get_node_path_target(OScriptExecutionContext& p_context)
     {
         if (Node* owner = Object::cast_to<Node>(p_context.get_owner()))
-            return owner->get_tree()->get_current_scene()->get_node_or_null(_node_path);
+            return owner->get_tree()->get_root()->get_node_or_null(_node_path);
         return nullptr;
     }
 
