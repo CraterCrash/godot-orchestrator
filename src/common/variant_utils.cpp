@@ -301,4 +301,11 @@ namespace VariantUtils
         Variant::evaluate(p_operator, p_left, p_right, r_value, valid);
         return valid;
     }
+
+    Variant evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right)
+    {
+        Variant result;
+        evaluate(p_operator, p_left, p_right, result);
+        return result;
+    }
 }
