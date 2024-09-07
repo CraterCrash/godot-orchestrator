@@ -25,22 +25,18 @@
 class OScriptNodeInstantiateSceneInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeInstantiateScene);
-    Ref<PackedScene> _scene;
 
 public:
     int step(OScriptExecutionContext& p_context) override
     {
-        if (!_scene.is_valid())
+        Ref<PackedScene> scene = ResourceLoader::get_singleton()->load(p_context.get_input(0));
+        if (!scene.is_valid())
         {
-            _scene = ResourceLoader::get_singleton()->load(p_context.get_input(0));
-            if (!_scene.is_valid())
-            {
-                p_context.set_error(vformat("Failed to load scene: %s", p_context.get_input(0)));
-                return -1;
-            }
+            p_context.set_error(vformat("Failed to load scene: %s", p_context.get_input(0)));
+            return -1;
         }
 
-        Node* scene_node = _scene->instantiate();
+        Node* scene_node = scene->instantiate();
         p_context.set_output(0, scene_node);
         return 0;
     }
