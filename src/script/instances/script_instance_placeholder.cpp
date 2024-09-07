@@ -110,10 +110,8 @@ bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_
     {
         if (_script->_has_property_default_value(p_name))
         {
-            Variant def_value = _script->get_property_default_value(p_name);
-
-            Variant result;
-            if (VariantUtils::evaluate(Variant::OP_EQUAL, def_value, p_value, result))
+            const Variant def_value = _script->get_property_default_value(p_name);
+            if (VariantUtils::evaluate(Variant::OP_EQUAL, def_value, p_value))
             {
                 _values.erase(p_name);
                 return true;
@@ -126,9 +124,8 @@ bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_
     {
         if (_script->_has_property_default_value(p_name))
         {
-            Variant def_value = _script->get_property_default_value(p_name);
-            Variant result;
-            if (VariantUtils::evaluate(Variant::OP_NOT_EQUAL, def_value, p_value, result))
+            const Variant def_value = _script->get_property_default_value(p_name);
+            if (VariantUtils::evaluate(Variant::OP_NOT_EQUAL, def_value, p_value))
                 _values[p_name] = p_value;
             return true;
         }
