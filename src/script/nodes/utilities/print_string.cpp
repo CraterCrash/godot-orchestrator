@@ -92,25 +92,31 @@ int OScriptNodePrintStringInstance::step(OScriptExecutionContext& p_context)
     {
         SceneTree* tree = _get_tree(p_context);
 
-        Node* container = _get_or_create_ui_container(tree->get_current_scene());
-        if (container)
+        Node* root = tree->get_current_scene();
+        if (!root)
+            root = tree->get_root()->get_child(0);
+
+        if (root)
         {
-            Variant text = p_context.get_input(0);
+            if (Node* container = _get_or_create_ui_container(root))
+            {
+                Variant text = p_context.get_input(0);
 
-            RichTextLabel* label = memnew(RichTextLabel);
-            label->set_fit_content(true);
-            label->set_use_bbcode(true);
-            label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
-            label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-            label->set_autowrap_mode(TextServer::AUTOWRAP_OFF);
-            container->add_child(label);
+                RichTextLabel* label = memnew(RichTextLabel);
+                label->set_fit_content(true);
+                label->set_use_bbcode(true);
+                label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+                label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+                label->set_autowrap_mode(TextServer::AUTOWRAP_OFF);
+                container->add_child(label);
 
-            label->push_color(p_context.get_input(3));
-            label->append_text(text);
-            label->pop();
+                label->push_color(p_context.get_input(3));
+                label->append_text(text);
+                label->pop();
 
-            Ref<SceneTreeTimer> timer = tree->create_timer(p_context.get_input(4));
-            timer->connect("timeout", Callable(label, "queue_free"));
+                Ref<SceneTreeTimer> timer = tree->create_timer(p_context.get_input(4));
+                timer->connect("timeout", Callable(label, "queue_free"));
+            }
         }
     }
 
