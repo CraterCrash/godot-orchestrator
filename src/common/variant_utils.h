@@ -76,6 +76,13 @@ namespace VariantUtils
     /// @param r_value the return value
     /// @return true if the evaluation was successful, false otherwise
     bool evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right, Variant& r_value);
+
+    /// Evaluates two variants, returning the result.
+    /// @param p_operator the operation to be performed
+    /// @param p_left the left operand
+    /// @param p_right the right operand
+    /// @return the evaluated result value between the two operands
+    Variant evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right);
 }
 
 #endif  // ORCHESTRATOR_VARIANT_UTILS_H
