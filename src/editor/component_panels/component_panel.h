@@ -196,6 +196,15 @@ protected:
     /// @return data to be used for the draggable item, returning an empty Dictionary cancels the drag
     virtual Dictionary _handle_drag_data(const Vector2& p_position) { return {}; }
 
+    /// Called when the tree receives a <code>gui_input</code> event
+    /// @param p_event the event received
+    void _tree_gui_input(const Ref<InputEvent>& p_event);
+
+    /// Handles <code>gui_input</code> events in the tree widget
+    /// @param p_event the event received
+    /// @param p_item the current selected item
+    virtual void _handle_tree_gui_input(const Ref<InputEvent>& p_event, TreeItem* p_item) { }
+
     /// Default constructor
     OrchestratorScriptComponentPanel() = default;
 
