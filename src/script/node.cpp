@@ -363,6 +363,9 @@ Vector<Ref<OScriptNodePin>> OScriptNode::get_eligible_autowire_pins(const Ref<OS
 
 void OScriptNode::on_pin_connected(const Ref<OScriptNodePin>& p_pin)
 {
+    if (p_pin.is_valid())
+        p_pin->reset_default_value();
+
     emit_signal("pin_connected", p_pin->get_direction(), p_pin->get_pin_index());
 }
 
