@@ -20,6 +20,7 @@
 #include "common/scene_utils.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
 
@@ -43,8 +44,8 @@ String OrchestratorScriptSignalsComponentPanel::_get_remove_confirm_text(TreeIte
 
 bool OrchestratorScriptSignalsComponentPanel::_populate_context_menu(TreeItem* p_item)
 {
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_SIGNAL);
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_SIGNAL);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_SIGNAL, KEY_F2);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_SIGNAL, KEY_DELETE);
     return true;
 }
 
@@ -118,6 +119,24 @@ Dictionary OrchestratorScriptSignalsComponentPanel::_handle_drag_data(const Vect
         }
     }
     return data;
+}
+
+void OrchestratorScriptSignalsComponentPanel::_handle_tree_gui_input(const Ref<InputEvent>& p_event, TreeItem* p_item)
+{
+    const Ref<InputEventKey> key = p_event;
+    if (key.is_valid() && key->is_pressed() && !key->is_echo())
+    {
+        if (key->get_keycode() == KEY_F2)
+        {
+            _handle_context_menu(CM_RENAME_SIGNAL);
+            accept_event();
+        }
+        else if (key->get_keycode() == KEY_DELETE)
+        {
+            _handle_context_menu(CM_REMOVE_SIGNAL);
+            accept_event();
+        }
+    }
 }
 
 void OrchestratorScriptSignalsComponentPanel::update()
