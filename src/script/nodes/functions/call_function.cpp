@@ -332,7 +332,10 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
             }
 
             if (argument_index >= default_start_index)
+            {
+                pin->set_generated_default_value(p_method.default_arguments[default_index]);
                 pin->set_default_value(p_method.default_arguments[default_index++]);
+            }
         }
         argument_index++;
     }
