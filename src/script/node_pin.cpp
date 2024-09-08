@@ -294,7 +294,10 @@ void OScriptNodePin::set_type(Variant::Type p_type)
         _property.type = p_type;
 
         if (_set_type_resets_default)
-            reset_default_value();
+        {
+            _default_value = Variant();
+            _generated_default_value = _target_class.is_empty() ? VariantUtils::make_default(_property.type) : Variant();
+        }
 
         emit_changed();
     }
@@ -320,7 +323,10 @@ void OScriptNodePin::set_target_class(const StringName& p_target_class)
             _property.type = Variant::OBJECT;
 
         if (_set_type_resets_default)
-            reset_default_value();
+        {
+            _default_value = Variant();
+            _generated_default_value = _target_class.is_empty() ? VariantUtils::make_default(_property.type) : Variant();
+        }
 
         emit_changed();
     }
@@ -351,8 +357,7 @@ void OScriptNodePin::set_default_value(const Variant& p_default_value)
 
 void OScriptNodePin::reset_default_value()
 {
-    _default_value = Variant();
-    _generated_default_value = _target_class.is_empty() ? VariantUtils::make_default(_property.type) : Variant();
+    set_default_value(_generated_default_value);
 }
 
 Variant OScriptNodePin::get_generated_default_value() const
