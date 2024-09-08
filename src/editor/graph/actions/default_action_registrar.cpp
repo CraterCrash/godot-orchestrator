@@ -569,8 +569,13 @@ void OrchestratorDefaultGraphActionRegistrar::_register_properties(const String&
             }
         }
 
+        #if GODOT_VERSION >= 0x040400
+        const String getter_name = ClassDB::class_get_property_getter(p_class_name, pi.name);
+        const String setter_name = ClassDB::class_get_property_setter(p_class_name, pi.name);
+        #else
         const String getter_name = vformat("get_%s", pi.name);
         const String setter_name = vformat("set_%s", pi.name);
+        #endif
 
         bool has_getter = false;
         if ((global_class.name.is_empty() && ClassDB::class_has_method(p_class_name, getter_name))
