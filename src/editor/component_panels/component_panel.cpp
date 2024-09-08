@@ -58,7 +58,8 @@ void OrchestratorScriptComponentPanel::_tree_add_item()
 void OrchestratorScriptComponentPanel::_tree_item_activated()
 {
     TreeItem* item = _tree->get_selected();
-    ERR_FAIL_COND_MSG(!item, "Cannot activate when no item selected");
+    if (!item)
+        return;
 
     _handle_item_activated(item);
 }
@@ -361,6 +362,15 @@ bool OrchestratorScriptComponentPanel::_find_child_and_activate(const String& p_
     return false;
 }
 
+void OrchestratorScriptComponentPanel::_tree_gui_input(const Ref<InputEvent>& p_event)
+{
+    TreeItem* selected = _tree->get_selected();
+    if (!selected)
+        return;
+
+    _handle_tree_gui_input(p_event, selected);
+}
+
 void OrchestratorScriptComponentPanel::_gui_input(const Ref<InputEvent>& p_event)
 {
     const Ref<InputEventMouseButton> mb = p_event;
@@ -432,7 +442,6 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
         _tree->set_h_size_flags(SIZE_EXPAND_FILL);
         _tree->set_v_size_flags(SIZE_FILL);
         _tree->set_hide_root(true);
-        _tree->set_focus_mode(FOCUS_NONE);
         _tree->create_item()->set_text(0, "Root"); // creates the root item
         add_child(_tree);
 
@@ -461,6 +470,7 @@ void OrchestratorScriptComponentPanel::_notification(int p_what)
         _tree->connect("item_mouse_selected", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_item_mouse_selected));
         _tree->connect("item_collapsed", callable_mp_lambda(this, [&]([[maybe_unused]] TreeItem* i) { _tree->update_minimum_size(); }));
         _tree->connect("button_clicked", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_item_button_clicked));
+        _tree->connect("gui_input", callable_mp(this, &OrchestratorScriptComponentPanel::_tree_gui_input));
         _context_menu->connect("id_pressed", callable_mp_lambda(this, [&](int id) { _handle_context_menu(id); }));
         _confirm->connect("confirmed", callable_mp(this, &OrchestratorScriptComponentPanel::_remove_confirmed));
 

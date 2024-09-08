@@ -21,6 +21,7 @@
 #include "common/settings.h"
 #include "editor/script_connections.h"
 
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
 
@@ -88,17 +89,17 @@ bool OrchestratorScriptGraphsComponentPanel::_populate_context_menu(TreeItem* p_
         Ref<OScriptGraph> graph = _orchestration->get_graph(_get_tree_item_name(p_item));
         bool rename_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_RENAMABLE);
         bool delete_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_DELETABLE);
-        _context_menu->add_item("Open Graph", CM_OPEN_GRAPH);
-        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_GRAPH);
+        _context_menu->add_item("Open Graph", CM_OPEN_GRAPH, KEY_ENTER);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_GRAPH, KEY_F2);
         _context_menu->set_item_disabled(_context_menu->get_item_count() - 1, rename_disabled);
-        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_GRAPH);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_GRAPH, KEY_DELETE);
         _context_menu->set_item_disabled(_context_menu->get_item_count() - 1, delete_disabled);
     }
     else
     {
         // Graph Functions
-        _context_menu->add_item("Focus", CM_FOCUS_FUNCTION);
-        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
+        _context_menu->add_item("Focus", CM_FOCUS_FUNCTION, KEY_ENTER);
+        _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION, KEY_DELETE);
 
         if (p_item->has_meta("__slot") && p_item->get_meta("__slot"))
         {
@@ -186,6 +187,42 @@ void OrchestratorScriptGraphsComponentPanel::_handle_button_clicked(TreeItem* p_
     OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
     add_child(dialog);
     dialog->popup_connections(_get_tree_item_name(p_item), nodes);
+}
+
+void OrchestratorScriptGraphsComponentPanel::_handle_tree_gui_input(const Ref<InputEvent>& p_event, TreeItem* p_item)
+{
+    Ref<InputEventKey> key = p_event;
+    if (!key.is_valid() || !key->is_pressed() || key->is_echo())
+        return;
+
+    if (key->get_keycode() == KEY_ENTER)
+    {
+        _handle_context_menu(p_item->get_parent() == _tree->get_root() ? CM_OPEN_GRAPH : CM_FOCUS_FUNCTION);
+        accept_event();
+    }
+    else if (key->get_keycode() == KEY_F2)
+    {
+        if (_tree->get_root() == p_item->get_parent())
+        {
+            Ref<OScriptGraph> graph = _orchestration->get_graph(_get_tree_item_name(p_item));
+            if (graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_RENAMABLE))
+                _handle_context_menu(CM_RENAME_GRAPH);
+        }
+        accept_event();
+    }
+    else if (key->get_keycode() == KEY_DELETE)
+    {
+        if (_tree->get_root() == p_item->get_parent())
+        {
+            Ref<OScriptGraph> graph = _orchestration->get_graph(_get_tree_item_name(p_item));
+            if(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_DELETABLE))
+                _handle_context_menu(CM_REMOVE_GRAPH);
+        }
+        else
+            _handle_context_menu(CM_REMOVE_FUNCTION);
+
+        accept_event();
+    }
 }
 
 void OrchestratorScriptGraphsComponentPanel::_update_slots()
