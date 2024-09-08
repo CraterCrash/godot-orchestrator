@@ -55,6 +55,7 @@ protected:
     void _handle_remove(TreeItem* p_item) override;
     void _handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button) override;
     Dictionary _handle_drag_data(const Vector2& p_position) override;
+    void _handle_tree_gui_input(const Ref<InputEvent>& p_event, TreeItem* p_item) override;
     //~ End OrchestratorScriptComponentPanel Interface
 
     //~ Begin Signal handlers

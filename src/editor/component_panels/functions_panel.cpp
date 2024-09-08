@@ -26,7 +26,9 @@
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
+#include <godot_cpp/classes/shortcut.hpp>
 #include <godot_cpp/classes/tree.hpp>
 
 void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p_item)
@@ -95,9 +97,9 @@ String OrchestratorScriptFunctionsComponentPanel::_get_remove_confirm_text(TreeI
 
 bool OrchestratorScriptFunctionsComponentPanel::_populate_context_menu(TreeItem* p_item)
 {
-    _context_menu->add_item("Open in Graph", CM_OPEN_FUNCTION_GRAPH);
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_FUNCTION);
-    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION);
+    _context_menu->add_item("Open in Graph", CM_OPEN_FUNCTION_GRAPH, KEY_ENTER);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_FUNCTION, KEY_F2);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION, KEY_DELETE);
 
     if (p_item->has_meta("__slot") && p_item->get_meta("__slot"))
     {
@@ -216,6 +218,29 @@ Dictionary OrchestratorScriptFunctionsComponentPanel::_handle_drag_data(const Ve
         }
     }
     return data;
+}
+
+void OrchestratorScriptFunctionsComponentPanel::_handle_tree_gui_input(const Ref<InputEvent>& p_event, TreeItem* p_item)
+{
+    const Ref<InputEventKey> key = p_event;
+    if (key.is_valid() && key->is_pressed() && !key->is_echo())
+    {
+        if (key->get_keycode() == KEY_ENTER)
+        {
+            _handle_context_menu(CM_OPEN_FUNCTION_GRAPH);
+            accept_event();
+        }
+        else if (key->get_keycode() == KEY_F2)
+        {
+            _handle_context_menu(CM_RENAME_FUNCTION);
+            accept_event();
+        }
+        else if (key->get_keycode() == KEY_DELETE)
+        {
+            _handle_context_menu(CM_REMOVE_FUNCTION);
+            accept_event();
+        }
+    }
 }
 
 void OrchestratorScriptFunctionsComponentPanel::update()
