@@ -122,23 +122,33 @@ bool OScriptInstance::set(const StringName& p_name, const Variant& p_value, Prop
 
 bool OScriptInstance::get(const StringName& p_name, Variant& p_value, PropertyError* r_err)
 {
+    // First check if we have a member variable
     const String variable_name = _get_variable_name_from_path(p_name);
-
-    OScriptVirtualMachine::Variable* variable = _vm.get_variable(variable_name);
-    if (!variable || !variable->exported)
+    if (_vm.has_variable(variable_name))
     {
-        if (r_err)
-            *r_err = PROP_NOT_FOUND;
+        OScriptVirtualMachine::Variable* variable = _vm.get_variable(variable_name);
+        if (!variable || !variable->exported)
+        {
+            if (r_err)
+                *r_err = PROP_NOT_FOUND;
+            return false;
+        }
 
-        return false;
+        if (r_err)
+            *r_err = PROP_OK;
+
+        p_value = variable->value;
+        return true;
     }
 
-    if (r_err)
-        *r_err = PROP_OK;
+    // Next check signals - for named access, i.e. "await obj.signal"
+    if (_vm.has_signal(p_name))
+    {
+        p_value = _vm.get_signal(p_name);
+        return true;
+    }
 
-    p_value = variable->value;
-
-    return true;
+    return false;
 }
 
 GDExtensionPropertyInfo* OScriptInstance::get_property_list(uint32_t* r_count)
