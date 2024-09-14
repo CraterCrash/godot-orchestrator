@@ -207,6 +207,11 @@ public:
     /// @return true if the variable was registered successfully, false otherwise
     bool register_variable(const Ref<OScriptVariable>& p_variable);
 
+    /// Check whether the script has a variable
+    /// @param p_name the variable name
+    /// @return true if the variable exists, false otherwise
+    bool has_variable(const StringName& p_name) const;
+
     /// Gets the variable by name
     /// @param p_name the variable name
     /// @return the variable if found, otherwise returns null
@@ -223,6 +228,16 @@ public:
     /// @param p_value the value of the variable to set
     /// @return true if the value was set, false otherwise
     bool set_variable(const StringName& p_name, const Variant& p_value);
+
+    /// Check whether the script instance has such a signal
+    /// @param p_name the signal name
+    /// @return true if the signal exists, false otherwise
+    bool has_signal(const StringName& p_name) const;
+
+    /// Get the signal instance for the given name.
+    /// @param p_name the signal name
+    /// @return the signal instance, should not be called without verifying signal exists
+    Variant get_signal(const StringName& p_name);
 
     /// Register a function
     /// @param p_function the function to be registered
