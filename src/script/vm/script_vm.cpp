@@ -948,6 +948,11 @@ bool OScriptVirtualMachine::register_variable(const Ref<OScriptVariable>& p_vari
     return true;
 }
 
+bool OScriptVirtualMachine::has_variable(const StringName& p_name) const
+{
+    return _variables.has(p_name);
+}
+
 OScriptVirtualMachine::Variable* OScriptVirtualMachine::get_variable(const StringName& p_name) const
 {
     const HashMap<StringName, Variable>::ConstIterator E = _variables.find(p_name);
@@ -974,6 +979,17 @@ bool OScriptVirtualMachine::set_variable(const StringName& p_name, const Variant
     variable.value = p_value;
 
     return true;
+}
+
+bool OScriptVirtualMachine::has_signal(const StringName& p_name) const
+{
+    return _script->has_script_signal(p_name);
+}
+
+Variant OScriptVirtualMachine::get_signal(const StringName& p_name)
+{
+    ERR_FAIL_COND_V_MSG(!_script->has_script_signal(p_name), Variant(), "No signal with name '" + p_name + "' found.");
+    return Signal(get_owner(), p_name);
 }
 
 bool OScriptVirtualMachine::register_function(const Ref<OScriptFunction>& p_function)
