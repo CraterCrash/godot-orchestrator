@@ -91,6 +91,8 @@ protected:
     GDExtensionCallError* _error{ nullptr };      //! The call error reference
     String _error_reason;                         //! The error reason
 
+    void* _function{ nullptr };                   //! Current executing function
+
     /// Initialize the variant stack using memnew_placement
     void _initialize_variant_stack();
 
@@ -179,6 +181,10 @@ public:
     /// Get the current runtime virtual machine reference.
     /// @return the owning virtual machine
     _FORCE_INLINE_ OScriptVirtualMachine* get_runtime() { return _instance; }
+
+    /// Get the current executing function
+    /// @return the function pointer
+    _FORCE_INLINE_ void* get_function() const { return _function; }
 
     /// Gets the owner object, typically the owner of the virtual machine.
     /// @return the owner object, should never be <code>null</code>.

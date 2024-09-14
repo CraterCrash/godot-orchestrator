@@ -739,18 +739,31 @@ bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Vari
     allowed_types.push_back("files");
     allowed_types.push_back("obj_property");
     allowed_types.push_back("variable");
+    allowed_types.push_back("local_variable");
     allowed_types.push_back("signal");
     allowed_types.push_back("function");
 
     if (allowed_types.has(type))
     {
+        Ref<OScriptVariableBase> variable;
+
         if (type == "variable")
         {
             const String variable_name = String(Array(data["variables"])[0]);
-            const Ref<OScriptVariable> variable = _script_graph->get_orchestration()->get_variable(variable_name);
-            if (variable.is_valid() && !variable->is_constant())
-                _show_drag_hint("Use Ctrl to drop a Setter, Shift to drop a Getter");
+            variable = _script_graph->get_orchestration()->get_variable(variable_name);
         }
+        else if (type == "local_variable")
+        {
+            if (!_script_graph->is_function())
+                return false;
+
+            const String variable_name = String(Array(data["local_variables"])[0]);
+            variable = _script_graph->get_local_variable(variable_name);
+        }
+
+        if (variable.is_valid() && !variable->is_constant())
+            _show_drag_hint("Use Ctrl to drop a Setter, Shift to drop a Getter");
+
         return true;
     }
 
@@ -789,17 +802,9 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
     else if (type == "files")
     {
         const Array files = data["files"];
+        const String file_name = String(files[0]);
 
-        // Create context-menu to specify variable get or set choice
-        _context_menu->clear();
-        _context_menu->add_separator("File " + String(files[0]));
-        _context_menu->add_item("Get Path", CM_FILE_GET_PATH);
-        _context_menu->add_item("Preload ", CM_FILE_PRELOAD);
-        _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FILE_GET_PATH), String(files[0]));
-        _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FILE_PRELOAD), String(files[0]));
-        _context_menu->reset_size();
-        _context_menu->set_position(get_screen_position() + p_position);
-        _context_menu->popup();
+        _show_file_drop_menu(p_position, file_name);
     }
     else if (type == "obj_property")
     {
@@ -828,39 +833,15 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
         {
             // Get the property's current value and seed that as the pin's value
             const Variant value = object->get(property_name);
-
-            // Create context-menu handlers
-            Ref<OrchestratorGraphActionHandler> get_handler(memnew(OrchestratorGraphNodeSpawnerPropertyGet(pi, path)));
-            Ref<OrchestratorGraphActionHandler> set_handler(memnew(OrchestratorGraphNodeSpawnerPropertySet(pi, path, value)));
-
-            // Create context-menu to specify variable get or set choice
-            _context_menu->clear();
-            _context_menu->add_separator("Property " + pi.name);
-            _context_menu->add_item("Get " + pi.name, CM_PROPERTY_GET);
-            _context_menu->add_item("Set " + pi.name, CM_PROPERTY_SET);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_PROPERTY_GET), get_handler);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_PROPERTY_SET), set_handler);
-            _context_menu->reset_size();
-            _context_menu->set_position(get_screen_position() + p_position);
-            _context_menu->popup();
+            _show_property_drop_menu(p_position, pi, path, value);
         }
     }
     else if (type == "function")
     {
         if (data.has("functions"))
         {
-            MethodInfo method = DictionaryUtils::to_method(data["functions"]);
-
-            // Create context-menu to specify variable get or set choice
-            _context_menu->clear();
-            _context_menu->add_separator("Function " + method.name);
-            _context_menu->add_item("Add Call Function", CM_FUNCTION_CALL);
-            _context_menu->add_item("Add Callable", CM_FUNCTION_CALLABLE);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALL), data["functions"]);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALLABLE), data["functions"]);
-            _context_menu->reset_size();
-            _context_menu->set_position(get_screen_position() + p_position);
-            _context_menu->popup();
+            const MethodInfo method = DictionaryUtils::to_method(data["functions"]);
+            _show_function_drop_menu(p_position, method, data["functions"]);
         }
     }
     else if (type == "variable")
@@ -874,44 +855,25 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             return;
 
         const bool is_constant = variable->is_constant();
-        const bool is_validated = variable->get_variable_type() == Variant::OBJECT;
+        const bool is_validated = variable->supports_validated_getter();
 
-        if (Input::get_singleton()->is_key_pressed(KEY_CTRL))
-        {
-            if (!is_constant)
-            {
-                Ref<OrchestratorGraphNodeSpawnerVariableSet> setter(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
-                setter->execute(this, _saved_mouse_position);
-            }
-        }
-        else if (Input::get_singleton()->is_key_pressed(KEY_SHIFT))
-        {
-            Ref<OrchestratorGraphNodeSpawnerVariableGet> getter(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
-            getter->execute(this, _saved_mouse_position);
-        }
-        else
-        {
-            _context_menu->clear();
-            _context_menu->add_separator("Variable " + variable_name);
-            _context_menu->add_item("Get " + variable_name, CM_VARIABLE_GET);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET), memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
+        if (!_has_variable_drop_shortcut(variable_name, false))
+            _show_variable_drop_menu(p_position, variable_name, is_validated, is_constant, false);
+    }
+    else if (type == "local_variable")
+    {
+        _hide_drag_hint();
 
-            if (is_validated)
-            {
-                _context_menu->add_item("Get " + variable_name + " with validation", CM_VARIABLE_GET_VALIDATED);
-                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET_VALIDATED), memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name, true)));
-            }
+        const String variable_name = String(Array(data["local_variables"])[0]);
 
-            if (!is_constant)
-            {
-                _context_menu->add_item("Set " + variable_name, CM_VARIABLE_SET);
-                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_SET), memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
-            }
+        const Ref<OScriptLocalVariable> variable = _script_graph->get_local_variable(variable_name);
+        if (!variable.is_valid())
+            return;
 
-            _context_menu->reset_size();
-            _context_menu->set_position(get_screen_position() + p_position);
-            _context_menu->popup();
-        }
+        const bool is_validated = variable->supports_validated_getter();
+
+        if (!_has_variable_drop_shortcut(variable_name, true))
+            _show_variable_drop_menu(p_position, variable_name, is_validated, false, true);
     }
     else if (type == "signal")
     {
@@ -922,6 +884,102 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             spawn_node<OScriptNodeEmitSignal>(context, _saved_mouse_position);
         }
     }
+}
+
+void OrchestratorGraphEdit::_show_file_drop_menu(const Vector2& p_position, const String& p_file_name)
+{
+    // Create context-menu to specify variable get or set choice
+    _context_menu->clear();
+    _context_menu->add_separator("File " + p_file_name);
+    _context_menu->add_item("Get Path", CM_FILE_GET_PATH);
+    _context_menu->add_item("Preload ", CM_FILE_PRELOAD);
+    _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FILE_GET_PATH), p_file_name);
+    _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FILE_PRELOAD), p_file_name);
+    _context_menu->reset_size();
+    _context_menu->set_position(get_screen_position() + p_position);
+    _context_menu->popup();
+}
+
+void OrchestratorGraphEdit::_show_property_drop_menu(const Vector2& p_position, const PropertyInfo& p_property, const NodePath& p_node_path, const Variant& p_value)
+{
+    // Create context-menu handlers
+    Ref<OrchestratorGraphActionHandler> get_handler(memnew(OrchestratorGraphNodeSpawnerPropertyGet(p_property, p_node_path)));
+    Ref<OrchestratorGraphActionHandler> set_handler(memnew(OrchestratorGraphNodeSpawnerPropertySet(p_property, p_node_path, p_value)));
+
+    // Create context-menu to specify variable get or set choice
+    _context_menu->clear();
+    _context_menu->add_separator("Property " + p_property.name);
+    _context_menu->add_item("Get " + p_property.name, CM_PROPERTY_GET);
+    _context_menu->add_item("Set " + p_property.name, CM_PROPERTY_SET);
+    _context_menu->set_item_metadata(_context_menu->get_item_index(CM_PROPERTY_GET), get_handler);
+    _context_menu->set_item_metadata(_context_menu->get_item_index(CM_PROPERTY_SET), set_handler);
+    _context_menu->reset_size();
+    _context_menu->set_position(get_screen_position() + p_position);
+    _context_menu->popup();
+}
+
+void OrchestratorGraphEdit::_show_function_drop_menu(const Vector2& p_position, const MethodInfo& p_method, const Variant& p_handler)
+{
+    // Create context-menu to specify variable get or set choice
+    _context_menu->clear();
+    _context_menu->add_separator("Function " + p_method.name);
+    _context_menu->add_item("Add Call Function", CM_FUNCTION_CALL);
+    _context_menu->add_item("Add Callable", CM_FUNCTION_CALLABLE);
+    _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALL) ,p_handler);
+    _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALLABLE), p_handler);
+    _context_menu->reset_size();
+    _context_menu->set_position(get_screen_position() + p_position);
+    _context_menu->popup();
+}
+
+void OrchestratorGraphEdit::_show_variable_drop_menu(const Vector2& p_position, const String& p_variable_name, bool p_validated, bool p_constant, bool p_local)
+{
+    const int32_t get_id = p_local ? CM_LOCAL_VARIABLE_GET : CM_VARIABLE_GET;
+    const int32_t set_id = p_local ? CM_LOCAL_VARIABLE_SET : CM_VARIABLE_SET;
+    const int32_t validated_get_id = p_local ? CM_LOCAL_VARIABLE_GET_VALIDATED : CM_VARIABLE_GET_VALIDATED;
+
+    _context_menu->clear();
+    _context_menu->add_separator(vformat("%sVariable %s", p_local ? "Local " : "", p_variable_name));
+    _context_menu->add_item("Get " + p_variable_name, get_id);
+    const Variant get_handler = memnew(OrchestratorGraphNodeSpawnerVariableGet(p_variable_name, false, p_local));
+    _context_menu->set_item_metadata(_context_menu->get_item_index(get_id), get_handler);
+
+    if (p_validated)
+    {
+        _context_menu->add_item("Get " + p_variable_name + " with validation", validated_get_id);
+        const Variant validated_get_handler = memnew(OrchestratorGraphNodeSpawnerVariableGet(p_variable_name, true, p_local));
+        _context_menu->set_item_metadata(_context_menu->get_item_index(validated_get_id), validated_get_handler);
+    }
+
+    if (!p_constant)
+    {
+        _context_menu->add_item("Set " + p_variable_name, set_id);
+        const Variant set_handler = memnew(OrchestratorGraphNodeSpawnerVariableSet(p_variable_name, p_local));
+        _context_menu->set_item_metadata(_context_menu->get_item_index(set_id), set_handler);
+    }
+
+    _context_menu->reset_size();
+    _context_menu->set_position(get_screen_position() + p_position);
+    _context_menu->popup();
+}
+
+bool OrchestratorGraphEdit::_has_variable_drop_shortcut(const String& p_variable_name, bool p_local)
+{
+    if (Input::get_singleton()->is_key_pressed(KEY_CTRL))
+    {
+        Ref setter(memnew(OrchestratorGraphNodeSpawnerVariableSet(p_variable_name, p_local)));
+        setter->execute(this, _saved_mouse_position);
+        return true;
+    }
+
+    if (Input::get_singleton()->is_key_pressed(KEY_SHIFT))
+    {
+        Ref getter(memnew(OrchestratorGraphNodeSpawnerVariableGet(p_variable_name, false, p_local)));
+        getter->execute(this, _saved_mouse_position);
+        return true;
+    }
+
+    return false;
 }
 
 void OrchestratorGraphEdit::_confirm_yes_no(const String& p_text, const String& p_title, Callable p_confirm_callback)
@@ -1923,6 +1981,9 @@ void OrchestratorGraphEdit::_on_context_menu_selection(int p_id)
         case CM_VARIABLE_SET:
         case CM_PROPERTY_GET:
         case CM_PROPERTY_SET:
+        case CM_LOCAL_VARIABLE_GET:
+        case CM_LOCAL_VARIABLE_GET_VALIDATED:
+        case CM_LOCAL_VARIABLE_SET:
         {
             int index = _context_menu->get_item_index(p_id);
             Ref<OrchestratorGraphActionHandler> handler = _context_menu->get_item_metadata(index);

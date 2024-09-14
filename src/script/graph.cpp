@@ -294,6 +294,26 @@ Vector<Ref<OScriptNode>> OScriptGraph::get_nodes() const
     return nodes;
 }
 
+Guid OScriptGraph::get_function_guid() const
+{
+    const Ref<OScriptFunction> function = get_function();
+    if (function.is_valid())
+        return function->get_guid();
+
+    return {};
+}
+
+Ref<OScriptFunction> OScriptGraph::get_function() const
+{
+    if (is_function() && _functions.size() == 1)
+    {
+        const Ref<OScriptNodeFunctionTerminator> entry = _orchestration->get_node(_functions.front()->get());
+        if (entry.is_valid())
+            return entry->get_function();
+    }
+    return nullptr;
+}
+
 RBSet<OScriptConnection> OScriptGraph::get_connections() const
 {
     RBSet<OScriptConnection> connections;
@@ -448,6 +468,15 @@ void OScriptGraph::remove_connection_knot(uint64_t p_connection_id)
 {
     if (_knots.erase(p_connection_id))
         emit_signal("connection_knots_removed", p_connection_id);
+}
+
+Ref<OScriptLocalVariable> OScriptGraph::get_local_variable(const StringName& p_variable_name) const
+{
+    const Ref<OScriptFunction> function = get_function();
+    if (function.is_valid())
+        return function->get_local_variable(p_variable_name);
+
+    return nullptr;
 }
 
 Ref<OScriptNode> OScriptGraph::create_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position)

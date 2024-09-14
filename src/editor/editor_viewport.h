@@ -88,6 +88,10 @@ protected:
     /// @param p_graph the graph edit that was opened
     virtual void _graph_opened(OrchestratorGraphEdit* p_graph);
 
+    /// Allows for performing actions when a graph that is opened is selected
+    /// @param p_graph the graph edit that was selected
+    virtual void _graph_selected(OrchestratorGraphEdit* p_graph);
+
     /// Allows a viewport to control whether a graph can be closed
     /// @param p_graph the graph to inspect
     /// @return true if the graph can be closed, false otherwise
@@ -105,6 +109,10 @@ protected:
     /// Called when requesting the tab to be closed
     /// @param p_tab_index the tab requesting closure
     void _close_tab_requested(int p_tab_index);
+
+    /// Called when a tab is changed
+    /// @param p_tab_index the new tab index
+    void _tab_changed(int p_tab_index);
 
     /// Called when the graph's node set has changed
     void _graph_nodes_changed();

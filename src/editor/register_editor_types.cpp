@@ -20,6 +20,7 @@
 #include "editor/component_panels/component_panel.h"
 #include "editor/component_panels/functions_panel.h"
 #include "editor/component_panels/graphs_panel.h"
+#include "editor/component_panels/local_variables_panel.h"
 #include "editor/component_panels/macros_panel.h"
 #include "editor/component_panels/signals_panel.h"
 #include "editor/component_panels/variables_panel.h"
@@ -123,6 +124,7 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptMacrosComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptSignalsComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptVariablesComponentPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptLocalVariablesComponentPanel)
 
     // Graph Classes
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorGraphEdit)

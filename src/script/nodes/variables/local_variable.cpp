@@ -182,6 +182,11 @@ void OScriptNodeLocalVariable::initialize(const OScriptNodeInitContext& p_contex
     super::initialize(p_context);
 }
 
+OScriptNodeLocalVariable::OScriptNodeLocalVariable()
+{
+    _flags = ScriptNodeFlags::DEPRECATED;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void OScriptNodeAssignLocalVariable::_upgrade(uint32_t p_version, uint32_t p_current_version)
@@ -328,4 +333,9 @@ String OScriptNodeAssignLocalVariable::get_variable_guid() const
         }
     }
     return {};
+}
+
+OScriptNodeAssignLocalVariable::OScriptNodeAssignLocalVariable()
+{
+    _flags = ScriptNodeFlags::DEPRECATED;
 }

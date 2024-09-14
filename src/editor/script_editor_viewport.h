@@ -21,6 +21,7 @@
 
 /// Forward declarations
 class OrchestratorScriptComponentPanel;
+class OrchestratorScriptLocalVariablesComponentPanel;
 class OScript;
 class OScriptFunction;
 
@@ -37,6 +38,7 @@ protected:
     OrchestratorScriptComponentPanel* _macros{ nullptr };     //! Macros section
     OrchestratorScriptComponentPanel* _variables{ nullptr };  //! Variables section
     OrchestratorScriptComponentPanel* _signals{ nullptr };    //! Signals section
+    OrchestratorScriptLocalVariablesComponentPanel* _local_variables{ nullptr };  //! Local variables section
 
     //~ Begin Godot Interface
     void _notification(int p_what);
@@ -47,6 +49,7 @@ protected:
     bool _can_graph_be_closed(OrchestratorGraphEdit* p_graph) override;
     void _focus_object(Object* p_object) override;
     void _graph_opened(OrchestratorGraphEdit* p_graph) override;
+    void _graph_selected(OrchestratorGraphEdit* p_graph) override;
     //~ End OrchestratorEditorViewport Interface
 
     /// Saves the editor state to the cache

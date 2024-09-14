@@ -248,10 +248,12 @@ protected:
     OrchestratorGraphNodeSpawnerVariable() = default;
 
     StringName _variable_name;
+    bool _local{ false };
 
 public:
-    OrchestratorGraphNodeSpawnerVariable(const StringName& p_variable_name)
+    OrchestratorGraphNodeSpawnerVariable(const StringName& p_variable_name, bool p_local = false)
         : _variable_name(p_variable_name)
+        , _local(p_local)
     {
     }
 
@@ -273,8 +275,8 @@ protected:
     OrchestratorGraphNodeSpawnerVariableGet() = default;
 
 public:
-    OrchestratorGraphNodeSpawnerVariableGet(const StringName& p_variable_name, bool p_validation = false)
-        : OrchestratorGraphNodeSpawnerVariable(p_variable_name)
+    OrchestratorGraphNodeSpawnerVariableGet(const StringName& p_variable_name, bool p_validation = false, bool p_local = false)
+        : OrchestratorGraphNodeSpawnerVariable(p_variable_name, p_local)
         , _validation(p_validation)
     {
     }
@@ -296,8 +298,8 @@ protected:
     OrchestratorGraphNodeSpawnerVariableSet() = default;
 
 public:
-    OrchestratorGraphNodeSpawnerVariableSet(const StringName& p_variable_name)
-        : OrchestratorGraphNodeSpawnerVariable(p_variable_name)
+    OrchestratorGraphNodeSpawnerVariableSet(const StringName& p_variable_name, bool p_local = false)
+        : OrchestratorGraphNodeSpawnerVariable(p_variable_name, p_local)
     {
     }
 

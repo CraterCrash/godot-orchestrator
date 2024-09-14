@@ -19,8 +19,10 @@
 
 #include "common/guid.h"
 #include "orchestration/build_log.h"
+#include "script/variable.h"
 
 #include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -54,6 +56,7 @@ class OScriptFunction : public Resource
     bool _user_defined{ false };               //! Whether function is user-defined
     int _owning_node_id{ -1 };                 //! Owning node id
     bool _returns_value{ false };              //! Whether the function returns a value
+    HashMap<StringName, Ref<OScriptLocalVariable>> _local_variables;
 
 protected:
     //~ Begin Wrapped Interface
@@ -184,6 +187,31 @@ public:
     /// Sets whether the function has a return value
     /// @param p_has_return_value value true if the function has a return value, false otherwise
     void set_has_return_value(bool p_has_return_value);
+
+    /// Get all local variables defined in the function
+    /// @return list of local variables
+    Vector<Ref<OScriptLocalVariable>> get_local_variables() const;
+
+    /// Creates a new local variable with the given name
+    /// @param p_name the local variable name
+    /// @return the created local variable, or an invalid reference if it failed
+    Ref<OScriptLocalVariable> create_local_variable(const StringName& p_name);
+
+    /// Removes a local variable by name
+    /// @param p_name the variable name
+    void remove_local_variable(const StringName& p_name);
+
+    /// Return whether a local variable with the given name exists
+    /// @param p_name the local variable name
+    /// @return true if a local variable exists with the name, false otherwise
+    bool has_local_variable(const StringName& p_name) const;
+
+    /// Get a local variable by name, if found.
+    /// @param p_name the variable name
+    /// @return the local variable declaration if found, an invalid reference if it doesn't.
+    Ref<OScriptLocalVariable> get_local_variable(const StringName& p_name) const;
+
+    bool rename_local_variable(const String& p_old_name, const String& p_new_name);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_FUNCTION_H

@@ -56,6 +56,7 @@ public:
         int pass_stack_size{ 0 };                  //! Pass stack size
         int node_count{ 0 };                       //! Number of nodes in the function's graph
         int argument_count{ 0 };                   //! Number of function arguments
+        HashMap<StringName, Variant> _variables;   //! Function local variables
         OScriptNodeInstance* instance{ nullptr };  //! Cached instance of the node that starts this function
     };
 

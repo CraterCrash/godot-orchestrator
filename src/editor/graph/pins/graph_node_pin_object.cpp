@@ -39,7 +39,7 @@ void OrchestratorGraphNodePinObject::_update_label()
             const String base_type = _pin->get_owning_node()->get_orchestration()->get_base_type();
             if (!target_class.is_empty() && ClassDB::is_parent_class(base_type, target_class))
             {
-                if (!_pin->has_any_connections() || !Object::cast_to<OScriptNodeVariable>(_pin->get_owning_node()))
+                if (!_pin->has_any_connections() || !Object::cast_to<OScriptNodeVariableBase>(_pin->get_owning_node()))
                 {
                     _label->set_text("[Self]");
                     return;

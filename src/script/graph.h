@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_GRAPH_H
 #define ORCHESTRATOR_SCRIPT_GRAPH_H
 
+#include "common/guid.h"
 #include "script/connection.h"
 
 #include <godot_cpp/classes/resource.hpp>
@@ -28,6 +29,7 @@ using namespace godot;
 /// Forward declarations
 class Orchestration;
 class OScriptFunction;
+class OScriptLocalVariable;
 class OScriptNode;
 
 struct OScriptNodeInitContext;
@@ -131,6 +133,18 @@ public:
     /// @param p_flags bit field of flags
     void set_flags(BitField<GraphFlags> p_flags);
 
+    /// Return whether the graph is a function graph
+    /// @return true if the graph has the function flag
+    bool is_function() const { return _flags.has_flag(GF_FUNCTION); }
+
+    /// Get the function graph's function GUID
+    /// @return the function guid, if a function graph
+    Guid get_function_guid() const;
+
+    /// Gets the singular function when a function graph
+    /// @return the function, or an invalid reference if this graph contains multiple functions
+    Ref<OScriptFunction> get_function() const;
+
     /// Get all connections within this graph
     /// @return the graph connections
     RBSet<OScriptConnection> get_connections() const;
@@ -215,6 +229,11 @@ public:
 
     /// Remove connection knots for connection
     void remove_connection_knot(uint64_t p_connection_id);
+
+    /// Lookup a local variable in the graph
+    /// @param p_variable_name
+    /// @return a local variable reference if found, an invalid reference if not found
+    Ref<OScriptLocalVariable> get_local_variable(const StringName& p_variable_name) const;
 
     /// Create a new node within this graph
     /// @tparam T the node type
