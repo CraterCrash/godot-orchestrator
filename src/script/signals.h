@@ -72,6 +72,10 @@ public:
     /// Get the number of function arguments
     /// @return the number of arguments
     size_t get_argument_count() const;
+
+    /// Copy the persistent state from one signal to this signal
+    /// @param p_other the other signal to source state from
+    void copy_persistent_state(const Ref<OScriptSignal>& p_other);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_SIGNALS_H
