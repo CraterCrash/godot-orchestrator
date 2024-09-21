@@ -16,6 +16,7 @@
 //
 #include "emit_signal.h"
 
+#include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/variant_utils.h"
 
@@ -182,7 +183,7 @@ void OScriptNodeEmitSignal::post_placed_new_node()
     super::post_placed_new_node();
 
     if (_signal.is_valid() && _is_in_editor())
-        _signal->connect("changed", callable_mp(this, &OScriptNodeEmitSignal::_on_signal_changed));
+        OCONNECT(_signal, "changed", callable_mp(this, &OScriptNodeEmitSignal::_on_signal_changed));
 }
 
 void OScriptNodeEmitSignal::allocate_default_pins()
