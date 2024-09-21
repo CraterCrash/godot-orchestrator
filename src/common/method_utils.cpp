@@ -19,6 +19,8 @@
 #include "dictionary_utils.h"
 #include "property_utils.h"
 #include "script/script_server.h"
+#include "variant_operators.h"
+#include "variant_utils.h"
 
 #include <godot_cpp/core/class_db.hpp>
 
@@ -138,5 +140,47 @@ namespace MethodUtils
     size_t get_argument_count_without_defaults(const MethodInfo& p_method)
     {
         return p_method.arguments.size() - p_method.default_arguments.size();
+    }
+
+    bool has_same_signature(const MethodInfo& p_method_a, const MethodInfo& p_method_b)
+    {
+        if (p_method_a.arguments.size() != p_method_b.arguments.size())
+            return false;
+
+        if (p_method_a.default_arguments.size() != p_method_b.default_arguments.size())
+            return false;
+
+        if (p_method_a.flags != p_method_b.flags)
+            return false;
+
+        if (p_method_a.name != p_method_b.name)
+            return false;
+
+        if (!PropertyUtils::are_equal(p_method_a.return_val, p_method_b.return_val))
+            return false;
+
+        for (int i = 0; i < p_method_a.arguments.size(); i++)
+        {
+            const PropertyInfo& a = p_method_a.arguments[i];
+            const PropertyInfo& b = p_method_b.arguments[i];
+
+            // PropertyUtils::are_equal does not compare names
+            // But here we want to compare names
+            if (a.name != b.name)
+                return false;
+
+            if (!PropertyUtils::are_equal(a, b))
+                return false;
+        }
+
+        for (int i = 0; i < p_method_b.default_arguments.size(); i++)
+        {
+            const Variant& a = p_method_a.default_arguments[i];
+            const Variant& b = p_method_b.default_arguments[i];
+            if (!VariantUtils::evaluate(Variant::OP_EQUAL, a, b))
+                return false;
+        }
+
+        return true;
     }
 }
