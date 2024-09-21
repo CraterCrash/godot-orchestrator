@@ -169,6 +169,10 @@ public:
     /// Sets whether the variable is a constant
     /// @param p_constant whether the variable is constant
     void set_constant(bool p_constant);
+
+    /// Copy the persistent state from one variable to this variable
+    /// @param p_other the other variable to source state from
+    void copy_persistent_state(const Ref<OScriptVariable>& p_other);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_VARIABLE_H

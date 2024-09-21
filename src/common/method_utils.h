@@ -55,6 +55,12 @@ namespace MethodUtils
     /// @param p_method the method
     /// @return the number of arguments that have no default values
     size_t get_argument_count_without_defaults(const MethodInfo& p_method);
+
+    //// Checks whether two <code>MethodInfo</code> structures have the same structures
+    /// @param p_method_a the left method structure
+    /// @param p_method_b the right method structure
+    /// @return true if the method structures are the same, false otherwise
+    bool has_same_signature(const MethodInfo& p_method_a, const MethodInfo& p_method_b);
 }
 
 #endif // ORCHESTRATOR_METHOD_UTILS_H
