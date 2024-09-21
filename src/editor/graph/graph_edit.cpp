@@ -20,7 +20,9 @@
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 #include "common/logger.h"
+#include "common/method_utils.h"
 #include "common/name_utils.h"
+#include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
@@ -2012,26 +2014,76 @@ void OrchestratorGraphEdit::_on_copy_nodes_request()
 {
     _clipboard->reset();
 
-    for_each_graph_node([&](OrchestratorGraphNode* node) {
-        if (node->is_selected())
+    const Vector<Ref<OScriptNode>> selected = get_selected_script_nodes();
+    if (selected.is_empty())
+    {
+        _notify("No nodes selected, nothing copied to clipboard.", "Clipboard error");
+        return;
+    }
+
+    // Check if any selected nodes cannot be copied, showing message if not.
+    for (const Ref<OScriptNode>& node : selected)
+    {
+        if (!node->can_duplicate())
         {
-            Ref<OScriptNode> script_node = node->get_script_node();
-
-            if (!script_node->can_duplicate())
-            {
-                WARN_PRINT_ONCE_ED("There are some nodes that cannot be copied, they were not placed on the clipboard.");
-                return;
-            }
-
-            const int id = script_node->get_id();
-            _clipboard->positions[id] = script_node->get_position();
-            _clipboard->nodes[id] = _script_graph->copy_node(id, true);
+            _notify(vformat("Cannot duplicate node '%s' (%d).", node->get_node_title(), node->get_id()), "Clipboard error");
+            return;
         }
-    });
+    }
 
+    // Local cache of copied objects
+    // Prevents creating multiple instances on paste of the same function, variable, or signal
+    RBSet<Ref<OScriptFunction>> functions_cache;
+    RBSet<Ref<OScriptVariable>> variables_cache;
+    RBSet<Ref<OScriptSignal>> signals_cache;
+
+    // Perform copy to clipboard
+    for (const Ref<OScriptNode>& node : selected)
+    {
+        const Ref<OScriptNodeCallScriptFunction> call_function_node = node;
+        if (call_function_node.is_valid())
+        {
+            const Ref<OScriptFunction> function = call_function_node->get_function();
+            if (!functions_cache.has(function))
+            {
+                functions_cache.insert(function);
+                _clipboard->functions.insert(function->duplicate());
+            }
+        }
+
+        const Ref<OScriptNodeVariable> variable_node = node;
+        if (variable_node.is_valid())
+        {
+            const Ref<OScriptVariable> variable = variable_node->get_variable();
+            if (!variables_cache.has(variable))
+            {
+                variables_cache.insert(variable);
+                _clipboard->variables.insert(variable->duplicate());
+            }
+        }
+
+        const Ref<OScriptNodeEmitSignal> emit_signal_node = node;
+        if (emit_signal_node.is_valid())
+        {
+            const Ref<OScriptSignal> signal = emit_signal_node->get_signal();
+            if (!signals_cache.has(signal))
+            {
+                signals_cache.insert(signal);
+                _clipboard->signals.insert(signal->duplicate());
+            }
+        }
+
+        const int node_id = node->get_id();
+        _clipboard->positions[node_id] = node->get_position();
+        _clipboard->nodes[node_id] = _script_graph->copy_node(node_id, true);
+    }
+
+    // Connections between pasted nodes, copy connections
     for (const OScriptConnection& E : get_orchestration()->get_connections())
+    {
         if (_clipboard->nodes.has(E.from_node) && _clipboard->nodes.has(E.to_node))
             _clipboard->connections.insert(E);
+    }
 }
 
 void OrchestratorGraphEdit::_on_cut_nodes_request()
@@ -2101,15 +2153,97 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
     if (_clipboard->is_empty())
         return;
 
-    Vector<int> duplications;
-    RBSet<Vector2> existing_positions;
-    for (const KeyValue<int, Vector2>& E : _clipboard->positions)
+    Orchestration* orchestration = _script_graph->get_orchestration();
+
+    // Iterate copied function declarations and assert if paste is invalid
+    // Functions are unique in that we do not clone their nodes or structure, so the function must exist
+    // in the target orchestration with the same signature for the paste to be valid.
+    for (const Ref<OScriptFunction>& E : _clipboard->functions)
     {
-        existing_positions.insert(E.value.snapped(Vector2(2, 2)));
-        duplications.push_back(E.key);
+        if (!orchestration->has_function(E->get_function_name()))
+        {
+            _notify(vformat("Function '%s' does not exist in this orchestration.", E->get_function_name()), "Clipboard error");
+            return;
+        }
+
+        // Exists, verify if its identical
+        const Ref<OScriptFunction> other = orchestration->find_function(E->get_function_name());
+        if (!MethodUtils::has_same_signature(E->get_method_info(), other->get_method_info()))
+        {
+            _notify(vformat("Function '%s' exists with a different definition.", E->get_function_name()), "Clipboard error");
+            return;
+        }
     }
 
-    Vector2 mouse_up_position = get_screen_position() + get_local_mouse_position();
+    // Iterate copied variable declarations and assert if paste is invalid
+    Vector<Ref<OScriptVariable>> variables_to_create;
+    for (const Ref<OScriptVariable>& E : _clipboard->variables)
+    {
+        if (!orchestration->has_variable(E->get_variable_name()))
+        {
+            variables_to_create.push_back(E);
+            continue;
+        }
+
+        // Exists, verify if its identical
+        const Ref<OScriptVariable> other = orchestration->get_variable(E->get_variable_name());
+        if (!PropertyUtils::are_equal(E->get_info(), other->get_info()))
+        {
+            _notify(vformat("Variable '%s' exists with a different definition.", E->get_variable_name()), "Clipboard error");
+            return;
+        }
+    }
+
+    // Iterate copied signal declarations and assert if paste is invalid
+    Vector<Ref<OScriptSignal>> signals_to_create;
+    for (const Ref<OScriptSignal>& E : _clipboard->signals)
+    {
+        if (!orchestration->has_custom_signal(E->get_signal_name()))
+        {
+            signals_to_create.push_back(E);
+            continue;
+        }
+
+        // When signal exists, verify whether the signal has the same signature and fail if it doesn't.
+        const Ref<OScriptSignal> other = orchestration->get_custom_signal(E->get_signal_name());
+        if (!MethodUtils::has_same_signature(E->get_method_info(), other->get_method_info()))
+        {
+            _notify(vformat("Signal '%s' exists with a different definition.", E->get_signal_name()), "Clipboard error");
+            return;
+        }
+    }
+
+    for (const KeyValue<int, Ref<OScriptNode>>& E : _clipboard->nodes)
+    {
+        const Ref<OScriptNodeCallScriptFunction> call_script_function_node = E.value;
+        if (call_script_function_node.is_valid())
+        {
+            const StringName function_name = call_script_function_node->get_function()->get_function_name();
+            const Ref<OScriptFunction> this_function = get_orchestration()->find_function(function_name);
+            if (this_function.is_valid())
+            {
+                // Since source OScriptFunction matches this OScriptFunction declaration, copy the
+                // GUID from this orchestrations script function and set it on the node
+                call_script_function_node->set("guid", this_function->get_guid().to_string());
+            }
+        }
+    }
+
+    // Iterate variables to be created
+    for (const Ref<OScriptVariable>& E : variables_to_create)
+    {
+        Ref<OScriptVariable> new_variable = orchestration->create_variable(E->get_variable_name());
+        new_variable->copy_persistent_state(E);
+    }
+
+    // Iterate signals to be created
+    for (const Ref<OScriptSignal>& E : signals_to_create)
+    {
+        Ref<OScriptSignal> new_signal = orchestration->create_custom_signal(E->get_signal_name());
+        new_signal->copy_persistent_state(E);
+    }
+
+    const Vector2 mouse_up_position = get_screen_position() + get_local_mouse_position();
     Vector2 position_offset = (get_scroll_offset() + (mouse_up_position - get_screen_position())) / get_zoom();
     if (is_snapping_enabled())
     {
@@ -2142,6 +2276,8 @@ void OrchestratorGraphEdit::_on_paste_nodes_request()
         if (OrchestratorGraphNode* node = _get_node_by_id(selected_id))
             node->set_selected(true);
     }
+
+    emit_signal("nodes_changed");
 }
 
 void OrchestratorGraphEdit::_on_script_changed()

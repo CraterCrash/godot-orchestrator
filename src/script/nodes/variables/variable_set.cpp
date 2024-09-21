@@ -133,7 +133,7 @@ String OScriptNodeVariableSet::get_tooltip_text() const
 
 String OScriptNodeVariableSet::get_node_title() const
 {
-    return vformat("Set %s", _variable->get_variable_name());
+    return vformat("Set %s", _variable_name);
 }
 
 void OScriptNodeVariableSet::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins)
