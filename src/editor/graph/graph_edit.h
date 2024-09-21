@@ -19,7 +19,10 @@
 
 #include "actions/action_menu.h"
 #include "common/version.h"
-#include "graph_node.h"
+#include "editor/graph/graph_node.h"
+#include "script/function.h"
+#include "script/signals.h"
+#include "script/variable.h"
 
 #include <functional>
 
@@ -98,6 +101,9 @@ class OrchestratorGraphEdit : public GraphEdit
         HashMap<int, Ref<OScriptNode>> nodes;
         HashMap<int, Vector2> positions;
         RBSet<OScriptConnection> connections;
+        RBSet<Ref<OScriptFunction>> functions;
+        RBSet<Ref<OScriptVariable>> variables;
+        RBSet<Ref<OScriptSignal>> signals;
 
         /// Returns whether the clipboard is empty
         bool is_empty() const
@@ -111,6 +117,9 @@ class OrchestratorGraphEdit : public GraphEdit
             nodes.clear();
             positions.clear();
             connections.clear();
+            signals.clear();
+            variables.clear();
+            functions.clear();
         }
     };
 

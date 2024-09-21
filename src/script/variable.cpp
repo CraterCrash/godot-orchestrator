@@ -424,3 +424,21 @@ void OScriptVariable::set_constant(bool p_constant)
         emit_changed();
     }
 }
+
+void OScriptVariable::copy_persistent_state(const Ref<OScriptVariable>& p_other)
+{
+    _category = p_other->_category;
+    _classification = p_other->_classification;
+    _constant = p_other->_constant;
+    _default_value = p_other->_default_value;
+    _description = p_other->_description;
+    _exportable = p_other->_exportable;
+    _exported = p_other->_exported;
+    _type_category = p_other->_type_category;
+    _type_subcategory = p_other->_type_subcategory;
+    _value_list = p_other->_value_list;
+    _info = p_other->_info;
+
+    notify_property_list_changed();
+    emit_changed();
+}

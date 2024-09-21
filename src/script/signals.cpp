@@ -119,3 +119,10 @@ size_t OScriptSignal::get_argument_count() const
     return _method.arguments.size();
 }
 
+void OScriptSignal::copy_persistent_state(const Ref<OScriptSignal>& p_other)
+{
+    _method = p_other->_method;
+
+    notify_property_list_changed();
+    emit_changed();
+}
