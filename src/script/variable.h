@@ -24,6 +24,38 @@ using namespace godot;
 /// Forward declarations
 class Orchestration;
 
+/// Utility class for converting between <code>PropertyInfo</code> and classification strings
+class ClassificationParser
+{
+protected:
+    PropertyInfo _property;
+    String _classification;
+    bool _convert_default_value{ false };
+
+public:
+    /// Parses a classification string
+    /// @param p_classification the classification to parse
+    /// @return true if the parse was successful, false otherwise
+    bool parse(const String& p_classification);
+
+    /// Parses a property structure
+    /// @param p_property the property
+    /// /// @return true if the parse was successful, false otherwise
+    bool parse(const PropertyInfo& p_property);
+
+    /// Get the classification as a string
+    /// @return the string representation of the classification
+    String get_classification() const { return _classification; }
+
+    /// Get the property structure
+    /// @return the property representation of the classification
+    PropertyInfo get_property() const { return _property; }
+
+    /// Return whether the default value is converted
+    /// @return true if the default value is converted, false otherwise
+    bool is_default_value_converted() const { return _convert_default_value; }
+};
+
 /// Defines a script variable
 ///
 /// Variables are defined as resources which provides multiple benefits. First, it allows
