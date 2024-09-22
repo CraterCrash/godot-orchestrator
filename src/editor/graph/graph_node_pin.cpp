@@ -262,23 +262,19 @@ void OrchestratorGraphNodePin::_remove_editable_pin()
 
 void OrchestratorGraphNodePin::_promote_as_variable()
 {
-    Orchestration* orchestation = _node->get_script_node()->get_orchestration();
-
-    Ref<OScriptVariable> variable = orchestation->create_variable(_create_promoted_variable_name(), _pin->get_type());
+    Ref<OScriptVariable> variable = _node->get_script_node()->get_orchestration()->promote_to_variable(_pin);
     if (!variable.is_valid())
         return;
-
-    variable->set_default_value(_pin->get_effective_default_value());
 
     OScriptNodeInitContext context;
     context.variable_name = variable->get_variable_name();
 
-    Vector2 offset = Vector2(200, 25);
     Vector2 position = _node->get_script_node()->get_position();
-
     if (is_input())
     {
-        position -= offset;
+        position += get_graph_node()->get_input_port_position(_pin->get_pin_index());
+        position -= Vector2(250, 0);
+
         get_graph()->spawn_node<OScriptNodeVariableGet>(context, position,
             callable_mp_lambda(this, [&, this](const Ref<OScriptNodeVariableGet>& p_node) {
                 p_node->find_pin(0, PD_Output)->link(_pin);
@@ -286,24 +282,14 @@ void OrchestratorGraphNodePin::_promote_as_variable()
     }
     else
     {
-        position += offset + Vector2(25, 0);
+        position += get_graph_node()->get_output_port_position(_pin->get_pin_index());
+        position += Vector2(75, 0);
+
         get_graph()->spawn_node<OScriptNodeVariableSet>(context, position,
             callable_mp_lambda(this, [&, this](const Ref<OScriptNodeVariableSet>& p_node) {
                 _pin->link(p_node->find_pin(1, PD_Input));
             }));
     }
-}
-
-String OrchestratorGraphNodePin::_create_promoted_variable_name()
-{
-    Orchestration* orchestration = _node->get_script_node()->get_orchestration();
-
-    int index = 0;
-    String name = _pin->get_pin_name() + itos(index++);
-    while (orchestration->has_variable(name))
-        name = _pin->get_pin_name() + itos(index++);
-
-    return name;
 }
 
 void OrchestratorGraphNodePin::_create_widgets()
