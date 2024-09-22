@@ -22,6 +22,173 @@
 #include "common/variant_utils.h"
 #include "script/script.h"
 
+bool ClassificationParser::parse(const String& p_classification)
+{
+    _classification = p_classification;
+
+    // Reset property state
+    _property = PropertyInfo();
+    _property.hint = PROPERTY_HINT_NONE;
+    _property.usage = PROPERTY_USAGE_NO_EDITOR;
+
+    // Make sure classification starts with expected prefixes
+    if (!_classification.begins_with("type:")
+        && !_classification.begins_with("enum:")
+        && !_classification.begins_with("bitfield:")
+        && !_classification.begins_with("class_enum:")
+        && !_classification.begins_with("class_bitfield:")
+        && !_classification.begins_with("class:"))
+        return false;
+
+    if (_classification.begins_with("type:"))
+    {
+        // basic types
+        const String type_name = _classification.substr(_classification.find(":") + 1);
+        for (int i = 0; i < Variant::VARIANT_MAX; i++)
+        {
+            const Variant::Type type = VariantUtils::to_type(i);
+            if (Variant::get_type_name(type).match(type_name))
+            {
+                if (_property.type != type)
+                    _convert_default_value = true;
+
+                _property.type = type;
+                _property.hint = PROPERTY_HINT_NONE;
+                _property.hint_string = "";
+                _property.class_name = "";
+
+                // These cannot have default values
+                if (type == Variant::CALLABLE || type == Variant::SIGNAL || type == Variant::RID || type == Variant::NIL)
+                    _property.usage = PROPERTY_USAGE_STORAGE;
+                else
+                    _property.usage = PROPERTY_USAGE_DEFAULT;
+
+                if (type == Variant::NIL)
+                    _property.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+
+                break;
+            }
+        }
+    }
+    else if (_classification.begins_with("enum:") || _classification.begins_with("bitfield:"))
+    {
+        // enum/bitfields
+        const String name = _classification.substr(_classification.find(":") + 1);
+        const EnumInfo& enum_info = ExtensionDB::get_global_enum(name);
+        if (!enum_info.values.is_empty())
+        {
+            PackedStringArray hints;
+            for (int i = 0; i < enum_info.values.size(); i++)
+                hints.push_back(enum_info.values[i].name);
+
+            _property.type = Variant::INT;
+            _property.hint = _classification.begins_with("bitfield:") ? PROPERTY_HINT_FLAGS : PROPERTY_HINT_ENUM;
+            _property.hint_string = StringUtils::join(",", hints);
+            _property.class_name = name;
+            if (_classification.begins_with("bitfield:"))
+                _property.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_BITFIELD;
+            else
+                _property.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_ENUM;
+        }
+    }
+    else if (_classification.begins_with("class:"))
+    {
+        // class type
+        const String class_name = _classification.substr(_classification.find(":") + 1);
+        if (ClassDB::is_parent_class(class_name, "Resource"))
+        {
+            _property.type = Variant::OBJECT;
+            _property.hint = PROPERTY_HINT_RESOURCE_TYPE;
+            _property.hint_string = class_name;
+            _property.class_name = class_name;
+            _property.usage = PROPERTY_USAGE_DEFAULT;
+        }
+        else if (ClassDB::is_parent_class(class_name, "Node"))
+        {
+            _property.type = Variant::OBJECT;
+            _property.hint = PROPERTY_HINT_NODE_TYPE;
+            _property.hint_string = class_name;
+            _property.class_name = class_name;
+            _property.usage = PROPERTY_USAGE_DEFAULT;
+        }
+        else
+        {
+            _property.type = Variant::OBJECT;
+            _property.hint = PROPERTY_HINT_NONE;
+            _property.hint_string = "";
+            _property.class_name = class_name;
+            _property.usage = PROPERTY_USAGE_NO_EDITOR;
+        }
+    }
+    else if (_classification.begins_with("class_enum:") || _classification.begins_with("class_bitfield:"))
+    {
+        const String class_enum_name = _classification.substr(_classification.find(":") + 1);
+        const String class_name = class_enum_name.substr(0, class_enum_name.find("."));
+        const String enum_name = class_enum_name.substr(class_enum_name.find(".") + 1);
+        const String hint_string = StringUtils::join(",", ClassDB::class_get_enum_constants(class_name, enum_name, true));
+        const bool bitfield = _classification.begins_with("class_bitfield:");
+
+        _property.type = Variant::INT;
+        _property.hint = bitfield ? PROPERTY_HINT_FLAGS : PROPERTY_HINT_ENUM;
+        _property.hint_string = hint_string;
+        _property.class_name = class_enum_name;
+        _property.usage = PROPERTY_USAGE_DEFAULT | (bitfield ? PROPERTY_USAGE_CLASS_IS_BITFIELD : PROPERTY_USAGE_CLASS_IS_ENUM);
+    }
+    else if (_classification.begins_with("custom_enum:") || _classification.begins_with("custom_bitfield:"))
+    {
+        const bool bitfield = _classification.begins_with("custom_bitfield:");
+        _property.type = Variant::INT;
+        _property.hint = bitfield ? PROPERTY_HINT_FLAGS : PROPERTY_HINT_ENUM;
+        _property.hint_string = "";
+        _property.class_name = "";
+        _property.usage = PROPERTY_USAGE_NO_EDITOR;
+    }
+    return true;
+}
+
+bool ClassificationParser::parse(const PropertyInfo& p_property)
+{
+    _property = p_property;
+
+    // Reset classification
+    _classification = "";
+
+    if (PropertyUtils::is_class_enum(_property))
+    {
+        // Class enum type
+        _classification = vformat("class_enum:%s", _property.class_name);
+    }
+    else if (PropertyUtils::is_class_bitfield(_property))
+    {
+        // Class bitfield type
+        _classification = vformat("class_bitfield:%s", _property.class_name);
+    }
+    else if (PropertyUtils::is_enum(_property))
+    {
+        // Enum
+        _classification = vformat("enum:%s", _property.class_name);
+    }
+    else if (PropertyUtils::is_bitfield(_property))
+    {
+        // Bitfield
+        _classification = vformat("bitfield:%s", _property.class_name);
+    }
+    else if (PropertyUtils::is_class(_property))
+    {
+        // Class
+        _classification = vformat("class:%s", _property.class_name);
+    }
+    else
+    {
+        // Basic type
+        _classification = vformat("type:%s", Variant::get_type_name(_property.type));
+    }
+
+    return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void OScriptVariable::_bind_methods()
 {
     // This is read-only to avoid name changes in the inspector, which creates cache issues with the owning script
@@ -233,123 +400,21 @@ void OScriptVariable::set_classification(const String& p_classification)
     {
         _classification = p_classification;
 
-        if (_classification.contains(":"))
+        ClassificationParser parser;
+        if (parser.parse(_classification))
         {
-            if (_classification.begins_with("type:"))
-            {
-                // basic types
-                const String type_name = _classification.substr(_classification.find(":") + 1);
-                for (int i = 0; i < Variant::VARIANT_MAX; i++)
-                {
-                    const Variant::Type type = VariantUtils::to_type(i);
-                    if (Variant::get_type_name(type).match(type_name))
-                    {
-                        if (_info.type != type)
-                            _convert_default_value(type);
-
-                        _info.type = type;
-                        _info.hint = PROPERTY_HINT_NONE;
-                        _info.hint_string = "";
-                        _info.class_name = "";
-
-                        // These cannot have default values
-                        if (type == Variant::CALLABLE || type == Variant::SIGNAL || type == Variant::RID || type == Variant::NIL)
-                            _info.usage = PROPERTY_USAGE_STORAGE;
-                        else
-                            _info.usage = PROPERTY_USAGE_DEFAULT;
-
-                        if (type == Variant::NIL)
-                            _info.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
-
-                        break;
-                    }
-                }
-            }
-            else if (_classification.begins_with("enum:") || _classification.begins_with("bitfield:"))
-            {
-                // enum/bitfields
-                const String name = _classification.substr(_classification.find(":") + 1);
-                const EnumInfo& enum_info = ExtensionDB::get_global_enum(name);
-                if (!enum_info.values.is_empty())
-                {
-                    PackedStringArray hints;
-                    for (int i = 0; i < enum_info.values.size(); i++)
-                        hints.push_back(enum_info.values[i].name);
-
-                    _info.type = Variant::INT;
-                    _info.hint = _classification.begins_with("bitfield:") ? PROPERTY_HINT_FLAGS : PROPERTY_HINT_ENUM;
-                    _info.hint_string = StringUtils::join(",", hints);
-                    _info.class_name = name;
-                    if (_classification.begins_with("bitfield:"))
-                        _info.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_BITFIELD;
-                    else
-                        _info.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_ENUM;
-                }
-            }
-            else if (_classification.begins_with("class:"))
-            {
-                // class type
-                const String class_name = _classification.substr(_classification.find(":") + 1);
-                if (ClassDB::is_parent_class(class_name, "Resource"))
-                {
-                    _info.type = Variant::OBJECT;
-                    _info.hint = PROPERTY_HINT_RESOURCE_TYPE;
-                    _info.hint_string = class_name;
-                    _info.class_name = "";
-                    _info.usage = PROPERTY_USAGE_DEFAULT;
-                }
-                else if (ClassDB::is_parent_class(class_name, "Node"))
-                {
-                    _info.type = Variant::OBJECT;
-                    _info.hint = PROPERTY_HINT_NODE_TYPE;
-                    _info.hint_string = class_name;
-                    _info.class_name = class_name;
-                    _info.usage = PROPERTY_USAGE_DEFAULT;
-                }
-                else
-                {
-                    _info.type = Variant::OBJECT;
-                    _info.hint = PROPERTY_HINT_NONE;
-                    _info.hint_string = "";
-                    _info.class_name = class_name;
-                    _info.usage = PROPERTY_USAGE_NO_EDITOR;
-                }
-            }
-            else if (_classification.begins_with("class_enum:") || _classification.begins_with("class_bitfield:"))
-            {
-                const String class_enum_name = _classification.substr(_classification.find(":") + 1);
-                const String class_name = class_enum_name.substr(0, class_enum_name.find("."));
-                const String enum_name = class_enum_name.substr(class_enum_name.find(".") + 1);
-                const String hint_string = StringUtils::join(",", ClassDB::class_get_enum_constants(class_name, enum_name, true));
-                const bool bitfield = _classification.begins_with("class_bitfield:");
-
-                _info.type = Variant::INT;
-                _info.hint = bitfield ? PROPERTY_HINT_FLAGS : PROPERTY_HINT_ENUM;
-                _info.hint_string = hint_string;
-                _info.class_name = class_enum_name;
-                _info.usage = PROPERTY_USAGE_DEFAULT | (bitfield ? PROPERTY_USAGE_CLASS_IS_BITFIELD : PROPERTY_USAGE_CLASS_IS_ENUM);
-            }
-            else if (_classification.begins_with("custom_enum:") || _classification.begins_with("custom_bitfield:"))
-            {
-                const bool bitfield = _classification.begins_with("custom_bitfield:");
-                _info.type = Variant::INT;
-                _info.hint = bitfield ? PROPERTY_HINT_FLAGS : PROPERTY_HINT_ENUM;
-                _info.hint_string = "";
-                _info.class_name = "";
-                _info.usage = PROPERTY_USAGE_NO_EDITOR;
-            }
+            if (parser.is_default_value_converted())
+                _convert_default_value(parser.get_property().type);
         }
-        else
-        {
-            _info.type = Variant::NIL;
-            _info.hint = PROPERTY_HINT_NONE;
-            _info.hint_string = "";
-            _info.class_name = "";
-            _info.usage = PROPERTY_USAGE_NO_EDITOR; // no default value
-        }
+
+        const PropertyInfo property = parser.get_property();
+        _info.type = property.type;
+        _info.hint = property.hint;
+        _info.hint_string = property.hint_string;
+        _info.class_name = property.class_name;
+        _info.usage = property.usage | PROPERTY_USAGE_SCRIPT_VARIABLE;
 
         _exportable = _is_exportable_type(_info);
-        _info.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
 
         notify_property_list_changed();
         emit_changed();
