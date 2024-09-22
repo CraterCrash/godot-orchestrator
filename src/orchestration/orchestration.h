@@ -215,6 +215,7 @@ public:
     Vector<Ref<OScriptVariable>> get_variables() const;
     PackedStringArray get_variable_names() const;
     bool can_remove_variable(const StringName& p_name) const;
+    Ref<OScriptVariable> promote_to_variable(const Ref<OScriptNodePin>& p_pin);
     //~ End Variable Interface
 
     //~ Begin Signals Interface
