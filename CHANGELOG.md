@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [2.1.2.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.2.stable) - 2024-10-05
+
+- [2088a24](http://github.com/CraterCrash/godot-orchestrator/commit/2088a247a94be2b18305d0f9615465ac1203f286) - GH-724 Fix copy-n-paste between two orchestrations
+- [7d30c6a](http://github.com/CraterCrash/godot-orchestrator/commit/7d30c6ab794c3b667902f9f335d7d740d40be3e4) - GH-807 Support named lookup of signals, used by `await` keyword
+- [5590291](http://github.com/CraterCrash/godot-orchestrator/commit/5590291438bc4d75c55e91109fea69a33e8d44c5) - GH-714 Support `ui_cut` action in `GraphEdit` controls
+- [9dcf6ef](http://github.com/CraterCrash/godot-orchestrator/commit/9dcf6ef38a17192b8d81149c442a63769cf3628b) - GH-618 Reset pin default on connection
+- [8125ab4](http://github.com/CraterCrash/godot-orchestrator/commit/8125ab40f76fffd4fe8b76946e74b2d23418f343) - GH-670 Fix reset pin to default value
+- [e6c3752](http://github.com/CraterCrash/godot-orchestrator/commit/e6c3752b14e956c5cec8e82ba11bcfb28b9f03b9) - GH-803 Component panels react to context-menu shortcuts
+- [7eadf9e](http://github.com/CraterCrash/godot-orchestrator/commit/7eadf9eb22139c9b2db3841a2b950d4a769ddbba) - GH-800 Temporarily disable some property get/set validation rules
+- [946f314](http://github.com/CraterCrash/godot-orchestrator/commit/946f314db707691d77a8fc9eee6d4bb673e37b3d) - GH-798 Remove unnecessary instantiate scene cache
+- [d8a8322](http://github.com/CraterCrash/godot-orchestrator/commit/d8a8322553b12bd6b4628377775167fb5b8131df) - GH-796 Guard against `get_current_scene` returning null
+- [a51c7b6](http://github.com/CraterCrash/godot-orchestrator/commit/a51c7b6e586e84c45e25a0eb0381ec42f5d40b48) - GH-794 Fix default value evaluation in ScriptPlaceHolderInstance
+- [92f1a96](http://github.com/CraterCrash/godot-orchestrator/commit/92f1a9697b201c92d29d51ce07a659d983f04031) - Build system cleanup and refactor
+- [d67e88a](http://github.com/CraterCrash/godot-orchestrator/commit/d67e88a8ab68da0f88eeaf88bfa867016c8f0f15) - GH-467 Only save node size when manually resized (Godot 4.3+)
+- [7dc1dfb](http://github.com/CraterCrash/godot-orchestrator/commit/7dc1dfba20ebdeb8f8af42116dc49c732739268f) - GH-786 Add tooltip for `Orchestration Build` button
+
 ## [2.1.1.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.1.stable) - 2024-08-25
 
 - [24aacdd](http://github.com/CraterCrash/godot-orchestrator/commit/24aacdda6bd4f2f8cb5203d21d28eda04ffea2f8) - GH-778 Fix crash on Windows 10 - Revert GH-653
