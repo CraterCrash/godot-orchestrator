@@ -40,6 +40,7 @@
 #include "flow_control/delay.h"
 #include "flow_control/for.h"
 #include "flow_control/for_each.h"
+#include "flow_control/goto.h"
 #include "flow_control/random.h"
 #include "flow_control/select.h"
 #include "flow_control/sequence.h"

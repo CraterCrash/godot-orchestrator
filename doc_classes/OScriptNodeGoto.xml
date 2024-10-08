@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeGoto" inherits="OScriptNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Begins execution flow a block location, when called from GotoNode().
+    </brief_description>
+    <description>
+        The [OScriptNodeGoto] provides a means to start Orchestration flow at a specified location. The GotoNode has a name, and is called via Orchestration.GotoNode(goto_block_name).
+    </description>
+    <tutorials>
+        <!-- TODO: how to create a page for node? -->
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#branch</link>
+    </tutorials>
+</class>
