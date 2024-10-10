@@ -180,6 +180,7 @@ void register_script_node_types()
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeFunctionEntry)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeFunctionResult)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEvent)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCustomEvent)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitchString)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitchInteger)
 
