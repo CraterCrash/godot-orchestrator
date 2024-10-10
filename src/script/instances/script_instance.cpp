@@ -120,6 +120,26 @@ bool OScriptInstance::set(const StringName& p_name, const Variant& p_value, Prop
     return true;
 }
 
+void OScriptInstance::execute_node(StringName p_node_name)
+{
+    UtilityFunctions::print("OScriptInstance::execute_node(" + p_node_name + ")");
+
+    Orchestration current = *_script->get_orchestration();
+
+    for (const Ref<OScriptNode>& node : _script->get_orchestration()->get_nodes())
+    {
+        if (node->get_node_title() == "Goto")
+        {
+            UtilityFunctions::print(node->get_node_title());
+
+            // But now what?
+            // Variant result;
+            // GDExtensionCallError err;
+            // call( { what here ? }, nullptr, 0, &result, &err);
+        }
+    }
+}
+
 bool OScriptInstance::get(const StringName& p_name, Variant& p_value, PropertyError* r_err)
 {
     // First check if we have a member variable

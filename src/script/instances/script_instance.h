@@ -104,6 +104,10 @@ public:
     /// @param p_object the godot object to find a script instance about
     /// @return the orchestrator script instance if found; null otherwise
     static OScriptInstance* from_object(GDExtensionObjectPtr p_object);
+
+    /// Attempt to call a block via GDScript
+    /// @param p_node_name 
+    void execute_node(StringName p_node_name);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_INSTANCE_H

@@ -1035,6 +1035,17 @@ bool OScriptVirtualMachine::register_function(const Ref<OScriptFunction>& p_func
 
 void OScriptVirtualMachine::call_method(OScriptInstance* p_instance, const StringName& p_method, const Variant* const* p_args, GDExtensionInt p_arg_count, Variant* r_return, GDExtensionCallError* r_err)
 {
+    // intercept method call, pass to OScriptInstance->execute_node()
+    if (p_method == StringName("execute_node"))
+    {
+        if (p_arg_count < 1)
+            p_instance->execute_node("default");
+        else
+            p_instance->execute_node(*p_args[0]);
+    
+        return;
+    }
+
     ERR_FAIL_COND_MSG(!r_err, "No error code argument provided.");
 
     r_err->error = GDEXTENSION_CALL_OK;
