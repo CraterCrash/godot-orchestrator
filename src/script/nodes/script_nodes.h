@@ -56,6 +56,7 @@
 #include "functions/function_result.h"
 #include "functions/event.h"
 #include "functions/custom_event.h"
+#include "functions/custom_event_v2.h"
 
 // Input
 #include "input/input_action.h"

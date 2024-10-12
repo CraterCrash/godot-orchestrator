@@ -258,6 +258,7 @@ void OrchestratorDefaultGraphActionRegistrar::_register_orchestration_nodes()
     _register_node<OScriptNodeForLoop>("Flow Control/for", without_break);
     _register_node<OScriptNodeForLoop>("Flow Control/for_with_break", with_break);
     _register_node<OScriptNodeGoto>("Flow Control/goto");
+    _register_node<OScriptNodeCustomEvent_V2>("Flow Control/custom_event_redux");
     _register_node<OScriptNodeCustomEvent>("Flow Control/custom_event");
     _register_node<OScriptNodeRandom>("Flow Control/random");
     _register_node<OScriptNodeSelect>("Flow Control/select");
