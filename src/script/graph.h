@@ -66,6 +66,7 @@ private:
     BitField<GraphFlags> _flags{ 0 };              //! Flags
     RBSet<int> _nodes;                             //! Set of node ids that participate in this graph
     RBSet<int> _functions;                         //! Set of node ids that represent entry points or functions
+    RBSet<int> _events;                            //! Set of node ids that represent events
     HashMap<uint64_t, PackedVector2Array> _knots;  //! Knots for each graph connection
 
     //~ Begin Serialization
@@ -75,6 +76,8 @@ private:
     void _set_knots(const TypedArray<Dictionary>& p_knots);
     TypedArray<int> _get_functions() const;
     void _set_functions(const TypedArray<int>& p_functions);
+    TypedArray<int> _get_events() const;
+    void _set_events(const TypedArray<int>& p_functions);
     //~ End Serialization
 
     /// Initializes the node in this graph
@@ -204,6 +207,10 @@ public:
     /// Get an array of all functions that participate in this graph
     /// @return an array of functions
     Vector<Ref<OScriptFunction>> get_functions() const;
+
+    /// Get an array of all events that participate in this graph
+    /// @return an array of events
+    Vector<Ref<OScriptFunction>> get_events() const;
 
     /// Get an immutable map of knots for this graph's connections.
     /// @return knot map

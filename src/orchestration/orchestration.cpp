@@ -111,6 +111,25 @@ void Orchestration::_set_functions_internal(const TypedArray<OScriptFunction>& p
     }
 }
 
+TypedArray<OScriptFunction> Orchestration::_get_events_internal() const
+{
+    TypedArray<OScriptFunction> functions;
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _events)
+        functions.push_back(E.value);
+    return functions;
+}
+
+void Orchestration::_set_events_internal(const TypedArray<OScriptFunction>& p_functions)
+{
+    _events.clear();
+    for (int i = 0; i < p_functions.size(); i++)
+    {
+        Ref<OScriptFunction> function = p_functions[i];
+        function->_orchestration = this;
+        _events[function->get_function_name()] = function;
+    }
+}
+
 TypedArray<OScriptVariable> Orchestration::_get_variables_internal() const
 {
     TypedArray<OScriptVariable> variables;
@@ -354,11 +373,21 @@ void Orchestration::remove_node(int p_node_id)
     node->pre_remove();
 
     // Check whether the node represents a function and if so, remove the function
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _functions)
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& F : _functions)
+    {
+        if (F.value->get_owning_node_id() == p_node_id)
+        {
+            _functions.erase(F.key);
+            break;
+        }
+    }
+
+    // Check whether the node represents an event and if so, remove the event
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _events)
     {
         if (E.value->get_owning_node_id() == p_node_id)
         {
-            _functions.erase(E.key);
+            _events.erase(E.key);
             break;
         }
     }
@@ -607,6 +636,7 @@ Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, 
     ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot create functions, instances exist.");
     ERR_FAIL_COND_V_MSG(!String(p_method.name).is_valid_identifier(), nullptr, "Invalid function name: " + p_method.name);
     ERR_FAIL_COND_V_MSG(_functions.has(p_method.name), nullptr, "A function already exists with the name: " + p_method.name);
+    ERR_FAIL_COND_V_MSG(_events.has(p_method.name), nullptr, "An event already exists with the name: " + p_method.name);
     ERR_FAIL_COND_V_MSG(_variables.has(p_method.name), nullptr, "A variable already exists with the name: " + p_method.name);
     ERR_FAIL_COND_V_MSG(_signals.has(p_method.name), nullptr, "A signal already exists with the name: " + p_method.name);
 
@@ -733,6 +763,147 @@ Vector<Ref<OScriptFunction>> Orchestration::get_functions() const
 {
     Vector<Ref<OScriptFunction>> results;
     for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _functions)
+        results.push_back(E.value);
+    return results;
+}
+
+bool Orchestration::has_event(const StringName& p_name) const
+{
+    return _events.has(p_name);
+}
+
+Ref<OScriptFunction> Orchestration::create_event(const MethodInfo& p_method, int p_node_id, bool p_user_defined)
+{
+    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot create events, instances exist.");
+    ERR_FAIL_COND_V_MSG(!String(p_method.name).is_valid_identifier(), nullptr, "Invalid event name: " + p_method.name);
+    ERR_FAIL_COND_V_MSG(_functions.has(p_method.name), nullptr, "A function already exists with the name: " + p_method.name);
+    ERR_FAIL_COND_V_MSG(_events.has(p_method.name), nullptr, "An event already exists with the name: " + p_method.name);
+    // ERR_FAIL_COND_V_MSG(_variables.has(p_method.name), nullptr, "A variable already exists with the name: " + p_method.name);
+    // ERR_FAIL_COND_V_MSG(_signals.has(p_method.name), nullptr, "A signal already exists with the name: " + p_method.name);
+
+    Ref<OScriptFunction> function(memnew(OScriptFunction));
+    function->_orchestration = this;
+    function->_guid = Guid::create_guid();
+    function->_method = p_method;
+    function->_owning_node_id = p_node_id;
+    function->_user_defined = p_user_defined;
+
+    _events[p_method.name] = function;
+
+    _self->emit_signal("events_changed");
+
+    return function;
+}
+
+void Orchestration::remove_event(const StringName& p_name)
+{
+    ERR_FAIL_COND_MSG(_has_instances(), "Cannot remove events, instances exist.");
+    ERR_FAIL_COND_MSG(!_events.has(p_name), "Cannot remove event that does not exist with name: " + p_name);
+    {
+        Ref<OScriptFunction> function = _events[p_name];
+        ERR_FAIL_COND_MSG(!function.is_valid(), "Event found with name '" + p_name + "', but its not valid.");
+
+        // Check if the function has a graph (user-defined functions do)
+        // if (_graphs.has(p_name))
+        // {
+        //     Ref<OScriptGraph> graph = _graphs[p_name];
+        //     if (graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION))
+        //         remove_graph(graph->get_graph_name());
+        // }
+
+        const List<int> node_ids = _get_node_type_node_ids<OScriptNodeCallScriptFunction>();
+        for (int node_id : node_ids)
+        {
+            const Ref<OScriptNodeCallScriptFunction> call_function = get_node(node_id);
+            const Ref<OScriptFunction> called_function = call_function->get_function();
+            if (call_function.is_valid() && called_function->get_function_name().match(function->get_function_name()))
+                remove_node(node_id);
+        }
+
+        // Find the node for this function and remove it
+        if (_nodes.has(function->get_owning_node_id()))
+            remove_node(function->get_owning_node_id());
+
+        // Let the editor handle node removal
+        _events.erase(p_name);
+
+        _self->emit_signal("events_changed");
+    }
+    _self->emit_changed();
+}
+
+Ref<OScriptFunction> Orchestration::find_event(const StringName& p_name) const
+{
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _events)
+    {
+        if (E.value->get_function_name().match(p_name))
+            return E.value;
+    }
+    return nullptr;
+}
+
+Ref<OScriptFunction> Orchestration::find_event(const Guid& p_guid) const
+{
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _events)
+    {
+        if (E.value->get_guid() == p_guid)
+            return E.value;
+    }
+    return nullptr;
+}
+
+bool Orchestration::rename_event(const StringName& p_old_name, const StringName& p_new_name)
+{
+    // Ignore if the old/new names are the same
+    if (p_old_name == p_new_name)
+        return false;
+
+    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot rename event, instances exist.");
+    ERR_FAIL_COND_V_MSG(!has_event(p_old_name), false, "Cannot rename, no event found with old name: " + p_old_name);
+    ERR_FAIL_COND_V_MSG(has_event(p_new_name), false, "Cannot rename, an event already exists with new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "New event name is invalid: " + p_new_name);
+    // ERR_FAIL_COND_V_MSG(has_variable(p_new_name), false, "Cannot rename function, a variable with name already exists: " + p_new_name);
+    // ERR_FAIL_COND_V_MSG(has_custom_signal(p_new_name), false, "Cannot rename function, a signal with the name already exists: " + p_new_name);
+
+    const Ref<OScriptFunction> function = _events[p_old_name];
+    if (!function.is_valid() || !function->can_be_renamed())
+        return false;
+
+    // Rename function graph, if found
+    // const Ref<OScriptGraph> function_graph = find_graph(p_old_name);
+    // if (function_graph.is_valid() && function_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION))
+    // {
+    //     if (!rename_graph(p_old_name, p_new_name))
+    //         return false;
+    // }
+
+    function->rename(p_new_name);
+
+    _events.erase(p_old_name);
+    _events[p_new_name] = function;
+
+    _self->emit_signal("events_changed");
+    return true;
+}
+
+PackedStringArray Orchestration::get_event_names() const
+{
+    PackedStringArray names;
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _events)
+        names.push_back(E.key);
+    return names;
+}
+
+int Orchestration::get_event_node_id(const StringName& p_name) const
+{
+    ERR_FAIL_COND_V(!_events.has(p_name), -1);
+    return _events[p_name]->get_owning_node_id();
+}
+
+Vector<Ref<OScriptFunction>> Orchestration::get_events() const
+{
+    Vector<Ref<OScriptFunction>> results;
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _events)
         results.push_back(E.value);
     return results;
 }

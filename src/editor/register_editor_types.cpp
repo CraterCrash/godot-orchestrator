@@ -19,6 +19,7 @@
 #include "about_dialog.h"
 #include "editor/component_panels/component_panel.h"
 #include "editor/component_panels/functions_panel.h"
+#include "editor/component_panels/events_panel.h"
 #include "editor/component_panels/graphs_panel.h"
 #include "editor/component_panels/macros_panel.h"
 #include "editor/component_panels/signals_panel.h"
@@ -119,6 +120,7 @@ void register_editor_types()
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptConnectionsDialog)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptFunctionsComponentPanel)
+    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptEventsComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptGraphsComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptMacrosComponentPanel)
     ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorScriptSignalsComponentPanel)

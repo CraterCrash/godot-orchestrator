@@ -57,6 +57,10 @@ void OScriptGraph::_bind_methods()
     ClassDB::bind_method(D_METHOD("_get_functions"), &OScriptGraph::_get_functions);
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "functions"), "_set_functions", "_get_functions");
 
+    ClassDB::bind_method(D_METHOD("_set_events", "events"), &OScriptGraph::_set_events);
+    ClassDB::bind_method(D_METHOD("_get_events"), &OScriptGraph::_get_events);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "events"), "_set_events", "_get_events");
+
     ClassDB::bind_method(D_METHOD("_set_knots", "knots"), &OScriptGraph::_set_knots);
     ClassDB::bind_method(D_METHOD("_get_knots"), &OScriptGraph::_get_knots);
     ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "knots"), "_set_knots", "_get_knots");
@@ -108,6 +112,7 @@ void OScriptGraph::_set_knots(const TypedArray<Dictionary>& p_knots)
     }
 }
 
+// TODO: is it correct to duplicate these two? Or do I need to expand this to include events as "functions"
 TypedArray<int> OScriptGraph::_get_functions() const
 {
     TypedArray<int> functions;
@@ -121,6 +126,23 @@ void OScriptGraph::_set_functions(const TypedArray<int>& p_functions)
     _functions.clear();
     for (int i = 0; i < p_functions.size(); i++)
         _functions.insert(p_functions[i]);
+
+    emit_changed();
+}
+
+TypedArray<int> OScriptGraph::_get_events() const
+{
+    TypedArray<int> functions;
+    for (const int &function_node_id : _events)
+        functions.push_back(function_node_id);
+    return functions;
+}
+
+void OScriptGraph::_set_events(const TypedArray<int>& p_functions)
+{
+    _events.clear();
+    for (int i = 0; i < p_functions.size(); i++)
+        _events.insert(p_functions[i]);
 
     emit_changed();
 }
@@ -425,6 +447,18 @@ Vector<Ref<OScriptFunction>> OScriptGraph::get_functions() const
 {
     Vector<Ref<OScriptFunction>> functions;
     for (int function_id : _functions)
+    {
+        Ref<OScriptNodeFunctionTerminator> term = _orchestration->get_node(function_id);
+        if (term.is_valid() && !functions.has(term->get_function()))
+            functions.push_back(term->get_function());
+    }
+    return functions;
+}
+
+Vector<Ref<OScriptFunction>> OScriptGraph::get_events() const
+{
+    Vector<Ref<OScriptFunction>> functions;
+    for (int function_id : _events)
     {
         Ref<OScriptNodeFunctionTerminator> term = _orchestration->get_node(function_id);
         if (term.is_valid() && !functions.has(term->get_function()))

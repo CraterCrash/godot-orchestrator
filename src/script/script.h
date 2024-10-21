@@ -64,8 +64,16 @@ protected:
     void _set_connections(const TypedArray<int>& p_connections) { _set_connections_internal(p_connections); }
     TypedArray<OScriptGraph> _get_graphs() const { return _get_graphs_internal(); }
     void _set_graphs(const TypedArray<OScriptGraph>& p_graphs) { _set_graphs_internal(p_graphs); }
+
+
+    // TODO: What's going on here? What calls _get_functions()?
+    //      Is it correct to duplicate of does it need to handle the "events" too?
     TypedArray<OScriptFunction> _get_functions() const { return _get_functions_internal(); }
     void _set_functions(const TypedArray<OScriptFunction>& p_functions) { _set_functions_internal(p_functions); }
+    TypedArray<OScriptFunction> _get_events() const { return _get_events_internal(); }
+    void _set_events(const TypedArray<OScriptFunction>& p_functions) { _set_events_internal(p_functions); }
+
+
     TypedArray<OScriptVariable> _get_variables() const { return _get_variables_internal(); }
     void _set_variables(const TypedArray<OScriptVariable>& p_variables) { _set_variables_internal(p_variables); }
     TypedArray<OScriptSignal> _get_signals() const { return _get_signals_internal(); }

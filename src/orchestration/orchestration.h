@@ -66,6 +66,7 @@ protected:
     RBSet<OScriptConnection> _connections;                 //! The connections between nodes in the orchestration
     HashMap<int, Ref<OScriptNode>> _nodes;                 //! Map of all nodes within this orchestration
     HashMap<StringName, Ref<OScriptFunction>> _functions;  //! Map of all orchestration functions
+    HashMap<StringName, Ref<OScriptFunction>> _events;     //! Map of all orchestration events
     HashMap<StringName, Ref<OScriptVariable>> _variables;  //! Map of all orchestration variables
     HashMap<StringName, Ref<OScriptSignal>> _signals;      //! Map of all user-defined signals
     HashMap<StringName, Ref<OScriptGraph>> _graphs;        //! Map of all defined graphs
@@ -81,6 +82,8 @@ protected:
     void _set_graphs_internal(const TypedArray<OScriptGraph>& p_graphs);
     TypedArray<OScriptFunction> _get_functions_internal() const;
     void _set_functions_internal(const TypedArray<OScriptFunction>& p_functions);
+    TypedArray<OScriptFunction> _get_events_internal() const;
+    void _set_events_internal(const TypedArray<OScriptFunction>& p_functions);
     TypedArray<OScriptVariable> _get_variables_internal() const;
     void _set_variables_internal(const TypedArray<OScriptVariable>& p_variables);
     TypedArray<OScriptSignal> _get_signals_internal() const;
@@ -194,7 +197,7 @@ public:
     Vector<Ref<OScriptGraph>> get_graphs() const;
     //~ End Graph Interface
 
-    //~ Begin Function API
+    //~ Begin Function Interface
     bool has_function(const StringName& p_name) const;
     Ref<OScriptFunction> create_function(const MethodInfo& p_method, int p_node_id, bool p_user_defined = false);
     void remove_function(const StringName& p_name);
@@ -205,6 +208,18 @@ public:
     int get_function_node_id(const StringName& p_name) const;
     Vector<Ref<OScriptFunction>> get_functions() const;
     //~ End Function Interface
+
+    //~ Begin Events Interface
+    bool has_event(const StringName& p_name) const;
+    Ref<OScriptFunction> create_event(const MethodInfo& p_method, int p_node_id, bool p_user_defined = false);
+    void remove_event(const StringName& p_name);
+    Ref<OScriptFunction> find_event(const StringName& p_name) const;
+    Ref<OScriptFunction> find_event(const Guid& p_guid) const;
+    bool rename_event(const StringName& p_old_name, const StringName& p_new_name);
+    PackedStringArray get_event_names() const;
+    int get_event_node_id(const StringName& p_name) const;
+    Vector<Ref<OScriptFunction>> get_events() const;
+    //~ End Events Interface
 
     //~ Begin Variable Interface
     bool has_variable(const StringName& p_name) const;

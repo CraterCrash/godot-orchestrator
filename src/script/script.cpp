@@ -54,6 +54,11 @@ void OScript::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "functions", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
                  "_set_functions", "_get_functions");
 
+    ClassDB::bind_method(D_METHOD("_set_events", "events"), &OScript::_set_events);
+    ClassDB::bind_method(D_METHOD("_get_events"), &OScript::_get_events);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "events", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
+                 "_set_events", "_get_events");
+
     ClassDB::bind_method(D_METHOD("_set_signals", "signals"), &OScript::_set_signals);
     ClassDB::bind_method(D_METHOD("_get_signals"), &OScript::_get_signals);
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "signals", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
@@ -76,6 +81,7 @@ void OScript::_bind_methods()
 
     ADD_SIGNAL(MethodInfo("connections_changed", PropertyInfo(Variant::STRING, "caller")));
     ADD_SIGNAL(MethodInfo("functions_changed"));
+    ADD_SIGNAL(MethodInfo("events_changed"));
     ADD_SIGNAL(MethodInfo("variables_changed"));
     ADD_SIGNAL(MethodInfo("signals_changed"));
 }
@@ -220,9 +226,11 @@ bool OScript::_has_static_method(const StringName& p_method) const
     return false;
 }
 
+
+// TODO: what and when calls this?
 bool OScript::_has_method(const StringName& p_method) const
 {
-    return _functions.has(p_method);
+    return _functions.has(p_method) || _events.has(p_method);
 }
 
 Dictionary OScript::_get_method_info(const StringName& p_method) const
@@ -233,7 +241,10 @@ Dictionary OScript::_get_method_info(const StringName& p_method) const
 TypedArray<Dictionary> OScript::_get_script_method_list() const
 {
     TypedArray<Dictionary> results;
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _functions)
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& F : _functions)
+        results.push_back(F.value->to_dict());
+
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _events)
         results.push_back(E.value->to_dict());
 
     return results;

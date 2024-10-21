@@ -37,6 +37,8 @@ protected:
     OrchestratorScriptComponentPanel* _macros{ nullptr };     //! Macros section
     OrchestratorScriptComponentPanel* _variables{ nullptr };  //! Variables section
     OrchestratorScriptComponentPanel* _signals{ nullptr };    //! Signals section
+    OrchestratorScriptComponentPanel* _events{ nullptr };     //! Events section
+    
 
     //~ Begin Godot Interface
     void _notification(int p_what);
@@ -60,6 +62,11 @@ protected:
     /// @param p_has_return whether function has a return node
     /// @return the newly constructed function
     Ref<OScriptFunction> _create_new_function(const String& p_name, bool p_has_return);
+
+    /// Creates a new event in the script
+    /// @param p_name the event name
+    /// @return the newly constructed function
+    Ref<OScriptFunction> _create_new_event(const String& p_name);
 
     /// Shows the graph with the given name, adding the tab if it doesn't exist.
     /// @param p_name the graph name
