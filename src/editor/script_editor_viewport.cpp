@@ -19,6 +19,7 @@
 #include "api/extension_db.h"
 #include "common/name_utils.h"
 #include "editor/component_panels/functions_panel.h"
+#include "editor/component_panels/events_panel.h"
 #include "editor/component_panels/graphs_panel.h"
 #include "editor/component_panels/macros_panel.h"
 #include "editor/component_panels/signals_panel.h"
@@ -36,6 +37,7 @@ void OrchestratorScriptEditorViewport::_update_components()
 {
     _graphs->update();
     _functions->update();
+    _events->update();
     _macros->update();
     _variables->update();
     _signals->update();
@@ -94,6 +96,7 @@ void OrchestratorScriptEditorViewport::_save_state()
         state["panels"] = panel_states;
         panel_states["graphs"] = _graphs->is_collapsed();
         panel_states["functions"] = _functions->is_collapsed();
+        panel_states["events"] = _events->is_collapsed();
         panel_states["macros"] = _macros->is_collapsed();
         panel_states["variables"] = _variables->is_collapsed();
         panel_states["signals"] = _signals->is_collapsed();
@@ -138,6 +141,7 @@ void OrchestratorScriptEditorViewport::_restore_state()
             const Dictionary& panel_state = state["panels"];
             _graphs->set_collapsed(panel_state.get("graphs", false));
             _functions->set_collapsed(panel_state.get("functions", false));
+            _events->set_collapsed(panel_state.get("events", false));
             _macros->set_collapsed(panel_state.get("macros", false));
             _variables->set_collapsed(panel_state.get("variables", false));
             _signals->set_collapsed(panel_state.get("signals", false));
@@ -180,6 +184,37 @@ Ref<OScriptFunction> OrchestratorScriptEditorViewport::_create_new_function(cons
     _functions->update();
 
     return entry->get_function();
+}
+
+Ref<OScriptFunction> OrchestratorScriptEditorViewport::_create_new_event(const String& p_name)
+{
+    UtilityFunctions::print("I should create an event block now.");
+
+    // TODO: create a node...
+    // Ref<OScriptGraph> graph = _orchestration->get_graph("EventGraph");
+    // ERR_FAIL_COND_V_MSG(!graph.is_valid(), {}, "Failed to find EventGraph");
+
+    // MethodInfo mi;
+    // mi.name = p_name;
+    // mi.flags = METHOD_FLAG_NORMAL;
+    // mi.return_val.type = Variant::NIL;
+    // mi.return_val.hint = PROPERTY_HINT_NONE;
+    // mi.return_val.usage = PROPERTY_USAGE_DEFAULT;
+
+    // OScriptNodeInitContext context;
+    // context.method = mi;
+
+    // // TODO: make a node to spawn...
+    // const Ref<OScriptNodeFunctionEntry> entry = graph->create_node<OScriptNodeFunctionEntry>(context);
+    // if (!entry.is_valid())
+    // {
+    //     ERR_FAIL_V_MSG({}, "Failed to create function entry node for function " + p_name);
+    // }
+
+    // _events->update();
+
+    // return entry->get_function();
+    return nullptr;
 }
 
 void OrchestratorScriptEditorViewport::_show_graph(const String& p_name)
@@ -569,6 +604,17 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
         _functions->connect("graph_renamed", callable_mp(this, &OrchestratorScriptEditorViewport::_graph_renamed));
         _functions->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_functions);
+
+        // TODO: cleanup
+        Callable create_event = callable_mp(this, &OrchestratorScriptEditorViewport::_create_new_event);
+        _events = memnew(OrchestratorScriptEventsComponentPanel(_orchestration, create_event));
+        _events->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_show_graph));
+        // _events->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_close_graph));
+        _events->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_focus_node));
+        // _events->connect("override_function_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_override_godot_function));
+        _events->connect("graph_renamed", callable_mp(this, &OrchestratorScriptEditorViewport::_graph_renamed));
+        _events->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
+        _component_container->add_child(_events);
 
         _macros = memnew(OrchestratorScriptMacrosComponentPanel(_orchestration));
         _macros->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
