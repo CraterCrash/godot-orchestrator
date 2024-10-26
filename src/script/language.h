@@ -19,7 +19,7 @@
 
 #include "common/logger.h"
 #include "common/version.h"
-#include "serialization/format_defs.h"
+#include "script/serialization/format_defs.h"
 
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -38,9 +38,6 @@ class OScriptInstance;
 class OScriptNode;
 class OScriptVirtualMachine;
 
-/// Defines the script node creation function callback
-typedef Ref<OScriptNode> (*OScriptNodeRegisterFunc)(const String& p_type);
-
 /// Defines an extension for Godot where we define the language for Orchestrations.
 class OScriptLanguage : public ScriptLanguageExtension
 {
@@ -50,21 +47,6 @@ protected:
     static void _bind_methods() { }
 
 private:
-
-    // Structure that describes a registered node that provides some unique
-    // functionality to the visual script subsystem.
-    struct ScriptNodeInfo
-    {
-        ScriptNodeInfo* inherits_ptr { nullptr };
-        void* class_ptr { nullptr };
-        StringName inherits;
-        StringName name;
-
-        Object* (*creation_func)() { nullptr };
-
-        ScriptNodeInfo() = default;
-        ~ScriptNodeInfo() = default;
-    };
 
     #if GODOT_VERSION >= 0x040300
     struct CallStack
@@ -78,7 +60,6 @@ private:
     #endif
 
     static OScriptLanguage* _singleton;                        //! The one and only instance
-    static HashMap<StringName, ScriptNodeInfo> _nodes;         //! Script node registration data
     SelfList<OScript>::List _scripts;                          //! all loaded scripts
     HashMap<StringName, Variant> _global_constants;            //! Stores global constants
     HashMap<StringName, Variant> _named_global_constants;      //! Stores named global constants
@@ -92,20 +73,6 @@ private:
     int _debug_max_call_stack{ 0 };     //! The maximum call stack size
     CallStack* _call_stack{ nullptr };  //! The call stack
     #endif
-
-protected:
-
-    /// Standard creator method for nodes
-    /// @tparam T the node type
-    /// @return the created node
-    template <typename T>
-    static Object* creator()
-    {
-        return memnew(T);
-    }
-
-    // Internal Registration
-    static void _add_node_class_internal(const StringName& p_class, const StringName& p_inherits);
 
 public:
     /// Public lock used for specific synchronizing use cases.
@@ -205,126 +172,11 @@ public:
 
     String get_script_extension_filter() const;
 
-    /// Adds the node clas to the language (DO NOT USE DIRECTLY!!!!)
-    /// @tparam T the class type
-    template <class T> static void _add_node_class()
-    {
-        if (T::get_class_static().match("OScriptNode"))
-            _add_node_class_internal(T::get_class_static(), StringName());
-        else
-            _add_node_class_internal(T::get_class_static(), T::get_parent_class_static());
-    }
-
-    /// Registers a node class with the language
-    /// @tparam T the node class type
-    template <typename T>
-    static void register_node_class()
-    {
-        static_assert(TypesAreSame<typename T::self_node_type, T>::value,
-                      "Node not declared properly, please use ORCHESTRATOR_CLASS.");
-        T::initialize_orchestrator_class();
-
-        ScriptNodeInfo* node = _nodes.getptr(T::get_class_static());
-        ERR_FAIL_NULL(node);
-        node->creation_func = &creator<T>;
-        node->class_ptr = T::get_orchestrator_node_ptr_static();
-
-        T::register_custom_orchestrator_data_to_otdb();
-        Logger::debug("Registered node '", T::get_class_static(), "'.");
-    }
-
     #ifdef TOOLS_ENABLED
     /// Get a list of all orchestration scripts
     /// @return list of references
     List<Ref<OScript>> get_scripts() const;
     #endif
-
-    /// Create a script node based on the name of the node.
-    /// @param p_class_name the node class name
-    /// @param p_owner the orchestration
-    /// @param p_allocate_id allocate node id from script, defaults to true.
-    /// @return the script node reference
-    Ref<OScriptNode> create_node_from_name(const String& p_class_name, Orchestration* p_owner, bool p_allocate_id = true);
-
-    /// Templated function to create a node from a node type
-    /// @tparam T the node type
-    /// @param p_owner the orchestration
-    /// @return the created node reference, may be an invalid reference on failure
-    template <typename T>
-    Ref<T> create_node_from_type(Orchestration* p_owner)
-    {
-        for (const KeyValue<StringName, ScriptNodeInfo>& E : _nodes)
-            if (E.key == T::get_class_static())
-                return create_node_from_name(E.key, p_owner);
-        ERR_FAIL_V_MSG(Ref<T>(), "No node found with class type: " + T::get_class_static());
-    }
 };
-
-#define ORCHESTRATOR_NODE_CLASS_COMMON(m_class, m_inherits) /*************************************/ \
-    GDCLASS(m_class, m_inherits);                                                                   \
-private:                                                                                            \
-    friend class ::OScriptLanguage;                                                                 \
-public:                                                                                             \
-    typedef m_class self_node_type;                                                                 \
-    typedef m_inherits super;                                                                       \
-    static _FORCE_INLINE_ void* get_orchestrator_node_ptr_static()                                  \
-    {                                                                                               \
-        static int ptr;                                                                             \
-        return &ptr;                                                                                \
-    }
-
-#define ORCHESTRATOR_NODE_CLASS_BASE(m_class, m_inherits) /***************************************/ \
-    ORCHESTRATOR_NODE_CLASS_COMMON(m_class, m_inherits);                                            \
-public:                                                                                             \
-    static void initialize_orchestrator_class()                                                     \
-    {                                                                                               \
-        static bool orchestrator_initialized = false;                                               \
-        if (orchestrator_initialized)                                                               \
-        {                                                                                           \
-            return;                                                                                 \
-        }                                                                                           \
-        OScriptLanguage::_add_node_class<m_class>();                                                \
-        orchestrator_initialized = true;                                                            \
-    }                                                                                               \
-protected:                                                                                          \
-    virtual void _initialize_orchestator_classv()                                                   \
-    {                                                                                               \
-        initialize_orchestrator_class();                                                            \
-    }
-
-#define ORCHESTRATOR_NODE_CLASS(m_class, m_inherits) /********************************************/ \
-    ORCHESTRATOR_NODE_CLASS_COMMON(m_class, m_inherits);                                            \
-public:                                                                                             \
-    static void initialize_orchestrator_class()                                                     \
-    {                                                                                               \
-        static bool orchestrator_initialized = false;                                               \
-        if (orchestrator_initialized)                                                               \
-        {                                                                                           \
-            return;                                                                                 \
-        }                                                                                           \
-        m_inherits::initialize_orchestrator_class();                                                \
-        OScriptLanguage::_add_node_class<m_class>();                                                \
-        orchestrator_initialized = true;                                                            \
-    }                                                                                               \
-protected:                                                                                          \
-    virtual void _initialize_orchestator_classv() override                                          \
-    {                                                                                               \
-        initialize_orchestrator_class();                                                            \
-    }                                                                                               \
-private:
-
-#define ORCHESTRATOR_REGISTER_NODE_CLASS(m_class) /***********************************************/ \
-    GDREGISTER_CLASS(m_class);                                                                      \
-    ::OScriptLanguage::register_node_class<m_class>();
-
-#define ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(m_class) /**************************************/ \
-    GDREGISTER_ABSTRACT_CLASS(m_class);                                                             \
-    ::OScriptLanguage::register_node_class<m_class>();
-
-#define ORCHESTRATOR_REGISTER_CLASS(m_class) /****************************************************/ \
-    GDREGISTER_CLASS(m_class)
-
-#define ORCHESTRATOR_REGISTER_INTERNAL_CLASS(m_class) /*******************************************/ \
-    GDREGISTER_INTERNAL_CLASS(m_class)
 
 #endif  // ORCHESTRATOR_SCRIPT_LANGUAGE_H

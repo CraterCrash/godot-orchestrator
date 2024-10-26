@@ -452,9 +452,12 @@ void OScriptGraph::remove_connection_knot(uint64_t p_connection_id)
 
 Ref<OScriptNode> OScriptGraph::create_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position)
 {
-    const Ref<OScriptNode> spawned = OScriptLanguage::get_singleton()->create_node_from_name(p_type, _orchestration);
+    const Ref<OScriptNode> spawned = OScriptNodeFactory::create_node_from_name(p_type, _orchestration);
     if (spawned.is_valid())
+    {
+        spawned->set_id(_orchestration->get_available_id());
         _initialize_node(spawned, p_context, p_position);
+    }
 
     return spawned;
 }
