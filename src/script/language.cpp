@@ -33,7 +33,6 @@
 #endif
 
 OScriptLanguage* OScriptLanguage::_singleton = nullptr;
-HashMap<StringName, OScriptLanguage::ScriptNodeInfo> OScriptLanguage::_nodes;
 
 OScriptLanguage::OScriptLanguage()
 {
@@ -57,27 +56,6 @@ OScriptLanguage::~OScriptLanguage()
 OScriptLanguage* OScriptLanguage::get_singleton()
 {
     return _singleton;
-}
-
-void OScriptLanguage::_add_node_class_internal(const StringName& p_class, const StringName& p_inherits)
-{
-    const StringName& name = p_class;
-    ERR_FAIL_COND_MSG(_nodes.has(name), "Class '" + String(p_class) + "' already exists.");
-
-    _nodes[name] = ScriptNodeInfo();
-    ScriptNodeInfo& sni = _nodes[name];
-    sni.name = name;
-    sni.inherits = p_inherits;
-
-    if (!sni.inherits.is_empty())
-    {
-        ERR_FAIL_COND_MSG(!_nodes.has(sni.inherits), "Node " + p_inherits + " is not defined as a node");
-        sni.inherits_ptr = &_nodes[sni.inherits];
-    }
-    else
-    {
-        sni.inherits_ptr = nullptr;
-    }
 }
 
 void OScriptLanguage::_init()
@@ -728,15 +706,4 @@ String OScriptLanguage::get_script_extension_filter() const
         results.push_back(vformat("*.%s", extension));
 
     return StringUtils::join(",", results);
-}
-
-Ref<OScriptNode> OScriptLanguage::create_node_from_name(const String& p_class_name, Orchestration* p_owner, bool p_allocate_id)
-{
-    ERR_FAIL_COND_V_MSG(!_nodes.has(p_class_name), Ref<OScriptNode>(), "No node found with name: " + p_class_name);
-
-    Ref<OScriptNode> node(_nodes[p_class_name].creation_func());
-    node->set_id(p_allocate_id ? p_owner->get_available_id() : -1);
-    node->_orchestration = p_owner;
-
-    return node;
 }
