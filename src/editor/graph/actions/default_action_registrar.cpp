@@ -33,11 +33,10 @@
 
 void OrchestratorDefaultGraphActionRegistrar::_register_node(const StringName& p_class_name, const StringName& p_category, const Dictionary& p_data)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
     Orchestration* orchestration = _context->graph->get_orchestration();
 
-    const Ref<OScriptNode> node = language->create_node_from_name(p_class_name, orchestration, false);
-    if (!node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::CATALOGABLE))
+    const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(p_class_name, orchestration);
+    if (!node.is_valid() || !node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::CATALOGABLE))
         return;
 
     PackedStringArray name_parts = p_category.split("/");
