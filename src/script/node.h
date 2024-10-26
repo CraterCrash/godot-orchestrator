@@ -21,6 +21,7 @@
 #include "orchestration/build_log.h"
 #include "script/action.h"
 #include "script/language.h"
+#include "script/node_factory.h"
 #include "script/graph.h"
 #include "script/node_pin.h"
 #include "script/target_object.h"
