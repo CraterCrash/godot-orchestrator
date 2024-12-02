@@ -29,7 +29,7 @@
 
 class OScriptNodeDialogueMessageInstance : public OScriptNodeInstance
 {
-    static inline const char* DEFAULT_SCENE = "res://addons/orchestrator/scenes/dialogue_message.tscn";
+    static inline const char* DEFAULT_SCENE = OrchestratorSettings::get_singleton()->get_setting("settings/default_type");
 
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDialogueMessage)
     int _choices{ 0 };
