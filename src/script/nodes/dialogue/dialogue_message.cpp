@@ -17,6 +17,7 @@
 #include "dialogue_message.h"
 
 #include "common/property_utils.h"
+#include "common/settings.h"
 #include "script/nodes/dialogue/dialogue_choice.h"
 #include "script/vm/script_state.h"
 
@@ -29,7 +30,7 @@
 
 class OScriptNodeDialogueMessageInstance : public OScriptNodeInstance
 {
-    static inline const char* DEFAULT_SCENE = OrchestratorSettings::get_singleton()->get_setting("settings/default_type");
+    static inline const String DEFAULT_SCENE = OrchestratorSettings::get_singleton()->get_setting("settings/dialogue_message_scene");
 
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDialogueMessage)
     int _choices{ 0 };
