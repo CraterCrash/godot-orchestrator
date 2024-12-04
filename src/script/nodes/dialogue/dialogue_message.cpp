@@ -30,8 +30,6 @@
 
 class OScriptNodeDialogueMessageInstance : public OScriptNodeInstance
 {
-    static inline const String DEFAULT_SCENE = OrchestratorSettings::get_singleton()->get_setting("settings/dialogue_message_scene");
-
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDialogueMessage)
     int _choices{ 0 };
     Node* _ui{ nullptr };
@@ -51,6 +49,8 @@ public:
 
     int step(OScriptExecutionContext& p_context) override
     {
+        static const char* DEFAULT_SCENE = String(OrchestratorSettings::get_singleton()->get_setting("settings/dialogue_message_scene")).utf8().get_data();
+
         if (p_context.get_step_mode() == STEP_MODE_RESUME)
         {
             // User made selection
