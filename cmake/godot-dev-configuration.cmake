@@ -21,20 +21,20 @@
 
 # Confirms that the Godot Engine source files exist.
 # Assumes that if they don't, the submodule has not yet been initialized.
-
-IF ( NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-engine/core" )
-    MESSAGE( NOTICE "Godot engine sources not found" )
-    MESSAGE( NOTICE "initializing/updating the engine submodule..." )
-
-    # update the engine submodule to populate it with the
-    # code necessary to build a debug version of the editor that
-    # can be easily debugged along with the library
-    EXECUTE_PROCESS(
-            COMMAND git submodule update --init extern/godot-engine
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            COMMAND_ERROR_IS_FATAL ANY
-    )
-ENDIF ()
+#
+#IF ( NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-engine/core" )
+#    MESSAGE( NOTICE "Godot engine sources not found" )
+#    MESSAGE( NOTICE "initializing/updating the engine submodule..." )
+#
+#    # update the engine submodule to populate it with the
+#    # code necessary to build a debug version of the editor that
+#    # can be easily debugged along with the library
+#    EXECUTE_PROCESS(
+#            COMMAND git submodule update --init extern/godot-engine
+#            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+#            COMMAND_ERROR_IS_FATAL ANY
+#    )
+#ENDIF ()
 
 # =======================================================================
 # Godot-cpp bindings submodule update/init
@@ -60,35 +60,35 @@ ENDIF ()
 # Godot editor/engine debug build
 # =======================================================================
 
-STRING( TOLOWER "${CMAKE_SYSTEM_NAME}" host_os )
-SET( cpu_arch "x86_64" )
-
-# define variable to be used in the engine build when specifying platform.
-SET( host_os_engine "${host_os}" )
-IF ( APPLE )
-    IF ( "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64" )
-        SET( cpu_arch "arm64" )
-    ENDIF ()
-    # ${CMAKE_SYSTEM_NAME} returns Darwin, but the scons platform name will be macos
-    SET( host_os_engine "macos" )
-ELSEIF ( UNIX )
-    # the scons build expects linuxbsd to be passed in as the platform
-    # when building on linux, so just append bsd to CMAKE_SYSTEM_NAME
-    SET( host_os_engine "${host_os}bsd" )
-ENDIF ()
-
-
-SET( godot_debug_editor_executable
-     "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-engine/bin/godot.${host_os_engine}.editor.dev.${cpu_arch}${CMAKE_EXECUTABLE_SUFFIX}"
-)
-
-FIND_PROGRAM( SCONS_PROGRAM NAMES scons )
-IF ( NOT EXISTS "${SCONS_PROGRAM}" )
-    MESSAGE( FATAL_ERROR
-             "scons not found, it is required for the godot engine build. "
-             "Please install scons and confirm it is in your system PATH."
-    )
-ENDIF ()
+#STRING( TOLOWER "${CMAKE_SYSTEM_NAME}" host_os )
+#SET( cpu_arch "x86_64" )
+#
+## define variable to be used in the engine build when specifying platform.
+#SET( host_os_engine "${host_os}" )
+#IF ( APPLE )
+#    IF ( "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64" )
+#        SET( cpu_arch "arm64" )
+#    ENDIF ()
+#    # ${CMAKE_SYSTEM_NAME} returns Darwin, but the scons platform name will be macos
+#    SET( host_os_engine "macos" )
+#ELSEIF ( UNIX )
+#    # the scons build expects linuxbsd to be passed in as the platform
+#    # when building on linux, so just append bsd to CMAKE_SYSTEM_NAME
+#    SET( host_os_engine "${host_os}bsd" )
+#ENDIF ()
+#
+#
+#SET( godot_debug_editor_executable
+#     "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-engine/bin/godot.${host_os_engine}.editor.dev.${cpu_arch}${CMAKE_EXECUTABLE_SUFFIX}"
+#)
+#
+#FIND_PROGRAM( SCONS_PROGRAM NAMES scons )
+#IF ( NOT EXISTS "${SCONS_PROGRAM}" )
+#    MESSAGE( FATAL_ERROR
+#             "scons not found, it is required for the godot engine build. "
+#             "Please install scons and confirm it is in your system PATH."
+#    )
+#ENDIF ()
 
 #MESSAGE( NOTICE "godot_debug_editor_executable = ${godot_debug_editor_executable}" )
 #

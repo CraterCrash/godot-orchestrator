@@ -4,5 +4,5 @@
 	branch = master
 [submodule "godot-cpp"]
 	path = extern/godot-cpp
-	url = https://github.com/godotengine/godot-cpp
-	branch = master
+	url = https://github.com/enetheru/godot-cpp.git
+	branch = 4.3-modernise
