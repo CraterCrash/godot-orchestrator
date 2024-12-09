@@ -93,7 +93,7 @@ public:
                 Dictionary options;
                 for (int i = 0; i < _choices; i++)
                 {
-                    Dictionary choice = p_context.get_input(3 + i);
+                    Dictionary choice = p_context.get_input(4 + i);
                     if (choice.has("visible") && choice["visible"])
                         options[i] = choice["text"];
                 }
