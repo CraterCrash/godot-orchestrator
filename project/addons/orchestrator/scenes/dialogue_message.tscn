@@ -73,3 +73,5 @@ layout_mode = 2
 size_flags_horizontal = 8
 text = "Continue"
 alignment = 2
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
