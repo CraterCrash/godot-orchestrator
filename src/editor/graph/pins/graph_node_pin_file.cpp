@@ -35,7 +35,8 @@ void OrchestratorGraphNodePinFile::_bind_methods()
 String OrchestratorGraphNodePinFile::_get_default_text() const
 {
     if (_pin->get_owning_node()->get_class() == OScriptNodeDialogueMessage::get_class_static())
-        return "Default Scene";
+        if (_pin->get_pin_name() == String("scene"))
+            return "Default Scene";
 
     return "Assign...";
 }
