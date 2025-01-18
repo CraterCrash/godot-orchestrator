@@ -6,7 +6,8 @@
 
 # Godot Orchestrator
 
-Orchestrator is the ultimate Visual-Scripting solution designed for Godot 4.2+ platform.
+Orchestrator is the ultimate visual scripting solution designed for the Godot 4.2+ platform.  
+
 It revolutionizes Godot game development with its intuitive graph editor interface and hundreds of nodes to build any game logic.
 This add-on empowers you to craft complex behaviors and intricate game logic with unparalleled ease and flexibility, just as you would find in other commercially available game engines.
 
@@ -24,7 +25,7 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 
 ## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public)  Godot Compatibility
 
-Orchestrator is made using Godot GDExtension technology, which has certain ABI (application binary interface) requirements that must be followed to guarantee that the integration between extensions and the engine work as expected.
+Orchestrator is made using Godot GDExtension technology, which has certain ABI (application binary interface) requirements that must be followed to guarantee that the integration between extensions and the engine works as expected.
 The following table describes which Orchestrator version you should use based on your Godot editor version.
 
 Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.
@@ -38,9 +39,9 @@ Using the wrong version of Orchestrator with the Godot editor may result in unex
 * A complete visual scripting solution for Godot.
 * Compatible with Godot 4.2+ using Godot GDExtension plug-in technology.
 * Attach an OrchestratorScript to any Godot scene node just like GDScript or CSharp.
-* Hundreds of nodes in dozens of categories such as Flow Control, Logic, Math, Variables and more. 
+* Hundreds of nodes in dozens of categories such as Flow Control, Logic, Math, Variables, and more. 
 * Drag-and-drop Editor integration for Scene Nodes, Properties, and Resources.
-* Build re-usable code with custom functions.
+* Build reusable code with custom functions.
 * Supports sending and reacting to Godot signals.
 * Design complex dialogue conversations for NPCs for any game.
 * Work with any Godot engine data type, including complex types like Arrays or Dictionaries.
