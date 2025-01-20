@@ -598,8 +598,8 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
             _hovered_connection = get_closest_connection_at_point(mm->get_position());
             if (!_hovered_connection.is_empty())
             {
-                _show_drag_hint("Use Ctrl+LMB to add a knot to the connection.\n"
-                    "Hover over an existing knot and pressing Ctrl+LMB will remove it.");
+                _show_drag_hint("Use Ctrl + left click to add a knot to the connection.\n"
+                    "Hover over an existing knot and pressing Ctrl + left click will remove it.");
             }
         }
 
@@ -610,7 +610,7 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
             {
                 if (mb->get_modifiers_mask().has_flag(KEY_MASK_CTRL))
                 {
-                    // CTRL+LMB adds a knot to the connection that can then be moved.
+                    // CTRL + left click adds a knot to the connection that can then be moved.
                     if (!_hovered_connection.is_empty())
                         _create_connection_knot(_hovered_connection, mb->get_position());
                 }
@@ -623,7 +623,7 @@ void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
     {
         if (mb->get_button_index() == MOUSE_BUTTON_LEFT && mb->is_pressed())
         {
-            // This checks whether the LMB click should trigger box-selection
+            // This checks whether the left click should trigger box-selection
             //
             // While GraphEdit manages this, this information isn't directly exposed as signals, and our
             // implementation needs this detail to know if we should ignore selecting specific custom
