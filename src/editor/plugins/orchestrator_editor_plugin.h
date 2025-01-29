@@ -44,6 +44,7 @@ class OrchestratorPlugin : public EditorPlugin
 
     static OrchestratorPlugin* _plugin;
 
+    String _last_editor;                                      //! Last editor
     OrchestratorEditorPanel* _editor_panel{ nullptr };        //! Plugin's editor panel
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
@@ -141,6 +142,9 @@ public:
     }
 
 private:
+    void _focus_another_editor();
+
+    void _on_main_screen_changed(const String& p_name);
     void _on_window_visibility_changed(bool p_visible);
 };
 
