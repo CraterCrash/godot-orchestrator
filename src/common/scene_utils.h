@@ -41,6 +41,11 @@ namespace SceneUtils
     /// @return the editor color
     Color get_editor_color(const String& p_color_name, const String& p_category = "Editor");
 
+    /// Gets an Orchestrator editor icon path
+    /// @param p_name the icon name
+    /// @return the orchestrator editor icon path
+    String get_icon_path(const String& p_name);
+
     /// Gets an Orchestrator editor icon
     /// @param p_name the icon name
     /// @return a reference to the icon

@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/property_utils.h"
+#include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -115,7 +116,7 @@ String OScriptNodeDecompose::get_node_title() const
 
 String OScriptNodeDecompose::get_icon() const
 {
-    return "Unlinked";
+    return SceneUtils::get_icon_path("Decompose");
 }
 
 String OScriptNodeDecompose::get_help_topic() const
