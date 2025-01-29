@@ -19,6 +19,7 @@
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 #include "common/property_utils.h"
+#include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -271,7 +272,7 @@ String OScriptNodeCompose::get_node_title() const
 
 String OScriptNodeCompose::get_icon() const
 {
-    return "Instance";
+    return SceneUtils::get_icon_path("Compose");
 }
 
 OScriptNodeInstance* OScriptNodeCompose::instantiate()
@@ -379,7 +380,7 @@ String OScriptNodeComposeFrom::get_node_title() const
 
 String OScriptNodeComposeFrom::get_icon() const
 {
-    return "Instance";
+    return SceneUtils::get_icon_path("Compose");
 }
 
 PackedStringArray OScriptNodeComposeFrom::get_keywords() const
