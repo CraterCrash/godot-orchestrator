@@ -280,7 +280,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
             pc->add_theme_stylebox_override("panel", hbox_panel);
         }
 
-        if (is_visible_in_tree())
+        if (is_visible_in_tree() && is_node_ready())
             _synchronize_graph_with_script();
     }
 }
