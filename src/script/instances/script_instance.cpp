@@ -244,6 +244,13 @@ bool OScriptInstance::property_get_revert(const StringName& p_name, Variant* r_r
 
 void OScriptInstance::notification(int32_t p_what, bool p_reversed)
 {
+    const Array args = Array::make(p_what, p_reversed);
+    const Variant** argptrs = (const Variant**)alloca(sizeof(Variant*) * args.size());
+    for (int i = 0; i < args.size(); i++)
+        argptrs[i] = &args[i];
+
+    GDExtensionCallError error;
+    call("_notification", argptrs, args.size(), nullptr, &error);
 }
 
 void OScriptInstance::to_string(GDExtensionBool* r_is_valid, String* r_out)
