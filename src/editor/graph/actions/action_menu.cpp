@@ -27,6 +27,7 @@
 
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/display_server.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -85,6 +86,7 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         _filters_text_box->set_clear_button_enabled(true);
         _filters_text_box->connect("text_changed", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_changed));
         _filters_text_box->connect("text_submitted", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_changed));
+        _filters_text_box->connect("gui_input", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_gui_input));
         vbox->add_child(_filters_text_box);
         register_text_enter(_filters_text_box);
 
@@ -482,6 +484,34 @@ void OrchestratorGraphActionMenu::_on_filter_text_changed(const String& p_new_te
     {
         item->select(0);
         _tree_view->scroll_to_item(item, true);
+    }
+}
+
+void OrchestratorGraphActionMenu::_on_filter_text_gui_input(const Ref<InputEvent>& p_event)
+{
+    Ref<InputEventKey> key_event = p_event;
+    if (key_event.is_valid() && key_event->is_pressed())
+    {
+        switch (key_event->get_keycode())
+        {
+            case KEY_UP:
+            case KEY_DOWN:
+            case KEY_PAGEUP:
+            case KEY_PAGEDOWN:
+            {
+                // Only way to reroute events is via Viewport::push_event.
+                // This requires that the control that receives the event have focus
+                _tree_view->grab_focus();
+                get_viewport()->push_input(key_event);
+
+                // Reset the focus & mark the event as handled.
+                _filters_text_box->grab_focus();
+                _filters_text_box->accept_event();
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 
