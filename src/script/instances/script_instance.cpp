@@ -250,7 +250,8 @@ void OScriptInstance::notification(int32_t p_what, bool p_reversed)
         argptrs[i] = &args[i];
 
     GDExtensionCallError error;
-    call("_notification", argptrs, args.size(), nullptr, &error);
+    Variant ret;
+    call("_notification", argptrs, args.size(), &ret, &error);
 }
 
 void OScriptInstance::to_string(GDExtensionBool* r_is_valid, String* r_out)
