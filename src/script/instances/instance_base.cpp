@@ -40,7 +40,7 @@ void OScriptInstanceBase::init_instance(OScriptInstanceInfo& p_info)
 {
     // Not all compilers do this automatically
     // If they're not overwritten here or by the derived implementations, null is used
-    memset(&p_info, 0, sizeof(GDExtensionScriptInstanceInfo2));
+    memset(&p_info, 0, sizeof(OScriptInstanceInfo));
 
     p_info.get_property_list_func = [](void* p_self, uint32_t* r_count) -> const GDExtensionPropertyInfo* {
         return ((OScriptInstanceBase*)p_self)->get_property_list(r_count);
