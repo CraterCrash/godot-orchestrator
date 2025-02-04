@@ -454,7 +454,7 @@ namespace godot
 				ei.name = "KeyModifierMask";
 				ei.is_bitfield = true;
 				ei.values.push_back({ "KEY_CODE_MASK", "", 8388607 });
-				ei.values.push_back({ "KEY_MODIFIER_MASK", "", 532676608 });
+				ei.values.push_back({ "KEY_MODIFIER_MASK", "", 2130706432 });
 				ei.values.push_back({ "KEY_MASK_CMD_OR_CTRL", "", 16777216 });
 				ei.values.push_back({ "KEY_MASK_SHIFT", "", 33554432 });
 				ei.values.push_back({ "KEY_MASK_ALT", "", 67108864 });
@@ -694,12 +694,15 @@ namespace godot
 				ei.values.push_back({ "PROPERTY_HINT_INT_IS_OBJECTID", "", 29 });
 				ei.values.push_back({ "PROPERTY_HINT_INT_IS_POINTER", "", 30 });
 				ei.values.push_back({ "PROPERTY_HINT_ARRAY_TYPE", "", 31 });
+				ei.values.push_back({ "PROPERTY_HINT_DICTIONARY_TYPE", "", 38 });
 				ei.values.push_back({ "PROPERTY_HINT_LOCALE_ID", "", 32 });
 				ei.values.push_back({ "PROPERTY_HINT_LOCALIZABLE_STRING", "", 33 });
 				ei.values.push_back({ "PROPERTY_HINT_NODE_TYPE", "", 34 });
 				ei.values.push_back({ "PROPERTY_HINT_HIDE_QUATERNION_EDIT", "", 35 });
 				ei.values.push_back({ "PROPERTY_HINT_PASSWORD", "", 36 });
-				ei.values.push_back({ "PROPERTY_HINT_MAX", "", 38 });
+				ei.values.push_back({ "PROPERTY_HINT_TOOL_BUTTON", "", 39 });
+				ei.values.push_back({ "PROPERTY_HINT_ONESHOT", "", 40 });
+				ei.values.push_back({ "PROPERTY_HINT_MAX", "", 42 });
 				_sanitize_enum(ei);
 				ExtensionDB::_singleton->_global_enums["PropertyHint"] = ei;
 				ExtensionDB::_singleton->_global_enum_names.push_back("PropertyHint");
@@ -1302,6 +1305,8 @@ namespace godot
 				type.methods.push_back(_make_method("json_escape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("validate_node_name", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("validate_filename", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
+				type.methods.push_back(_make_method("is_valid_ascii_identifier", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
+				type.methods.push_back(_make_method("is_valid_unicode_identifier", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_valid_identifier", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_valid_int", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_valid_float", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
@@ -1371,8 +1376,6 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::FLOAT, "x"), PropertyInfo(Variant::FLOAT, "y") } });
 				type.properties.push_back({ Variant::FLOAT, "x" });
 				type.properties.push_back({ Variant::FLOAT, "y" });
-				type.constants.push_back({ "AXIS_X", Variant::INT, 0 });
-				type.constants.push_back({ "AXIS_Y", Variant::INT, 1 });
 				type.constants.push_back({ "ZERO", Variant::VECTOR2, Vector2(0, 0) });
 				type.constants.push_back({ "ONE", Variant::VECTOR2, Vector2(1, 1) });
 				type.constants.push_back({ "INF", Variant::VECTOR2, Vector2(INFINITY, INFINITY) });
@@ -1470,8 +1473,6 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::INT, "x"), PropertyInfo(Variant::INT, "y") } });
 				type.properties.push_back({ Variant::INT, "x" });
 				type.properties.push_back({ Variant::INT, "y" });
-				type.constants.push_back({ "AXIS_X", Variant::INT, 0 });
-				type.constants.push_back({ "AXIS_Y", Variant::INT, 1 });
 				type.constants.push_back({ "ZERO", Variant::VECTOR2I, Vector2i(0, 0) });
 				type.constants.push_back({ "ONE", Variant::VECTOR2I, Vector2i(1, 1) });
 				type.constants.push_back({ "MIN", Variant::VECTOR2I, Vector2i(-2147483648, -2147483648) });
@@ -1537,6 +1538,7 @@ namespace godot
 				type.methods.push_back(_make_method("intersection", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::RECT2, { { Variant::RECT2, "b" } }));
 				type.methods.push_back(_make_method("merge", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::RECT2, { { Variant::RECT2, "b" } }));
 				type.methods.push_back(_make_method("expand", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::RECT2, { { Variant::VECTOR2, "to" } }));
+				type.methods.push_back(_make_method("get_support", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR2, { { Variant::VECTOR2, "direction" } }));
 				type.methods.push_back(_make_method("grow", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::RECT2, { { Variant::FLOAT, "amount" } }));
 				type.methods.push_back(_make_method("grow_side", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::RECT2, { { Variant::INT, "side" }, { Variant::FLOAT, "amount" } }));
 				type.methods.push_back(_make_method("grow_individual", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::RECT2, { { Variant::FLOAT, "left" }, { Variant::FLOAT, "top" }, { Variant::FLOAT, "right" }, { Variant::FLOAT, "bottom" } }));
@@ -1623,9 +1625,6 @@ namespace godot
 				type.properties.push_back({ Variant::FLOAT, "x" });
 				type.properties.push_back({ Variant::FLOAT, "y" });
 				type.properties.push_back({ Variant::FLOAT, "z" });
-				type.constants.push_back({ "AXIS_X", Variant::INT, 0 });
-				type.constants.push_back({ "AXIS_Y", Variant::INT, 1 });
-				type.constants.push_back({ "AXIS_Z", Variant::INT, 2 });
 				type.constants.push_back({ "ZERO", Variant::VECTOR3, Vector3(0, 0, 0) });
 				type.constants.push_back({ "ONE", Variant::VECTOR3, Vector3(1, 1, 1) });
 				type.constants.push_back({ "INF", Variant::VECTOR3, Vector3(INFINITY, INFINITY, INFINITY) });
@@ -1732,9 +1731,6 @@ namespace godot
 				type.properties.push_back({ Variant::INT, "x" });
 				type.properties.push_back({ Variant::INT, "y" });
 				type.properties.push_back({ Variant::INT, "z" });
-				type.constants.push_back({ "AXIS_X", Variant::INT, 0 });
-				type.constants.push_back({ "AXIS_Y", Variant::INT, 1 });
-				type.constants.push_back({ "AXIS_Z", Variant::INT, 2 });
 				type.constants.push_back({ "ZERO", Variant::VECTOR3I, Vector3i(0, 0, 0) });
 				type.constants.push_back({ "ONE", Variant::VECTOR3I, Vector3i(1, 1, 1) });
 				type.constants.push_back({ "MIN", Variant::VECTOR3I, Vector3i(-2147483648, -2147483648, -2147483648) });
@@ -1863,10 +1859,6 @@ namespace godot
 				type.properties.push_back({ Variant::FLOAT, "y" });
 				type.properties.push_back({ Variant::FLOAT, "z" });
 				type.properties.push_back({ Variant::FLOAT, "w" });
-				type.constants.push_back({ "AXIS_X", Variant::INT, 0 });
-				type.constants.push_back({ "AXIS_Y", Variant::INT, 1 });
-				type.constants.push_back({ "AXIS_Z", Variant::INT, 2 });
-				type.constants.push_back({ "AXIS_W", Variant::INT, 3 });
 				type.constants.push_back({ "ZERO", Variant::VECTOR4, Vector4(0, 0, 0, 0) });
 				type.constants.push_back({ "ONE", Variant::VECTOR4, Vector4(1, 1, 1, 1) });
 				type.constants.push_back({ "INF", Variant::VECTOR4, Vector4(INFINITY, INFINITY, INFINITY, INFINITY) });
@@ -1946,10 +1938,6 @@ namespace godot
 				type.properties.push_back({ Variant::INT, "y" });
 				type.properties.push_back({ Variant::INT, "z" });
 				type.properties.push_back({ Variant::INT, "w" });
-				type.constants.push_back({ "AXIS_X", Variant::INT, 0 });
-				type.constants.push_back({ "AXIS_Y", Variant::INT, 1 });
-				type.constants.push_back({ "AXIS_Z", Variant::INT, 2 });
-				type.constants.push_back({ "AXIS_W", Variant::INT, 3 });
 				type.constants.push_back({ "ZERO", Variant::VECTOR4I, Vector4i(0, 0, 0, 0) });
 				type.constants.push_back({ "ONE", Variant::VECTOR4I, Vector4i(1, 1, 1, 1) });
 				type.constants.push_back({ "MIN", Variant::VECTOR4I, Vector4i(-2147483648, -2147483648, -2147483648, -2147483648) });
@@ -2117,7 +2105,7 @@ namespace godot
 				type.methods.push_back(_make_method("merge", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::AABB, { { Variant::AABB, "with" } }));
 				type.methods.push_back(_make_method("expand", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::AABB, { { Variant::VECTOR3, "to_point" } }));
 				type.methods.push_back(_make_method("grow", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::AABB, { { Variant::FLOAT, "by" } }));
-				type.methods.push_back(_make_method("get_support", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, { { Variant::VECTOR3, "dir" } }));
+				type.methods.push_back(_make_method("get_support", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, { { Variant::VECTOR3, "direction" } }));
 				type.methods.push_back(_make_method("get_longest_axis", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, {  }));
 				type.methods.push_back(_make_method("get_longest_axis_index", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("get_longest_axis_size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, {  }));
@@ -2261,12 +2249,6 @@ namespace godot
 				type.properties.push_back({ Variant::VECTOR4, "y" });
 				type.properties.push_back({ Variant::VECTOR4, "z" });
 				type.properties.push_back({ Variant::VECTOR4, "w" });
-				type.constants.push_back({ "PLANE_NEAR", Variant::INT, 0 });
-				type.constants.push_back({ "PLANE_FAR", Variant::INT, 1 });
-				type.constants.push_back({ "PLANE_LEFT", Variant::INT, 2 });
-				type.constants.push_back({ "PLANE_TOP", Variant::INT, 3 });
-				type.constants.push_back({ "PLANE_RIGHT", Variant::INT, 4 });
-				type.constants.push_back({ "PLANE_BOTTOM", Variant::INT, 5 });
 				type.constants.push_back({ "IDENTITY", Variant::PROJECTION, Projection(Vector4(1, 0, 0, 0), Vector4(0, 1, 0, 0), Vector4(0, 0, 1, 0), Vector4(0, 0, 0, 1)) });
 				type.constants.push_back({ "ZERO", Variant::PROJECTION, Projection(Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)) });
 				type.enums.push_back({ "Planes", false, { { "PLANE_NEAR", "", 0 }, { "PLANE_FAR", "", 1 }, { "PLANE_LEFT", "", 2 }, { "PLANE_TOP", "", 3 }, { "PLANE_RIGHT", "", 4 }, { "PLANE_BOTTOM", "", 5 } } });
@@ -2344,6 +2326,9 @@ namespace godot
 				type.properties.push_back({ Variant::FLOAT, "h" });
 				type.properties.push_back({ Variant::FLOAT, "s" });
 				type.properties.push_back({ Variant::FLOAT, "v" });
+				type.properties.push_back({ Variant::FLOAT, "ok_hsl_h" });
+				type.properties.push_back({ Variant::FLOAT, "ok_hsl_s" });
+				type.properties.push_back({ Variant::FLOAT, "ok_hsl_l" });
 				type.constants.push_back({ "ALICE_BLUE", Variant::COLOR, Color(0.941176, 0.972549, 1, 1) });
 				type.constants.push_back({ "ANTIQUE_WHITE", Variant::COLOR, Color(0.980392, 0.921569, 0.843137, 1) });
 				type.constants.push_back({ "AQUA", Variant::COLOR, Color(0, 1, 1, 1) });
@@ -2515,6 +2500,7 @@ namespace godot
 				type.methods.push_back(_make_method("from_hsv", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::COLOR, { { Variant::FLOAT, "h" }, { Variant::FLOAT, "s" }, { Variant::FLOAT, "v" }, { Variant::FLOAT, "alpha" } }));
 				type.methods.push_back(_make_method("from_ok_hsl", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::COLOR, { { Variant::FLOAT, "h" }, { Variant::FLOAT, "s" }, { Variant::FLOAT, "l" }, { Variant::FLOAT, "alpha" } }));
 				type.methods.push_back(_make_method("from_rgbe9995", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::COLOR, { { Variant::INT, "rgbe" } }));
+				type.methods.push_back(_make_method("from_rgba8", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::COLOR, { { Variant::INT, "r8" }, { Variant::INT, "g8" }, { Variant::INT, "b8" }, { Variant::INT, "a8" } }));
 				ExtensionDB::_singleton->_builtin_types["Color"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::COLOR] = "Color";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("Color");
@@ -2663,6 +2649,8 @@ namespace godot
 				type.methods.push_back(_make_method("json_escape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("validate_node_name", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("validate_filename", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
+				type.methods.push_back(_make_method("is_valid_ascii_identifier", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
+				type.methods.push_back(_make_method("is_valid_unicode_identifier", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_valid_identifier", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_valid_int", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("is_valid_float", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
@@ -2739,6 +2727,8 @@ namespace godot
 				type.operators.push_back({ VariantOperators::OP_LESS_EQUAL, "<=", "Less-than or Equal", Variant::RID, "RID", Variant::RID, "RID", Variant::BOOL });
 				type.operators.push_back({ VariantOperators::OP_GREATER, ">", "Greater-than", Variant::RID, "RID", Variant::RID, "RID", Variant::BOOL });
 				type.operators.push_back({ VariantOperators::OP_GREATER_EQUAL, ">=", "Greater-than or Equal", Variant::RID, "RID", Variant::RID, "RID", Variant::BOOL });
+				type.operators.push_back({ VariantOperators::OP_IN, "in", "In", Variant::RID, "RID", Variant::DICTIONARY, "Dictionary", Variant::BOOL });
+				type.operators.push_back({ VariantOperators::OP_IN, "in", "In", Variant::RID, "RID", Variant::ARRAY, "Array", Variant::BOOL });
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::RID, "from") } });
 				type.methods.push_back(_make_method("is_valid", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
@@ -2776,6 +2766,7 @@ namespace godot
 				type.methods.push_back(_make_method("get_argument_count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("get_bound_arguments_count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("get_bound_arguments", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
+				type.methods.push_back(_make_method("get_unbound_arguments_count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("hash", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("bindv", METHOD_FLAG_NORMAL, Variant::CALLABLE, { { Variant::ARRAY, "arguments" } }));
 				type.methods.push_back(_make_method("unbind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::CALLABLE, { { Variant::INT, "argcount" } }));
@@ -2813,6 +2804,7 @@ namespace godot
 				type.methods.push_back(_make_method("disconnect", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::CALLABLE, "callable" } }));
 				type.methods.push_back(_make_method("is_connected", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::CALLABLE, "callable" } }));
 				type.methods.push_back(_make_method("get_connections", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
+				type.methods.push_back(_make_method("has_connections", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("emit", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST | METHOD_FLAG_VARARG, Variant::NIL, {  }));
 				ExtensionDB::_singleton->_builtin_types["Signal"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::SIGNAL] = "Signal";
@@ -2834,9 +2826,12 @@ namespace godot
 				type.operators.push_back({ VariantOperators::OP_IN, "in", "In", Variant::DICTIONARY, "Dictionary", Variant::ARRAY, "Array", Variant::BOOL });
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::DICTIONARY, "from") } });
+				type.constructors.push_back({ { PropertyInfo(Variant::DICTIONARY, "base"), PropertyInfo(Variant::INT, "key_type"), PropertyInfo(Variant::STRING_NAME, "key_class_name"), PropertyInfo(Variant::NIL, "key_script"), PropertyInfo(Variant::INT, "value_type"), PropertyInfo(Variant::STRING_NAME, "value_class_name"), PropertyInfo(Variant::NIL, "value_script") } });
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("clear", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
+				type.methods.push_back(_make_method("assign", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::DICTIONARY, "dictionary" } }));
+				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("merge", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::DICTIONARY, "dictionary" }, { Variant::BOOL, "overwrite" } }));
 				type.methods.push_back(_make_method("merged", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::DICTIONARY, { { Variant::DICTIONARY, "dictionary" }, { Variant::BOOL, "overwrite" } }));
 				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
@@ -2849,6 +2844,19 @@ namespace godot
 				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::DICTIONARY, { { Variant::BOOL, "deep" } }));
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::NIL, "default", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }, true));
 				type.methods.push_back(_make_method("get_or_add", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::NIL, "default", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }, true));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
+				type.methods.push_back(_make_method("is_typed", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
+				type.methods.push_back(_make_method("is_typed_key", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
+				type.methods.push_back(_make_method("is_typed_value", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
+				type.methods.push_back(_make_method("is_same_typed", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::DICTIONARY, "dictionary" } }));
+				type.methods.push_back(_make_method("is_same_typed_key", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::DICTIONARY, "dictionary" } }));
+				type.methods.push_back(_make_method("is_same_typed_value", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::DICTIONARY, "dictionary" } }));
+				type.methods.push_back(_make_method("get_typed_key_builtin", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
+				type.methods.push_back(_make_method("get_typed_value_builtin", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
+				type.methods.push_back(_make_method("get_typed_key_class_name", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING_NAME, {  }));
+				type.methods.push_back(_make_method("get_typed_value_class_name", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING_NAME, {  }));
+				type.methods.push_back(_make_method("get_typed_key_script", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
+				type.methods.push_back(_make_method("get_typed_value_script", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("make_read_only", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("is_read_only", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("recursive_equal", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::DICTIONARY, "dictionary" }, { Variant::INT, "recursion_count" } }));
@@ -2893,6 +2901,8 @@ namespace godot
 				type.methods.push_back(_make_method("clear", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("hash", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("assign", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::ARRAY, "array" } }));
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::INT, "index" } }, true));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("push_front", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
@@ -2906,7 +2916,9 @@ namespace godot
 				type.methods.push_back(_make_method("back", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("pick_random", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, {  }, true));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::INT, "from" } }));
+				type.methods.push_back(_make_method("find_custom", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::CALLABLE, "method" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "what", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::INT, "from" } }));
+				type.methods.push_back(_make_method("rfind_custom", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::CALLABLE, "method" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("has", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
 				type.methods.push_back(_make_method("pop_back", METHOD_FLAG_NORMAL, Variant::NIL, {  }, true));
@@ -2956,6 +2968,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_BYTE_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
@@ -3037,6 +3050,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_INT32_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
@@ -3080,6 +3094,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_INT64_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
@@ -3123,6 +3138,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_FLOAT32_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::FLOAT, "value" } }));
@@ -3166,6 +3182,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_FLOAT64_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::FLOAT, "value" } }));
@@ -3209,6 +3226,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_STRING_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::STRING, "value" } }));
@@ -3253,6 +3271,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_VECTOR2_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR2, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR2, "value" } }));
@@ -3297,6 +3316,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_VECTOR3_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR3, "value" } }));
@@ -3340,6 +3360,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_COLOR_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::COLOR, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::COLOR, "value" } }));
@@ -3383,6 +3404,7 @@ namespace godot
 				type.constructors.push_back({ {  } });
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_VECTOR4_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
+				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR4, { { Variant::INT, "index" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR4, "value" } }));
@@ -4640,10 +4662,25 @@ namespace godot
 			// This currently only loads classes that have bitfield enums; use ClassDB otherwise.
 			// Can eventually be replaced by: https://github.com/godotengine/godot/pull/90368
 			
+			// AnimationNodeExtension
+			ExtensionDB::_singleton->_classes["AnimationNodeExtension"].name = "AnimationNodeExtension";
+			ExtensionDB::_singleton->_classes["AnimationNodeExtension"].static_function_hashes["is_looping"] = 2035584311;
+			ExtensionDB::_singleton->_classes["AnimationNodeExtension"].static_function_hashes["get_remaining_time"] = 2851904656;
+			
+			// AudioStreamMP3
+			ExtensionDB::_singleton->_classes["AudioStreamMP3"].name = "AudioStreamMP3";
+			ExtensionDB::_singleton->_classes["AudioStreamMP3"].static_function_hashes["load_from_buffer"] = 1674970313;
+			ExtensionDB::_singleton->_classes["AudioStreamMP3"].static_function_hashes["load_from_file"] = 4238362998;
+			
 			// AudioStreamOggVorbis
 			ExtensionDB::_singleton->_classes["AudioStreamOggVorbis"].name = "AudioStreamOggVorbis";
 			ExtensionDB::_singleton->_classes["AudioStreamOggVorbis"].static_function_hashes["load_from_buffer"] = 354904730;
 			ExtensionDB::_singleton->_classes["AudioStreamOggVorbis"].static_function_hashes["load_from_file"] = 797568536;
+			
+			// AudioStreamWAV
+			ExtensionDB::_singleton->_classes["AudioStreamWAV"].name = "AudioStreamWAV";
+			ExtensionDB::_singleton->_classes["AudioStreamWAV"].static_function_hashes["load_from_buffer"] = 4266838938;
+			ExtensionDB::_singleton->_classes["AudioStreamWAV"].static_function_hashes["load_from_file"] = 4015802384;
 			
 			// Control
 			ExtensionDB::_singleton->_classes["Control"].name = "Control";
@@ -4653,6 +4690,7 @@ namespace godot
 			ExtensionDB::_singleton->_classes["DirAccess"].name = "DirAccess";
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["open"] = 1923528528;
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_open_error"] = 166280745;
+			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["create_temp"] = 812913566;
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_files_at"] = 3538744774;
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_directories_at"] = 3538744774;
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["get_drive_count"] = 2455072627;
@@ -4664,13 +4702,23 @@ namespace godot
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["rename_absolute"] = 852856452;
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["remove_absolute"] = 166001499;
 			
+			// EditorExportPlatform
+			ExtensionDB::_singleton->_classes["EditorExportPlatform"].name = "EditorExportPlatform";
+			ExtensionDB::_singleton->_classes["EditorExportPlatform"].static_function_hashes["get_forced_export_files"] = 2981934095;
+			ExtensionDB::_singleton->_classes["EditorExportPlatform"].bitfield_enums.push_back("DebugFlags");
+			
+			// EditorInspector
+			ExtensionDB::_singleton->_classes["EditorInspector"].name = "EditorInspector";
+			ExtensionDB::_singleton->_classes["EditorInspector"].static_function_hashes["instantiate_property_editor"] = 1429914152;
+			
 			// FileAccess
 			ExtensionDB::_singleton->_classes["FileAccess"].name = "FileAccess";
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open"] = 1247358404;
-			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open_encrypted"] = 1482131466;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open_encrypted"] = 788003459;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open_encrypted_with_pass"] = 790283377;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["open_compressed"] = 3686439335;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_open_error"] = 166280745;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["create_temp"] = 3075606245;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_file_as_bytes"] = 659035735;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_file_as_string"] = 1703090593;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_md5"] = 1703090593;
@@ -4696,8 +4744,11 @@ namespace godot
 			
 			// GLTFDocument
 			ExtensionDB::_singleton->_classes["GLTFDocument"].name = "GLTFDocument";
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["import_object_model_property"] = 1206708632;
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["export_object_model_property"] = 314209806;
 			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["register_gltf_document_extension"] = 3752678331;
 			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["unregister_gltf_document_extension"] = 2684415758;
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["get_supported_gltf_extensions"] = 2981934095;
 			
 			// GLTFLight
 			ExtensionDB::_singleton->_classes["GLTFLight"].name = "GLTFLight";
@@ -4734,6 +4785,8 @@ namespace godot
 			ExtensionDB::_singleton->_classes["JSON"].name = "JSON";
 			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["stringify"] = 462733549;
 			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["parse_string"] = 309047738;
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["from_native"] = 2963479484;
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["to_native"] = 2963479484;
 			
 			// Mesh
 			ExtensionDB::_singleton->_classes["Mesh"].name = "Mesh";
@@ -4789,7 +4842,7 @@ namespace godot
 			
 			// RegEx
 			ExtensionDB::_singleton->_classes["RegEx"].name = "RegEx";
-			ExtensionDB::_singleton->_classes["RegEx"].static_function_hashes["create_from_string"] = 2150300909;
+			ExtensionDB::_singleton->_classes["RegEx"].static_function_hashes["create_from_string"] = 4249111514;
 			
 			// RenderingDevice
 			ExtensionDB::_singleton->_classes["RenderingDevice"].name = "RenderingDevice";
@@ -4797,6 +4850,7 @@ namespace godot
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("TextureUsageBits");
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("StorageBufferUsage");
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("PipelineDynamicStateFlags");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("DrawFlags");
 			
 			// RenderingServer
 			ExtensionDB::_singleton->_classes["RenderingServer"].name = "RenderingServer";
@@ -4815,9 +4869,19 @@ namespace godot
 			ExtensionDB::_singleton->_classes["ResourceSaver"].name = "ResourceSaver";
 			ExtensionDB::_singleton->_classes["ResourceSaver"].bitfield_enums.push_back("SaverFlags");
 			
+			// RetargetModifier3D
+			ExtensionDB::_singleton->_classes["RetargetModifier3D"].name = "RetargetModifier3D";
+			ExtensionDB::_singleton->_classes["RetargetModifier3D"].bitfield_enums.push_back("TransformFlag");
+			
 			// RichTextLabel
 			ExtensionDB::_singleton->_classes["RichTextLabel"].name = "RichTextLabel";
 			ExtensionDB::_singleton->_classes["RichTextLabel"].bitfield_enums.push_back("ImageUpdateMask");
+			
+			// ShaderIncludeDB
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].name = "ShaderIncludeDB";
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["list_built_in_include_files"] = 2981934095;
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["has_built_in_include_file"] = 2323990056;
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["get_built_in_include_file"] = 1703090593;
 			
 			// TLSOptions
 			ExtensionDB::_singleton->_classes["TLSOptions"].name = "TLSOptions";

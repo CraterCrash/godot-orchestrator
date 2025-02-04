@@ -882,10 +882,8 @@ Error OScriptTextResourceLoaderInstance::load()
 						if (!ResourceCache::has(_res_path))
 							_resource->set_path(_res_path);
 
-					    // todo: does this create any issues?
-					    #if GODOT_VERSION >= 0x040400
-						_resource->set_as_translation_remapped(_translation_remapped);
-					    #endif
+					    // todo: requires Godot change to support this
+						// _resource->set_as_translation_remapped(_translation_remapped);
 					}
 			        else
 			        {
