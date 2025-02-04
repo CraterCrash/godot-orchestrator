@@ -123,6 +123,10 @@ private:
     /// @param p_new_text the new filter text
     void _on_filter_text_changed(const String& p_new_text);
 
+    /// Dispatched when the filter search box received some UI input
+    /// @param p_event the input event
+    void _on_filter_text_gui_input(const Ref<InputEvent>& p_event);
+
     /// Dispatched when a tree element is clicked
     void _on_tree_item_selected();
 
