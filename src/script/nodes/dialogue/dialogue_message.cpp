@@ -32,6 +32,7 @@ class OScriptNodeDialogueMessageInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDialogueMessage)
     int _choices{ 0 };
+    String _default_scene;
     Node* _ui{ nullptr };
 
     bool _file_exists(const String& p_path) const
@@ -49,8 +50,6 @@ public:
 
     int step(OScriptExecutionContext& p_context) override
     {
-        static const char* DEFAULT_SCENE = String(OrchestratorSettings::get_singleton()->get_setting("settings/dialogue_message_scene")).utf8().get_data();
-
         if (p_context.get_step_mode() == STEP_MODE_RESUME)
         {
             // User made selection
@@ -60,7 +59,7 @@ public:
 
         Variant scene_file = p_context.get_input(2);
         if (scene_file.get_type() == Variant::NIL || String(scene_file).is_empty())
-            scene_file = DEFAULT_SCENE;
+            scene_file = _default_scene;
 
         // Check if scene file exists
         if (!_file_exists(scene_file))
@@ -68,15 +67,15 @@ public:
             // Check if we checked the default scene and if not, re-check for it.
             // If default scene does not exist in either case, throw an exception
             // If default exists, use it and continue safely.
-            bool is_default = String(scene_file).match(DEFAULT_SCENE);
-            if (is_default || (!is_default && !_file_exists(DEFAULT_SCENE)))
+            bool is_default = String(scene_file).match(_default_scene);
+            if (is_default || (!is_default && !_file_exists(_default_scene)))
             {
-                p_context.set_error(vformat("Failed to find default scene: %s", DEFAULT_SCENE));
+                p_context.set_error(vformat("Failed to find default scene: %s", _default_scene));
                 return -1;
             }
 
             if (!is_default)
-                scene_file = DEFAULT_SCENE;
+                scene_file = _default_scene;
         }
 
         Ref<PackedScene> scene = ResourceLoader::get_singleton()->load(scene_file);
@@ -220,6 +219,7 @@ OScriptNodeInstance* OScriptNodeDialogueMessage::instantiate()
 {
     OScriptNodeDialogueMessageInstance* i = memnew(OScriptNodeDialogueMessageInstance);
     i->_node = this;
+    i->_default_scene = String(OrchestratorSettings::get_singleton()->get_setting("settings/dialogue_message_scene"));
     i->_choices = _choices;
     return i;
 }
