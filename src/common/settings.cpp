@@ -151,7 +151,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(RESOURCE_SETTING("settings/default_type", "Object", "Node"));
     _settings.emplace_back(SENUM_SETTING("settings/storage_format", "Text,Binary", "Text"));
     _settings.emplace_back(SENUM_SETTING("settings/log_level", "FATAL,ERROR,WARN,INFO,DEBUG,TRACE", "INFO"));
-    _settings.emplace_back(BOOL_SETTING("settings/notify_about_pre-releases", true));
+    _settings.emplace_back(BOOL_SETTING("settings/notify_about_pre-releases", false));
     _settings.emplace_back(FILE_SETTING("settings/dialogue_message_scene", "*.tscn,*.scn", "res://addons/orchestrator/scenes/dialogue_message.tscn"));
 
     _settings.emplace_back(RANGE_SETTING("settings/runtime/max_call_stack", "256,1024,256", 1024));
