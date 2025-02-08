@@ -187,11 +187,15 @@ get_target_property( GODOT_TARGET   godot-cpp::editor GODOT_TARGET     )
 get_target_property( GODOT_ARCH     godot-cpp::editor GODOT_ARCH       )
 
 # Converts GODOT_ARCH to the old system bits for unchanged file names.
-IF (GODOT_ARCH STREQUAL "x86_64")
+IF (GODOT_ARCH STREQUAL "x86_64" OR GODOT_ARCH STREQUAL "arm64")
     SET(ORCHESTRATOR_ARCH "64")
-ELSE()
+ELSE ()
     SET(ORCHESTRATOR_ARCH "32")
-ENDIF()
+ENDIF ()
+
+IF (GODOT_PLATFORM STREQUAL "android")
+    SET(GDEXTENSION_LIB_PREFIX "lib")
+ENDIF ()
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
