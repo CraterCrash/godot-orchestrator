@@ -306,6 +306,14 @@ void OrchestratorDefaultGraphActionRegistrar::_register_orchestration_nodes()
     _register_node<OScriptNodeEngineSingleton>("Utilities/engine_singleton");
     _register_node<OScriptNodePrintString>("Utilities/print_string");
 
+    // Register language utility functions
+    const TypedArray<Dictionary> language_functions = OScriptLanguage::get_singleton()->_get_public_functions();
+    for (int i = 0; i < language_functions.size(); i++)
+    {
+        const MethodInfo& mi = DictionaryUtils::to_method(language_functions[i]);
+        _register_node<OScriptNodeCallBuiltinFunction>("@OScript/" + mi.name, language_functions[i]);
+    }
+
     // Register each Engine singleton type
     for (const String& name : Engine::get_singleton()->get_singleton_list())
     {
