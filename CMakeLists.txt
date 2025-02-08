@@ -50,6 +50,8 @@ ELSE ()
     SET(GODOT_CPP_GIT_COMMIT_HASH "<Unknown>")
 ENDIF ()
 
+find_package(Python3 3.4 REQUIRED)
+
 # Setup the CMAKE_MODULE_PATH
 LIST(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -60,6 +62,7 @@ INCLUDE(generate-license)
 INCLUDE(generate-version)
 INCLUDE(generate-donors)
 INCLUDE(godot-extension-db-generator)
+INCLUDE(godot-docs-generator)
 
 # Generation steps
 GENERATE_AUTHORS()
@@ -67,6 +70,7 @@ GENERATE_LICENSE()
 GENERATE_VERSION()
 GENERATE_DONORS()
 GENERATE_GODOT_EXTENSION_DB()
+GENERATE_GODOT_DOCUMENTATION()
 
 # Configure project
 PROJECT("${GDEXTENSION_LIB_NAME}" LANGUAGES C CXX VERSION ${RESOLVED_VERSION})
@@ -92,11 +96,6 @@ SET(compiler_is_msvc "$<CXX_COMPILER_ID:MSVC>")
 
 # Configure godot-cpp - a statically linked library to this project.
 INCLUDE(godot-dev-configuration)
-
-# Generate Doc Data
-file( GLOB_RECURSE DOC_XML LIST_DIRECTORIES NO CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/doc_classes/*.xml" )
-SET(DOC_DATA_CPP_FILE "${CMAKE_BINARY_DIR}/_generated/doc_data.cpp")
-generate_doc_source( "${DOC_DATA_CPP_FILE}" "${DOC_XML}" )
 
 # Library sources
 FILE(GLOB_RECURSE gdext_sources
