@@ -21,6 +21,7 @@
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "script/script.h"
+#include "script_server.h"
 
 bool ClassificationParser::parse(const String& p_classification)
 {
@@ -95,7 +96,12 @@ bool ClassificationParser::parse(const String& p_classification)
     {
         // class type
         const String class_name = _classification.substr(_classification.find(":") + 1);
-        if (ClassDB::is_parent_class(class_name, "Resource"))
+
+        String native_class = class_name;
+        if (ScriptServer::is_global_class(class_name))
+            native_class = ScriptServer::get_native_class_name(class_name);
+
+        if (ClassDB::is_parent_class(native_class, "Resource"))
         {
             _property.type = Variant::OBJECT;
             _property.hint = PROPERTY_HINT_RESOURCE_TYPE;
@@ -103,7 +109,7 @@ bool ClassificationParser::parse(const String& p_classification)
             _property.class_name = class_name;
             _property.usage = PROPERTY_USAGE_DEFAULT;
         }
-        else if (ClassDB::is_parent_class(class_name, "Node"))
+        else if (ClassDB::is_parent_class(native_class, "Node"))
         {
             _property.type = Variant::OBJECT;
             _property.hint = PROPERTY_HINT_NODE_TYPE;
@@ -329,6 +335,19 @@ bool OScriptVariable::_is_exportable_type(const PropertyInfo& p_property) const
         // Object has specific circumstances depending on hint string
         case Variant::OBJECT:
         {
+            if (!p_property.class_name.is_empty())
+            {
+                if (ScriptServer::is_global_class(p_property.class_name))
+                {
+                    const String native_class = ScriptServer::get_native_class_name(p_property.class_name);
+                    return ClassDB::is_parent_class(native_class, "Node")
+                        || ClassDB::is_parent_class(native_class, "Resource");
+                }
+
+                return ClassDB::is_parent_class(p_property.class_name, "Node")
+                    || ClassDB::is_parent_class(p_property.class_name, "Resource");
+            }
+
             if (p_property.hint_string.is_empty())
                 return false;
 
