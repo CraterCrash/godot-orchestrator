@@ -22,6 +22,7 @@
 #include "common/string_utils.h"
 #include "script/script.h"
 #include "script/vm/script_vm.h"
+#include "utility_functions.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
@@ -264,9 +265,13 @@ bool OScriptLanguage::_can_make_function() const
 
 TypedArray<Dictionary> OScriptLanguage::_get_public_functions() const
 {
-    // Returns an array of MethodInfo for the language.
-    // In GDScript this includes things such as preload, assert, and its utility functions
-    return {};
+    TypedArray<Dictionary> results;
+    for (const StringName& function : OScriptUtilityFunctions::get_function_list())
+    {
+        const MethodInfo method = OScriptUtilityFunctions::get_function_info(function);
+        results.push_back(DictionaryUtils::from_method(method));
+    }
+    return results;
 }
 
 Dictionary OScriptLanguage::_get_public_constants() const
