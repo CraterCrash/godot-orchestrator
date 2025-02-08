@@ -20,6 +20,8 @@
 #include "common/string_utils.h"
 
 #include <godot_cpp/classes/option_button.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 OrchestratorGraphNodePinEnum::OrchestratorGraphNodePinEnum(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
@@ -51,39 +53,74 @@ void OrchestratorGraphNodePinEnum::_generate_items()
     {
         // Represents a nested enum in a Class or BuiltInType
         // Variant.Type is excluded as its treated as a global "enum" despite the dot.
-        
-        const int64_t dot = enum_class.find(".");
-        const String class_name = enum_class.substr(0, dot);
-        const String enum_name = enum_class.substr(dot + 1);
 
-        if (ExtensionDB::get_builtin_type_names().has(class_name))
+        if (enum_class.begins_with("res://"))
         {
-            // Handle BuiltInType
-            BuiltInType type = ExtensionDB::get_builtin_type(class_name);
-            for (const EnumInfo& E : type.enums)
+            // Represents an enum inside a script.
+            const int64_t last_dot = enum_class.rfind(".");
+            const String class_name = enum_class.substr(0, last_dot);
+            const String enum_name = enum_class.substr(last_dot + 1);
+
+            Ref<Script> script = ResourceLoader::get_singleton()->load(class_name);
+            ERR_FAIL_COND_MSG(!script.is_valid(), vformat("Failed to load enum %s in script %s", enum_name, class_name));
+
+            const Dictionary constants = script->get_script_constant_map();
+            const Array constant_keys = constants.keys();
+            for (int i = 0; i < constant_keys.size(); i++)
             {
-                for (const EnumValue& V : E.values)
+                const String& key = constant_keys[i];
+                if (key == enum_name)
                 {
-                    ListItem item;
-                    item.name = V.name;
-                    item.friendly_name = V.friendly_name;
-                    item.value = V.value;
-                    _items.push_back(item);
+                    const Dictionary& value = constants[key];
+                    const Array value_keys = value.keys();
+                    for (int j = 0; j < value_keys.size(); j++)
+                    {
+                        const String& value_key = value_keys[j];
+
+                        ListItem item;
+                        item.name = value_key;
+                        item.friendly_name = item.name.capitalize();
+                        item.value = value[value_key];
+                        _items.push_back(item);
+                    }
                 }
             }
         }
         else
         {
-            // Handle Nested Class Enum
-            const PackedStringArray enum_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
-            const String prefix = _calculate_enum_prefix(enum_values);
-            for (int index = 0; index < enum_values.size(); index++)
+            const int64_t dot = enum_class.find(".");
+            const String class_name = enum_class.substr(0, dot);
+            const String enum_name = enum_class.substr(dot + 1);
+
+            if (ExtensionDB::get_builtin_type_names().has(class_name))
             {
-                ListItem item;
-                item.name = enum_values[index];
-                item.friendly_name = _generate_friendly_name(prefix, item.name);
-                item.value = index;
-                _items.push_back(item);
+                // Handle BuiltInType
+                BuiltInType type = ExtensionDB::get_builtin_type(class_name);
+                for (const EnumInfo& E : type.enums)
+                {
+                    for (const EnumValue& V : E.values)
+                    {
+                        ListItem item;
+                        item.name = V.name;
+                        item.friendly_name = V.friendly_name;
+                        item.value = V.value;
+                        _items.push_back(item);
+                    }
+                }
+            }
+            else
+            {
+                // Handle Nested Class Enum
+                const PackedStringArray enum_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
+                const String prefix = _calculate_enum_prefix(enum_values);
+                for (int index = 0; index < enum_values.size(); index++)
+                {
+                    ListItem item;
+                    item.name = enum_values[index];
+                    item.friendly_name = _generate_friendly_name(prefix, item.name);
+                    item.value = index;
+                    _items.push_back(item);
+                }
             }
         }
     }
@@ -170,4 +207,23 @@ Control* OrchestratorGraphNodePinEnum::_get_default_value_widget()
     }
 
     return button;
+}
+
+void OrchestratorGraphNodePinEnum::_update_label()
+{
+    if (_label && _pin->is_label_visible())
+    {
+        const String pin_label = _pin->get_label();
+        if (pin_label.begins_with("res://"))
+        {
+            const uint32_t last_dot = pin_label.rfind(".");
+            const String enum_name = pin_label.substr(last_dot + 1);
+
+            _label->set_text(enum_name);
+            _label->set_custom_minimum_size(Vector2());
+            return;
+        }
+    }
+
+    OrchestratorGraphNodePin::_update_label();
 }
