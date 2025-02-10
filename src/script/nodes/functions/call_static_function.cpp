@@ -91,6 +91,12 @@ class OScriptNodeCallStaticFunctionInstance : public OScriptNodeInstance
 public:
     int step(OScriptExecutionContext& p_context) override
     {
+        if (!(_method.flags & METHOD_FLAG_STATIC))
+        {
+            p_context.set_error(vformat("Expected static method '%s' but method is not static.", _method_name));
+            return -1 | STEP_FLAG_END;
+        }
+
         Array args;
         for (size_t i = 0; i < _method.arguments.size(); i++)
             args.push_back(p_context.get_input(i));
@@ -243,6 +249,9 @@ void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) 
             p_log.error(this, pin, "Requires a connection.");
     }
 
+    if (!(_method.flags & METHOD_FLAG_STATIC))
+        p_log.error(this, vformat("Expected a static method but '%s' is not static.", _method_name));
+
     return super::validate_node_during_build(p_log);
 }
 
@@ -258,7 +267,11 @@ OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate()
     {
         const ScriptServer::GlobalClass gc = ScriptServer::get_global_class(_class_name);
         if (!gc.path.is_empty())
-            i->_script = ResourceLoader::get_singleton()->load(gc.path, "Script");
+        {
+            Ref<Script> script = ResourceLoader::get_singleton()->load(gc.path, "Script");
+            if (script.is_valid() && _method.flags & METHOD_FLAG_STATIC)
+                i->_script = script;
+        }
     }
 
     return i;
