@@ -62,6 +62,10 @@ public:
         /// @param p_signal_name the signal name to check
         /// @return true if the signal exists, false otherwise
         bool has_signal(const StringName& p_signal_name) const;
+
+        /// Returns the list of static methods on this class
+        /// @return an array of dictionary entries for static methods
+        TypedArray<Dictionary> get_static_method_list() const;
     };
 
 protected:
