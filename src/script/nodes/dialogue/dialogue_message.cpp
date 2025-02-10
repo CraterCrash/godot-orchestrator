@@ -45,6 +45,19 @@ class OScriptNodeDialogueMessageInstance : public OScriptNodeInstance
         return FileAccess::file_exists(vformat("%s.remap", p_path));
     }
 
+    Dictionary _get_object_metadata(Object obj) const
+    {
+        TypedArray<String> keys = obj.get_meta_list();
+        Dictionary metadata;
+        for (int i = 0; i < keys.size(); i++)
+        {
+            StringName key = keys[i];
+            Variant value = obj.get_meta(key);
+            metadata[key] = value;
+        }
+        return metadata;
+    }
+
 public:
     int get_working_memory_size() const override { return 1; }
 
@@ -88,13 +101,21 @@ public:
                 Dictionary data;
                 data["character_name"] = p_context.get_input(0);
                 data["message"] = p_context.get_input(1);
+                data["metadata"] = _get_object_metadata(*this->_base);
 
                 Dictionary options;
                 for (int i = 0; i < _choices; i++)
                 {
                     Dictionary choice = p_context.get_input(3 + i);
-                    if (choice.has("visible") && choice["visible"])
-                        options[i] = choice["text"];
+                    Dictionary choice_data;
+                    choice_data["visible"] = choice.has("visible") && choice["visible"];
+                    choice_data["text"] = choice["text"];
+
+                    Ref<OScriptNodePin> choice_input_pin = this->_base->find_pin(4 + i, PD_Input);
+                    Ref<OScriptNodePin> choice_output_pin = choice_input_pin->get_connections()[0];
+                    choice_data["metadata"] = _get_object_metadata(*choice_output_pin->get_owning_node());
+
+                    options[i] = choice_data;
                 }
                 data["options"] = options;
 
