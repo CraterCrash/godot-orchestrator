@@ -28,7 +28,6 @@ protected:
     StringName _class_name;
     StringName _method_name;
     MethodInfo _method;
-    GDExtensionMethodBindPtr _method_bind{ nullptr };
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
