@@ -71,6 +71,8 @@ protected:
     Variant _tree_drag_data(const Vector2& p_position);
     //~ End Signal handlers
 
+    void _queue_update();
+
     /// Iterates all tree items, calling the callable
     /// @param p_callback the callback to call for all tree items
     void _iterate_tree_items(const Callable& p_callback);
