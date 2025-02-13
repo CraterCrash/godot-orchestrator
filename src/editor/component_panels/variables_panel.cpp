@@ -238,6 +238,9 @@ void OrchestratorScriptVariablesComponentPanel::_handle_tree_gui_input(const Ref
 
 void OrchestratorScriptVariablesComponentPanel::update()
 {
+    if (_update_blocked)
+        return;
+
     Callable callback = callable_mp(this, &OrchestratorScriptVariablesComponentPanel::_update_variables);
 
     // Make sure all variables are disconnected
