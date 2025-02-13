@@ -141,6 +141,9 @@ void OrchestratorScriptSignalsComponentPanel::_handle_tree_gui_input(const Ref<I
 
 void OrchestratorScriptSignalsComponentPanel::update()
 {
+    if (_update_blocked)
+        return;
+
     _clear_tree();
 
     PackedStringArray signal_names = _orchestration->get_custom_signal_names();
