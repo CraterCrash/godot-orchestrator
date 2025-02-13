@@ -59,6 +59,7 @@ protected:
     AcceptDialog* _notify{ nullptr };         //! Notification dialog
     bool _expanded{ true };                   //! Whether the section is currently expanded
     bool _theme_changing{ false };            //! Whether the theme is being changed
+    bool _update_blocked{ false };
 
     //~ Begin Signal handlers
     void _toggle();
