@@ -31,6 +31,9 @@ String OrchestratorScriptMacrosComponentPanel::_get_tooltip_text() const
 
 void OrchestratorScriptMacrosComponentPanel::update()
 {
+    if (_update_blocked)
+        return;
+
     if (_tree->get_root()->get_child_count() == 0)
     {
         TreeItem* item = _tree->get_root()->create_child();
