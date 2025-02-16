@@ -219,7 +219,7 @@ OScriptNodeInstance* OScriptNodeDialogueMessage::instantiate()
 {
     OScriptNodeDialogueMessageInstance* i = memnew(OScriptNodeDialogueMessageInstance);
     i->_node = this;
-    i->_default_scene = String(OrchestratorSettings::get_singleton()->get_setting("settings/dialogue_message_scene"));
+    i->_default_scene = OrchestratorSettings::get_singleton()->get_setting("settings/dialogue/default_message_scene");
     i->_choices = _choices;
     return i;
 }
