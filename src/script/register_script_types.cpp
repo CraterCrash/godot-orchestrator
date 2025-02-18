@@ -22,6 +22,7 @@
 #include "script/serialization/resource_cache.h"
 #include "script/serialization/serialization.h"
 #include "script/vm/script_state.h"
+#include "utility_functions.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -73,6 +74,8 @@ void register_script_types()
 
     // Create the ScriptExtension
     language = memnew(OScriptLanguage);
+
+    OScriptUtilityFunctions::register_functions();
 }
 
 void unregister_script_types()
@@ -84,6 +87,8 @@ void unregister_script_types()
         memdelete(language);
         language = nullptr;
     }
+
+    OScriptUtilityFunctions::unregister_functions();
 }
 
 void register_script_extension()
