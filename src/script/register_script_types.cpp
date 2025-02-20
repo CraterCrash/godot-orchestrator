@@ -48,28 +48,28 @@ void register_script_types()
     using namespace orchestrator::internal;
 
     // Register loader/savers
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptBinaryResourceLoader)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptBinaryResourceSaver)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptTextResourceLoader)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptTextResourceSaver)
+    GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceLoader)
+    GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceSaver)
+    GDREGISTER_INTERNAL_CLASS(OScriptTextResourceLoader)
+    GDREGISTER_INTERNAL_CLASS(OScriptTextResourceSaver)
 
     // Settings
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OrchestratorSettings)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorSettings)
 
     // Nodes - Abstract first
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNode)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptTargetObject)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptNodePin)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptLanguage)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptGraph)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptFunction)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptVariable)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptSignal)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptState)
-    ORCHESTRATOR_REGISTER_INTERNAL_CLASS(OScriptAction)
+    GDREGISTER_INTERNAL_CLASS(OScriptTargetObject)
+    GDREGISTER_INTERNAL_CLASS(OScriptNodePin)
+    GDREGISTER_INTERNAL_CLASS(OScriptLanguage)
+    GDREGISTER_INTERNAL_CLASS(OScriptGraph)
+    GDREGISTER_INTERNAL_CLASS(OScriptFunction)
+    GDREGISTER_INTERNAL_CLASS(OScriptVariable)
+    GDREGISTER_INTERNAL_CLASS(OScriptSignal)
+    GDREGISTER_INTERNAL_CLASS(OScriptState)
+    GDREGISTER_INTERNAL_CLASS(OScriptAction)
 
     // Purposely public
-    ORCHESTRATOR_REGISTER_CLASS(OScript)
+    GDREGISTER_CLASS(OScript)
 
     // Create the ScriptExtension
     language = memnew(OScriptLanguage);
