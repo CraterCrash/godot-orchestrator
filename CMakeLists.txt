@@ -50,10 +50,11 @@ ELSE ()
     SET(GODOT_CPP_GIT_COMMIT_HASH "<Unknown>")
 ENDIF ()
 
+find_package(Python3 3.4 REQUIRED)
+
 # Setup the CMAKE_MODULE_PATH
 LIST(APPEND CMAKE_MODULE_PATH
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
-        "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/cmake/")
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 # Include and execute various CMAKE modules
 INCLUDE(generate-authors)
@@ -83,9 +84,6 @@ IF (WIN32)
     CONFIGURE_FILE(cmake/templates/windows.rc.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc @ONLY)
 ENDIF ()
 
-# Orchestrator is an editor plug-in, force TOOLS_ENABLED
-ADD_COMPILE_DEFINITIONS(TOOLS_ENABLED)
-
 # MacOS universal binary support
 IF (APPLE)
     SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for OSX" FORCE)
@@ -106,14 +104,12 @@ FILE(GLOB_RECURSE gdext_sources
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.[hc]pp"
         # Includes the generated doc data from /doc_classes
         "${CMAKE_BINARY_DIR}/_generated/*.cpp"
+        "${DOC_DATA_CPP_FILE}"
         # Include windows version resource, if exists
         "${CMAKE_CURRENT_BINARY_DIR}/_generated/version.rc")
 
 # GDExtension library
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${gdext_sources})
-
-## Import compiler warnings from godot-cpp
-INCLUDE(GodotCompilerWarnings)
 
 # Setup compiler options for GDExtension Library based on the compiler used
 TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
@@ -126,7 +122,7 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
                 /MDd
             >
             $<$<CONFIG:Release>:
-                /MD
+                /MT
                 /O2
             >
         >
@@ -180,26 +176,25 @@ IF (AUTOFORMAT_SRC_ON_CONFIGURE MATCHES ON)
 ENDIF ()
 
 # Dependency linking
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC godot::cpp)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC godot-cpp.editor)
 
 SET(GDEXTENSION_LIB_PREFIX "")
 
-IF (NOT ANDROID)
-    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        SET(system_bits 64)
-    ELSE ()
-        SET(system_bits 32)
-    ENDIF ()
+### Get useful properties of the library
+get_target_property( GODOT_PLATFORM godot-cpp::editor GODOT_PLATFORM   )
+get_target_property( GODOT_TARGET   godot-cpp::editor GODOT_TARGET     )
+get_target_property( GODOT_ARCH     godot-cpp::editor GODOT_ARCH       )
+
+# Converts GODOT_ARCH to the old system bits for unchanged file names.
+IF (GODOT_ARCH STREQUAL "x86_64" OR GODOT_ARCH STREQUAL "arm64")
+    SET(ORCHESTRATOR_ARCH "64")
 ELSE ()
-    SET(GDEXTENSION_LIB_PREFIX "lib")
-    IF (CMAKE_ANDROID_ARCH STREQUAL "arm64")
-        SET(system_bits 64)
-    ELSE ()
-        SET(system_bits 32)
-    ENDIF ()
+    SET(ORCHESTRATOR_ARCH "32")
 ENDIF ()
 
-STRING(TOLOWER "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}.${system_bits}.${CMAKE_BUILD_TYPE}" GDEXTENSION_LIB_NAME)
+IF (ANDROID)
+    SET(GDEXTENSION_LIB_PREFIX "lib")
+ENDIF ()
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
@@ -212,7 +207,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME}
         RUNTIME_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
-        OUTPUT_NAME "${GDEXTENSION_LIB_NAME}")
+        OUTPUT_NAME "${PROJECT_NAME}.${GODOT_PLATFORM}.${ORCHESTRATOR_ARCH}.$<LOWER_CASE:$<CONFIG>>")
 
 INCLUDE(cmake-utils)
 
