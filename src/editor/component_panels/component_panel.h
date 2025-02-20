@@ -59,6 +59,7 @@ protected:
     AcceptDialog* _notify{ nullptr };         //! Notification dialog
     bool _expanded{ true };                   //! Whether the section is currently expanded
     bool _theme_changing{ false };            //! Whether the theme is being changed
+    bool _update_blocked{ false };
 
     //~ Begin Signal handlers
     void _toggle();
@@ -70,6 +71,8 @@ protected:
     void _tree_item_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button);
     Variant _tree_drag_data(const Vector2& p_position);
     //~ End Signal handlers
+
+    void _queue_update();
 
     /// Iterates all tree items, calling the callable
     /// @param p_callback the callback to call for all tree items

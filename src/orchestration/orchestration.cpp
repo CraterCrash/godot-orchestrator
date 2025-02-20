@@ -858,6 +858,31 @@ bool Orchestration::can_remove_variable(const StringName& p_name) const
     return true;
 }
 
+Ref<OScriptVariable> Orchestration::promote_to_variable(const Ref<OScriptNodePin>& p_pin)
+{
+    int index = 0;
+    String name = vformat("%s_%d", p_pin->get_pin_name(), index++);
+    while (has_variable(name))
+        name = vformat("%s_%d", p_pin->get_pin_name(), index++);
+
+    Ref<OScriptVariable> variable = create_variable(name);
+    if (variable.is_valid())
+    {
+        ClassificationParser parser;
+        if (parser.parse(p_pin->get_property_info()))
+            variable->set_classification(parser.get_classification());
+
+        variable->set_default_value(p_pin->get_effective_default_value());
+
+        variable->emit_changed();
+        variable->notify_property_list_changed();
+
+        _self->emit_signal("variables_changed");
+    }
+
+    return variable;
+}
+
 bool Orchestration::has_custom_signal(const StringName& p_name) const
 {
     return _signals.has(p_name);
