@@ -94,8 +94,15 @@ class OScriptNodeCallFunctionInstance : public OScriptNodeInstance
             return -1 | STEP_FLAG_END;
         }
 
+        uint32_t chain_index = 0;
         if (MethodUtils::has_return_value(_reference.method))
+        {
             p_context.set_output(0, result);
+            chain_index = 1;
+        }
+
+        if (_chained)
+            p_context.set_output(chain_index, target);
 
         return 0;
     }
