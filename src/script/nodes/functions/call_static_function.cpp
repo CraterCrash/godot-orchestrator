@@ -23,38 +23,52 @@
 #include "common/version.h"
 #include "script/script_server.h"
 
+#include <godot_cpp/classes/resource_loader.hpp>
+
 class OScriptNodeCallStaticFunctionInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeCallStaticFunction);
 
     MethodInfo _method;
     StringName _class_name;
+    StringName _method_name;
+    Ref<Script> _script;
 
-public:
-    int step(OScriptExecutionContext& p_context) override
+    int _call_script_method(OScriptExecutionContext& p_context, const Array& p_args)
     {
-        // We need to get the hash, stored from the extension_api.json
-        const int64_t hash = ExtensionDB::get_static_function_hash(_class_name, _method.name);
-
-        // Store a reference to the MethodBind structure
-        GDExtensionMethodBindPtr mb = internal::gdextension_interface_classdb_get_method_bind(
-            _class_name._native_ptr(), _method.name._native_ptr(), hash);
-
-        if (!mb)
+        if (!_script->has_method(_method_name))
         {
-            p_context.set_error(vformat("Failed to find method '%s'", _method.name));
+            p_context.set_error(vformat("Failed to find method '%s' on '%s'", _method_name, _class_name));
             return -1 | STEP_FLAG_END;
         }
 
-        Array args;
-        for (size_t i = 0; i < _method.arguments.size(); i++)
-            args.push_back(p_context.get_input(i));
+        Variant result = _script->callv(_method_name, p_args);
+        if (MethodUtils::has_return_value(_method))
+            p_context.set_output(0, result);
+
+        return 0;
+    }
+
+    int _call_native_method(OScriptExecutionContext& p_context, const Array& p_args)
+    {
+        // We need to get the hash, stored from the extension_api.json
+        const int64_t hash = ExtensionDB::get_static_function_hash(_class_name, _method_name);
+
+        // Store a reference to the MethodBind structure
+        GDExtensionMethodBindPtr mb = internal::gdextension_interface_classdb_get_method_bind(
+            _class_name._native_ptr(), _method_name._native_ptr(), hash);
+
+        if (!mb)
+        {
+            p_context.set_error(vformat("Failed to find method '%s' on '%s'", _method_name, _class_name));
+            return -1 | STEP_FLAG_END;
+        }
 
         std::vector<const Variant*> call_args;
         call_args.resize(_method.arguments.size());
 
-        for (int i = 0; i < args.size(); i++)
-            call_args[i] = &args[i];
+        for (int i = 0; i < p_args.size(); i++)
+            call_args[i] = &p_args[i];
 
         Variant ret;
         GDExtensionCallError r_error;
@@ -71,6 +85,26 @@ public:
             p_context.set_output(0, ret);
 
         return 0;
+
+    }
+
+public:
+    int step(OScriptExecutionContext& p_context) override
+    {
+        if (!(_method.flags & METHOD_FLAG_STATIC))
+        {
+            p_context.set_error(vformat("Expected static method '%s' but method is not static.", _method_name));
+            return -1 | STEP_FLAG_END;
+        }
+
+        Array args;
+        for (size_t i = 0; i < _method.arguments.size(); i++)
+            args.push_back(p_context.get_input(i));
+
+        if (_script.is_valid())
+            return _call_script_method(p_context, args);
+
+        return _call_native_method(p_context, args);
     }
 };
 
@@ -135,13 +169,6 @@ void OScriptNodeCallStaticFunction::_resolve_method_info()
 
 void OScriptNodeCallStaticFunction::post_initialize()
 {
-    // We need to get the hash, stored from the extension_api.json
-    const int64_t hash = ExtensionDB::get_static_function_hash(_class_name, _method_name);
-
-    // Store a reference to the MethodBind structure
-    _method_bind = internal::gdextension_interface_classdb_get_method_bind(
-        _class_name._native_ptr(), _method_name._native_ptr(), hash);
-
     _resolve_method_info();
 
     reconstruct_node();
@@ -151,13 +178,6 @@ void OScriptNodeCallStaticFunction::post_initialize()
 
 void OScriptNodeCallStaticFunction::post_placed_new_node()
 {
-    // We need to get the hash, stored from the extension_api.json
-    const int64_t hash = ExtensionDB::get_static_function_hash(_class_name, _method_name);
-
-    // Store a reference to the MethodBind structure
-    _method_bind = internal::gdextension_interface_classdb_get_method_bind(
-        _class_name._native_ptr(), _method_name._native_ptr(), hash);
-
     _resolve_method_info();
 
     super::post_placed_new_node();
@@ -229,6 +249,9 @@ void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) 
             p_log.error(this, pin, "Requires a connection.");
     }
 
+    if (!(_method.flags & METHOD_FLAG_STATIC))
+        p_log.error(this, vformat("Expected a static method but '%s' is not static.", _method_name));
+
     return super::validate_node_during_build(p_log);
 }
 
@@ -238,6 +261,19 @@ OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate()
     i->_node = this;
     i->_method = _method;
     i->_class_name = _class_name;
+    i->_method_name = _method_name;
+
+    if (ScriptServer::is_global_class(_class_name))
+    {
+        const ScriptServer::GlobalClass gc = ScriptServer::get_global_class(_class_name);
+        if (!gc.path.is_empty())
+        {
+            Ref<Script> script = ResourceLoader::get_singleton()->load(gc.path, "Script");
+            if (script.is_valid() && _method.flags & METHOD_FLAG_STATIC)
+                i->_script = script;
+        }
+    }
+
     return i;
 }
 
