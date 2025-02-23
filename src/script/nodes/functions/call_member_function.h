@@ -51,6 +51,7 @@ public:
     String get_node_title_color_name() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
 
     /// Get the target function class

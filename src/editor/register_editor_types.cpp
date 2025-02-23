@@ -153,6 +153,7 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinObject)
     GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinString)
     GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinStruct)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinText)
 
     // Add plugin to the editor
     EditorPlugins::add_by_type<OrchestratorPlugin>();

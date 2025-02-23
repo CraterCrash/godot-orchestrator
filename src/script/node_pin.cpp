@@ -17,12 +17,16 @@
 #include "script/node_pin.h"
 
 #include "common/property_utils.h"
+#include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/variant_utils.h"
 #include "nodes/functions/event.h"
 #include "script/node.h"
 #include "script/nodes/data/coercion_node.h"
 #include "script_server.h"
+
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 
 void OScriptNodePin::_bind_methods()
 {
@@ -706,4 +710,59 @@ bool OScriptNodePin::is_label_visible() const
 Ref<OScriptTargetObject> OScriptNodePin::resolve_target()
 {
     return get_owning_node()->resolve_target(this);
+}
+
+PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback)
+{
+    PackedStringArray signal_names;
+
+    if (is_input())
+    {
+        if (has_any_connections())
+        {
+            const Ref<OScriptNodePin> connection = get_connections()[0];
+            const Ref<OScriptTargetObject> target = connection->resolve_target();
+            if (target.is_valid() && target->has_target())
+            {
+                const TypedArray<Dictionary> signals = target->get_target()->get_signal_list();
+                for (int i = 0; i < signals.size(); i++)
+                {
+                    const Dictionary& dict = signals[i];
+                    signal_names.push_back(dict["name"]);
+                }
+            }
+            else
+            {
+                const TypedArray<Dictionary> signals = ClassDB::class_get_signal_list(connection->get_target_class());
+                for (int i = 0; i < signals.size(); i++)
+                {
+                    const Dictionary& dict = signals[i];
+                    signal_names.push_back(dict["name"]);
+                }
+            }
+        }
+        else if (p_self_fallback)
+        {
+            Ref<OScript> script = get_owning_node()->get_orchestration()->get_self();
+            if (script.is_valid())
+            {
+                Node* root = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
+                if (root)
+                {
+                    Node* node = SceneUtils::get_node_with_script(script, root, root);
+                    if (node)
+                    {
+                        const TypedArray<Dictionary> signals = node->get_signal_list();
+                        for (int i = 0; i < signals.size(); i++)
+                        {
+                            const Dictionary& dict = signals[i];
+                            signal_names.push_back(dict["name"]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return signal_names;
 }
