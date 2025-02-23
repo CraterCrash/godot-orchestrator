@@ -255,3 +255,27 @@ void OScriptNodeCallMemberFunction::validate_node_during_build(BuildLog& p_log) 
 
     super::validate_node_during_build(p_log);
 }
+
+PackedStringArray OScriptNodeCallMemberFunction::get_suggestions(const Ref<OScriptNodePin>& p_pin)
+{
+    if (p_pin.is_valid() && p_pin->is_input() && p_pin->get_pin_name().match("signal"))
+    {
+        const MethodInfo method = get_method_info();
+        const bool is_object = Object::get_class_static().match(get_target_class());
+
+        const bool object_connect = method.name.match("connect") && is_object;
+        const bool object_disconnect = method.name.match("disconnect") && is_object;
+        const bool object_is_connected = method.name.match("is_connected") && is_object;
+        const bool object_emit_signal = method.name.match("emit_signal") && is_object;
+
+        if (object_connect || object_disconnect || object_is_connected || object_emit_signal)
+        {
+            const Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
+            if (target_pin.is_valid())
+                return target_pin->resolve_signal_names(true);
+        }
+    }
+
+    return super::get_suggestions(p_pin);
+}
+
