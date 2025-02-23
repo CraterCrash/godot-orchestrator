@@ -47,6 +47,9 @@ OrchestratorGraphNodePin* OrchestratorGraphNodePinFactory::_resolve_string_based
         }
     }
 
+    if (p_pin->is_multiline_text())
+        return memnew(OrchestratorGraphNodePinText(p_node, p_pin));
+
     return memnew(OrchestratorGraphNodePinString(p_node, p_pin));
 }
 
