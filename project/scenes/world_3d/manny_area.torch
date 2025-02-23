@@ -1,17 +1,5 @@
 [orchestration type="OScript" load_steps=50 format=3 uid="uid://i088ibwd6mn2"]
 
-[obj type="OScriptFunction" id="OScriptFunction_p5wor"]
-guid = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
-method = {
-"name": &"_on_body_entered",
-"args": [{
-"name": &"body",
-"class_name": &"Node3D",
-"usage": 131078
-}]
-}
-id = 17
-
 [obj type="OScriptFunction" id="OScriptFunction_behy4"]
 guid = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
 method = {
@@ -26,18 +14,6 @@ method = {
 }
 user_defined = true
 id = 25
-
-[obj type="OScriptFunction" id="OScriptFunction_5a116"]
-guid = "76F0B89F-94D2-400F-919B-B9F4DD04AAA1"
-method = {
-"name": &"_on_body_exited",
-"args": [{
-"name": &"body",
-"class_name": &"Node3D",
-"usage": 131078
-}]
-}
-id = 32
 
 [obj type="OScriptFunction" id="OScriptFunction_kye8x"]
 guid = "D425DB89-BAA2-485C-990E-98CD745979CE"
@@ -62,12 +38,37 @@ method = {
 }
 id = 63
 
+[obj type="OScriptFunction" id="OScriptFunction_o2gcx"]
+guid = "B04C0E07-F3E3-47C6-97E5-66268DD7182E"
+method = {
+"name": &"_on_body_entered",
+"args": [{
+"name": &"body",
+"type": 24,
+"class_name": &"Node3D"
+}]
+}
+id = 76
+
+[obj type="OScriptFunction" id="OScriptFunction_tv47v"]
+guid = "9E7BA319-DFE3-4DD3-88E1-59FC604A9225"
+method = {
+"name": &"_on_body_exited",
+"args": [{
+"name": &"body",
+"type": 24,
+"class_name": &"Node3D"
+}]
+}
+id = 77
+
 [obj type="OScriptGraph" id="OScriptGraph_xn3em"]
 graph_name = &"EventGraph"
-offset = Vector2(-1521.5, -193.351)
+offset = Vector2(-621.971, -42.5431)
+zoom = 0.683013
 flags = 8
-nodes = Array[int]([2, 7, 8, 17, 19, 20, 29, 30, 32, 38, 43, 49, 54, 55, 56, 57, 58, 59, 60, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74])
-functions = Array[int]([17, 32, 63])
+nodes = Array[int]([2, 7, 8, 19, 20, 29, 30, 38, 43, 49, 54, 55, 56, 57, 58, 59, 60, 63, 64, 65, 66, 67, 68, 69, 70, 71, 75, 76, 77, 78, 79])
+functions = Array[int]([63, 76, 77])
 
 [obj type="OScriptGraph" id="OScriptGraph_k5v5k"]
 graph_name = &"is_player"
@@ -164,22 +165,6 @@ pin_data = Array[Dictionary]([{
 "flags": 4
 }])
 
-[obj type="OScriptNodeEvent" id="OScriptNodeEvent_hy3md"]
-function_id = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
-id = 17
-size = Vector2(230, 93)
-position = Vector2(-800, 180)
-pin_data = Array[Dictionary]([{
-"pin_name": &"ExecOut",
-"dir": 1,
-"flags": 4
-}, {
-"pin_name": &"body",
-"dir": 1,
-"flags": 2,
-"usage": 131078
-}])
-
 [obj type="OScriptNodeDialogueChoice" id="OScriptNodeDialogueChoice_8ueq6"]
 id = 19
 size = Vector2(474, 133)
@@ -198,7 +183,8 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"choice",
 "type": 24,
 "dir": 1,
-"flags": 2
+"flags": 2,
+"dv": null
 }])
 
 [obj type="OScriptNodeDialogueChoice" id="OScriptNodeDialogueChoice_oqk3q"]
@@ -219,7 +205,8 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"choice",
 "type": 24,
 "dir": 1,
-"flags": 2
+"flags": 2,
+"dv": null
 }])
 
 [obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_n64y0"]
@@ -331,7 +318,8 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "type": 24,
-"flags": 2
+"flags": 2,
+"dv": null
 }, {
 "pin_name": &"return_value",
 "type": 1,
@@ -356,28 +344,13 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "type": 24,
-"flags": 2
+"flags": 2,
+"dv": null
 }, {
 "pin_name": &"return_value",
 "type": 1,
 "dir": 1,
 "flags": 1026
-}])
-
-[obj type="OScriptNodeEvent" id="OScriptNodeEvent_762v4"]
-function_id = "76F0B89F-94D2-400F-919B-B9F4DD04AAA1"
-id = 32
-size = Vector2(219, 93)
-position = Vector2(-860, 1080)
-pin_data = Array[Dictionary]([{
-"pin_name": &"ExecOut",
-"dir": 1,
-"flags": 4
-}, {
-"pin_name": &"body",
-"dir": 1,
-"flags": 2,
-"usage": 131078
 }])
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_jtxfd"]
@@ -387,8 +360,8 @@ font_size = 24
 comments = "Start a conversation with Manny when Player gets within proximity of the area.
 The player can select two outcomes that both end with closing the game."
 id = 38
-size = Vector2(1950.23, 674.003)
-position = Vector2(-820, 40)
+size = Vector2(1980, 720)
+position = Vector2(-840, 40)
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_jlhe8"]
 title = "Manny Revenge"
@@ -2090,77 +2063,9 @@ id = 71
 size = Vector2(1440, 486)
 position = Vector2(-2620, 620)
 
-[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_d6q01"]
-id = 72
-size = Vector2(397, 307)
-position = Vector2(440, 400)
-pin_data = Array[Dictionary]([{
-"pin_name": &"ExecIn",
-"flags": 4
-}, {
-"pin_name": &"name",
-"type": 4,
-"flags": 16777218,
-"label": "Speaker",
-"dv": "Manny",
-"hint": 18
-}, {
-"pin_name": &"text",
-"type": 4,
-"flags": 16777218,
-"label": "Message",
-"dv": "Nice to meet you Oscar. I have to finish doing some work around this area, please come back if you have any questions.",
-"hint": 18
-}, {
-"pin_name": &"scene",
-"type": 4,
-"flags": 8388610,
-"hint": 13,
-"hint_string": "*.scn,*.tscn; Scene Files"
-}, {
-"pin_name": &"ExecOut",
-"dir": 1,
-"flags": 4
-}])
-
-[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_yt6sk"]
-id = 73
-size = Vector2(397, 283)
-position = Vector2(440, 100)
-pin_data = Array[Dictionary]([{
-"pin_name": &"ExecIn",
-"flags": 4
-}, {
-"pin_name": &"name",
-"type": 4,
-"flags": 16777218,
-"label": "Speaker",
-"dv": "Manny	",
-"hint": 18
-}, {
-"pin_name": &"text",
-"type": 4,
-"flags": 16777218,
-"label": "Message",
-"dv": "Sounds great.  Be sure to check out the Inn, they have the best donuts in town.",
-"hint": 18
-}, {
-"pin_name": &"scene",
-"type": 4,
-"flags": 8388610,
-"dv": "",
-"hint": 13,
-"hint_string": "*.scn,*.tscn; Scene Files"
-}, {
-"pin_name": &"ExecOut",
-"dir": 1,
-"flags": 4
-}])
-
-[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_23vae"]
-id = 74
-size = Vector2(451, 343)
-position = Vector2(-60, 220)
+[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_5bf5j"]
+id = 75
+position = Vector2(-40, 180)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -2179,6 +2084,13 @@ pin_data = Array[Dictionary]([{
 "dv": "Hello Player, my name is Manny...
 How are you today?",
 "hint": 18
+}, {
+"pin_name": &"audio",
+"type": 4,
+"flags": 8388610,
+"dv": "res://scenes/world_3d/voiceline.ogg",
+"hint": 13,
+"hint_string": "*.wav,*.ogg,*.mp3; Audio Files"
 }, {
 "pin_name": &"scene",
 "type": 4,
@@ -2206,7 +2118,8 @@ How are you today?",
 "pin_name": &"choice_0",
 "type": 24,
 "flags": 10,
-"target_class": "OScriptNodeDialogueChoice"
+"target_class": "OScriptNodeDialogueChoice",
+"dv": null
 }, {
 "pin_name": &"choice_0_out",
 "dir": 1,
@@ -2215,9 +2128,124 @@ How are you today?",
 "pin_name": &"choice_1",
 "type": 24,
 "flags": 10,
-"target_class": "OScriptNodeDialogueChoice"
+"target_class": "OScriptNodeDialogueChoice",
+"dv": null
 }, {
 "pin_name": &"choice_1_out",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_qqcll"]
+function_id = "B04C0E07-F3E3-47C6-97E5-66268DD7182E"
+id = 76
+position = Vector2(-800, 180)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"body",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "Node3D",
+"dv": null
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_q0rj2"]
+function_id = "9E7BA319-DFE3-4DD3-88E1-59FC604A9225"
+id = 77
+position = Vector2(-860, 1080)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"body",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "Node3D",
+"dv": null
+}])
+
+[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_sba22"]
+id = 78
+position = Vector2(440, 80)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"name",
+"type": 4,
+"flags": 16777218,
+"label": "Speaker",
+"dv": "Manny",
+"hint": 18
+}, {
+"pin_name": &"text",
+"type": 4,
+"flags": 16777218,
+"label": "Message",
+"dv": "Sounds great.  Be sure to check out the Inn, they have the best donuts in town.",
+"hint": 18
+}, {
+"pin_name": &"audio",
+"type": 4,
+"flags": 8388610,
+"dv": "res://scenes/world_3d/voiceline.ogg",
+"hint": 13,
+"hint_string": "*.wav,*.ogg,*.mp3; Audio Files"
+}, {
+"pin_name": &"scene",
+"type": 4,
+"flags": 8388610,
+"dv": "",
+"hint": 13,
+"hint_string": "*.scn,*.tscn; Scene Files"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_qbnnx"]
+id = 79
+position = Vector2(440, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"name",
+"type": 4,
+"flags": 16777218,
+"label": "Speaker",
+"dv": "Manny",
+"hint": 18
+}, {
+"pin_name": &"text",
+"type": 4,
+"flags": 16777218,
+"label": "Message",
+"dv": "Nice to meet you Oscar. I have to finish doing some work around this area, please come back if you have any questions.",
+"hint": 18
+}, {
+"pin_name": &"audio",
+"type": 4,
+"flags": 8388610,
+"dv": "res://scenes/world_3d/voiceline.ogg",
+"hint": 13,
+"hint_string": "*.wav,*.ogg,*.mp3; Audio Files"
+}, {
+"pin_name": &"scene",
+"type": 4,
+"flags": 8388610,
+"dv": "",
+"hint": 13,
+"hint_string": "*.scn,*.tscn; Scene Files"
+}, {
+"pin_name": &"ExecOut",
 "dir": 1,
 "flags": 4
 }])
@@ -2232,7 +2260,7 @@ default_value = &"Player"
 [resource]
 base_type = &"Area3D"
 variables = Array[OScriptVariable]([SubResource("OScriptVariable_quqfk")])
-functions = Array[OScriptFunction]([SubResource("OScriptFunction_p5wor"), SubResource("OScriptFunction_behy4"), SubResource("OScriptFunction_5a116"), SubResource("OScriptFunction_kye8x"), SubResource("OScriptFunction_0vhnn")])
-connections = Array[int]([29, 0, 2, 0, 30, 0, 7, 0, 7, 0, 8, 0, 27, 0, 26, 0, 25, 0, 27, 0, 17, 0, 29, 0, 32, 0, 30, 0, 48, 0, 47, 0, 44, 0, 48, 0, 73, 0, 49, 0, 8, 0, 54, 0, 58, 1, 55, 0, 55, 0, 56, 0, 54, 0, 58, 0, 57, 0, 59, 0, 58, 0, 60, 0, 63, 0, 64, 0, 70, 0, 65, 0, 64, 2, 66, 0, 65, 2, 67, 0, 65, 3, 68, 0, 64, 2, 69, 0, 64, 0, 70, 0, 74, 1, 72, 0, 74, 0, 73, 0, 2, 0, 74, 0, 29, 1, 2, 1, 30, 1, 7, 1, 27, 1, 26, 1, 25, 1, 27, 1, 17, 1, 29, 1, 32, 1, 30, 1, 50, 0, 47, 1, 57, 0, 55, 1, 54, 1, 57, 1, 59, 0, 58, 1, 63, 1, 64, 1, 66, 0, 65, 1, 69, 0, 70, 1, 28, 0, 27, 2, 20, 0, 74, 4, 19, 0, 74, 5])
-nodes = Array[OScriptNode]([SubResource("OScriptNodeBranch_vqktw"), SubResource("OScriptNodeBranch_7c5hw"), SubResource("OScriptNodePrintString_wugb8"), SubResource("OScriptNodeEvent_hy3md"), SubResource("OScriptNodeDialogueChoice_8ueq6"), SubResource("OScriptNodeDialogueChoice_oqk3q"), SubResource("OScriptNodeFunctionEntry_n64y0"), SubResource("OScriptNodeFunctionResult_p50t4"), SubResource("OScriptNodeCallMemberFunction_hdxsq"), SubResource("OScriptNodeVariableGet_bv8uc"), SubResource("OScriptNodeCallScriptFunction_g7dw3"), SubResource("OScriptNodeCallScriptFunction_q3kci"), SubResource("OScriptNodeEvent_762v4"), SubResource("OScriptNodeComment_jtxfd"), SubResource("OScriptNodeComment_jlhe8"), SubResource("OScriptNodeFunctionEntry_nhhe7"), SubResource("OScriptNodeCallMemberFunction_5sqwe"), SubResource("OScriptNodePrintString_g20yq"), SubResource("OScriptNodeCallScriptFunction_36fuq"), SubResource("OScriptNodeSceneTree_mdq36"), SubResource("OScriptNodeComment_lmb00"), SubResource("OScriptNodeForLoop_fxq2n"), SubResource("OScriptNodePrintString_xfts8"), SubResource("OScriptNodeDelay_ymd56"), SubResource("OScriptNodeOperator_au5hs"), SubResource("OScriptNodeBranch_ehc6v"), SubResource("OScriptNodeOperator_rvj5e"), SubResource("OScriptNodeCallScriptFunction_y4piu"), SubResource("OScriptNodeEvent_21ug3"), SubResource("OScriptNodeTypeCast_jkc8c"), SubResource("OScriptNodeSwitchEnum_n5bvd"), SubResource("OScriptNodePropertyGet_cn0by"), SubResource("OScriptNodePrintString_07utq"), SubResource("OScriptNodePrintString_skp62"), SubResource("OScriptNodePropertyGet_f5nc0"), SubResource("OScriptNodeBranch_hoyx5"), SubResource("OScriptNodeComment_xrf7a"), SubResource("OScriptNodeDialogueMessage_d6q01"), SubResource("OScriptNodeDialogueMessage_yt6sk"), SubResource("OScriptNodeDialogueMessage_23vae")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_behy4"), SubResource("OScriptFunction_kye8x"), SubResource("OScriptFunction_0vhnn"), SubResource("OScriptFunction_o2gcx"), SubResource("OScriptFunction_tv47v")])
+connections = Array[int]([29, 0, 2, 0, 30, 0, 7, 0, 7, 0, 8, 0, 27, 0, 26, 0, 25, 0, 27, 0, 76, 0, 29, 0, 77, 0, 30, 0, 48, 0, 47, 0, 44, 0, 48, 0, 78, 0, 49, 0, 8, 0, 54, 0, 58, 1, 55, 0, 55, 0, 56, 0, 54, 0, 58, 0, 57, 0, 59, 0, 58, 0, 60, 0, 63, 0, 64, 0, 70, 0, 65, 0, 64, 2, 66, 0, 65, 2, 67, 0, 65, 3, 68, 0, 64, 2, 69, 0, 64, 0, 70, 0, 2, 0, 75, 0, 75, 0, 78, 0, 75, 1, 79, 0, 29, 1, 2, 1, 30, 1, 7, 1, 27, 1, 26, 1, 25, 1, 27, 1, 76, 1, 29, 1, 77, 1, 30, 1, 50, 0, 47, 1, 57, 0, 55, 1, 54, 1, 57, 1, 59, 0, 58, 1, 63, 1, 64, 1, 66, 0, 65, 1, 69, 0, 70, 1, 28, 0, 27, 2, 20, 0, 75, 5, 19, 0, 75, 6])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeBranch_vqktw"), SubResource("OScriptNodeBranch_7c5hw"), SubResource("OScriptNodePrintString_wugb8"), SubResource("OScriptNodeDialogueChoice_8ueq6"), SubResource("OScriptNodeDialogueChoice_oqk3q"), SubResource("OScriptNodeFunctionEntry_n64y0"), SubResource("OScriptNodeFunctionResult_p50t4"), SubResource("OScriptNodeCallMemberFunction_hdxsq"), SubResource("OScriptNodeVariableGet_bv8uc"), SubResource("OScriptNodeCallScriptFunction_g7dw3"), SubResource("OScriptNodeCallScriptFunction_q3kci"), SubResource("OScriptNodeComment_jtxfd"), SubResource("OScriptNodeComment_jlhe8"), SubResource("OScriptNodeFunctionEntry_nhhe7"), SubResource("OScriptNodeCallMemberFunction_5sqwe"), SubResource("OScriptNodePrintString_g20yq"), SubResource("OScriptNodeCallScriptFunction_36fuq"), SubResource("OScriptNodeSceneTree_mdq36"), SubResource("OScriptNodeComment_lmb00"), SubResource("OScriptNodeForLoop_fxq2n"), SubResource("OScriptNodePrintString_xfts8"), SubResource("OScriptNodeDelay_ymd56"), SubResource("OScriptNodeOperator_au5hs"), SubResource("OScriptNodeBranch_ehc6v"), SubResource("OScriptNodeOperator_rvj5e"), SubResource("OScriptNodeCallScriptFunction_y4piu"), SubResource("OScriptNodeEvent_21ug3"), SubResource("OScriptNodeTypeCast_jkc8c"), SubResource("OScriptNodeSwitchEnum_n5bvd"), SubResource("OScriptNodePropertyGet_cn0by"), SubResource("OScriptNodePrintString_07utq"), SubResource("OScriptNodePrintString_skp62"), SubResource("OScriptNodePropertyGet_f5nc0"), SubResource("OScriptNodeBranch_hoyx5"), SubResource("OScriptNodeComment_xrf7a"), SubResource("OScriptNodeDialogueMessage_5bf5j"), SubResource("OScriptNodeEvent_qqcll"), SubResource("OScriptNodeEvent_q0rj2"), SubResource("OScriptNodeDialogueMessage_sba22"), SubResource("OScriptNodeDialogueMessage_qbnnx")])
 graphs = Array[OScriptGraph]([SubResource("OScriptGraph_xn3em"), SubResource("OScriptGraph_k5v5k"), SubResource("OScriptGraph_dfi8a")])
