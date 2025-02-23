@@ -333,6 +333,11 @@ public:
     /// Attempts to resolve the target object of this pin.
     /// @return the target object of the pin or {@code nullptr} if there is no target.
     Ref<OScriptTargetObject> resolve_target();
+
+    /// Resolves signal names for pin's connected object. Only applicable for input pins.
+    /// @param p_self_fallback whether to get signal names from script's node as a fallback
+    /// @return signal names list
+    PackedStringArray resolve_signal_names(bool p_self_fallback = false);
 };
 
 VARIANT_BITFIELD_CAST(OScriptNodePin::Flags)

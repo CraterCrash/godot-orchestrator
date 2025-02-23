@@ -88,3 +88,24 @@ void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const
 
     return super::validate_node_during_build(p_log);
 }
+
+void OScriptNodeAwaitSignal::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin)
+{
+    // Makes sure that signal list pin changes to string renderer
+    if (p_pin.is_valid() && p_pin->get_pin_name().match("target"))
+        _notify_pins_changed();
+
+    super::on_pin_disconnected(p_pin);
+}
+
+PackedStringArray OScriptNodeAwaitSignal::get_suggestions(const Ref<OScriptNodePin>& p_pin)
+{
+    if (p_pin.is_valid() && p_pin->is_input() && p_pin->get_pin_name().match("signal_name"))
+    {
+        const Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
+        if (target_pin.is_valid())
+            return target_pin->resolve_signal_names();
+    }
+
+    return super::get_suggestions(p_pin);
+}
