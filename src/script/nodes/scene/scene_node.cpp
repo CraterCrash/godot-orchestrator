@@ -87,6 +87,9 @@ bool OScriptNodeSceneNode::_set(const StringName& p_name, const Variant& p_value
         {
             if (Node* node = _get_referenced_node())
             {
+                if (!_node_path.get_concatenated_names().begins_with("%") && node->is_unique_name_in_owner())
+                    _node_path = "%" + node->get_name();
+
                 Ref<Script> script = node->get_script();
 
                 String global_class;
