@@ -395,6 +395,11 @@ public:
     /// Return whether the specified port is a loop-based port
     virtual bool is_loop_port(int p_port) const { return false; }
 
+    /// Get suggestion options for the specified pin.
+    /// @param p_pin the pin
+    /// @return a list of suggestion options as contextual choices
+    virtual PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) { return PackedStringArray(); }
+
 protected:
     /// Notify that node pins have been changed.
     void _notify_pins_changed();
