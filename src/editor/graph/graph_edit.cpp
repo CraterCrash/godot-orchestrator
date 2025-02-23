@@ -774,7 +774,10 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             if (Node* dropped_node = root->get_node_or_null(nodes[0]))
             {
                 OScriptNodeInitContext context;
-                context.node_path = root->get_path_to(dropped_node);
+                if (dropped_node->is_unique_name_in_owner())
+                    context.node_path = NodePath("%" + dropped_node->get_name());
+                else
+                    context.node_path = root->get_path_to(dropped_node);
 
                 const Ref<Script> node_script = dropped_node->get_script();
 
