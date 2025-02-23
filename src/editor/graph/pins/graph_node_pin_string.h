@@ -22,8 +22,39 @@
 namespace godot
 {
     class LineEdit;
+    class PopupMenu;
     class TextEdit;
 }
+
+/// An implementation of OrchestratorGraphNodePin for types that want to represent their default values
+/// using a multi-line text field for data entry.
+class OrchestratorGraphNodePinText : public OrchestratorGraphNodePin
+{
+    GDCLASS(OrchestratorGraphNodePinText, OrchestratorGraphNodePin);
+
+    TextEdit* _editor{ nullptr };
+
+protected:
+    //~ Begin Wrapped Interface
+    static void _bind_methods() {}
+    //~ End Wrapped Interface
+
+    //~ Begin OrchestratorGraphNodePin Interface
+    Control* _get_default_value_widget() override;
+    bool _render_default_value_below_label() const override { return true; }
+    //~ End OrchestratorGraphNodePin Interface
+
+    void _text_changed();
+
+    // Default constructor
+    OrchestratorGraphNodePinText() = default;
+
+public:
+    /// Constructs a multi-line text-based pin
+    /// @param p_node the graph node that owns the pin
+    /// @param p_pin the script pin
+    OrchestratorGraphNodePinText(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);
+};
 
 /// An implementation of OrchestratorGraphNodePin for types that want to represent their default values
 /// using a string-based text field for data entry.
@@ -31,36 +62,48 @@ class OrchestratorGraphNodePinString : public OrchestratorGraphNodePin
 {
     GDCLASS(OrchestratorGraphNodePinString, OrchestratorGraphNodePin);
 
-    static void _bind_methods();
+    LineEdit* _editor{ nullptr };       //! Single line input widget
+    PopupMenu* _popup{ nullptr };       //! Suggestions popup menu
+    PackedStringArray _suggestions;     //! Context suggestions
 
 protected:
-    OrchestratorGraphNodePinString() = default;
-
-    /// Sets the default value on the pin
-    /// @param p_value the default value to set
-    void _set_default_value(const String& p_value);
-
-    /// Called when the text edit's (multi-line text) text changes
-    /// @param p_text_edit the text edit widget
-    void _on_text_changed(TextEdit* p_text_edit);
-
-    /// Called when the line edit's text submitted handler.
-    /// @param p_value the text value submitted
-    /// @param p_line_edit the line edit widget
-    void _on_text_submitted(const String& p_value, LineEdit* p_line_edit);
-
-    /// Called when focus is lost on the line edit widget.
-    /// @param p_line_edit the line edit widget
-    void _on_focus_lost(LineEdit* p_line_edit);
+    //~ Begin Wrapped Interface
+    static void _bind_methods() {}
+    //~ End Wrapped Interface
 
     //~ Begin OrchestratorGraphNodePin Interface
     Control* _get_default_value_widget() override;
-    bool _render_default_value_below_label() const override;
     //~ End OrchestratorGraphNodePin Interface
 
-public:
-    OrchestratorGraphNodePinString(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);
+    /// Called when the line edit's text submitted handler.
+    /// @param p_value the text value submitted
+    void _text_submitted(const String& p_value);
 
+    /// Called when focus is gained for the line edit widget.
+    void _focus_entered();
+
+    /// Called when focus is lost on the line edit widget.
+    void _focus_exited();
+
+    /// Called when the popup suggestion menu is hidden
+    void _popup_hide();
+
+    /// Handles popup window input
+    /// @param p_event the input event
+    void _window_input(const Ref<InputEvent>& p_event);
+
+    /// Handles a suggestion pick
+    /// @param p_index the suggestion index
+    void _suggestion_picked(int p_index);
+
+    // Default constructor
+    OrchestratorGraphNodePinString() = default;
+
+public:
+    /// Constructs a string-based pin
+    /// @param p_node the graph node that owns the pin
+    /// @param p_pin the script pin
+    OrchestratorGraphNodePinString(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin);
 };
 
 #endif  // ORCHESTRATOR_GRAPH_NODE_PIN_STRING_H

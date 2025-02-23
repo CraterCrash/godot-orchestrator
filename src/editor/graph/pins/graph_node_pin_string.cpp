@@ -16,77 +16,139 @@
 //
 #include "graph_node_pin_string.h"
 
-#include <godot_cpp/classes/line_edit.hpp>
-#include <godot_cpp/classes/text_edit.hpp>
+#include "common/callable_lambda.h"
+#include "editor/graph/graph_node.h"
 
-OrchestratorGraphNodePinString::OrchestratorGraphNodePinString(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
+#include <godot_cpp/classes/input_event_key.hpp>
+#include <godot_cpp/classes/line_edit.hpp>
+#include <godot_cpp/classes/popup_panel.hpp>
+#include <godot_cpp/classes/text_edit.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
+
+Control* OrchestratorGraphNodePinText::_get_default_value_widget()
+{
+    _editor = memnew(TextEdit);
+    _editor->set_placeholder("No value...");
+    _editor->set_h_size_flags(SIZE_EXPAND);
+    _editor->set_v_size_flags(SIZE_EXPAND);
+    _editor->set_h_grow_direction(GROW_DIRECTION_END);
+    _editor->set_custom_minimum_size(Vector2(350, 0));
+    _editor->set_text(_pin->get_effective_default_value());
+    _editor->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
+    _editor->set_line_wrapping_mode(TextEdit::LINE_WRAPPING_BOUNDARY);
+    _editor->set_fit_content_height_enabled(true);
+    _editor->connect("text_changed", callable_mp(this, &OrchestratorGraphNodePinText::_text_changed));
+
+    return _editor;
+}
+
+void OrchestratorGraphNodePinText::_text_changed()
+{
+    if (_editor)
+        _pin->set_default_value(_editor->get_text());
+}
+
+OrchestratorGraphNodePinText::OrchestratorGraphNodePinText(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)
 {
 }
 
-void OrchestratorGraphNodePinString::_bind_methods()
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OrchestratorGraphNodePinString::_text_submitted(const String& p_value)
 {
+    if (!_editor)
+        return;
+
+    _pin->set_default_value(_editor->get_text());
+    _editor->release_focus();
+
+    if (_popup && _popup->is_inside_tree() && _popup->is_visible())
+        _popup->hide();
 }
 
-void OrchestratorGraphNodePinString::_set_default_value(const String& p_value)
+void OrchestratorGraphNodePinString::_focus_entered()
 {
-    _pin->set_default_value(p_value);
-}
+    if (!_editor)
+        return;
 
-void OrchestratorGraphNodePinString::_on_text_changed(TextEdit* p_text_edit)
-{
-    if (p_text_edit)
-        _set_default_value(p_text_edit->get_text());
-}
-
-void OrchestratorGraphNodePinString::_on_text_submitted(const String& p_value, LineEdit* p_line_edit)
-{
-    if (p_line_edit)
+    _suggestions = get_graph_node()->get_script_node()->get_suggestions(_pin);
+    if (!_suggestions.is_empty())
     {
-        _set_default_value(p_line_edit->get_text());
-        p_line_edit->release_focus();
+        _popup = memnew(PopupMenu);
+        _popup->set_flag(PopupMenu::FLAG_NO_FOCUS, true);
+        _popup->set_allow_search(false);
+        _popup->set_position(_editor->get_screen_position() + Vector2(0, _editor->get_size().height));
+        _popup->connect("window_input", callable_mp(this, &OrchestratorGraphNodePinString::_window_input));
+        _popup->connect("index_pressed", callable_mp(this, &OrchestratorGraphNodePinString::_suggestion_picked));
+        _popup->connect("popup_hide", callable_mp(this, &OrchestratorGraphNodePinString::_popup_hide));
+        _popup->connect("tree_exiting", callable_mp_lambda(this, [=]{ _popup = nullptr; }));
+
+        _popup->clear();
+        for (const String suggestion : _suggestions)
+            _popup->add_item(suggestion);
+
+        _editor->add_child(_popup);
+        _popup->popup();
     }
+
+    _editor->grab_focus();
+    _editor->select_all();
 }
 
-void OrchestratorGraphNodePinString::_on_focus_lost(LineEdit* p_line_edit)
+void OrchestratorGraphNodePinString::_focus_exited()
 {
-    if (p_line_edit)
-        _set_default_value(p_line_edit->get_text());
+    if (!_editor)
+        return;
+
+    _pin->set_default_value(_editor->get_text());
+    _editor->deselect();
+}
+
+void OrchestratorGraphNodePinString::_popup_hide()
+{
+    if (_editor)
+        _editor->release_focus();
+
+    if (_popup)
+        _popup->queue_free();
+}
+
+void OrchestratorGraphNodePinString::_window_input(const Ref<InputEvent>& p_event)
+{
+    if (!_editor)
+        return;
+
+    const Ref<InputEventKey> k = p_event;
+    if (k.is_valid() && k->is_pressed() && k->get_keycode() != KEY_ENTER)
+        _editor->get_viewport()->push_input(p_event, false);
+}
+
+void OrchestratorGraphNodePinString::_suggestion_picked(int p_index)
+{
+    if (!_popup || !_editor)
+        return;
+
+    _editor->set_text(_popup->get_item_text(p_index));
+    _editor->emit_signal("text_submitted", _editor->get_text());
 }
 
 Control* OrchestratorGraphNodePinString::_get_default_value_widget()
 {
-    if (_pin->is_multiline_text())
-    {
-        TextEdit* text_edit = memnew(TextEdit);
-        text_edit->set_placeholder("No value...");
-        text_edit->set_h_size_flags(Control::SIZE_EXPAND);
-        text_edit->set_v_size_flags(Control::SIZE_EXPAND);
-        text_edit->set_h_grow_direction(Control::GROW_DIRECTION_END);
-        text_edit->set_custom_minimum_size(Vector2(350, 0));
-        text_edit->set_text(_pin->get_effective_default_value());
-        text_edit->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
-        text_edit->set_line_wrapping_mode(TextEdit::LINE_WRAPPING_BOUNDARY);
-        text_edit->set_fit_content_height_enabled(true);
-        text_edit->connect("text_changed",
-                           callable_mp(this, &OrchestratorGraphNodePinString::_on_text_changed).bind(text_edit));
-        return text_edit;
-    }
+    _editor = memnew(LineEdit);
+    _editor->set_custom_minimum_size(Vector2(30, 0));
+    _editor->set_expand_to_text_length_enabled(true);
+    _editor->set_h_size_flags(SIZE_EXPAND);
+    _editor->set_text(_pin->get_effective_default_value());
+    _editor->set_select_all_on_focus(true);
+    _editor->connect("text_submitted", callable_mp(this, &OrchestratorGraphNodePinString::_text_submitted));
+    _editor->connect("focus_entered", callable_mp(this, &OrchestratorGraphNodePinString::_focus_entered));
+    _editor->connect("focus_exited", callable_mp(this, &OrchestratorGraphNodePinString::_focus_exited));
 
-    LineEdit* line_edit = memnew(LineEdit);
-    line_edit->set_custom_minimum_size(Vector2(30, 0));
-    line_edit->set_expand_to_text_length_enabled(true);
-    line_edit->set_h_size_flags(Control::SIZE_EXPAND);
-    line_edit->set_text(_pin->get_effective_default_value());
-    line_edit->set_select_all_on_focus(true);
-    line_edit->connect("text_submitted",
-                       callable_mp(this, &OrchestratorGraphNodePinString::_on_text_submitted).bind(line_edit));
-    line_edit->connect("focus_exited",
-                       callable_mp(this, &OrchestratorGraphNodePinString::_on_focus_lost).bind(line_edit));
-    return line_edit;
+    return _editor;
 }
 
-bool OrchestratorGraphNodePinString::_render_default_value_below_label() const
+OrchestratorGraphNodePinString::OrchestratorGraphNodePinString(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
+    : OrchestratorGraphNodePin(p_node, p_pin)
 {
-    return _pin->is_multiline_text();
 }
