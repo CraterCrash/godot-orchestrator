@@ -22,6 +22,7 @@
 #include "script/nodes/script_nodes.h"
 
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 
 OScript::OScript()
@@ -128,6 +129,14 @@ bool OScript::placeholder_has(Object* p_object) const
 
 void* OScript::_instance_create(Object* p_object) const
 {
+    if (!ClassDB::is_parent_class(p_object->get_class(), _base_type))
+    {
+        const String message = vformat("Orchestration inherits from native type '%s', so it can't be assigned to an object of type: '%s'", _base_type, p_object->get_class());
+        if (EngineDebugger::get_singleton()->is_active())
+            OScriptLanguage::get_singleton()->debug_break_parse(get_path(), -1, message);
+        ERR_FAIL_V_MSG(nullptr, message);
+    }
+
     OScriptInstance* si = memnew(OScriptInstance(Ref<Script>(this), _language, p_object));
     {
         MutexLock lock(*_language->lock.ptr());
