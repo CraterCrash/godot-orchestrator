@@ -99,9 +99,13 @@ void OrchestratorPlugin::_notification(int p_what)
         _theme_cache.instantiate();
 
         _make_visible(false);
+
+        connect("main_screen_changed", callable_mp(this, &OrchestratorPlugin::_on_main_screen_changed));
     }
     else if (p_what == NOTIFICATION_EXIT_TREE)
     {
+        disconnect("main_screen_changed", callable_mp(this, &OrchestratorPlugin::_on_main_screen_changed));
+
         OrchestratorGraphEdit::free_clipboard();
 
         remove_control_from_bottom_panel(_build_panel);
@@ -141,7 +145,14 @@ bool OrchestratorPlugin::_has_main_screen() const
 void OrchestratorPlugin::_make_visible(bool p_visible)
 {
     if (p_visible)
+    {
         _window_wrapper->show();
+
+        // EditorPlugin::selected_notify is not exposed to GDExtension, but this method
+        // is called just before "selected_notify" as a way to address this until the
+        // method can be exposed.
+        _focus_another_editor();
+    }
     else
         _window_wrapper->hide();
 }
@@ -344,7 +355,22 @@ PackedStringArray OrchestratorPlugin::_get_breakpoints() const
     #endif
 }
 
+void OrchestratorPlugin::_focus_another_editor()
+{
+    if (_window_wrapper->get_window_enabled())
+    {
+        ERR_FAIL_COND(_last_editor.is_empty());
+        EditorInterface::get_singleton()->set_main_screen_editor(_last_editor);
+    }
+}
+
 void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)
 {
-    // todo: see script_editor_plugin.cpp
+    _focus_another_editor();
+}
+
+void OrchestratorPlugin::_on_main_screen_changed(const String& p_name)
+{
+    if (p_name != _get_plugin_name())
+        _last_editor = p_name;
 }

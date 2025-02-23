@@ -85,6 +85,22 @@ bool ScriptServer::GlobalClass::has_signal(const StringName& p_signal_name) cons
     return false;
 }
 
+TypedArray<Dictionary> ScriptServer::GlobalClass::get_static_method_list() const
+{
+    const TypedArray<Dictionary> methods = get_method_list();
+
+    TypedArray<Dictionary> results;
+    for (int i = 0; i < methods.size(); i++)
+    {
+        const Dictionary& dict = methods[i];
+        const uint32_t flags = dict.get("flags", METHOD_FLAGS_DEFAULT);
+        if (flags & METHOD_FLAG_STATIC)
+            results.append(dict);
+    }
+
+    return results;
+}
+
 Dictionary ScriptServer::_get_global_class(const StringName& p_class_name)
 {
     TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
