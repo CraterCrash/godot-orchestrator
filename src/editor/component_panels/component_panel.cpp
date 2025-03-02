@@ -80,13 +80,17 @@ void OrchestratorScriptComponentPanel::_tree_item_edited()
     }
 
     new_name = NameUtils::create_unique_name(new_name, _get_existing_names());
-    if (!_handle_item_renamed(old_name, new_name))
+    _update_blocked = true;
+    const bool rename_ok = _handle_item_renamed(old_name, new_name);
+    _update_blocked = false;
+
+    if (!rename_ok)
     {
         item->set_text(0, item->get_meta("__rollback_name"));
         return;
     }
 
-    update();
+    _queue_update();
 }
 
 void OrchestratorScriptComponentPanel::_tree_item_mouse_selected(const Vector2& p_position, int p_button)
@@ -164,6 +168,12 @@ void OrchestratorScriptComponentPanel::_iterate_tree_item(TreeItem* p_item, cons
         _iterate_tree_item(item, p_callable);
         item = item->get_next();
     }
+}
+
+void OrchestratorScriptComponentPanel::_queue_update()
+{
+    // Queue update for the next frame
+    callable_mp_lambda(this, [=] { update(); }).call_deferred();
 }
 
 void OrchestratorScriptComponentPanel::_iterate_tree_items(const Callable& p_callback)
