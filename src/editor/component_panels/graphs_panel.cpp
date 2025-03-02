@@ -257,6 +257,9 @@ void OrchestratorScriptGraphsComponentPanel::_update_slots()
 
 void OrchestratorScriptGraphsComponentPanel::update()
 {
+    if (_update_blocked)
+        return;
+
     _clear_tree();
 
     Vector<Ref<OScriptGraph>> graphs = _orchestration->get_graphs();

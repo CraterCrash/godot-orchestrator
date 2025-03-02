@@ -33,11 +33,10 @@
 
 void OrchestratorDefaultGraphActionRegistrar::_register_node(const StringName& p_class_name, const StringName& p_category, const Dictionary& p_data)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
     Orchestration* orchestration = _context->graph->get_orchestration();
 
-    const Ref<OScriptNode> node = language->create_node_from_name(p_class_name, orchestration, false);
-    if (!node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::CATALOGABLE))
+    const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(p_class_name, orchestration);
+    if (!node.is_valid() || !node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::CATALOGABLE))
         return;
 
     PackedStringArray name_parts = p_category.split("/");
@@ -335,6 +334,20 @@ void OrchestratorDefaultGraphActionRegistrar::_register_orchestration_nodes()
             const String category = vformat("Static/%s/%s", class_name, function_name);
             _register_node<OScriptNodeCallStaticFunction>(category,
                 DictionaryUtils::of({ { "class_name", class_name }, { "method_name", function_name } }));;
+        }
+    }
+
+    // Static script function calls
+    for (const String& global_class : ScriptServer::get_global_class_list())
+    {
+        const TypedArray<Dictionary> methods = ScriptServer::get_global_class(global_class).get_static_method_list();
+        for (int i = 0; i < methods.size(); i++)
+        {
+            const MethodInfo method = DictionaryUtils::to_method(methods[i]);
+
+            const String category = vformat("Static/%s/%s", global_class, method.name);
+            _register_node<OScriptNodeCallStaticFunction>(category,
+                DictionaryUtils::of({ { "class_name", global_class }, { "method_name", method.name } }));
         }
     }
 

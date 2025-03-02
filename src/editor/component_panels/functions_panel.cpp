@@ -245,6 +245,9 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_tree_gui_input(const Ref
 
 void OrchestratorScriptFunctionsComponentPanel::update()
 {
+    if (_update_blocked)
+        return;
+
     _clear_tree();
 
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
