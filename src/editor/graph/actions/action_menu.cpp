@@ -110,6 +110,7 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         connect("confirmed", callable_mp(this, &OrchestratorGraphActionMenu::_on_confirmed));
         connect("canceled", callable_mp(this, &OrchestratorGraphActionMenu::_on_close_requested));
         connect("close_requested", callable_mp(this, &OrchestratorGraphActionMenu::_on_close_requested));
+        connect("focus_exited", callable_mp(this, &OrchestratorGraphActionMenu::_on_focus_lost));
 
         // When certain script elements change, this handles forcing a refresh
         const Ref<Resource> self = _graph_edit->get_orchestration()->get_self();
@@ -636,4 +637,11 @@ void OrchestratorGraphActionMenu::_on_expand_tree(bool p_expanded)
         }
     }
     _expand->set_pressed_no_signal(true);
+}
+
+void OrchestratorGraphActionMenu::_on_focus_lost()
+{
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    if (settings->get_setting("ui/actions_menu/close_on_focus_lost", false))
+        emit_signal("canceled");
 }
