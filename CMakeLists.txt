@@ -181,12 +181,12 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC godot-cpp.editor)
 SET(GDEXTENSION_LIB_PREFIX "")
 
 ### Get useful properties of the library
-get_target_property( GODOT_PLATFORM godot-cpp::editor GODOT_PLATFORM   )
-get_target_property( GODOT_TARGET   godot-cpp::editor GODOT_TARGET     )
-get_target_property( GODOT_ARCH     godot-cpp::editor GODOT_ARCH       )
+get_target_property( GODOTCPP_PLATFORM godot-cpp::editor GODOTCPP_PLATFORM   )
+get_target_property( GODOTCPP_TARGET   godot-cpp::editor GODOTCPP_TARGET     )
+get_target_property( GODOTCPP_ARCH     godot-cpp::editor GODOTCPP_ARCH       )
 
 # Converts GODOT_ARCH to the old system bits for unchanged file names.
-IF (GODOT_ARCH STREQUAL "x86_64" OR GODOT_ARCH STREQUAL "arm64")
+IF (GODOTCPP_ARCH STREQUAL "x86_64" OR GODOTCPP_ARCH STREQUAL "arm64")
     SET(ORCHESTRATOR_ARCH "64")
 ELSE ()
     SET(ORCHESTRATOR_ARCH "32")
@@ -207,7 +207,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME}
         RUNTIME_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
-        OUTPUT_NAME "${PROJECT_NAME}.${GODOT_PLATFORM}.${ORCHESTRATOR_ARCH}.$<LOWER_CASE:$<CONFIG>>")
+        OUTPUT_NAME "${PROJECT_NAME}.${GODOTCPP_PLATFORM}.${ORCHESTRATOR_ARCH}.$<LOWER_CASE:$<CONFIG>>")
 
 INCLUDE(cmake-utils)
 
