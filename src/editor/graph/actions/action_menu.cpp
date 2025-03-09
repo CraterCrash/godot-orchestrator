@@ -55,29 +55,16 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         hbox->set_alignment(BoxContainer::ALIGNMENT_END);
         vbox->add_child(hbox);
 
-        _context_sensitive = memnew(CheckBox);
-        _context_sensitive->set_text("Context Sensitive");
-        _context_sensitive->set_h_size_flags(Control::SizeFlags::SIZE_SHRINK_END);
-        _context_sensitive->set_focus_mode(Control::FOCUS_NONE);
-        _context_sensitive->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_context_sensitive_toggled));
-        hbox->add_child(_context_sensitive);
+        _close_on_focus_lost = memnew(CheckBox);
+        _close_on_focus_lost->set_text("Close when focus lost");
+        _close_on_focus_lost->set_focus_mode(Control::FOCUS_NONE);
+        _close_on_focus_lost->set_pressed_no_signal(_is_close_on_focus_lost());
+        _close_on_focus_lost->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_toggle_close_on_focus_lost));
+        hbox->add_child(_close_on_focus_lost);
 
-        _collapse = memnew(Button);
-        _collapse->set_button_icon(SceneUtils::get_editor_icon("CollapseTree"));
-        _collapse->set_toggle_mode(true);
-        _collapse->set_focus_mode(Control::FOCUS_NONE);
-        _collapse->set_tooltip_text("Collapse the results tree");
-        _collapse->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_collapse_tree));
-        hbox->add_child(_collapse);
-
-        _expand = memnew(Button);
-        _expand->set_button_icon(SceneUtils::get_editor_icon("ExpandTree"));
-        _expand->set_toggle_mode(true);
-        _expand->set_pressed(true);
-        _expand->set_focus_mode(Control::FOCUS_NONE);
-        _expand->set_tooltip_text("Expand the results tree");
-        _expand->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_expand_tree));
-        hbox->add_child(_expand);
+        HBoxContainer* filter_hbox = memnew(HBoxContainer);
+        filter_hbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        vbox->add_child(filter_hbox);
 
         _filters_text_box = memnew(LineEdit);
         _filters_text_box->set_placeholder("Search...");
@@ -87,8 +74,33 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         _filters_text_box->connect("text_changed", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_changed));
         _filters_text_box->connect("text_submitted", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_changed));
         _filters_text_box->connect("gui_input", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_gui_input));
-        vbox->add_child(_filters_text_box);
+        filter_hbox->add_child(_filters_text_box);
         register_text_enter(_filters_text_box);
+
+        _context_sensitive = memnew(Button);
+        _context_sensitive->set_button_icon(SceneUtils::get_icon("FilenameFilter"));
+        _context_sensitive->set_toggle_mode(true);
+        _context_sensitive->set_focus_mode(Control::FOCUS_NONE);
+        _context_sensitive->set_tooltip_text("Toggle context-sensitive results");
+        _context_sensitive->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_context_sensitive_toggled));
+        filter_hbox->add_child(_context_sensitive);
+
+        _collapse = memnew(Button);
+        _collapse->set_button_icon(SceneUtils::get_editor_icon("CollapseTree"));
+        _collapse->set_toggle_mode(true);
+        _collapse->set_focus_mode(Control::FOCUS_NONE);
+        _collapse->set_tooltip_text("Collapse the results tree");
+        _collapse->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_collapse_tree));
+        filter_hbox->add_child(_collapse);
+
+        _expand = memnew(Button);
+        _expand->set_button_icon(SceneUtils::get_editor_icon("ExpandTree"));
+        _expand->set_toggle_mode(true);
+        _expand->set_pressed(true);
+        _expand->set_focus_mode(Control::FOCUS_NONE);
+        _expand->set_tooltip_text("Expand the results tree");
+        _expand->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_expand_tree));
+        filter_hbox->add_child(_expand);
 
         _tree_view = memnew(Tree);
         _tree_view->set_v_size_flags(Control::SIZE_EXPAND_FILL);
@@ -639,9 +651,24 @@ void OrchestratorGraphActionMenu::_on_expand_tree(bool p_expanded)
     _expand->set_pressed_no_signal(true);
 }
 
-void OrchestratorGraphActionMenu::_on_focus_lost()
+bool OrchestratorGraphActionMenu::_is_close_on_focus_lost() const
 {
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
-    if (settings->get_setting("ui/actions_menu/close_on_focus_lost", false))
+    if (settings)
+        return settings->get_setting("ui/actions_menu/close_on_focus_lost", false);
+
+    return false;
+}
+
+void OrchestratorGraphActionMenu::_on_focus_lost()
+{
+    if (_is_close_on_focus_lost())
         emit_signal("canceled");
+}
+
+void OrchestratorGraphActionMenu::_on_toggle_close_on_focus_lost(bool p_new_state)
+{
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    if (settings)
+        settings->set_setting("ui/actions_menu/close_on_focus_lost", p_new_state);
 }
