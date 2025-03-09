@@ -762,6 +762,7 @@ namespace godot
 				ei.values.push_back({ "METHOD_FLAG_VARARG", "", 16 });
 				ei.values.push_back({ "METHOD_FLAG_STATIC", "", 32 });
 				ei.values.push_back({ "METHOD_FLAG_OBJECT_CORE", "", 64 });
+				ei.values.push_back({ "METHOD_FLAG_VIRTUAL_REQUIRED", "", 128 });
 				ei.values.push_back({ "METHOD_FLAGS_DEFAULT", "", 1 });
 				_sanitize_enum(ei);
 				ExtensionDB::_singleton->_global_enums["MethodFlags"] = ei;
@@ -2969,9 +2970,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_BYTE_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_BYTE_ARRAY, "array" } }));
@@ -3051,9 +3052,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_INT32_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_INT32_ARRAY, "array" } }));
@@ -3095,9 +3096,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_INT64_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_INT64_ARRAY, "array" } }));
@@ -3139,9 +3140,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_FLOAT32_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_FLOAT32_ARRAY, "array" } }));
@@ -3183,9 +3184,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_FLOAT64_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::FLOAT, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_FLOAT64_ARRAY, "array" } }));
@@ -3227,9 +3228,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_STRING_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::STRING, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::STRING, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::STRING, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::STRING, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_STRING_ARRAY, "array" } }));
@@ -3272,9 +3273,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_VECTOR2_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR2, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR2, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR2, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR2, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR2, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_VECTOR2_ARRAY, "array" } }));
@@ -3317,9 +3318,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_VECTOR3_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR3, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR3, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR3, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR3, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_VECTOR3_ARRAY, "array" } }));
@@ -3361,9 +3362,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_COLOR_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::COLOR, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::COLOR, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::COLOR, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::COLOR, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::COLOR, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_COLOR_ARRAY, "array" } }));
@@ -3405,9 +3406,9 @@ namespace godot
 				type.constructors.push_back({ { PropertyInfo(Variant::PACKED_VECTOR4_ARRAY, "from") } });
 				type.constructors.push_back({ { PropertyInfo(Variant::ARRAY, "from") } });
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR4, { { Variant::INT, "index" } }));
+				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR4, "value" } }));
 				type.methods.push_back(_make_method("size", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("is_empty", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BOOL, {  }));
-				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "index" }, { Variant::VECTOR4, "value" } }));
 				type.methods.push_back(_make_method("push_back", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR4, "value" } }));
 				type.methods.push_back(_make_method("append", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR4, "value" } }));
 				type.methods.push_back(_make_method("append_array", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::PACKED_VECTOR4_ARRAY, "array" } }));
@@ -4849,6 +4850,7 @@ namespace godot
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("BarrierMask");
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("TextureUsageBits");
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("StorageBufferUsage");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("BufferCreationBits");
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("PipelineDynamicStateFlags");
 			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("DrawFlags");
 			

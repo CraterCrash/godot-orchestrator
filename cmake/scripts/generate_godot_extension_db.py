@@ -542,6 +542,8 @@ def get_method_flags(method):
         flags += " | METHOD_FLAG_STATIC"
     if 'is_vararg' in method and method["is_vararg"]:
         flags += " | METHOD_FLAG_VARARG"
+    if 'is_required' in method and method["is_required"]:
+        flags += " | METHOD_FLAG_VIRTUAL_REQUIRED"
     return flags
 
 
