@@ -1,0 +1,11 @@
+name: Setup Web Dependencies
+description: Setup Web Build Dependencies
+runs:
+  using: "composite"
+  steps:
+
+    - name: Install Emscripten
+      uses: mymindstorm/setup-emsdk@v14
+      with:
+        version: 3.1.39
+        actions-cache-folder: "emsdk-cache"
