@@ -158,6 +158,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
 
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
+    _settings.emplace_back(BOOL_SETTING("ui/actions_menu/close_on_focus_lost", false));
 
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_graph_friendly_names", true));
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_function_friendly_names", true));
