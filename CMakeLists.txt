@@ -188,10 +188,8 @@ get_target_property( GODOTCPP_ARCH     godot-cpp::editor GODOTCPP_ARCH       )
 # Converts GODOT_ARCH to the old system bits for unchanged file names.
 IF (APPLE)
     SET(ORCHESTRATOR_ARCH "universal")
-ELSEIF (GODOTCPP_ARCH STREQUAL "x86_64" OR GODOTCPP_ARCH STREQUAL "arm64")
-    SET(ORCHESTRATOR_ARCH "64")
 ELSE ()
-    SET(ORCHESTRATOR_ARCH "32")
+    MATH( EXPR ORCHESTRATOR_ARCH "${CMAKE_SIZEOF_VOID_P} * 8")
 ENDIF ()
 
 IF (ANDROID)
