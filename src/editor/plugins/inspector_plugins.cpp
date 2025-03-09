@@ -18,9 +18,11 @@
 
 #include "common/dictionary_utils.h"
 #include "common/version.h"
+#include "editor/inspector/editor_property_class_name.h"
 #include "editor/inspector/property_info_container_property.h"
 #include "editor/inspector/property_type_button_property.h"
 #include "orchestrator_editor_plugin.h"
+#include "script/nodes/data/type_cast.h"
 #include "script/nodes/functions/function_terminator.h"
 #include "script/nodes/signals/emit_signal.h"
 
@@ -178,3 +180,26 @@ void OrchestratorEditorInspectorPluginVariable::edit_classification(Object* p_ob
 
     _classification->edit();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool OrchestratorEditorInspectorPluginTypeCast::_can_handle(Object* p_object) const
+{
+    return p_object->get_class() == OScriptNodeTypeCast::get_class_static();
+}
+
+bool OrchestratorEditorInspectorPluginTypeCast::_parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint_type, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage_flags, bool p_wide)
+{
+    if (Object::cast_to<OScriptNodeTypeCast>(p_object))
+    {
+        if (p_name.match("type"))
+        {
+            OrchestratorEditorPropertyClassName* editor = memnew(OrchestratorEditorPropertyClassName);
+            editor->setup(p_hint_string, p_object->get("type"), true);
+            add_property_editor(p_name, editor, true);
+            return true;
+        }
+    }
+    return false;
+}
+

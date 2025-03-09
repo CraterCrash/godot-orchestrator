@@ -38,6 +38,7 @@
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
+#include "editor/inspector/editor_property_class_name.h"
 #include "editor/inspector/property_info_container_property.h"
 #include "editor/inspector/property_type_button_property.h"
 #include "editor/plugins/inspector_plugins.h"
@@ -48,6 +49,7 @@
 #include "editor/script_connections.h"
 #include "editor/script_editor_viewport.h"
 #include "editor/search/search_dialog.h"
+#include "editor/select_class_dialog.h"
 #include "editor/select_type_dialog.h"
 #include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
@@ -66,16 +68,19 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginFunction)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginSignal)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginTypeCast)
     GDREGISTER_INTERNAL_CLASS(OrchestratorThemeCache)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorCache)
     GDREGISTER_INTERNAL_CLASS(OrchestratorBuildOutputPanel)
 
     // Editor bits
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyClassName)
     GDREGISTER_INTERNAL_CLASS(OrchestratorPropertyInfoContainerEditorProperty)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyVariableClassification)
     GDREGISTER_INTERNAL_CLASS(OrchestratorFileDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorSelectClassSearchDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorSelectTypeSearchDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
     GDREGISTER_INTERNAL_CLASS(OrchestratorScriptAutowireSelections)

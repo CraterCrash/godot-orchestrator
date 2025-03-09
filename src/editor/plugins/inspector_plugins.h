@@ -84,4 +84,17 @@ public:
     void edit_classification(Object* p_object);
 };
 
+/// An EditorInspectorPlugin that handles OScriptNodeTypeCast node object selection
+class OrchestratorEditorInspectorPluginTypeCast : public EditorInspectorPlugin
+{
+    GDCLASS(OrchestratorEditorInspectorPluginTypeCast, EditorInspectorPlugin);
+    static void _bind_methods() { }
+
+public:
+    //~ Begin EditorInspectorPlugin Interface
+    bool _can_handle(Object* p_object) const override;
+    bool _parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint_type, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage_flags, bool p_wide) override;
+    //~ End EditorInspectorPlugin Interface
+};
+
 #endif // ORCHESTRATOR_EDITOR_INSPECTOR_PLUGINS_H
