@@ -161,6 +161,8 @@ private:
     /// @param p_expanded the current expand state
     void _on_expand_tree(bool p_expanded);
 
+    /// Dispatched when the window looses focus
+    void _on_focus_lost();
 };
 
 #endif  // ORCHESTRATOR_EDITOR_GRAPH_ACTION_MENU_H
