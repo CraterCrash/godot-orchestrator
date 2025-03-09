@@ -121,6 +121,16 @@ protected:
     /// @return the search item reference, invalid reference if not found
     Ref<SearchItem> _get_search_item_by_name(const String& p_name) const;
 
+    /// Reads contents of the file line by line
+    /// @param p_file_name the file name
+    /// @return an array of recent items
+    PackedStringArray _read_file_lines(const String& p_file_name) const;
+
+    /// Writes the array of items line-by-line to the given file
+    /// @param p_file_name the file name
+    /// @param p_values the values to write
+    void _write_file_lines(const String& p_file_name, const PackedStringArray& p_values);
+
     /// Get all filters
     /// @return the possible filters
     virtual Vector<FilterOption> _get_filters() const { return {}; }
