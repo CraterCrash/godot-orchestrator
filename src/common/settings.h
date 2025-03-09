@@ -60,6 +60,11 @@ public:
     /// @return the found value or the specified default
     Variant get_setting(const String& p_key, const Variant& p_default_value = Variant());
 
+    /// Set the value of a setting
+    /// @param p_key the setting key to set
+    /// @param p_value the value to set
+    void set_setting(const String& p_key, const Variant& p_value);
+
     /// Get all currently defined action favorites.
     /// @return A <code>PackedStringArray</code> of all action category favorites.
     PackedStringArray get_action_favorites();
