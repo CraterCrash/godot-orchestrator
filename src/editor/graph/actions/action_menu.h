@@ -43,7 +43,8 @@ class OrchestratorGraphActionMenu : public ConfirmationDialog
 
     Tree* _tree_view{ nullptr };                  //! Results tree view
     LineEdit* _filters_text_box{ nullptr };       //! Filter text box
-    CheckBox* _context_sensitive{ nullptr };      //! Context-sensitive check box
+    CheckBox* _close_on_focus_lost{ nullptr };    //! Close on focus lost setting control
+    Button* _context_sensitive{ nullptr };        //! Context-sensitive button
     Button* _expand{ nullptr };                   //! Expand button
     Button* _collapse{ nullptr };                 //! Collapse button
     HashMap<String, Ref<Texture2D>> _icon_cache;  //! Cache of icons
@@ -115,7 +116,7 @@ private:
     /// @return true if the selection was applied, false otherwise
     bool _apply_selection(TreeItem* p_item);
 
-    /// Dispatched when the context sensitive checkbox is toggled
+    /// Dispatched when the context-sensitive button is toggled
     /// @param p_new_state the new checkbox state
     void _on_context_sensitive_toggled(bool p_new_state);
 
@@ -161,8 +162,16 @@ private:
     /// @param p_expanded the current expand state
     void _on_expand_tree(bool p_expanded);
 
+    /// Get whether to close on focus lost
+    /// @return true if close window on focus lost, false if not
+    bool _is_close_on_focus_lost() const;
+
     /// Dispatched when the window looses focus
     void _on_focus_lost();
+
+    /// Dispatched when the user checks or unchecks the close on focus lost widget
+    /// @param p_new_state whether close on focus lost is enabled
+    void _on_toggle_close_on_focus_lost(bool p_new_state);
 };
 
 #endif  // ORCHESTRATOR_EDITOR_GRAPH_ACTION_MENU_H
