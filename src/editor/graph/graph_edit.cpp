@@ -1507,7 +1507,7 @@ void OrchestratorGraphEdit::_create_script_function_callable(const StringName& p
             spawn_node<OScriptNodeSelf>(
                 self_context,
                 self_position,
-                callable_mp_lambda(this, [=, this](OScriptNodeSelf* self) {
+                callable_mp_lambda(this, [=](OScriptNodeSelf* self) {
                     self->find_pin(0, PD_Output)->link(compose->find_pin(0, PD_Input));
                 }));
         }));

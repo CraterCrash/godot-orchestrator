@@ -173,7 +173,7 @@ void OrchestratorScriptComponentPanel::_iterate_tree_item(TreeItem* p_item, cons
 void OrchestratorScriptComponentPanel::_queue_update()
 {
     // Queue update for the next frame
-    callable_mp_lambda(this, [=] { update(); }).call_deferred();
+    callable_mp_lambda(this, [this] { update(); }).call_deferred();
 }
 
 void OrchestratorScriptComponentPanel::_iterate_tree_items(const Callable& p_callback)
