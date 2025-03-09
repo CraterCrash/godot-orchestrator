@@ -64,6 +64,7 @@ void OrchestratorPlugin::_notification(int p_what)
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginFunction));
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginSignal));
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginVariable));
+        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginTypeCast));
         for (const Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
             add_inspector_plugin(plugin);
 
