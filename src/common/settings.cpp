@@ -68,6 +68,16 @@ Variant OrchestratorSettings::get_setting(const String& key, const Variant& p_de
     return ps->get_setting(path, p_default_value);
 }
 
+void OrchestratorSettings::set_setting(const String& p_key, const Variant& p_value)
+{
+    String path = p_key;
+    if (!path.begins_with("orchestrator/"))
+        path = vformat("orchestrator/%s", p_key);
+
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+    ps->set_setting(path, p_value);
+}
+
 PackedStringArray OrchestratorSettings::get_action_favorites()
 {
     return ProjectSettings::get_singleton()->get_setting(
