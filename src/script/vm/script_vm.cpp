@@ -20,6 +20,7 @@
 #include "orchestration/orchestration.h"
 #include "script/instances/node_instance.h"
 #include "script/nodes/variables/local_variable.h"
+#include "script/utility_functions.h"
 #include "script/vm/script_state.h"
 
 #include <godot_cpp/classes/engine_debugger.hpp>
@@ -1038,6 +1039,15 @@ void OScriptVirtualMachine::call_method(OScriptInstance* p_instance, const Strin
     ERR_FAIL_COND_MSG(!r_err, "No error code argument provided.");
 
     r_err->error = GDEXTENSION_CALL_OK;
+
+    if (OScriptUtilityFunctions::function_exists(p_method))
+    {
+        if (OScriptUtilityFunctions::FunctionPtr func = OScriptUtilityFunctions::get_function(p_method))
+        {
+            func(r_return, const_cast<const Variant**>(p_args), p_arg_count, *r_err);
+            return;
+        }
+    }
 
     // Check whether the method is defined as part of the Orchestration.
     // This means that there will be a function defined in the function map.
