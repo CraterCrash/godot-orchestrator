@@ -82,10 +82,10 @@ void OrchestratorGraphNodePinString::_focus_entered()
         _popup->connect("window_input", callable_mp(this, &OrchestratorGraphNodePinString::_window_input));
         _popup->connect("index_pressed", callable_mp(this, &OrchestratorGraphNodePinString::_suggestion_picked));
         _popup->connect("popup_hide", callable_mp(this, &OrchestratorGraphNodePinString::_popup_hide));
-        _popup->connect("tree_exiting", callable_mp_lambda(this, [=]{ _popup = nullptr; }));
+        _popup->connect("tree_exiting", callable_mp_lambda(this, [this]{ _popup = nullptr; }));
 
         _popup->clear();
-        for (const String suggestion : _suggestions)
+        for (const String& suggestion : _suggestions)
             _popup->add_item(suggestion);
 
         _editor->add_child(_popup);
