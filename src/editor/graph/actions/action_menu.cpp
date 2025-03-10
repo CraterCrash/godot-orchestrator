@@ -27,6 +27,7 @@
 
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/display_server.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -54,29 +55,16 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         hbox->set_alignment(BoxContainer::ALIGNMENT_END);
         vbox->add_child(hbox);
 
-        _context_sensitive = memnew(CheckBox);
-        _context_sensitive->set_text("Context Sensitive");
-        _context_sensitive->set_h_size_flags(Control::SizeFlags::SIZE_SHRINK_END);
-        _context_sensitive->set_focus_mode(Control::FOCUS_NONE);
-        _context_sensitive->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_context_sensitive_toggled));
-        hbox->add_child(_context_sensitive);
+        _close_on_focus_lost = memnew(CheckBox);
+        _close_on_focus_lost->set_text("Close when focus lost");
+        _close_on_focus_lost->set_focus_mode(Control::FOCUS_NONE);
+        _close_on_focus_lost->set_pressed_no_signal(_is_close_on_focus_lost());
+        _close_on_focus_lost->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_toggle_close_on_focus_lost));
+        hbox->add_child(_close_on_focus_lost);
 
-        _collapse = memnew(Button);
-        _collapse->set_button_icon(SceneUtils::get_editor_icon("CollapseTree"));
-        _collapse->set_toggle_mode(true);
-        _collapse->set_focus_mode(Control::FOCUS_NONE);
-        _collapse->set_tooltip_text("Collapse the results tree");
-        _collapse->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_collapse_tree));
-        hbox->add_child(_collapse);
-
-        _expand = memnew(Button);
-        _expand->set_button_icon(SceneUtils::get_editor_icon("ExpandTree"));
-        _expand->set_toggle_mode(true);
-        _expand->set_pressed(true);
-        _expand->set_focus_mode(Control::FOCUS_NONE);
-        _expand->set_tooltip_text("Expand the results tree");
-        _expand->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_expand_tree));
-        hbox->add_child(_expand);
+        HBoxContainer* filter_hbox = memnew(HBoxContainer);
+        filter_hbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        vbox->add_child(filter_hbox);
 
         _filters_text_box = memnew(LineEdit);
         _filters_text_box->set_placeholder("Search...");
@@ -85,8 +73,34 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         _filters_text_box->set_clear_button_enabled(true);
         _filters_text_box->connect("text_changed", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_changed));
         _filters_text_box->connect("text_submitted", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_changed));
-        vbox->add_child(_filters_text_box);
+        _filters_text_box->connect("gui_input", callable_mp(this, &OrchestratorGraphActionMenu::_on_filter_text_gui_input));
+        filter_hbox->add_child(_filters_text_box);
         register_text_enter(_filters_text_box);
+
+        _context_sensitive = memnew(Button);
+        _context_sensitive->set_button_icon(SceneUtils::get_icon("FilenameFilter"));
+        _context_sensitive->set_toggle_mode(true);
+        _context_sensitive->set_focus_mode(Control::FOCUS_NONE);
+        _context_sensitive->set_tooltip_text("Toggle context-sensitive results");
+        _context_sensitive->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_context_sensitive_toggled));
+        filter_hbox->add_child(_context_sensitive);
+
+        _collapse = memnew(Button);
+        _collapse->set_button_icon(SceneUtils::get_editor_icon("CollapseTree"));
+        _collapse->set_toggle_mode(true);
+        _collapse->set_focus_mode(Control::FOCUS_NONE);
+        _collapse->set_tooltip_text("Collapse the results tree");
+        _collapse->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_collapse_tree));
+        filter_hbox->add_child(_collapse);
+
+        _expand = memnew(Button);
+        _expand->set_button_icon(SceneUtils::get_editor_icon("ExpandTree"));
+        _expand->set_toggle_mode(true);
+        _expand->set_pressed(true);
+        _expand->set_focus_mode(Control::FOCUS_NONE);
+        _expand->set_tooltip_text("Expand the results tree");
+        _expand->connect("toggled", callable_mp(this, &OrchestratorGraphActionMenu::_on_expand_tree));
+        filter_hbox->add_child(_expand);
 
         _tree_view = memnew(Tree);
         _tree_view->set_v_size_flags(Control::SIZE_EXPAND_FILL);
@@ -108,6 +122,7 @@ void OrchestratorGraphActionMenu::_notification(int p_what)
         connect("confirmed", callable_mp(this, &OrchestratorGraphActionMenu::_on_confirmed));
         connect("canceled", callable_mp(this, &OrchestratorGraphActionMenu::_on_close_requested));
         connect("close_requested", callable_mp(this, &OrchestratorGraphActionMenu::_on_close_requested));
+        connect("focus_exited", callable_mp(this, &OrchestratorGraphActionMenu::_on_focus_lost));
 
         // When certain script elements change, this handles forcing a refresh
         const Ref<Resource> self = _graph_edit->get_orchestration()->get_self();
@@ -485,6 +500,34 @@ void OrchestratorGraphActionMenu::_on_filter_text_changed(const String& p_new_te
     }
 }
 
+void OrchestratorGraphActionMenu::_on_filter_text_gui_input(const Ref<InputEvent>& p_event)
+{
+    Ref<InputEventKey> key_event = p_event;
+    if (key_event.is_valid() && key_event->is_pressed())
+    {
+        switch (key_event->get_keycode())
+        {
+            case KEY_UP:
+            case KEY_DOWN:
+            case KEY_PAGEUP:
+            case KEY_PAGEDOWN:
+            {
+                // Only way to reroute events is via Viewport::push_event.
+                // This requires that the control that receives the event have focus
+                _tree_view->grab_focus();
+                get_viewport()->push_input(key_event);
+
+                // Reset the focus & mark the event as handled.
+                _filters_text_box->grab_focus();
+                _filters_text_box->accept_event();
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
 void OrchestratorGraphActionMenu::_on_tree_item_selected()
 {
     // Disable the OK button if no item is selected
@@ -606,4 +649,26 @@ void OrchestratorGraphActionMenu::_on_expand_tree(bool p_expanded)
         }
     }
     _expand->set_pressed_no_signal(true);
+}
+
+bool OrchestratorGraphActionMenu::_is_close_on_focus_lost() const
+{
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    if (settings)
+        return settings->get_setting("ui/actions_menu/close_on_focus_lost", false);
+
+    return false;
+}
+
+void OrchestratorGraphActionMenu::_on_focus_lost()
+{
+    if (_is_close_on_focus_lost())
+        emit_signal("canceled");
+}
+
+void OrchestratorGraphActionMenu::_on_toggle_close_on_focus_lost(bool p_new_state)
+{
+    OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+    if (settings)
+        settings->set_setting("ui/actions_menu/close_on_focus_lost", p_new_state);
 }
