@@ -746,11 +746,10 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback)
             Ref<OScript> script = get_owning_node()->get_orchestration()->get_self();
             if (script.is_valid())
             {
-                Node* root = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
-                if (root)
+                MainLoop* main_loop = Engine::get_singleton()->get_main_loop();
+                if (Node* root = Object::cast_to<SceneTree>(main_loop)->get_edited_scene_root())
                 {
-                    Node* node = SceneUtils::get_node_with_script(script, root, root);
-                    if (node)
+                    if (Node* node = SceneUtils::get_node_with_script(script, root, root))
                     {
                         const TypedArray<Dictionary> signals = node->get_signal_list();
                         for (int i = 0; i < signals.size(); i++)
@@ -760,9 +759,30 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback)
                         }
                     }
                 }
+
+                if (signal_names.is_empty())
+                {
+                    TypedArray<Dictionary> signals = script->get_script_signal_list();
+                    for (int i = 0; i < signals.size(); i++)
+                    {
+                        const Dictionary& dict = signals[i];
+                        signal_names.push_back(dict["name"]);
+                    }
+
+                    signals = script->get_signal_list();
+                    for (int i = 0; i < signals.size(); i++)
+                    {
+                        const Dictionary& dict = signals[i];
+                        if (!signal_names.has(dict["name"]))
+                            signal_names.push_back(dict["name"]);
+                    }
+                }
             }
         }
     }
+
+    if (!signal_names.is_empty())
+        signal_names.sort();
 
     return signal_names;
 }
