@@ -76,7 +76,7 @@ public:
     //~ Begin OrchestratorGraphNode Interface
     OrchestratorGraphNodePin* get_input_pin(int p_port) override;
     OrchestratorGraphNodePin* get_output_pin(int p_port) override;
-    void show_icons(bool p_visible) override;
+    void update_pins(bool p_visible) override;
     //~ End OrchestratorGraphNode Interface
 };
 
