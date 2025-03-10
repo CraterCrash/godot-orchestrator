@@ -1982,7 +1982,7 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
         set_show_arrange_button(os->get_setting("ui/graph/show_arrange_button", false));
 
         for_each_graph_node([&](OrchestratorGraphNode* node) {
-            node->show_icons(show_icons);
+            node->update_pins(show_icons);
             node->set_resizable(node_resizable);
         });
     }

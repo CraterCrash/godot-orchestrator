@@ -201,14 +201,20 @@ OrchestratorGraphNodePin* OrchestratorGraphNodeDefault::get_output_pin(int p_por
     return _pin_rows[get_output_port_slot(p_port)].right;
 }
 
-void OrchestratorGraphNodeDefault::show_icons(bool p_visible)
+void OrchestratorGraphNodeDefault::update_pins(bool p_visible)
 {
     for (const KeyValue<int, Row>& E : _pin_rows)
     {
         if (E.value.left)
+        {
             E.value.left->show_icon(p_visible);
+            set_slot_color_left(E.key, E.value.left->get_color());
+        }
 
         if (E.value.right)
+        {
             E.value.right->show_icon(p_visible);
+            set_slot_color_right(E.key, E.value.right->get_color());
+        }
     }
 }
