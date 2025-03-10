@@ -156,8 +156,9 @@ public:
     /// Unlinks all connections to all pins on this node
     void unlink_all();
 
-    /// Set whether node icons are shown
-    virtual void show_icons(bool p_show_icons) { }
+    /// Updates state for each pin on the node
+    /// @param p_show_icons specifies whether icons should be shown on pins
+    virtual void update_pins(bool p_show_icons) { }
 
     /// Get a list of elements within this node's global rect.
     List<GraphElement*> get_elements_within_global_rect();
