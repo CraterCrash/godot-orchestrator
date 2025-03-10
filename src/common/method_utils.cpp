@@ -137,7 +137,7 @@ namespace MethodUtils
         if (!PropertyUtils::are_equal(p_method_a.return_val, p_method_b.return_val))
             return false;
 
-        for (int i = 0; i < p_method_a.arguments.size(); i++)
+        for (size_t i = 0; i < p_method_a.arguments.size(); i++)
         {
             const PropertyInfo& a = p_method_a.arguments[i];
             const PropertyInfo& b = p_method_b.arguments[i];
@@ -151,7 +151,7 @@ namespace MethodUtils
                 return false;
         }
 
-        for (int i = 0; i < p_method_b.default_arguments.size(); i++)
+        for (size_t i = 0; i < p_method_b.default_arguments.size(); i++)
         {
             const Variant& a = p_method_a.default_arguments[i];
             const Variant& b = p_method_b.default_arguments[i];

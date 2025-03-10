@@ -764,8 +764,12 @@ void OrchestratorEditorPanel::_goto_script_line(const Ref<Script>& p_script, int
 
     edit_script(script);
 
-    // Goto the node in the script
-    _files_context.get_selected()->viewport->goto_node(p_line + 1);
+    // Allow specifying p_line as -1 to open script but not to jump to a specific node
+    if (p_line != -1)
+    {
+        // Goto the node in the script
+        _files_context.get_selected()->viewport->goto_node(p_line + 1);
+    }
 }
 
 void OrchestratorEditorPanel::_clear_all_breakpoints()

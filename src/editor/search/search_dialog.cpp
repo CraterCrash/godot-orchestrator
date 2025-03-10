@@ -16,6 +16,7 @@
 //
 #include "editor/search/search_dialog.h"
 
+#include "common/file_utils.h"
 #include "common/scene_utils.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -56,8 +57,6 @@ void OrchestratorEditorSearchHelpBit::_notification(int p_what)
         }
     }
 }
-
-#include <godot_cpp/variant/utility_functions.hpp>
 
 void OrchestratorEditorSearchHelpBit::_add_text(const String& p_bbcode)
 {
@@ -480,6 +479,30 @@ Ref<OrchestratorEditorSearchDialog::SearchItem> OrchestratorEditorSearchDialog::
             return item;
 
     return {};
+}
+
+PackedStringArray OrchestratorEditorSearchDialog::_read_file_lines(const String& p_file_name) const
+{
+    PackedStringArray items;
+    const Ref<FileAccess> file = FileUtils::open_project_settings_file(p_file_name, FileAccess::READ);
+    FileUtils::for_each_line(file, [&](const String& line) {
+        if (const String trimmed = line.strip_edges(); !trimmed.is_empty())
+        {
+            if (!items.has(trimmed))
+                items.push_back(trimmed);
+        }
+    });
+    return items;
+}
+
+void OrchestratorEditorSearchDialog::_write_file_lines(const String& p_file_name, const PackedStringArray& p_values)
+{
+    const Ref<FileAccess> file = FileUtils::open_project_settings_file(p_file_name, FileAccess::WRITE);
+    if (file.is_valid())
+    {
+        for (const String& item : p_values)
+            file->store_line(item);
+    }
 }
 
 void OrchestratorEditorSearchDialog::popup_create(bool p_dont_clear, bool p_replace_mode, const String& p_current_type, const String& p_current_name)

@@ -18,7 +18,7 @@ jobs:
           - identifier: linux-release
             name: 🐧 Linux
             build_type: Release
-            runner: ubuntu-20.04
+            runner: ubuntu-22.04
             target: template_release
             platform: linux
             arch: x86_64
@@ -41,14 +41,14 @@ jobs:
           - identifier: android-arm64
             name: 🤖 Android (arm64)
             build_type: Release
-            runner: ubuntu-20.04
+            runner: ubuntu-22.04
             platform: arm64-v8a
             arch: arm64-v8a
 
           - identifier: android-arm32
             name: 🤖 Android (arm32)
             build_type: Release
-            runner: ubuntu-20.04
+            runner: ubuntu-22.04
             platform: armeabi-v7a
             arch: armeabi-v7a
 
