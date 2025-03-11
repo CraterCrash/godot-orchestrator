@@ -18,7 +18,10 @@
 
 #include "api/extension_db.h"
 #include "common/string_utils.h"
+#include "script/script_server.h"
 
+#include <godot_cpp/classes/editor_file_system.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -108,7 +111,7 @@ void OrchestratorGraphNodePinEnum::_generate_items()
                     }
                 }
             }
-            else
+            else if (ClassDB::class_exists(class_name))
             {
                 // Handle Nested Class Enum
                 const PackedStringArray enum_values = ClassDB::class_get_enum_constants(class_name, enum_name, true);
@@ -120,6 +123,24 @@ void OrchestratorGraphNodePinEnum::_generate_items()
                     item.friendly_name = _generate_friendly_name(prefix, item.name);
                     item.value = index;
                     _items.push_back(item);
+                }
+            }
+            else if (ScriptServer::is_global_class(class_name))
+            {
+                Dictionary constants = ScriptServer::get_global_class(class_name).get_constants_list();
+                if (constants.has(enum_name))
+                {
+                    const Dictionary entries = constants[enum_name];
+                    const Array entries_keys = entries.keys();
+
+                    for (int i = 0; i < entries_keys.size(); i++)
+                    {
+                        ListItem item;
+                        item.name = entries_keys[i];
+                        item.friendly_name = _generate_friendly_name("", item.name);
+                        item.value = entries[entries_keys[i]];
+                        _items.push_back(item);
+                    }
                 }
             }
         }
