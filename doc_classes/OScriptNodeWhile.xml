@@ -7,6 +7,6 @@
         The [OScriptNodeWhile] node continuously executes the logic connected to the [param repeat] output pin while the [param condition] input pin is [code]true[/code]. When the [param condition] input pin is [code]false[/code], the while loop exits through the [param done] output pin.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#while</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#while</link>
     </tutorials>
 </class>

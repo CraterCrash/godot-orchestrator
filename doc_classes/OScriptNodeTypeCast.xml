@@ -19,6 +19,6 @@
         The [OScriptNodeTypeCast] node encapsulates the above behind into a single logical step.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#type-cast</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#type-cast</link>
     </tutorials>
 </class>

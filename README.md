@@ -47,7 +47,7 @@ Using the wrong version of Orchestrator with the Godot editor may result in unex
 
 ## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Documentation
 
-For complete documentation, see https://docs.cratercrash.com/orchestrator.
+For complete documentation, see https://docs.cratercrash.space/orchestrator.
 
 ## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Changelog
 

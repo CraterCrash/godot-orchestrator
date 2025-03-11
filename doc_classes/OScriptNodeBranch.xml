@@ -7,6 +7,6 @@
         The [OScriptNodeBranch] provides a traditional if-else branch style operation. If the [param condition] is [code]true[/code], the node exits through the [param true] output pin, otherwise exits through the [param false] output pin.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#branch</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#branch</link>
     </tutorials>
 </class>

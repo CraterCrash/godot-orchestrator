@@ -10,6 +10,6 @@
         [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove choice pins.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/dialogue#show-message-node</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/dialogue#show-message-node</link>
     </tutorials>
 </class>

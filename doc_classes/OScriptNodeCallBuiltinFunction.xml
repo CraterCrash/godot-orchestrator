@@ -7,6 +7,6 @@
         The [OScriptNodeCallBuiltinFunction] node is a specialized [OScriptNodeCallFunction] node that executes one of many Godot built-in functions such as [method str], [method print], and even [method floor]. Many of these functions are found under the [code]Utilities[/code] category in the [param All Actions] window.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/functions#built-in-functions</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/functions#built-in-functions</link>
     </tutorials>
 </class>
