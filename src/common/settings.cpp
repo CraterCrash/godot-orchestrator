@@ -68,6 +68,16 @@ Variant OrchestratorSettings::get_setting(const String& key, const Variant& p_de
     return ps->get_setting(path, p_default_value);
 }
 
+void OrchestratorSettings::set_setting(const String& p_key, const Variant& p_value)
+{
+    String path = p_key;
+    if (!path.begins_with("orchestrator/"))
+        path = vformat("orchestrator/%s", p_key);
+
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+    ps->set_setting(path, p_value);
+}
+
 PackedStringArray OrchestratorSettings::get_action_favorites()
 {
     return ProjectSettings::get_singleton()->get_setting(
@@ -150,12 +160,14 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(RESOURCE_SETTING("settings/default_type", "Object", "Node"));
     _settings.emplace_back(SENUM_SETTING("settings/storage_format", "Text,Binary", "Text"));
     _settings.emplace_back(SENUM_SETTING("settings/log_level", "FATAL,ERROR,WARN,INFO,DEBUG,TRACE", "INFO"));
-    _settings.emplace_back(BOOL_SETTING("settings/notify_about_pre-releases", true));
+    _settings.emplace_back(BOOL_SETTING("settings/notify_about_pre-releases", false));
+    _settings.emplace_back(FILE_SETTING("settings/dialogue/default_message_scene", "*.tscn,*.scn", "res://addons/orchestrator/scenes/dialogue_message.tscn"));
 
     _settings.emplace_back(RANGE_SETTING("settings/runtime/max_call_stack", "256,1024,256", 1024));
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
 
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
+    _settings.emplace_back(BOOL_SETTING("ui/actions_menu/close_on_focus_lost", false));
 
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_graph_friendly_names", true));
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_function_friendly_names", true));
