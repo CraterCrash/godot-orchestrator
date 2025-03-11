@@ -67,6 +67,7 @@ protected:
     //~ Begin OrchestratorGraphNodePin Interface
     Control* _get_default_value_widget() override;
     bool _render_default_value_below_label() const override { return true; }
+    void _update_label() override;
     //~ End OrchestratorGraphNodePin Interface
 
     /// Constructor, intentionally protected

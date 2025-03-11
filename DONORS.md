@@ -2,11 +2,11 @@
 
 ## Gold donors
 
-    None currently, become one! <https://patreon.com/vahera>
+    None currently, become one! <https://donate.cratercrash.space>
 
 ## Silver donors
 
-    None currently, become one! <https://patreon.com/vahera>
+    None currently, become one! <https://donate.cratercrash.space>
 
 ## Bronze donors
 

@@ -41,6 +41,8 @@ public:
     String get_node_title_color_name() const override { return "signals"; }
     OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
+    PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
 };
 

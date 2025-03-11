@@ -33,11 +33,10 @@
 
 void OrchestratorDefaultGraphActionRegistrar::_register_node(const StringName& p_class_name, const StringName& p_category, const Dictionary& p_data)
 {
-    OScriptLanguage* language = OScriptLanguage::get_singleton();
     Orchestration* orchestration = _context->graph->get_orchestration();
 
-    const Ref<OScriptNode> node = language->create_node_from_name(p_class_name, orchestration, false);
-    if (!node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::CATALOGABLE))
+    const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(p_class_name, orchestration);
+    if (!node.is_valid() || !node->get_flags().has_flag(OScriptNode::ScriptNodeFlags::CATALOGABLE))
         return;
 
     PackedStringArray name_parts = p_category.split("/");
@@ -307,6 +306,14 @@ void OrchestratorDefaultGraphActionRegistrar::_register_orchestration_nodes()
     _register_node<OScriptNodeEngineSingleton>("Utilities/engine_singleton");
     _register_node<OScriptNodePrintString>("Utilities/print_string");
 
+    // Register language utility functions
+    const TypedArray<Dictionary> language_functions = OScriptLanguage::get_singleton()->_get_public_functions();
+    for (int i = 0; i < language_functions.size(); i++)
+    {
+        const MethodInfo& mi = DictionaryUtils::to_method(language_functions[i]);
+        _register_node<OScriptNodeCallBuiltinFunction>("@OScript/" + mi.name, language_functions[i]);
+    }
+
     // Register each Engine singleton type
     for (const String& name : Engine::get_singleton()->get_singleton_list())
     {
@@ -335,6 +342,20 @@ void OrchestratorDefaultGraphActionRegistrar::_register_orchestration_nodes()
             const String category = vformat("Static/%s/%s", class_name, function_name);
             _register_node<OScriptNodeCallStaticFunction>(category,
                 DictionaryUtils::of({ { "class_name", class_name }, { "method_name", function_name } }));;
+        }
+    }
+
+    // Static script function calls
+    for (const String& global_class : ScriptServer::get_global_class_list())
+    {
+        const TypedArray<Dictionary> methods = ScriptServer::get_global_class(global_class).get_static_method_list();
+        for (int i = 0; i < methods.size(); i++)
+        {
+            const MethodInfo method = DictionaryUtils::to_method(methods[i]);
+
+            const String category = vformat("Static/%s/%s", global_class, method.name);
+            _register_node<OScriptNodeCallStaticFunction>(category,
+                DictionaryUtils::of({ { "class_name", global_class }, { "method_name", method.name } }));
         }
     }
 

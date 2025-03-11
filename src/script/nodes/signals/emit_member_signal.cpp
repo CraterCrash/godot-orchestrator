@@ -218,7 +218,7 @@ void OScriptNodeEmitMemberSignal::validate_node_during_build(BuildLog& p_log) co
         const Ref<OScriptTargetObject> target = connections[0]->resolve_target();
         if (target.is_null())
             p_log.error(this, "No target object resolved");
-        else if (!target->has_signal(_method.name))
+        else if (!target->get_target()->has_signal(_method.name))
             p_log.error(this, vformat("No signal found on target with method name: %s", _method.name));
     }
 }

@@ -221,10 +221,6 @@ private:
     /// Promote this pin to a variable
     void _promote_as_variable();
 
-    /// Creates a new variable name
-    /// @return the variable name
-    String _create_promoted_variable_name();
-
     /// Creates the pin's rendered icon
     /// @param p_visible whether the icon is visible
     /// @return the icon texture rect

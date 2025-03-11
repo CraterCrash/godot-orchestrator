@@ -64,6 +64,7 @@ void OrchestratorPlugin::_notification(int p_what)
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginFunction));
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginSignal));
         _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginVariable));
+        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginTypeCast));
         for (const Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
             add_inspector_plugin(plugin);
 
@@ -99,9 +100,13 @@ void OrchestratorPlugin::_notification(int p_what)
         _theme_cache.instantiate();
 
         _make_visible(false);
+
+        connect("main_screen_changed", callable_mp(this, &OrchestratorPlugin::_on_main_screen_changed));
     }
     else if (p_what == NOTIFICATION_EXIT_TREE)
     {
+        disconnect("main_screen_changed", callable_mp(this, &OrchestratorPlugin::_on_main_screen_changed));
+
         OrchestratorGraphEdit::free_clipboard();
 
         remove_control_from_bottom_panel(_build_panel);
@@ -141,7 +146,14 @@ bool OrchestratorPlugin::_has_main_screen() const
 void OrchestratorPlugin::_make_visible(bool p_visible)
 {
     if (p_visible)
+    {
         _window_wrapper->show();
+
+        // EditorPlugin::selected_notify is not exposed to GDExtension, but this method
+        // is called just before "selected_notify" as a way to address this until the
+        // method can be exposed.
+        _focus_another_editor();
+    }
     else
         _window_wrapper->hide();
 }
@@ -172,29 +184,29 @@ String OrchestratorPlugin::get_github_release_tag_url(const String& p_tag)
     const String tag = p_tag.left(index) + "-" + p_tag.substr(index + 1);
 
     return vformat(
-        "https://github.com/Vahera/godot-orchestrator/releases/download/%s/godot-orchestrator-%s-plugin.zip",
+        "https://github.com/CraterCrash/godot-orchestrator/releases/download/%s/godot-orchestrator-%s-plugin.zip",
         p_tag,
         tag);
 }
 
 String OrchestratorPlugin::get_github_release_notes_url(const String& p_tag)
 {
-    return vformat("https://github.com/Vahera/godot-orchestrator/releases/%s", p_tag);
+    return vformat("https://github.com/CraterCrash/godot-orchestrator/releases/%s", p_tag);
 }
 
 String OrchestratorPlugin::get_github_issues_url() const
 {
-    return "https://github.com/Vahera/godot-orchestrator/issues/new/choose";
+    return "https://github.com/CraterCrash/godot-orchestrator/issues/new/choose";
 }
 
 String OrchestratorPlugin::get_patreon_url() const
 {
-    return "https://cratercrash.com/donations/";
+    return "https://donate.cratercrash.space/";
 }
 
 String OrchestratorPlugin::get_community_url() const
 {
-    return "https://discord.gg/J3UWtzWSkT";
+    return "https://discord.cratercrash.space/";
 }
 
 bool OrchestratorPlugin::restore_windows_on_load()
@@ -344,7 +356,22 @@ PackedStringArray OrchestratorPlugin::_get_breakpoints() const
     #endif
 }
 
+void OrchestratorPlugin::_focus_another_editor()
+{
+    if (_window_wrapper->get_window_enabled())
+    {
+        ERR_FAIL_COND(_last_editor.is_empty());
+        EditorInterface::get_singleton()->set_main_screen_editor(_last_editor);
+    }
+}
+
 void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)
 {
-    // todo: see script_editor_plugin.cpp
+    _focus_another_editor();
+}
+
+void OrchestratorPlugin::_on_main_screen_changed(const String& p_name)
+{
+    if (p_name != _get_plugin_name())
+        _last_editor = p_name;
 }
