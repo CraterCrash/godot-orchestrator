@@ -4,6 +4,6 @@
         A node that outputs a specific math constant, such as [code]PI[/code] or [code]TAU[/code].
     </brief_description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#math-specific-constants</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/constants#math-specific-constants</link>
     </tutorials>
 </class>

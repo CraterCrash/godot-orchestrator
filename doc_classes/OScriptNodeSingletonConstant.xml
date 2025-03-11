@@ -4,6 +4,6 @@
         A node that provides access to specific constants on Godot singletons, such as [code]MOUSE_MODE_VISIBLE[/code].
     </brief_description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#singleton-specific-constants</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/constants#singleton-specific-constants</link>
     </tutorials>
 </class>

@@ -7,6 +7,6 @@
         The [OScriptNodeCallScriptFunction] node is a specialized [OScriptNodeCallFunction] node that executes a function defined within an [Orchestration].
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/functions#creating-a-function</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/functions#creating-a-function</link>
     </tutorials>
 </class>

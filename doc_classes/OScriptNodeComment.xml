@@ -7,6 +7,6 @@
         The [OScriptNodeComment] is a utility node that allows for providing a graph visual description for what a collection of nodes do.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/comments</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/comments</link>
     </tutorials>
 </class>

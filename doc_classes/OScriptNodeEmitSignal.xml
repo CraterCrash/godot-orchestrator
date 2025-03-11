@@ -15,6 +15,6 @@
         While emitting an orchestration signal can be added using the [param All Actions] window, users can also drag the signal from the [param Signal] component panel onto the orchestration.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/signals#emit-a-signal</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/signals#emit-a-signal</link>
     </tutorials>
 </class>

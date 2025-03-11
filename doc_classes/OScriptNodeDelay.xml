@@ -8,6 +8,6 @@
         Internally, the node creates a scene-based [Timer] with the specified [param duration], and yields execution. When the [Timer] raises the [code]timeout[/code] signal, the Orchestration resumes where it left off, continuing the execution flow.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#delay</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#delay</link>
     </tutorials>
 </class>

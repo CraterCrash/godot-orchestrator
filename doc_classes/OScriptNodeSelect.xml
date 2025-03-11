@@ -8,6 +8,6 @@
         By default, the [OScriptNodeSelect] specifies that the [param a], [param b], and [param result] pins accept and output [Variant] types; however, you can customize the node to use a specific type by right-clicking any one of those pins. In the change pin type context-menu, select any available type to change the pin's type to limit what values can be connected to the pins.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#select</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#select</link>
     </tutorials>
 </class>
