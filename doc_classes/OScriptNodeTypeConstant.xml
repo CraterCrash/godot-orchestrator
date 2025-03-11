@@ -4,6 +4,6 @@
         A node that outputs a specific constant from a Godot built-in type, such as [Vector3].
     </brief_description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#type-specific-constants</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/constants#type-specific-constants</link>
     </tutorials>
 </class>

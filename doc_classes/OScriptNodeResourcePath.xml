@@ -7,6 +7,6 @@
         The [OScriptNodeResourcePath] node returns the path associated with a specific resource. The [param path] can be specified in the inspector, and will be returned in the output pin.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/resources#resource-paths</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/resources#resource-paths</link>
     </tutorials>
 </class>

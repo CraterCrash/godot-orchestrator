@@ -10,6 +10,6 @@
         [b]NOTE:[/b] When the for-each-loop breaks early, the node exits the [param aborted] output pin rather than the [param completed] output pin. If its unimportant that the loop exits early, connect both the [param completed] and [param aborted] output pins to the same node.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#for-each</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#for-each</link>
     </tutorials>
 </class>

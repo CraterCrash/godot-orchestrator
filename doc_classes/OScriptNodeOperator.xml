@@ -10,6 +10,6 @@
         [b]NOTE:[/b] The operation and argument types are determined when adding the operation node to the graph. If the operand types or operation need to change, you will need to add a new operator node to the graph.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/math</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/math</link>
     </tutorials>
 </class>
