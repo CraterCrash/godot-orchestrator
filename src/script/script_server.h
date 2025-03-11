@@ -48,6 +48,10 @@ public:
         /// @return an array of dictionary entries for signals
         TypedArray<Dictionary> get_signal_list() const;
 
+        /// Returns the constants of a global class
+        /// @return the constants map
+        Dictionary get_constants_list() const;
+
         /// Checks whether the method name exists for the global class
         /// @param p_method_name the method name to check
         /// @return true if the method exists, false otherwise
