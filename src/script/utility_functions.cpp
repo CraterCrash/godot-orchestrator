@@ -63,6 +63,7 @@ struct OScriptUtilityFunctionsDefinitions
         *r_ret = ClassDB::class_exists(*p_args[0]);
     }
 
+    #if GODOT_VERSION >= 0x040300
     static inline void print_debug(Variant* r_ret, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error)
     {
         String s;
@@ -142,6 +143,7 @@ struct OScriptUtilityFunctionsDefinitions
 
         *r_ret = ret;
     }
+    #endif
 
     static inline void len(Variant* r_ret, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error)
     {
@@ -215,12 +217,14 @@ struct OScriptUtilityFunctionsDefinitions
                 *r_ret = d.size();
                 break;
             }
+            #if GODOT_VERSION >= 0x040300
             case Variant::PACKED_VECTOR4_ARRAY:
             {
                 PackedVector4Array d = *p_args[0];
                 *r_ret = d.size();
                 break;
             }
+            #endif
             default:
             {
                 *r_ret = vformat("Value of type '%s' cannot provide a length", Variant::get_type_name(p_args[0]->get_type()));
@@ -285,9 +289,11 @@ static void _register_function(const StringName& p_name, const MethodInfo& p_met
 void OScriptUtilityFunctions::register_functions()
 {
     REGISTER_FUNC(type_exists, true, RET(BOOL), ARGS(ARG("type", STRING_NAME)), false, varray());
+    #if GODOT_VERSION >= 0x040300
     REGISTER_FUNC(print_debug, false, RET(NIL), NOARGS, true, varray());
     REGISTER_FUNC(print_stack, false, RET(NIL), NOARGS, false, varray());
     REGISTER_FUNC(get_stack, false, RET(ARRAY), NOARGS, false, varray());
+    #endif
     REGISTER_FUNC(len, true, RET(INT), ARGS(ARGVAR("var")), false, varray());
 }
 
