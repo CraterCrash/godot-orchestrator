@@ -4,6 +4,6 @@
         A node that outputs a specific global constant, such as [code]KEY_ESCAPE[/code] from the [enum Key] enumeration.
     </brief_description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#global-constants</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/constants#global-constants</link>
     </tutorials>
 </class>

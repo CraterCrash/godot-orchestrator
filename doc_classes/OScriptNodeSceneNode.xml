@@ -8,6 +8,6 @@
         An [OScriptNodeSceneNode] can be created by dragging a scene node from the editor's scene tree dock onto the orchestration graph canvas. If the [NodePath] associated with the node needs to be adjusted, the [param node_path] property can be modified in the inspector. If the scene node cannot be found in the scene at runtime, the node returns [code]null[/code].
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/scene#scene-nodes</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/scene#scene-nodes</link>
     </tutorials>
 </class>

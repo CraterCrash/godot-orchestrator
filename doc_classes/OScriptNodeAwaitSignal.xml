@@ -9,6 +9,6 @@
         This is quite useful if you need to submit a long-running task to a background thread without blocking the main engine loop. Once the background thread has completed the long-running task, it can schedule the signal to fire on the main thread, causing the orchestration to resume from where it left off.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/signals#await-a-signal</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/signals#await-a-signal</link>
     </tutorials>
 </class>

@@ -12,6 +12,6 @@
         In an orchestration, the resource will be loaded once at script load time so that its available immediately during the script's runtime.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/resources#preload-resources</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/resources#preload-resources</link>
     </tutorials>
 </class>

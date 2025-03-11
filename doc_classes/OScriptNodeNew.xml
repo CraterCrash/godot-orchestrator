@@ -8,6 +8,6 @@
         The object type that will be created is specified by modifying the [param class_name] property in the inspector.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/memory#creating-objects</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/memory#creating-objects</link>
     </tutorials>
 </class>

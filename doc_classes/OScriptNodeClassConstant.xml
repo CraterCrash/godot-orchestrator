@@ -4,6 +4,6 @@
         A node that provides access to specific constants in Godot classes, such as [code]FOCUS_ALL[/code].
     </brief_description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/constants#class-specific-constants</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/constants#class-specific-constants</link>
     </tutorials>
 </class>

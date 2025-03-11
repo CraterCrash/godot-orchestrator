@@ -12,6 +12,6 @@
         [i]This specific node implementation will be expanded in a future build to relax the placement restrictions and to make working with properties significantly easier.[/i]
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/properties#set-property</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/properties#set-property</link>
     </tutorials>
 </class>

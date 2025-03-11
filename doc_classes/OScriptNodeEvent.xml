@@ -8,6 +8,6 @@
         A specific [OScriptNodeEvent] for a given event callback can only exist within an orchestration once. For example, you cannot define two [OScriptNodeEvent] nodes for [method _ready].
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/events</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/events</link>
     </tutorials>
 </class>

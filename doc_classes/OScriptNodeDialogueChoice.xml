@@ -8,6 +8,6 @@
         The [param text] input pin specifies the text to be shown to the user for the option while the [param visible] pin controls whether the choice is visible. These input pins can be combined with other nodes to control the conversation sequence, such as choosing to show an option based on current game state like having a quest or reaching a specific level.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/dialogue#dialogue-choice-node</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/dialogue#dialogue-choice-node</link>
     </tutorials>
 </class>

@@ -8,7 +8,7 @@
         The input pin sets the value to the orchestration variable. The output data pin will return the newly assigned value.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/variables#set-nodes</link>
-        <link title="Variables reference">https://docs.cratercrash.com/orchestrator/nodes/variables</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/variables#set-nodes</link>
+        <link title="Variables reference">https://docs.cratercrash.space/orchestrator/nodes/variables</link>
     </tutorials>
 </class>
