@@ -98,5 +98,9 @@
   {
     "version": "v2.2.dev1",
     "godot_compatibility": "4.3"
+  },
+  {
+    "version": "v2.2.dev2",
+    "godot_compatibility": "4.4"
   }
 ]
