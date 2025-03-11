@@ -13,6 +13,6 @@
         See [InputEventAction] on how to define input actions in Godot.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/input</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/input</link>
     </tutorials>
 </class>

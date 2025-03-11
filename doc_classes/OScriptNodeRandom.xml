@@ -8,6 +8,6 @@
         [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove random choice pins.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#random</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#random</link>
     </tutorials>
 </class>

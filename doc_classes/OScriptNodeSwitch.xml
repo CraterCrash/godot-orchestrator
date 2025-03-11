@@ -21,6 +21,6 @@
         [b]NOTE:[/b] See documentation for [OScriptEditablePinNode] for details on how to add/remove case input/output pins.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#switch-on-any</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/flow-control#switch-on-any</link>
     </tutorials>
 </class>
