@@ -10,7 +10,7 @@
         To convert the node back to its pure mode, select [param Make Pure] in the node's context-menu.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/variables#get-nodes</link>
-        <link title="Variables reference">https://docs.cratercrash.com/orchestrator/nodes/variables</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/variables#get-nodes</link>
+        <link title="Variables reference">https://docs.cratercrash.space/orchestrator/nodes/variables</link>
     </tutorials>
 </class>

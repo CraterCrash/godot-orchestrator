@@ -9,7 +9,7 @@
         All engine singletons are defined in the [param All Actions] window under the [b]Singletons[/b] category.
     </description>
     <tutorials>
-        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/singletons</link>
-        <link title="Singletons Types">https://docs.cratercrash.com/orchestrator/nodes/singletons#singleton-types</link>
+        <link title="Node reference">https://docs.cratercrash.space/orchestrator/nodes/singletons</link>
+        <link title="Singletons Types">https://docs.cratercrash.space/orchestrator/nodes/singletons#singleton-types</link>
     </tutorials>
 </class>
