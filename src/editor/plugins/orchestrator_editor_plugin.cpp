@@ -184,29 +184,29 @@ String OrchestratorPlugin::get_github_release_tag_url(const String& p_tag)
     const String tag = p_tag.left(index) + "-" + p_tag.substr(index + 1);
 
     return vformat(
-        "https://github.com/Vahera/godot-orchestrator/releases/download/%s/godot-orchestrator-%s-plugin.zip",
+        "https://github.com/CraterCrash/godot-orchestrator/releases/download/%s/godot-orchestrator-%s-plugin.zip",
         p_tag,
         tag);
 }
 
 String OrchestratorPlugin::get_github_release_notes_url(const String& p_tag)
 {
-    return vformat("https://github.com/Vahera/godot-orchestrator/releases/%s", p_tag);
+    return vformat("https://github.com/CraterCrash/godot-orchestrator/releases/%s", p_tag);
 }
 
 String OrchestratorPlugin::get_github_issues_url() const
 {
-    return "https://github.com/Vahera/godot-orchestrator/issues/new/choose";
+    return "https://github.com/CraterCrash/godot-orchestrator/issues/new/choose";
 }
 
 String OrchestratorPlugin::get_patreon_url() const
 {
-    return "https://cratercrash.com/donations/";
+    return "https://donate.cratercrash.space/";
 }
 
 String OrchestratorPlugin::get_community_url() const
 {
-    return "https://discord.gg/J3UWtzWSkT";
+    return "https://discord.cratercrash.space/";
 }
 
 bool OrchestratorPlugin::restore_windows_on_load()
