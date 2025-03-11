@@ -50,7 +50,7 @@ See [CHANGELOG](https://github.com/CraterCrash/godot-orchestrator/blob/main/CHAN
 
 ## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Community
 
-- [Discord](https://discord.com/invite/J3UWtzWSkT)
+- [Discord](https://discord.gg/wYQpvuYDhT)
 - [Mastodon](https://cratercrash.social/@orchestrator)
 
 ## ![icon](https://cdn.cratercrash.space/cdn-cgi/image/width=18/utG8NiO3oN8sfXvI2ZZ0zg/54f147f9-04d3-4ade-3517-59561a590c00/public) Contributors

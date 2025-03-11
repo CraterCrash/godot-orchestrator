@@ -262,6 +262,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
 
     ERR_FAIL_COND_EDMSG(connections.input_executions > 1, "Cannot collapse to function with more than one external input execution wire.");
     ERR_FAIL_COND_EDMSG(connections.output_executions > 1, "Cannot collapse to function with more than one external output execution wire.");
+    ERR_FAIL_COND_EDMSG(connections.output_data > 1, "Cannot collapse to function with more than one output data wire.");
     ERR_FAIL_COND_EDMSG(connections.outputs.size() > 2, "Cannot output more than one execution and one data pin.");
 
     const String new_function_name = NameUtils::create_unique_name("NewFunction", _orchestration->get_function_names());
