@@ -40,6 +40,12 @@ TypedArray<Dictionary> ScriptServer::GlobalClass::get_signal_list() const
     return script.is_valid() ? script->get_script_signal_list() : TypedArray<Dictionary>();
 }
 
+Dictionary ScriptServer::GlobalClass::get_constants_list() const
+{
+    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+    return script.is_valid() ? script->get_script_constant_map() : Dictionary();
+}
+
 bool ScriptServer::GlobalClass::has_method(const StringName& p_method_name) const
 {
     if (!name.is_empty() && !path.is_empty())
@@ -83,6 +89,22 @@ bool ScriptServer::GlobalClass::has_signal(const StringName& p_signal_name) cons
         }
     }
     return false;
+}
+
+TypedArray<Dictionary> ScriptServer::GlobalClass::get_static_method_list() const
+{
+    const TypedArray<Dictionary> methods = get_method_list();
+
+    TypedArray<Dictionary> results;
+    for (int i = 0; i < methods.size(); i++)
+    {
+        const Dictionary& dict = methods[i];
+        const uint32_t flags = dict.get("flags", METHOD_FLAGS_DEFAULT);
+        if (flags & METHOD_FLAG_STATIC)
+            results.append(dict);
+    }
+
+    return results;
 }
 
 Dictionary ScriptServer::_get_global_class(const StringName& p_class_name)

@@ -280,7 +280,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
             pc->add_theme_stylebox_override("panel", hbox_panel);
         }
 
-        if (is_visible_in_tree())
+        if (is_visible_in_tree() && is_node_ready())
             _synchronize_graph_with_script();
     }
 }
@@ -774,7 +774,10 @@ void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant&
             if (Node* dropped_node = root->get_node_or_null(nodes[0]))
             {
                 OScriptNodeInitContext context;
-                context.node_path = root->get_path_to(dropped_node);
+                if (dropped_node->is_unique_name_in_owner())
+                    context.node_path = NodePath("%" + dropped_node->get_name());
+                else
+                    context.node_path = root->get_path_to(dropped_node);
 
                 const Ref<Script> node_script = dropped_node->get_script();
 
@@ -1507,7 +1510,7 @@ void OrchestratorGraphEdit::_create_script_function_callable(const StringName& p
             spawn_node<OScriptNodeSelf>(
                 self_context,
                 self_position,
-                callable_mp_lambda(this, [=, this](OScriptNodeSelf* self) {
+                callable_mp_lambda(this, [=](OScriptNodeSelf* self) {
                     self->find_pin(0, PD_Output)->link(compose->find_pin(0, PD_Input));
                 }));
         }));
@@ -1982,7 +1985,7 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
         set_show_arrange_button(os->get_setting("ui/graph/show_arrange_button", false));
 
         for_each_graph_node([&](OrchestratorGraphNode* node) {
-            node->show_icons(show_icons);
+            node->update_pins(show_icons);
             node->set_resizable(node_resizable);
         });
     }
