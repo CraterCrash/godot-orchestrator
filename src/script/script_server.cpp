@@ -40,6 +40,12 @@ TypedArray<Dictionary> ScriptServer::GlobalClass::get_signal_list() const
     return script.is_valid() ? script->get_script_signal_list() : TypedArray<Dictionary>();
 }
 
+Dictionary ScriptServer::GlobalClass::get_constants_list() const
+{
+    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+    return script.is_valid() ? script->get_script_constant_map() : Dictionary();
+}
+
 bool ScriptServer::GlobalClass::has_method(const StringName& p_method_name) const
 {
     if (!name.is_empty() && !path.is_empty())
