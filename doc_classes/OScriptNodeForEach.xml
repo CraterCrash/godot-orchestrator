@@ -11,6 +11,5 @@
     </description>
     <tutorials>
         <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#for-each</link>
-        <link title="Node reference using Break">https://docs.cratercrash.com/orchestrator/nodes/flow-control#for-each-with-break</link>
     </tutorials>
 </class>
