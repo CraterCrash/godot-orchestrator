@@ -9,4 +9,7 @@
         Additionally, the [param default] output pin can be disabled in the inspector. When the [param default] output pin is disabled and none of the output pin names match the input value, execution ends.
         [b]NOTE:[/b] See documentation for [OScriptNodeSwitchEditablePin] for details on how to add/remove case input/output pins.
     </description>
+    <tutorials>
+        <link title="Node reference">https://docs.cratercrash.com/orchestrator/nodes/flow-control#switch-on-integer</link>
+    </tutorials>
 </class>
