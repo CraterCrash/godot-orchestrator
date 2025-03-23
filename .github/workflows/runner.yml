@@ -1,0 +1,13 @@
+name: 🔗 GHA
+on: [push, pull_request]
+
+concurrency:
+  group: ${{github.workflow}}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do nothing
+        run: echo "Workflow placeholder"
