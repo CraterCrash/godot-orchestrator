@@ -21,6 +21,8 @@ no other name is available.
 ## Developers
 
     Aaron Franke (aaronfranke)
+    Carles Homs (ch0m5)
     K.S. Ernest Lee (iFire)
     Malik Enes Safak (NullMember)
     Paven Ganti (gvrocksnow)
+    ShalokShalom (ShalokShalom)
