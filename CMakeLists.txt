@@ -158,7 +158,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/_generated)
 # Include directories for GDExtension library
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-IF (NOT APPLE)
+IF (NOT APPLE AND NOT Emscripten)
     # Linker options for the GDExtension library
     TARGET_LINK_OPTIONS(${PROJECT_NAME} PRIVATE
             $<$<NOT:${compiler_is_msvc}>:

@@ -19,3 +19,6 @@ android.arm32 = "res://addons/orchestrator/liborchestrator.android.32.release.so
 
 android.arm64 = "res://addons/orchestrator/liborchestrator.android.64.release.so"
 
+web.release.threads.wasm32 = "res://addons/orchestrator/orchestrator.emscripten.32.wasm32.wasm"
+web.release.wasm32 = "res://addons/orchestrator/orchestrator.emscripten.32.nothreads.wasm"
+
