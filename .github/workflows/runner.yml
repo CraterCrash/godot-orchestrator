@@ -31,7 +31,12 @@ jobs:
     needs: static-checks
     uses: ./.github/workflows/windows_builds.yml
 
+  web-build:
+    name: 🌐 Web
+    needs: static-checks
+    uses: ./.github/workflows/web_builds.yml
+
   artifacts-build:
     name: 📎 Artifacts
-    needs: [android-build, linux-build, macos-build, windows-build]
+    needs: [android-build, linux-build, macos-build, windows-build, web-build]
     uses: ./.github/workflows/artifact_builds.yml
