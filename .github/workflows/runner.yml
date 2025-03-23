@@ -6,8 +6,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  noop:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Do nothing
-        run: echo "Workflow placeholder"
+
+  static-checks:
+    name: 📊 Static checks
+    uses: ./.github/workflows/static_checks.yml
+
+  android-build:
+    name: 🤖 Android
+    needs: static-checks
+    uses: ./.github/workflows/android_builds.yml
+
+  linux-build:
+    name: 🐧 Linux
+    needs: static-checks
+    uses: ./.github/workflows/linux_builds.yml
+
+  macos-build:
+    name: 🍎 macOS
+    needs: static-checks
+    uses: ./.github/workflows/macos_builds.yml
+
+  windows-build:
+    name: 🪟 Windows
+    needs: static-checks
+    uses: ./.github/workflows/windows_builds.yml
+
+  artifacts-build:
+    name: 📎 Artifacts
+    needs: [android-build, linux-build, macos-build, windows-build]
+    uses: ./.github/workflows/artifact_builds.yml

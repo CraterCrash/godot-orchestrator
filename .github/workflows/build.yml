@@ -1,8 +1,6 @@
 name: 🛠️ Build All
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -16,41 +14,44 @@ jobs:
       matrix:
         include:
           - identifier: linux-release
-            name: 🐧 Linux
-            build_type: Release
+            name: 🐧 Linux (target=template_release)
             runner: ubuntu-22.04
-            target: template_release
-            platform: linux
-            arch: x86_64
+            preset: linux-release
+
+          - identifier: linux-editor
+            name: 🐧 Linux (target=editor)
+            runner: ubuntu-22.04
+            preset: linux-editor
 
           - identifier: windows-release
-            name: 🪟 Windows
-            build_type: Release
+            name: 🪟 Windows (target=template_release)
             runner: windows-latest
-            target: template_release
-            platform: windows
-            arch: x86_64
+            preset: windows-release
+
+          - identifier: windows-editor
+            name: 🪟 Windows (target=editor)
+            runner: windows-latest
+            preset: windows-editor
 
           - identifier: macos-release
-            name: 🍎 MacOS
-            build_type: Release
+            name: 🍎 MacOS (target=template_release)
             runner: macos-latest
-            target: template_release
-            platform: macos
+            preset: macos-release
+
+          - identifier: macos-editor
+            name: 🍎 MacOS (target=editor)
+            runner: macos-latest
+            preset: macos-editor
 
           - identifier: android-arm64
-            name: 🤖 Android (arm64)
-            build_type: Release
+            name: 🤖 Android (arm64, target=template_release)
             runner: ubuntu-22.04
-            platform: arm64-v8a
-            arch: arm64-v8a
+            preset: android-arm64-release
 
           - identifier: android-arm32
-            name: 🤖 Android (arm32)
-            build_type: Release
+            name: 🤖 Android (arm32, target=template_release)
             runner: ubuntu-22.04
-            platform: armeabi-v7a
-            arch: armeabi-v7a
+            preset: android-arm32-release
 
     runs-on: ${{ matrix.runner }}
     name: ${{ matrix.name }}
@@ -86,15 +87,15 @@ jobs:
         with:
           key: ccache-${{ matrix.identifier }}
 
-      - name: Generate Build Files (${{ matrix.identifier }})
+      - name: Generate Build Files (${{ matrix.name }})
         shell: sh
         run: |
-          cmake -B '${{ github.workspace }}/.out-${{ matrix.identifier }}' --preset ${{ matrix.platform }} -S '${{ github.workspace }}'
+          cmake --preset ${{ matrix.preset }} -S '${{ github.workspace }}'
 
-      - name: Build Orchestrator (${{ matrix.identifier }})
+      - name: Build Orchestrator (${{ matrix.name }})
         shell: sh
-        run: |
-          cmake --build '${{ github.workspace }}/.out-${{ matrix.identifier }}' --target orchestrator -j 18
+        run: |          
+          cmake --build '${{ github.workspace }}/build/${{ matrix.preset }}' --target orchestrator -j 18
 
       - name: Prepare addon files
         shell: bash

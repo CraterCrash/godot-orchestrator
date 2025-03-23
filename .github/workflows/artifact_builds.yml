@@ -1,0 +1,42 @@
+name: 📎 Artifact Builds
+on:
+  workflow_call:
+
+jobs:
+  build-artifacts:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.name }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Build demo artifact
+            pattern: ${{ github.event.repository.name }}-demo-*
+            upload-name: ${{ github.event.repository.name }}-demo
+
+          - name: Build plug-in artifact
+            pattern: ${{ github.event.repository.name }}-plugin-*
+            upload-name: ${{ github.event.repository.name }}-plugin
+
+    steps:
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ matrix.pattern }}
+          merge-multiple: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.upload-name }}
+          retention-days: 7
+          path: |
+            ${{ github.workspace }}
+
+      - name: Delete incremental artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            ${{ matrix.pattern }}

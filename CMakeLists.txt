@@ -176,14 +176,14 @@ IF (AUTOFORMAT_SRC_ON_CONFIGURE MATCHES ON)
 ENDIF ()
 
 # Dependency linking
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC godot-cpp.editor)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC ${ORCH_GODOTCPP_TARGET})
 
 SET(GDEXTENSION_LIB_PREFIX "")
 
 ### Get useful properties of the library
-get_target_property( GODOTCPP_PLATFORM godot-cpp::editor GODOTCPP_PLATFORM   )
-get_target_property( GODOTCPP_TARGET   godot-cpp::editor GODOTCPP_TARGET     )
-get_target_property( GODOTCPP_ARCH     godot-cpp::editor GODOTCPP_ARCH       )
+get_target_property( GODOTCPP_PLATFORM ${ORCH_GODOTCPP_NAMESPACE} GODOTCPP_PLATFORM   )
+get_target_property( GODOTCPP_TARGET   ${ORCH_GODOTCPP_NAMESPACE} GODOTCPP_TARGET     )
+get_target_property( GODOTCPP_ARCH     ${ORCH_GODOTCPP_NAMESPACE} GODOTCPP_ARCH       )
 
 # Converts GODOT_ARCH to the old system bits for unchanged file names.
 IF (APPLE)
@@ -204,6 +204,14 @@ ELSE ()
     SET(ORCHESTRATOR_PLATFORM "${GODOTCPP_PLATFORM}")
 ENDIF ()
 
+IF (GODOTCPP_TARGET STREQUAL "template_release")
+    SET(ORCHESTRATOR_TARGET "release")
+ELSEIF (GODOTCPP_TARGET STREQUAL "template_debug")
+    SET(ORCHESTRATOR_TARGET "debug")
+ELSE ()
+    SET(ORCHESTRATOR_TARGET "${GODOTCPP_TARGET}")
+ENDIF ()
+
 SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
         PREFIX "${GDEXTENSION_LIB_PREFIX}"
@@ -215,8 +223,18 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME}
         RUNTIME_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
-        OUTPUT_NAME "${PROJECT_NAME}.${ORCHESTRATOR_PLATFORM}.${ORCHESTRATOR_ARCH}.$<LOWER_CASE:$<CONFIG>>")
+        OUTPUT_NAME "${PROJECT_NAME}.${ORCHESTRATOR_PLATFORM}.${ORCHESTRATOR_ARCH}.${ORCHESTRATOR_TARGET}")
 
 INCLUDE(cmake-utils)
 
 PRINT_PROJECT_VARIABLES()
+
+# For any local development or user tasks, a "CMakeUserLists.txt" file can be included in the
+# root of the project. This file can include any additional local development items, such as
+# copying build files to test projects, etc.
+#
+# This is not included in version control on purpose, as this is user environment driven.
+#
+IF (EXISTS "${CMAKE_SOURCE_DIR}/CMakeUserLists.txt")
+    INCLUDE("${CMAKE_SOURCE_DIR}/CMakeUserLists.txt")
+ENDIF ()

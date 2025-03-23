@@ -4,20 +4,7 @@
     {
       "name": "default",
       "hidden": true,
-      "generator": "Ninja",
-      "installDir": "${sourceDir}/.out/install/${presetName}",
-      "binaryDir": "${sourceDir}/.out/build/${presetName}",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "toolset": {
-        "value": "host=x64",
-        "strategy": "external"
-      },
-      "environment": {
-        "NINJA_STATUS": "%p [%es] (%f/%t)  -"
-      }
+      "binaryDir": "${sourceDir}/build/${presetName}"
     },
     {
       "name": "default-verbose",
@@ -28,7 +15,27 @@
       }
     },
     {
-      "name": "linux",
+      "name": "default-editor",
+      "hidden": true,
+      "description": "Defines default values for doing GodotCPP editor builds",
+      "cacheVariables": {
+        "ORCH_GODOTCPP_TARGET": "godot-cpp.editor",
+        "ORCH_GODOTCPP_NAMESPACE": "godot-cpp::editor"
+      }
+    },
+    {
+      "name": "default-release",
+      "hidden": true,
+      "description": "Defines default values for doing GodotCPP template_release builds",
+      "cacheVariables": {
+        "ORCH_GODOTCPP_TARGET": "godot-cpp.template_release",
+        "ORCH_GODOTCPP_NAMESPACE": "godot-cpp::template_release"
+      }
+    },
+    {
+      "name": "linux-default",
+      "inherits": "default",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
@@ -36,8 +43,20 @@
       }
     },
     {
-      "name": "windows",
+      "name": "linux-release",
+      "inherits": ["default-release", "linux-default"],
+      "description": "Builds Orchestrator for Linux using template_release."
+    },
+    {
+      "name": "linux-editor",
+      "inherits": ["default-editor", "linux-default"],
+      "description": "Builds Orchestrator for Linux using editor."
+    },
+    {
+      "name": "windows-default",
+      "inherits": "default",
       "generator": "Ninja",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
@@ -47,7 +66,19 @@
       }
     },
     {
-      "name": "macos",
+      "name": "windows-release",
+      "inherits": ["default-release", "windows-default"],
+      "description": "Builds Orchestrator for Windows using template_release."
+    },
+    {
+      "name": "windows-editor",
+      "inherits": ["default-editor", "windows-default"],
+      "description": "Builds Orchestrator for Windows using editor."
+    },
+    {
+      "name": "macos-default",
+      "inherits": "default",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
@@ -55,31 +86,45 @@
       }
     },
     {
-      "name": "arm64-v8a",
+      "name": "macos-release",
+      "inherits": ["default-release", "macos-default"],
+      "description": "Builds Orchestrator for macOS using template_release."
+    },
+    {
+      "name": "macos-editor",
+      "inherits": ["default-editor", "macos-default"],
+      "description": "Builds Orchestrator for macOS using editor."
+    },
+    {
+      "name": "android-default",
+      "inherits": "default",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
+        "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
+        "ANDROID_PLATFORM": "android-23",
+        "ANDROID_TOOLCHAIN": "clang",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+      }
+    },
+    {
+      "name": "android-arm64-release",
+      "inherits": ["default-release", "android-default"],
+      "description": "Builds Orchestrator for Android arm64 using template_release.",
+      "cacheVariables": {
         "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a",
-        "ANDROID_ABI": "arm64-v8a",
-        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
-        "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
-        "ANDROID_PLATFORM": "android-23",
-        "ANDROID_TOOLCHAIN": "clang",
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+        "ANDROID_ABI": "arm64-v8a"
       }
     },
     {
-      "name": "armeabi-v7a",
+      "name": "android-arm32-release",
+      "inherits": ["default-release", "android-default"],
+      "description": "Builds Orchestrator for Android arm32 using template_release.",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_ANDROID_ARCH_ABI": "armeabi-v7a",
-        "ANDROID_ABI": "armeabi-v7a",
-        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
-        "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
-        "ANDROID_PLATFORM": "android-23",
-        "ANDROID_TOOLCHAIN": "clang",
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+        "ANDROID_ABI": "armeabi-v7a"
       }
     }
   ]

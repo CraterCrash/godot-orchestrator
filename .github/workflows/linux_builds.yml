@@ -1,0 +1,51 @@
+name: 🐧 Linux Builds
+on:
+  workflow_call:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    name: ${{ matrix.name }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Editor (target=editor)
+            artifact-name: linux-editor
+            cache-name: linux-editor
+            preset: linux-editor
+
+          - name: Template (target=template_release)
+            artifact-name: linux-release
+            cache-name: linux-release
+            preset: linux-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install GCC (Linux)
+        shell: sh
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get install gcc-13 g++-13 -y
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+          sudo update-alternatives --config gcc
+          sudo update-alternatives --config g++
+
+      - name: Install Ninja (Linux)
+        shell: sh
+        run: |
+          sudo apt-get install ninja-build
+
+      - name: Build
+        uses: ./.github/actions/orchestrator-build
+        with:
+          artifact-name: ${{ matrix.artifact-name }}
+          cache-name: ${{ matrix.cache-name }}
+          preset-name: ${{ matrix.preset }}
