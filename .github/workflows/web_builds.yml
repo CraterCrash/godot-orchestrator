@@ -40,6 +40,11 @@ jobs:
         run: |
           emcc -v
 
+      - name: Install Ninja (Linux)
+        shell: sh
+        run: |
+          sudo apt-get install ninja-build
+
       - name: Build
         uses: ./.github/actions/orchestrator-build
         with:

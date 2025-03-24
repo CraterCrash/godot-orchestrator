@@ -130,6 +130,7 @@
     {
       "name": "web-default",
       "inherits": "default",
+      "generator": "Ninja",
       "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
