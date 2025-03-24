@@ -1,0 +1,51 @@
+name: 🤖 Android Builds
+on:
+  workflow_call:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-22.04
+    name: ${{ matrix.name }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Template arm32 (target=template_release, arch=arm32)
+            artifact-name: android-arm32
+            cache-name: android-template-arm32
+            preset: android-arm32-release
+
+          - name: Template arm64 (target=template_release, arch=arm64)
+            artifact-name: android-arm64
+            cache-name: android-template-arm64
+            preset: android-arm64-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install CLang
+        shell: sh
+        run: |
+          sudo apt-get install clang -y
+
+      - name: Install Ninja (Linux)
+        shell: sh
+        run: |
+          sudo apt-get install ninja-build
+
+      - name: Install NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r23c
+          link-to-sdk: true
+
+      - name: Build
+        uses: ./.github/actions/orchestrator-build
+        with:
+          artifact-name: ${{ matrix.artifact-name }}
+          cache-name: ${{ matrix.cache-name }}
+          preset-name: ${{ matrix.preset }}

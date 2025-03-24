@@ -1,0 +1,138 @@
+name: Build Orchestrator
+description: Builds orchestrator plug-in
+
+inputs:
+  artifact-name:
+    description: The artifact name to upload generated files as
+    required: true
+  cache-name:
+    description: The cache name to use
+    default: ${{ github.job }}
+  cache-path:
+    description: The cache path
+    default: ${{ github.workspace }}/.ccache
+  preset-name:
+    description: The cmake preset configuration to use
+    required: true
+  python-arch:
+    description: The python architecture
+    default: x64
+  python-version:
+    description: The python version to use
+    default: 3.x
+  scons-version:
+    description: The SCons version to use
+    default: 4.9.0
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Setup python 3.x
+      uses: actions/setup-python@v5
+      with:
+        # Semantic version range syntax or exact version of a Python version
+        python-version: ${{ inputs.python-version }}
+        # Optional - x64 or x86 architecture, defaults to x64
+        architecture: ${{ inputs.python-arch }}
+
+    - name: Setup SCons
+      shell: bash
+      run: |
+        python -c "import sys; print(sys.version)"
+        python -m pip install scons==${{ inputs.scons-version }}
+        scons --version
+
+    # Because all branches can refer to the repository's default branch cache, we want it to persist
+    # as the de-facto fallback. However, it easily can be deleted in a matter of hours if nothing
+    # explicitly calls to it, we to work around this, this ensures that it is always pinged
+    # prior to any other cache operations.
+    - name: Ping main cache
+      uses: actions/cache/restore@v4
+      id: cache-ping
+      with:
+        path: ${{ inputs.cache-path }}
+        key: ${{ github.sha }} # Dummy key; we have to rely on the fallback value.
+        restore-keys: ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}
+        lookup-only: true
+
+    # Fallback access isn't logged, so register an explicit cache-hit if found.
+    - name: Ping main cache (exact)
+      if: steps.cache-ping.outputs.cache-matched-key
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ inputs.cache-path }}
+        key: ${{ steps.cache-ping.outputs.cache-matched-key }}
+        lookup-only: true
+
+    # We try to match an existing cache to restore from it. Each potential key is checked against
+    # all existing caches as a prefix, e.g. 'linux-editor' would match any cache that starts with
+    # "linux-editor", such as "linux-editor-abc|main|6588a4a29af1621086feac0117d5d4d37af957fd".
+    #
+    # We check these prefixes in this order:
+    #   1. An exact match for the base branch, reference name, and SHA hash.
+    #   2. A partial match for the same cache name and reference name.
+    #   3. A partial match for the same cache name and default branch name
+    - name: Restore cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ inputs.cache-path }}
+        key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
+        restore-keys: |
+          ${{ inputs.cache-name }}|${{ github.ref_name }}
+          ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}
+
+    # Installs ccache
+    - name: Install ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
+        restore: false
+        save: false
+        append-timestamp: false
+        # Explicitly disable job statistics summary
+        job-summary: ""
+
+    - name: Build
+      shell: sh
+      run: |
+        cmake --preset ${{ inputs.preset-name }} -S '${{ github.workspace }}'
+        cmake --build '${{ github.workspace }}/build/${{ inputs.preset-name }}' --target orchestrator -j 18
+
+    - name: Save cache
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ inputs.cache-path }}
+        key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
+
+    # Makes sure that all repository root files that should be included in the distribution
+    # are copied into the `project/addons` directory.
+    - name: Prepare addon files
+      shell: bash
+      run: |
+        cp '${{ github.workspace }}/AUTHORS.md' '${{ github.workspace }}/project/addons/orchestrator/'
+        cp '${{ github.workspace }}/CHANGELOG.md' '${{ github.workspace }}/project/addons/orchestrator/'
+        cp '${{ github.workspace }}/README.md' '${{ github.workspace }}/project/addons/orchestrator/'
+        cp '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/project/addons/orchestrator/'
+
+    # Creates a demo archive of this specific build, including only the "project" subfolder
+    - name: Upload artifact (Demo)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}-demo-${{ inputs.artifact-name }}
+        retention-days: 1
+        path:
+          ${{ github.workspace }}/project/
+
+    # Creates the distribution plugin
+    - name: Upload artifact (Plug-in)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}-plugin-${{ inputs.artifact-name }}
+        retention-days: 1
+        path: |
+          ${{ github.workspace }}/project
+          !${{ github.workspace }}/project/addons/orchestrator/*debug*
+          !${{ github.workspace }}/project/scenes
+          !${{ github.workspace }}/project/icon.svg
+          !${{ github.workspace }}/project/project.godot
