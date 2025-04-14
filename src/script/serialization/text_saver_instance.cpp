@@ -461,7 +461,7 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
                 res->set_path(vformat("%s::%s", p_path, id));
 
             _internal_resources[res] = id;
-            #if (TOOLS_ENABLED && GODOT_VERSION >= 0x040400)
+            #if (TOOLS_ENABLED && GODOT_VERSION >= 0x040500)
             res->set_edited(false);
             #endif
         }

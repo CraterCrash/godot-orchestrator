@@ -851,7 +851,7 @@ Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<R
             _save_unicode_string(file, "local://" + itos(res_index));
             if (_takeover_paths)
                 resource->set_path(vformat("%s::%s", p_path, resource->get_scene_unique_id()));
-            #if GODOT_VERSION >= 0x040400
+            #if GODOT_VERSION >= 0x040500
             #ifdef TOOLS_ENABLED
             resource->set_edited(false);
             #endif

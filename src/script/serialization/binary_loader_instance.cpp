@@ -1103,7 +1103,7 @@ Error OScriptBinaryResourceLoaderInstance::load()
             res->set_meta("_missing_resources", missing_resource_properties);
 
         #ifdef TOOLS_ENABLED
-        #if GODOT_VERSION >= 0x040400
+        #if GODOT_VERSION >= 0x040500
         res->set_edited(false);
         #endif
         #endif
