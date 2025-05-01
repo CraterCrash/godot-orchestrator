@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate changes
         id: changelog
-        uses: metcalfc/changelog-generator@v4.5.0
+        uses: metcalfc/changelog-generator@v4.6.2
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
           head-ref: ${{ github.event.inputs.target_sha }}
