@@ -30,9 +30,9 @@ The following table describes which Orchestrator version you should use based on
 
 Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.
 
-| Godot 4.3+              | Godot 4.2             |
-|-------------------------|-----------------------|
-| v2.1.x+ (`main` branch) | v2.0.x (`2.0` branch) |
+| Godot 4.4+              | Godot 4.3+             | Godot 4.2             |
+|-------------------------|------------------------|-----------------------|
+| v2.2.x+ (`main` branch) | v2.1.x+ (`2.1` branch) | v2.0.x (`2.0` branch) |
 
 ## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=30) Features
 
