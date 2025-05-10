@@ -28,11 +28,14 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 Orchestrator is made using Godot GDExtension technology, which has certain ABI (application binary interface) requirements that must be followed to guarantee that the integration between extensions and the engine works as expected.
 The following table describes which Orchestrator version you should use based on your Godot editor version.
 
-Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.
+| Godot Version | Orchestrator Version   |
+|---------------|------------------------|
+| Godot 4.2.x   | v2.0.x (`2.0` branch)  |
+| Godot 4.3.x   | v2.1.x (`2.1` branch)  |
+| Godot 4.4.x   | v2.2.x (`main` branch) |
 
-| Godot 4.3+              | Godot 4.2             |
-|-------------------------|-----------------------|
-| v2.1.x+ (`main` branch) | v2.0.x (`2.0` branch) |
+**Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.**
+**Additionally, if your Godot version is not listed, it should be assumed the plug-in is not yet 100% compatible.**
 
 ## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=30) Features
 
