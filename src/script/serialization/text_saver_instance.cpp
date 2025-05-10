@@ -461,9 +461,7 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
                 res->set_path(vformat("%s::%s", p_path, id));
 
             _internal_resources[res] = id;
-            #if (TOOLS_ENABLED && GODOT_VERSION >= 0x040400)
-            res->set_edited(false);
-            #endif
+            _set_resource_edited(res, false);
         }
 
         Dictionary missing_resource_properties = p_resource->get_meta("_missing_resources_", Dictionary());

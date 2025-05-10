@@ -1,0 +1,47 @@
+name: 🪟 Windows Builds
+on:
+  workflow_call:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    name: ${{ matrix.name }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Editor (target=editor)
+            artifact-name: windows-editor
+            cache-name: windows-editor
+            preset: windows-editor
+
+          - name: Template (target=template_release)
+            artifact-name: windows-release
+            cache-name: windows-release
+            preset: windows-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install CMake (Windows)
+        uses: lukka/get-cmake@v3.28.0
+
+      - name: Install Ninja (Windows)
+        shell: powershell
+        run: |
+          choco install ninja
+          choco install ccache
+          choco upgrade ccache ninja
+      # This forces the use of MSVC rather than GCC
+      - uses: ilammy/msvc-dev-cmd@v1.13.0
+
+      - name: Build
+        uses: ./.github/actions/orchestrator-build
+        with:
+          artifact-name: ${{ matrix.artifact-name }}
+          cache-name: ${{ matrix.cache-name }}
+          preset-name: ${{ matrix.preset }}

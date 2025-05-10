@@ -49,6 +49,16 @@ bool OScriptResourceFormatInstance::_is_resource_built_in(const Ref<Resource>& p
     return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
 }
 
+void OScriptResourceFormatInstance::_set_resource_edited(const Ref<Resource>& p_resource, bool p_edited)
+{
+    #ifdef TOOLS_ENABLED
+    // todo: advocate for merging the upstream pull request for this
+    #if GODOT_VERSION >= 0x040500
+    p_resource->set_edited(p_edited);
+    #endif
+    #endif
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 String OScriptResourceBinaryFormatInstance::_read_unicode_string(const Ref<FileAccess>& p_file)
