@@ -126,6 +126,38 @@
         "CMAKE_ANDROID_ARCH_ABI": "armeabi-v7a",
         "ANDROID_ABI": "armeabi-v7a"
       }
+    },
+    {
+      "name": "web-default",
+      "inherits": "default",
+      "generator": "Ninja",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "ORCH_GODOTCPP_TARGET": "godot-cpp.template_release",
+        "ORCH_GODOTCPP_NAMESPACE": "godot-cpp::template_release",
+        "CMAKE_SHARED_LINKER_FLAGS": "-s SIDE_MODULE=1"
+      }
+    },
+    {
+      "name": "web-nothreads-release",
+      "inherits": ["default-release", "web-default"],
+      "description": "Builds Orchestrator for WebAssembly using template_release and no threads.",
+      "cacheVariables": {
+        "GODOTCPP_THREADS": "FALSE"
+      }
+    },
+    {
+      "name": "web-threads-release",
+      "inherits": ["default-release", "web-default"],
+      "description": "Builds Orchestrator for WebAssembly using template_release and threads.",
+      "cacheVariables": {
+        "GODOTCPP_THREADS": "TRUE",
+        "CMAKE_SHARED_LINKER_FLAGS": "-s SIDE_MODULE=1 -s USE_PTHREADS=1"
+      }
     }
   ]
 }
