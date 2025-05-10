@@ -536,11 +536,7 @@ TypedArray<Dictionary> OScriptLanguage::_debug_get_current_stack_info()
 
 bool OScriptLanguage::_handles_global_class_type(const String& p_type) const
 {
-#ifdef TOOLS_ENABLED
     return p_type == _get_type();
-#else
-    return false;
-#endif
 }
 
 Dictionary OScriptLanguage::_get_global_class_name(const String& p_path) const
