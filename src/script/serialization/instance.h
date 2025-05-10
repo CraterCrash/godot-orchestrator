@@ -39,6 +39,11 @@ protected:
     /// @return <code>true</code> if the resource is built-in, <code>false</code> otherwise
     bool _is_resource_built_in(const Ref<Resource>& p_resource) const;
 
+    /// Sets the resource edited attribute
+    /// @param p_resource the resource
+    /// @param p_edited edited status to set on the resource
+    void _set_resource_edited(const Ref<Resource>& p_resource, bool p_edited);
+
 public:
     static uint32_t FORMAT_VERSION;
     static uint32_t RESERVED_FIELDS;
