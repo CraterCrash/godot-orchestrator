@@ -25,10 +25,20 @@
 
 void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const
 {
-    r_list->push_back(PropertyInfo(Variant::STRING, "guid"));
-    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method"));
-    r_list->push_back(PropertyInfo(Variant::BOOL, "user_defined"));
-    r_list->push_back(PropertyInfo(Variant::INT, "id"));
+    r_list->push_back(PropertyInfo(Variant::STRING, "guid", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::BOOL, "user_defined", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::INT, "id", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+
+    r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR));
+    r_list->push_back(PropertyInfo(Variant::STRING, "built-in", PROPERTY_HINT_ENUM, "Yes,No", PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR));
+
+    r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT, "", _user_defined ? PROPERTY_USAGE_DEFAULT : PROPERTY_USAGE_STORAGE));
+
+    uint32_t usage = (_user_defined ? PROPERTY_USAGE_EDITOR : PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR);
+    r_list->push_back(PropertyInfo(Variant::STRING, "Inputs/Outputs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
+    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "inputs", PROPERTY_HINT_NONE, "", usage));
+    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "outputs", PROPERTY_HINT_NONE, "", usage));
 }
 
 bool OScriptFunction::_get(const StringName &p_name, Variant &r_value)
@@ -51,6 +61,39 @@ bool OScriptFunction::_get(const StringName &p_name, Variant &r_value)
     else if (p_name.match("user_defined"))
     {
         r_value = _user_defined;
+        return true;
+    }
+    else if (p_name.match("description"))
+    {
+        r_value = _description;
+        return true;
+    }
+    else if (p_name.match("built-in"))
+    {
+        r_value = _user_defined ? "No" : "Yes";
+        return true;
+    }
+    else if (p_name.match("function_name"))
+    {
+        r_value = _method.name;
+        return true;
+    }
+    else if (p_name.match("inputs"))
+    {
+        TypedArray<Dictionary> arguments;
+        for (const PropertyInfo& property : _method.arguments)
+            arguments.push_back(DictionaryUtils::from_property(property));
+
+        r_value = arguments;
+        return true;
+    }
+    else if (p_name.match("outputs"))
+    {
+        TypedArray<Dictionary> results;
+        if (has_return_type())
+            results.push_back(DictionaryUtils::from_property(_method.return_val));
+
+        r_value = results;
         return true;
     }
     return false;
@@ -95,6 +138,33 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
     {
         _user_defined = p_value;
         result = true;
+    }
+    else if (p_name.match("description"))
+    {
+        _description = p_value;
+        return true;
+    }
+    else if (p_name.match("inputs"))
+    {
+        const TypedArray<Dictionary> arguments = p_value;
+        const bool refresh_required = _method.arguments.size() != size_t(arguments.size());
+
+        set_arguments(p_value);
+
+        if (refresh_required)
+            notify_property_list_changed();
+
+        return true;
+    }
+    else if (p_name.match("outputs"))
+    {
+        const TypedArray<Dictionary> results = p_value;
+        if (results.is_empty())
+            set_has_return_value(false);
+        else
+            set_return(DictionaryUtils::to_property(results[0]));
+
+        return true;
     }
 
     if (result)
@@ -341,6 +411,15 @@ void OScriptFunction::set_has_return_value(bool p_has_return_value)
             MethodUtils::set_no_return_value(_method);
 
         _returns_value = p_has_return_value;
+        emit_changed();
+    }
+}
+
+void OScriptFunction::set_description(const String& p_description)
+{
+    if (_description != p_description)
+    {
+        _description = p_description;
         emit_changed();
     }
 }
