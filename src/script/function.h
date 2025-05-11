@@ -54,6 +54,7 @@ class OScriptFunction : public Resource
     bool _user_defined{ false };               //! Whether function is user-defined
     int _owning_node_id{ -1 };                 //! Owning node id
     bool _returns_value{ false };              //! Whether the function returns a value
+    String _description;                       //! Optional description for a function
 
 protected:
     //~ Begin Wrapped Interface
@@ -184,6 +185,15 @@ public:
     /// Sets whether the function has a return value
     /// @param p_has_return_value value true if the function has a return value, false otherwise
     void set_has_return_value(bool p_has_return_value);
+
+    /// Get the description for the function
+    /// @return an optional user-defined description
+    String get_description() const { return _description; }
+
+    /// Set an optional description
+    /// @param p_description a description of the function
+    void set_description(const String& p_description);
+
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_FUNCTION_H
