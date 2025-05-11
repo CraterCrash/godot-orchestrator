@@ -52,12 +52,12 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_pass_by_details(in
     if (PropertyUtils::is_passed_by_reference(p_property))
     {
         pass_by->set_button_icon(SceneUtils::get_icon("CircleReference"));
-        pass_by->set_tooltip_text("Property is passed by reference");
+        pass_by->set_tooltip_text("Passed by reference");
     }
     else
     {
         pass_by->set_button_icon(SceneUtils::get_icon("CircleValue"));
-        pass_by->set_tooltip_text("Property is passed by value");
+        pass_by->set_tooltip_text("Passed by value");
     }
 }
 
@@ -274,7 +274,7 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
             new_slot.type = memnew(Button);
             new_slot.type->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
             new_slot.type->set_custom_minimum_size(Vector2(100, 0));
-            new_slot.type->set_tooltip_text("Set property type");
+            new_slot.type->set_tooltip_text(_args ? "Set argument type" : "Set return type");
             new_slot.type->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_show_type_selection).bind(index, friendly_type_name));
             new_slot.type->set_disabled(is_read_only());
             add_focusable(new_slot.type);
@@ -289,21 +289,21 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
 
             Button* remove = memnew(Button);
             remove->set_button_icon(SceneUtils::get_editor_icon("Remove"));
-            remove->set_tooltip_text("Remove this property");
+            remove->set_tooltip_text(_args ? "Remove this argument" : "Remove this return value");
             remove->set_disabled(is_read_only());
             remove->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_remove_property).bind(index));
             new_slot.button_group->add_child(remove);
 
             Button* move_up = memnew(Button);
             move_up->set_button_icon(SceneUtils::get_editor_icon("ArrowUp"));
-            move_up->set_tooltip_text("Move this property up");
+            move_up->set_tooltip_text(_args ? "Move this argument up" : "Move this return value up");
             move_up->set_disabled(true);
             move_up->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_move_up).bind(index));
             new_slot.button_group->add_child(move_up);
 
             Button* move_down = memnew(Button);
             move_down->set_button_icon(SceneUtils::get_editor_icon("ArrowDown"));
-            move_down->set_tooltip_text("Move this property down");
+            move_down->set_tooltip_text(_args ? "Move this argument down" : "Move this return value down");
             move_down->set_disabled(true);
             move_down->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_move_down).bind(index));
             new_slot.button_group->add_child(move_down);

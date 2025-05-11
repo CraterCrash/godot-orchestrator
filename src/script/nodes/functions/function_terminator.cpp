@@ -24,12 +24,6 @@
 void OScriptNodeFunctionTerminator::_get_property_list(List<PropertyInfo>* r_list) const
 {
     r_list->push_back(PropertyInfo(Variant::STRING, "function_id", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
-    r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR));
-
-    uint32_t usage = (!_is_inputs_outputs_mutable() ? PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR : PROPERTY_USAGE_EDITOR);
-    r_list->push_back(PropertyInfo(Variant::STRING, "Inputs/Outputs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
-    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "inputs", PROPERTY_HINT_NONE, "", usage));
-    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "outputs", PROPERTY_HINT_NONE, "", usage));
 }
 
 bool OScriptNodeFunctionTerminator::_get(const StringName& p_name, Variant& r_value) const
@@ -37,34 +31,6 @@ bool OScriptNodeFunctionTerminator::_get(const StringName& p_name, Variant& r_va
     if (p_name.match("function_id"))
     {
         r_value = _guid.to_string();
-        return true;
-    }
-    else if (p_name.match("function_name"))
-    {
-        Ref<OScriptFunction> function = get_function();
-        r_value = function.is_valid() ? function->get_function_name() : "";
-        return true;
-    }
-    else if (p_name.match("inputs"))
-    {
-        TypedArray<Dictionary> inputs;
-        Ref<OScriptFunction> function = get_function();
-        if (function.is_valid())
-        {
-            for (const PropertyInfo& property : function->get_method_info().arguments)
-                inputs.push_back(DictionaryUtils::from_property(property));
-        }
-        r_value = inputs;
-        return true;
-    }
-    else if (p_name.match("outputs"))
-    {
-        TypedArray<Dictionary> outputs;
-        Ref<OScriptFunction> function = get_function();
-        if (function.is_valid() && get_function()->has_return_type())
-            outputs.push_back(DictionaryUtils::from_property(function->get_method_info().return_val));
-
-        r_value = outputs;
         return true;
     }
     return false;
@@ -76,35 +42,6 @@ bool OScriptNodeFunctionTerminator::_set(const StringName& p_name, const Variant
     {
         _guid = Guid(p_value);
         return true;
-    }
-    else if (p_name.match("inputs"))
-    {
-        Ref<OScriptFunction> function = get_function();
-        if (function.is_valid())
-        {
-            TypedArray<Dictionary> value = p_value;
-            const bool refresh_required = function->get_argument_count() != size_t(value.size());
-
-            function->set_arguments(p_value);
-
-            if (refresh_required)
-                notify_property_list_changed();
-
-            return true;
-        }
-    }
-    else if (p_name.match("outputs"))
-    {
-        Ref<OScriptFunction> function = get_function();
-        if (function.is_valid())
-        {
-            const TypedArray<Dictionary> value = p_value;
-            if (value.is_empty())
-                function->set_has_return_value(false);
-            else
-                function->set_return(DictionaryUtils::to_property(value[0]));
-            return true;
-        }
     }
     return false;
 }
@@ -171,4 +108,9 @@ void OScriptNodeFunctionTerminator::post_placed_new_node()
 
     if (_function.is_valid() && _is_in_editor())
         OCONNECT(_function, "changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
+}
+
+Ref<Resource> OScriptNodeFunctionTerminator::get_inspect_object()
+{
+    return _function.is_valid() ? _function : nullptr;
 }

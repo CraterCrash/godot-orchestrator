@@ -52,6 +52,7 @@ public:
     void post_initialize() override;
     void post_placed_new_node() override;
     String get_node_title_color_name() const override { return "function_terminator"; }
+    Ref<Resource> get_inspect_object() override;
     //~ End OScriptNode overrides
 
     /// Get the function reference
