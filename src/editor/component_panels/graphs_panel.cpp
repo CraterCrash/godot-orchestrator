@@ -21,6 +21,7 @@
 #include "common/settings.h"
 #include "editor/script_connections.h"
 
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/tree.hpp>
@@ -139,6 +140,21 @@ bool OrchestratorScriptGraphsComponentPanel::_handle_add_new_item(const String& 
 {
     // Add the new graph and update the components display
     return _orchestration->create_graph(p_name, OScriptGraph::GF_EVENT | OScriptGraph::GF_DEFAULT).is_valid();
+}
+
+void OrchestratorScriptGraphsComponentPanel::_handle_item_selected()
+{
+    TreeItem* item = _tree->get_selected();
+    if (item)
+    {
+        if (item->get_parent() != _tree->get_root())
+        {
+            const StringName name = _get_tree_item_name(item);
+            const Ref<OScriptFunction> function = _orchestration->find_function(name);
+            if (function.is_valid())
+                EditorInterface::get_singleton()->edit_resource(function);
+        }
+    }
 }
 
 void OrchestratorScriptGraphsComponentPanel::_handle_item_activated(TreeItem* p_item)

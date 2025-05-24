@@ -146,11 +146,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_item_selected()
     {
         const Ref<OScriptFunction> function = _orchestration->find_function(StringName(_get_tree_item_name(item)));
         if (function.is_valid())
-        {
-            const Ref<OScriptNode> node = function->get_owning_node();
-            if (node.is_valid())
-                EditorInterface::get_singleton()->edit_resource(node);
-        }
+            EditorInterface::get_singleton()->edit_resource(function);
     }
 }
 
