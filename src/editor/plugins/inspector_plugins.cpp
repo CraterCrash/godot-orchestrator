@@ -23,21 +23,68 @@
 #include "editor/inspector/property_type_button_property.h"
 #include "orchestrator_editor_plugin.h"
 #include "script/nodes/data/type_cast.h"
+#include "script/nodes/functions/function_entry.h"
 #include "script/nodes/functions/function_terminator.h"
 #include "script/nodes/signals/emit_signal.h"
 
+void OrchestratorEditorInspectorPluginFunction::_move_up(int p_index, const Ref<OScriptFunction>& p_function)
+{
+    _swap(p_index, 0, -1, p_function);
+}
+
+void OrchestratorEditorInspectorPluginFunction::_move_down(int p_index, const Ref<OScriptFunction>& p_function)
+{
+    _swap(p_index, 2, 1, p_function);
+}
+
+void OrchestratorEditorInspectorPluginFunction::_swap(int p_index, int p_pin_offset, int p_argument_offset, const Ref<OScriptFunction>& p_function)
+{
+    for (const Ref<OScriptGraph>& graph : p_function->get_orchestration()->get_graphs())
+    {
+        for (const Ref<OScriptNode>& node : graph->get_nodes())
+        {
+            Ref<OScriptNodeFunctionEntry> entry_node = node;
+            if (entry_node.is_valid() && entry_node->get_function() == p_function)
+            {
+                // Offset by one because Emit Signal port 0 is the execution port
+                Ref<OScriptNodePin> pin = entry_node->find_pin(p_index + 1, PD_Input);
+                Ref<OScriptNodePin> other_pin = entry_node->find_pin(p_index + p_pin_offset, PD_Input);
+
+                Vector<Ref<OScriptNodePin>> pin_sources = pin->get_connections();
+                Vector<Ref<OScriptNodePin>> other_pin_sources = other_pin->get_connections();
+
+                pin->unlink_all();
+                other_pin->unlink_all();
+
+                for (const Ref<OScriptNodePin>& pin_source : pin_sources)
+                    pin_source->link(other_pin);
+
+                for (const Ref<OScriptNodePin>& other_pin_source : other_pin_sources)
+                    other_pin_source->link(pin);
+            }
+        }
+    }
+
+    MethodInfo method = p_function->get_method_info();
+    PropertyInfo displaced = method.arguments[p_index + p_argument_offset];
+    method.arguments[p_index + p_argument_offset] = method.arguments[p_index];
+    method.arguments[p_index] = displaced;
+
+    TypedArray<Dictionary> properties;
+    for (const PropertyInfo& property : method.arguments)
+        properties.push_back(DictionaryUtils::from_property(property));
+
+    p_function->set("inputs", properties);
+}
+
 bool OrchestratorEditorInspectorPluginFunction::_can_handle(Object* p_object) const
 {
-    return Object::cast_to<OScriptNodeFunctionTerminator>(p_object) != nullptr;
+    return Object::cast_to<OScriptFunction>(p_object) != nullptr;
 }
 
 bool OrchestratorEditorInspectorPluginFunction::_parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint_type, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage_flags, bool p_wide)
 {
-    const OScriptNodeFunctionTerminator* entry = Object::cast_to<OScriptNodeFunctionTerminator>(p_object);
-    if (entry == nullptr)
-        return false;
-
-    Ref<OScriptFunction> function = entry->get_function();
+    Ref<OScriptFunction> function = Object::cast_to<OScriptFunction>(p_object);
     if (!function.is_valid())
         return false;
 
@@ -45,7 +92,10 @@ bool OrchestratorEditorInspectorPluginFunction::_parse_property(Object* p_object
     {
         OrchestratorPropertyInfoContainerEditorProperty* inputs = memnew(OrchestratorPropertyInfoContainerEditorProperty);
         inputs->set_label("Inputs");
+        inputs->set_allow_rearrange(false);
         inputs->setup(true);
+        inputs->connect("move_up", callable_mp(this, &OrchestratorEditorInspectorPluginFunction::_move_up).bind(function));
+        inputs->connect("move_down", callable_mp(this, &OrchestratorEditorInspectorPluginFunction::_move_down).bind(function));
         add_property_editor(p_name, inputs, true);
         return true;
     }
@@ -54,6 +104,7 @@ bool OrchestratorEditorInspectorPluginFunction::_parse_property(Object* p_object
     {
         OrchestratorPropertyInfoContainerEditorProperty* outputs = memnew(OrchestratorPropertyInfoContainerEditorProperty);
         outputs->set_label("Outputs");
+        outputs->set_allow_rearrange(false);
         outputs->setup(false, 1);
         add_property_editor(p_name, outputs, true);
         return true;
