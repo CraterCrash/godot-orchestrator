@@ -50,6 +50,13 @@ void OScriptState::_signal_callback(const Variant** p_args, GDExtensionInt p_arg
 
 Variant OScriptState::_call_method(GDExtensionCallError& r_error)
 {
+    if (!ObjectDB::get_instance(_instance_id))
+    {
+        // Script instance is no longer valid
+        _function = StringName();
+        return Variant();
+    }
+
     void* stack = const_cast<unsigned char*>(_stack.ptr());
     OScriptExecutionContext context(_stack_info, stack, _flow_stack_pos, _pass);
     context._script_instance = _script_instance;
