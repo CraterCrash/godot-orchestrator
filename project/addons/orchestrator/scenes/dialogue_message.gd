@@ -44,6 +44,7 @@ var _current_choices : Dictionary
 @onready var speaker_text = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/SpeakerText
 @onready var response_tpl = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/ResponseTemplate
 @onready var next_button  = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/NextButton
+@onready var stream_player = $AudioStreamPlayer
 
 func _ready() -> void:
 	response_tpl.visible = false
@@ -63,7 +64,9 @@ func _ready() -> void:
 	var character_name = dialogue_data["character_name"]
 	var message = dialogue_data["message"]	
 	var options = dialogue_data["options"]	
+	var audio = dialogue_data["audio"]	
 	show_message(character_name, message, options)
+	play_audio(audio)
 	
 	
 func _unhandled_input(event: InputEvent) -> void:
@@ -78,8 +81,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			 				
 		# ShowMessage is only allowed to process input when visible
 		_disable_player_movement()
-			
-
+	
+	
 func show_message(speaker_name: String, message: String, choices: Dictionary) -> void:
 	speaker.text = speaker_name
 	speaker_text.text = message
@@ -91,6 +94,17 @@ func show_message(speaker_name: String, message: String, choices: Dictionary) ->
 	_current_tween.tween_property(speaker_text, "visible_characters", speaker_text.text.length(), duration)
 	_current_tween.finished.connect(Callable(_on_tween_finished).bind(choices))
 	show()
+	
+	
+func play_audio(path: String) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var audio = load(path)
+	if audio is not AudioStream:
+		return
+	stream_player.stream = audio
+	stream_player.play()
+	
 	
 ## Callback when the tween typing has finished.
 ## This allows presenting the user choice options or Continue button.
@@ -108,13 +122,13 @@ func _on_tween_finished(choices: Dictionary) -> void:
 			button.pressed.connect(button_handler)
 	else:
 		next_button.show()
-		
-
+	
+	
 ## Handles canceling the typing effect based on key codes
 func _should_end_typing(keycode:int) -> bool:
 	return keycode == KEY_ESCAPE or keycode == KEY_SPACE
 	
-
+	
 ## Prevent user movement when the dialogue UI is shown
 func _disable_player_movement() -> void:	
 	var actions = InputMap.get_actions()
