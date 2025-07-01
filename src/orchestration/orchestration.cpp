@@ -23,6 +23,7 @@
 #include "script/nodes/signals/emit_signal.h"
 #include "script/nodes/variables/variable.h"
 #include "script/variable.h"
+#include "common/name_utils.h"
 
 #include <godot_cpp/classes/os.hpp>
 
@@ -772,6 +773,28 @@ Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Va
     _self->emit_signal("variables_changed");
 
     return variable;
+}
+
+Ref<OScriptVariable> Orchestration::duplicate_variable(const StringName& p_name)
+{
+    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot duplicate variables, instances exist.");
+    ERR_FAIL_COND_V_MSG(!has_variable(p_name), nullptr, "Cannot duplicate variable that does not exist: " + p_name);
+
+    Ref<OScriptVariable> original = get_variable(p_name);
+
+    String new_name = NameUtils::create_unique_name(p_name, get_variable_names());
+
+    Ref<OScriptVariable> result = create_variable(new_name, original->get_variable_type());
+    // copy all properties
+    result->set_category(original->get_category());
+    result->set_default_value(original->get_default_value());
+    result->set_classification(original->get_classification());
+    result->set_custom_value_list(original->get_custom_value_list());
+    result->set_constant(original->is_constant());
+    result->set_description(original->get_description());
+    result->set_exported(original->is_exported());
+
+    return result;
 }
 
 void Orchestration::remove_variable(const StringName& p_name)

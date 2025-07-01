@@ -209,6 +209,7 @@ public:
     //~ Begin Variable Interface
     bool has_variable(const StringName& p_name) const;
     Ref<OScriptVariable> create_variable(const StringName& p_name, Variant::Type p_type = Variant::NIL);
+    Ref<OScriptVariable> duplicate_variable(const StringName& p_name);
     void remove_variable(const StringName& p_name);
     Ref<OScriptVariable> get_variable(const StringName& p_name);
     bool rename_variable(const StringName& p_old_name, const StringName& p_new_name);

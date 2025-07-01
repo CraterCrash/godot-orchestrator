@@ -118,6 +118,7 @@ String OrchestratorScriptVariablesComponentPanel::_get_remove_confirm_text(TreeI
 
 bool OrchestratorScriptVariablesComponentPanel::_populate_context_menu(TreeItem* p_item)
 {
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Duplicate"),"Duplicate", CM_DUPLICATE_VARIABLE);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_VARIABLE, KEY_F2);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_VARIABLE, KEY_DELETE);
     return true;
@@ -133,7 +134,16 @@ void OrchestratorScriptVariablesComponentPanel::_handle_context_menu(int p_id)
         case CM_REMOVE_VARIABLE:
             _confirm_removal(_tree->get_selected());
             break;
+        case CM_DUPLICATE_VARIABLE:
+            _duplicate_variable(_tree->get_selected());
     }
+}
+
+void OrchestratorScriptVariablesComponentPanel::_duplicate_variable(TreeItem* p_item)
+{
+    Ref<OScriptVariable> duplicate = _orchestration->duplicate_variable(_get_tree_item_name(p_item));
+    update();
+    _find_child_and_activate(duplicate->get_variable_name());
 }
 
 bool OrchestratorScriptVariablesComponentPanel::_handle_add_new_item(const String& p_name)
