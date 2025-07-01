@@ -16,14 +16,17 @@
 //
 #include "orchestration/orchestration.h"
 
+#include "common/method_utils.h"
+#include "common/name_utils.h"
 #include "common/variant_utils.h"
 #include "script/node.h"
 #include "script/nodes/functions/call_script_function.h"
+#include "script/nodes/functions/function_entry.h"
+#include "script/nodes/functions/function_result.h"
 #include "script/nodes/signals/emit_member_signal.h"
 #include "script/nodes/signals/emit_signal.h"
 #include "script/nodes/variables/variable.h"
 #include "script/variable.h"
-#include "common/name_utils.h"
 
 #include <godot_cpp/classes/os.hpp>
 
@@ -617,12 +620,94 @@ Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, 
     function->_method = p_method;
     function->_owning_node_id = p_node_id;
     function->_user_defined = p_user_defined;
+    function->_returns_value = MethodUtils::has_return_value(p_method) ;
 
     _functions[p_method.name] = function;
 
     _self->emit_signal("functions_changed");
 
     return function;
+}
+Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name, bool p_include_code)
+{
+    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot duplicate functions, instances exist.");
+    ERR_FAIL_COND_V_MSG(!has_function(p_name), nullptr, "No function exists with the name: " + p_name);
+
+    Ref<OScriptGraph> old_graph = find_graph(p_name);
+    Ref<OScriptFunction> old_function = find_function(p_name);
+    Ref<OScriptFunction> result;
+
+    // make a unique name for the new function
+    String new_name = NameUtils::create_unique_name(p_name, get_function_names());
+
+    // make a graph
+    Ref<OScriptGraph> graph = create_graph(new_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
+
+
+    // duplicate each node, make a dictionary that maps old node IDs to new node IDs
+    Dictionary node_id_map;
+    bool has_result = false;
+    for (const Ref<OScriptNode>& old_node : old_graph->get_nodes())
+    {
+        // if we don't include the code skip anything that is not a function entry node
+        // or a function return node
+        Ref<OScriptNodeFunctionEntry> old_entry = old_node;
+        Ref<OScriptNodeFunctionResult> old_result = old_node;
+        if (!p_include_code && !old_entry.is_valid() && !old_result.is_valid()) {
+            // skip this node
+            continue;
+        }
+
+        // if we don't include code, we only duplicate ONE result node
+        if (!p_include_code && old_result.is_valid())
+        {
+            if (has_result)
+            {
+                continue; // skip this node, we already have a result node
+            }
+            has_result = true; // we will only have one result node
+        }
+
+        Ref<OScriptNode> new_node = old_node->duplicate();
+        new_node->_orchestration = this;
+        new_node->set_id(get_available_id());
+        new_node->post_initialize();
+        add_node(graph, new_node);
+        graph->add_node(new_node);
+
+        node_id_map[old_node->get_id()] = new_node->get_id();
+
+        // if this node was the function entry node, we need to update function reference
+        const Ref<OScriptNodeFunctionEntry> entry = new_node;
+        if (entry.is_valid())
+        {
+            OScriptNodeInitContext context;
+            MethodInfo mi = old_function->get_method_info();
+            mi.name = new_name;
+            context.method = mi;
+            entry->initialize(context);
+            result = entry->get_function();
+        }
+    }
+
+    // now restore connections
+    for (const OScriptConnection& old_connection : old_graph->get_connections())
+    {
+        // if we don't include code, some nodes will not be present in the new graph
+        // we know that ids are >= 0, so we can use -1 to detect if a node was not found
+        int source_id = node_id_map.get(old_connection.from_node, -1);
+        int target_id = node_id_map.get(old_connection.to_node, -1);
+        if (source_id == -1 || target_id == -1)
+        {
+            // skip this connection, one of the nodes was not found
+            continue;
+        }
+        int source_port = old_connection.from_port;
+        int target_port = old_connection.to_port;
+        graph->link(source_id, source_port, target_id, target_port);
+    }
+
+    return result;
 }
 
 void Orchestration::remove_function(const StringName& p_name)

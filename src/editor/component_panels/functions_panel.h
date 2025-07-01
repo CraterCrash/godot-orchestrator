@@ -31,7 +31,9 @@ class OrchestratorScriptFunctionsComponentPanel : public OrchestratorScriptCompo
         CM_OPEN_FUNCTION_GRAPH,
         CM_RENAME_FUNCTION,
         CM_REMOVE_FUNCTION,
-        CM_DISCONNECT_SLOT
+        CM_DISCONNECT_SLOT,
+        CM_DUPLICATE_FUNCTION,
+        CM_DUPLICATE_FUNCTION_NO_CODE
     };
 
     Button* _override_button{ nullptr };
@@ -61,6 +63,8 @@ protected:
     //~ Begin Signal handlers
     void _show_function_graph(TreeItem* p_item);
     //~ End Signal handlers
+
+    void _duplicate_function(TreeItem* tree_item, bool include_code = true);
 
     /// Updates the slot icons on tree items
     void _update_slots();
