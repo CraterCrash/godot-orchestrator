@@ -103,7 +103,7 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
         "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
-        "ANDROID_PLATFORM": "android-23",
+        "ANDROID_PLATFORM": "android-22",
         "ANDROID_TOOLCHAIN": "clang",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
