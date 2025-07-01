@@ -27,7 +27,8 @@ class OrchestratorScriptVariablesComponentPanel : public OrchestratorScriptCompo
     enum ContextMenuIds
     {
         CM_RENAME_VARIABLE,
-        CM_REMOVE_VARIABLE
+        CM_REMOVE_VARIABLE,
+        CM_DUPLICATE_VARIABLE
     };
 
     void _update_variables() { update(); }
@@ -52,6 +53,7 @@ protected:
     //~ End OrchestratorScriptViewSection Interface
 
     void _create_variable_item(TreeItem* p_parent, const Ref<OScriptVariable>& p_variable);
+    void _duplicate_variable(TreeItem* p_item);
 
     /// Default constructor
     OrchestratorScriptVariablesComponentPanel() = default;
