@@ -40,6 +40,12 @@ void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p
     _tree->deselect_all();
 }
 
+void OrchestratorScriptFunctionsComponentPanel::_duplicate_function(TreeItem* tree_item, bool include_code)
+{
+    _orchestration->duplicate_function(_get_tree_item_name(tree_item), include_code);
+    update();
+}
+
 void OrchestratorScriptFunctionsComponentPanel::_update_slots()
 {
     if (_orchestration->get_type() != OrchestrationType::OT_Script)
@@ -98,6 +104,8 @@ String OrchestratorScriptFunctionsComponentPanel::_get_remove_confirm_text(TreeI
 bool OrchestratorScriptFunctionsComponentPanel::_populate_context_menu(TreeItem* p_item)
 {
     _context_menu->add_item("Open in Graph", CM_OPEN_FUNCTION_GRAPH, KEY_ENTER);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Duplicate"), "Duplicate", CM_DUPLICATE_FUNCTION);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Duplicate"), "Duplicate (no code)", CM_DUPLICATE_FUNCTION_NO_CODE);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_FUNCTION, KEY_F2);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION, KEY_DELETE);
 
@@ -125,6 +133,12 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_context_menu(int p_id)
             break;
         case CM_DISCONNECT_SLOT:
             _disconnect_slot(_tree->get_selected());
+            break;
+        case CM_DUPLICATE_FUNCTION:
+            _duplicate_function(_tree->get_selected(), true);
+            break;
+        case CM_DUPLICATE_FUNCTION_NO_CODE:
+            _duplicate_function(_tree->get_selected(), false);
             break;
     }
 }

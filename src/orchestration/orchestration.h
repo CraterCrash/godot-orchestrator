@@ -197,6 +197,7 @@ public:
     //~ Begin Function API
     bool has_function(const StringName& p_name) const;
     Ref<OScriptFunction> create_function(const MethodInfo& p_method, int p_node_id, bool p_user_defined = false);
+    Ref<OScriptFunction> duplicate_function(const StringName& p_name, bool p_include_code);
     void remove_function(const StringName& p_name);
     Ref<OScriptFunction> find_function(const StringName& p_name) const;
     Ref<OScriptFunction> find_function(const Guid& p_guid) const;
