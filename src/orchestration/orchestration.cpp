@@ -28,6 +28,7 @@
 #include "script/nodes/variables/variable.h"
 #include "script/variable.h"
 
+#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/os.hpp>
 
 TypedArray<OScriptNode> Orchestration::_get_nodes_internal() const
@@ -630,6 +631,7 @@ Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, 
 
     return function;
 }
+
 Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name, bool p_include_code)
 {
     ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot duplicate functions, instances exist.");
@@ -637,18 +639,23 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
 
     Ref<OScriptGraph> old_graph = find_graph(p_name);
     Ref<OScriptFunction> old_function = find_function(p_name);
-    Ref<OScriptFunction> result;
+    Ref<OScriptFunction> new_function;
 
     // make a unique name for the new function
     String new_name = NameUtils::create_unique_name(p_name, get_function_names());
 
     // make a graph
-    Ref<OScriptGraph> graph = create_graph(new_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
+    Ref<OScriptGraph> new_graph = create_graph(new_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
 
 
-    // duplicate each node, make a dictionary that maps old node IDs to new node IDs
-    Dictionary node_id_map;
+    // duplicate each node, make a lookup table that maps old node IDs to new node IDs
+    HashMap<int,int> node_id_map;
     bool has_result = false;
+
+    // new entry and result nodes (only needed later if we don't include code)
+    Ref<OScriptNodeFunctionEntry> new_entry;
+    Ref<OScriptNodeFunctionResult> new_result;
+
     for (const Ref<OScriptNode>& old_node : old_graph->get_nodes())
     {
         // if we don't include the code skip anything that is not a function entry node
@@ -670,46 +677,99 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
             has_result = true; // we will only have one result node
         }
 
-        Ref<OScriptNode> new_node = old_node->duplicate();
-        new_node->_orchestration = this;
-        new_node->set_id(get_available_id());
-        new_node->post_initialize();
-        add_node(graph, new_node);
-        graph->add_node(new_node);
+        // duplicate the node including its resources
+        Ref<OScriptNode> new_node = old_graph->duplicate_node(old_node->get_id(), {}, true);
+        // and move it over to the new graph
+        old_graph->move_node_to(new_node, new_graph);
+
 
         node_id_map[old_node->get_id()] = new_node->get_id();
 
         // if this node was the function entry node, we need to update function reference
-        const Ref<OScriptNodeFunctionEntry> entry = new_node;
-        if (entry.is_valid())
+        if (!new_entry.is_valid())
         {
-            OScriptNodeInitContext context;
-            MethodInfo mi = old_function->get_method_info();
-            mi.name = new_name;
-            context.method = mi;
-            entry->initialize(context);
-            result = entry->get_function();
+            // this is an implicit cast, if the new_node is not a function entry node,
+            // new_entry will remain invalid
+            new_entry = new_node;
+            if (new_entry.is_valid())
+            {
+                OScriptNodeInitContext context;
+                MethodInfo mi = old_function->get_method_info();
+                mi.name = new_name;
+                context.method = mi;
+                new_entry->initialize(context);
+                new_function = new_entry->get_function();
+            }
+        }
+
+        // take note of the result node (unless we already have one)
+        // only needed when we don't include code
+        if (!p_include_code && !new_result.is_valid())
+        {
+            // this is an implicit cast, if the new_node is not a result node,
+            // new_result will remain invalid
+            new_result = new_node;
         }
     }
 
     // now restore connections
-    for (const OScriptConnection& old_connection : old_graph->get_connections())
+    if (p_include_code)
     {
-        // if we don't include code, some nodes will not be present in the new graph
-        // we know that ids are >= 0, so we can use -1 to detect if a node was not found
-        int source_id = node_id_map.get(old_connection.from_node, -1);
-        int target_id = node_id_map.get(old_connection.to_node, -1);
-        if (source_id == -1 || target_id == -1)
+        // if we include code, we need to restore all connections
+        for (const OScriptConnection& old_connection : old_graph->get_connections())
         {
-            // skip this connection, one of the nodes was not found
-            continue;
+            int source_id = node_id_map[static_cast<int>(old_connection.from_node)];
+            int target_id = node_id_map[static_cast<int>(old_connection.to_node)];
+            int source_port = old_connection.from_port;
+            int target_port = old_connection.to_port;
+            new_graph->link(source_id, source_port, target_id, target_port);
         }
-        int source_port = old_connection.from_port;
-        int target_port = old_connection.to_port;
-        graph->link(source_id, source_port, target_id, target_port);
+    }
+    else
+    {
+        // otherwise we just connect the entry node to the result node (if we had a result node)
+        if (new_entry.is_valid() && new_result.is_valid())
+        {
+            // get first the output pin of the entry node that is an execution pin
+            Ref<OScriptNodePin> entry_execution_pin;
+            for (const Ref<OScriptNodePin>& pin : new_entry->find_pins(PD_Output))
+            {
+                if (pin->is_execution())
+                {
+                    entry_execution_pin = pin;
+                    break;
+                }
+            }
+            Ref<OScriptNodePin> result_execution_pin;
+            // get the fist input pin of the result node that is an execution pin
+            for (const Ref<OScriptNodePin>& pin : new_result->find_pins(PD_Input))
+            {
+                if (pin->is_execution())
+                {
+                    result_execution_pin = pin;
+                    break;
+                }
+            }
+
+
+            // connect the entry node to the result node
+            if (entry_execution_pin.is_valid() && result_execution_pin.is_valid())
+            {
+                // link the entry execution pin to the result execution pin
+                new_graph->link(
+                    new_entry->get_id(),
+                    entry_execution_pin->get_pin_index(),
+                    new_result->get_id(),
+                    result_execution_pin->get_pin_index());
+            }
+
+            // and move the result node close to the entry node
+            // this doesn't work too well on HDPI displays, but it is better than nothing
+            new_result->set_position(new_entry->get_position() + Vector2(250, 0));
+        }
     }
 
-    return result;
+    return new_function;
 }
 
 void Orchestration::remove_function(const StringName& p_name)
@@ -864,24 +924,21 @@ Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Va
 
 Ref<OScriptVariable> Orchestration::duplicate_variable(const StringName& p_name)
 {
-    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot duplicate variables, instances exist.");
-    ERR_FAIL_COND_V_MSG(!has_variable(p_name), nullptr, "Cannot duplicate variable that does not exist: " + p_name);
+    ERR_FAIL_COND_V_MSG(_has_instances(), {}, "Cannot duplicate variables, instances exist.");
+    ERR_FAIL_COND_V_MSG(!has_variable(p_name), {}, "Cannot duplicate variable that does not exist: " + p_name);
 
-    Ref<OScriptVariable> original = get_variable(p_name);
+    Ref<OScriptVariable> old_variable = get_variable(p_name);
 
     String new_name = NameUtils::create_unique_name(p_name, get_variable_names());
 
-    Ref<OScriptVariable> result = create_variable(new_name, original->get_variable_type());
-    // copy all properties
-    result->set_category(original->get_category());
-    result->set_default_value(original->get_default_value());
-    result->set_classification(original->get_classification());
-    result->set_custom_value_list(original->get_custom_value_list());
-    result->set_constant(original->is_constant());
-    result->set_description(original->get_description());
-    result->set_exported(original->is_exported());
+    Ref<OScriptVariable> new_variable = create_variable(new_name, old_variable->get_variable_type());
+    ERR_FAIL_COND_V_MSG(!new_variable.is_valid(), {}, "Failed to create a new variable with name: " + new_name);
+    new_variable->copy_persistent_state(old_variable);
 
-    return result;
+    // copy_persistent_state overwrites the name, so we need to set it again
+    new_variable->set_variable_name(new_name);
+
+    return new_variable;
 }
 
 void Orchestration::remove_variable(const StringName& p_name)
