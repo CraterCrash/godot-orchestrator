@@ -142,8 +142,11 @@ void OrchestratorScriptVariablesComponentPanel::_handle_context_menu(int p_id)
 void OrchestratorScriptVariablesComponentPanel::_duplicate_variable(TreeItem* p_item)
 {
     Ref<OScriptVariable> duplicate = _orchestration->duplicate_variable(_get_tree_item_name(p_item));
-    update();
-    _find_child_and_activate(duplicate->get_variable_name());
+    if (duplicate.is_valid())
+    {
+        update();
+        _find_child_and_activate(duplicate->get_variable_name());
+    }
 }
 
 bool OrchestratorScriptVariablesComponentPanel::_handle_add_new_item(const String& p_name)
