@@ -21,7 +21,7 @@
 #include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "editor/actions/filter_engine.h"
-#include "editor/graph/graph_node_pin.h"
+#include "editor/graph/graph_pin.h"
 #include "script/script_server.h"
 
 bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
@@ -109,9 +109,9 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
     return false;
 }
 
-void OrchestratorEditorActionPortRule::configure(const OrchestratorGraphNodePin* p_pin, const Object* p_target)
+void OrchestratorEditorActionPortRule::configure(const OrchestratorEditorGraphPin* p_pin, const Object* p_target)
 {
-    _output = p_pin->is_output();
+    _output = p_pin->get_direction() == PD_Output;
     _execution = p_pin->is_execution();
 
     const PropertyInfo& property = p_pin->get_property_info();

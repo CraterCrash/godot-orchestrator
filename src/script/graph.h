@@ -237,4 +237,7 @@ public:
 
 VARIANT_BITFIELD_CAST(OScriptGraph::GraphFlags)
 
+// todo: eventually build an abstract base class
+typedef OScriptGraph OrchestrationGraph;
+
 #endif  // ORCHESTRATOR_SCRIPT_GRAPH_H

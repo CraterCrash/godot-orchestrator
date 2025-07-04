@@ -19,7 +19,7 @@
 #include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
-#include "editor/graph/graph_node_pin.h"
+#include "editor/graph/graph_pin.h"
 #include "script/nodes/math/operator_node.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -38,7 +38,7 @@ void OrchestratorAutowireConnectionDialog::_item_selected()
     TreeItem* item = _tree->get_selected();
     if (item)
     {
-        OrchestratorGraphNodePin* pin = cast_to<OrchestratorGraphNodePin>(item->get_meta("__pin"));
+        OrchestratorEditorGraphPin* pin = cast_to<OrchestratorEditorGraphPin>(item->get_meta("__pin"));
         _choice = pin;
 
         get_ok_button()->set_disabled(_choice == nullptr);
@@ -50,19 +50,19 @@ void OrchestratorAutowireConnectionDialog::_close()
     get_ok_button()->call_deferred("emit_signal", "pressed");
 }
 
-OrchestratorGraphNodePin* OrchestratorAutowireConnectionDialog::get_autowire_choice() const
+OrchestratorEditorGraphPin* OrchestratorAutowireConnectionDialog::get_autowire_choice() const
 {
     return _choice;
 }
 
-void OrchestratorAutowireConnectionDialog::popup_autowire(const Vector<OrchestratorGraphNodePin*>& p_choices)
+void OrchestratorAutowireConnectionDialog::popup_autowire(const Vector<OrchestratorEditorGraphPin*>& p_choices)
 {
     // At this point, no automatic choice was made, so populate the tree/dialog
     get_ok_button()->set_disabled(true);
     _tree->clear();
 
     TreeItem* root = _tree->create_item();
-    for (OrchestratorGraphNodePin* choice : p_choices)
+    for (OrchestratorEditorGraphPin* choice : p_choices)
     {
         const String pin_type_name = PropertyUtils::get_property_type_name(choice->get_property_info());
 

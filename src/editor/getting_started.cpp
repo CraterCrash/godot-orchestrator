@@ -30,6 +30,7 @@ void OrchestratorGettingStarted::_notification(int p_what)
     {
         set_alignment(ALIGNMENT_CENTER);
         set_anchors_preset(PRESET_FULL_RECT);
+        set_v_size_flags(SIZE_EXPAND_FILL);
 
         TextureRect* logo = memnew(TextureRect);
         logo->set_custom_minimum_size(Vector2(128, 128));

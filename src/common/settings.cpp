@@ -190,6 +190,7 @@ void OrchestratorSettings::_register_settings()
     #if GODOT_VERSION >= 0x040300
     _settings.emplace_back(SENUM_SETTING("ui/graph/grid_pattern", "Dots,Lines", "Lines"));
     #endif
+    _settings.emplace_back(BOOL_SETTING("ui/graph/show_advanced_tooltips", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_autowire_selection_dialog", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_arrange_button", false));
@@ -199,6 +200,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(SENUM_SETTING("ui/nodes/connection_hotzone_scale", "100%,150%,200%", "100%"));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/resizable_by_default", false));
+    _settings.emplace_back(BOOL_SETTING("ui/nodes/resize_to_content", false));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/highlight_selected_connections", false));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/background_color", Color::html("#191d23")));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/border_color", Color(0.059f, 0.067f, 0.082f)));
