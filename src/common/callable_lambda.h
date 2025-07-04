@@ -110,4 +110,6 @@ godot::Callable callable_mp_lambda(godot::Object* p_instance, Lambda&& p_lambda)
     return godot::Callable(ccl);
 }
 
+#define callable_mp_signal_lambda(name, ...) callable_mp_lambda(this, [this] { emit_signal(name __VA_ARGS__ ); })
+
 #endif
