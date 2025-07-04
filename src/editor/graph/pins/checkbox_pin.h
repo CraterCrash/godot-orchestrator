@@ -1,0 +1,45 @@
+// This file is part of the Godot Orchestrator project.
+//
+// Copyright (c) 2023-present Crater Crash Studios LLC and its contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+#ifndef ORCHESTRATOR_EDITOR_GRAPH_PIN_CHECKBOX_H
+#define ORCHESTRATOR_EDITOR_GRAPH_PIN_CHECKBOX_H
+
+#include "editor/graph/graph_pin.h"
+
+#include <godot_cpp/classes/check_box.hpp>
+
+/// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>Checkbox</code>
+/// that provide toggling a default value as on/off for boolean-based pins.
+///
+class OrchestratorEditorGraphPinCheckbox : public OrchestratorEditorGraphPin
+{
+    GDCLASS(OrchestratorEditorGraphPinCheckbox, OrchestratorEditorGraphPin);
+
+    CheckBox* _control = nullptr;
+
+protected:
+    static void _bind_methods() { }
+
+    using OrchestratorEditorGraphPin::_default_value_changed;
+
+    //~ Begin OrchestratorEditorGraphPin Interface
+    void _update_control_value(const Variant& p_value) override;
+    Variant _read_control_value() override;
+    Control* _create_default_value_widget() override;
+    //~ End OrchestratorEditorGraphPin Interface
+};
+
+#endif // ORCHESTRATOR_EDITOR_GRAPH_PIN_CHECKBOX_H
