@@ -17,10 +17,7 @@
 #ifndef ORCHESTRATOR_EDITOR_PLUGIN_H
 #define ORCHESTRATOR_EDITOR_PLUGIN_H
 
-#include "editor/build_output_panel.h"
-#include "editor/editor_cache.h"
 #include "editor/plugins/orchestrator_editor_debugger_plugin.h"
-#include "editor/theme/theme_cache.h"
 
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/editor_export_plugin.hpp>
@@ -32,7 +29,7 @@
 using namespace godot;
 
 /// Forward declarations
-class OrchestratorEditorPanel;
+class OrchestratorEditor;
 class OrchestratorWindowWrapper;
 
 /// The Orchestrator editor plug-in.
@@ -40,44 +37,66 @@ class OrchestratorPlugin : public EditorPlugin
 {
     GDCLASS(OrchestratorPlugin, EditorPlugin);
 
-    static void _bind_methods();
-
     static OrchestratorPlugin* _plugin;
 
     String _last_editor;                                      //! Last editor
-    OrchestratorEditorPanel* _editor_panel{ nullptr };        //! Plugin's editor panel
+    OrchestratorEditor* _editor_panel{ nullptr };             //! Plugin's editor panel
     OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
     Vector<Ref<EditorExportPlugin>> _export_plugins;
-    Ref<OrchestratorThemeCache> _theme_cache;
-    Ref<OrchestratorEditorCache> _editor_cache;               //! Script editor cache
-    OrchestratorBuildOutputPanel* _build_panel{ nullptr };    //! Build panel
     #if GODOT_VERSION >= 0x040300
     Ref<OrchestratorEditorDebuggerPlugin> _debugger_plugin;   //! Debugger plugin
     #endif
 
+    void _focus_another_editor();
+    bool _is_exiting() const;
+
+    void _register_inspector_plugins();
+    void _register_export_plugins();
+    void _register_debugger_plugins();
+
+    void _add_plugin_icon_to_editor_theme();
+
+    //~ Begin Signals
+    void _main_screen_changed(const String& p_name);
+    void _window_visibility_changed(bool p_visible);
+    //~ End Signals
+
+protected:
+    static void _bind_methods();
+
 public:
-    /// Constructor
-    OrchestratorPlugin();
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
+
+    //~ Begin EditorPlugin interface
+    String get_plugin_version() const;
+    void _edit(Object* p_object) override;
+    bool _handles(Object* p_object) const override;
+    bool _has_main_screen() const override;
+    void _make_visible(bool p_visible) override;
+    String _get_plugin_name() const override;
+    Ref<Texture2D> _get_plugin_icon() const override;
+    void _save_external_data() override;
+    String _get_unsaved_status(const String& p_for_scene) const override;
+    void _apply_changes() override;
+    void _set_window_layout(const Ref<ConfigFile>& configuration) override;
+    void _get_window_layout(const Ref<ConfigFile>& configuration) override;
+    bool _build() override;
+    void _enable_plugin() override;
+    void _disable_plugin() override;
+    PackedStringArray _get_breakpoints() const override;
+    //~ End EditorPlugin interface
 
     /// Get the plugin instance, only valid within the Godot Editor.
     /// @return the plugin instance
     static OrchestratorPlugin* get_singleton() { return _plugin; }
 
-    /// Handle Godot's notification callbacks
-    /// @param p_what the notification type
-    void _notification(int p_what);
-
-    /// Get the plugin's online documentation URL
-    /// @return the online documentation URL
-    String get_plugin_online_documentation_url() const;
-
-    String get_github_release_url() const;
-    String get_github_release_tag_url(const String& p_tag);
-    String get_github_release_notes_url(const String& p_tag);
-    String get_github_issues_url() const;
-    String get_patreon_url() const;
-    String get_community_url() const;
+    static String get_github_issues_url();
+    static String get_patreon_url();
+    static String get_community_url();
+    static String get_plugin_online_documentation_url();
 
     /// Returns whether windows are restored on load
     /// @return true if windows are to be restored, false otherwise
@@ -101,33 +120,6 @@ public:
     /// Makes this plugin's view active, if it isn't already.
     void make_active();
 
-    Ref<OrchestratorThemeCache> get_theme_cache() { return _theme_cache; }
-    Ref<OrchestratorEditorCache> get_editor_cache() { return _editor_cache; }
-
-    /// Sets the build panel as active
-    void make_build_panel_active();
-
-    /// Get a reference to the build output panel
-    /// @return the build output panel, should never be <code>null</code>
-    OrchestratorBuildOutputPanel* get_build_panel() const { return _build_panel; }
-
-    //~ Begin EditorPlugin interface
-    String get_plugin_version() const;
-    void _edit(Object* p_object) override;
-    bool _handles(Object* p_object) const override;
-    bool _has_main_screen() const override;
-    void _make_visible(bool p_visible) override;
-    String _get_plugin_name() const override;
-    Ref<Texture2D> _get_plugin_icon() const override;
-    void _apply_changes() override;
-    void _set_window_layout(const Ref<ConfigFile>& configuration) override;
-    void _get_window_layout(const Ref<ConfigFile>& configuration) override;
-    bool _build() override;
-    void _enable_plugin() override;
-    void _disable_plugin() override;
-    PackedStringArray _get_breakpoints() const override;
-    //~ End EditorPlugin interface
-
     /// Get the editor inspector plugin by type
     /// @return the editor inspector plugin reference or an invalid reference if not found
     template<typename T>
@@ -135,17 +127,13 @@ public:
     {
         for (Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
         {
-            if (T* result = Object::cast_to<T>(plugin.ptr()))
+            if (T* result = cast_to<T>(plugin.ptr()))
                 return result;
         }
         return {};
     }
 
-private:
-    void _focus_another_editor();
-
-    void _on_main_screen_changed(const String& p_name);
-    void _on_window_visibility_changed(bool p_visible);
+    OrchestratorPlugin();
 };
 
 #endif  // ORCHESTRATOR_EDITOR_PLUGIN_H

@@ -338,8 +338,16 @@ public:
     /// @param p_self_fallback whether to get signal names from script's node as a fallback
     /// @return signal names list
     PackedStringArray resolve_signal_names(bool p_self_fallback = false);
+
+    /// Get UI suggestions for this pin
+    /// @return suggestions to show, or an empty list if there are no suggestions
+    PackedStringArray get_suggestions();
+
+    bool is_target_self() const;
 };
 
 VARIANT_BITFIELD_CAST(OScriptNodePin::Flags)
+
+typedef OScriptNodePin OrchestrationGraphPin;
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_PIN_H

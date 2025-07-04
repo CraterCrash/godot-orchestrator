@@ -39,8 +39,6 @@ OrchestratorWindowWrapper::OrchestratorWindowWrapper()
     _window_background = memnew(Panel);
     _window_background->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
     _window->add_child(_window_background);
-
-    // todo: what about progress bar?
 }
 
 void OrchestratorWindowWrapper::_bind_methods()
@@ -110,6 +108,8 @@ void OrchestratorWindowWrapper::_set_window_enabled_with_rect(bool p_visible, co
     {
         // Move the control to the window
         _wrapped_control->reparent(parent, false);
+        // todo: fixes bug on Godot 4.4.1
+        _wrapped_control->call_deferred("reparent", parent, false);
 
         _set_window_rect(p_rect);
         _wrapped_control->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
@@ -178,7 +178,7 @@ bool OrchestratorWindowWrapper::get_window_enabled() const
 
 void OrchestratorWindowWrapper::set_window_enabled(bool p_enabled)
 {
-        _set_window_enabled_with_rect(p_enabled, _get_default_window_rect());
+    _set_window_enabled_with_rect(p_enabled, _get_default_window_rect());
 }
 
 Rect2i OrchestratorWindowWrapper::get_window_rect() const
