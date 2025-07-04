@@ -19,7 +19,6 @@
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/vector.hpp>
-#include <godot_cpp/variant/variant.hpp>
 
 using namespace godot;
 

@@ -23,14 +23,14 @@
 using namespace godot;
 
 /// Forward declarations
-class OrchestratorGraphNodePin;
+class OrchestratorEditorGraphPin;
 
 /// Displays a dialog of details about a signal connection
 class OrchestratorAutowireConnectionDialog : public ConfirmationDialog
 {
     GDCLASS(OrchestratorAutowireConnectionDialog, ConfirmationDialog);
 
-    OrchestratorGraphNodePin* _choice = nullptr;
+    OrchestratorEditorGraphPin* _choice = nullptr;
     Tree* _tree = nullptr;
 
 protected:
@@ -42,9 +42,9 @@ protected:
 
 public:
 
-    OrchestratorGraphNodePin* get_autowire_choice() const;
+    OrchestratorEditorGraphPin* get_autowire_choice() const;
 
-    void popup_autowire(const Vector<OrchestratorGraphNodePin*>& p_choices);
+    void popup_autowire(const Vector<OrchestratorEditorGraphPin*>& p_choices);
 
     OrchestratorAutowireConnectionDialog();
 };
