@@ -17,7 +17,6 @@
 #include "editor/actions/rules/class_hierarchy_rule.h"
 
 #include "editor/actions/filter_engine.h"
-#include "script/script_server.h"
 
 bool OrchestratorEditorActionClassHierarchyScopeRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
 {
@@ -30,7 +29,7 @@ bool OrchestratorEditorActionClassHierarchyScopeRule::matches(const Ref<Orchestr
     if (!p_context.graph_context.script.is_valid())
         return true;
 
-    const StringName global_name = ScriptServer::get_global_name(p_context.graph_context.script);
+    const String global_name = p_context.graph_context.script->get_global_name();
     if (target_class == global_name)
         return true;
 
