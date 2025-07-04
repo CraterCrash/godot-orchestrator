@@ -64,7 +64,7 @@ protected:
     void _show_function_graph(TreeItem* p_item);
     //~ End Signal handlers
 
-    void _duplicate_function(TreeItem* tree_item, bool include_code = true);
+    void _duplicate_function(TreeItem* p_item, bool p_include_code = true);
 
     /// Updates the slot icons on tree items
     void _update_slots();

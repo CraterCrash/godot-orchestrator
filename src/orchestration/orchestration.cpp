@@ -28,7 +28,6 @@
 #include "script/nodes/variables/variable.h"
 #include "script/variable.h"
 
-#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/os.hpp>
 
 TypedArray<OScriptNode> Orchestration::_get_nodes_internal() const
@@ -623,7 +622,7 @@ Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, 
     function->_method = p_method;
     function->_owning_node_id = p_node_id;
     function->_user_defined = p_user_defined;
-    function->_returns_value = MethodUtils::has_return_value(p_method) ;
+    function->_returns_value = MethodUtils::has_return_value(p_method);
 
     _functions[p_method.name] = function;
 
