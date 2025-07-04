@@ -272,6 +272,16 @@ void Orchestration::set_base_type(const StringName& p_base_type)
     }
 }
 
+Ref<OScript> Orchestration::as_script()
+{
+    return Object::cast_to<OScript>(_self);
+}
+
+void Orchestration::mark_dirty()
+{
+    as_script()->emit_changed();
+}
+
 int Orchestration::get_available_id() const
 {
     // We should eventually consider a better strategy for node unique ids to deal with
@@ -598,6 +608,14 @@ Vector<Ref<OScriptGraph>> Orchestration::get_graphs() const
     Vector<Ref<OScriptGraph>> results;
     for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
         results.push_back(E.value);
+    return results;
+}
+
+PackedStringArray Orchestration::get_graph_names() const
+{
+    PackedStringArray results;
+    for (const Ref<OScriptGraph>& graph : get_graphs())
+        results.push_back(graph->get_graph_name());
     return results;
 }
 
@@ -1164,17 +1182,6 @@ PackedStringArray Orchestration::get_custom_signal_names() const
     for (const KeyValue<StringName, Ref<OScriptSignal>>& E : _signals)
         names.push_back(E.key);
     return names;
-}
-
-bool Orchestration::can_remove_custom_signal(const StringName& p_name) const
-{
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
-    {
-        const Ref<OScriptNodeEmitSignal> emit_signal_node = E.value;
-        if (emit_signal_node.is_valid() && emit_signal_node->get_signal()->get_signal_name().match(p_name))
-            return false;
-    }
-    return true;
 }
 
 Orchestration::Orchestration(Resource* p_self, OrchestrationType p_type)

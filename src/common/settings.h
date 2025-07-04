@@ -18,7 +18,6 @@
 #define ORCHESTRATOR_SETTINGS_H
 
 #include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
@@ -107,5 +106,18 @@ private:
     /// This handles any migration of settings from an older version to the current version.
     void _update_default_settings();
 };
+
+#define ORCHESTRATOR_GET(x, y) OrchestratorSettings::get_singleton()->get_setting(x, y)
+
+template <typename T>
+_FORCE_INLINE_ bool ORCHESTRATOR_GET_TRACK(T& r_field, const String& p_key, T p_default)
+{
+    T new_value = ORCHESTRATOR_GET(p_key, p_default);
+    if (new_value != r_field) {
+        r_field = new_value;
+        return true;
+    }
+    return false;
+}
 
 #endif  // ORCHESTRATOR_SETTINGS_H
