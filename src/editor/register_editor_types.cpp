@@ -16,30 +16,23 @@
 //
 #include "editor/register_editor_types.h"
 
-#include "about_dialog.h"
-#include "context_menu.h"
+#include "editor/about_dialog.h"
 #include "editor/actions/definition.h"
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
 #include "editor/autowire_connection_dialog.h"
-#include "editor/component_panels/component_panel.h"
-#include "editor/component_panels/functions_panel.h"
-#include "editor/component_panels/graphs_panel.h"
-#include "editor/component_panels/macros_panel.h"
-#include "editor/component_panels/signals_panel.h"
-#include "editor/component_panels/variables_panel.h"
-#include "editor/editor_panel.h"
+#include "editor/context_menu.h"
+#include "editor/editor.h"
 #include "editor/file_dialog.h"
 #include "editor/getting_started.h"
 #include "editor/goto_node_dialog.h"
-#include "editor/graph/graph_edit.h"
-#include "editor/graph/graph_knot.h"
 #include "editor/graph/graph_node.h"
-#include "editor/graph/graph_node_pin.h"
-#include "editor/graph/nodes/graph_node_comment.h"
-#include "editor/graph/nodes/graph_node_default.h"
-#include "editor/graph/pins/graph_node_pins.h"
+#include "editor/graph/graph_panel.h"
+#include "editor/graph/knot_editor.h"
+#include "editor/graph/nodes/comment_graph_node.h"
+#include "editor/graph/nodes/knot_node.h"
+#include "editor/graph/pins/pins.h"
 #include "editor/inspector/editor_property_class_name.h"
 #include "editor/inspector/property_info_container_property.h"
 #include "editor/inspector/property_type_button_property.h"
@@ -48,8 +41,9 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/property_selector.h"
 #include "editor/scene_node_selector.h"
+#include "editor/script_components_container.h"
 #include "editor/script_connections.h"
-#include "editor/script_editor_viewport.h"
+#include "editor/script_editor_view.h"
 #include "editor/search/search_dialog.h"
 #include "editor/select_class_dialog.h"
 #include "editor/select_type_dialog.h"
@@ -70,8 +64,6 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginTypeCast)
     GDREGISTER_INTERNAL_CLASS(OrchestratorThemeCache)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorCache)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorBuildOutputPanel)
 
     // Editor bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyClassName)
@@ -103,10 +95,12 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionGraphTypeRule)
 
     // View components
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPanel)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditor)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorContextMenu)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorViewport)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptEditorViewport)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorView) // todo: should be abstract internal
+    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptGraphEditorView)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorComponentView)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptComponentsContainer)
     GDREGISTER_INTERNAL_CLASS(OrchestratorGotoNodeDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorUpdaterButton)
     GDREGISTER_INTERNAL_CLASS(OrchestratorUpdaterVersionPicker)
@@ -116,38 +110,34 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorWindowWrapper)
     GDREGISTER_INTERNAL_CLASS(OrchestratorGettingStarted)
     GDREGISTER_INTERNAL_CLASS(OrchestratorScriptConnectionsDialog)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptComponentPanel)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptFunctionsComponentPanel)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptGraphsComponentPanel)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptMacrosComponentPanel)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptSignalsComponentPanel)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptVariablesComponentPanel)
 
     // Graph Classes
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphEdit)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNode)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePin)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorKnotPoint)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanel)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanelStyler)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanelKnotEditor)
 
     // Graph Node Type
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeDefault)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeComment)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphKnot)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNode)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeComment)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeKnot)
 
     // Graph Pin Types
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinBitField)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinBool)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinColor)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinEnum)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinExec)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinFile)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinInputAction)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinNodePath)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinNumeric)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinObject)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinString)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinStruct)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodePinText)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPin)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinButtonBase)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinBitfield)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinOptionPicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinCheckbox)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinColorPicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinEnum)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinExec)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinFilePicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinInputActionPicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinLineEdit)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinNodePath)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinNumber)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinObject)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinTextEdit)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinStruct)
 
     // Add plugin to the editor
     EditorPlugins::add_by_type<OrchestratorPlugin>();

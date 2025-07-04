@@ -136,7 +136,7 @@ void OScriptNodeFunctionResult::validate_node_during_build(BuildLog& p_log) cons
                 if (node.is_valid()) {
                     for (const Ref<OScriptNodePin>& output : node->find_pins(PD_Output)) {
                         if (output.is_valid() && output->is_execution() && !output->has_any_connections() && !node->is_loop_port(output->get_pin_index())) {
-                            p_log.error(node.ptr(), output, "This pin should be connected to the return node.");
+                            p_log.error(node.ptr(), output, "This node should be connected to the return node.");
                         }
                     }
                 }

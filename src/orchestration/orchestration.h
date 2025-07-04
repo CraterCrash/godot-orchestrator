@@ -146,6 +146,10 @@ public:
     /// Get a pointer to the underlying owning resource of the orchestration
     /// @return the owning resource, use with caution
     virtual Ref<Resource> get_self() const { return _self; }
+    Ref<OScript> as_script();
+
+    // Helper method
+    void mark_dirty();
 
     void set_self(Resource* p_self);
 
@@ -202,6 +206,7 @@ public:
     Ref<OScriptGraph> find_graph(const Ref<OScriptNode>& p_node) const;
     bool rename_graph(const StringName& p_old_name, const StringName& p_new_name);
     Vector<Ref<OScriptGraph>> get_graphs() const;
+    PackedStringArray get_graph_names() const;
     //~ End Graph Interface
 
     //~ Begin Function API
@@ -239,7 +244,6 @@ public:
     bool rename_custom_user_signal(const StringName& p_old_name, const StringName& p_new_name);
     Vector<Ref<OScriptSignal>> get_custom_signals() const;
     PackedStringArray get_custom_signal_names() const;
-    bool can_remove_custom_signal(const StringName& p_name) const;
     //~ End Signals Interface
 
     void copy_state(const Ref<Orchestration>& p_other);
