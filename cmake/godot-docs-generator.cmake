@@ -15,6 +15,8 @@
 ## limitations under the License.
 ##
 
+FIND_PACKAGE( Python3 REQUIRED COMPONENTS Interpreter )
+
 FUNCTION( GENERATE_GODOT_DOCUMENTATION )
     # Grab all documentation XML files
     FILE(GLOB XML_FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc_classes/*.xml")
@@ -24,7 +26,7 @@ FUNCTION( GENERATE_GODOT_DOCUMENTATION )
     STRING(JOIN "," DOC_DATA_CPP_STR ${DOC_DATA_CPP_FILE})
     # Run python to generate the doc_data.cpp file
     EXECUTE_PROCESS(
-            COMMAND cmd /c py ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/generate_godot_docs.py ${DOC_DATA_CPP_STR} ${XML_FILES_STR}
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/generate_godot_docs.py ${DOC_DATA_CPP_STR} ${XML_FILES_STR}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 ENDFUNCTION()
