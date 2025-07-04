@@ -93,6 +93,8 @@ public:
     };
 
 protected:
+    static bool _reload_scripts_on_save;
+
     /// Gets the global classes
     /// @return an array of dictionary entries for the global class list
     static TypedArray<Dictionary> _get_global_class_list();
@@ -144,17 +146,21 @@ public:
     /// @return the global name of the script, if one is present
     static String get_global_name(const Ref<Script>& p_script);
 
+    /// Check whether scripting is enabled
+    /// @return true if scripting is enabled, false otherwise
+    static bool is_scripting_enabled();
+
     /// Set whether scripting is enabled
     /// @param p_enabled whether to enable scripting or not.
     static void set_scripting_enabled(bool p_enabled);
 
-    /// Check whether scripting is enabled
-    /// @return if scripting is enabled
-    static bool is_scripting_enabled();
+    /// Check whether scripts should be reloaded on save
+    /// @return true if reload on save, false otherwise
+    static bool is_reload_scripts_on_save() { return _reload_scripts_on_save; }
 
-    /// Check whether scripts should be reloaded on save operations.
-    /// @return true if scripts should be reloaded on save
-    static bool is_reload_scripts_on_save_enabled();
+    /// Set whether scripts are reloaded on save
+    /// @param p_reload_on_save whether to reload scripts on save
+    static void set_reload_scripts_on_save(bool p_reload_on_save) { _reload_scripts_on_save = p_reload_on_save;}
 };
 
 #endif // ORCHESTRATOR_SCRIPT_SERVER_H

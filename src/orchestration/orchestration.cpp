@@ -267,6 +267,14 @@ void Orchestration::set_self(Resource* p_self) {
     _self = p_self;
 }
 
+Ref<OScript> Orchestration::as_script() {
+    return cast_to<OScript>(_self);
+}
+
+void Orchestration::mark_dirty() {
+    as_script()->emit_changed();
+}
+
 String Orchestration::get_global_name() const {
     const Ref<Script> script = Ref<Script>(_self);
     if (script.is_valid()) {
@@ -585,6 +593,14 @@ Vector<Ref<OScriptGraph>> Orchestration::get_graphs() const {
     Vector<Ref<OScriptGraph>> results;
     for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs) {
         results.push_back(E.value);
+    }
+    return results;
+}
+
+PackedStringArray Orchestration::get_graph_names() const {
+    PackedStringArray results;
+    for (const Ref<OScriptGraph>& graph : get_graphs()) {
+        results.push_back(graph->get_graph_name());
     }
     return results;
 }
@@ -1105,16 +1121,6 @@ PackedStringArray Orchestration::get_custom_signal_names() const {
         names.push_back(E.key);
     }
     return names;
-}
-
-bool Orchestration::can_remove_custom_signal(const StringName& p_name) const {
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
-        const Ref<OScriptNodeEmitSignal> emit_signal_node = E.value;
-        if (emit_signal_node.is_valid() && emit_signal_node->get_signal()->get_signal_name().match(p_name)) {
-            return false;
-        }
-    }
-    return true;
 }
 
 void Orchestration::copy_state(const Ref<Orchestration>& p_other) {

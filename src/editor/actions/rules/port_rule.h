@@ -21,7 +21,7 @@
 
 using namespace godot;
 
-class OrchestratorGraphNodePin;
+class OrchestratorEditorGraphPin;
 
 /// This rule is designed to match the details associated with the port that the dragged from. This
 /// checks information such as port type, class, and object reference.
@@ -44,7 +44,7 @@ public:
     //~ End ActionFilterRule Interface
 
     // Configure the port based on the source drag pin
-    void configure(const OrchestratorGraphNodePin* p_pin, const Object* p_target);
+    void configure(const OrchestratorEditorGraphPin* p_pin, const Object* p_target);
 };
 
 #endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_PORT_RULE_H

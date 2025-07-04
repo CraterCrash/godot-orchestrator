@@ -20,6 +20,7 @@
 #include "common/dictionary_utils.h"
 #include "common/resource_utils.h"
 #include "common/settings.h"
+#include "common/resource_utils.h"
 #include "common/string_utils.h"
 #include "core/godot/core_constants.h"
 #include "core/godot/variant/variant.h"
@@ -1067,6 +1068,67 @@ String OScriptLanguage::get_script_extension_filter() const {
         results.push_back(vformat("*.%s", extension));
 
     return StringUtils::join(",", results);
+}
+
+#ifdef TOOLS_ENABLED
+List<Ref<OScript>> OScriptLanguage::get_scripts() const {
+    List<Ref<OScript>> scripts;
+    {
+        const PackedStringArray extensions = _get_recognized_extensions();
+
+        MutexLock mutex_lock(*this->lock.ptr());
+        const SelfList<OScript>* iterator = _scripts.first();
+        while (iterator) {
+            String path = iterator->self()->get_path();
+            if (extensions.has(path.get_extension().to_lower())) {
+                scripts.push_back(Ref<OScript>(iterator->self()));
+            }
+            iterator = iterator->next();
+        }
+    }
+    return scripts;
+}
+#endif
+
+bool OScriptLanguage::validate(const Ref<OScript>& p_script, const String& p_path, List<String>* r_functions, List<Warning>* r_warnings, List<ScriptError>* r_errors) {
+    if (!p_script.is_valid()) {
+        return false;
+    }
+
+    BuildLog build_log;
+    for (const Ref<OScriptNode>& node : p_script->get_orchestration()->get_nodes()) {
+        node->validate_node_during_build(build_log);
+    }
+
+    bool valid = true;
+    for (const BuildLog::Failure& failure : build_log.get_failures()) {
+        valid = false;
+
+        switch (failure.type) {
+            case BuildLog::FT_Warning: {
+                if (r_warnings) {
+                    Warning warning;
+                    warning.node = failure.node->get_id();
+                    warning.name = failure.node->get_node_title() + " / " + failure.node->get_class().replace("OScriptNode", "").capitalize();
+                    warning.message = failure.message;
+                    r_warnings->push_back(warning);
+                }
+                break;
+            }
+            case BuildLog::FT_Error: {
+                if (r_errors) {
+                    ScriptError error;
+                    error.node = failure.node->get_id();
+                    error.name = failure.node->get_node_title() + " / " + failure.node->get_class().replace("OScriptNode", "").capitalize();
+                    error.message = failure.message;
+                    r_errors->push_back(error);
+                }
+                break;
+            }
+        }
+    }
+
+    return valid;
 }
 
 OScriptLanguage* OScriptLanguage::get_singleton() {

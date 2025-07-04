@@ -21,7 +21,7 @@
 #include "common/settings.h"
 #include "common/variant_utils.h"
 #include "script/nodes/data/coercion_node.h"
-#include "script/nodes/functions/event.h"
+#include "script/nodes/functions/call_function.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -424,6 +424,7 @@ String OScriptNodePin::get_file_types() const {
 }
 
 bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
+    // todo: consider relaxing this requirement
     // This should always be called from the context that "this" is the target and p_pin is the source.
     if (get_direction() != PD_Input || p_pin->get_direction() != PD_Output) {
         return false;
@@ -750,6 +751,33 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback) con
     }
 
     return signal_names;
+}
+
+PackedStringArray OScriptNodePin::get_suggestions() {
+    return get_owning_node()->get_suggestions(this);
+}
+
+bool OScriptNodePin::is_target_self() const {
+    if (!cast_to<OScriptNodeCallFunction>(get_owning_node())) {
+        return false;
+    }
+
+    if (!get_pin_name().match("target") || has_any_connections()) {
+        return false;
+    }
+
+    const String target_class = _property.class_name;
+    if (target_class.is_empty()) {
+        return false;
+    }
+
+    // todo: needs to support classes
+    const String base_type = get_owning_node()->get_orchestration()->get_base_type();
+    if (!ClassDB::is_parent_class(base_type, target_class)) {
+        return false;
+    }
+
+    return true;
 }
 
 void OScriptNodePin::_bind_methods() {

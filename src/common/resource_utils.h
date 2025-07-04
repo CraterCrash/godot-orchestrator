@@ -23,9 +23,50 @@ using namespace godot;
 
 namespace ResourceUtils
 {
+    /// Checks whether missing resources are used if the class cannot be created
+    /// @return true if missing resources should be used, false otherwise
+    bool is_creating_missing_resources_if_class_unavailable_enabled();
+
+    /// Sets the resource as edited
+    void set_edited(const Ref<Resource>& p_resource, bool p_edited);
+
+    /// Generates the scene unique identifier
+    /// @return the unique scene identifier
+    String generate_scene_unique_id();
+
+    /// Gets the scene unique id for a resource
+    /// @param p_resource the resource, should be valid
+    /// @return p_path the resource path
+    /// @return the unique id for the resource, but may be empty
+    String get_scene_unique_id(const Ref<Resource>& p_resource, const String& p_path = String());
+
+    /// Sets the scene unique id on the resource
+    /// @param p_resource the resource, should be valid
+    /// @param p_path the resource path
+    /// @param p_id the unique id to set
+    void set_scene_unique_id(const Ref<Resource>& p_resource, const String& p_path, const String& p_id);
+
+    /// Sets the resource's id
+    /// @param p_resource the resource, should be valid
+    /// @param p_path the resource path
+    /// @param p_id the resource identifier
+    void set_id_for_path(const Ref<Resource>& p_resource, const String& p_path, const String& p_id);
+
+    /// Gets the resource id for the given path
+    /// @param p_path the path, should never be empty
+    /// @param p_generate whether to generate a new id if not found
+    /// @return the resource id
+    int64_t get_resource_id_for_path(const String& p_path, bool p_generate = true);
+
+    /// Check whether the resource represents a built-in resource
+    /// @return true if it is built-in, false otherwise
+    bool is_builtin(const Ref<Resource>& p_resource);
+
     /// Check whether the resource path is a file
     /// @return true if it is a file path; false otherwise
     bool is_file(const String& p_path);
-};
+
+    String get_class(const Ref<Resource>& p_resource);
+}
 
 #endif // ORCHESTRATOR_RESOURCE_UTILS_H
