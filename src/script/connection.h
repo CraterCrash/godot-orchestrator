@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_CONNECTION_H
 #define ORCHESTRATOR_SCRIPT_CONNECTION_H
 
+#include <godot_cpp/templates/rb_set.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -63,6 +64,18 @@ struct OScriptConnection {
 
     /// Create a connection with default values
     OScriptConnection() : from_node(0), from_port(0), to_node(0), to_port(0) { }
+};
+
+// Represents all different types of active connections for a Vector<Ref<OScriptNode>> set.
+struct NodeSetConnections
+{
+    RBSet<OScriptConnection> connections;  //! Connections between the node set
+    RBSet<OScriptConnection> inputs;       //! Input connections from outside the node set
+    RBSet<OScriptConnection> outputs;      //! Output connections to output the node set
+    int input_executions{ 0 };             //! Number of input execution connections
+    int output_executions{ 0 };            //! Number of output execution connections
+    int input_data{ 0 };                   //! Number of input data connections
+    int output_data{ 0 };                  //! Number of output data connections
 };
 
 #endif // ORCHESTRATOR_SCRIPT_CONNECTION_H

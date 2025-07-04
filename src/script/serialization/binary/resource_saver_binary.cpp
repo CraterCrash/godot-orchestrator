@@ -50,7 +50,7 @@ Error OScriptBinaryResourceFormatSaver::_save(const Ref<Resource>& p_resource, c
         return err;
     }
 
-    if (ScriptServer::is_reload_scripts_on_save_enabled()) {
+    if (ScriptServer::is_reload_scripts_on_save()) {
         OScriptLanguage::get_singleton()->_reload_tool_script(p_resource, true);
     }
 

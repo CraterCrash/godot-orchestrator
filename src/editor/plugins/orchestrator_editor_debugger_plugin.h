@@ -40,7 +40,7 @@ protected:
     //~ Begin Signal Handlers
     void _session_started(int32_t p_session_id);
     void _session_stopped(int32_t p_session_id);
-    void _session_breaked(int32_t p_session_id);
+    void _session_breaked(bool p_can_debug, int32_t p_session_id);
     void _session_continued(int32_t p_session_id);
     //~ End Signal Handlers
 
@@ -61,6 +61,9 @@ public:
     /// @param p_line the line number, mapped to an Orchestrator script node ID
     /// @param p_enabled whether the breakpoint is enabled
     void set_breakpoint(const String& p_file, int32_t p_line, bool p_enabled);
+
+    void reload_all_scripts();
+    void reload_scripts(const Vector<String>& p_script_paths);
 
     /// Constructor
     OrchestratorEditorDebuggerPlugin();

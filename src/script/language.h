@@ -27,6 +27,7 @@
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/self_list.hpp>
+#include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
 using namespace godot;
@@ -105,6 +106,23 @@ protected:
     static void _bind_methods();
 
 public:
+    // Defines a script validation warning
+    struct Warning
+    {
+        int node;
+        String name;
+        String message;
+    };
+
+    // Defines a script validation error
+    struct ScriptError
+    {
+        String path;
+        int node;
+        String name;
+        String message;
+    };
+
     //~ Begin ScriptLanguageExtension Interface
     String _get_name() const override;
     void _init() override;
@@ -205,6 +223,12 @@ public:
     static OScriptLanguage* get_singleton();
 
     OScriptNodePrintStringOverlay* get_or_create_overlay();
+
+    #ifdef TOOLS_ENABLED
+    List<Ref<OScript>> get_scripts() const;
+    #endif
+
+    bool validate(const Ref<OScript>& p_script, const String& p_path, List<String>* r_functions = nullptr, List<Warning>* r_warnings = nullptr, List<ScriptError>* r_errors = nullptr);
 
     OScriptLanguage();
     ~OScriptLanguage() override;

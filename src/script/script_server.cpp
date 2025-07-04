@@ -24,6 +24,8 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
 
+bool ScriptServer::_reload_scripts_on_save = false;
+
 Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) {
     if (ResourceLoader::get_singleton()->has_cached(path)) {
         return ResourceLoader::get_singleton()->load(path);
@@ -267,10 +269,6 @@ String ScriptServer::get_global_name(const Ref<Script>& p_script) {
     return "";
 }
 
-void ScriptServer::set_scripting_enabled(bool p_enabled) {
-    _scripting_enabled = p_enabled;
-}
-
 bool ScriptServer::is_scripting_enabled() {
     #ifdef TOOLS_ENABLED
     // Other than '@tool' scripts, the editor does not enable scripting
@@ -281,7 +279,6 @@ bool ScriptServer::is_scripting_enabled() {
     return _scripting_enabled;
 }
 
-bool ScriptServer::is_reload_scripts_on_save_enabled() {
-    // This is based on the ScriptEditor settings so that if GDScript is set to do this, so will Orchestrations
-    return ProjectSettings::get_singleton()->get_setting("text_editor/behavior/files/auto_reload_and_parse_scripts_on_save", true);
+void ScriptServer::set_scripting_enabled(bool p_enabled) {
+    _scripting_enabled = p_enabled;
 }
