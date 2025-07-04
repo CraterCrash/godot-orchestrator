@@ -40,10 +40,18 @@ void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p
     _tree->deselect_all();
 }
 
-void OrchestratorScriptFunctionsComponentPanel::_duplicate_function(TreeItem* tree_item, bool include_code)
+void OrchestratorScriptFunctionsComponentPanel::_duplicate_function(TreeItem* p_item, bool p_include_code)
 {
-    _orchestration->duplicate_function(_get_tree_item_name(tree_item), include_code);
-    update();
+    const Ref<OScriptFunction> duplicate = _orchestration->duplicate_function(_get_tree_item_name(p_item), p_include_code);
+    if (duplicate.is_valid())
+    {
+        const String function_name = duplicate->get_function_name();
+        emit_signal("show_graph_requested", function_name);
+        emit_signal("focus_node_requested", function_name, duplicate->get_owning_node_id());
+
+        update();
+        _find_child_and_activate(function_name);
+    }
 }
 
 void OrchestratorScriptFunctionsComponentPanel::_update_slots()
