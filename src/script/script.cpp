@@ -17,12 +17,14 @@
 #include "script/script.h"
 
 #include "common/dictionary_utils.h"
+#include "common/resource_utils.h"
 #include "script/instances/script_instance.h"
 #include "script/instances/script_instance_placeholder.h"
 #include "script/nodes/script_nodes.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 
 OScript::OScript()
@@ -379,3 +381,68 @@ void OScript::_update_exports_down(bool p_base_exports_changed)
     // todo: add inheriters_cache
 }
 
+void OScript::reload_from_file()
+{
+    constexpr ResourceLoader::CacheMode CACHE_MODE_IGNORE = ResourceLoader::CACHE_MODE_IGNORE;
+    const String path = get_path();
+
+    // This logic was taken directly from Script::reload_from_file
+    #ifdef TOOLS_ENABLED
+    Ref<OScript> reload = ResourceLoader::get_singleton()->load(path, get_class(), CACHE_MODE_IGNORE);
+    if (reload.is_valid())
+    {
+        set_block_signals(true);
+
+        // With the reload, this reapplies all the data from the reloaded script to this
+        // Signals are blocked, so no observers are notified.
+        _set_base_type(reload->_get_base_type());
+        _set_nodes(reload->_get_nodes());
+        _set_connections(reload->_get_connections());
+        _set_graphs(reload->_get_graphs());
+        _set_functions(reload->_get_functions());
+        _set_variables(reload->_get_variables());
+        _set_signals(reload->_get_signals());
+        reload.unref();
+        _postinitialize();
+
+        set_edited(false);
+        set_block_signals(true);
+
+        emit_changed();
+
+        if (_is_valid())
+        {
+            if (Engine::get_singleton()->is_editor_hint() && is_tool())
+            {
+                ScriptLanguageExtension* language = cast_to<ScriptLanguageExtension>(get_language());
+                if (language)
+                    language->_reload_tool_script(this, true);
+            }
+            else
+                _reload(true);
+        }
+    }
+    #else
+    if (ResourceUtils::is_file(path))
+    {
+        Ref<Script> reload = ResourceLoader::get_singleton()->load(path, get_class(), CACHE_MODE_IGNORE);
+        if (reload.is_valid())
+        {
+            reset_state();
+
+            const TypedArray<Dictionary> properties = get_property_list();
+            for (int i = 0; i < properties.size(); i++)
+            {
+                const PropertyInfo& property = DictionaryUtils::to_property(properties[i]);
+                if (!(property.usage & PROPERTY_USAGE_STORAGE))
+                    continue;
+
+                if (property.name.match("resource_path"))
+                    continue;
+
+                set(property.name, reload->get(property.name));
+            }
+        }
+    }
+    #endif
+}
