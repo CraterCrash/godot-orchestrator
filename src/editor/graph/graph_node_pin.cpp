@@ -254,10 +254,6 @@ void OrchestratorGraphNodePin::_remove_editable_pin()
     Ref<OScriptEditablePinNode> editable = _node->get_script_node();
     if (editable.is_valid())
         editable->remove_dynamic_pin(_pin);
-
-    Ref<OScriptNodeCallFunction> function_call = _node->get_script_node();
-    if (function_call.is_valid() && function_call->is_vararg())
-        function_call->remove_dynamic_pin(_pin);
 }
 
 void OrchestratorGraphNodePin::_promote_as_variable()
@@ -475,13 +471,8 @@ void OrchestratorGraphNodePin::_show_context_menu(const Vector2& p_position)
         _context_menu->add_item(text, CM_SELECT_NODES);
     }
 
-    Ref<OScriptEditablePinNode> editable = owner_node;
-    bool editable_pin_removable = editable.is_valid() && editable->can_remove_dynamic_pin(_pin);
-
-    Ref<OScriptNodeCallFunction> function_call = owner_node;
-    bool function_call_pin_removable = function_call.is_valid() && function_call->can_remove_dynamic_pin(_pin);
-
-    if (editable_pin_removable || function_call_pin_removable)
+    const Ref<OScriptEditablePinNode> editable = owner_node;
+    if (editable.is_valid() && editable->can_remove_dynamic_pin(_pin))
     {
         String text = "Remove pin";
 
