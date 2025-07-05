@@ -343,6 +343,14 @@ String OScript::_get_class_icon_path() const
     return {};
 }
 
+#if GODOT_VERSION >= 0x040400
+StringName OScript::_get_doc_class_name() const
+{
+    // todo: requires adding documentation support
+    return {};
+}
+#endif
+
 void OScript::_update_export_values(HashMap<StringName, Variant>& r_values, List<PropertyInfo>& r_properties) const
 {
     for (const Ref<OScriptVariable>& variable : get_variables())
