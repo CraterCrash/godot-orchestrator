@@ -390,6 +390,17 @@ Orchestration* OScriptVariable::get_orchestration() const
     return _orchestration;
 }
 
+void OScriptVariable::set_info(const PropertyInfo& p_info)
+{
+    const StringName name = _info.name;
+    _info = p_info;
+    _info.name = name;
+
+    notify_property_list_changed();
+    emit_changed();
+}
+
+
 void OScriptVariable::set_variable_name(const String& p_name)
 {
     if (!_info.name.match(p_name))
@@ -521,8 +532,6 @@ void OScriptVariable::copy_persistent_state(const Ref<OScriptVariable>& p_other)
     _type_category = p_other->_type_category;
     _type_subcategory = p_other->_type_subcategory;
     _value_list = p_other->_value_list;
-    _info = p_other->_info;
 
-    notify_property_list_changed();
-    emit_changed();
+    set_info(p_other->_info);
 }
