@@ -29,6 +29,8 @@ class Guid
     uint32_t _c{ 0 };
     uint32_t _d{ 0 };
 
+    static Ref<RandomNumberGenerator>& _get_random_number_generator();
+
     /// Parses the Guid string into its respective components
     ///
     /// @param p_guid_str the string to be parsed
@@ -37,23 +39,9 @@ class Guid
     /// @param r_c the output value of the third component
     /// @param r_d the output value of the fourth component
     /// @return true if the parse was successful; false otherwise
-    static bool _parse(const String &p_guid_str, uint32_t &r_a, uint32_t &r_b, uint32_t &r_c, uint32_t &r_d);
+    static bool _parse(const String& p_guid_str, uint32_t& r_a, uint32_t& r_b, uint32_t& r_c, uint32_t& r_d);
 
 public:
-    /// Default constructor
-    Guid();
-
-    /// Creates the Guid from a text string
-    /// @param p_guid the guid text string
-    Guid(const String &p_guid);
-
-    /// Creates the Guid from its individual components
-    /// @param p_a the first component value
-    /// @param p_b the second component value
-    /// @param p_c the third component value
-    /// @param p_d the fourth component value
-    Guid(uint32_t p_a, uint32_t p_b, uint32_t p_c, uint32_t p_d);
-
     /// Invalidates the Guid
     void invalidate();
 
@@ -69,10 +57,24 @@ public:
     /// @return a new GUID instance
     static Guid create_guid();
 
+    /// Cleanup static resources
+    static void cleanup();
+
     operator Variant() const { return to_string(); }
 
     bool operator==(const Guid &p_o) const;
     bool operator!=(const Guid &p_o) const;
+
+    _FORCE_INLINE_ uint64_t hash() const
+    {
+        return (static_cast<uint64_t>(_a) << 32 | _b) ^ (static_cast<uint64_t>(_c) << 32 | _d);
+    }
+
+    Guid();
+    explicit Guid(const String& p_guid);
+    Guid(uint32_t p_a, uint32_t p_b, uint32_t p_c, uint32_t p_d);
 };
+
+_FORCE_INLINE_ uint64_t hash(const Guid& p_guid) { return p_guid.hash(); }
 
 #endif  // ORCHESTRATOR_GUID_H
