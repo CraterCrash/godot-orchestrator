@@ -24,6 +24,24 @@ void OScriptNodeCallScriptFunction::_on_function_changed()
     reconstruct_node();
 }
 
+MethodInfo OScriptNodeCallScriptFunction::get_method_info()
+{
+    if (_function.is_valid())
+        return _function->get_method_info();
+
+    ERR_PRINT(vformat("Script function node has an invalid function %s", _reference.guid));
+    return {};
+}
+
+int OScriptNodeCallScriptFunction::get_argument_count() const
+{
+    if (_function.is_valid())
+        return _function->get_argument_count();
+
+    ERR_PRINT(vformat("Script function node has an invalid function %s", _reference.guid));
+    return 0;
+}
+
 void OScriptNodeCallScriptFunction::post_initialize()
 {
     if (_reference.guid.is_valid())
