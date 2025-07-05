@@ -16,6 +16,7 @@
 //
 #include "self.h"
 
+#include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/version.h"
@@ -53,7 +54,7 @@ void OScriptNodeSelf::_upgrade(uint32_t p_version, uint32_t p_current_version)
 void OScriptNodeSelf::post_initialize()
 {
     if (_is_in_editor() && get_orchestration())
-        get_orchestration()->get_self()->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+        OCONNECT(get_orchestration()->get_self(), "changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
 
     super::post_initialize();
 }
@@ -61,7 +62,7 @@ void OScriptNodeSelf::post_initialize()
 void OScriptNodeSelf::post_placed_new_node()
 {
     if (_is_in_editor() && get_orchestration())
-        get_orchestration()->get_self()->connect("changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+        OCONNECT(get_orchestration()->get_self(), "changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
 
     super::post_placed_new_node();
 }
