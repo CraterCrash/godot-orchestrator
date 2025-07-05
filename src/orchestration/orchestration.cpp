@@ -932,9 +932,6 @@ Ref<OScriptVariable> Orchestration::duplicate_variable(const StringName& p_name)
     ERR_FAIL_COND_V_MSG(!new_variable.is_valid(), {}, "Failed to create a new variable with name: " + new_name);
     new_variable->copy_persistent_state(old_variable);
 
-    // copy_persistent_state overwrites the name, so we need to set it again
-    new_variable->set_variable_name(new_name);
-
     return new_variable;
 }
 
