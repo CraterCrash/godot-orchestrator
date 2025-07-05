@@ -22,6 +22,7 @@
 #include "orchestration/orchestration.h"
 #include "plugins/orchestrator_editor_debugger_plugin.h"
 #include "plugins/orchestrator_editor_plugin.h"
+#include "script/script.h"
 
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -215,10 +216,9 @@ void OrchestratorEditorViewport::apply_changes()
 
 void OrchestratorEditorViewport::reload_from_disk()
 {
-    const Ref<Script> script = _resource;
-    ERR_FAIL_COND_MSG(!script.is_valid(), "Cannot reload resource type: " + _resource->get_class());
-
-    script->reload();
+    const Ref<OScript> script = _resource;
+    if (script.is_valid())
+        script->reload_from_file();
 }
 
 void OrchestratorEditorViewport::rename(const String& p_new_file_name)
