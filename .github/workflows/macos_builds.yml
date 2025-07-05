@@ -1,0 +1,41 @@
+name: 🍎 macOS Builds
+on:
+  workflow_call:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    name: ${{ matrix.name }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Editor (target=editor)
+            artifact-name: macos-editor
+            cache-name: macos-editor
+            preset: macos-editor
+
+          - name: Template (target=template_release)
+            artifact-name: macos-release
+            cache-name: macos-release
+            preset: macos-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Ninja (MacOS)
+        shell: sh
+        run: |
+          if ! brew list ninja &>/dev/null; then
+            brew install ninja
+          fi
+      - name: Build
+        uses: ./.github/actions/orchestrator-build
+        with:
+          artifact-name: ${{ matrix.artifact-name }}
+          cache-name: ${{ matrix.cache-name }}
+          preset-name: ${{ matrix.preset }}
