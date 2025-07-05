@@ -128,6 +128,9 @@ public:
     TypedArray<StringName> _get_members() const override;
     Variant _get_rpc_config() const override;
     String _get_class_icon_path() const override;
+    #if GODOT_VERSION >= 0x040400
+    StringName _get_doc_class_name() const override;
+    #endif
     //~ End ScriptExtension overrides
 
     /// Get the underlying script's language
