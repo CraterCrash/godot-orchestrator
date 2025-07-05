@@ -598,15 +598,8 @@ void OrchestratorGraphNode::_on_changed()
 
 bool OrchestratorGraphNode::_is_editable() const
 {
-    Ref<OScriptEditablePinNode> editable_node = _node;
-    if (editable_node.is_valid())
-        return true;
-
-    Ref<OScriptNodeCallFunction> function_call_node = _node;
-    if (function_call_node.is_valid() && function_call_node->is_vararg())
-        return true;
-
-    return false;
+    const Ref<OScriptEditablePinNode> editable_node = _node;
+    return editable_node.is_valid();
 }
 
 bool OrchestratorGraphNode::_is_add_pin_button_visible() const
@@ -614,10 +607,6 @@ bool OrchestratorGraphNode::_is_add_pin_button_visible() const
     Ref<OScriptEditablePinNode> editable_node = _node;
     if (editable_node.is_valid())
         return editable_node->can_add_dynamic_pin();
-
-    Ref<OScriptNodeCallFunction> function_call_node = _node;
-    if (function_call_node.is_valid())
-        return function_call_node->is_vararg();
 
     return false;
 }
@@ -627,10 +616,6 @@ void OrchestratorGraphNode::_add_option_pin()
     Ref<OScriptEditablePinNode> editable = _node;
     if (editable.is_valid())
         editable->add_dynamic_pin();
-
-    Ref<OScriptNodeCallFunction> function_call_node = _node;
-    if(function_call_node.is_valid() && function_call_node->is_vararg())
-        function_call_node->add_dynamic_pin();
 }
 
 List<GraphElement*> OrchestratorGraphNode::get_elements_within_global_rect()
