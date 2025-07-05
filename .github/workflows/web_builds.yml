@@ -4,6 +4,7 @@ on:
 
 env:
   EM_VERSION: 3.1.64
+  SCCACHE_GHA_ENABLED: "true"
 
 jobs:
   build-web:
@@ -30,6 +31,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+      - name: Run sccache stat for check
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
+
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -51,3 +59,7 @@ jobs:
           artifact-name: ${{ matrix.artifact-name }}
           cache-name: ${{ matrix.cache-name }}
           preset-name: ${{ matrix.preset }}
+
+      - name: Run sccache stat for check
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
