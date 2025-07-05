@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/string_utils.h"
 #include "common/version.h"
+#include "script/script.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/missing_resource.hpp>
@@ -901,6 +902,12 @@ Error OScriptBinaryResourceSaverInstance::save(const String& p_path, const Ref<R
 
     if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF)
         return ERR_CANT_CREATE;
+
+    #ifdef TOOLS_ENABLED
+    const Ref<OScript> script = p_resource;
+    if (script.is_valid())
+        script->set_edited(false);
+    #endif
 
     return OK;
 }
