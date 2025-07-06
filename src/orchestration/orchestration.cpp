@@ -636,7 +636,6 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
 
     Ref<OScriptGraph> old_graph = find_graph(p_name);
     Ref<OScriptFunction> old_function = find_function(p_name);
-    Ref<OScriptFunction> new_function;
 
     // make a unique name for the new function
     String new_name = NameUtils::create_unique_name(p_name, get_function_names());
@@ -644,70 +643,98 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
     // make a graph
     Ref<OScriptGraph> new_graph = create_graph(new_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
 
-
     // duplicate each node, make a lookup table that maps old node IDs to new node IDs
     HashMap<int,int> node_id_map;
-    bool has_result = false;
 
     // new entry and result nodes (only needed later if we don't include code)
     Ref<OScriptNodeFunctionEntry> new_entry;
     Ref<OScriptNodeFunctionResult> new_result;
 
+    // Block signals for performance reasons
+    old_graph->set_block_signals(true);
+    new_graph->set_block_signals(true);
+
+    bool failed = false;
     for (const Ref<OScriptNode>& old_node : old_graph->get_nodes())
     {
-        // if we don't include the code skip anything that is not a function entry node
-        // or a function return node
-        Ref<OScriptNodeFunctionEntry> old_entry = old_node;
-        Ref<OScriptNodeFunctionResult> old_result = old_node;
-        if (!p_include_code && !old_entry.is_valid() && !old_result.is_valid()) {
-            // skip this node
-            continue;
-        }
+        // Short-cut exit
+        if (new_entry.is_valid() && new_result.is_valid() && !p_include_code)
+            break;
 
-        // if we don't include code, we only duplicate ONE result node
-        if (!p_include_code && old_result.is_valid())
-        {
-            if (has_result)
-            {
-                continue; // skip this node, we already have a result node
-            }
-            has_result = true; // we will only have one result node
-        }
-
-        // duplicate the node including its resources
-        Ref<OScriptNode> new_node = old_graph->duplicate_node(old_node->get_id(), {}, true);
-        // and move it over to the new graph
-        old_graph->move_node_to(new_node, new_graph);
-
-
-        node_id_map[old_node->get_id()] = new_node->get_id();
-
-        // if this node was the function entry node, we need to update function reference
         if (!new_entry.is_valid())
         {
-            // this is an implicit cast, if the new_node is not a function entry node,
-            // new_entry will remain invalid
-            new_entry = new_node;
-            if (new_entry.is_valid())
+            Ref<OScriptNodeFunctionEntry> old_entry = old_node;
+            if (old_entry.is_valid())
             {
-                OScriptNodeInitContext context;
-                MethodInfo mi = old_function->get_method_info();
-                mi.name = new_name;
-                context.method = mi;
-                new_entry->initialize(context);
-                new_function = new_entry->get_function();
+                const Ref<OScriptNodeFunctionEntry> entry = old_graph->duplicate_node(old_node->get_id(), {}, true);
+                if (!entry.is_valid())
+                {
+                    ERR_PRINT("Failed to duplicate entry node " + itos(old_node->get_id()));
+                    failed = true;
+                    break;
+                }
+                node_id_map[old_node->get_id()] = entry->get_id();
+                old_graph->move_node_to(entry, new_graph);
+                new_entry = entry;
+                continue;
             }
         }
 
-        // take note of the result node (unless we already have one)
-        // only needed when we don't include code
-        if (!p_include_code && !new_result.is_valid())
+        if (!new_result.is_valid())
         {
-            // this is an implicit cast, if the new_node is not a result node,
-            // new_result will remain invalid
-            new_result = new_node;
+            Ref<OScriptNodeFunctionResult> old_result = old_node;
+            if (old_result.is_valid())
+            {
+                const Ref<OScriptNodeFunctionResult> result = old_graph->duplicate_node(old_node->get_id(), {}, true);
+                if (!result.is_valid())
+                {
+                    ERR_PRINT("Failed to duplicate result node " + itos(old_node->get_id()));
+                    failed = true;
+                    break;
+                }
+                node_id_map[old_node->get_id()] = result->get_id();
+                old_graph->move_node_to(result, new_graph);
+                new_result = result;
+                continue;
+            }
+        }
+
+        if (p_include_code)
+        {
+            const Ref<OScriptNode> new_node = old_graph->duplicate_node(old_node->get_id(), {}, true);
+            if (!new_node.is_valid())
+            {
+                ERR_PRINT("Failed to duplicate node " + itos(old_node->get_id()));
+                failed = true;
+                break;
+            }
+            node_id_map[old_node->get_id()] = new_node->get_id();
+            old_graph->move_node_to(new_node, new_graph);
         }
     }
+
+    // Reenable signals
+    old_graph->set_block_signals(false);
+    new_graph->set_block_signals(false);
+
+    if (failed)
+    {
+        remove_graph(new_graph->get_graph_name());
+        return nullptr;
+    }
+
+    MethodInfo method = old_function->get_method_info();
+    method.name = new_name;
+
+    Ref<OScriptFunction> new_function = create_function(method, new_entry->get_id(), old_function->is_user_defined());
+    if (!new_function.is_valid())
+    {
+        remove_graph(new_graph->get_graph_name());
+        return nullptr;
+    }
+
+    old_graph->emit_changed();
+    new_graph->emit_changed();
 
     // now restore connections
     if (p_include_code)
