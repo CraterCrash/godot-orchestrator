@@ -291,4 +291,8 @@ void unregister_extension_db()
 
     delete extension_db;
     extension_db = nullptr;
+
+    // The GUID class maintains a static RandomNumberGenerator
+    // We need to clean this up on exit.
+    Guid::cleanup();
 }

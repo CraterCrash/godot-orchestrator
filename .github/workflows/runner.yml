@@ -1,0 +1,29 @@
+name: 🔗 GHA
+on: [push, pull_request]
+
+concurrency:
+  group: ${{github.workflow}}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+
+  android-build:
+    name: 🤖 Android
+    uses: ./.github/workflows/android_builds.yml
+
+  linux-build:
+    name: 🐧 Linux
+    uses: ./.github/workflows/linux_builds.yml
+
+  macos-build:
+    name: 🍎 macOS
+    uses: ./.github/workflows/macos_builds.yml
+
+  windows-build:
+    name: 🪟 Windows
+    uses: ./.github/workflows/windows_builds.yml
+
+  artifacts-build:
+    name: 📎 Artifacts
+    needs: [android-build, linux-build, macos-build, windows-build]
+    uses: ./.github/workflows/artifact_builds.yml

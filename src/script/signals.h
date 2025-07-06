@@ -40,6 +40,7 @@ class OScriptSignal : public Resource
 
     Orchestration* _orchestration{ nullptr };  //! Owning Orchestration
     MethodInfo _method;                        //! The signal definition
+    String _description;                       //! Optional signal description
 
 protected:
     //~ Begin Wrapped Interface
@@ -76,6 +77,14 @@ public:
     /// Copy the persistent state from one signal to this signal
     /// @param p_other the other signal to source state from
     void copy_persistent_state(const Ref<OScriptSignal>& p_other);
+
+    /// Get the description for the signal
+    /// @return an optional user-defined description
+    String get_description() const { return _description; }
+
+    /// Set an optional description
+    /// @param p_description a description of the signal
+    void set_description(const String& p_description);
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_SIGNALS_H

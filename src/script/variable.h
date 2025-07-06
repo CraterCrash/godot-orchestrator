@@ -116,6 +116,10 @@ public:
     /// @return the property info
     const PropertyInfo& get_info() const { return _info; }
 
+    /// Set the variable's PropertyInfo structure, while skipping the name attribute.
+    /// @param p_info the property info
+    void set_info(const PropertyInfo& p_info);
+
     /// Get the variable's name
     /// @return the variable's name
     String get_variable_name() const { return _info.name; }

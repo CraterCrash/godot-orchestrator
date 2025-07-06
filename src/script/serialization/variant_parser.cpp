@@ -25,6 +25,7 @@
 #define MAX_RECURSION 100
 
 #include "common/dictionary_utils.h"
+#include "common/resource_utils.h"
 #include "common/string_utils.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -1905,7 +1906,7 @@ static String rtos_fix(double p_value)
 
 bool OScriptVariantWriter::_is_resource_file(const String& p_path)
 {
-    return p_path.begins_with("res://") && p_path.find("::") == -1;
+    return ResourceUtils::is_file(p_path);
 }
 
 Error OScriptVariantWriter::write(const Variant& p_variant, StoreStringFunction p_store_string, void* p_store_userdata, EncodeResourceFunction p_encode_resource, void* p_encode_userdata, int p_recursion_count)

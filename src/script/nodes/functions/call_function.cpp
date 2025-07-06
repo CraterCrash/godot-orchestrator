@@ -351,7 +351,10 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
     {
         const uint32_t base_arg_count = _reference.method.arguments.size() + 1;
         for (int i = 0; i < _vararg_count; i++)
-            create_pin(PD_Input, PT_Data, PropertyUtils::make_variant("arg" + itos(base_arg_count + i)));
+        {
+            const String pin_name = vformat("%s%d", get_pin_prefix(), base_arg_count + i);
+            create_pin(PD_Input, PT_Data, PropertyUtils::make_variant(pin_name));
+        }
     }
 
     if (MethodUtils::has_return_value(p_method))
@@ -518,7 +521,7 @@ void OScriptNodeCallFunction::add_dynamic_pin()
 
 bool OScriptNodeCallFunction::can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const
 {
-    if (is_vararg() && p_pin.is_valid())
+    if (p_pin.is_valid() && can_add_dynamic_pin())
     {
         for (const PropertyInfo& pi : _reference.method.arguments)
         {

@@ -141,6 +141,9 @@ public:
     /// Set whether the script operates in tool-mode
     /// @param p_tool true sets the script to tool mode, false does not
     void set_tool(bool p_tool) override { _tool = p_tool; }
+
+    // Taken from script.h/.cpp
+    void reload_from_file();
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_H
