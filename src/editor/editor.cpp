@@ -34,6 +34,7 @@
 #include "script/script.h"
 #include "script/script_server.h"
 
+#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_file_system.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -294,7 +295,7 @@ void OrchestratorEditor::_menu_option(int p_option)
                     String path = resource->get_path();
                     if (!path.is_empty())
                     {
-                        if (resource->is_built_in())
+                        if (ResourceUtils::is_builtin(resource))
                             path = path.get_slice("::", 0);
 
                         EI->get_file_system_dock()->navigate_to_path(path);
@@ -346,7 +347,7 @@ void OrchestratorEditor::_close_tab(int p_idx, bool p_save, bool p_history_back)
         const Ref<Resource> file = current->get_edited_resource();
         if (p_save && file.is_valid())
         {
-            if (!file->is_built_in())
+            if (!ResourceUtils::is_builtin(file))
                 save_current_script();
         }
         if (file.is_valid())
@@ -904,7 +905,7 @@ void OrchestratorEditor::_add_callback(Object* p_object, const String& p_functio
             }
         }
 
-        if (!script.ptr()->is_built_in())
+        if (!ResourceUtils::is_builtin(script))
             save_current_script();
 
         break;
@@ -924,7 +925,7 @@ void OrchestratorEditor::_resave_scripts(const String& p_value)
             continue;
 
         const Ref<Resource> resource = view->get_edited_resource();
-        if (resource->is_built_in())
+        if (ResourceUtils::is_builtin(resource))
             continue;
 
         save_resource(resource);
@@ -943,7 +944,7 @@ void OrchestratorEditor::_reload_scripts(bool p_refresh_only)
             continue;
 
         Ref<Resource> edited_resource = view->get_edited_resource();
-        if (edited_resource->is_built_in())
+        if (ResourceUtils::is_builtin(edited_resource))
             continue;
 
         const uint64_t modified_time = FileAccess::get_modified_time(edited_resource->get_path());
@@ -968,7 +969,11 @@ void OrchestratorEditor::_reload_scripts(bool p_refresh_only)
             script->reload_from_file();
 
             // When reloaded, make sure the inspector is cleared as to avoid showing stale state.
+            #if GODOT_VERSION >= 0x040400
             EI->get_inspector()->edit(nullptr);
+            #else
+            EI->inspect_object(nullptr);
+            #endif
 
             update_docs_from_script(script);
         }
@@ -1160,7 +1165,7 @@ bool OrchestratorEditor::_test_script_times_on_disk(const Ref<Resource>& p_for_s
             if (p_for_script.is_valid() && edited_resource.is_valid() && p_for_script != edited_resource)
                 continue;
 
-            if (edited_resource->is_built_in())
+            if (ResourceUtils::is_builtin(edited_resource))
                 continue;
 
             uint64_t last_date = view->edited_file_data.last_modified_time;
@@ -1637,7 +1642,7 @@ void OrchestratorEditor::save_all_scripts()
         if (edited_resource.is_valid())
             view->apply_code();
 
-        if (!edited_resource->is_built_in())
+        if (!ResourceUtils::is_builtin(edited_resource))
         {
             Ref<OScript> script = edited_resource;
             if (script.is_valid())
@@ -1667,7 +1672,9 @@ void OrchestratorEditor::update_script_times()
 
 void OrchestratorEditor::update_docs_from_script(const Ref<Script>& p_script) // NOLINT
 {
+    #if GODOT_VERSION >= 0x040400
     EI->get_script_editor()->update_docs_from_script(p_script);
+    #endif
 }
 
 void OrchestratorEditor::clear_docs_from_script(const Ref<Script>& p_script)
@@ -2143,7 +2150,7 @@ void OrchestratorEditor::edit_previous_item()
 void OrchestratorEditor::save_resource(const Ref<Resource>& p_resource)
 {
     // This is taken from editor_node.cpp and is a scaled down version of what the EditorNode offers.
-    if (p_resource->is_built_in())
+    if (ResourceUtils::is_builtin(p_resource))
     {
         WARN_PRINT_ED("OrchestratorEditor cannot save built-in resources.");
         return;
@@ -2219,11 +2226,22 @@ void OrchestratorEditor::save_editor_layout_delayed()
     if (Node* editor_node = EditorNode)
     {
         const TypedArray<Node> timers = editor_node->find_children("*", "Timer", true, false);
+        #if GODOT_VERSION >= 0x040400
         if (!timers.is_empty())
         {
             if (Timer* timer = cast_to<Timer>(timers.get(0)))
                 timer->start();
         }
+        #else
+        for (int i = 0; i < timers.size(); i++)
+        {
+            Timer* timer = cast_to<Timer>(timers[0]);
+            if (timer)
+                timer->start();
+
+            break;
+        }
+        #endif
     }
 }
 

@@ -27,6 +27,7 @@
 #include "script/script.h"
 
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
