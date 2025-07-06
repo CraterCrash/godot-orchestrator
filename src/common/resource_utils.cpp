@@ -24,6 +24,8 @@
 #include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
+#include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 namespace ResourceUtils
 {

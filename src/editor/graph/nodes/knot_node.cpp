@@ -141,8 +141,6 @@ void OrchestratorEditorGraphNodeKnot::remove_knots_for_connection(uint64_t p_con
 
 void OrchestratorEditorGraphNodeKnot::_notification(int p_what)
 {
-    GDE_NOTIFICATION(p_what);
-
     switch (p_what)
     {
         case NOTIFICATION_READY:

@@ -37,7 +37,7 @@
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
-
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 

@@ -780,7 +780,9 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
 
     _results = memnew(Tree);
     _results->set_hide_root(true);
+    #if GODOT_VERSION >= 0x040300
     _results->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+    #endif
     _results->connect("item_activated", callable_mp(this, &OrchestratorEditorActionMenu::_confirmed));
     _results->connect("cell_selected", callable_mp(this, &OrchestratorEditorActionMenu::_item_selected));
     _results->connect("nothing_selected", callable_mp(this, &OrchestratorEditorActionMenu::_nothing_selected));

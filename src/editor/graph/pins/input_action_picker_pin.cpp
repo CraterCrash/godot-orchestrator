@@ -33,7 +33,7 @@ void OrchestratorEditorGraphPinInputActionPicker::_update_action_items()
 
 Control* OrchestratorEditorGraphPinInputActionPicker::_create_default_value_widget()
 {
-    Control* control = parent_type::_create_default_value_widget();
+    Control* control = OrchestratorEditorGraphPinOptionPicker::_create_default_value_widget();
 
     set_tooltip_text("Actions defined in Project Settings: Input Map");
 

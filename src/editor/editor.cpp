@@ -511,10 +511,13 @@ void OrchestratorEditor::_copy_script_uid()
 void OrchestratorEditor::_live_auto_reload_running_scripts()
 {
     _pending_auto_reload = false;
+
+    #if GODOT_VERSION >= 0x040300
     if (_reload_all_scripts)
         OrchestratorEditorDebuggerPlugin::get_singleton()->reload_all_scripts();
     else
         OrchestratorEditorDebuggerPlugin::get_singleton()->reload_scripts(_script_paths_to_reload);
+    #endif
 
     _reload_all_scripts = false;
     _script_paths_to_reload.clear();
@@ -545,7 +548,11 @@ struct OrchestratorEditorItemData
             if (sort_key == other.sort_key)
                 return index < other.index;
 
+            #if GODOT_VERSION >= 0x040300
             return sort_key.filenocasecmp_to(other.sort_key) < 0;
+            #else
+            return sort_key.to_lower().casecmp_to(other.sort_key.to_lower()) < 0;
+            #endif
         }
 
         return category < other.category;
@@ -876,9 +883,11 @@ void OrchestratorEditor::_add_callback(Object* p_object, const String& p_functio
     const Ref<ScriptExtension> script = p_object->get_script();
     ERR_FAIL_COND(script.is_null());
 
+    #if GODOT_VERSION >= 0x040300
     const ScriptLanguageExtension* language = cast_to<ScriptLanguageExtension>(script->_get_language());
     if (!language || !language->_can_make_function())
         return;
+    #endif
 
     cache_and_push_item(script.ptr());
 
@@ -1326,8 +1335,10 @@ void OrchestratorEditor::_set_breakpoint(const Ref<RefCounted>& p_script, int p_
         state["breakpoints"] = breakpoints;
         _editor_cache->set_value(script->get_path(), "state", state);
 
+        #if GODOT_VERSION >= 0x040300
         if (OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton())
             debugger->set_breakpoint(script->get_path(), p_node, p_enabled);
+        #endif
     }
 }
 
@@ -1425,9 +1436,11 @@ void OrchestratorEditor::_file_removed(const String& p_file)
     // Check closed
     if (_editor_cache->has_section(p_file))
     {
+        #if GODOT_VERSION >= 0x040300
         Array breakpoints = _get_cached_breakpoints_for_script(p_file);
         for (int i = 0; i < breakpoints.size(); i++)
             OrchestratorEditorDebuggerPlugin::get_singleton()->set_breakpoint(p_file, breakpoints[i], false);
+        #endif
 
         _editor_cache->erase_section(p_file);
     }
@@ -1452,6 +1465,7 @@ void OrchestratorEditor::_files_moved(const String& p_old_file, const String& p_
     _editor_cache->erase_section(p_old_file);
     _editor_cache->set_value(p_new_file, "state", state);
 
+    #if GODOT_VERSION >= 0x040300
     Array breakpoints = _get_cached_breakpoints_for_script(p_new_file);
     for (int i = 0; i < breakpoints.size(); i++)
     {
@@ -1459,6 +1473,7 @@ void OrchestratorEditor::_files_moved(const String& p_old_file, const String& p_
         if (!p_new_file.begins_with("local://") && ResourceLoader::get_singleton()->exists(p_new_file, "Script"))
             OrchestratorEditorDebuggerPlugin::get_singleton()->set_breakpoint(p_new_file, breakpoints[i], true);
     }
+    #endif
 }
 
 OrchestratorEditorView* OrchestratorEditor::_get_current_editor() const
@@ -2037,7 +2052,9 @@ Variant OrchestratorEditor::get_drag_data_fw(const Point2& p_point, Control* p_f
 
     Label* label = memnew(Label);
     label->set_text(preview_name);
+    #if GODOT_VERSION >= 0x040300
     label->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+    #endif
     drag_preview->add_child(label);
 
     set_drag_preview(drag_preview);
@@ -2538,7 +2555,9 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _scripts_vbox->add_child(_filter_scripts);
 
     _script_list = memnew(ItemList);
+    #if GODOT_VERSION >= 0x040300
     _script_list->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+    #endif
     _script_list->set_custom_minimum_size(Size2(100, 60) * EDSCALE);
     _script_list->set_v_size_flags(SIZE_EXPAND_FILL);
     _script_list->set_theme_type_variation("ItemListSecondary");
@@ -2584,7 +2603,12 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
 
     _file_menu->get_popup()->add_item("New Orchestration...", FILE_NEW, OACCEL_KEY(KEY_MASK_CTRL, KEY_N));
     _file_menu->get_popup()->add_item("Open...", FILE_OPEN);
+    #if GODOT_VERSION >= 0x040300
     _file_menu->get_popup()->add_submenu_node_item("Open Recent", _recent_history, FILE_OPEN_RECENT);
+    #else
+    _file_menu->add_child(_recent_history);
+    _file_menu->get_popup()->add_submenu_item("Open Recent", _recent_history->get_name(), FILE_OPEN_RECENT);
+    #endif
     _file_menu->get_popup()->add_separator();
     _file_menu->get_popup()->add_item("Save", FILE_SAVE, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_S));
     _file_menu->get_popup()->add_item("Save As...", FILE_SAVE_AS);
@@ -2605,11 +2629,13 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _menu_hb->add_child(debug_menu_btn);
     debug_menu_btn->hide();
 
+    #if GODOT_VERSION >= 0x040300
     OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton();
     debugger->connect("goto_script_line", callable_mp_this(_goto_script_line));
     debugger->connect("breaked", callable_mp_this(_breaked));
     debugger->connect("breakpoints_cleared_in_tree", callable_mp_this(_clear_breakpoints));
     debugger->connect("breakpoint_set_in_tree", callable_mp_this(_set_breakpoint));
+    #endif
 
     _help_menu = memnew(MenuButton);
     _help_menu->set_text("Help");
@@ -2715,7 +2741,9 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
 
     _disk_changed_list = memnew(Tree);
     _disk_changed_list->set_hide_root(true);
+    #if GODOT_VERSION >= 0x040300
     _disk_changed_list->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+    #endif
     _disk_changed_list->set_v_size_flags(SIZE_EXPAND_FILL);
     vbc->add_child(_disk_changed_list);
 

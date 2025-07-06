@@ -26,6 +26,7 @@
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/self_list.hpp>
+#include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
 using namespace godot;

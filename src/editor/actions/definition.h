@@ -21,6 +21,8 @@
 
 #include <optional>
 
+#include <godot_cpp/templates/vector.hpp>
+
 using namespace godot;
 
 class OrchestratorEditorActionDefinition : public RefCounted
