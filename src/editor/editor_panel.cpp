@@ -498,6 +498,8 @@ void OrchestratorEditorPanel::_close_script(int p_index, bool p_save)
 
     _update_getting_started();
     _update_file_list();
+
+    EditorInterface::get_singleton()->inspect_object(nullptr);
 }
 
 void OrchestratorEditorPanel::_close_all_scripts()
