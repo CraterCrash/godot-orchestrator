@@ -150,27 +150,31 @@ void OrchestratorEditorGraphNode::_create_pin_widgets()
 
         _slots[slot_index] = slot;
 
+        OrchestratorEditorGraphPinSlotInfo left;
+        OrchestratorEditorGraphPinSlotInfo right;
+
         if (slot.left)
         {
             max_left_width = Math::max(slot.left->get_size().x, max_left_width);
-
-            const OrchestratorEditorGraphPinSlotInfo slot_info = slot.left->get_slot_info();
-            set_slot_enabled_left(slot.slot, slot_info.enabled);
-            set_slot_type_left(slot.slot, slot_info.type);
-            set_slot_color_left(slot.slot, slot_info.color);
-            set_slot_custom_icon_left(slot.slot, SceneUtils::get_editor_icon(slot_info.icon));
+            left = slot.left->get_slot_info();
         }
 
         if (slot.right)
         {
             max_right_width = Math::max(slot.right->get_size().x, max_right_width);
-
-            const OrchestratorEditorGraphPinSlotInfo slot_info = slot.right->get_slot_info();
-            set_slot_enabled_right(slot.slot, slot_info.enabled);
-            set_slot_type_right(slot.slot, slot_info.type);
-            set_slot_color_right(slot.slot, slot_info.color);
-            set_slot_custom_icon_right(slot.slot, SceneUtils::get_editor_icon(slot_info.icon));
+            right = slot.right->get_slot_info();
         }
+
+        set_slot(
+            slot.slot,
+            left.enabled,
+            left.enabled ? left.type : 0,
+            left.enabled ? left.color : Color(),
+            right.enabled,
+            right.enabled ? right.type : 0,
+            right.enabled ? right.color : Color(),
+            left.enabled ? SceneUtils::get_editor_icon(left.icon) : nullptr,
+            right.enabled ? SceneUtils::get_editor_icon(right.icon) : nullptr);
     }
 
     // This keeps all rows aligned with the same widths
@@ -706,8 +710,6 @@ void OrchestratorEditorGraphNode::notify_breakpoints_changed()
 
 void OrchestratorEditorGraphNode::_notification(int p_what)
 {
-    GDE_NOTIFICATION(p_what);
-
 }
 
 void OrchestratorEditorGraphNode::_bind_methods()

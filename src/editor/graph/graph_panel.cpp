@@ -649,7 +649,11 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
 
     menu->add_separator("Documentation");
 
+    #if GODOT_VERSION >= 0x040300
     const String view_doc_topic = script_node->get_help_topic();
+    #else
+    const String view_doc_topic = script_node->get_class();
+    #endif
     menu->add_icon_item("Help", "View Documentation", callable_mp_this(_view_documentation).bind(view_doc_topic));
 
     const Ref<OScriptNodeVariableGet> variable_get = script_node;
@@ -783,7 +787,11 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
 
     menu->add_separator("Documentation");
 
+    #if GODOT_VERSION >= 0x040300
     const String view_doc_topic = script_node->get_help_topic();
+    #else
+    const String view_doc_topic = script_node->get_class();
+    #endif
     menu->add_icon_item("Help", "View Documentation", callable_mp_this(_view_documentation).bind(view_doc_topic));
 
     menu->set_position(p_pin->get_screen_position() + p_position * get_zoom());
@@ -3404,7 +3412,7 @@ Variant OrchestratorEditorGraphPanel::get_edit_state() const
     panel_state["minimap"] = is_minimap_enabled();
     panel_state["snapping"] = is_snapping_enabled();
 
-    #if GODOT_VERSION >= 040300
+    #if GODOT_VERSION >= 0x040300
     panel_state["grid"] = is_showing_grid();
     panel_state["grid_pattern"] = get_grid_pattern();
     #endif

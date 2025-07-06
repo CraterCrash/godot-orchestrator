@@ -19,6 +19,7 @@
 
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
