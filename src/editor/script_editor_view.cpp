@@ -21,6 +21,7 @@
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/name_utils.h"
+#include "common/resource_utils.h"
 #include "common/scene_utils.h"
 #include "editor/dialogs_helper.h"
 #include "editor/editor.h"
@@ -819,7 +820,7 @@ String OrchestratorScriptGraphEditorView::get_name()
     {
         name = "[unsaved]";
     }
-    else if (_script->is_built_in())
+    else if (ResourceUtils::is_builtin(_script))
     {
         const String& script_name = _script->get_name();
         if (!script_name.is_empty())
@@ -837,7 +838,7 @@ Ref<Texture2D> OrchestratorScriptGraphEditorView::get_theme_icon()
     if (get_parent_control() && _script.is_valid())
     {
         String icon_name = _script->get_class();
-        if (_script->is_built_in())
+        if (ResourceUtils::is_builtin(_script))
             icon_name += "Internal";
 
         if (get_parent_control()->has_theme_icon(icon_name, "EditorIcons"))
