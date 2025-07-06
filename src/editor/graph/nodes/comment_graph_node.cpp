@@ -64,7 +64,7 @@ void OrchestratorEditorGraphNodeComment::_gui_input(const Ref<InputEvent>& p_eve
         return;
     }
 
-    parent_type::_gui_input(p_event);
+    OrchestratorEditorGraphNode::_gui_input(p_event);
 }
 
 bool OrchestratorEditorGraphNodeComment::_has_point(const Vector2& p_point) const

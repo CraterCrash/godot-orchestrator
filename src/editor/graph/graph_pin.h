@@ -34,8 +34,8 @@ class OrchestratorEditorGraphPanel;
 
 struct OrchestratorEditorGraphPinSlotInfo
 {
-    bool enabled;
-    int type;
+    bool enabled = false;
+    int type = 0;
     String icon;
     Color color;
 };

@@ -32,9 +32,9 @@
         }
 
 #if GODOT_VERSION < 0x040202
-#define GDE_NOTIFICATION(x) parent_type::_notification(x);
+#define GDE_NOTIFICATION(p, x) p::_notification(x);
 #else
-#define GDE_NOTIFICATION(x)
+#define GDE_NOTIFICATION(p, x)
 #endif
 
 #define BEGIN_NOTIFICATION_HANDLER(x)               \
