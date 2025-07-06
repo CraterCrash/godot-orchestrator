@@ -281,8 +281,8 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             const String getter_name = ClassDB::class_get_property_getter(p_class_name, property.name);
             const String setter_name = ClassDB::class_get_property_setter(p_class_name, property.name);
             #else
-            const String getter_name = vformat("get_%s", property.name);
-            const String setter_name = vformat("set_%s", property_name);
+            String getter_name = vformat("get_%s", property.name);
+            String setter_name = vformat("set_%s", property.name);
 
             bool has_getter = false;
             if ((global_class.name.is_empty() && ClassDB::class_has_method(p_class_name, getter_name))
