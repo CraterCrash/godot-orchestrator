@@ -26,9 +26,8 @@ void OScriptSignal::_get_property_list(List<PropertyInfo>* r_list) const
 
     // Properties that are serialized (not visible in Editor)
     r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
-
-    // Editor-only properties
     r_list->push_back(PropertyInfo(Variant::STRING, "signal_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY));
+    r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT));
     r_list->push_back(PropertyInfo(Variant::STRING, "Inputs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
     r_list->push_back(PropertyInfo(Variant::DICTIONARY, "inputs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR));
 }
@@ -43,6 +42,11 @@ bool OScriptSignal::_get(const StringName &p_name, Variant &r_value)
     else if (p_name.match("signal_name"))
     {
         r_value = _method.name;
+        return true;
+    }
+    else if (p_name.match("description"))
+    {
+        r_value = _description;
         return true;
     }
     else if (p_name.match("inputs"))
@@ -68,6 +72,12 @@ bool OScriptSignal::_set(const StringName &p_name, const Variant &p_value)
     else if (p_name.match("signal_name"))
     {
         _method.name = p_value;
+        emit_changed();
+        return true;
+    }
+    else if (p_name.match("description"))
+    {
+        _description = p_value;
         emit_changed();
         return true;
     }
@@ -125,4 +135,13 @@ void OScriptSignal::copy_persistent_state(const Ref<OScriptSignal>& p_other)
 
     notify_property_list_changed();
     emit_changed();
+}
+
+void OScriptSignal::set_description(const String& p_description)
+{
+    if (_description != p_description)
+    {
+        _description = p_description;
+        emit_changed();
+    }
 }

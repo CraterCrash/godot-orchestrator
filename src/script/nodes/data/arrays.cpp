@@ -51,7 +51,10 @@ class OScriptNodeArrayGetInstance : public OScriptNodeInstance
         T array = p_context.get_input(0);
         int index = p_context.get_input(1);
 
-        if (array.size() <= index)
+        if (index < 0)
+            index = array.size() + index;
+
+        if (unlikely(index < 0 || index >= array.size()))
         {
             p_context.set_error(vformat("Out of bounds get index '%d' (on base '%s')", index, "Array"));
             return -1;
@@ -111,7 +114,7 @@ class OScriptNodeArraySetInstance : public OScriptNodeInstance
         bool size_to_fit = p_context.get_input(3);
 
         const int size = array.size();
-        if (size <= index && !size_to_fit)
+        if (index < 0 || (size <= index && !size_to_fit))
         {
             p_context.set_error(vformat("Invalid assignment of index '%d' (on base: '%s') with value of type '%s'", index, "Array", Variant::get_type_name(item.get_type())));
             return -1;
@@ -277,8 +280,16 @@ public:
         Array target_array = p_context.get_input(0);
         int index = p_context.get_input(1);
 
-        if (target_array.size() > index)
-            target_array.remove_at(index);
+        if (index < 0)
+            index = target_array.size() + index;
+
+        if (unlikely(index < 0 || index >= target_array.size()))
+        {
+            p_context.set_error(vformat("Out of bounds get index '%d' (on base '%s')", index, "Array"));
+            return -1;
+        }
+
+        target_array.remove_at(index);
 
         p_context.set_output(0, target_array);
         return 0;

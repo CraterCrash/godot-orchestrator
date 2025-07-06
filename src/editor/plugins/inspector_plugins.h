@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_EDITOR_INSPECTOR_PLUGINS_H
 #define ORCHESTRATOR_EDITOR_INSPECTOR_PLUGINS_H
 
+#include "script/function.h"
 #include "script/signals.h"
 
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
@@ -26,11 +27,24 @@ using namespace godot;
 /// Forward declarations
 class OrchestratorEditorPropertyVariableClassification;
 
-/// A simple EditorInspectorPlugin that adds custom UI widgets for function input/output properties.
+/// A simple EditorInspectorPlugin that adds custom UI widgets for function input/output properties
 class OrchestratorEditorInspectorPluginFunction : public EditorInspectorPlugin
 {
     GDCLASS(OrchestratorEditorInspectorPluginFunction, EditorInspectorPlugin);
     static void _bind_methods() { }
+
+protected:
+    //~ Begin Function Handlers
+    void _move_up(int p_index, const Ref<OScriptFunction>& p_function);
+    void _move_down(int p_index, const Ref<OScriptFunction>& p_function);
+    //~ End Function Handlers
+
+    /// Swaps two function arguments with one another
+    /// @param p_index the function argument index
+    /// @param p_pin_offset the emit function pin offset to swap
+    /// @param p_argument_offset the argument offset to swap
+    /// @param p_function the function to mutate
+    static void _swap(int p_index, int p_pin_offset, int p_argument_offset, const Ref<OScriptFunction>& p_function);
 
 public:
     //~ Begin EditorInspectorPlugin Interface

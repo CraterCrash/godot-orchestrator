@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/string_utils.h"
 #include "common/version.h"
+#include "script/script.h"
 #include "script/serialization/resource_cache.h"
 #include "script/serialization/variant_parser.h"
 
@@ -530,6 +531,12 @@ Error OScriptTextResourceSaverInstance::save(const String& p_path, const Ref<Res
 
     if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF)
         return ERR_CANT_CREATE;
+
+    #ifdef TOOLS_ENABLED
+    const Ref<OScript> script = p_resource;
+    if (script.is_valid())
+        script->set_edited(false);
+    #endif
 
     return OK;
 }

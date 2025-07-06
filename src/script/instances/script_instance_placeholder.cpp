@@ -106,11 +106,13 @@ bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_
     if (r_err)
         *r_err = PROP_OK;
 
+    const StringName property_name = _get_variable_name_from_path(p_name);
+
     if (_values.has(p_name))
     {
-        if (_script->_has_property_default_value(p_name))
+        if (_script->_has_property_default_value(property_name))
         {
-            const Variant def_value = _script->get_property_default_value(p_name);
+            const Variant def_value = _script->get_property_default_value(property_name);
             if (VariantUtils::evaluate(Variant::OP_EQUAL, def_value, p_value))
             {
                 _values.erase(p_name);
@@ -122,9 +124,9 @@ bool OScriptPlaceHolderInstance::set(const StringName& p_name, const Variant& p_
     }
     else
     {
-        if (_script->_has_property_default_value(p_name))
+        if (_script->_has_property_default_value(property_name))
         {
-            const Variant def_value = _script->get_property_default_value(p_name);
+            const Variant def_value = _script->get_property_default_value(property_name);
             if (VariantUtils::evaluate(Variant::OP_NOT_EQUAL, def_value, p_value))
                 _values[p_name] = p_value;
             return true;
@@ -150,9 +152,10 @@ bool OScriptPlaceHolderInstance::get(const StringName& p_name, Variant& r_value,
 
     if (!_script->_is_placeholder_fallback_enabled())
     {
-        if (_script->_has_property_default_value(p_name))
+        const StringName property_name = _get_variable_name_from_path(p_name);
+        if (_script->_has_property_default_value(property_name))
         {
-            r_value = _script->get_property_default_value(p_name);
+            r_value = _script->get_property_default_value(property_name);
             return true;
         }
     }

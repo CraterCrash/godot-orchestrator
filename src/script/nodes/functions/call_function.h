@@ -17,7 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_CALL_FUNCTION_H
 #define ORCHESTRATOR_SCRIPT_NODE_CALL_FUNCTION_H
 
-#include "script/script.h"
+#include "script/nodes/editable_pin_node.h"
 
 struct OScriptFunctionReference
 {
@@ -29,9 +29,9 @@ struct OScriptFunctionReference
 
 /// Represents a call to a function.
 ///
-class OScriptNodeCallFunction : public OScriptNode
+class OScriptNodeCallFunction : public OScriptEditablePinNode
 {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeCallFunction, OScriptNode);
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeCallFunction, OScriptEditablePinNode);
     static void _bind_methods();
 
 public:
@@ -120,21 +120,15 @@ public:
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
+    //~ Begin OScriptEditablePinNode Interface
+    String get_pin_prefix() const override { return "arg"; }
+    bool can_add_dynamic_pin() const override { return _reference.method.flags & METHOD_FLAG_VARARG; }
+    bool can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const override;
+    void add_dynamic_pin() override;
+    void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) override;
+    //~ End OScriptEditablePinNode Interface
+
     OScriptNodeCallFunction() { _flags = ScriptNodeFlags::NONE; }
-
-    /// Returns whether the function call supports variadic arguments
-    bool is_vararg() const { return _reference.method.flags & METHOD_FLAG_VARARG; }
-
-    /// Adds a new dynamic pin to the node
-    void add_dynamic_pin();
-
-    /// Check whether the specified pin can be removed
-    /// @param p_pin the pin to be removed
-    bool can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const;
-
-    /// Removes the variadic argument pin
-    /// @param p_pin the pin to be removed
-    void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin);
 };
 
 VARIANT_ENUM_CAST(OScriptNodeCallFunction::FunctionFlags)

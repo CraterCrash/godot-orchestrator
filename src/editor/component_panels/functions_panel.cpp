@@ -40,6 +40,20 @@ void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p
     _tree->deselect_all();
 }
 
+void OrchestratorScriptFunctionsComponentPanel::_duplicate_function(TreeItem* p_item, bool p_include_code)
+{
+    const Ref<OScriptFunction> duplicate = _orchestration->duplicate_function(_get_tree_item_name(p_item), p_include_code);
+    if (duplicate.is_valid())
+    {
+        const String function_name = duplicate->get_function_name();
+        emit_signal("show_graph_requested", function_name);
+        emit_signal("focus_node_requested", function_name, duplicate->get_owning_node_id());
+
+        update();
+        _find_child_and_activate(function_name);
+    }
+}
+
 void OrchestratorScriptFunctionsComponentPanel::_update_slots()
 {
     if (_orchestration->get_type() != OrchestrationType::OT_Script)
@@ -98,6 +112,8 @@ String OrchestratorScriptFunctionsComponentPanel::_get_remove_confirm_text(TreeI
 bool OrchestratorScriptFunctionsComponentPanel::_populate_context_menu(TreeItem* p_item)
 {
     _context_menu->add_item("Open in Graph", CM_OPEN_FUNCTION_GRAPH, KEY_ENTER);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Duplicate"), "Duplicate", CM_DUPLICATE_FUNCTION);
+    _context_menu->add_icon_item(SceneUtils::get_editor_icon("Duplicate"), "Duplicate (no code)", CM_DUPLICATE_FUNCTION_NO_CODE);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Rename"), "Rename", CM_RENAME_FUNCTION, KEY_F2);
     _context_menu->add_icon_item(SceneUtils::get_editor_icon("Remove"), "Remove", CM_REMOVE_FUNCTION, KEY_DELETE);
 
@@ -126,6 +142,12 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_context_menu(int p_id)
         case CM_DISCONNECT_SLOT:
             _disconnect_slot(_tree->get_selected());
             break;
+        case CM_DUPLICATE_FUNCTION:
+            _duplicate_function(_tree->get_selected(), true);
+            break;
+        case CM_DUPLICATE_FUNCTION_NO_CODE:
+            _duplicate_function(_tree->get_selected(), false);
+            break;
     }
 }
 
@@ -146,11 +168,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_item_selected()
     {
         const Ref<OScriptFunction> function = _orchestration->find_function(StringName(_get_tree_item_name(item)));
         if (function.is_valid())
-        {
-            const Ref<OScriptNode> node = function->get_owning_node();
-            if (node.is_valid())
-                EditorInterface::get_singleton()->edit_resource(node);
-        }
+            EditorInterface::get_singleton()->edit_resource(function);
     }
 }
 

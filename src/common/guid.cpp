@@ -16,7 +16,18 @@
 //
 #include "guid.h"
 
-bool Guid::_parse(const String &p_guid_str, uint32_t &r_a, uint32_t &r_b, uint32_t &r_c, uint32_t &r_d)
+Ref<RandomNumberGenerator>& Guid::_get_random_number_generator()
+{
+    static Ref<RandomNumberGenerator> rng;
+    if (rng.is_null())
+    {
+        rng.instantiate();
+        rng->randomize();
+    }
+    return rng;
+}
+
+bool Guid::_parse(const String& p_guid_str, uint32_t& r_a, uint32_t& r_b, uint32_t& r_c, uint32_t& r_d)
 {
     PackedStringArray bits = p_guid_str.split("-");
     if (bits.size() != 5)
@@ -29,21 +40,6 @@ bool Guid::_parse(const String &p_guid_str, uint32_t &r_a, uint32_t &r_b, uint32
     r_c = (bits[3].hex_to_int() << 16) + bits[4].substr(0, 4).hex_to_int();
     r_d = bits[4].substr(4).hex_to_int();
     return true;
-}
-
-Guid::Guid()
-{
-    invalidate();
-}
-
-Guid::Guid(const String& p_guid) { Guid::_parse(p_guid, _a, _b, _c, _d); }
-
-Guid::Guid(uint32_t p_a, uint32_t p_b, uint32_t p_c, uint32_t p_d)
-    : _a(p_a)
-    , _b(p_b)
-    , _c(p_c)
-    , _d(p_d)
-{
 }
 
 void Guid::invalidate()
@@ -66,7 +62,7 @@ String Guid::to_string() const
 
 Guid Guid::create_guid()
 {
-    Ref<RandomNumberGenerator> rng(memnew(RandomNumberGenerator));
+    const Ref<RandomNumberGenerator>& rng = _get_random_number_generator();
 
     uint32_t a = rng->randi();
     uint32_t b = rng->randi();
@@ -82,6 +78,12 @@ Guid Guid::create_guid()
     return { a, b, c, d };
 }
 
+void Guid::cleanup()
+{
+    Ref<RandomNumberGenerator>& rng = _get_random_number_generator();
+    rng.unref();
+}
+
 bool Guid::operator==(const Guid& p_o) const
 {
     return _a == p_o._a && _b == p_o._b && _c == p_o._c && _d == p_o._d;
@@ -90,4 +92,22 @@ bool Guid::operator==(const Guid& p_o) const
 bool Guid::operator!=(const Guid& p_o) const
 {
     return _a != p_o._a || _b != p_o._b || _c != p_o._c || _d != p_o._d;
+}
+
+Guid::Guid()
+{
+    invalidate();
+}
+
+Guid::Guid(const String& p_guid)
+{
+    _parse(p_guid, _a, _b, _c, _d);
+}
+
+Guid::Guid(uint32_t p_a, uint32_t p_b, uint32_t p_c, uint32_t p_d)
+    : _a(p_a)
+    , _b(p_b)
+    , _c(p_c)
+    , _d(p_d)
+{
 }
