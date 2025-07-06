@@ -22,7 +22,6 @@
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/templates/rb_set.hpp>
 
 struct OrchestratorSelectClassSearchDialog::SearchItemSortPath
 {
@@ -57,7 +56,6 @@ bool OrchestratorSelectClassSearchDialog::_get_search_item_collapse_suggestion(T
 
 void OrchestratorSelectClassSearchDialog::_update_help(const Ref<SearchItem>& p_item)
 {
-    // todo: consider looking at Godot to expose this information via an API
     _help_bit->set_text(vformat("No description available for [b]%s[/b]", p_item->text));
     _help_bit->set_disabled(true);
 }

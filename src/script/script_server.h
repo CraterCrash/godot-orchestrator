@@ -73,6 +73,8 @@ public:
     };
 
 protected:
+    static bool _reload_scripts_on_save;
+
     /// Get the global class dictionary entry
     /// @param p_class_name the global class name to find
     /// @return the dictionary for the global class, or an empty dictionary if not found
@@ -114,6 +116,13 @@ public:
     /// @param p_script the script instance
     /// @return the global name of the script, if one is present
     static String get_global_name(const Ref<Script>& p_script);
+
+    /// Check whether scripting is enabled
+    /// @return true if scripting is enabled, false otherwise
+    static bool is_scripting_enabled();
+
+    static bool is_reload_scripts_on_save() { return _reload_scripts_on_save; }
+    static void set_reload_scripts_on_save(bool p_reload_on_save) { _reload_scripts_on_save = p_reload_on_save;}
 };
 
 #endif // ORCHESTRATOR_SCRIPT_SERVER_H
