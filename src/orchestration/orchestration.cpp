@@ -19,14 +19,14 @@
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/variant_utils.h"
-#include "script/node.h"
-#include "script/nodes/functions/call_script_function.h"
-#include "script/nodes/functions/function_entry.h"
-#include "script/nodes/functions/function_result.h"
-#include "script/nodes/signals/emit_member_signal.h"
-#include "script/nodes/signals/emit_signal.h"
-#include "script/nodes/variables/variable.h"
-#include "script/variable.h"
+#include "orchestration/node.h"
+#include "orchestration/nodes/functions/call_script_function.h"
+#include "orchestration/nodes/functions/function_entry.h"
+#include "orchestration/nodes/functions/function_result.h"
+#include "orchestration/nodes/signals/emit_member_signal.h"
+#include "orchestration/nodes/signals/emit_signal.h"
+#include "orchestration/nodes/variables/variable.h"
+#include "script/serialization/instance.h"
 
 #include <godot_cpp/classes/os.hpp>
 

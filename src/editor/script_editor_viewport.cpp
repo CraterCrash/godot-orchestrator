@@ -24,10 +24,10 @@
 #include "editor/component_panels/signals_panel.h"
 #include "editor/component_panels/variables_panel.h"
 #include "editor/graph/graph_edit.h"
+#include "orchestration/nodes/functions/call_script_function.h"
+#include "orchestration/nodes/functions/event.h"
+#include "orchestration/nodes/functions/function_result.h"
 #include "plugins/orchestrator_editor_plugin.h"
-#include "script/nodes/functions/call_script_function.h"
-#include "script/nodes/functions/event.h"
-#include "script/nodes/functions/function_result.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/scene_tree.hpp>

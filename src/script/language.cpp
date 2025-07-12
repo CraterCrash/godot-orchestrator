@@ -21,6 +21,7 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "script/script.h"
+#include "script/instances/node_instance.h"
 #include "script/vm/script_vm.h"
 #include "utility_functions.h"
 

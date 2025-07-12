@@ -16,8 +16,7 @@
 //
 #include "script/vm/execution_context.h"
 
-#include "script/instances/node_instance.h"
-#include "script/node.h"
+#include "orchestration/node.h"
 #include "script/vm/script_vm.h"
 
 #include <cassert>

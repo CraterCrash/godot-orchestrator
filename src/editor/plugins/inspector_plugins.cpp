@@ -21,11 +21,11 @@
 #include "editor/inspector/editor_property_class_name.h"
 #include "editor/inspector/property_info_container_property.h"
 #include "editor/inspector/property_type_button_property.h"
+#include "orchestration/nodes/data/type_cast.h"
+#include "orchestration/nodes/functions/function_entry.h"
+#include "orchestration/nodes/functions/function_terminator.h"
+#include "orchestration/nodes/signals/emit_signal.h"
 #include "orchestrator_editor_plugin.h"
-#include "script/nodes/data/type_cast.h"
-#include "script/nodes/functions/function_entry.h"
-#include "script/nodes/functions/function_terminator.h"
-#include "script/nodes/signals/emit_signal.h"
 
 void OrchestratorEditorInspectorPluginFunction::_move_up(int p_index, const Ref<OScriptFunction>& p_function)
 {

@@ -18,7 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/memory_utils.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes/script_nodes.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/engine.hpp>

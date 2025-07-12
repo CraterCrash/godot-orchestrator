@@ -18,7 +18,7 @@
 #define ORCHESTRATOR_GRAPH_ACTION_MENU_ITEM_FILTER_H
 
 #include "action_menu_item.h"
-#include "script/target_object.h"
+#include "orchestration/target_object.h"
 
 #include <godot_cpp/templates/vector.hpp>
 

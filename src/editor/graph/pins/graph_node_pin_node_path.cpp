@@ -22,9 +22,9 @@
 #include "common/version.h"
 #include "editor/property_selector.h"
 #include "editor/scene_node_selector.h"
-#include "script/nodes/functions/call_function.h"
-#include "script/nodes/functions/call_member_function.h"
-#include "script/nodes/utilities/self.h"
+#include "orchestration/nodes/functions/call_function.h"
+#include "orchestration/nodes/functions/call_member_function.h"
+#include "orchestration/nodes/utilities/self.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>

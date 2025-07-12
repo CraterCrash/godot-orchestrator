@@ -16,7 +16,7 @@
 //
 #include "orchestration/build_log.h"
 
-#include "script/node.h"
+#include "orchestration/node.h"
 
 void BuildLog::_add_failure(FailureType p_type, const OScriptNode* p_node, const Ref<OScriptNodePin>& p_pin, const String& p_message)
 {

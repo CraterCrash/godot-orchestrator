@@ -17,8 +17,8 @@
 #ifndef ORCHESTRATOR_EDITOR_INSPECTOR_PLUGINS_H
 #define ORCHESTRATOR_EDITOR_INSPECTOR_PLUGINS_H
 
-#include "script/function.h"
-#include "script/signals.h"
+#include "orchestration/function.h"
+#include "orchestration/signals.h"
 
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
 

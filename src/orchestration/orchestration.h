@@ -18,13 +18,12 @@
 #define ORCHESTRATOR_ORCHESTRATION_H
 
 #include "orchestration/build_log.h"
-#include "script/connection.h"
-#include "script/function.h"
-#include "script/graph.h"
-#include "script/node.h"
-#include "script/serialization/instance.h"
-#include "script/signals.h"
-#include "script/variable.h"
+#include "orchestration/connection.h"
+#include "orchestration/function.h"
+#include "orchestration/graph.h"
+#include "orchestration/node.h"
+#include "orchestration/signals.h"
+#include "orchestration/variable.h"
 
 #include <godot_cpp/templates/rb_set.hpp>
 
@@ -241,4 +240,4 @@ public:
     virtual ~Orchestration() = default;
 };
 
-#endif  // ORCHESTRATOR_ORCHESTRATION_H
+#endif // ORCHESTRATOR_ORCHESTRATION_H

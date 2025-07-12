@@ -24,12 +24,12 @@
 #include "common/variant_utils.h"
 #include "graph_edit.h"
 #include "graph_node.h"
-#include "script/nodes/data/coercion_node.h"
-#include "script/nodes/data/dictionary.h"
-#include "script/nodes/editable_pin_node.h"
-#include "script/nodes/functions/call_function.h"
-#include "script/nodes/variables/variable_get.h"
-#include "script/nodes/variables/variable_set.h"
+#include "orchestration/nodes/data/coercion_node.h"
+#include "orchestration/nodes/data/dictionary.h"
+#include "orchestration/nodes/editable_pin_node.h"
+#include "orchestration/nodes/functions/call_function.h"
+#include "orchestration/nodes/variables/variable_get.h"
+#include "orchestration/nodes/variables/variable_set.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>

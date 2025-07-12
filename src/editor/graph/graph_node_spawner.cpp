@@ -20,7 +20,7 @@
 #include "common/method_utils.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes/script_nodes.h"
 
 void OrchestratorGraphNodeSpawner::execute(OrchestratorGraphEdit* p_graph, const Vector2& p_position)
 {

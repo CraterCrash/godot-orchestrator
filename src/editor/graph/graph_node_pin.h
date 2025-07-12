@@ -17,7 +17,7 @@
 #ifndef ORCHESTRATOR_GRAPH_NODE_PIN_H
 #define ORCHESTRATOR_GRAPH_NODE_PIN_H
 
-#include "script/node_pin.h"
+#include "orchestration/node_pin.h"
 
 #include <godot_cpp/classes/graph_node.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>

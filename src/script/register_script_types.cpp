@@ -17,7 +17,7 @@
 #include "script/register_script_types.h"
 
 #include "common/settings.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes/script_nodes.h"
 #include "script/script.h"
 #include "script/serialization/resource_cache.h"
 #include "script/serialization/serialization.h"

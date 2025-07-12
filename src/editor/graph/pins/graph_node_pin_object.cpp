@@ -16,9 +16,9 @@
 //
 #include "graph_node_pin_object.h"
 
-#include "script/node.h"
-#include "script/nodes/functions/call_function.h"
-#include "script/nodes/variables/variable.h"
+#include "orchestration/node.h"
+#include "orchestration/nodes/functions/call_function.h"
+#include "orchestration/nodes/variables/variable.h"
 
 OrchestratorGraphNodePinObject::OrchestratorGraphNodePinObject(OrchestratorGraphNode* p_node, const Ref<OScriptNodePin>& p_pin)
     : OrchestratorGraphNodePin(p_node, p_pin)

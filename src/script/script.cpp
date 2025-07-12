@@ -18,9 +18,9 @@
 
 #include "common/dictionary_utils.h"
 #include "common/resource_utils.h"
+#include "orchestration/nodes/script_nodes.h"
 #include "script/instances/script_instance.h"
 #include "script/instances/script_instance_placeholder.h"
-#include "script/nodes/script_nodes.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
