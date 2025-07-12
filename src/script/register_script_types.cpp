@@ -71,6 +71,7 @@ void register_script_types()
 
     // Purposely public
     GDREGISTER_CLASS(OScript)
+    GDREGISTER_INTERNAL_CLASS(Orchestration)
 
     // Create the ScriptExtension
     language = memnew(OScriptLanguage);

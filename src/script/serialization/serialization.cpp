@@ -174,16 +174,16 @@ Variant OScriptBinaryResourceLoader::_load(const String& p_path, const String& p
     if (script.is_valid())
     {
         script->set_path(local_path);
-        script->_version = loader._version;
+        script->get_orchestration()->_version = loader._version;
 
         // Sanity check, used to be in OrchestratorScriptView, but belongs here instead
-        if (script->get_orchestration()->get_type() == OT_Script && !script->has_graph("EventGraph"))
+        if (script->get_orchestration()->get_type() == OT_Script && !script->get_orchestration()->has_graph("EventGraph"))
         {
             WARN_PRINT("Legacy orchestration '" + script->get_path() + "' loaded, creating event graph...");
-            script->create_graph("EventGraph", OScriptGraph::GraphFlags::GF_EVENT);
+            script->get_orchestration()->create_graph("EventGraph", OScriptGraph::GraphFlags::GF_EVENT);
         }
 
-        script->post_initialize();
+        script->get_orchestration()->post_initialize();
     }
 
     return loader._resource;
@@ -344,16 +344,16 @@ Variant OScriptTextResourceLoader::_load(const String& p_path, const String& p_o
     if (script.is_valid())
     {
         script->set_path(local_path);
-        script->_version = loader._version;
+        script->get_orchestration()->_version = loader._version;
 
         // Sanity check, used to be in OrchestratorScriptView, but belongs here instead
-        if (script->get_orchestration()->get_type() == OT_Script && !script->has_graph("EventGraph"))
+        if (script->get_orchestration()->get_type() == OT_Script && !script->get_orchestration()->has_graph("EventGraph"))
         {
             WARN_PRINT("Legacy orchestration '" + script->get_path() + "' loaded, creating event graph...");
-            script->create_graph("EventGraph", OScriptGraph::GraphFlags::GF_EVENT);
+            script->get_orchestration()->create_graph("EventGraph", OScriptGraph::GraphFlags::GF_EVENT);
         }
 
-        script->post_initialize();
+        script->get_orchestration()->post_initialize();
     }
 
     return loader._resource;

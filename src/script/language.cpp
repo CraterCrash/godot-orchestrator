@@ -154,10 +154,10 @@ Ref<Script> OScriptLanguage::_make_template(const String& p_template, const Stri
     script.instantiate();
 
     // Set the script's base actor/class type
-    script->set_base_type(p_base_class_name);
+    script->get_orchestration()->set_base_type(p_base_class_name);
 
     // All orchestrator scripts start with an "EventGraph" graph definition.
-    script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+    script->get_orchestration()->create_graph("EventGraph", OScriptGraph::GF_EVENT);
 
     return script;
 }
@@ -193,9 +193,9 @@ Object* OScriptLanguage::_create_script() const
     // todo: this does not appear to be called in Godot.
 
     OScript* script = memnew(OScript);
-    script->set_base_type(OrchestratorSettings::get_singleton()->get_setting("settings/default_type", "Node"));
+    script->get_orchestration()->set_base_type(OrchestratorSettings::get_singleton()->get_setting("settings/default_type", "Node"));
     // All orchestrator scripts start with an "EventGraph" graph definition.
-    script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+    script->get_orchestration()->create_graph("EventGraph", OScriptGraph::GF_EVENT);
     return script;
 }
 
@@ -403,7 +403,7 @@ Dictionary OScriptLanguage::_debug_get_stack_level_members(int32_t p_level, int3
     PackedStringArray member_names;
     Array member_values;
 
-    for (const String& variable_name: script->get_variable_names())
+    for (const String& variable_name: script->get_orchestration()->get_variable_names())
     {
         Variant value;
         if (_call_stack[l].instance->get_variable(variable_name, value))

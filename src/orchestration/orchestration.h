@@ -38,6 +38,7 @@ enum OrchestrationType
 VARIANT_ENUM_CAST(OrchestrationType);
 
 /// Forward declarations
+class OScript;
 class OScriptBinaryResourceLoader;
 class OScriptTextResourceLoader;
 
@@ -51,13 +52,20 @@ class OScriptTextResourceLoader;
 ///
 /// todo: rename OSciptXxX sub-resources to OrchestrationXXX sub-resources
 ///
-class Orchestration
+class Orchestration : public RefCounted
 {
+    friend class OScript;
     friend class OScriptGraph;
     friend class OScriptBinaryResourceLoader;
     friend class OScriptTextResourceLoader;
 
+    GDCLASS(Orchestration, RefCounted);
+
+    Orchestration();
+
 protected:
+    static void _bind_methods() { }
+
     OrchestrationType _type;                               //! The orchestration type
     bool _initialized{ false };                            //! Whether the orchestration is initialized
     bool _edited{ false };                                 //! Tracks whether the orchestration has been edited
@@ -129,14 +137,6 @@ public:
     /// Set the base class type
     /// @param p_base_type the base type class name
     void set_base_type(const StringName& p_base_type);
-
-    /// Get whether the orchestration runs in tool-mode
-    /// @return true if the orchestration runs in tool-mode in the editor, false otherwise
-    virtual bool get_tool() const { return false; }
-
-    /// Set whether the orchestration runs in tool-mode
-    /// @param p_tool true to run in the editor in tool-mode, false to run only at run-time
-    virtual void set_tool(bool p_tool) { }
 
     /// Get a pointer to the underlying owning resource of the orchestration
     /// @return the owning resource, use with caution
@@ -231,13 +231,9 @@ public:
     bool can_remove_custom_signal(const StringName& p_name) const;
     //~ End Signals Interface
 
-    /// Constructs the orchestration for the specified object
-    /// @param p_self the owner object
-    /// @param p_type the orchestration type
-    explicit Orchestration(Resource* p_self, OrchestrationType p_type);
+    static Ref<Orchestration> for_script(Script* p_script);
 
-    /// Destructor
-    virtual ~Orchestration() = default;
+    ~Orchestration() override = default;
 };
 
 #endif // ORCHESTRATOR_ORCHESTRATION_H

@@ -26,6 +26,7 @@
 #include "orchestration/nodes/signals/emit_member_signal.h"
 #include "orchestration/nodes/signals/emit_signal.h"
 #include "orchestration/nodes/variables/variable.h"
+#include "script/script.h"
 #include "script/serialization/instance.h"
 
 #include <godot_cpp/classes/os.hpp>
@@ -1177,9 +1178,17 @@ bool Orchestration::can_remove_custom_signal(const StringName& p_name) const
     return true;
 }
 
-Orchestration::Orchestration(Resource* p_self, OrchestrationType p_type)
-    : _type(p_type)
-    , _base_type("Object")
-    , _self(p_self)
+Ref<Orchestration> Orchestration::for_script(Script* p_script)
+{
+    const OScript* script = cast_to<OScript>(p_script);
+    ERR_FAIL_NULL_V_MSG(script, {}, "Cannot create an orchestration for non-OScript script type");
+
+    Orchestration* orchestration = memnew(Orchestration);
+    orchestration->_self = p_script;
+    orchestration->_type = OT_Script;
+    return orchestration;
+}
+
+Orchestration::Orchestration() : _type(OT_Script), _base_type("Object"), _self(nullptr)
 {
 }
