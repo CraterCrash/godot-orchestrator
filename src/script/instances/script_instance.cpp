@@ -18,7 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/memory_utils.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes/script_nodes.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -87,11 +87,11 @@ OScriptInstance::OScriptInstance(const Ref<OScript>& p_script, OScriptLanguage* 
     _vm.set_owner(p_owner);
     _vm.set_script(p_script);
 
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : p_script->_variables)
-        _vm.register_variable(E.value);
+    for (const Ref<OScriptVariable>& E : p_script->get_orchestration()->get_variables())
+        _vm.register_variable(E);
 
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : p_script->_functions)
-        _vm.register_function(E.value);
+    for (const Ref<OScriptFunction>& E : p_script->get_orchestration()->get_functions())
+        _vm.register_function(E);
 }
 
 OScriptInstance::~OScriptInstance()
@@ -154,7 +154,7 @@ bool OScriptInstance::get(const StringName& p_name, Variant& p_value, PropertyEr
 GDExtensionPropertyInfo* OScriptInstance::get_property_list(uint32_t* r_count)
 {
     LocalVector<GDExtensionPropertyInfo> infos;
-    for (const Ref<OScriptVariable>& variable : _script->get_variables())
+    for (const Ref<OScriptVariable>& variable : _script->get_orchestration()->get_variables())
     {
         // Only exported
         if (!variable->is_exported())
@@ -197,7 +197,7 @@ Variant::Type OScriptInstance::get_property_type(const StringName& p_name, bool*
 
 bool OScriptInstance::has_method(const StringName& p_name) const
 {
-    return _script->has_function(p_name);
+    return _script->get_orchestration()->has_function(p_name);
 }
 
 Object* OScriptInstance::get_owner() const
@@ -222,12 +222,12 @@ bool OScriptInstance::is_placeholder() const
 
 String OScriptInstance::get_base_type() const
 {
-    return _script->get_base_type();
+    return _script->get_orchestration()->get_base_type();
 }
 
 void OScriptInstance::set_base_type(const String& p_base_type)
 {
-    _script->set_base_type(p_base_type);
+    _script->get_orchestration()->set_base_type(p_base_type);
 }
 
 bool OScriptInstance::property_can_revert(const StringName& p_name)

@@ -24,10 +24,10 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
-#include "script/nodes/editable_pin_node.h"
-#include "script/nodes/functions/call_function.h"
-#include "script/nodes/functions/call_script_function.h"
-#include "script/nodes/variables/variable_get.h"
+#include "orchestration/nodes/editable_pin_node.h"
+#include "orchestration/nodes/functions/call_function.h"
+#include "orchestration/nodes/functions/call_script_function.h"
+#include "orchestration/nodes/variables/variable_get.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>

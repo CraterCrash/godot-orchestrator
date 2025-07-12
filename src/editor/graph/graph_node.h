@@ -18,7 +18,7 @@
 #define ORCHESTRATOR_GRAPH_NODE_H
 
 #include "common/version.h"
-#include "script/node.h"
+#include "orchestration/node.h"
 
 #include <godot_cpp/classes/graph_node.hpp>
 #include <godot_cpp/classes/input_event.hpp>

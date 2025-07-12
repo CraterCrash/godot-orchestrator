@@ -26,7 +26,7 @@
 #include "editor/graph/graph_edit.h"
 #include "editor/graph/graph_node_spawner.h"
 #include "godot_cpp/templates/hash_set.hpp"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes/script_nodes.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>

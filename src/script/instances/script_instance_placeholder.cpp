@@ -169,7 +169,7 @@ bool OScriptPlaceHolderInstance::get(const StringName& p_name, Variant& r_value,
 GDExtensionPropertyInfo* OScriptPlaceHolderInstance::get_property_list(uint32_t* r_count)
 {
     LocalVector<GDExtensionPropertyInfo> infos;
-    for (const Ref<OScriptVariable>& variable : _script->get_variables())
+    for (const Ref<OScriptVariable>& variable : _script->get_orchestration()->get_variables())
     {
         // Only exported
         if (!variable->is_exported())
@@ -200,7 +200,7 @@ GDExtensionPropertyInfo* OScriptPlaceHolderInstance::get_property_list(uint32_t*
 
 Variant::Type OScriptPlaceHolderInstance::get_property_type(const StringName& p_name, bool* r_is_valid) const
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
+    Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(_get_variable_name_from_path(p_name));
     if (!variable.is_valid() || !variable->is_exported())
     {
         if(r_is_valid)
@@ -216,7 +216,7 @@ Variant::Type OScriptPlaceHolderInstance::get_property_type(const StringName& p_
 
 bool OScriptPlaceHolderInstance::has_method(const StringName& p_name) const
 {
-    return _script->has_function(p_name);
+    return _script->get_orchestration()->has_function(p_name);
 }
 
 Ref<OScript> OScriptPlaceHolderInstance::get_script() const
@@ -241,7 +241,7 @@ bool OScriptPlaceHolderInstance::is_placeholder() const
 
 bool OScriptPlaceHolderInstance::property_can_revert(const StringName& p_name)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
+    Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(_get_variable_name_from_path(p_name));
     if (!variable.is_valid() || !variable->is_exported())
         return false;
 
@@ -250,7 +250,7 @@ bool OScriptPlaceHolderInstance::property_can_revert(const StringName& p_name)
 
 bool OScriptPlaceHolderInstance::property_get_revert(const StringName& p_name, Variant* r_ret)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
+    Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(_get_variable_name_from_path(p_name));
     if (!variable.is_valid() || !variable->is_exported())
         return false;
 

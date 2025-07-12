@@ -19,7 +19,7 @@
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "editor/file_dialog.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes/script_nodes.h"
 
 #include <godot_cpp/classes/button.hpp>
 

@@ -18,8 +18,8 @@
 
 #include "common/settings.h"
 #include "orchestration/orchestration.h"
+#include "orchestration/nodes/variables/local_variable.h"
 #include "script/instances/node_instance.h"
-#include "script/nodes/variables/local_variable.h"
 #include "script/utility_functions.h"
 #include "script/vm/script_state.h"
 

@@ -19,7 +19,7 @@
 
 #include "editor/graph/graph_node.h"
 
-#include "script/nodes/utilities/comment.h"
+#include "orchestration/nodes/utilities/comment.h"
 
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/label.hpp>

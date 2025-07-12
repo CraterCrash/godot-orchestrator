@@ -18,8 +18,8 @@
 
 #include "common/scene_utils.h"
 #include "common/settings.h"
-#include "script/node.h"
-#include "script/nodes/math/operator_node.h"
+#include "orchestration/node.h"
+#include "orchestration/nodes/math/operator_node.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/tree.hpp>

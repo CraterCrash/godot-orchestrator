@@ -18,7 +18,7 @@
 #define ORCHESTRATOR_GRAPH_NODE_SPAWNER_H
 
 #include "actions/action_menu_filter.h"
-#include "script/node.h"
+#include "orchestration/node.h"
 
 /// Base class for all OrchestratorGraphNode spawner action handlers
 class OrchestratorGraphNodeSpawner : public OrchestratorGraphActionHandler

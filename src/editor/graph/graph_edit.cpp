@@ -32,8 +32,8 @@
 #include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "nodes/graph_node_factory.h"
+#include "orchestration/nodes/script_nodes.h"
 #include "script/language.h"
-#include "script/nodes/script_nodes.h"
 #include "script/script.h"
 #include "script/script_server.h"
 

@@ -20,9 +20,9 @@
 #include "actions/action_menu.h"
 #include "common/version.h"
 #include "editor/graph/graph_node.h"
-#include "script/function.h"
-#include "script/signals.h"
-#include "script/variable.h"
+#include "orchestration/function.h"
+#include "orchestration/signals.h"
+#include "orchestration/variable.h"
 
 #include <functional>
 

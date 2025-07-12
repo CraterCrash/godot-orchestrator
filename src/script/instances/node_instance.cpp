@@ -16,7 +16,7 @@
 //
 #include "script/instances/node_instance.h"
 
-#include "script/node.h"
+#include "orchestration/node.h"
 
 int OScriptNodeInstance::get_id()
 {

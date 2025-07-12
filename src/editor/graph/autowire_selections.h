@@ -17,7 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_AUTOWIRE_SELECTIONS_H
 #define ORCHESTRATOR_SCRIPT_AUTOWIRE_SELECTIONS_H
 
-#include "script/node_pin.h"
+#include "orchestration/node_pin.h"
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/tree.hpp>
