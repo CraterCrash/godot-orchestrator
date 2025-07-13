@@ -47,3 +47,49 @@ jobs:
           artifact-name: ${{ matrix.artifact-name }}
           cache-name: ${{ matrix.cache-name }}
           preset-name: ${{ matrix.preset }}
+
+  build-linux-arm64:
+    runs-on: ubuntu-22.04-arm
+    name: ${{ matrix.name }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Editor (target=editor,arch=arm64)
+            artifact-name: linux-editor-arm64
+            cache-name: linux-editor-arm64
+            preset: linux-editor
+
+          - name: Template (target=template_release,arch=arm64)
+            artifact-name: linux-release-arm64
+            cache-name: linux-release-arm64
+            preset: linux-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install GCC (Linux)
+        shell: sh
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get install gcc-13 g++-13 -y
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+          sudo update-alternatives --config gcc
+          sudo update-alternatives --config g++
+      - name: Install Ninja (Linux)
+        shell: sh
+        run: |
+          sudo apt-get install ninja-build
+      - name: Build
+        uses: ./.github/actions/orchestrator-build
+        with:
+          artifact-name: ${{ matrix.artifact-name }}
+          cache-name: ${{ matrix.cache-name }}
+          preset-name: ${{ matrix.preset }}
+          python-arch: 'arm64'
