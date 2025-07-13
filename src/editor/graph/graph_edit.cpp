@@ -19,7 +19,6 @@
 #include "autowire_selections.h"
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
-#include "common/logger.h"
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/property_utils.h"
@@ -58,6 +57,7 @@
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/tween.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 OrchestratorGraphEdit::Clipboard* OrchestratorGraphEdit::_clipboard = nullptr;
 

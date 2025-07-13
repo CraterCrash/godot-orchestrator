@@ -27,6 +27,7 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_state.hpp>
 #include <godot_cpp/core/version.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 #define _printerr() ERR_PRINT(String(_res_path + ":" + itos(_lines) + " - Parse Error: " + _error_text).utf8().get_data());
 
