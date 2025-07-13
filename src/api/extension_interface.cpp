@@ -16,6 +16,7 @@
 //
 #include "extension_interface.h"
 
+#include "common/godot_version.h"
 #include "common/logger.h"
 #include "common/version.h"
 #include "editor/register_editor_types.h"
@@ -40,9 +41,8 @@ namespace orchestrator
             logger = LoggerFactory::create("user://orchestrator.log");
             Logger::info("Starting " VERSION_FULL_NAME);
 
-            GDExtensionGodotVersion godot_version;
-            internal::gdextension_interface_get_godot_version(&godot_version);
-            Logger::info("Using ", godot_version.string);
+            const GodotVersionInfo godot_version;
+            Logger::info("Using ", godot_version.string());
 
             register_extension_db();
         }
