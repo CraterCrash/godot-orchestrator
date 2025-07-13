@@ -565,12 +565,12 @@ Error OScriptVariantParser::get_token(Stream* p_stream, int& r_line, Token& r_to
                         r_token.value = num.to_int();
                     return OK;
                 }
-                else if (is_ascii_char(cchar) || is_underscore(cchar))
+                else if (is_ascii_alphabet_char(cchar) || is_underscore(cchar))
                 {
                     String id;
                     bool first{ true };
 
-                    while (is_ascii_char(cchar) || is_underscore(cchar) || (!first && is_digit(cchar)))
+                    while (is_ascii_alphabet_char(cchar) || is_underscore(cchar) || (!first && is_digit(cchar)))
                     {
                         id += cchar;
                         cchar = p_stream->get_char();

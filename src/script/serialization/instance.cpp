@@ -53,7 +53,7 @@ void OScriptResourceFormatInstance::_set_resource_edited(const Ref<Resource>& p_
 {
     #ifdef TOOLS_ENABLED
     // todo: advocate for merging the upstream pull request for this
-    #if GODOT_VERSION >= 0x040500
+    #if GODOT_VERSION >= 0x040600
     p_resource->set_edited(p_edited);
     #endif
     #endif

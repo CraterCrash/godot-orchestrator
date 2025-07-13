@@ -353,7 +353,7 @@ bool OrchestratorGraphNodeSpawnerEmitSignal::is_filtered(const OrchestratorGraph
 
     if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
     {
-        const OrchestratorGraphNodePin* pin = p_filter.context.pins[0];
+        const OrchestratorGraphNodePin* pin = p_filter.context.pins.get(0);
         if (pin && pin->is_output())
         {
             if (Orchestration* orchestration = p_filter.get_orchestration())
@@ -464,7 +464,7 @@ bool OrchestratorGraphNodeSpawnerScriptNode::is_filtered(const OrchestratorGraph
     // by comparing the node's input/output pins with the specified type.
     if (p_filter.context_sensitive && p_filter.target_type != Variant::NIL && !p_filter.context.pins.is_empty())
     {
-        const OrchestratorGraphNodePin* pin = p_filter.context.pins[0];
+        const OrchestratorGraphNodePin* pin = p_filter.context.pins.get(0);
         if (pin)
         {
             const EPinDirection direction = pin->is_input() ? PD_Output : PD_Input;

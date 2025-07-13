@@ -702,7 +702,10 @@ namespace godot
 				ei.values.push_back({ "PROPERTY_HINT_PASSWORD", "", 36 });
 				ei.values.push_back({ "PROPERTY_HINT_TOOL_BUTTON", "", 39 });
 				ei.values.push_back({ "PROPERTY_HINT_ONESHOT", "", 40 });
-				ei.values.push_back({ "PROPERTY_HINT_MAX", "", 42 });
+				ei.values.push_back({ "PROPERTY_HINT_GROUP_ENABLE", "", 42 });
+				ei.values.push_back({ "PROPERTY_HINT_INPUT_NAME", "", 43 });
+				ei.values.push_back({ "PROPERTY_HINT_FILE_PATH", "", 44 });
+				ei.values.push_back({ "PROPERTY_HINT_MAX", "", 45 });
 				_sanitize_enum(ei);
 				ExtensionDB::_singleton->_global_enums["PropertyHint"] = ei;
 				ExtensionDB::_singleton->_global_enum_names.push_back("PropertyHint");
@@ -1205,6 +1208,7 @@ namespace godot
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING, "String", Variant::STRING_NAME, "StringName", Variant::STRING });
 				type.operators.push_back({ VariantOperators::OP_IN, "in", "In", Variant::STRING, "String", Variant::STRING_NAME, "StringName", Variant::BOOL });
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING, "String", Variant::NODE_PATH, "NodePath", Variant::STRING });
+				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING, "String", Variant::RID, "RID", Variant::STRING });
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING, "String", Variant::OBJECT, "Object", Variant::STRING });
 				type.operators.push_back({ VariantOperators::OP_IN, "in", "In", Variant::STRING, "String", Variant::OBJECT, "Object", Variant::BOOL });
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING, "String", Variant::CALLABLE, "Callable", Variant::STRING });
@@ -1256,6 +1260,10 @@ namespace godot
 				type.methods.push_back(_make_method("format", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::NIL, "values", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::STRING, "placeholder" } }));
 				type.methods.push_back(_make_method("replace", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
 				type.methods.push_back(_make_method("replacen", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
+				type.methods.push_back(_make_method("replace_char", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "key" }, { Variant::INT, "with" } }));
+				type.methods.push_back(_make_method("replace_chars", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "keys" }, { Variant::INT, "with" } }));
+				type.methods.push_back(_make_method("remove_char", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "what" } }));
+				type.methods.push_back(_make_method("remove_chars", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "chars" } }));
 				type.methods.push_back(_make_method("repeat", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "count" } }));
 				type.methods.push_back(_make_method("reverse", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("insert", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "position" }, { Variant::STRING, "what" } }));
@@ -1264,6 +1272,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_camel_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("to_pascal_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("to_snake_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
+				type.methods.push_back(_make_method("to_kebab_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("split", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_STRING_ARRAY, { { Variant::STRING, "delimiter" }, { Variant::BOOL, "allow_empty" }, { Variant::INT, "maxsplit" } }));
 				type.methods.push_back(_make_method("rsplit", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_STRING_ARRAY, { { Variant::STRING, "delimiter" }, { Variant::BOOL, "allow_empty" }, { Variant::INT, "maxsplit" } }));
 				type.methods.push_back(_make_method("split_floats", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_FLOAT64_ARRAY, { { Variant::STRING, "delimiter" }, { Variant::BOOL, "allow_empty" } }));
@@ -1278,7 +1287,7 @@ namespace godot
 				type.methods.push_back(_make_method("rstrip", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "chars" } }));
 				type.methods.push_back(_make_method("get_extension", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("get_basename", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
-				type.methods.push_back(_make_method("path_join", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "file" } }));
+				type.methods.push_back(_make_method("path_join", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "path" } }));
 				type.methods.push_back(_make_method("unicode_at", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "at" } }));
 				type.methods.push_back(_make_method("indent", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "prefix" } }));
 				type.methods.push_back(_make_method("dedent", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
@@ -1301,6 +1310,7 @@ namespace godot
 				type.methods.push_back(_make_method("xml_unescape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("uri_encode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("uri_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
+				type.methods.push_back(_make_method("uri_file_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("c_escape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("c_unescape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("json_escape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
@@ -1329,13 +1339,14 @@ namespace godot
 				type.methods.push_back(_make_method("to_utf8_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_utf16_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_utf32_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
-				type.methods.push_back(_make_method("hex_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_wchar_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
+				type.methods.push_back(_make_method("to_multibyte_char_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, { { Variant::STRING, "encoding" } }));
+				type.methods.push_back(_make_method("hex_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("num_scientific", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::STRING, { { Variant::FLOAT, "number" } }));
 				type.methods.push_back(_make_method("num", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::STRING, { { Variant::FLOAT, "number" }, { Variant::INT, "decimals" } }));
 				type.methods.push_back(_make_method("num_int64", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::STRING, { { Variant::INT, "number" }, { Variant::INT, "base" }, { Variant::BOOL, "capitalize_hex" } }));
 				type.methods.push_back(_make_method("num_uint64", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::STRING, { { Variant::INT, "number" }, { Variant::INT, "base" }, { Variant::BOOL, "capitalize_hex" } }));
-				type.methods.push_back(_make_method("chr", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::STRING, { { Variant::INT, "char" } }));
+				type.methods.push_back(_make_method("chr", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::STRING, { { Variant::INT, "code" } }));
 				type.methods.push_back(_make_method("humanize_size", METHOD_FLAG_NORMAL | METHOD_FLAG_STATIC, Variant::STRING, { { Variant::INT, "size" } }));
 				ExtensionDB::_singleton->_builtin_types["String"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::STRING] = "String";
@@ -2158,6 +2169,7 @@ namespace godot
 				type.methods.push_back(_make_method("determinant", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, {  }));
 				type.methods.push_back(_make_method("rotated", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BASIS, { { Variant::VECTOR3, "axis" }, { Variant::FLOAT, "angle" } }));
 				type.methods.push_back(_make_method("scaled", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BASIS, { { Variant::VECTOR3, "scale" } }));
+				type.methods.push_back(_make_method("scaled_local", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::BASIS, { { Variant::VECTOR3, "scale" } }));
 				type.methods.push_back(_make_method("get_scale", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, {  }));
 				type.methods.push_back(_make_method("get_euler", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::VECTOR3, { { Variant::INT, "order" } }));
 				type.methods.push_back(_make_method("tdotx", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::FLOAT, { { Variant::VECTOR3, "with" } }));
@@ -2330,152 +2342,152 @@ namespace godot
 				type.properties.push_back({ Variant::FLOAT, "ok_hsl_h" });
 				type.properties.push_back({ Variant::FLOAT, "ok_hsl_s" });
 				type.properties.push_back({ Variant::FLOAT, "ok_hsl_l" });
-				type.constants.push_back({ "ALICE_BLUE", Variant::COLOR, Color(0.941176, 0.972549, 1, 1) });
-				type.constants.push_back({ "ANTIQUE_WHITE", Variant::COLOR, Color(0.980392, 0.921569, 0.843137, 1) });
+				type.constants.push_back({ "ALICE_BLUE", Variant::COLOR, Color(0.9411765, 0.972549, 1, 1) });
+				type.constants.push_back({ "ANTIQUE_WHITE", Variant::COLOR, Color(0.98039216, 0.92156863, 0.84313726, 1) });
 				type.constants.push_back({ "AQUA", Variant::COLOR, Color(0, 1, 1, 1) });
-				type.constants.push_back({ "AQUAMARINE", Variant::COLOR, Color(0.498039, 1, 0.831373, 1) });
-				type.constants.push_back({ "AZURE", Variant::COLOR, Color(0.941176, 1, 1, 1) });
-				type.constants.push_back({ "BEIGE", Variant::COLOR, Color(0.960784, 0.960784, 0.862745, 1) });
-				type.constants.push_back({ "BISQUE", Variant::COLOR, Color(1, 0.894118, 0.768627, 1) });
+				type.constants.push_back({ "AQUAMARINE", Variant::COLOR, Color(0.49803922, 1, 0.83137256, 1) });
+				type.constants.push_back({ "AZURE", Variant::COLOR, Color(0.9411765, 1, 1, 1) });
+				type.constants.push_back({ "BEIGE", Variant::COLOR, Color(0.9607843, 0.9607843, 0.8627451, 1) });
+				type.constants.push_back({ "BISQUE", Variant::COLOR, Color(1, 0.89411765, 0.76862746, 1) });
 				type.constants.push_back({ "BLACK", Variant::COLOR, Color(0, 0, 0, 1) });
-				type.constants.push_back({ "BLANCHED_ALMOND", Variant::COLOR, Color(1, 0.921569, 0.803922, 1) });
+				type.constants.push_back({ "BLANCHED_ALMOND", Variant::COLOR, Color(1, 0.92156863, 0.8039216, 1) });
 				type.constants.push_back({ "BLUE", Variant::COLOR, Color(0, 0, 1, 1) });
-				type.constants.push_back({ "BLUE_VIOLET", Variant::COLOR, Color(0.541176, 0.168627, 0.886275, 1) });
-				type.constants.push_back({ "BROWN", Variant::COLOR, Color(0.647059, 0.164706, 0.164706, 1) });
-				type.constants.push_back({ "BURLYWOOD", Variant::COLOR, Color(0.870588, 0.721569, 0.529412, 1) });
-				type.constants.push_back({ "CADET_BLUE", Variant::COLOR, Color(0.372549, 0.619608, 0.627451, 1) });
-				type.constants.push_back({ "CHARTREUSE", Variant::COLOR, Color(0.498039, 1, 0, 1) });
-				type.constants.push_back({ "CHOCOLATE", Variant::COLOR, Color(0.823529, 0.411765, 0.117647, 1) });
-				type.constants.push_back({ "CORAL", Variant::COLOR, Color(1, 0.498039, 0.313726, 1) });
-				type.constants.push_back({ "CORNFLOWER_BLUE", Variant::COLOR, Color(0.392157, 0.584314, 0.929412, 1) });
-				type.constants.push_back({ "CORNSILK", Variant::COLOR, Color(1, 0.972549, 0.862745, 1) });
-				type.constants.push_back({ "CRIMSON", Variant::COLOR, Color(0.862745, 0.0784314, 0.235294, 1) });
+				type.constants.push_back({ "BLUE_VIOLET", Variant::COLOR, Color(0.5411765, 0.16862746, 0.8862745, 1) });
+				type.constants.push_back({ "BROWN", Variant::COLOR, Color(0.64705884, 0.16470589, 0.16470589, 1) });
+				type.constants.push_back({ "BURLYWOOD", Variant::COLOR, Color(0.87058824, 0.72156864, 0.5294118, 1) });
+				type.constants.push_back({ "CADET_BLUE", Variant::COLOR, Color(0.37254903, 0.61960787, 0.627451, 1) });
+				type.constants.push_back({ "CHARTREUSE", Variant::COLOR, Color(0.49803922, 1, 0, 1) });
+				type.constants.push_back({ "CHOCOLATE", Variant::COLOR, Color(0.8235294, 0.4117647, 0.11764706, 1) });
+				type.constants.push_back({ "CORAL", Variant::COLOR, Color(1, 0.49803922, 0.3137255, 1) });
+				type.constants.push_back({ "CORNFLOWER_BLUE", Variant::COLOR, Color(0.39215687, 0.58431375, 0.92941177, 1) });
+				type.constants.push_back({ "CORNSILK", Variant::COLOR, Color(1, 0.972549, 0.8627451, 1) });
+				type.constants.push_back({ "CRIMSON", Variant::COLOR, Color(0.8627451, 0.078431375, 0.23529412, 1) });
 				type.constants.push_back({ "CYAN", Variant::COLOR, Color(0, 1, 1, 1) });
-				type.constants.push_back({ "DARK_BLUE", Variant::COLOR, Color(0, 0, 0.545098, 1) });
-				type.constants.push_back({ "DARK_CYAN", Variant::COLOR, Color(0, 0.545098, 0.545098, 1) });
-				type.constants.push_back({ "DARK_GOLDENROD", Variant::COLOR, Color(0.721569, 0.52549, 0.0431373, 1) });
-				type.constants.push_back({ "DARK_GRAY", Variant::COLOR, Color(0.662745, 0.662745, 0.662745, 1) });
-				type.constants.push_back({ "DARK_GREEN", Variant::COLOR, Color(0, 0.392157, 0, 1) });
-				type.constants.push_back({ "DARK_KHAKI", Variant::COLOR, Color(0.741176, 0.717647, 0.419608, 1) });
-				type.constants.push_back({ "DARK_MAGENTA", Variant::COLOR, Color(0.545098, 0, 0.545098, 1) });
-				type.constants.push_back({ "DARK_OLIVE_GREEN", Variant::COLOR, Color(0.333333, 0.419608, 0.184314, 1) });
-				type.constants.push_back({ "DARK_ORANGE", Variant::COLOR, Color(1, 0.54902, 0, 1) });
-				type.constants.push_back({ "DARK_ORCHID", Variant::COLOR, Color(0.6, 0.196078, 0.8, 1) });
-				type.constants.push_back({ "DARK_RED", Variant::COLOR, Color(0.545098, 0, 0, 1) });
-				type.constants.push_back({ "DARK_SALMON", Variant::COLOR, Color(0.913725, 0.588235, 0.478431, 1) });
-				type.constants.push_back({ "DARK_SEA_GREEN", Variant::COLOR, Color(0.560784, 0.737255, 0.560784, 1) });
-				type.constants.push_back({ "DARK_SLATE_BLUE", Variant::COLOR, Color(0.282353, 0.239216, 0.545098, 1) });
-				type.constants.push_back({ "DARK_SLATE_GRAY", Variant::COLOR, Color(0.184314, 0.309804, 0.309804, 1) });
-				type.constants.push_back({ "DARK_TURQUOISE", Variant::COLOR, Color(0, 0.807843, 0.819608, 1) });
-				type.constants.push_back({ "DARK_VIOLET", Variant::COLOR, Color(0.580392, 0, 0.827451, 1) });
-				type.constants.push_back({ "DEEP_PINK", Variant::COLOR, Color(1, 0.0784314, 0.576471, 1) });
-				type.constants.push_back({ "DEEP_SKY_BLUE", Variant::COLOR, Color(0, 0.74902, 1, 1) });
-				type.constants.push_back({ "DIM_GRAY", Variant::COLOR, Color(0.411765, 0.411765, 0.411765, 1) });
-				type.constants.push_back({ "DODGER_BLUE", Variant::COLOR, Color(0.117647, 0.564706, 1, 1) });
-				type.constants.push_back({ "FIREBRICK", Variant::COLOR, Color(0.698039, 0.133333, 0.133333, 1) });
-				type.constants.push_back({ "FLORAL_WHITE", Variant::COLOR, Color(1, 0.980392, 0.941176, 1) });
-				type.constants.push_back({ "FOREST_GREEN", Variant::COLOR, Color(0.133333, 0.545098, 0.133333, 1) });
+				type.constants.push_back({ "DARK_BLUE", Variant::COLOR, Color(0, 0, 0.54509807, 1) });
+				type.constants.push_back({ "DARK_CYAN", Variant::COLOR, Color(0, 0.54509807, 0.54509807, 1) });
+				type.constants.push_back({ "DARK_GOLDENROD", Variant::COLOR, Color(0.72156864, 0.5254902, 0.043137256, 1) });
+				type.constants.push_back({ "DARK_GRAY", Variant::COLOR, Color(0.6627451, 0.6627451, 0.6627451, 1) });
+				type.constants.push_back({ "DARK_GREEN", Variant::COLOR, Color(0, 0.39215687, 0, 1) });
+				type.constants.push_back({ "DARK_KHAKI", Variant::COLOR, Color(0.7411765, 0.7176471, 0.41960785, 1) });
+				type.constants.push_back({ "DARK_MAGENTA", Variant::COLOR, Color(0.54509807, 0, 0.54509807, 1) });
+				type.constants.push_back({ "DARK_OLIVE_GREEN", Variant::COLOR, Color(0.33333334, 0.41960785, 0.18431373, 1) });
+				type.constants.push_back({ "DARK_ORANGE", Variant::COLOR, Color(1, 0.54901963, 0, 1) });
+				type.constants.push_back({ "DARK_ORCHID", Variant::COLOR, Color(0.6, 0.19607843, 0.8, 1) });
+				type.constants.push_back({ "DARK_RED", Variant::COLOR, Color(0.54509807, 0, 0, 1) });
+				type.constants.push_back({ "DARK_SALMON", Variant::COLOR, Color(0.9137255, 0.5882353, 0.47843137, 1) });
+				type.constants.push_back({ "DARK_SEA_GREEN", Variant::COLOR, Color(0.56078434, 0.7372549, 0.56078434, 1) });
+				type.constants.push_back({ "DARK_SLATE_BLUE", Variant::COLOR, Color(0.28235295, 0.23921569, 0.54509807, 1) });
+				type.constants.push_back({ "DARK_SLATE_GRAY", Variant::COLOR, Color(0.18431373, 0.30980393, 0.30980393, 1) });
+				type.constants.push_back({ "DARK_TURQUOISE", Variant::COLOR, Color(0, 0.80784315, 0.81960785, 1) });
+				type.constants.push_back({ "DARK_VIOLET", Variant::COLOR, Color(0.5803922, 0, 0.827451, 1) });
+				type.constants.push_back({ "DEEP_PINK", Variant::COLOR, Color(1, 0.078431375, 0.5764706, 1) });
+				type.constants.push_back({ "DEEP_SKY_BLUE", Variant::COLOR, Color(0, 0.7490196, 1, 1) });
+				type.constants.push_back({ "DIM_GRAY", Variant::COLOR, Color(0.4117647, 0.4117647, 0.4117647, 1) });
+				type.constants.push_back({ "DODGER_BLUE", Variant::COLOR, Color(0.11764706, 0.5647059, 1, 1) });
+				type.constants.push_back({ "FIREBRICK", Variant::COLOR, Color(0.69803923, 0.13333334, 0.13333334, 1) });
+				type.constants.push_back({ "FLORAL_WHITE", Variant::COLOR, Color(1, 0.98039216, 0.9411765, 1) });
+				type.constants.push_back({ "FOREST_GREEN", Variant::COLOR, Color(0.13333334, 0.54509807, 0.13333334, 1) });
 				type.constants.push_back({ "FUCHSIA", Variant::COLOR, Color(1, 0, 1, 1) });
-				type.constants.push_back({ "GAINSBORO", Variant::COLOR, Color(0.862745, 0.862745, 0.862745, 1) });
+				type.constants.push_back({ "GAINSBORO", Variant::COLOR, Color(0.8627451, 0.8627451, 0.8627451, 1) });
 				type.constants.push_back({ "GHOST_WHITE", Variant::COLOR, Color(0.972549, 0.972549, 1, 1) });
-				type.constants.push_back({ "GOLD", Variant::COLOR, Color(1, 0.843137, 0, 1) });
-				type.constants.push_back({ "GOLDENROD", Variant::COLOR, Color(0.854902, 0.647059, 0.12549, 1) });
-				type.constants.push_back({ "GRAY", Variant::COLOR, Color(0.745098, 0.745098, 0.745098, 1) });
+				type.constants.push_back({ "GOLD", Variant::COLOR, Color(1, 0.84313726, 0, 1) });
+				type.constants.push_back({ "GOLDENROD", Variant::COLOR, Color(0.85490197, 0.64705884, 0.1254902, 1) });
+				type.constants.push_back({ "GRAY", Variant::COLOR, Color(0.74509805, 0.74509805, 0.74509805, 1) });
 				type.constants.push_back({ "GREEN", Variant::COLOR, Color(0, 1, 0, 1) });
-				type.constants.push_back({ "GREEN_YELLOW", Variant::COLOR, Color(0.678431, 1, 0.184314, 1) });
-				type.constants.push_back({ "HONEYDEW", Variant::COLOR, Color(0.941176, 1, 0.941176, 1) });
-				type.constants.push_back({ "HOT_PINK", Variant::COLOR, Color(1, 0.411765, 0.705882, 1) });
-				type.constants.push_back({ "INDIAN_RED", Variant::COLOR, Color(0.803922, 0.360784, 0.360784, 1) });
-				type.constants.push_back({ "INDIGO", Variant::COLOR, Color(0.294118, 0, 0.509804, 1) });
-				type.constants.push_back({ "IVORY", Variant::COLOR, Color(1, 1, 0.941176, 1) });
-				type.constants.push_back({ "KHAKI", Variant::COLOR, Color(0.941176, 0.901961, 0.54902, 1) });
-				type.constants.push_back({ "LAVENDER", Variant::COLOR, Color(0.901961, 0.901961, 0.980392, 1) });
-				type.constants.push_back({ "LAVENDER_BLUSH", Variant::COLOR, Color(1, 0.941176, 0.960784, 1) });
-				type.constants.push_back({ "LAWN_GREEN", Variant::COLOR, Color(0.486275, 0.988235, 0, 1) });
-				type.constants.push_back({ "LEMON_CHIFFON", Variant::COLOR, Color(1, 0.980392, 0.803922, 1) });
-				type.constants.push_back({ "LIGHT_BLUE", Variant::COLOR, Color(0.678431, 0.847059, 0.901961, 1) });
-				type.constants.push_back({ "LIGHT_CORAL", Variant::COLOR, Color(0.941176, 0.501961, 0.501961, 1) });
-				type.constants.push_back({ "LIGHT_CYAN", Variant::COLOR, Color(0.878431, 1, 1, 1) });
-				type.constants.push_back({ "LIGHT_GOLDENROD", Variant::COLOR, Color(0.980392, 0.980392, 0.823529, 1) });
+				type.constants.push_back({ "GREEN_YELLOW", Variant::COLOR, Color(0.6784314, 1, 0.18431373, 1) });
+				type.constants.push_back({ "HONEYDEW", Variant::COLOR, Color(0.9411765, 1, 0.9411765, 1) });
+				type.constants.push_back({ "HOT_PINK", Variant::COLOR, Color(1, 0.4117647, 0.7058824, 1) });
+				type.constants.push_back({ "INDIAN_RED", Variant::COLOR, Color(0.8039216, 0.36078432, 0.36078432, 1) });
+				type.constants.push_back({ "INDIGO", Variant::COLOR, Color(0.29411766, 0, 0.50980395, 1) });
+				type.constants.push_back({ "IVORY", Variant::COLOR, Color(1, 1, 0.9411765, 1) });
+				type.constants.push_back({ "KHAKI", Variant::COLOR, Color(0.9411765, 0.9019608, 0.54901963, 1) });
+				type.constants.push_back({ "LAVENDER", Variant::COLOR, Color(0.9019608, 0.9019608, 0.98039216, 1) });
+				type.constants.push_back({ "LAVENDER_BLUSH", Variant::COLOR, Color(1, 0.9411765, 0.9607843, 1) });
+				type.constants.push_back({ "LAWN_GREEN", Variant::COLOR, Color(0.4862745, 0.9882353, 0, 1) });
+				type.constants.push_back({ "LEMON_CHIFFON", Variant::COLOR, Color(1, 0.98039216, 0.8039216, 1) });
+				type.constants.push_back({ "LIGHT_BLUE", Variant::COLOR, Color(0.6784314, 0.84705883, 0.9019608, 1) });
+				type.constants.push_back({ "LIGHT_CORAL", Variant::COLOR, Color(0.9411765, 0.5019608, 0.5019608, 1) });
+				type.constants.push_back({ "LIGHT_CYAN", Variant::COLOR, Color(0.8784314, 1, 1, 1) });
+				type.constants.push_back({ "LIGHT_GOLDENROD", Variant::COLOR, Color(0.98039216, 0.98039216, 0.8235294, 1) });
 				type.constants.push_back({ "LIGHT_GRAY", Variant::COLOR, Color(0.827451, 0.827451, 0.827451, 1) });
-				type.constants.push_back({ "LIGHT_GREEN", Variant::COLOR, Color(0.564706, 0.933333, 0.564706, 1) });
-				type.constants.push_back({ "LIGHT_PINK", Variant::COLOR, Color(1, 0.713726, 0.756863, 1) });
-				type.constants.push_back({ "LIGHT_SALMON", Variant::COLOR, Color(1, 0.627451, 0.478431, 1) });
-				type.constants.push_back({ "LIGHT_SEA_GREEN", Variant::COLOR, Color(0.12549, 0.698039, 0.666667, 1) });
-				type.constants.push_back({ "LIGHT_SKY_BLUE", Variant::COLOR, Color(0.529412, 0.807843, 0.980392, 1) });
-				type.constants.push_back({ "LIGHT_SLATE_GRAY", Variant::COLOR, Color(0.466667, 0.533333, 0.6, 1) });
-				type.constants.push_back({ "LIGHT_STEEL_BLUE", Variant::COLOR, Color(0.690196, 0.768627, 0.870588, 1) });
-				type.constants.push_back({ "LIGHT_YELLOW", Variant::COLOR, Color(1, 1, 0.878431, 1) });
+				type.constants.push_back({ "LIGHT_GREEN", Variant::COLOR, Color(0.5647059, 0.93333334, 0.5647059, 1) });
+				type.constants.push_back({ "LIGHT_PINK", Variant::COLOR, Color(1, 0.7137255, 0.75686276, 1) });
+				type.constants.push_back({ "LIGHT_SALMON", Variant::COLOR, Color(1, 0.627451, 0.47843137, 1) });
+				type.constants.push_back({ "LIGHT_SEA_GREEN", Variant::COLOR, Color(0.1254902, 0.69803923, 0.6666667, 1) });
+				type.constants.push_back({ "LIGHT_SKY_BLUE", Variant::COLOR, Color(0.5294118, 0.80784315, 0.98039216, 1) });
+				type.constants.push_back({ "LIGHT_SLATE_GRAY", Variant::COLOR, Color(0.46666667, 0.53333336, 0.6, 1) });
+				type.constants.push_back({ "LIGHT_STEEL_BLUE", Variant::COLOR, Color(0.6901961, 0.76862746, 0.87058824, 1) });
+				type.constants.push_back({ "LIGHT_YELLOW", Variant::COLOR, Color(1, 1, 0.8784314, 1) });
 				type.constants.push_back({ "LIME", Variant::COLOR, Color(0, 1, 0, 1) });
-				type.constants.push_back({ "LIME_GREEN", Variant::COLOR, Color(0.196078, 0.803922, 0.196078, 1) });
-				type.constants.push_back({ "LINEN", Variant::COLOR, Color(0.980392, 0.941176, 0.901961, 1) });
+				type.constants.push_back({ "LIME_GREEN", Variant::COLOR, Color(0.19607843, 0.8039216, 0.19607843, 1) });
+				type.constants.push_back({ "LINEN", Variant::COLOR, Color(0.98039216, 0.9411765, 0.9019608, 1) });
 				type.constants.push_back({ "MAGENTA", Variant::COLOR, Color(1, 0, 1, 1) });
-				type.constants.push_back({ "MAROON", Variant::COLOR, Color(0.690196, 0.188235, 0.376471, 1) });
-				type.constants.push_back({ "MEDIUM_AQUAMARINE", Variant::COLOR, Color(0.4, 0.803922, 0.666667, 1) });
-				type.constants.push_back({ "MEDIUM_BLUE", Variant::COLOR, Color(0, 0, 0.803922, 1) });
-				type.constants.push_back({ "MEDIUM_ORCHID", Variant::COLOR, Color(0.729412, 0.333333, 0.827451, 1) });
-				type.constants.push_back({ "MEDIUM_PURPLE", Variant::COLOR, Color(0.576471, 0.439216, 0.858824, 1) });
-				type.constants.push_back({ "MEDIUM_SEA_GREEN", Variant::COLOR, Color(0.235294, 0.701961, 0.443137, 1) });
-				type.constants.push_back({ "MEDIUM_SLATE_BLUE", Variant::COLOR, Color(0.482353, 0.407843, 0.933333, 1) });
-				type.constants.push_back({ "MEDIUM_SPRING_GREEN", Variant::COLOR, Color(0, 0.980392, 0.603922, 1) });
-				type.constants.push_back({ "MEDIUM_TURQUOISE", Variant::COLOR, Color(0.282353, 0.819608, 0.8, 1) });
-				type.constants.push_back({ "MEDIUM_VIOLET_RED", Variant::COLOR, Color(0.780392, 0.0823529, 0.521569, 1) });
-				type.constants.push_back({ "MIDNIGHT_BLUE", Variant::COLOR, Color(0.0980392, 0.0980392, 0.439216, 1) });
-				type.constants.push_back({ "MINT_CREAM", Variant::COLOR, Color(0.960784, 1, 0.980392, 1) });
-				type.constants.push_back({ "MISTY_ROSE", Variant::COLOR, Color(1, 0.894118, 0.882353, 1) });
-				type.constants.push_back({ "MOCCASIN", Variant::COLOR, Color(1, 0.894118, 0.709804, 1) });
-				type.constants.push_back({ "NAVAJO_WHITE", Variant::COLOR, Color(1, 0.870588, 0.678431, 1) });
-				type.constants.push_back({ "NAVY_BLUE", Variant::COLOR, Color(0, 0, 0.501961, 1) });
-				type.constants.push_back({ "OLD_LACE", Variant::COLOR, Color(0.992157, 0.960784, 0.901961, 1) });
-				type.constants.push_back({ "OLIVE", Variant::COLOR, Color(0.501961, 0.501961, 0, 1) });
-				type.constants.push_back({ "OLIVE_DRAB", Variant::COLOR, Color(0.419608, 0.556863, 0.137255, 1) });
-				type.constants.push_back({ "ORANGE", Variant::COLOR, Color(1, 0.647059, 0, 1) });
-				type.constants.push_back({ "ORANGE_RED", Variant::COLOR, Color(1, 0.270588, 0, 1) });
-				type.constants.push_back({ "ORCHID", Variant::COLOR, Color(0.854902, 0.439216, 0.839216, 1) });
-				type.constants.push_back({ "PALE_GOLDENROD", Variant::COLOR, Color(0.933333, 0.909804, 0.666667, 1) });
-				type.constants.push_back({ "PALE_GREEN", Variant::COLOR, Color(0.596078, 0.984314, 0.596078, 1) });
-				type.constants.push_back({ "PALE_TURQUOISE", Variant::COLOR, Color(0.686275, 0.933333, 0.933333, 1) });
-				type.constants.push_back({ "PALE_VIOLET_RED", Variant::COLOR, Color(0.858824, 0.439216, 0.576471, 1) });
-				type.constants.push_back({ "PAPAYA_WHIP", Variant::COLOR, Color(1, 0.937255, 0.835294, 1) });
-				type.constants.push_back({ "PEACH_PUFF", Variant::COLOR, Color(1, 0.854902, 0.72549, 1) });
-				type.constants.push_back({ "PERU", Variant::COLOR, Color(0.803922, 0.521569, 0.247059, 1) });
-				type.constants.push_back({ "PINK", Variant::COLOR, Color(1, 0.752941, 0.796078, 1) });
-				type.constants.push_back({ "PLUM", Variant::COLOR, Color(0.866667, 0.627451, 0.866667, 1) });
-				type.constants.push_back({ "POWDER_BLUE", Variant::COLOR, Color(0.690196, 0.878431, 0.901961, 1) });
-				type.constants.push_back({ "PURPLE", Variant::COLOR, Color(0.627451, 0.12549, 0.941176, 1) });
+				type.constants.push_back({ "MAROON", Variant::COLOR, Color(0.6901961, 0.1882353, 0.3764706, 1) });
+				type.constants.push_back({ "MEDIUM_AQUAMARINE", Variant::COLOR, Color(0.4, 0.8039216, 0.6666667, 1) });
+				type.constants.push_back({ "MEDIUM_BLUE", Variant::COLOR, Color(0, 0, 0.8039216, 1) });
+				type.constants.push_back({ "MEDIUM_ORCHID", Variant::COLOR, Color(0.7294118, 0.33333334, 0.827451, 1) });
+				type.constants.push_back({ "MEDIUM_PURPLE", Variant::COLOR, Color(0.5764706, 0.4392157, 0.85882354, 1) });
+				type.constants.push_back({ "MEDIUM_SEA_GREEN", Variant::COLOR, Color(0.23529412, 0.7019608, 0.44313726, 1) });
+				type.constants.push_back({ "MEDIUM_SLATE_BLUE", Variant::COLOR, Color(0.48235294, 0.40784314, 0.93333334, 1) });
+				type.constants.push_back({ "MEDIUM_SPRING_GREEN", Variant::COLOR, Color(0, 0.98039216, 0.6039216, 1) });
+				type.constants.push_back({ "MEDIUM_TURQUOISE", Variant::COLOR, Color(0.28235295, 0.81960785, 0.8, 1) });
+				type.constants.push_back({ "MEDIUM_VIOLET_RED", Variant::COLOR, Color(0.78039217, 0.08235294, 0.52156866, 1) });
+				type.constants.push_back({ "MIDNIGHT_BLUE", Variant::COLOR, Color(0.09803922, 0.09803922, 0.4392157, 1) });
+				type.constants.push_back({ "MINT_CREAM", Variant::COLOR, Color(0.9607843, 1, 0.98039216, 1) });
+				type.constants.push_back({ "MISTY_ROSE", Variant::COLOR, Color(1, 0.89411765, 0.88235295, 1) });
+				type.constants.push_back({ "MOCCASIN", Variant::COLOR, Color(1, 0.89411765, 0.70980394, 1) });
+				type.constants.push_back({ "NAVAJO_WHITE", Variant::COLOR, Color(1, 0.87058824, 0.6784314, 1) });
+				type.constants.push_back({ "NAVY_BLUE", Variant::COLOR, Color(0, 0, 0.5019608, 1) });
+				type.constants.push_back({ "OLD_LACE", Variant::COLOR, Color(0.99215686, 0.9607843, 0.9019608, 1) });
+				type.constants.push_back({ "OLIVE", Variant::COLOR, Color(0.5019608, 0.5019608, 0, 1) });
+				type.constants.push_back({ "OLIVE_DRAB", Variant::COLOR, Color(0.41960785, 0.5568628, 0.13725491, 1) });
+				type.constants.push_back({ "ORANGE", Variant::COLOR, Color(1, 0.64705884, 0, 1) });
+				type.constants.push_back({ "ORANGE_RED", Variant::COLOR, Color(1, 0.27058825, 0, 1) });
+				type.constants.push_back({ "ORCHID", Variant::COLOR, Color(0.85490197, 0.4392157, 0.8392157, 1) });
+				type.constants.push_back({ "PALE_GOLDENROD", Variant::COLOR, Color(0.93333334, 0.9098039, 0.6666667, 1) });
+				type.constants.push_back({ "PALE_GREEN", Variant::COLOR, Color(0.59607846, 0.9843137, 0.59607846, 1) });
+				type.constants.push_back({ "PALE_TURQUOISE", Variant::COLOR, Color(0.6862745, 0.93333334, 0.93333334, 1) });
+				type.constants.push_back({ "PALE_VIOLET_RED", Variant::COLOR, Color(0.85882354, 0.4392157, 0.5764706, 1) });
+				type.constants.push_back({ "PAPAYA_WHIP", Variant::COLOR, Color(1, 0.9372549, 0.8352941, 1) });
+				type.constants.push_back({ "PEACH_PUFF", Variant::COLOR, Color(1, 0.85490197, 0.7254902, 1) });
+				type.constants.push_back({ "PERU", Variant::COLOR, Color(0.8039216, 0.52156866, 0.24705882, 1) });
+				type.constants.push_back({ "PINK", Variant::COLOR, Color(1, 0.7529412, 0.79607844, 1) });
+				type.constants.push_back({ "PLUM", Variant::COLOR, Color(0.8666667, 0.627451, 0.8666667, 1) });
+				type.constants.push_back({ "POWDER_BLUE", Variant::COLOR, Color(0.6901961, 0.8784314, 0.9019608, 1) });
+				type.constants.push_back({ "PURPLE", Variant::COLOR, Color(0.627451, 0.1254902, 0.9411765, 1) });
 				type.constants.push_back({ "REBECCA_PURPLE", Variant::COLOR, Color(0.4, 0.2, 0.6, 1) });
 				type.constants.push_back({ "RED", Variant::COLOR, Color(1, 0, 0, 1) });
-				type.constants.push_back({ "ROSY_BROWN", Variant::COLOR, Color(0.737255, 0.560784, 0.560784, 1) });
-				type.constants.push_back({ "ROYAL_BLUE", Variant::COLOR, Color(0.254902, 0.411765, 0.882353, 1) });
-				type.constants.push_back({ "SADDLE_BROWN", Variant::COLOR, Color(0.545098, 0.270588, 0.0745098, 1) });
-				type.constants.push_back({ "SALMON", Variant::COLOR, Color(0.980392, 0.501961, 0.447059, 1) });
-				type.constants.push_back({ "SANDY_BROWN", Variant::COLOR, Color(0.956863, 0.643137, 0.376471, 1) });
-				type.constants.push_back({ "SEA_GREEN", Variant::COLOR, Color(0.180392, 0.545098, 0.341176, 1) });
-				type.constants.push_back({ "SEASHELL", Variant::COLOR, Color(1, 0.960784, 0.933333, 1) });
-				type.constants.push_back({ "SIENNA", Variant::COLOR, Color(0.627451, 0.321569, 0.176471, 1) });
-				type.constants.push_back({ "SILVER", Variant::COLOR, Color(0.752941, 0.752941, 0.752941, 1) });
-				type.constants.push_back({ "SKY_BLUE", Variant::COLOR, Color(0.529412, 0.807843, 0.921569, 1) });
-				type.constants.push_back({ "SLATE_BLUE", Variant::COLOR, Color(0.415686, 0.352941, 0.803922, 1) });
-				type.constants.push_back({ "SLATE_GRAY", Variant::COLOR, Color(0.439216, 0.501961, 0.564706, 1) });
-				type.constants.push_back({ "SNOW", Variant::COLOR, Color(1, 0.980392, 0.980392, 1) });
-				type.constants.push_back({ "SPRING_GREEN", Variant::COLOR, Color(0, 1, 0.498039, 1) });
-				type.constants.push_back({ "STEEL_BLUE", Variant::COLOR, Color(0.27451, 0.509804, 0.705882, 1) });
-				type.constants.push_back({ "TAN", Variant::COLOR, Color(0.823529, 0.705882, 0.54902, 1) });
-				type.constants.push_back({ "TEAL", Variant::COLOR, Color(0, 0.501961, 0.501961, 1) });
-				type.constants.push_back({ "THISTLE", Variant::COLOR, Color(0.847059, 0.74902, 0.847059, 1) });
-				type.constants.push_back({ "TOMATO", Variant::COLOR, Color(1, 0.388235, 0.278431, 1) });
+				type.constants.push_back({ "ROSY_BROWN", Variant::COLOR, Color(0.7372549, 0.56078434, 0.56078434, 1) });
+				type.constants.push_back({ "ROYAL_BLUE", Variant::COLOR, Color(0.25490198, 0.4117647, 0.88235295, 1) });
+				type.constants.push_back({ "SADDLE_BROWN", Variant::COLOR, Color(0.54509807, 0.27058825, 0.07450981, 1) });
+				type.constants.push_back({ "SALMON", Variant::COLOR, Color(0.98039216, 0.5019608, 0.44705883, 1) });
+				type.constants.push_back({ "SANDY_BROWN", Variant::COLOR, Color(0.95686275, 0.6431373, 0.3764706, 1) });
+				type.constants.push_back({ "SEA_GREEN", Variant::COLOR, Color(0.18039216, 0.54509807, 0.34117648, 1) });
+				type.constants.push_back({ "SEASHELL", Variant::COLOR, Color(1, 0.9607843, 0.93333334, 1) });
+				type.constants.push_back({ "SIENNA", Variant::COLOR, Color(0.627451, 0.32156864, 0.1764706, 1) });
+				type.constants.push_back({ "SILVER", Variant::COLOR, Color(0.7529412, 0.7529412, 0.7529412, 1) });
+				type.constants.push_back({ "SKY_BLUE", Variant::COLOR, Color(0.5294118, 0.80784315, 0.92156863, 1) });
+				type.constants.push_back({ "SLATE_BLUE", Variant::COLOR, Color(0.41568628, 0.3529412, 0.8039216, 1) });
+				type.constants.push_back({ "SLATE_GRAY", Variant::COLOR, Color(0.4392157, 0.5019608, 0.5647059, 1) });
+				type.constants.push_back({ "SNOW", Variant::COLOR, Color(1, 0.98039216, 0.98039216, 1) });
+				type.constants.push_back({ "SPRING_GREEN", Variant::COLOR, Color(0, 1, 0.49803922, 1) });
+				type.constants.push_back({ "STEEL_BLUE", Variant::COLOR, Color(0.27450982, 0.50980395, 0.7058824, 1) });
+				type.constants.push_back({ "TAN", Variant::COLOR, Color(0.8235294, 0.7058824, 0.54901963, 1) });
+				type.constants.push_back({ "TEAL", Variant::COLOR, Color(0, 0.5019608, 0.5019608, 1) });
+				type.constants.push_back({ "THISTLE", Variant::COLOR, Color(0.84705883, 0.7490196, 0.84705883, 1) });
+				type.constants.push_back({ "TOMATO", Variant::COLOR, Color(1, 0.3882353, 0.2784314, 1) });
 				type.constants.push_back({ "TRANSPARENT", Variant::COLOR, Color(1, 1, 1, 0) });
-				type.constants.push_back({ "TURQUOISE", Variant::COLOR, Color(0.25098, 0.878431, 0.815686, 1) });
-				type.constants.push_back({ "VIOLET", Variant::COLOR, Color(0.933333, 0.509804, 0.933333, 1) });
-				type.constants.push_back({ "WEB_GRAY", Variant::COLOR, Color(0.501961, 0.501961, 0.501961, 1) });
-				type.constants.push_back({ "WEB_GREEN", Variant::COLOR, Color(0, 0.501961, 0, 1) });
-				type.constants.push_back({ "WEB_MAROON", Variant::COLOR, Color(0.501961, 0, 0, 1) });
-				type.constants.push_back({ "WEB_PURPLE", Variant::COLOR, Color(0.501961, 0, 0.501961, 1) });
-				type.constants.push_back({ "WHEAT", Variant::COLOR, Color(0.960784, 0.870588, 0.701961, 1) });
+				type.constants.push_back({ "TURQUOISE", Variant::COLOR, Color(0.2509804, 0.8784314, 0.8156863, 1) });
+				type.constants.push_back({ "VIOLET", Variant::COLOR, Color(0.93333334, 0.50980395, 0.93333334, 1) });
+				type.constants.push_back({ "WEB_GRAY", Variant::COLOR, Color(0.5019608, 0.5019608, 0.5019608, 1) });
+				type.constants.push_back({ "WEB_GREEN", Variant::COLOR, Color(0, 0.5019608, 0, 1) });
+				type.constants.push_back({ "WEB_MAROON", Variant::COLOR, Color(0.5019608, 0, 0, 1) });
+				type.constants.push_back({ "WEB_PURPLE", Variant::COLOR, Color(0.5019608, 0, 0.5019608, 1) });
+				type.constants.push_back({ "WHEAT", Variant::COLOR, Color(0.9607843, 0.87058824, 0.7019608, 1) });
 				type.constants.push_back({ "WHITE", Variant::COLOR, Color(1, 1, 1, 1) });
-				type.constants.push_back({ "WHITE_SMOKE", Variant::COLOR, Color(0.960784, 0.960784, 0.960784, 1) });
+				type.constants.push_back({ "WHITE_SMOKE", Variant::COLOR, Color(0.9607843, 0.9607843, 0.9607843, 1) });
 				type.constants.push_back({ "YELLOW", Variant::COLOR, Color(1, 1, 0, 1) });
-				type.constants.push_back({ "YELLOW_GREEN", Variant::COLOR, Color(0.603922, 0.803922, 0.196078, 1) });
+				type.constants.push_back({ "YELLOW_GREEN", Variant::COLOR, Color(0.6039216, 0.8039216, 0.19607843, 1) });
 				type.methods.push_back(_make_method("to_argb32", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("to_abgr32", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				type.methods.push_back(_make_method("to_rgba32", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
@@ -2551,6 +2563,7 @@ namespace godot
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING_NAME, "StringName", Variant::STRING_NAME, "StringName", Variant::STRING });
 				type.operators.push_back({ VariantOperators::OP_IN, "in", "In", Variant::STRING_NAME, "StringName", Variant::STRING_NAME, "StringName", Variant::BOOL });
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING_NAME, "StringName", Variant::NODE_PATH, "NodePath", Variant::STRING });
+				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING_NAME, "StringName", Variant::RID, "RID", Variant::STRING });
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING_NAME, "StringName", Variant::OBJECT, "Object", Variant::STRING });
 				type.operators.push_back({ VariantOperators::OP_IN, "in", "In", Variant::STRING_NAME, "StringName", Variant::OBJECT, "Object", Variant::BOOL });
 				type.operators.push_back({ VariantOperators::OP_MODULE, "%", "Module", Variant::STRING_NAME, "StringName", Variant::CALLABLE, "Callable", Variant::STRING });
@@ -2601,6 +2614,10 @@ namespace godot
 				type.methods.push_back(_make_method("format", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::NIL, "values", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::STRING, "placeholder" } }));
 				type.methods.push_back(_make_method("replace", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
 				type.methods.push_back(_make_method("replacen", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "what" }, { Variant::STRING, "forwhat" } }));
+				type.methods.push_back(_make_method("replace_char", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "key" }, { Variant::INT, "with" } }));
+				type.methods.push_back(_make_method("replace_chars", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "keys" }, { Variant::INT, "with" } }));
+				type.methods.push_back(_make_method("remove_char", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "what" } }));
+				type.methods.push_back(_make_method("remove_chars", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "chars" } }));
 				type.methods.push_back(_make_method("repeat", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "count" } }));
 				type.methods.push_back(_make_method("reverse", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("insert", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::INT, "position" }, { Variant::STRING, "what" } }));
@@ -2609,6 +2626,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_camel_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("to_pascal_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("to_snake_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
+				type.methods.push_back(_make_method("to_kebab_case", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("split", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_STRING_ARRAY, { { Variant::STRING, "delimiter" }, { Variant::BOOL, "allow_empty" }, { Variant::INT, "maxsplit" } }));
 				type.methods.push_back(_make_method("rsplit", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_STRING_ARRAY, { { Variant::STRING, "delimiter" }, { Variant::BOOL, "allow_empty" }, { Variant::INT, "maxsplit" } }));
 				type.methods.push_back(_make_method("split_floats", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_FLOAT64_ARRAY, { { Variant::STRING, "delimiter" }, { Variant::BOOL, "allow_empty" } }));
@@ -2623,7 +2641,7 @@ namespace godot
 				type.methods.push_back(_make_method("rstrip", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "chars" } }));
 				type.methods.push_back(_make_method("get_extension", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("get_basename", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
-				type.methods.push_back(_make_method("path_join", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "file" } }));
+				type.methods.push_back(_make_method("path_join", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "path" } }));
 				type.methods.push_back(_make_method("unicode_at", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "at" } }));
 				type.methods.push_back(_make_method("indent", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "prefix" } }));
 				type.methods.push_back(_make_method("dedent", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
@@ -2645,6 +2663,7 @@ namespace godot
 				type.methods.push_back(_make_method("xml_unescape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("uri_encode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("uri_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
+				type.methods.push_back(_make_method("uri_file_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("c_escape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("c_unescape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("json_escape", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
@@ -2673,8 +2692,9 @@ namespace godot
 				type.methods.push_back(_make_method("to_utf8_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_utf16_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_utf32_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
-				type.methods.push_back(_make_method("hex_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_wchar_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
+				type.methods.push_back(_make_method("to_multibyte_char_buffer", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, { { Variant::STRING, "encoding" } }));
+				type.methods.push_back(_make_method("hex_decode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("hash", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, {  }));
 				ExtensionDB::_singleton->_builtin_types["StringName"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::STRING_NAME] = "StringName";
@@ -2843,6 +2863,7 @@ namespace godot
 				type.methods.push_back(_make_method("keys", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
 				type.methods.push_back(_make_method("values", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, {  }));
 				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::DICTIONARY, { { Variant::BOOL, "deep" } }));
+				type.methods.push_back(_make_method("duplicate_deep", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::DICTIONARY, { { Variant::INT, "deep_subresources_mode" } }));
 				type.methods.push_back(_make_method("get", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::NIL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::NIL, "default", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }, true));
 				type.methods.push_back(_make_method("get_or_add", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::NIL, "default", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }, true));
 				type.methods.push_back(_make_method("set", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::NIL, "key", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT } }));
@@ -2932,6 +2953,7 @@ namespace godot
 				type.methods.push_back(_make_method("bsearch_custom", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT }, { Variant::CALLABLE, "func" }, { Variant::BOOL, "before" } }));
 				type.methods.push_back(_make_method("reverse", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::BOOL, "deep" } }));
+				type.methods.push_back(_make_method("duplicate_deep", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::INT, "deep_subresources_mode" } }));
 				type.methods.push_back(_make_method("slice", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::INT, "begin" }, { Variant::INT, "end" }, { Variant::INT, "step" }, { Variant::BOOL, "deep" } }));
 				type.methods.push_back(_make_method("filter", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::CALLABLE, "method" } }));
 				type.methods.push_back(_make_method("map", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::ARRAY, { { Variant::CALLABLE, "method" } }));
@@ -2990,11 +3012,13 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("get_string_from_ascii", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("get_string_from_utf8", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("get_string_from_utf16", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("get_string_from_utf32", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("get_string_from_wchar", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
+				type.methods.push_back(_make_method("get_string_from_multibyte_char", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, { { Variant::STRING, "encoding" } }));
 				type.methods.push_back(_make_method("hex_encode", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::STRING, {  }));
 				type.methods.push_back(_make_method("compress", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, { { Variant::INT, "compression_mode" } }));
 				type.methods.push_back(_make_method("decompress", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, { { Variant::INT, "buffer_size" }, { Variant::INT, "compression_mode" } }));
@@ -3017,6 +3041,13 @@ namespace godot
 				type.methods.push_back(_make_method("to_int64_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_INT64_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_float32_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_FLOAT32_ARRAY, {  }));
 				type.methods.push_back(_make_method("to_float64_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_FLOAT64_ARRAY, {  }));
+				type.methods.push_back(_make_method("to_vector2_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_VECTOR2_ARRAY, {  }));
+				type.methods.push_back(_make_method("to_vector3_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_VECTOR3_ARRAY, {  }));
+				type.methods.push_back(_make_method("to_vector4_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_VECTOR4_ARRAY, {  }));
+				type.methods.push_back(_make_method("to_color_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_COLOR_ARRAY, {  }));
+				type.methods.push_back(_make_method("bswap16", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "offset" }, { Variant::INT, "count" } }));
+				type.methods.push_back(_make_method("bswap32", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "offset" }, { Variant::INT, "count" } }));
+				type.methods.push_back(_make_method("bswap64", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "offset" }, { Variant::INT, "count" } }));
 				type.methods.push_back(_make_method("encode_u8", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("encode_s8", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::INT, "value" } }));
 				type.methods.push_back(_make_method("encode_u16", METHOD_FLAG_NORMAL, Variant::NIL, { { Variant::INT, "byte_offset" }, { Variant::INT, "value" } }));
@@ -3073,6 +3104,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedInt32Array"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_INT32_ARRAY] = "PackedInt32Array";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedInt32Array");
@@ -3117,6 +3149,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::INT, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedInt64Array"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_INT64_ARRAY] = "PackedInt64Array";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedInt64Array");
@@ -3161,6 +3194,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::FLOAT, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedFloat32Array"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_FLOAT32_ARRAY] = "PackedFloat32Array";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedFloat32Array");
@@ -3205,6 +3239,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::FLOAT, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedFloat64Array"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_FLOAT64_ARRAY] = "PackedFloat64Array";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedFloat64Array");
@@ -3249,6 +3284,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::STRING, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::STRING, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::STRING, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::STRING, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedStringArray"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_STRING_ARRAY] = "PackedStringArray";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedStringArray");
@@ -3294,6 +3330,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR2, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR2, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR2, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR2, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedVector2Array"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_VECTOR2_ARRAY] = "PackedVector2Array";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedVector2Array");
@@ -3339,6 +3376,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR3, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR3, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR3, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR3, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedVector3Array"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_VECTOR3_ARRAY] = "PackedVector3Array";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedVector3Array");
@@ -3383,6 +3421,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::COLOR, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::COLOR, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::COLOR, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::COLOR, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedColorArray"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_COLOR_ARRAY] = "PackedColorArray";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedColorArray");
@@ -3427,6 +3466,7 @@ namespace godot
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR4, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR4, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR4, "value" } }));
+				type.methods.push_back(_make_method("erase", METHOD_FLAG_NORMAL, Variant::BOOL, { { Variant::VECTOR4, "value" } }));
 				ExtensionDB::_singleton->_builtin_types["PackedVector4Array"] = type;
 				ExtensionDB::_singleton->_builtin_types_to_name[Variant::PACKED_VECTOR4_ARRAY] = "PackedVector4Array";
 				ExtensionDB::_singleton->_builtin_type_names.push_back("PackedVector4Array");
@@ -4687,6 +4727,11 @@ namespace godot
 			ExtensionDB::_singleton->_classes["Control"].name = "Control";
 			ExtensionDB::_singleton->_classes["Control"].bitfield_enums.push_back("SizeFlags");
 			
+			// CopyTransformModifier3D
+			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].name = "CopyTransformModifier3D";
+			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].bitfield_enums.push_back("TransformFlag");
+			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].bitfield_enums.push_back("AxisFlag");
+			
 			// DirAccess
 			ExtensionDB::_singleton->_classes["DirAccess"].name = "DirAccess";
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["open"] = 1923528528;
@@ -4705,7 +4750,7 @@ namespace godot
 			
 			// EditorExportPlatform
 			ExtensionDB::_singleton->_classes["EditorExportPlatform"].name = "EditorExportPlatform";
-			ExtensionDB::_singleton->_classes["EditorExportPlatform"].static_function_hashes["get_forced_export_files"] = 2981934095;
+			ExtensionDB::_singleton->_classes["EditorExportPlatform"].static_function_hashes["get_forced_export_files"] = 3424652832;
 			ExtensionDB::_singleton->_classes["EditorExportPlatform"].bitfield_enums.push_back("DebugFlags");
 			
 			// EditorInspector
@@ -4726,6 +4771,8 @@ namespace godot
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_sha256"] = 1703090593;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["file_exists"] = 2323990056;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_modified_time"] = 1597066294;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_access_time"] = 1597066294;
+			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_size"] = 1597066294;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_unix_permissions"] = 524341837;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["set_unix_permissions"] = 846038644;
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_hidden_attribute"] = 2323990056;
@@ -4814,6 +4861,7 @@ namespace godot
 			// Node
 			ExtensionDB::_singleton->_classes["Node"].name = "Node";
 			ExtensionDB::_singleton->_classes["Node"].static_function_hashes["print_orphan_nodes"] = 3218959716;
+			ExtensionDB::_singleton->_classes["Node"].static_function_hashes["get_orphan_node_ids"] = 2915620761;
 			ExtensionDB::_singleton->_classes["Node"].bitfield_enums.push_back("ProcessThreadMessages");
 			
 			// OpenXRAPIExtension
@@ -4871,6 +4919,12 @@ namespace godot
 			ExtensionDB::_singleton->_classes["ResourceSaver"].name = "ResourceSaver";
 			ExtensionDB::_singleton->_classes["ResourceSaver"].bitfield_enums.push_back("SaverFlags");
 			
+			// ResourceUID
+			ExtensionDB::_singleton->_classes["ResourceUID"].name = "ResourceUID";
+			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["uid_to_path"] = 1703090593;
+			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["path_to_uid"] = 1703090593;
+			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["ensure_path"] = 1703090593;
+			
 			// RetargetModifier3D
 			ExtensionDB::_singleton->_classes["RetargetModifier3D"].name = "RetargetModifier3D";
 			ExtensionDB::_singleton->_classes["RetargetModifier3D"].bitfield_enums.push_back("TransformFlag");
@@ -4878,6 +4932,10 @@ namespace godot
 			// RichTextLabel
 			ExtensionDB::_singleton->_classes["RichTextLabel"].name = "RichTextLabel";
 			ExtensionDB::_singleton->_classes["RichTextLabel"].bitfield_enums.push_back("ImageUpdateMask");
+			
+			// SVGTexture
+			ExtensionDB::_singleton->_classes["SVGTexture"].name = "SVGTexture";
+			ExtensionDB::_singleton->_classes["SVGTexture"].static_function_hashes["create_from_string"] = 2404345842;
 			
 			// ShaderIncludeDB
 			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].name = "ShaderIncludeDB";
@@ -4914,6 +4972,10 @@ namespace godot
 			// WebRTCPeerConnection
 			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].name = "WebRTCPeerConnection";
 			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].static_function_hashes["set_default_extension"] = 3304788590;
+			
+			// Window
+			ExtensionDB::_singleton->_classes["Window"].name = "Window";
+			ExtensionDB::_singleton->_classes["Window"].static_function_hashes["get_focused_window"] = 1835468782;
 			
 			// XRBodyModifier3D
 			ExtensionDB::_singleton->_classes["XRBodyModifier3D"].name = "XRBodyModifier3D";

@@ -16,6 +16,8 @@
 ##
 INCLUDE_GUARD()
 
+FIND_PACKAGE( Python3 REQUIRED COMPONENTS Interpreter )
+
 FUNCTION( GENERATE_GODOT_EXTENSION_DB )
     EXECUTE_PROCESS(
             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/generate_godot_extension_db.py ${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/gdextension/extension_api.json

@@ -30,6 +30,9 @@
 
 namespace godot
 {
+	#define Math_INF INFINITY
+	#define Math_NAN NAN
+	
 	/// Describes a mapping between an enum name and value
 	struct EnumValue
 	{

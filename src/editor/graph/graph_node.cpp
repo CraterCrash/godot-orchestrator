@@ -704,7 +704,7 @@ void OrchestratorGraphNode::_handle_context_menu(int p_id)
         int action_index = p_id - CM_NODE_ACTION;
         if (action_index < _context_actions.size())
         {
-            const Ref<OScriptAction>& action = _context_actions[action_index];
+            const Ref<OScriptAction>& action = _context_actions.get(action_index);
             if (action->get_handler().is_valid())
                 action->get_handler().call();
         }
