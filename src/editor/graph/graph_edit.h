@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_GRAPH_EDIT_H
 
 #include "actions/action_menu.h"
+#include "common/godot_version.h"
 #include "common/version.h"
 #include "editor/graph/graph_node.h"
 #include "script/function.h"
@@ -141,7 +142,7 @@ class OrchestratorGraphEdit : public GraphEdit
     Button* _base_type_button{ nullptr };
     Dictionary _hovered_connection;                        //! Hovered connection details
     HashMap<uint64_t, Vector<Ref<KnotPoint>>> _knots;      //! Knots for each graph connection
-    GDExtensionGodotVersion _version;                      //! Godot version
+    GodotVersionInfo _version;                             //! Godot version
     bool _is_43p{ false };                                 //! Is Godot 4.3+
     bool _box_selection{ false };                          //! Is graph doing box selection?
     bool _disable_delete_confirmation{ false };            //! Allows temporarily disabling delete confirmation
