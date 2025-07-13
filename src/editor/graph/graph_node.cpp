@@ -16,7 +16,6 @@
 //
 #include "graph_node.h"
 
-#include "common/logger.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"

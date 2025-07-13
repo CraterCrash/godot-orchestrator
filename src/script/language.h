@@ -17,7 +17,6 @@
 #ifndef ORCHESTRATOR_SCRIPT_LANGUAGE_H
 #define ORCHESTRATOR_SCRIPT_LANGUAGE_H
 
-#include "common/logger.h"
 #include "common/version.h"
 #include "script/serialization/format_defs.h"
 
