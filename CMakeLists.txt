@@ -193,6 +193,8 @@ get_target_property( GODOTCPP_ARCH     ${ORCH_GODOTCPP_NAMESPACE} GODOTCPP_ARCH 
 # Converts GODOT_ARCH to the old system bits for unchanged file names.
 IF (APPLE)
     SET(ORCHESTRATOR_ARCH "universal")
+ELSEIF(GODOTCPP_ARCH STREQUAL "arm64")
+    SET(ORCHESTRATOR_ARCH "arm64")
 ELSE ()
     MATH( EXPR ORCHESTRATOR_ARCH "${CMAKE_SIZEOF_VOID_P} * 8")
 ENDIF ()

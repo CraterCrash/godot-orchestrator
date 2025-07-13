@@ -8,6 +8,8 @@ reloadable = false
 
 linux.x86_64 = "res://addons/orchestrator/orchestrator.linux.64.release.so"
 linux.debug.x86_64 = "res://addons/orchestrator/orchestrator.linux.64.editor.so"
+linux.arm64 = "res://addons/orchestrator/orchestrator.linux.arm64.release.so"
+linux.debug.arm64 = "res://addons/orchestrator/orchestrator.linux.arm64.editor.so"
 
 macos = "res://addons/orchestrator/orchestrator.macos.universal.release.dylib"
 macos.debug = "res://addons/orchestrator/orchestrator.macos.universal.editor.dylib"
