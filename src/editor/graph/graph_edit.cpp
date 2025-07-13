@@ -103,8 +103,7 @@ EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
 
 OrchestratorGraphEdit::OrchestratorGraphEdit(const Ref<OScriptGraph>& p_graph)
 {
-    internal::gdextension_interface_get_godot_version(&_version);
-    _is_43p = _version.major == 4 && _version.minor >= 3;
+    _is_43p = _version.at_least(4, 3);
 
     set_name(p_graph->get_graph_name());
     set_minimap_enabled(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_minimap", false));
