@@ -16,6 +16,7 @@
 //
 #include "graph_node_default.h"
 
+#include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "editor/graph/pins/graph_node_pin_factory.h"
 
@@ -217,4 +218,46 @@ void OrchestratorGraphNodeDefault::update_pins(bool p_visible)
             set_slot_color_right(E.key, E.value.right->get_color());
         }
     }
+}
+
+Vector<OrchestratorGraphNodePin*> OrchestratorGraphNodeDefault::get_pins() const
+{
+    Vector<OrchestratorGraphNodePin*> result;
+    for (const KeyValue<int, Row>& E : _pin_rows)
+    {
+        if (E.value.left)
+            result.push_back(E.value.left);
+
+        if (E.value.right)
+            result.push_back(E.value.right);
+    }
+    return result;
+}
+
+Vector<OrchestratorGraphNodePin*> OrchestratorGraphNodeDefault::get_eligible_autowire_pins(OrchestratorGraphNodePin* p_pin) const
+{
+    Vector<OrchestratorGraphNodePin*> result;
+    ERR_FAIL_NULL_V(p_pin, result);
+
+    for (OrchestratorGraphNodePin* pin : get_pins())
+    {
+        if (pin->is_hidden() || !pin->is_autowire_enabled() || pin->get_direction() == p_pin->get_direction())
+            continue;
+
+        if (pin->is_execution() != p_pin->is_execution())
+            continue;
+
+        if (!pin->is_execution() && !p_pin->is_execution())
+        {
+            const Variant::Type lhs_type = pin->get_property_info().type;
+            const Variant::Type rhs_type = p_pin->get_property_info().type;
+            const bool lhs_variant = PropertyUtils::is_variant(pin->get_property_info());
+            const bool rhs_variant = PropertyUtils::is_variant(p_pin->get_property_info());
+            if (lhs_type != rhs_type && !lhs_variant && !rhs_variant)
+                continue;
+        }
+
+        result.push_back(pin);
+    }
+    return result;
 }

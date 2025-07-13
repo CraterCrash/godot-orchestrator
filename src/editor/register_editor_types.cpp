@@ -17,6 +17,12 @@
 #include "editor/register_editor_types.h"
 
 #include "about_dialog.h"
+#include "context_menu.h"
+#include "editor/actions/definition.h"
+#include "editor/actions/filter_engine.h"
+#include "editor/actions/menu.h"
+#include "editor/actions/registry.h"
+#include "editor/autowire_connection_dialog.h"
 #include "editor/component_panels/component_panel.h"
 #include "editor/component_panels/functions_panel.h"
 #include "editor/component_panels/graphs_panel.h"
@@ -27,14 +33,10 @@
 #include "editor/file_dialog.h"
 #include "editor/getting_started.h"
 #include "editor/goto_node_dialog.h"
-#include "editor/graph/actions/action_menu.h"
-#include "editor/graph/actions/default_action_registrar.h"
-#include "editor/graph/autowire_selections.h"
 #include "editor/graph/graph_edit.h"
 #include "editor/graph/graph_knot.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_node_pin.h"
-#include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "editor/graph/nodes/graph_node_default.h"
 #include "editor/graph/pins/graph_node_pins.h"
@@ -55,7 +57,6 @@
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
 #include "script/serialization/text_loader_instance.h"
-
 
 void register_editor_types()
 {
@@ -83,34 +84,28 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorSelectClassSearchDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorSelectTypeSearchDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorScriptAutowireSelections)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorAutowireConnectionDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorPropertySelector)
     GDREGISTER_INTERNAL_CLASS(OrchestratorSceneNodeSelector)
 
     // Action components
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenu)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphActionMenuItem)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphActionHandler)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawner)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphActionRegistrar)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorDefaultGraphActionRegistrar)
-
-    // Node spawners
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerProperty)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerPropertyGet)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerPropertySet)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerCallMemberFunction)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerCallScriptFunction)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerEvent)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerEmitMemberSignal)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerEmitSignal)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerVariable)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerVariableGet)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerVariableSet)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorGraphNodeSpawnerScriptNode)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionMenu)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionHelp)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionDefinition)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionFilterEngine)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionRegistry)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionFilterRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionAnyFilterRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionTypeRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionPortRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionSearchTextRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionClassHierarchyScopeRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionVirtualFunctionRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionGraphTypeRule)
 
     // View components
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPanel)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorContextMenu)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorViewport)
     GDREGISTER_INTERNAL_CLASS(OrchestratorScriptEditorViewport)
     GDREGISTER_INTERNAL_CLASS(OrchestratorGotoNodeDialog)

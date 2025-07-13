@@ -124,6 +124,14 @@ public:
     /// @return true if the pin is an execution pin; false otherwise
     _FORCE_INLINE_ bool is_execution() const { return _pin->is_execution(); }
 
+    /// Get the property information for the pin
+    /// @return the property info structure
+    _FORCE_INLINE_ PropertyInfo get_property_info() const { return _pin->get_property_info(); }
+
+    /// Gest the pin name
+    /// @return the pin name
+    _FORCE_INLINE_ String get_pin_name() const { return _pin->get_pin_name(); }
+
     /// Get the associated graph
     /// @return the owning graph instance
     OrchestratorGraphEdit* get_graph();
@@ -156,6 +164,10 @@ public:
     /// @return true if the pin is an output; false if its an input
     bool is_output() const;
 
+    /// Gets the pin's direction
+    /// @return the pin's direction
+    _FORCE_INLINE_ EPinDirection get_direction() const { return _pin->get_direction(); }
+
     /// Returns whether the pin can be connected or not
     /// @return whether the pin is connectable
     bool is_connectable() const;
@@ -167,6 +179,10 @@ public:
     /// Returns whether the pin is hidden
     /// @return true if the pin is hidden, false otherwise
     bool is_hidden() const;
+
+    /// Checks whether the pin can be autowired
+    /// @return true if the pin can be autowired, false otherwise
+    _FORCE_INLINE_ bool is_autowire_enabled() const { return _pin->can_autowire(); }
 
     /// Checks whether this pin accepts connections from the associated pin
     /// @param p_pin the other pin

@@ -16,9 +16,9 @@
 //
 #include "graph_edit.h"
 
-#include "autowire_selections.h"
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/property_utils.h"
@@ -26,19 +26,21 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/version.h"
+#include "editor/actions/filter_engine.h"
+#include "editor/actions/menu.h"
+#include "editor/actions/registry.h"
+#include "editor/autowire_connection_dialog.h"
+#include "editor/context_menu.h"
 #include "editor/graph/graph_knot.h"
 #include "editor/graph/graph_node_pin.h"
-#include "editor/graph/graph_node_spawner.h"
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "nodes/graph_node_factory.h"
-#include "script/language.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
-#include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/geometry2d.hpp>
@@ -60,46 +62,6 @@
 
 OrchestratorGraphEdit::Clipboard* OrchestratorGraphEdit::_clipboard = nullptr;
 
-OrchestratorGraphEdit::DragContext::DragContext()
-    : node_name("")
-    , node_port(-1)
-    , output_port(false)
-    , dragging(false)
-{
-
-}
-
-void OrchestratorGraphEdit::DragContext::reset()
-{
-    node_name = "";
-    node_port = -1;
-    output_port = false;
-    dragging = false;
-}
-
-void OrchestratorGraphEdit::DragContext::start_drag(const StringName& p_name, int p_from_port, bool p_output)
-{
-    node_name = p_name;
-    node_port = p_from_port;
-    output_port = p_output;
-    dragging = true;
-}
-
-void OrchestratorGraphEdit::DragContext::end_drag()
-{
-    dragging = false;
-}
-
-bool OrchestratorGraphEdit::DragContext::should_autowire() const
-{
-    return !node_name.is_empty();
-}
-
-EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
-{
-    return output_port ? PD_Output : PD_Input;
-}
-
 OrchestratorGraphEdit::OrchestratorGraphEdit(const Ref<OScriptGraph>& p_graph)
 {
     _is_43p = _version.at_least(4, 3);
@@ -113,16 +75,9 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(const Ref<OScriptGraph>& p_graph)
 
     _cache_connection_knots();
 
-    // Add action menu
-    _action_menu = memnew(OrchestratorGraphActionMenu(this));
-    add_child(_action_menu);
-
     set_zoom(_script_graph->get_viewport_zoom());
     set_scroll_offset(_script_graph->get_viewport_offset());
     set_show_zoom_label(true);
-
-    _context_menu = memnew(PopupMenu);
-    add_child(_context_menu);
 }
 
 void OrchestratorGraphEdit::initialize_clipboard()
@@ -234,14 +189,10 @@ void OrchestratorGraphEdit::_notification(int p_what)
         _script_graph->connect("knots_updated", callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots));
         _script_graph->connect("connection_knots_removed", callable_mp(this, &OrchestratorGraphEdit::_remove_connection_knots));
 
-        // Wire up action menu
-        _action_menu->connect("canceled", callable_mp(this, &OrchestratorGraphEdit::_on_action_menu_cancelled));
-        _action_menu->connect("action_selected", callable_mp(this, &OrchestratorGraphEdit::_on_action_menu_action_selected));
-
         // Wire up our signals
         connect("child_entered_tree", callable_mp(this, &OrchestratorGraphEdit::_resort_child_nodes_on_add));
-        connect("connection_from_empty", callable_mp(this, &OrchestratorGraphEdit::_on_attempt_connection_from_empty));
-        connect("connection_to_empty", callable_mp(this, &OrchestratorGraphEdit::_on_attempt_connection_to_empty));
+        connect("connection_from_empty", callable_mp(this, &OrchestratorGraphEdit::_on_connection_from_empty));
+        connect("connection_to_empty", callable_mp(this, &OrchestratorGraphEdit::_on_connection_to_empty));
         connect("connection_request", callable_mp(this, &OrchestratorGraphEdit::_on_connection));
         connect("disconnection_request", callable_mp(this, &OrchestratorGraphEdit::_on_disconnection));
         connect("popup_request", callable_mp(this, &OrchestratorGraphEdit::_on_right_mouse_clicked));
@@ -253,8 +204,6 @@ void OrchestratorGraphEdit::_notification(int p_what)
         connect("copy_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_copy_nodes_request));
         connect("duplicate_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_duplicate_nodes_request));
         connect("paste_nodes_request", callable_mp(this, &OrchestratorGraphEdit::_on_paste_nodes_request));
-
-        _context_menu->connect("id_pressed", callable_mp(this, &OrchestratorGraphEdit::_on_context_menu_selection));
 
         ProjectSettings* ps = ProjectSettings::get_singleton();
         ps->connect("settings_changed", callable_mp(this, &OrchestratorGraphEdit::_on_project_settings_changed));
@@ -397,30 +346,99 @@ void OrchestratorGraphEdit::execute_action(const String& p_action_name)
     Input::get_singleton()->parse_input_event(action);
 }
 
-void OrchestratorGraphEdit::spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position, const Callable& p_callback)
+OrchestratorGraphNode* OrchestratorGraphEdit::spawn_node(const NodeSpawnOptions& p_options)
 {
-    const Ref<OScriptNode> spawned = _script_graph->create_node(p_type, p_context, p_position);
-    if (spawned.is_valid())
+    ERR_FAIL_COND_V_MSG(p_options.node_class.is_empty(), nullptr, "No node class specified, cannot spawn node");
+    ERR_FAIL_COND_V_MSG(!_script_graph.is_valid(), nullptr, "Cannot spawn into an invalid graph");
+
+    const OScriptNodeInitContext& context = p_options.context;
+    const Vector2& position = p_options.position;
+
+    const Ref<OScriptNode> spawned_node = _script_graph->create_node(p_options.node_class, context, position);
+    ERR_FAIL_COND_V_MSG(!spawned_node.is_valid(), nullptr, "Failed to spawn node");
+
+    emit_signal("nodes_changed");
+
+    OrchestratorGraphNode* spawned_graph_node = _get_node_by_id(spawned_node->get_id());
+    ERR_FAIL_NULL_V_MSG(spawned_graph_node, nullptr, "Failed to find the spawned graph node");
+
+    if (p_options.select_on_spawn)
+        spawned_graph_node->set_selected(true);
+
+    if (p_options.center_on_spawn)
+        callable_mp_this(center_node).bind(spawned_graph_node).call_deferred();
+
+    if (p_options.drag_pin && spawned_graph_node)
     {
-        if (_drag_context.should_autowire())
-        {
-            const Ref<OScriptNode> other = _script_graph->get_node(_drag_context.node_name.to_int());
-            if (other.is_valid())
-            {
-                const Ref<OScriptNodePin> pin = other->find_pin(_drag_context.node_port, _drag_context.get_direction());
-                _queue_autowire(pin, spawned, p_callback);
-            }
-        }
-        else
-        {
-            _complete_spawn(spawned, p_callback);
-        }
+        // When dragging from a pin, this indicates that autowiring should happen, but this needs to be done
+        // as part of the next frame. This allows the caller to get a reference to the spawned node so it
+        // can continue to perform any additional operations without having to deal with async operations
+        // with the autowire dialog window.
+        callable_mp_this(_queue_autowire).bind(spawned_graph_node, p_options.drag_pin).call_deferred();
     }
+
+    return spawned_graph_node;
+}
+
+void OrchestratorGraphEdit::center_node(OrchestratorGraphNode* p_node)
+{
+    GUARD_NULL(p_node);
+
+    clear_selection();
+    p_node->set_selected(true);
+
+    scroll_to_position(p_node->get_node_rect().get_center());
+}
+
+void OrchestratorGraphEdit::scroll_to_position(const Vector2& p_position, float p_time)
+{
+    // The provided position needs to be offset by half the viewport size to center on the position.
+    const Vector2& position = p_position - (get_size() / 2.0);
+
+    const Ref<Tween> tween = get_tree()->create_tween();
+    if (!UtilityFunctions::is_equal_approx(1.f, get_zoom()))
+        tween->tween_method(Callable(this, "set_zoom"), get_zoom(), 1.f, p_time);
+
+    tween->chain()->tween_method(Callable(this, "set_scroll_offset"), get_scroll_offset(), position, p_time);
+    tween->set_ease(Tween::EASE_IN_OUT);
+
+    tween->play();
 }
 
 void OrchestratorGraphEdit::sync()
 {
     _synchronize_graph_connections_with_script();
+}
+
+void OrchestratorGraphEdit::show_override_function_action_menu()
+{
+    Ref<OrchestratorEditorActionGraphTypeRule> graph_type_rule;
+    graph_type_rule.instantiate();
+    graph_type_rule->set_graph_type(OrchestratorEditorActionDefinition::GRAPH_EVENT);
+
+    Ref<OrchestratorEditorActionFilterEngine> filter_engine;
+    filter_engine.instantiate();
+    filter_engine->add_rule(memnew(OrchestratorEditorActionSearchTextRule));
+    filter_engine->add_rule(memnew(OrchestratorEditorActionClassHierarchyScopeRule));
+    filter_engine->add_rule(memnew(OrchestratorEditorActionVirtualFunctionRule));
+    filter_engine->add_rule(graph_type_rule);
+
+    GraphEditorFilterContext context;
+    context.script = _script_graph->get_orchestration()->get_self();
+    context.class_hierarchy = Array::make(_script_graph->get_orchestration()->get_base_type());
+
+    OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
+    menu->set_title("Select a graph action");
+    menu->set_suffix("graph_editor_overrides");
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("ui/actions_menu/close_on_focus_lost", false));
+    menu->set_show_filter_option(false);
+    menu->set_start_collapsed(false);
+    menu->connect("action_selected", callable_mp_this(_on_action_menu_selection));
+
+    menu->popup_centered(
+        OrchestratorEditorActionRegistry::get_singleton()->get_actions(_script_graph->get_orchestration()->get_self()),
+        filter_engine,
+        context);
 }
 
 #if GODOT_VERSION < 0x040300
@@ -560,6 +578,120 @@ bool OrchestratorGraphEdit::_is_comment_node(Node* p_node) const
 {
     return Object::cast_to<OrchestratorGraphNodeComment>(p_node);
 }
+
+OrchestratorGraphNodePin* OrchestratorGraphEdit::_resolve_pin_from_handle(const PinHandle& p_handle, bool p_input)
+{
+    if (OrchestratorGraphNode* node = _get_node_by_id(p_handle.node_id))
+        return p_input ? node->get_input_pin(p_handle.pin_port) : node->get_output_pin(p_handle.pin_port);
+
+    return nullptr;
+}
+
+void OrchestratorGraphEdit::_drop_data_files(const String& p_node_type, const Array& p_files, const Vector2& p_at_position)
+{
+    Vector2 position = p_at_position;
+
+    for (int i = 0; i < p_files.size(); i++)
+    {
+        NodeSpawnOptions options;
+        options.node_class = p_node_type;
+        options.context.resource_path = p_files[i];
+        options.position = position;
+
+        OrchestratorGraphNode* spawned_node = spawn_node(options);
+        if (spawned_node)
+            position.y += spawned_node->get_size().height + 20;
+    }
+}
+
+void OrchestratorGraphEdit::_drop_data_property(const Dictionary& p_property, const Vector2& p_at_position, const String& p_path, bool p_setter)
+{
+    const String node_class_type = p_setter
+            ? OScriptNodePropertySet::get_class_static()
+            : OScriptNodePropertyGet::get_class_static();
+
+    NodeSpawnOptions options;
+    options.node_class = node_class_type;
+    options.context.property = DictionaryUtils::to_property(p_property);
+    options.position = p_at_position;
+
+    if (!p_path.is_empty())
+        options.context.node_path = p_path;
+
+    spawn_node(options);
+}
+
+void OrchestratorGraphEdit::_drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable)
+{
+    const MethodInfo method = DictionaryUtils::to_method(p_function);
+
+    if (!p_as_callable)
+    {
+        NodeSpawnOptions options;
+        options.node_class = OScriptNodeCallScriptFunction::get_class_static();
+        options.context.method = method;
+        options.position = p_at_position;
+
+        spawn_node(options);
+    }
+    else
+    {
+        int ctor_index = 0;
+        bool found = false;
+        const BuiltInType callable_type = ExtensionDB::get_builtin_type(Variant::CALLABLE);
+        for (; ctor_index < callable_type.constructors.size(); ctor_index++)
+        {
+            const ConstructorInfo& ci = callable_type.constructors[ctor_index];
+            if (ci.arguments.size() == 2 && ci.arguments[0].type == Variant::OBJECT && ci.arguments[1].type == Variant::STRING_NAME)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (found)
+        {
+            const Array arguments = DictionaryUtils::from_properties(callable_type.constructors[ctor_index].arguments);
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeComposeFrom::get_class_static();
+            options.context.user_data = DictionaryUtils::of({{ "type", Variant::CALLABLE }, { "constructor_args", arguments }});
+            options.position = p_at_position;
+
+            OrchestratorGraphNode* compose_node = spawn_node(options);
+            if (compose_node)
+            {
+                compose_node->get_input_pin(1)->set_default_value(method.name);
+
+                options.node_class = OScriptNodeSelf::get_class_static();
+                options.context.user_data.reset();
+                options.position = options.position - Vector2(200, 0);
+
+                OrchestratorGraphNode* self = spawn_node(options);
+                if (self)
+                    self->get_output_pin(0)->link(compose_node->get_input_pin(0));
+            }
+        }
+    }
+}
+
+void OrchestratorGraphEdit::_drop_data_variable(const String& p_name, const Vector2& p_at_position, bool p_validated, bool p_setter)
+{
+    const String node_class_type = p_setter
+        ? OScriptNodeVariableSet::get_class_static()
+        : OScriptNodeVariableGet::get_class_static();
+
+    NodeSpawnOptions options;
+    options.node_class = node_class_type;
+    options.context.variable_name = p_name;
+    options.position = p_at_position;
+
+    if (!p_setter)
+        options.context.user_data = DictionaryUtils::of({{ "validation", p_validated }});
+
+    spawn_node(options);
+}
+
 
 void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
 {
@@ -759,171 +891,164 @@ bool OrchestratorGraphEdit::_can_drop_data(const Vector2& p_position, const Vari
 
 void OrchestratorGraphEdit::_drop_data(const Vector2& p_position, const Variant& p_data)
 {
+    // No need to let the hint continue to be visible when dropped
+    _drag_hint->hide();
+
     Dictionary data = p_data;
 
     _update_saved_mouse_position(p_position);
 
+    Vector2 spawn_position = _saved_mouse_position;
+    Vector2 popup_position = p_position + get_screen_position();
+
     const String type = data["type"];
     if (type == "nodes")
     {
+        Node* edited_scene_root = get_tree()->get_edited_scene_root();
+        if (!edited_scene_root)
+            return;
+
         const Array nodes = data["nodes"];
-        if (Node* root = get_tree()->get_edited_scene_root())
+        for (int i = 0; i < nodes.size(); i++)
         {
-            if (Node* dropped_node = root->get_node_or_null(nodes[0]))
-            {
-                OScriptNodeInitContext context;
-                if (dropped_node->is_unique_name_in_owner())
-                    context.node_path = NodePath("%" + dropped_node->get_name());
-                else
-                    context.node_path = root->get_path_to(dropped_node);
+            Node* dropped_node = edited_scene_root->get_node_or_null(nodes[i]);
+            if (!dropped_node)
+                continue;
 
-                const Ref<Script> node_script = dropped_node->get_script();
+            const NodePath path = dropped_node->is_unique_name_in_owner()
+                ? NodePath("%" + dropped_node->get_name())
+                : edited_scene_root->get_path_to(dropped_node);
 
-                String global_name;
-                if (node_script.is_valid())
-                    global_name = ScriptServer::get_global_name(node_script);
+            String global_name;
+            const Ref<Script> dropped_node_script = dropped_node->get_script();
+            if (dropped_node_script.is_valid())
+                global_name = ScriptServer::get_global_name(dropped_node_script);
 
-                context.class_name = StringUtils::default_if_empty(global_name, dropped_node->get_class());
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeSceneNode::get_class_static();
+            options.context.node_path = path;
+            options.context.class_name = StringUtils::default_if_empty(global_name, dropped_node->get_class());
+            options.position = spawn_position;
 
-                spawn_node<OScriptNodeSceneNode>(context, _saved_mouse_position);
-            }
+            OrchestratorGraphNode* spawned_node = spawn_node(options);
+            if (spawned_node)
+                spawn_position.y += spawned_node->get_size().height + 20;
         }
     }
     else if (type == "files")
     {
         const Array files = data["files"];
 
-        // Create context-menu to specify variable get or set choice
-        _context_menu->clear();
-        _context_menu->add_separator("File " + String(files[0]));
-        _context_menu->add_item("Get Path", CM_FILE_GET_PATH);
-        _context_menu->add_item("Preload ", CM_FILE_PRELOAD);
-        _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FILE_GET_PATH), String(files[0]));
-        _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FILE_PRELOAD), String(files[0]));
-        _context_menu->reset_size();
-        _context_menu->set_position(get_screen_position() + p_position);
-        _context_menu->popup();
+        OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
+        menu->set_auto_destroy(true);
+        add_child(menu);
+
+        menu->add_separator(files.size() == 1 ? vformat("File %s", files[0]) : vformat("%d files", files.size()));
+        menu->add_item("Get Path", callable_mp_this(_drop_data_files).bind(OScriptNodeResourcePath::get_class_static(), files, spawn_position));
+        menu->add_item("Preload", callable_mp_this(_drop_data_files).bind(OScriptNodePreload::get_class_static(), files, spawn_position));
+
+        menu->set_position(popup_position);
+        menu->popup();
     }
     else if (type == "obj_property")
     {
-        const Object* object = data["object"];
-        const StringName property_name = data["property"];
-        const TypedArray<Dictionary> properties = object->get_property_list();
+        Object* object = data["object"];
+        if (!object)
+            return;
 
         NodePath path;
         if (Node* root = get_tree()->get_edited_scene_root())
-            if (const Node* object_node = Object::cast_to<Node>(object))
-                path = root->get_path_to(const_cast<Node*>(object_node));
-
-        PropertyInfo pi;
-        bool found = false;
-        for (int i = 0; i < properties.size(); i++)
         {
-            pi = DictionaryUtils::to_property(properties[i]);
-            if (pi.name.match(property_name))
-            {
-                found = true;
-                break;
-            }
+            if (Node* object_node = cast_to<Node>(object))
+                path = root->get_path_to(object_node);
         }
 
-        if (found)
+        StringName property_name = data["property"];
+        for (const PropertyInfo& property : DictionaryUtils::to_properties(object->get_property_list()))
         {
-            // Get the property's current value and seed that as the pin's value
-            const Variant value = object->get(property_name);
+            if (property.name == property_name)
+            {
+                OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
+                menu->set_auto_destroy(true);
+                add_child(menu);
 
-            // Create context-menu handlers
-            Ref<OrchestratorGraphActionHandler> get_handler(memnew(OrchestratorGraphNodeSpawnerPropertyGet(pi, path)));
-            Ref<OrchestratorGraphActionHandler> set_handler(memnew(OrchestratorGraphNodeSpawnerPropertySet(pi, path, value)));
+                Dictionary prop = DictionaryUtils::from_property(property);
 
-            // Create context-menu to specify variable get or set choice
-            _context_menu->clear();
-            _context_menu->add_separator("Property " + pi.name);
-            _context_menu->add_item("Get " + pi.name, CM_PROPERTY_GET);
-            _context_menu->add_item("Set " + pi.name, CM_PROPERTY_SET);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_PROPERTY_GET), get_handler);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_PROPERTY_SET), set_handler);
-            _context_menu->reset_size();
-            _context_menu->set_position(get_screen_position() + p_position);
-            _context_menu->popup();
+                menu->add_separator("Property " + property_name);
+                menu->add_item("Get " + property_name, callable_mp_this(_drop_data_property).bind(prop, spawn_position, path, false));
+                menu->add_item("Set " + property_name, callable_mp_this(_drop_data_property).bind(prop, spawn_position, path, true));
+
+                menu->set_position(popup_position);
+                menu->popup();
+
+                break;
+            }
         }
     }
     else if (type == "function")
     {
-        if (data.has("functions"))
-        {
-            MethodInfo method = DictionaryUtils::to_method(data["functions"]);
+        const MethodInfo method = DictionaryUtils::to_method(data["functions"]);
 
-            // Create context-menu to specify variable get or set choice
-            _context_menu->clear();
-            _context_menu->add_separator("Function " + method.name);
-            _context_menu->add_item("Add Call Function", CM_FUNCTION_CALL);
-            _context_menu->add_item("Add Callable", CM_FUNCTION_CALLABLE);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALL), data["functions"]);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_FUNCTION_CALLABLE), data["functions"]);
-            _context_menu->reset_size();
-            _context_menu->set_position(get_screen_position() + p_position);
-            _context_menu->popup();
-        }
+        OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
+        menu->set_auto_destroy(true);
+        add_child(menu);
+
+        menu->add_separator("Function " + method.name);
+        menu->add_item("Add Call to Function", callable_mp_this(_drop_data_function).bind(data["functions"], spawn_position, false));
+        menu->add_item("Add as a Callable", callable_mp_this(_drop_data_function).bind(data["functions"], spawn_position, true));
+
+        menu->set_position(popup_position);
+        menu->popup();
     }
     else if (type == "variable")
     {
-        _hide_drag_hint();
+        const Array& variables = data["variables"];
+        if (variables.is_empty())
+            return;
 
-        const String variable_name = String(Array(data["variables"])[0]);
-
-        Ref<OScriptVariable> variable = get_orchestration()->get_variable(variable_name);
+        const String variable_name = variables[0];
+        const Ref<OScriptVariable> variable = _script_graph->get_orchestration()->get_variable(variable_name);
         if (!variable.is_valid())
             return;
 
-        const bool is_constant = variable->is_constant();
-        const bool is_validated = variable->get_variable_type() == Variant::OBJECT;
-
-        if (Input::get_singleton()->is_key_pressed(KEY_CTRL))
-        {
-            if (!is_constant)
-            {
-                Ref<OrchestratorGraphNodeSpawnerVariableSet> setter(memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
-                setter->execute(this, _saved_mouse_position);
-            }
-        }
+        if (Input::get_singleton()->is_key_pressed(KEY_CTRL) && !variable->is_constant())
+            _drop_data_variable(variable_name, spawn_position, false, true);
         else if (Input::get_singleton()->is_key_pressed(KEY_SHIFT))
-        {
-            Ref<OrchestratorGraphNodeSpawnerVariableGet> getter(memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
-            getter->execute(this, _saved_mouse_position);
-        }
+            _drop_data_variable(variable_name, spawn_position, false, false);
         else
         {
-            _context_menu->clear();
-            _context_menu->add_separator("Variable " + variable_name);
-            _context_menu->add_item("Get " + variable_name, CM_VARIABLE_GET);
-            _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET), memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name)));
+            OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
+            menu->set_auto_destroy(true);
+            add_child(menu);
 
-            if (is_validated)
+            menu->add_separator("Variable " + variable_name);
+            menu->add_item("Get " + variable_name, callable_mp_this(_drop_data_variable)
+                .bind(variable_name, spawn_position, false, false));
+
+            if (variable->get_variable_type() == Variant::OBJECT)
             {
-                _context_menu->add_item("Get " + variable_name + " with validation", CM_VARIABLE_GET_VALIDATED);
-                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_GET_VALIDATED), memnew(OrchestratorGraphNodeSpawnerVariableGet(variable_name, true)));
+                menu->add_item("Get " + variable_name + " with validation",
+                    callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, true, false));
             }
 
-            if (!is_constant)
+            if (!variable->is_constant())
             {
-                _context_menu->add_item("Set " + variable_name, CM_VARIABLE_SET);
-                _context_menu->set_item_metadata(_context_menu->get_item_index(CM_VARIABLE_SET), memnew(OrchestratorGraphNodeSpawnerVariableSet(variable_name)));
+                menu->add_item("Set " + variable_name,
+                    callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, false, true));
             }
 
-            _context_menu->reset_size();
-            _context_menu->set_position(get_screen_position() + p_position);
-            _context_menu->popup();
+            menu->set_position(popup_position);
+            menu->popup();
         }
     }
     else if (type == "signal")
     {
-        if (data.has("signals"))
-        {
-            OScriptNodeInitContext context;
-            context.method = DictionaryUtils::to_method(data["signals"]);
-            spawn_node<OScriptNodeEmitSignal>(context, _saved_mouse_position);
-        }
+        NodeSpawnOptions options;
+        options.node_class = OScriptNodeEmitSignal::get_class_static();
+        options.context.method = DictionaryUtils::to_method(data["signals"]);
+        options.position = spawn_position;
+
+        spawn_node(options);
     }
 }
 
@@ -1372,65 +1497,60 @@ void OrchestratorGraphEdit::_synchronize_graph_node(Ref<OScriptNode> p_node)
     }
 }
 
-void OrchestratorGraphEdit::_complete_spawn(const Ref<OScriptNode>& p_spawned, const Callable& p_callback)
+void OrchestratorGraphEdit::_queue_autowire(OrchestratorGraphNode* p_spawned_node, OrchestratorGraphNodePin* p_origin_pin)
 {
-    if (p_spawned.is_valid())
-    {
-        if (p_callback != Callable())
-            p_callback.callv(Array::make(p_spawned));
+    ERR_FAIL_NULL_MSG(p_spawned_node, "Cannot initiate an autowire operation with an invalid node reference");
+    ERR_FAIL_NULL_MSG(p_origin_pin, "Cannot initiate an autowire operation with an invalid pin reference");
 
-        emit_signal("nodes_changed");
-    }
-}
+    const Vector<OrchestratorGraphNodePin*> choices = p_spawned_node->get_eligible_autowire_pins(p_origin_pin);
 
-void OrchestratorGraphEdit::_queue_autowire(const Ref<OScriptNodePin>& p_source, const Ref<OScriptNode>& p_spawned, const Callable& p_callback)
-{
-    if (!p_source.is_valid() || !p_spawned.is_valid())
+    // Do nothing if there are no eligible choices
+    if (choices.size() == 0)
         return;
 
-    const Vector<Ref<OScriptNodePin>> choices = p_spawned->get_eligible_autowire_pins(p_source);
-
-    _autowire = memnew(OrchestratorScriptAutowireSelections);
-    _autowire->set_source(p_source);
-    _autowire->set_spawned(p_spawned);
-
-    add_child(_autowire);
-
-    _autowire->connect("confirmed", callable_mp(this, &OrchestratorGraphEdit::_complete_autowire).bind(p_spawned, p_callback, true));
-    _autowire->connect("canceled", callable_mp(this, &OrchestratorGraphEdit::_complete_autowire).bind(p_spawned, p_callback, false));
-
-    // This must be deferred to avoid conflicts with exclusive windows
-    callable_mp(_autowire, &OrchestratorScriptAutowireSelections::popup_autowire).call_deferred();
-}
-
-void OrchestratorGraphEdit::_complete_autowire(const Ref<OScriptNode>& p_spawned, const Callable& p_callback, bool p_confirmed)
-{
-    if (p_confirmed)
+    if (choices.size() == 1)
     {
-        const Ref<OScriptNodePin> choice = _autowire->get_autowire_choice();
-        if (choice.is_valid())
-        {
-            if (_drag_context.output_port)
-                _autowire->get_source()->link(choice);
-            else
-                choice->link(_autowire->get_source());
-
-            p_spawned->post_node_autowired(_autowire->get_source()->get_owning_node(), _drag_context.get_direction());
-        }
+        // When there is only one choice, there is no need for the autowire dialog.
+        p_origin_pin->link(choices[0]);
+        return;
     }
 
-    _autowire->queue_free();
-    _drag_context.reset();
+    // Compute exact matches for class types
+    Vector<OrchestratorGraphNodePin*> exact_matches;
+    for (OrchestratorGraphNodePin* choice : choices)
+    {
+        if (choice->get_property_info().class_name.match(p_origin_pin->get_property_info().class_name))
+            exact_matches.push_back(choice);
+    }
 
-    _complete_spawn(p_spawned, p_callback);
-}
+    // Handle cases where class matches rank higher and have precedence
+    if (exact_matches.size() == 1)
+    {
+        p_origin_pin->link(exact_matches[0]);
+        return;
+    }
 
-void OrchestratorGraphEdit::_show_action_menu(const Vector2& p_position, const OrchestratorGraphActionFilter& p_filter)
-{
-    _update_saved_mouse_position(p_position);
+    // For operator nodes, always auto-wire the first eligible pin.
+    if (cast_to<OScriptNodeOperator>(p_spawned_node->get_script_node().ptr()))
+    {
+        p_origin_pin->link(choices[0]);
+        return;
+    }
 
-    _action_menu->set_position(get_screen_position() + p_position);
-    _action_menu->apply_filter(p_filter);
+    // At this point no auto-resolution could be made, show the dialog if enabled
+    const bool autowire_dialog_enabled = ORCHESTRATOR_GET("ui/graph/show_autowire_selection_dialog", true);
+    if (!autowire_dialog_enabled)
+        return;
+
+    OrchestratorAutowireConnectionDialog* autowire = memnew(OrchestratorAutowireConnectionDialog);
+
+    autowire->connect("confirmed", callable_mp_lambda(this, [autowire, p_origin_pin, this] {
+        OrchestratorGraphNodePin* selected = autowire->get_autowire_choice();
+        if (selected && p_origin_pin)
+            p_origin_pin->link(selected);
+    }));
+
+    autowire->popup_autowire(choices);
 }
 
 void OrchestratorGraphEdit::_update_saved_mouse_position(const Vector2& p_position)
@@ -1464,54 +1584,72 @@ void OrchestratorGraphEdit::_hide_drag_hint()
     _drag_hint->hide();
 }
 
-void OrchestratorGraphEdit::_create_script_function_callable(const StringName& p_function_name)
+void OrchestratorGraphEdit::_connect_with_menu(PinHandle p_handle, const Vector2& p_position, bool p_input)
 {
-    BuiltInType callable_type = ExtensionDB::get_builtin_type(Variant::CALLABLE);
+    OrchestratorGraphNodePin* pin = _resolve_pin_from_handle(p_handle, p_input);
+    ERR_FAIL_NULL_MSG(pin, "Failed to resolve pin from context");
 
-    int ctor_index = 0;
-    bool found = false;
-    for (; ctor_index < callable_type.constructors.size(); ++ctor_index)
+    _update_saved_mouse_position(p_position);
+
+    _drag_from_pin = pin;
+
+    // Resolve the drag pin target if one is available
+    Object* target = nullptr;
+    const ResolvedType resolved_type = _drag_from_pin->resolve_type();
+    if (resolved_type.has_target_object() && resolved_type.object.is_valid() && resolved_type.object->has_target())
+        target = resolved_type.object->get_target();
+
+    Ref<OrchestratorEditorActionPortRule> port_rule;
+    port_rule.instantiate();
+    port_rule->configure(_drag_from_pin, target);
+
+    Ref<OrchestratorEditorActionGraphTypeRule> graph_type_rule;
+    graph_type_rule.instantiate();
+    graph_type_rule->set_graph_type(_script_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION)
+        ? OrchestratorEditorActionDefinition::GRAPH_FUNCTION
+        : OrchestratorEditorActionDefinition::GRAPH_EVENT);
+
+    GraphEditorFilterContext context;
+    context.script = _script_graph->get_orchestration()->get_self();
+    context.port_type = pin->get_property_info();
+    context.output = pin->is_output();
+    context.class_hierarchy = Array::make(_script_graph->get_orchestration()->get_base_type());
+
+    OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
+    menu->set_title("Select a graph action");
+    menu->set_suffix("graph_editor");
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("ui/actions_menu/close_on_focus_lost", false));
+    menu->set_show_filter_option(false);
+    menu->set_start_collapsed(true);
+    menu->connect("action_selected", callable_mp_this(_on_action_menu_selection));
+
+    Ref<OrchestratorEditorActionFilterEngine> filter_engine;
+    filter_engine.instantiate();
+    filter_engine->add_rule(memnew(OrchestratorEditorActionSearchTextRule));
+    filter_engine->add_rule(graph_type_rule);
+    filter_engine->add_rule(port_rule);
+
+    if (_drag_from_pin->is_execution())
+        filter_engine->add_rule(memnew(OrchestratorEditorActionClassHierarchyScopeRule));
+
+    const Ref<Script> source_script = _script_graph->get_orchestration()->get_self();
+    OrchestratorEditorActionRegistry* action_registry = OrchestratorEditorActionRegistry::get_singleton();
+
+    Vector<Ref<OrchestratorEditorActionDefinition>> actions;
+    if (target)
     {
-        const ConstructorInfo& ctor = callable_type.constructors[ctor_index];
-        if (ctor.arguments.size() == 2
-            && ctor.arguments[0].type == Variant::OBJECT
-            && ctor.arguments[1].type == Variant::STRING_NAME)
+        const Ref<Script> target_script = target->get_script();
+        if (target_script.is_valid())
         {
-            found = true;
-            break;
+            // Want to scope to the target script
+            actions = action_registry->get_actions(source_script, target_script);
         }
     }
 
-    if (!found)
-        return;
+    if (actions.is_empty())
+        actions = action_registry->get_actions(source_script);
 
-    const Vector<PropertyInfo>& properties = callable_type.constructors[ctor_index].arguments;
-    const Array arguments = DictionaryUtils::from_properties(properties);
-
-    Dictionary spawn_data;
-    spawn_data["type"] = Variant::CALLABLE;
-    spawn_data["constructor_args"] = arguments;
-
-    OScriptNodeInitContext compose_context;
-    compose_context.user_data = spawn_data;
-
-    spawn_node<OScriptNodeComposeFrom>(
-        compose_context,
-        _saved_mouse_position,
-        callable_mp_lambda(this, [=, this](OScriptNodeComposeFrom* compose) {
-            compose->find_pin(1, PD_Input)->set_default_value(p_function_name);
-            compose->reconstruct_node();
-
-            const Vector2 self_position = _saved_mouse_position - Vector2(200, 0);
-
-            OScriptNodeInitContext self_context;
-            spawn_node<OScriptNodeSelf>(
-                self_context,
-                self_position,
-                callable_mp_lambda(this, [=](OScriptNodeSelf* self) {
-                    self->find_pin(0, PD_Output)->link(compose->find_pin(0, PD_Input));
-                }));
-        }));
+    menu->popup(p_position + get_screen_position(), actions, filter_engine, context);
 }
 
 void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from, int p_from_port, bool p_output)
@@ -1519,44 +1657,210 @@ void OrchestratorGraphEdit::_on_connection_drag_started(const StringName& p_from
     OrchestratorSettings* os = OrchestratorSettings::get_singleton();
     const bool flow_disconnect_on_drag = os->get_setting("ui/graph/disconnect_control_flow_when_dragged", true);
 
-    _drag_context.start_drag(p_from, p_from_port, p_output);
+    ERR_FAIL_COND_MSG(!p_from.is_valid_int(), "Drag from node name is expected to be an integer value");
 
-    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from))
+    PinHandle handle;
+    handle.node_id = p_from.to_int();
+    handle.pin_port = p_from_port;
+
+    OrchestratorGraphNodePin* pin = _resolve_pin_from_handle(handle, !p_output);
+    ERR_FAIL_NULL_MSG(pin, "Failed to resolve drag from pin");
+
+    _drag_from_pin = pin;
+
+    if (p_output && flow_disconnect_on_drag && _drag_from_pin->is_execution())
+        _drag_from_pin->unlink_all();
+
+    if (p_output)
     {
-        if (p_output)
+        for_each_graph_node([&](OrchestratorGraphNode* node) {
+            node->set_inputs_for_accept_opacity(0.3f, pin);
+            node->set_all_outputs_opacity(0.3f);
+
+            if (node->get_inputs_with_opacity() == 0 && node != pin->get_graph_node())
+                node->set_modulate(Color(1, 1, 1, 0.5));
+        });
+    }
+    else
+    {
+        // From port is an input
+        for_each_graph_node([&](OrchestratorGraphNode* node) {
+            node->set_all_inputs_opacity(0.3f);
+            node->set_outputs_for_accept_opacity(0.3f, pin);
+
+            if (node->get_outputs_with_opacity() == 0 && node != pin->get_graph_node())
+                node->set_modulate(Color(1, 1, 1, 0.5));
+        });
+    }
+}
+
+void OrchestratorGraphEdit::_on_action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action)
+{
+    ERR_FAIL_COND_MSG(!p_action.is_valid(), "Cannot execute the action, it is invalid.");
+
+    const Vector2 spawn_position = _saved_mouse_position;
+
+    switch (p_action->type)
+    {
+        case OrchestratorEditorActionDefinition::ACTION_SPAWN_NODE:
         {
-            // From port is an output
-            OrchestratorGraphNodePin* pin = source->get_output_pin(p_from_port);
-            if (pin && pin->is_execution() && flow_disconnect_on_drag)
-                pin->unlink_all();
+            ERR_FAIL_COND_MSG(!p_action->node_class.has_value(), "Spawn action node has no node class type");
 
-            for_each_graph_node([&](OrchestratorGraphNode* node) {
-                node->set_inputs_for_accept_opacity(0.3f, pin);
-                node->set_all_outputs_opacity(0.3f);
+            NodeSpawnOptions options;
+            options.node_class = p_action->node_class.value();
+            options.context.user_data = p_action->data;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
 
-                if (node->get_inputs_with_opacity() == 0 && node != source)
-                    node->set_modulate(Color(1, 1, 1, 0.5));
-            });
+            spawn_node(options);
+            break;
         }
-        else
+        case OrchestratorEditorActionDefinition::ACTION_GET_PROPERTY:
         {
-            // From port is an input
-            OrchestratorGraphNodePin* pin = source->get_input_pin(p_from_port);
-            for_each_graph_node([&](OrchestratorGraphNode* node) {
-                node->set_all_inputs_opacity(0.3f);
-                node->set_outputs_for_accept_opacity(0.3f, pin);
+            ERR_FAIL_COND_MSG(!p_action->property.has_value(), "Get property has no property");
 
-                if (node->get_outputs_with_opacity() == 0 && node != source)
-                    node->set_modulate(Color(1, 1, 1, 0.5));
-            });
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodePropertyGet::get_class_static();
+            options.context.property = p_action->property;
+            options.context.node_path = p_action->node_path;
+            options.context.class_name = p_action->class_name;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_SET_PROPERTY:
+        {
+            ERR_FAIL_COND_MSG(!p_action->property.has_value(), "Set property has no property");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodePropertySet::get_class_static();
+            options.context.property = p_action->property;
+            options.context.node_path = p_action->node_path;
+            options.context.class_name = p_action->class_name;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_CALL_MEMBER_FUNCTION:
+        {
+            ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Call member function has no method");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeCallMemberFunction::get_class_static();
+            options.context.user_data = p_action->data;
+            options.context.method = p_action->method;
+            options.context.class_name = p_action->class_name;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_CALL_SCRIPT_FUNCTION:
+        {
+            ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Call script function has no method");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeCallScriptFunction::get_class_static();
+            options.context.method = p_action->method;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_EVENT:
+        {
+            ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Handle event has no method");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeEvent::get_class_static();
+            options.context.method = p_action->method;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_EMIT_MEMBER_SIGNAL:
+        {
+            ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Emit member signal function has no method");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeEmitMemberSignal::get_class_static();
+            options.context.method = p_action->method;
+            options.context.user_data = p_action->data;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_EMIT_SIGNAL:
+        {
+            ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Emit signal function has no method");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeEmitSignal::get_class_static();
+            options.context.method = p_action->method;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_VARIABLE_GET:
+        {
+            ERR_FAIL_COND_MSG(!p_action->property.has_value(), "Get variable has no property");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeVariableGet::get_class_static();
+            options.context.variable_name = p_action->property.value().name;
+            options.context.user_data = DictionaryUtils::of({ { "validation", false } });
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_VARIABLE_SET:
+        {
+            ERR_FAIL_COND_MSG(!p_action->property.has_value(), "Set variable has no property");
+
+            NodeSpawnOptions options;
+            options.node_class = OScriptNodeVariableSet::get_class_static();
+            options.context.variable_name = p_action->property.value().name;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        default:
+        {
+            const String message = vformat("Unknown action type %d - %s", p_action->type, p_action->name);
+
+            AcceptDialog* dialog = memnew(AcceptDialog);
+            dialog->set_text(message);
+            dialog->set_title("Failed to spawn node");
+            dialog->set_exclusive(false);
+
+            dialog->connect("canceled", callable_mp_cast(dialog, Node, queue_free));
+            dialog->connect("confirmed", callable_mp_cast(dialog, Node, queue_free));
+
+            EI->popup_dialog_centered(dialog);
+
+            break;
         }
     }
 }
 
 void OrchestratorGraphEdit::_on_connection_drag_ended()
 {
-    _drag_context.end_drag();
-
     for_each_graph_node([](OrchestratorGraphNode* node) {
         node->set_modulate(Color(1, 1, 1, 1));
         node->set_all_inputs_opacity(1.f);
@@ -1564,126 +1868,64 @@ void OrchestratorGraphEdit::_on_connection_drag_ended()
     });
 }
 
-void OrchestratorGraphEdit::_on_action_menu_cancelled()
-{
-    _drag_context.reset();
-}
-
-void OrchestratorGraphEdit::_on_action_menu_action_selected(OrchestratorGraphActionHandler* p_handler)
-{
-    // When the user has not used the right mouse button in the graph area, any created
-    // node, i.e. overrides, should be placed in the center of the existing viewport
-    // rather than at 0,0 which may be out of visible range of the current area.
-    if (_saved_mouse_position.is_equal_approx(Vector2()))
-        _saved_mouse_position = get_global_rect().get_center();
-
-    p_handler->execute(this, _saved_mouse_position);
-}
-
 void OrchestratorGraphEdit::_on_connection(const StringName& p_from_node, int p_from_port, const StringName& p_to_node,
                                  int p_to_port)
 {
-    _drag_context.reset();
+    ERR_FAIL_COND_MSG(!p_from_node.is_valid_int(), "Connection from name is expected to be an integer value");
+    ERR_FAIL_COND_MSG(!p_to_node.is_valid_int(), "Connection to name is expected to be an integer value");
 
-    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from_node))
-    {
-        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_to_node))
-        {
-            OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_from_port);
-            OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_to_port);
-            if (!source_pin || !target_pin)
-                return;
+    PinHandle from_handle;
+    from_handle.node_id = p_from_node.to_int();
+    from_handle.pin_port = p_from_port;
 
-            // Connect the two pins
-            source_pin->link(target_pin);
-        }
-    }
+    PinHandle to_handle;
+    to_handle.node_id = p_to_node.to_int();
+    to_handle.pin_port = p_to_port;
+
+    OrchestratorGraphNodePin* source = _resolve_pin_from_handle(from_handle, false);
+    OrchestratorGraphNodePin* target = _resolve_pin_from_handle(to_handle, true);
+    ERR_FAIL_COND_MSG(!source || !target, "Could not resolve one of the connection pins");
+
+    source->link(target);
 }
 
 void OrchestratorGraphEdit::_on_disconnection(const StringName& p_from_node, int p_from_port, const StringName& p_to_node,
                                     int p_to_port)
 {
-    if (OrchestratorGraphNode* source = _get_by_name<OrchestratorGraphNode>(p_from_node))
-    {
-        if (OrchestratorGraphNode* target = _get_by_name<OrchestratorGraphNode>(p_to_node))
-        {
-            OrchestratorGraphNodePin* source_pin = source->get_output_pin(p_from_port);
-            OrchestratorGraphNodePin* target_pin = target->get_input_pin(p_to_port);
-            if (!source_pin || !target_pin)
-                return;
+    ERR_FAIL_COND_MSG(!p_from_node.is_valid_int(), "Connection from name is expected to be an integer value");
+    ERR_FAIL_COND_MSG(!p_to_node.is_valid_int(), "Connection to name is expected to be an integer value");
 
-            // Disconnect the two pins
-            source_pin->unlink(target_pin);
-        }
-    }
+    PinHandle from_handle;
+    from_handle.node_id = p_from_node.to_int();
+    from_handle.pin_port = p_from_port;
+
+    PinHandle to_handle;
+    to_handle.node_id = p_to_node.to_int();
+    to_handle.pin_port = p_to_port;
+
+    OrchestratorGraphNodePin* source = _resolve_pin_from_handle(from_handle, false);
+    OrchestratorGraphNodePin* target = _resolve_pin_from_handle(to_handle, true);
+    ERR_FAIL_COND_MSG(!source || !target, "Could not resolve one of the connection pins");
+
+    source->unlink(target);
 }
 
-void OrchestratorGraphEdit::_on_attempt_connection_from_empty(const StringName& p_to_node, int p_to_port, const Vector2& p_position)
+void OrchestratorGraphEdit::_on_connection_from_empty(const StringName& p_to_node, int p_to_port, const Vector2& p_position)
 {
-    OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(p_to_node);
-    ERR_FAIL_COND_MSG(!node, "Unable to find graph node with name " + p_to_node);
+    PinHandle handle;
+    handle.node_id = p_to_node.to_int();
+    handle.pin_port = p_to_port;
 
-    OrchestratorGraphNodePin* pin = node->get_input_pin(p_to_port);
-    if (!pin)
-        return;
-
-    OrchestratorGraphActionFilter filter;
-    filter.context.graph = this;
-    filter.context.pins.push_back(pin);
-
-    ResolvedType resolved_type = pin->resolve_type();
-    filter.target_type = resolved_type.type;
-
-    if (resolved_type.has_target_object())
-    {
-        // When a resolved object isp provided, it takes precedence
-        filter.target_classes.push_back(resolved_type.get_target_class());
-        filter.target_object = resolved_type.object;
-        filter.use_cache = false;
-        filter.context.pins.clear();
-    }
-    if (resolved_type.is_class_type())
-    {
-        filter.target_classes.push_back(resolved_type.class_name);
-        filter.context.pins.clear();
-    }
-
-    _show_action_menu(p_position, filter);
+    _connect_with_menu(handle, p_position, true);
 }
 
-void OrchestratorGraphEdit::_on_attempt_connection_to_empty(const StringName& p_from_node, int p_from_port,
-                                                  const Vector2& p_position)
+void OrchestratorGraphEdit::_on_connection_to_empty(const StringName& p_from_node, int p_from_port, const Vector2& p_position)
 {
-    OrchestratorGraphNode* node = _get_by_name<OrchestratorGraphNode>(p_from_node);
-    ERR_FAIL_COND_MSG(!node, "Unable to find graph node with name " + p_from_node);
+    PinHandle handle;
+    handle.node_id = p_from_node.to_int();
+    handle.pin_port = p_from_port;
 
-    OrchestratorGraphNodePin* pin = node->get_output_pin(p_from_port);
-    if (!pin)
-        return;
-
-    OrchestratorGraphActionFilter filter;
-    filter.flags = OrchestratorGraphActionFilter::Filter_RejectEvents;
-    filter.context.graph = this;
-    filter.context.pins.push_back(pin);
-
-    ResolvedType resolved_type = pin->resolve_type();
-    filter.target_type = resolved_type.type;
-
-    if (resolved_type.has_target_object())
-    {
-        // When a resolved object is provided, it takes precedence
-        filter.target_classes.push_back(resolved_type.get_target_class());
-        filter.target_object = resolved_type.object;
-        filter.use_cache = false;
-        filter.context.pins.clear();
-    }
-    else if (resolved_type.is_class_type())
-    {
-        filter.target_classes.push_back(resolved_type.class_name);
-        filter.context.pins.clear();
-    }
-
-    _show_action_menu(p_position, filter);
+    _connect_with_menu(handle, p_position, false);
 }
 
 void OrchestratorGraphEdit::_on_node_selected(Node* p_node)
@@ -1883,10 +2125,37 @@ void OrchestratorGraphEdit::_delete_nodes(const PackedStringArray& p_node_names)
 
 void OrchestratorGraphEdit::_on_right_mouse_clicked(const Vector2& p_position)
 {
-    OrchestratorGraphActionFilter filter;
-    filter.context.graph = this;
+    _update_saved_mouse_position(p_position);
 
-    _show_action_menu(p_position, filter);
+    Ref<OrchestratorEditorActionGraphTypeRule> graph_type_rule;
+    graph_type_rule.instantiate();
+    graph_type_rule->set_graph_type(_script_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION)
+        ? OrchestratorEditorActionDefinition::GRAPH_FUNCTION
+        : OrchestratorEditorActionDefinition::GRAPH_EVENT);
+
+    Ref<OrchestratorEditorActionFilterEngine> filter_engine;
+    filter_engine.instantiate();
+    filter_engine->add_rule(memnew(OrchestratorEditorActionSearchTextRule));
+    filter_engine->add_rule(memnew(OrchestratorEditorActionClassHierarchyScopeRule));
+    filter_engine->add_rule(graph_type_rule);
+
+    GraphEditorFilterContext context;
+    context.script = _script_graph->get_orchestration()->get_self();
+    context.class_hierarchy = Array::make(_script_graph->get_orchestration()->get_base_type());
+
+    OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
+    menu->set_title("Select a graph action");
+    menu->set_suffix("graph_editor");
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("ui/actions_menu/close_on_focus_lost", false));
+    menu->set_show_filter_option(false);
+    menu->set_start_collapsed(true);
+    menu->connect("action_selected", callable_mp_this(_on_action_menu_selection));
+
+    menu->popup(
+        p_position + get_screen_position(),
+        OrchestratorEditorActionRegistry::get_singleton()->get_actions(_script_graph->get_orchestration()->get_self()),
+        filter_engine,
+        context);
 }
 
 void OrchestratorGraphEdit::_on_graph_node_added(int p_node_id)
@@ -1915,58 +2184,6 @@ void OrchestratorGraphEdit::_on_graph_node_removed(int p_node_id)
 void OrchestratorGraphEdit::_on_graph_connections_changed(const String& p_caller)
 {
     _synchronize_graph_connections_with_script();
-}
-
-void OrchestratorGraphEdit::_on_context_menu_selection(int p_id)
-{
-    switch (p_id)
-    {
-        case CM_VARIABLE_GET:
-        case CM_VARIABLE_GET_VALIDATED:
-        case CM_VARIABLE_SET:
-        case CM_PROPERTY_GET:
-        case CM_PROPERTY_SET:
-        {
-            int index = _context_menu->get_item_index(p_id);
-            Ref<OrchestratorGraphActionHandler> handler = _context_menu->get_item_metadata(index);
-            if (handler.is_valid())
-                handler->execute(this, _saved_mouse_position);
-            break;
-        }
-        case CM_FUNCTION_CALL:
-        {
-            int index = _context_menu->get_item_index(p_id);
-            OScriptNodeInitContext context;
-            context.method = DictionaryUtils::to_method(_context_menu->get_item_metadata(index));
-            spawn_node<OScriptNodeCallScriptFunction>(context, _saved_mouse_position);
-            break;
-        }
-        case CM_FUNCTION_CALLABLE:
-        {
-            int index = _context_menu->get_item_index(p_id);
-            MethodInfo method = DictionaryUtils::to_method(_context_menu->get_item_metadata(index));
-            _create_script_function_callable(method.name);
-            break;
-        }
-        case CM_FILE_GET_PATH:
-        case CM_FILE_PRELOAD:
-        {
-            const int index = _context_menu->get_item_index(p_id);
-
-            OScriptNodeInitContext context;
-            context.resource_path = _context_menu->get_item_metadata(index);
-
-            if (p_id == CM_FILE_GET_PATH)
-                spawn_node<OScriptNodeResourcePath>(context, _saved_mouse_position);
-            else if (p_id == CM_FILE_PRELOAD)
-                spawn_node<OScriptNodePreload>(context, _saved_mouse_position);
-
-            break;
-        }
-        default:
-            // no-op
-            break;
-    }
 }
 
 void OrchestratorGraphEdit::_on_project_settings_changed()

@@ -16,6 +16,7 @@
 //
 #include "editor/editor_panel.h"
 
+#include "actions/registry.h"
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
@@ -35,8 +36,8 @@
 #include "script/serialization/resource_cache.h"
 
 #include <godot_cpp/classes/display_server.hpp>
-#include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/editor_file_system.hpp>
+#include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
@@ -1196,6 +1197,8 @@ void OrchestratorEditorPanel::_bind_methods()
 
 OrchestratorEditorPanel::OrchestratorEditorPanel(OrchestratorWindowWrapper* p_window_wrapper)
 {
+    add_child(memnew(OrchestratorEditorActionRegistry));
+
     _window_wrapper = p_window_wrapper;
 
     set_anchors_preset(PRESET_FULL_RECT);

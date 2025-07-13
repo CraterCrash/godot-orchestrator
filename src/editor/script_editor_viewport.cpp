@@ -230,15 +230,7 @@ void OrchestratorScriptEditorViewport::_override_godot_function()
     if (current_graph)
     {
         current_graph->set_spawn_position_center_view();
-
-        OrchestratorGraphActionFilter filter;
-        filter.context_sensitive = true;
-        filter.context.graph = current_graph;
-        filter.flags = OrchestratorGraphActionFilter::Filter_OverridesOnly;
-
-        OrchestratorGraphActionMenu* menu = current_graph->get_action_menu();
-        menu->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
-        menu->apply_filter(filter);
+        current_graph->show_override_function_action_menu();
     }
 }
 

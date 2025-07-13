@@ -14,15 +14,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "action_registrar.h"
-
-#include "editor/graph/actions/action_menu_filter.h"
-
-OrchestratorGraphActionRegistrarContext OrchestratorGraphActionRegistrarContext::from_filter(
-    const OrchestratorGraphActionFilter& p_filter)
-{
-    OrchestratorGraphActionRegistrarContext registrar_context;
-    registrar_context.graph = p_filter.context.graph;
-    registrar_context.filter = const_cast<OrchestratorGraphActionFilter*>(&p_filter);
-    return registrar_context;
-}
+#include "editor/actions/rules/rule.h"

@@ -658,6 +658,16 @@ int32_t OrchestratorGraphNode::get_port_at_position(const Vector2& p_position, E
     return -1;
 }
 
+Rect2 OrchestratorGraphNode::get_node_rect() const
+{
+    return { get_position_offset(), get_size() };
+}
+
+int32_t OrchestratorGraphNode::get_port_slot(int p_port, EPinDirection p_direction)
+{
+    return p_direction == PD_Input ? get_input_port_slot(p_port) : get_output_port_slot(p_port);
+}
+
 void OrchestratorGraphNode::_on_node_moved([[maybe_unused]] Vector2 p_old_pos, Vector2 p_new_pos)
 {
     _node->set_position(p_new_pos);

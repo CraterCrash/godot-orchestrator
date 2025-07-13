@@ -17,9 +17,10 @@
 #ifndef ORCHESTRATOR_GRAPH_EDIT_H
 #define ORCHESTRATOR_GRAPH_EDIT_H
 
-#include "actions/action_menu.h"
 #include "common/godot_version.h"
 #include "common/version.h"
+#include "common/weak_ref.h"
+#include "editor/actions/definition.h"
 #include "editor/graph/graph_node.h"
 #include "script/function.h"
 #include "script/signals.h"
@@ -30,6 +31,7 @@
 #include <godot_cpp/classes/curve2d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
+#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/timer.hpp>
@@ -38,7 +40,6 @@ using namespace godot;
 
 // Forward declarations
 class OScriptNode;
-class OrchestratorScriptAutowireSelections;
 class OrchestratorGraphKnot;
 
 /// Helper class for storing a reference to a position for the knot in the graph
@@ -66,36 +67,28 @@ class OrchestratorGraphEdit : public GraphEdit
 
     typedef OrchestratorKnotPoint KnotPoint;
 
-    enum ContextMenuIds
-    {
-        CM_VARIABLE_GET,
-        CM_VARIABLE_GET_VALIDATED,
-        CM_VARIABLE_SET,
-        CM_PROPERTY_GET,
-        CM_PROPERTY_SET,
-        CM_FILE_GET_PATH,
-        CM_FILE_PRELOAD,
-        CM_FUNCTION_CALL,
-        CM_FUNCTION_CALLABLE
+public:
+
+    struct NodeSpawnOptions {
+        StringName node_class;
+        OrchestratorGraphNodePin* drag_pin = nullptr;
+        OScriptNodeInitContext context;
+        Vector2 position;
+        bool select_on_spawn = false;
+        bool center_on_spawn = false;
     };
 
-    /// Simple drag state for the graph
-    struct DragContext
+private:
+
+    struct PinHandle
     {
-        StringName node_name;
-        int node_port{ -1 };
-        bool output_port{ false };
-        bool dragging{ false };
-
-        DragContext();
-        void reset();
-
-        void start_drag(const StringName& p_from, int p_from_port, bool p_output);
-        void end_drag();
-
-        bool should_autowire() const;
-        EPinDirection get_direction() const;
+        uint64_t node_id = 0;
+        int32_t pin_port = 0;
     };
+
+    // Defines as a weak reference so that in the event the graph is redrawn or if the pin is
+    // no longer valid, any future use will return null if the pin object no longer exists.
+    WeakRef<OrchestratorGraphNodePin> _drag_from_pin;
 
     struct Clipboard
     {
@@ -130,11 +123,8 @@ class OrchestratorGraphEdit : public GraphEdit
     OptionButton* _grid_pattern{ nullptr };                //! Grid pattern option button
     #endif
     Ref<OScriptGraph> _script_graph;                       //! The underlying orchestration script graph
-    OrchestratorGraphActionMenu* _action_menu{ nullptr };  //! Actions menu
     Vector2 _saved_mouse_position;                         //! Mouse position where node/dialog is placed
-    DragContext _drag_context;                             //! Drag context details
     int _deferred_tween_node{ -1 };                        //! Node id to tween to upon load
-    PopupMenu* _context_menu{ nullptr };                   //! Graph context menu
     Control* _status{ nullptr };                           //! Displays status in the center of graphs
     Label* _drag_hint{ nullptr };                          //! Displays the drag status at the bottom of the graph
     Timer* _drag_hint_timer{ nullptr };                    //! Timer for drag hint messages
@@ -147,7 +137,6 @@ class OrchestratorGraphEdit : public GraphEdit
     bool _box_selection{ false };                          //! Is graph doing box selection?
     bool _disable_delete_confirmation{ false };            //! Allows temporarily disabling delete confirmation
     Vector2 _box_selection_from;                           //! Mouse position box selection started from
-    OrchestratorScriptAutowireSelections* _autowire{ nullptr };
 
     OrchestratorGraphEdit() = default;
 
@@ -171,6 +160,18 @@ protected:
     /// @return true if it's a comment node, false otherwise
     bool _is_comment_node(Node* p_node) const;
 
+    /// Resolves the graph node pin from handle
+    /// @param p_handle the pin handle
+    /// @param p_input whether the pin is an input
+    /// @return the resolved graph pin or null if the pin could not be resolved
+    OrchestratorGraphNodePin* _resolve_pin_from_handle(const PinHandle& p_handle, bool p_input);
+
+    // drop_data helpers
+    void _drop_data_files(const String& p_node_type, const Array& p_files, const Vector2& p_at_position);
+    void _drop_data_property(const Dictionary& p_property, const Vector2& p_at_position, const String& p_path, bool p_setter);
+    void _drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable);
+    void _drop_data_variable(const String& p_name, const Vector2& p_at_position, bool p_validated, bool p_setter);
+
 public:
     // The OrchestratorGraphEdit maintains a static clipboard so that data can be shared across different graph
     // instances easily in the tab view, and so these methods are called by the MainView during the
@@ -193,9 +194,6 @@ public:
     /// Get the owning orchestration
     /// @return the owning orchestration, should always be valid
     Orchestration* get_orchestration() { return _script_graph->get_orchestration(); }
-
-    /// Get the editor graph action menu.
-    OrchestratorGraphActionMenu* get_action_menu() { return _action_menu; }
 
     /// Return whether this graph represents an event-graph.
     bool is_event_graph() const { return _script_graph->get_flags().has_flag(OScriptGraph::GF_EVENT); }
@@ -261,24 +259,24 @@ public:
     PackedVector2Array _get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const override;
     //~ End GraphEdit overrides
 
-    /// Helper method for spawning nodes
-    /// @param p_context the node initialization context
-    /// @param p_position the position to spawn the node, if provided.
-    /// @param p_callback the callback to call when the node is spawned successfully.
-    template <typename T>
-    void spawn_node(const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2(), const Callable& p_callback = Callable())
-    {
-        spawn_node(T::get_class_static(), p_context, p_position, p_callback);
-    }
-
-    /// Helper method to spawn a node by it's type
-    /// @param p_type the node type to spawn
-    /// @param p_context the node initialization context
-    /// @param p_position the position to spawn the node
-    /// @param p_callback the callback to call when the node is spawned successfully.
-    void spawn_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2(), const Callable& p_callback = Callable());
+    /// Spawn a node in the graph
+    /// @param p_options the node spawn options
+    /// @return the spawned node or <code>nullptr</code> if the spawn failed
+    OrchestratorGraphNode* spawn_node(const NodeSpawnOptions& p_options);
 
     void sync();
+
+    /// Shows the override function action menu
+    void show_override_function_action_menu();
+
+    /// Centers the view on the given node
+    /// @param p_node the node to center into the view
+    void center_node(OrchestratorGraphNode* p_node);
+
+    /// Scrolls the view to the desired position
+    /// @param p_position the position to scroll toward
+    /// @param p_time the maximum time the scroll should take
+    void scroll_to_position(const Vector2& p_position, float p_time = 0.2f);
 
 private:
     /// Displays a yes/no confirmation dialog to the user.
@@ -372,27 +370,10 @@ private:
     /// @param p_node the node to update.
     void _synchronize_graph_node(Ref<OScriptNode> p_node);
 
-    /// Perform any post-steps after spawning a node
-    /// @param p_spawned the spawned node
-    /// @param p_callback a callback that is called after spawning the node
-    void _complete_spawn(const Ref<OScriptNode>& p_spawned, const Callable& p_callback);
-
     /// Queue the autowire action for the spawned node
-    /// @param p_source the source pin
-    /// @param p_spawned the spawned node
-    /// @param p_callback optional callback to be fired when the node was spawned
-    void _queue_autowire(const Ref<OScriptNodePin>& p_source, const Ref<OScriptNode>& p_spawned, const Callable& p_callback = Callable());
-
-    /// Completes the autowire action
-    /// @param p_spawned the spawned node
-    /// @param p_callback the callback to fire when the node is spawned
-    /// @param p_confirmed whether the user confirmed any choices
-    void _complete_autowire(const Ref<OScriptNode>& p_spawned, const Callable& p_callback, bool p_confirmed);
-
-    /// Shows the actions menu
-    /// @param p_position the position to show the dialog
-    /// @param p_filter the filters to be applied
-    void _show_action_menu(const Vector2& p_position, const OrchestratorGraphActionFilter& p_filter);
+    /// @param p_spawned_node the spawned node
+    /// @param p_origin_pin the pin that was dragged from
+    void _queue_autowire(OrchestratorGraphNode* p_spawned_node, OrchestratorGraphNodePin* p_origin_pin);
 
     /// Update the saved mouse position
     /// @param p_position the position
@@ -405,9 +386,15 @@ private:
     /// Hides the drag status hint
     void _hide_drag_hint();
 
-    /// Creates a callable mapping for the script function
-    /// @param p_function_name the name of the function to call
-    void _create_script_function_callable(const StringName& p_function_name);
+    /// Show action menu to connect a new node with the dragged node port
+    /// @param p_handle the drag pin handle
+    /// @param p_position the position drag ended
+    /// @param p_input whether the drag pin is an output
+    void _connect_with_menu(PinHandle p_handle, const Vector2& p_position, bool p_input);
+
+    /// Handles adding selected action item
+    /// @param p_action the action definition
+    void _on_action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action);
 
     /// Connection drag started
     /// @param p_from the source node
@@ -417,13 +404,6 @@ private:
 
     /// Connection drag ended
     void _on_connection_drag_ended();
-
-    /// Dispatched when the action menu is closed without a selection.
-    void _on_action_menu_cancelled();
-
-    /// Dispatched when an action menu item is selected in the action menu
-    /// @param p_handler the action handler to be executed
-    void _on_action_menu_action_selected(OrchestratorGraphActionHandler* p_handler);
 
     /// Dispatched when a connection is requested between two nodes
     /// @param p_from_node source node
@@ -443,13 +423,13 @@ private:
     /// @param p_to_node target node
     /// @param p_to_port target node port
     /// @param p_position mouse position where released
-    void _on_attempt_connection_from_empty(const StringName& p_to_node, int p_to_port, const Vector2& p_position);
+    void _on_connection_from_empty(const StringName& p_to_node, int p_to_port, const Vector2& p_position);
 
     /// Dispatched when user drags a connection line from a node output to an empty area of the graph
     /// @param p_from_node source node
     /// @param p_from_port source node port
     /// @param p_position mouse position where released
-    void _on_attempt_connection_to_empty(const StringName& p_from_node, int p_from_port, const Vector2& p_position);
+    void _on_connection_to_empty(const StringName& p_from_node, int p_from_port, const Vector2& p_position);
 
     /// Dispatched when a user selects a node in the graph
     /// @param p_node the selected node
@@ -481,10 +461,6 @@ private:
 
     /// Dispatched when the underlying script's connection list is changed
     void _on_graph_connections_changed(const String& p_caller);
-
-    /// Dispatched when the context menu option is selected
-    /// @param p_id the menu option id
-    void _on_context_menu_selection(int p_id);
 
     /// Dispatched when project settings are changed
     void _on_project_settings_changed();
