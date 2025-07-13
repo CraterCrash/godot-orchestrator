@@ -232,7 +232,7 @@ void OrchestratorGraphNodePinNodePath::_pin_disconnected(int p_type, int p_index
 
 void OrchestratorGraphNodePinNodePath::_notification(int p_what)
 {
-    #if GODOT_VERSION < 0x040300
+    #if GODOT_VERSION < 0x040202
     OrchestratorGraphNodePin::_notification(p_what);
     #endif
 
