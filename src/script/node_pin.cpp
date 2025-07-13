@@ -59,7 +59,7 @@ Ref<OScriptNodePin> OScriptNodePin::create(OScriptNode* p_owning_node, const Pro
     pin->_owning_node = p_owning_node;
     pin->_property = p_property;
 
-    #if GODOT_VERSION < 0x040300
+    #if GODOT_VERSION < 0x040202
     if (pin->_property.usage == 7)
         pin->_property.usage = PROPERTY_USAGE_DEFAULT;
     #endif
@@ -145,7 +145,7 @@ bool OScriptNodePin::_load(const Dictionary& p_data)
     if (p_data.has("usage"))
         _property.usage = p_data["usage"];
 
-    #if GODOT_VERSION < 0x040300
+    #if GODOT_VERSION < 0x040202
     if (_property.usage == 7)
         _property.usage = PROPERTY_USAGE_DEFAULT;
     #endif
@@ -192,7 +192,7 @@ Dictionary OScriptNodePin::_save()
     if (!_property.hint_string.is_empty())
         data["hint_string"] = _property.hint_string;
 
-    #if GODOT_VERSION < 0x040300
+    #if GODOT_VERSION < 0x040202
     if (_property.usage == 7)
         _property.usage = PROPERTY_USAGE_DEFAULT;
     #endif
