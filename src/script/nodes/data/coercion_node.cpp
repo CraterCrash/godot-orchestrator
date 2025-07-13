@@ -16,7 +16,6 @@
 //
 #include "coercion_node.h"
 
-#include "common/logger.h"
 #include "common/property_utils.h"
 #include "common/variant_utils.h"
 

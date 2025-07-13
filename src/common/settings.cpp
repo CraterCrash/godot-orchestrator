@@ -17,10 +17,10 @@
 #include "common/settings.h"
 
 #include "common/dictionary_utils.h"
-#include "common/logger.h"
 #include "common/version.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 // Helper setting layouts
 #define BOOL_SETTING(n,v) PropertyInfo(Variant::BOOL, n), v
@@ -160,7 +160,6 @@ void OrchestratorSettings::_register_settings()
     // Orchestrator v2
     _settings.emplace_back(RESOURCE_SETTING("settings/default_type", "Object", "Node"));
     _settings.emplace_back(SENUM_SETTING("settings/storage_format", "Text,Binary", "Text"));
-    _settings.emplace_back(SENUM_SETTING("settings/log_level", "FATAL,ERROR,WARN,INFO,DEBUG,TRACE", "INFO"));
     _settings.emplace_back(BOOL_SETTING("settings/notify_about_pre-releases", false));
     _settings.emplace_back(FILE_SETTING("settings/dialogue/default_message_scene", "*.tscn,*.scn", "res://addons/orchestrator/scenes/dialogue_message.tscn"));
 
