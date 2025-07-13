@@ -40,7 +40,7 @@ void OrchestratorGraphNodePinEnum::_on_item_selected(int p_index, OptionButton* 
 {
     if (p_index >= 0 && p_index < _items.size())
     {
-        const ListItem& item = _items[p_index];
+        const ListItem& item = _items.get(p_index);
         _pin->set_default_value(item.value);
     }
 

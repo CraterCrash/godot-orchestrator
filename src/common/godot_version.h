@@ -26,7 +26,7 @@
 struct GodotVersionInfo
 {
 private:
-    GDExtensionGodotVersion _version;
+    GDExtensionGodotVersion2 _version;
 
 public:
     constexpr uint32_t major() const { return _version.major; }
@@ -47,10 +47,10 @@ public:
         return _version.major == maj && _version.minor == min && _version.patch == patch;
     }
 
-    explicit GodotVersionInfo() { godot::internal::gdextension_interface_get_godot_version(&_version); }
+    explicit GodotVersionInfo() { godot::internal::gdextension_interface_get_godot_version2(&_version); }
 
     // Should only be used in tests, runtime code should use the no-arg constructor
-    constexpr GodotVersionInfo(const GDExtensionGodotVersion& v) : _version(v) {}
+    constexpr GodotVersionInfo(const GDExtensionGodotVersion2& v) : _version(v) {}
 };
 
 #endif // ORCHESTRATOR_GODOT_VERSION_H

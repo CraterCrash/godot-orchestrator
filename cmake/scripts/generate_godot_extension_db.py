@@ -259,6 +259,13 @@ def print_struct(name, elements, methods = None):
     print_indent("};")
     print_indent("")
 
+# Creates all missing defines
+def create_defines():
+    indent_push()
+    print_indent("#define Math_INF INFINITY")
+    print_indent("#define Math_NAN NAN")
+    print_indent("")
+    indent_pop()
 
 # Creates all the struct data types
 def create_structs():
@@ -416,6 +423,7 @@ def create_hpp():
     # NS
     print_indent("namespace " + NS)
     print_indent("{")
+    create_defines()
     create_structs()
     indent_push()
     create_loader_header()

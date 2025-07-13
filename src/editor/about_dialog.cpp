@@ -158,7 +158,7 @@ ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, c
         {
             Label* label = memnew(Label);
             label->set_theme_type_variation("HeaderSmall");
-            label->set_text(p_sections[i]);
+            label->set_text(p_sections.get(i));
             vbc->add_child(label);
 
             ItemList *list = memnew(ItemList);

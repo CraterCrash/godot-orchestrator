@@ -14,11 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "dictionary_utils.h"
+#include "common/dictionary_utils.h"
 
-#include "memory_utils.h"
-
-#include <godot_cpp/variant/utility_functions.hpp>
+#include "common/memory_utils.h"
+#include "common/version.h"
 
 namespace DictionaryUtils
 {
@@ -208,5 +207,14 @@ namespace DictionaryUtils
             result.push_back(from_property(property));
 
         return result;
+    }
+
+    Variant get(const Dictionary& p_dict, const String& p_key, const Variant& p_fallback)
+    {
+        #if GODOT_VERSION >= 0x040300
+        return p_dict.get(p_key, p_fallback);
+        #else
+        return p_dict.has(p_key) ? p_dict[p_key] : p_fallback;
+        #endif
     }
 }
