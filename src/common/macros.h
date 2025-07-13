@@ -29,4 +29,18 @@
             obj->disconnect(signal, method);        \
         }
 
+#define GUARD_NULL(x) if (!(x)) return;
+
+#define EI godot::EditorInterface::get_singleton()
+#define EDSCALE EI->get_editor_scale()
+#define EditorNode get_tree()->get_root()->get_child(0)
+#define EDITOR_GET(x) EI->get_editor_settings()->get(x)
+#define PROJECT_GET(x,y,z) EI->get_editor_settings()->get_project_metadata(x,y,z)
+#define PROJECT_SET(x,y,z) EI->get_editor_settings()->set_project_metadata(x,y,z)
+
+#define callable_mp_parent(method) callable_mp(static_cast<parent_type*>(this), &parent_type::method)
+#define callable_mp_this(method) callable_mp(this, &self_type::method)
+#define callable_mp_this_parent(method) callable_mp(this, &parent_type::method)
+#define callable_mp_cast(obj, type, method) callable_mp(static_cast<type*>(obj), &type::method)
+
 #endif // ORCHESTRATOR_MACROS_H

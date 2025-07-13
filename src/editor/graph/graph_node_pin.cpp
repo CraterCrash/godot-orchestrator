@@ -262,29 +262,29 @@ void OrchestratorGraphNodePin::_promote_as_variable()
     if (!variable.is_valid())
         return;
 
-    OScriptNodeInitContext context;
-    context.variable_name = variable->get_variable_name();
+    OrchestratorGraphEdit::NodeSpawnOptions options;
+    options.context.variable_name = variable->get_variable_name();
 
-    Vector2 position = _node->get_script_node()->get_position();
+    options.position = _node->get_script_node()->get_position();
     if (is_input())
     {
-        position += get_graph_node()->get_input_port_position(_pin->get_pin_index());
-        position -= Vector2(250, 0);
+        options.position += get_graph_node()->get_input_port_position(_pin->get_pin_index());
+        options.position -= Vector2(250, 0);
+        options.node_class = OScriptNodeVariableGet::get_class_static();
 
-        get_graph()->spawn_node<OScriptNodeVariableGet>(context, position,
-            callable_mp_lambda(this, [&, this](const Ref<OScriptNodeVariableGet>& p_node) {
-                p_node->find_pin(0, PD_Output)->link(_pin);
-            }));
+        OrchestratorGraphNode* spawned = get_graph()->spawn_node(options);
+        if (spawned)
+            spawned->get_output_pin(0)->link(this);
     }
     else
     {
-        position += get_graph_node()->get_output_port_position(_pin->get_pin_index());
-        position += Vector2(75, 0);
+        options.position += get_graph_node()->get_output_port_position(_pin->get_pin_index());
+        options.position += Vector2(75, 0);
+        options.node_class = OScriptNodeVariableSet::get_class_static();
 
-        get_graph()->spawn_node<OScriptNodeVariableSet>(context, position,
-            callable_mp_lambda(this, [&, this](const Ref<OScriptNodeVariableSet>& p_node) {
-                _pin->link(p_node->find_pin(1, PD_Input));
-            }));
+        OrchestratorGraphNode* spawned = get_graph()->spawn_node(options);
+        if (spawned)
+            link(spawned->get_input_pin(1));
     }
 }
 

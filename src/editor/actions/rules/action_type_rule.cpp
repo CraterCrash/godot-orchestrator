@@ -14,11 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "action_menu_filter.h"
+#include "editor/actions/rules/action_type_rule.h"
 
-#include "editor/graph/graph_edit.h"
+#include "editor/actions/filter_engine.h"
 
-Orchestration* OrchestratorGraphActionContext::get_orchestration() const
+bool OrchestratorEditorActionTypeRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
 {
-    return graph ? graph->get_orchestration() : nullptr;
+    ERR_FAIL_COND_V(!p_action.is_valid(), false);
+
+    if (p_context.menu_context._filter_action_type < 0)
+        return true;
+
+    return p_action->type == p_context.menu_context._filter_action_type;
 }

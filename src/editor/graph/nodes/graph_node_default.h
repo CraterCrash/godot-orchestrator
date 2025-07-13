@@ -77,6 +77,8 @@ public:
     OrchestratorGraphNodePin* get_input_pin(int p_port) override;
     OrchestratorGraphNodePin* get_output_pin(int p_port) override;
     void update_pins(bool p_visible) override;
+    Vector<OrchestratorGraphNodePin*> get_pins() const override;
+    Vector<OrchestratorGraphNodePin*> get_eligible_autowire_pins(OrchestratorGraphNodePin* p_pin) const override;
     //~ End OrchestratorGraphNode Interface
 };
 

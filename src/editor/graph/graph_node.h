@@ -169,6 +169,13 @@ public:
     /// @return the point index
     int32_t get_port_at_position(const Vector2& p_position, EPinDirection p_direction);
 
+    Rect2 get_node_rect() const;
+
+    int32_t get_port_slot(int p_port, EPinDirection p_direction);
+
+    virtual Vector<OrchestratorGraphNodePin*> get_pins() const { return {}; }
+    virtual Vector<OrchestratorGraphNodePin*> get_eligible_autowire_pins(OrchestratorGraphNodePin* p_pin) const { return {}; }
+
     // Group API
 
     virtual bool is_groupable() const { return false; }
