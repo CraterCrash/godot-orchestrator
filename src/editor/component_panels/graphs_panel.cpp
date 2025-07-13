@@ -323,7 +323,7 @@ void OrchestratorScriptGraphsComponentPanel::update()
 
 void OrchestratorScriptGraphsComponentPanel::_notification(int p_what)
 {
-    #if GODOT_VERSION < 0x040300
+    #if GODOT_VERSION < 0x040202
     // Godot does not dispatch to parent (shrugs)
     OrchestratorScriptComponentPanel::_notification(p_what);
     #endif
