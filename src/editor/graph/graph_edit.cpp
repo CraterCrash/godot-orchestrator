@@ -19,7 +19,6 @@
 #include "autowire_selections.h"
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
-#include "common/logger.h"
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/property_utils.h"
