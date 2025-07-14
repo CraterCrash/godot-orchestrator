@@ -190,6 +190,9 @@ GDExtensionMethodInfo* OScriptInstanceBase::get_method_list(uint32_t* r_count) c
     int size = methods.size();
     *r_count = size;
 
+    if (size == 0)
+        return nullptr;
+
     GDExtensionMethodInfo* list = MemoryUtils::memnew_with_size<GDExtensionMethodInfo>(size);
     memcpy(list, methods.ptr(), sizeof(GDExtensionMethodInfo) * size);
 
