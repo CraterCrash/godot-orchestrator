@@ -110,12 +110,30 @@
       }
     },
     {
+      "name": "android-arm64-editor",
+      "inherits": ["default-editor", "android-default"],
+      "description": "Builds Orchestrator for Android arm64 using editor.",
+      "cacheVariables": {
+        "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a",
+        "ANDROID_ABI": "arm64-v8a"
+      }
+    },
+    {
       "name": "android-arm64-release",
       "inherits": ["default-release", "android-default"],
       "description": "Builds Orchestrator for Android arm64 using template_release.",
       "cacheVariables": {
         "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a",
         "ANDROID_ABI": "arm64-v8a"
+      }
+    },
+    {
+      "name": "android-arm32-editor",
+      "inherits": ["default-editor", "android-default"],
+      "description": "Builds Orchestrator for Android arm32 using editor.",
+      "cacheVariables": {
+        "CMAKE_ANDROID_ARCH_ABI": "armeabi-v7a",
+        "ANDROID_ABI": "armeabi-v7a"
       }
     },
     {
