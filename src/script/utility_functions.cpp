@@ -22,6 +22,7 @@
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 #ifdef DEBUG_ENABLED
 #define DEBUG_VALIDATE_ARG_COUNT(m_min_count, m_max_count)                          \

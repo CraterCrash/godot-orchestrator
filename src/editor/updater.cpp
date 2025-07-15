@@ -17,6 +17,7 @@
 #include "editor/updater.h"
 
 #include "common/callable_lambda.h"
+#include "common/godot_version.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
@@ -468,13 +469,12 @@ void OrchestratorUpdaterVersionPicker::_bind_methods()
 
 OrchestratorUpdaterVersionPicker::OrchestratorUpdaterVersionPicker()
 {
-    GDExtensionGodotVersion gd_version;
-    internal::gdextension_interface_get_godot_version(&gd_version);
+    GodotVersionInfo gd_version;
 
     // Generate the editor's current version
     // Used in compatibility checks
     _godot_version = OrchestratorVersion::parse(vformat(
-        "v%d.%d.%d", gd_version.major, gd_version.minor, gd_version.patch));
+        "v%d.%d.%d", gd_version.major(), gd_version.minor(), gd_version.patch()));
 
     set_title("Select Version");
 

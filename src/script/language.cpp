@@ -17,7 +17,6 @@
 #include "script/language.h"
 
 #include "common/dictionary_utils.h"
-#include "common/logger.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "script/script.h"
@@ -61,8 +60,6 @@ OScriptLanguage* OScriptLanguage::get_singleton()
 
 void OScriptLanguage::_init()
 {
-    Logger::info("Initializing OrchestratorScript");
-
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
     if (settings)
     {
