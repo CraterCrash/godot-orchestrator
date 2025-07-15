@@ -18,8 +18,9 @@ windows.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.release.dll"
 windows.debug.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.editor.dll"
 
 android.arm32 = "res://addons/orchestrator/liborchestrator.android.32.release.so"
-
+android.debug.arm32 = "res://addons/orchestrator/liborchestrator.android.32.editor.so"
 android.arm64 = "res://addons/orchestrator/liborchestrator.android.64.release.so"
+android.debug.arm64 = "res://addons/orchestrator/liborchestrator.android.64.editor.so"
 
 web.release.threads.wasm32 = "res://addons/orchestrator/orchestrator.web.release.wasm32.wasm"
 web.release.nothreads.wasm32 = "res://addons/orchestrator/orchestrator.web.release.wasm32.nothreads.wasm"

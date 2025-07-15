@@ -11,10 +11,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: Editor (target=editor, arch=arm32)
+            artifact-name: android-arm32-editor
+            cache-name: android-arm32-editor
+            preset: android-arm32-editor
+
           - name: Template arm32 (target=template_release, arch=arm32)
             artifact-name: android-arm32
             cache-name: android-template-arm32
             preset: android-arm32-release
+
+          - name: Editor (target=editor, arch=arm64)
+            artifact-name: android-arm64-editor
+            cache-name: android-arm64-editor
+            preset: android-arm64-editor
 
           - name: Template arm64 (target=template_release, arch=arm64)
             artifact-name: android-arm64
