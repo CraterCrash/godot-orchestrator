@@ -353,7 +353,7 @@ void OScriptNodePin::set_default_value(const Variant& p_default_value)
         {
             set_block_signals(true);
             node->pin_default_value_changed(Ref<OScriptNodePin>(this));
-            set_block_signals(true);
+            set_block_signals(false);
         }
         emit_changed();
     }
