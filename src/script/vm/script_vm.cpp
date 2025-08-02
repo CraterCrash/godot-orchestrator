@@ -941,7 +941,7 @@ bool OScriptVirtualMachine::register_variable(const Ref<OScriptVariable>& p_vari
 
     Variable variable;
     variable.exported = p_variable->is_exported();
-    variable.value= p_variable->get_default_value();
+    variable.value = p_variable->get_default_value().duplicate();
     variable.type = p_variable->get_variable_type();
 
     _variables[p_variable->get_variable_name()] = variable;
