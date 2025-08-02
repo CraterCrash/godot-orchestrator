@@ -547,7 +547,7 @@ void OrchestratorScriptEditorViewport::add_script_function(Object* p_object, con
 
 void OrchestratorScriptEditorViewport::_notification(int p_what)
 {
-    #if GODOT_VERSION < 0x040300
+    #if GODOT_VERSION < 0x040202
     OrchestratorEditorViewport::_notification(p_what);
     #endif
 

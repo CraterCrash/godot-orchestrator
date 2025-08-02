@@ -19,7 +19,6 @@
 #include "autowire_selections.h"
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
-#include "common/logger.h"
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/property_utils.h"
@@ -58,6 +57,7 @@
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/tween.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 OrchestratorGraphEdit::Clipboard* OrchestratorGraphEdit::_clipboard = nullptr;
 
@@ -103,8 +103,7 @@ EPinDirection OrchestratorGraphEdit::DragContext::get_direction() const
 
 OrchestratorGraphEdit::OrchestratorGraphEdit(const Ref<OScriptGraph>& p_graph)
 {
-    internal::gdextension_interface_get_godot_version(&_version);
-    _is_43p = _version.major == 4 && _version.minor >= 3;
+    _is_43p = _version.at_least(4, 3);
 
     set_name(p_graph->get_graph_name());
     set_minimap_enabled(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_minimap", false));
