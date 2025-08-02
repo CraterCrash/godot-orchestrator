@@ -14,8 +14,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-
-FIND_PACKAGE( Python3 REQUIRED COMPONENTS Interpreter )
+INCLUDE_GUARD()
 
 FUNCTION( GENERATE_GODOT_DOCUMENTATION )
     # Grab all documentation XML files

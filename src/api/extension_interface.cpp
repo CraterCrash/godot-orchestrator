@@ -16,8 +16,6 @@
 //
 #include "extension_interface.h"
 
-#include "common/logger.h"
-#include "common/version.h"
 #include "editor/register_editor_types.h"
 #include "script/register_script_types.h"
 
@@ -30,20 +28,10 @@ using namespace godot;
 
 namespace orchestrator
 {
-    Logger* logger = nullptr;
-
     void initialize_extension_module(ModuleInitializationLevel p_level)
     {
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE)
         {
-            // Initialize the logger
-            logger = LoggerFactory::create("user://orchestrator.log");
-            Logger::info("Starting " VERSION_FULL_NAME);
-
-            GDExtensionGodotVersion godot_version;
-            internal::gdextension_interface_get_godot_version(&godot_version);
-            Logger::info("Using ", godot_version.string);
-
             register_extension_db();
         }
 
@@ -82,9 +70,6 @@ namespace orchestrator
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE)
         {
             unregister_extension_db();
-
-            Logger::info("Shutting down " VERSION_FULL_NAME);
-            delete(logger);
         }
     }
 

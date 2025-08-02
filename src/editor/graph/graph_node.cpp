@@ -16,7 +16,6 @@
 //
 #include "graph_node.h"
 
-#include "common/logger.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
@@ -40,6 +39,7 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 OrchestratorGraphNode::OrchestratorGraphNode(OrchestratorGraphEdit* p_graph, const Ref<OScriptNode>& p_node)
 {

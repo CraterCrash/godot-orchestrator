@@ -86,7 +86,7 @@ void OrchestratorGraphNodeComment::_update_pins()
 
 void OrchestratorGraphNodeComment::_notification(int p_what)
 {
-    #if GODOT_VERSION < 0x040300
+    #if GODOT_VERSION < 0x040202
     OrchestratorGraphNode::_notification(p_what);
     #endif
 
