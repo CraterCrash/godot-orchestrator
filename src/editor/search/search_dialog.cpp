@@ -281,7 +281,6 @@ TreeItem* OrchestratorEditorSearchDialog::_populate_search_results()
             cache[item->path] = child;
             parent = child;
 
-            // todo: move this to using item->collapsed
             _set_search_item_collapse_state(child);
         }
     }
@@ -630,7 +629,6 @@ void OrchestratorEditorSearchDialog::_on_confirmed()
     if (!search_item.is_valid())
         return;
 
-    // todo: convert to SearchItem?
     if (!search_item->selectable)
         return;
 

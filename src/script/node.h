@@ -416,4 +416,6 @@ protected:
     friend class x;                                                             \
     x* _node = nullptr;
 
+typedef OScriptNode OrchestrationGraphNode;
+
 #endif  // ORCHESTRATOR_SCRIPT_NODE_H
