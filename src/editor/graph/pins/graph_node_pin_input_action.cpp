@@ -17,6 +17,7 @@
 #include "graph_node_pin_input_action.h"
 
 #include "common/callable_lambda.h"
+#include "common/macros.h"
 
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -81,9 +82,7 @@ Control* OrchestratorGraphNodePinInputAction::_get_default_value_widget()
         _button->release_focus();
     }));
 
-    ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_lambda(this, [&]() {
-        _populate_action_list();
-    }));
+    ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_populate_action_list));
 
     _populate_action_list();
 
