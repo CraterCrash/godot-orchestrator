@@ -82,7 +82,8 @@ Control* OrchestratorGraphNodePinInputAction::_get_default_value_widget()
         _button->release_focus();
     }));
 
-    ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_populate_action_list));
+    ProjectSettings::get_singleton()->connect("settings_changed",
+        callable_mp(this, &OrchestratorGraphNodePinInputAction::_populate_action_list));
 
     _populate_action_list();
 
