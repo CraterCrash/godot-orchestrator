@@ -506,6 +506,8 @@ void OrchestratorScriptEditorViewport::add_script_function(Object* p_object, con
     {
         PackedStringArray bits = argument.split(":");
 
+        bits[1] = bits[1].strip_edges();
+
         if (ClassDB::get_class_list().has(bits[1]))
         {
             // Type represents a registered class.
