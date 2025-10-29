@@ -117,7 +117,7 @@ runs:
 
     # Creates a demo archive of this specific build, including only the "project" subfolder
     - name: Upload artifact (Demo)
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ github.event.repository.name }}-demo-${{ inputs.artifact-name }}
         retention-days: 1
@@ -126,7 +126,7 @@ runs:
 
     # Creates the distribution plugin
     - name: Upload artifact (Plug-in)
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ github.event.repository.name }}-plugin-${{ inputs.artifact-name }}
         retention-days: 1
