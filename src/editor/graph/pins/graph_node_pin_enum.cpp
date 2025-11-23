@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/string_utils.h"
+#include "common/version.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_file_system.hpp>
@@ -40,7 +41,11 @@ void OrchestratorGraphNodePinEnum::_on_item_selected(int p_index, OptionButton* 
 {
     if (p_index >= 0 && p_index < _items.size())
     {
+        #if GODOT_VERSION >= 0x040500
+        const ListItem& item = _items.get(p_index);
+        #else
         const ListItem& item = _items[p_index];
+        #endif
         _pin->set_default_value(item.value);
     }
 

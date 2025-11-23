@@ -158,7 +158,11 @@ ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, c
         {
             Label* label = memnew(Label);
             label->set_theme_type_variation("HeaderSmall");
+            #if GODOT_VERSION >= 0x040500
+            label->set_text(p_sections.get(i));
+            #else
             label->set_text(p_sections[i]);
+            #endif
             vbc->add_child(label);
 
             ItemList *list = memnew(ItemList);

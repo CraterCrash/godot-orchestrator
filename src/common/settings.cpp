@@ -94,7 +94,7 @@ void OrchestratorSettings::add_action_favorite(const String& p_action_name)
     {
         ps->set_setting(key, PackedStringArray());
         ps->set_initial_value(key, PackedStringArray());
-        ps->add_property_info(DictionaryUtils::from_property(pi));
+        ps->add_property_info(DictionaryUtils::from_property(pi, true));
         ps->set_as_basic(key, false);
     }
 
@@ -282,7 +282,7 @@ void OrchestratorSettings::_initialize_settings()
         // setting back to its defaults, since the editor does not persist these details.
         ps->set_initial_value(key, setting.value);
         ps->set_order(key, _builtin_order++);
-        ps->add_property_info(DictionaryUtils::from_property(pi));
+        ps->add_property_info(DictionaryUtils::from_property(pi, true));
         ps->set_as_basic(key, true);
     }
 }
