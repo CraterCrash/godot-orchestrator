@@ -27,6 +27,7 @@
 #include "common/dictionary_utils.h"
 #include "common/resource_utils.h"
 #include "common/string_utils.h"
+#include "common/version.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -565,12 +566,20 @@ Error OScriptVariantParser::get_token(Stream* p_stream, int& r_line, Token& r_to
                         r_token.value = num.to_int();
                     return OK;
                 }
+                #if GODOT_VERSION >= 0x040500
+                else if (is_ascii_alphabet_char(cchar) || is_underscore(cchar))
+                #else
                 else if (is_ascii_char(cchar) || is_underscore(cchar))
+                #endif
                 {
                     String id;
                     bool first{ true };
 
+                    #if GODOT_VERSION >= 0x040500
+                    while (is_ascii_alphabet_char(cchar) || is_underscore(cchar) || (!first && is_digit(cchar)))
+                    #else
                     while (is_ascii_char(cchar) || is_underscore(cchar) || (!first && is_digit(cchar)))
+                    #endif
                     {
                         id += cchar;
                         cchar = p_stream->get_char();

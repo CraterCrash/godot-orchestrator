@@ -714,7 +714,11 @@ void OrchestratorGraphNode::_handle_context_menu(int p_id)
         int action_index = p_id - CM_NODE_ACTION;
         if (action_index < _context_actions.size())
         {
+            #if GODOT_VERSION >= 0x040500
+            const Ref<OScriptAction>& action = _context_actions.get(action_index);
+            #else
             const Ref<OScriptAction>& action = _context_actions[action_index];
+            #endif
             if (action->get_handler().is_valid())
                 action->get_handler().call();
         }

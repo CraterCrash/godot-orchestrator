@@ -19,8 +19,7 @@
       "hidden": true,
       "description": "Defines default values for doing GodotCPP editor builds",
       "cacheVariables": {
-        "ORCH_GODOTCPP_TARGET": "godot-cpp.editor",
-        "ORCH_GODOTCPP_NAMESPACE": "godot-cpp::editor"
+        "GODOTCPP_TARGET": "editor"
       }
     },
     {
@@ -28,8 +27,7 @@
       "hidden": true,
       "description": "Defines default values for doing GodotCPP template_release builds",
       "cacheVariables": {
-        "ORCH_GODOTCPP_TARGET": "godot-cpp.template_release",
-        "ORCH_GODOTCPP_NAMESPACE": "godot-cpp::template_release"
+        "GODOTCPP_TARGET": "template_release"
       }
     },
     {

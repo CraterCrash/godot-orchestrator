@@ -181,14 +181,14 @@ IF (AUTOFORMAT_SRC_ON_CONFIGURE MATCHES ON)
 ENDIF ()
 
 # Dependency linking
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC ${ORCH_GODOTCPP_TARGET})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC godot-cpp)
 
 SET(GDEXTENSION_LIB_PREFIX "")
 
 ### Get useful properties of the library
-get_target_property( GODOTCPP_PLATFORM ${ORCH_GODOTCPP_NAMESPACE} GODOTCPP_PLATFORM   )
-get_target_property( GODOTCPP_TARGET   ${ORCH_GODOTCPP_NAMESPACE} GODOTCPP_TARGET     )
-get_target_property( GODOTCPP_ARCH     ${ORCH_GODOTCPP_NAMESPACE} GODOTCPP_ARCH       )
+get_target_property( GODOTCPP_PLATFORM godot-cpp GODOTCPP_PLATFORM   )
+get_target_property( GODOTCPP_TARGET   godot-cpp GODOTCPP_TARGET     )
+get_target_property( GODOTCPP_ARCH     godot-cpp GODOTCPP_ARCH       )
 
 # Converts GODOT_ARCH to the old system bits for unchanged file names.
 IF (APPLE)

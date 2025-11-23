@@ -17,6 +17,7 @@
 #include "script/register_script_types.h"
 
 #include "common/settings.h"
+#include "common/version.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
 #include "script/serialization/resource_cache.h"
@@ -62,10 +63,17 @@ void register_script_types()
     GDREGISTER_INTERNAL_CLASS(OScriptTargetObject)
     GDREGISTER_INTERNAL_CLASS(OScriptNodePin)
     GDREGISTER_INTERNAL_CLASS(OScriptLanguage)
+    #if GODOT_VERSION >= 0x040500
+    GDREGISTER_CLASS(OScriptGraph)
+    GDREGISTER_CLASS(OScriptFunction)
+    GDREGISTER_CLASS(OScriptVariable)
+    GDREGISTER_CLASS(OScriptSignal)
+    #else
     GDREGISTER_INTERNAL_CLASS(OScriptGraph)
     GDREGISTER_INTERNAL_CLASS(OScriptFunction)
     GDREGISTER_INTERNAL_CLASS(OScriptVariable)
     GDREGISTER_INTERNAL_CLASS(OScriptSignal)
+    #endif
     GDREGISTER_INTERNAL_CLASS(OScriptState)
     GDREGISTER_INTERNAL_CLASS(OScriptAction)
 
