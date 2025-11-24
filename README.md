@@ -23,7 +23,7 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 
 ![screen-shot](https://static.cratercrash.space/orchestrator/images/screenshots/screenshot_d.png)
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=20)  Godot Compatibility
+## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20)  Godot Compatibility
 
 Orchestrator is made using Godot GDExtension technology, which has certain ABI (application binary interface) requirements that must be followed to guarantee that the integration between extensions and the engine works as expected.
 The following table describes which Orchestrator version you should use based on your Godot editor version.
