@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptFunction" inherits="Resource" experimental="Not intended to be used directly." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Represents a script-level function in an [OScript].
+    </brief_description>
+</class>
