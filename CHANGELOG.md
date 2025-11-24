@@ -1,5 +1,96 @@
 # CHANGELOG
 
+## [2.2.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.2.stable) - 2025-11-24
+
+- [cc934ec](http://github.com/CraterCrash/godot-orchestrator/commit/cc934ecbeba1839b9f44c0d7a82ac713408624a5) - GH-1046 Trim new signal argument values
+- [d975d0e](http://github.com/CraterCrash/godot-orchestrator/commit/d975d0e23a9c98ddf30e424b0728dd2671c67e30) - GH-1038 Fix crash when input map changed
+- [3f7ae57](http://github.com/CraterCrash/godot-orchestrator/commit/3f7ae578ffb85698ae80a6ac2240842cf5b817ef) - GH-1031 Make sure variable values are unique per instance
+- [9fc7aeb](http://github.com/CraterCrash/godot-orchestrator/commit/9fc7aebb6ea176da6c552769338f60bcb481ed2c) - GH-1024 Introduce Android editor builds
+- [aaf77df](http://github.com/CraterCrash/godot-orchestrator/commit/aaf77df60e154d47f377f950db1a5aebb0fdbb68) - GH-1014 Only set arm64 on linux filenames
+- [456ade8](http://github.com/CraterCrash/godot-orchestrator/commit/456ade8b212028d0375075c3e135a9fe92109390) - GH-1027 Fix signal blocking for node pins
+- [e58e01e](http://github.com/CraterCrash/godot-orchestrator/commit/e58e01ec5f948c94517829d60ffb5986bb7a64a4) - GH-1022 Do not allocate an empty method list
+- [4c81bb7](http://github.com/CraterCrash/godot-orchestrator/commit/4c81bb7e64686cbe2028143ed0d50de7feeeecc3) - GH-1018 Add the new All Actions dialog window
+- [77b23e6](http://github.com/CraterCrash/godot-orchestrator/commit/77b23e60664ed31e7f0fb11f708cf109df9afa99) - GH-1020 Fix GODOT_VERSION checks for `PropertyInfo`
+- [67d482c](http://github.com/CraterCrash/godot-orchestrator/commit/67d482c8901a3956641be6565e717d27229360da) - GH-1020 Fix GODOT_VERSION checks for `notification`
+- [8b9ed9f](http://github.com/CraterCrash/godot-orchestrator/commit/8b9ed9fb1110246cb787793262acf5e0b6d32f69) - GH-1014 Introduce Linux arm64 builds
+- [e782969](http://github.com/CraterCrash/godot-orchestrator/commit/e7829690af974a9a25e5e899dffedd9449fcc132) - GH-1012 Remove `Logger` class
+- [54b6016](http://github.com/CraterCrash/godot-orchestrator/commit/54b60162e4ab6f2cc9e1030f403f6c2015d88515) - GH-1016 Fix wasm32 no-threads extension
+- [22925b0](http://github.com/CraterCrash/godot-orchestrator/commit/22925b024c917b5b837afa4a8f717daa4633ecb9) - GH-1008 Introduce `GDExtensionGodotVersion` wrapper
+- [5b6a7f3](http://github.com/CraterCrash/godot-orchestrator/commit/5b6a7f35dc75a9dcf709fb85f6340274167e68c6) - GH-1006 Use build's resolved python version
+- [41d3f85](http://github.com/CraterCrash/godot-orchestrator/commit/41d3f85ff8342064ee5f0123686e6c0a0ed8a7f8) - Fix icon behavior
+- [a2964fd](http://github.com/CraterCrash/godot-orchestrator/commit/a2964fdafced419c89a732d4c65b080e9358a602) - GH-995 Clear inspector when closing an Orchestration
+- [338e5f4](http://github.com/CraterCrash/godot-orchestrator/commit/338e5f4655358efceb0c43780912c28b0e85abd7) - GH-956 Avoid extra execution pins on duplication
+- [e6585d5](http://github.com/CraterCrash/godot-orchestrator/commit/e6585d5fdb657db5e4b57e08f67861dd031d7d3b) - GH-991 OScriptNodeCallFunction extend OScriptEditablePinNode
+- [1d1aaeb](http://github.com/CraterCrash/godot-orchestrator/commit/1d1aaeb0397a32d2ed0a516139fea86b1ea83c4b) - GH-985 Force Emscripten to use sccache
+- [493e0a4](http://github.com/CraterCrash/godot-orchestrator/commit/493e0a4fc6e0aef85c23f084715db4596cd04d5d) - GH-983 Reset script edit status on save
+- [f3002ba](http://github.com/CraterCrash/godot-orchestrator/commit/f3002babf1f884fdebb589fabaf8800faa74741d) - GH-981 Introduce `set_info` method on `OScriptVariable`
+- [75b520b](http://github.com/CraterCrash/godot-orchestrator/commit/75b520bde57e6bf8344524d65a85ec0b79653c4d) - GH-979 Guard reconnecting to changed signal on duplication
+- [d800833](http://github.com/CraterCrash/godot-orchestrator/commit/d800833b9c260a219b35a26e6c270173df693c6a) - GH-976 Improve GUID performance
+- [bc9458f](http://github.com/CraterCrash/godot-orchestrator/commit/bc9458fd3e912496dd96345c086670f413adb8d7) - GH-974 Support reloading script from disk
+- [baada2f](http://github.com/CraterCrash/godot-orchestrator/commit/baada2f01e8369580ee878ff8b608d1f7efb0949) - GH-972 Add ScriptExtension `_get_doc_class_name` override
+- [dbf3910](http://github.com/CraterCrash/godot-orchestrator/commit/dbf3910d6af20089c66aab3e761e1f36c0f03a3f) - GH-969 Fix documentation builds on non-Windows platforms
+- [1080460](http://github.com/CraterCrash/godot-orchestrator/commit/1080460172875670bda1abec95e4576c394f5ec5) - GH-956 Open/Focus when function duplicated & code cleanup
+- [d4323d1](http://github.com/CraterCrash/godot-orchestrator/commit/d4323d1a765347681fe2539968776225dc60dd9c) - GH-956 Implement changes from review
+- [762b641](http://github.com/CraterCrash/godot-orchestrator/commit/762b641ccf19d38c3408122eb5008cd292155d4d) - GH-956 Implement duplicate method
+- [1fd3829](http://github.com/CraterCrash/godot-orchestrator/commit/1fd3829ab7da543c3395a35bde82322510f57de7) - GH-956 Implement duplicate variable
+- [b6e0991](http://github.com/CraterCrash/godot-orchestrator/commit/b6e09914044f497444c3a590bb5c391878455876) - GH-849 Support python negative indexing on array nodes
+- [ca703b9](http://github.com/CraterCrash/godot-orchestrator/commit/ca703b98b4d4a9285a557610705184895b0da1c8) - GH-951 Allow setting placeholder values with categories
+- [a68da4c](http://github.com/CraterCrash/godot-orchestrator/commit/a68da4c33947916958cedf02ea788b0c8b54827d) - GH-953 Use Android API v22
+- [aa7dfb6](http://github.com/CraterCrash/godot-orchestrator/commit/aa7dfb6d602d29197a36b98eac0b1a860c6869c8) - GH-947 Verify script instance on signal callback
+- [c49d805](http://github.com/CraterCrash/godot-orchestrator/commit/c49d805143fbd5337c45c35f76b043bf0228e8e5) - GH-943 Add function/signal description inspector fields
+- [500bdef](http://github.com/CraterCrash/godot-orchestrator/commit/500bdef206c3e7373c4254c3b60fce88f697cd2e) - GH-609 Add wasm32/web builds
+- [7fc9440](http://github.com/CraterCrash/godot-orchestrator/commit/7fc94404b349154e02b2ae1b5d79ad670d9acd7c) - GH-940 Introduce export game plug-in binaries
+- [4bdbe72](http://github.com/CraterCrash/godot-orchestrator/commit/4bdbe727d0aaec905d3b3e4ca70a196ce203673a) - GH-936 Add missing FilenameFilter icon
+- [cdb2ac5](http://github.com/CraterCrash/godot-orchestrator/commit/cdb2ac58c8bf3eb0d23bed23f6ef9f49de01aa69) - GH-890 Fix enum dropdown for global script classes
+- [149b51e](http://github.com/CraterCrash/godot-orchestrator/commit/149b51e8529acebcbeb98f18a9f63cc9510a0c89) - GH-821 Scope debug-functions to Godot 4.3+ only
+- [d15ab0c](http://github.com/CraterCrash/godot-orchestrator/commit/d15ab0cbddcd03f22b04e1b19d0598f5df4253b6) - GH-821 Introduce Orchestration built-in functions
+- [3009369](http://github.com/CraterCrash/godot-orchestrator/commit/300936994bc19e2fb0b8afb73d1b66e8a7b99222) - GH-535 Fix compiler warnings
+- [d5428c8](http://github.com/CraterCrash/godot-orchestrator/commit/d5428c8330ee480e50bbbb2befad6246958fa2c0) - GH-535 Improve self fallback signal suggestions
+- [d7980f0](http://github.com/CraterCrash/godot-orchestrator/commit/d7980f0d2d0a33d0ab59e09607609632cb0445ff) - GH-535 Add string-based pin suggestion options
+- [f142963](http://github.com/CraterCrash/godot-orchestrator/commit/f142963de12aa509e8314776a1905a7f0d4181c0) - GH-901 Support get scene node with unique names
+- [d259837](http://github.com/CraterCrash/godot-orchestrator/commit/d259837deab42cda9e1992621c1222fdfe1beea7) - GH-910 Update wire colors when settings changed
+- [3c5629a](http://github.com/CraterCrash/godot-orchestrator/commit/3c5629a8f037bff23256327de5ea9d18d276733a) - GH-908 Allow type cast to abstract class types
+- [af61a47](http://github.com/CraterCrash/godot-orchestrator/commit/af61a47ad887cdec41e7fbb8d14c3b568ecd2dde) - GH-868 Print additional configuration settings
+- [3bfea4e](http://github.com/CraterCrash/godot-orchestrator/commit/3bfea4e91c6439f750b7c3ca2af4b6a07f28e750) - GH-868 ORCHESTRATOR_ARCH based on CMAKE_SIZEOF_VOID_P
+- [7de6873](http://github.com/CraterCrash/godot-orchestrator/commit/7de68732fbce9561c73cf06c6daf7fff606f7c80) - GH-868 Fix library name resolution
+- [a661a6e](http://github.com/CraterCrash/godot-orchestrator/commit/a661a6e3db6a3c9b527c450db363f33b31af5bde) - GH-868 Bump godot-engine/godot-cpp to 4.4.stable
+- [ba15eba](http://github.com/CraterCrash/godot-orchestrator/commit/ba15ebab4f8b698838db1eb5ae822cab04a1ccf6) - GH-868 Add Orchestrator's doc generator back
+- [b5c5b94](http://github.com/CraterCrash/godot-orchestrator/commit/b5c5b94a5edae79e5b4fb7b39de648a51ec76db7) - GH-868 Use new `macos` platform name rather than `darwin`
+- [6bb8697](http://github.com/CraterCrash/godot-orchestrator/commit/6bb8697af1806fd68d421e3654f0d6d5cb48ce5f) - GH-868 Resolve prefix based on ANDROID identifier
+- [2b204d4](http://github.com/CraterCrash/godot-orchestrator/commit/2b204d4600ccb1e9d0336a525c2a283ec568ddd0) - GH-868 Fix file name resolution based on platform/arch/prefix
+- [5520d4e](http://github.com/CraterCrash/godot-orchestrator/commit/5520d4ef138d7b18a9b7c2086be970647765d4f8) - GH-868 Include GODOT_ARCH in build config output
+- [a7365f7](http://github.com/CraterCrash/godot-orchestrator/commit/a7365f7ef2702139f67dea93cd75c7cf21a215d8) - GH-868 Remove commented lines
+- [6d2e744](http://github.com/CraterCrash/godot-orchestrator/commit/6d2e744f765b95f61275b36eef75768083ccb479) - GH-868 Bump godot-engine/godot-cpp to 4.4.beta2
+- [f6193b6](http://github.com/CraterCrash/godot-orchestrator/commit/f6193b67f76dc5006b5f5e1a04d1a5e4f9b1fcce) - Fix compiler warnings
+- [b69d0b5](http://github.com/CraterCrash/godot-orchestrator/commit/b69d0b54b8813a158a5affdeaeaebc55924b5ea0) - GH-914 Add "close on focus lost" toggle to all actions dialog
+- [92bc2e2](http://github.com/CraterCrash/godot-orchestrator/commit/92bc2e275da100c453769717073d21310c1353b2) - GH-914 Add setting to close all actions on focus lost
+- [cf169b6](http://github.com/CraterCrash/godot-orchestrator/commit/cf169b65475912f59b7b34aad51c736f2354ecc4) - GH-906 Update README Discord link
+- [031df90](http://github.com/CraterCrash/godot-orchestrator/commit/031df90fbb8c51b071ba1efef13852721cb9d05e) - GH-903 Restrict script base type to adhere to node's class hierarchy
+- [03fd9b4](http://github.com/CraterCrash/godot-orchestrator/commit/03fd9b4f6eaf29387a50a8bf209a593a5ab8fbd2) - GH-899 Move to Ubuntu 22.04 runners
+- [544d329](http://github.com/CraterCrash/godot-orchestrator/commit/544d3299f260bd1f64cc554626c35e3687cc95ca) - GH-879 Fix exporting node/resource variable types
+- [4021b10](http://github.com/CraterCrash/godot-orchestrator/commit/4021b10853e6f4bd8b70cac14cbb080ecbadf8aa) - GH-881 Add static method flag validation
+- [e8b0a59](http://github.com/CraterCrash/godot-orchestrator/commit/e8b0a59532b82ba1986c199c9e76e51413a5ab01) - GH-881 Support calling static script functions
+- [18de71c](http://github.com/CraterCrash/godot-orchestrator/commit/18de71c7e4421332bd990f45aa2facb44fe93829) - GH-897 Fix validation lookup for signal name on target
+- [9631c77](http://github.com/CraterCrash/godot-orchestrator/commit/9631c77394e1e65453380633990edda745d80131) - GH-895 Return target when variant function is chained
+- [477f687](http://github.com/CraterCrash/godot-orchestrator/commit/477f68762302678b06f3c22b4daf90b45649c705) - GH-883 Restrict overlapping updates
+- [0f076fc](http://github.com/CraterCrash/godot-orchestrator/commit/0f076fc2b2df968ccfdb13d51132c649fb052673) - GH-883 Delay component panel update by one frame
+- [0370b41](http://github.com/CraterCrash/godot-orchestrator/commit/0370b413d38b2cc054a735db45c922de7a185a60) - GH-838 Rename setting to `settings/dialogue/default_message_scene`
+- [2914b3e](http://github.com/CraterCrash/godot-orchestrator/commit/2914b3e811f9b2606c82c4245d9781e4ce713e32) - GH-838 Added default_scene to ProjectSettings
+- [3b19f67](http://github.com/CraterCrash/godot-orchestrator/commit/3b19f675372a8e940cc2e1f206496ed22fb88d2a) - GH-877 Render enum drop-downs for script-specific enums
+- [7e38145](http://github.com/CraterCrash/godot-orchestrator/commit/7e381453275922ce7a71e8ca7ca1dfffb079ab86) - GH-862 Change icons for compose/decompose script nodes
+- [81755f1](http://github.com/CraterCrash/godot-orchestrator/commit/81755f1e2c7a0a72b85bba9a3a723a170c4d0524) - GH-811 Correctly initialize promoted variables
+- [be1f01d](http://github.com/CraterCrash/godot-orchestrator/commit/be1f01d717b64d3e5ed2ed130f3ff6e6ed6d0186) - GH-844 Allow up/down and page up/down to move selection
+- [6e3ccf8](http://github.com/CraterCrash/godot-orchestrator/commit/6e3ccf87ecb46622a2855701466f7e403dde1fe6) - GH-872 Use correct struct type in memset
+- [d0679cd](http://github.com/CraterCrash/godot-orchestrator/commit/d0679cd5488d161671c367fe991aa56ebebd96c9) - GH-870 Always supply a return value
+- [dab983a](http://github.com/CraterCrash/godot-orchestrator/commit/dab983a47bdf7ab4c3e207427cce876c30896ad4) - GH-870 Dispatch `_notification` to script's graph
+- [5a7a5e4](http://github.com/CraterCrash/godot-orchestrator/commit/5a7a5e44c0046e2225af98462731ef2ae24d5db3) - GH-848 Guard sync on theme change for when node is ready
+- [ffc6027](http://github.com/CraterCrash/godot-orchestrator/commit/ffc60276d38751705ab73d228f08043acdfacb6b) - Update graph_edit.cpp
+- [4b664f5](http://github.com/CraterCrash/godot-orchestrator/commit/4b664f58b81c3645bb9cb14fb098d92b9e05b1e8) - Update README.md
+- [53663ae](http://github.com/CraterCrash/godot-orchestrator/commit/53663aecca29ebf5d91a6dc2707accb8df659e67) - GH-857 Align tab highlighting with Script tab behavior
+- [9b17be0](http://github.com/CraterCrash/godot-orchestrator/commit/9b17be09d2ed46c720d71816c104c5a784975588) - GH-860 Default `settings/notify_about_pre-releases` to `false`
+- [37ebe0d](http://github.com/CraterCrash/godot-orchestrator/commit/37ebe0dff249cdf3eed2a58737e9334a824be6d3) - GH-865 Prevent collapse to function with more than one data output pin
+- [80082ff](http://github.com/CraterCrash/godot-orchestrator/commit/80082ff2f67ce47ca9ca0631297eb3b911739274) - GH-825 Refactor OScriptLanguage & add OScriptNodeFactory
+
 ## [2.2.dev1](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.2.dev1) - 2024-09-21
 
 - [42d2626](http://github.com/CraterCrash/godot-orchestrator/commit/42d26265055423f3bedf6d2c8736936db17973b9) - GH-724 Fix copy-n-paste between two orchestrations
