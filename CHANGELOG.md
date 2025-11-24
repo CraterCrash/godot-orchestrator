@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [2.3.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.3.stable) - 2025-11-24
+
+- [0426d1d](http://github.com/CraterCrash/godot-orchestrator/commit/0426d1dc296ab3f80e487d2447ca2518218e215d) - GH-1004 Update extension compatibility to 4.5
+- [e972494](http://github.com/CraterCrash/godot-orchestrator/commit/e972494b55e506ced9ba5aa333d7edf0ef07416c) - GH-1004 Update class documentation
+- [110ea6c](http://github.com/CraterCrash/godot-orchestrator/commit/110ea6cde42a3bbd7396a2bd7e424043eea4dd5c) - GH-1004 Support Godot 4.5-stable
+
 ## [2.2.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.2.stable) - 2025-11-24
 
 - [cc934ec](http://github.com/CraterCrash/godot-orchestrator/commit/cc934ecbeba1839b9f44c0d7a82ac713408624a5) - GH-1046 Trim new signal argument values
