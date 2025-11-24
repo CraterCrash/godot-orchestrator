@@ -38,7 +38,7 @@ The following table describes which Orchestrator version you should use based on
 **Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.**
 **Additionally, if your Godot version is not listed, it should be assumed the plug-in is not yet 100% compatible.**
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=20) Features
+## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Features
 
 * A complete visual scripting solution for Godot.
 * Compatible with Godot 4.2+ using Godot GDExtension plug-in technology.
@@ -50,26 +50,26 @@ The following table describes which Orchestrator version you should use based on
 * Design complex dialogue conversations for NPCs for any game.
 * Work with any Godot engine data type, including complex types like Arrays or Dictionaries.
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=20) Documentation
+## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Documentation
 
 For complete documentation, see https://docs.cratercrash.space/orchestrator.
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=20) Changelog
+## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Changelog
 
 See [CHANGELOG](https://github.com/CraterCrash/godot-orchestrator/blob/main/CHANGELOG.md).
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=20) Licenses
+## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Licenses
 
 - Source code: [Apache-2.0 License](/LICENSE)
 - Godot logo: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - Orchestrator logo: [&copy; 2023-present Crater Crash Studios, LLC. All Rights Reserved](https://www.cratercrash.com/legal/webcn)
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=20) Community
+## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Community
 
 - [Discord](https://discord.gg/wYQpvuYDhT)
 - [Mastodon](https://cratercrash.social/@orchestrator)
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_500px.png?width=auto&height=20) Contributors
+## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Contributors
 
 <a href="https://github.com/CraterCrash/godot-orchestrator/graphs/contributors">
   <img src="https://contributors-img.web.app/image?repo=CraterCrash/godot-orchestrator" />
