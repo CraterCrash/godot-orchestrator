@@ -1,6 +1,6 @@
 ![screen-shot](https://static.cratercrash.space/orchestrator/images/banners/orchestrator_banner.png)
 
-![Godot v4.3](https://img.shields.io/badge/Godot-v4.3-%23478cbf?logo=godot-engine&logoColor=white&style=flat-square)
+![Godot v4.4](https://img.shields.io/badge/Godot-v4.4-%23478cbf?logo=godot-engine&logoColor=white&style=flat-square)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/CraterCrash/godot-orchestrator?&style=flat-square)
 [![LICENSE](https://img.shields.io/badge/license-Apache--2.0-blue?logo=apache)](https://github.com/CraterCrash/godot-orchestrator/blob/main/LICENSE)
 
