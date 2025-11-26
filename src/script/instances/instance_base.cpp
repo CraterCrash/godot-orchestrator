@@ -148,12 +148,12 @@ GDExtensionMethodInfo* OScriptInstanceBase::get_method_list(uint32_t* r_count) c
     HashSet<StringName> defined;
 
     const Ref<OScript> script = get_script();
-    if (script.is_valid())
+    if (script.is_valid() && script->get_orchestration().is_valid())
     {
-        PackedStringArray function_names = script->get_function_names();
+        PackedStringArray function_names = script->get_orchestration()->get_function_names();
         for (const String& function_name : function_names)
         {
-            const Ref<OScriptFunction>& function = script->find_function(StringName(function_name));
+            const Ref<OScriptFunction>& function = script->get_orchestration()->find_function(StringName(function_name));
             defined.insert(function->get_function_name());
 
             const MethodInfo& mi = function->get_method_info();

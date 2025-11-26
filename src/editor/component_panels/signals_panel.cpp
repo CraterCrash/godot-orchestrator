@@ -26,7 +26,7 @@
 
 PackedStringArray OrchestratorScriptSignalsComponentPanel::_get_existing_names() const
 {
-    return _orchestration->get_custom_signal_names();
+    return _script->get_orchestration()->get_custom_signal_names();
 }
 
 String OrchestratorScriptSignalsComponentPanel::_get_tooltip_text() const
@@ -65,20 +65,20 @@ void OrchestratorScriptSignalsComponentPanel::_handle_context_menu(int p_id)
 bool OrchestratorScriptSignalsComponentPanel::_handle_add_new_item(const String& p_name)
 {
     // Add the new signal and update the components display
-    return _orchestration->create_custom_signal(p_name).is_valid();
+    return _script->get_orchestration()->create_custom_signal(p_name).is_valid();
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_item_selected()
 {
     TreeItem* item = _tree->get_selected();
 
-    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(_get_tree_item_name(item));
+    Ref<OScriptSignal> signal = _script->get_orchestration()->get_custom_signal(_get_tree_item_name(item));
     EditorInterface::get_singleton()->edit_resource(signal);
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_item_activated(TreeItem* p_item)
 {
-    Ref<OScriptSignal> signal = _orchestration->get_custom_signal(_get_tree_item_name(p_item));
+    Ref<OScriptSignal> signal = _script->get_orchestration()->get_custom_signal(_get_tree_item_name(p_item));
     EditorInterface::get_singleton()->edit_resource(signal);
 }
 
@@ -96,12 +96,12 @@ bool OrchestratorScriptSignalsComponentPanel::_handle_item_renamed(const String&
         return false;
     }
 
-    return _orchestration->rename_custom_user_signal(p_old_name, p_new_name);
+    return _script->get_orchestration()->rename_custom_user_signal(p_old_name, p_new_name);
 }
 
 void OrchestratorScriptSignalsComponentPanel::_handle_remove(TreeItem* p_item)
 {
-    _orchestration->remove_custom_signal(_get_tree_item_name(p_item));
+    _script->get_orchestration()->remove_custom_signal(_get_tree_item_name(p_item));
 }
 
 Dictionary OrchestratorScriptSignalsComponentPanel::_handle_drag_data(const Vector2& p_position)
@@ -111,7 +111,7 @@ Dictionary OrchestratorScriptSignalsComponentPanel::_handle_drag_data(const Vect
     TreeItem* selected = _tree->get_selected();
     if (selected)
     {
-        Ref<OScriptSignal> signal = _orchestration->find_custom_signal(StringName(_get_tree_item_name(selected)));
+        Ref<OScriptSignal> signal = _script->get_orchestration()->find_custom_signal(StringName(_get_tree_item_name(selected)));
         if (signal.is_valid())
         {
             data["type"] = "signal";
@@ -146,13 +146,13 @@ void OrchestratorScriptSignalsComponentPanel::update()
 
     _clear_tree();
 
-    PackedStringArray signal_names = _orchestration->get_custom_signal_names();
+    PackedStringArray signal_names = _script->get_orchestration()->get_custom_signal_names();
     if (!signal_names.is_empty())
     {
         signal_names.sort();
         for (const String& signal_name : signal_names)
         {
-            Ref<OScriptSignal> signal = _orchestration->get_custom_signal(signal_name);
+            Ref<OScriptSignal> signal = _script->get_orchestration()->get_custom_signal(signal_name);
 
             _create_item(_tree->get_root(), signal_name, signal_name, "MemberSignal");
         }
@@ -173,7 +173,7 @@ void OrchestratorScriptSignalsComponentPanel::_bind_methods()
 {
 }
 
-OrchestratorScriptSignalsComponentPanel::OrchestratorScriptSignalsComponentPanel(Orchestration* p_orchestration)
-    : OrchestratorScriptComponentPanel("Signals", p_orchestration)
+OrchestratorScriptSignalsComponentPanel::OrchestratorScriptSignalsComponentPanel(const Ref<OScript>& p_script)
+    : OrchestratorScriptComponentPanel("Signals", p_script)
 {
 }

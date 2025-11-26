@@ -89,8 +89,8 @@ public:
     //~ End Wrapped Interface
 
     /// Constructs the graphs component panel
-    /// @param p_orchestration the orchestration
-    explicit OrchestratorScriptGraphsComponentPanel(Orchestration* p_orchestration);
+    /// @param p_script the script
+    explicit OrchestratorScriptGraphsComponentPanel(const Ref<OScript>& p_script);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_GRAPHS_COMPONENT_PANEL_H

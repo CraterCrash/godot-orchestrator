@@ -19,6 +19,7 @@
 #include "common/property_utils.h"
 #include "common/string_utils.h"
 
+#include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>

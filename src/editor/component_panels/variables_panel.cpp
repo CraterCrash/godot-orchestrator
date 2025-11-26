@@ -100,7 +100,7 @@ void OrchestratorScriptVariablesComponentPanel::_create_variable_item(TreeItem* 
 
 PackedStringArray OrchestratorScriptVariablesComponentPanel::_get_existing_names() const
 {
-    return _orchestration->get_variable_names();
+    return _script->get_orchestration()->get_variable_names();
 }
 
 String OrchestratorScriptVariablesComponentPanel::_get_tooltip_text() const
@@ -141,7 +141,7 @@ void OrchestratorScriptVariablesComponentPanel::_handle_context_menu(int p_id)
 
 void OrchestratorScriptVariablesComponentPanel::_duplicate_variable(TreeItem* p_item)
 {
-    Ref<OScriptVariable> duplicate = _orchestration->duplicate_variable(_get_tree_item_name(p_item));
+    Ref<OScriptVariable> duplicate = _script->get_orchestration()->duplicate_variable(_get_tree_item_name(p_item));
     if (duplicate.is_valid())
     {
         update();
@@ -152,20 +152,20 @@ void OrchestratorScriptVariablesComponentPanel::_duplicate_variable(TreeItem* p_
 bool OrchestratorScriptVariablesComponentPanel::_handle_add_new_item(const String& p_name)
 {
     // Add the new variable and update the components display
-    return _orchestration->create_variable(p_name).is_valid();
+    return _script->get_orchestration()->create_variable(p_name).is_valid();
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_item_selected()
 {
     TreeItem* item = _tree->get_selected();
 
-    Ref<OScriptVariable> variable = _orchestration->get_variable(_get_tree_item_name(item));
+    Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(_get_tree_item_name(item));
     EditorInterface::get_singleton()->edit_resource(variable);
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_item_activated(TreeItem* p_item)
 {
-    Ref<OScriptVariable> variable = _orchestration->get_variable(_get_tree_item_name(p_item));
+    Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(_get_tree_item_name(p_item));
     EditorInterface::get_singleton()->edit_resource(variable);
 }
 
@@ -183,17 +183,17 @@ bool OrchestratorScriptVariablesComponentPanel::_handle_item_renamed(const Strin
         return false;
     }
 
-    return _orchestration->rename_variable(p_old_name, p_new_name);
+    return _script->get_orchestration()->rename_variable(p_old_name, p_new_name);
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_remove(TreeItem* p_item)
 {
-    _orchestration->remove_variable(_get_tree_item_name(p_item));
+    _script->get_orchestration()->remove_variable(_get_tree_item_name(p_item));
 }
 
 void OrchestratorScriptVariablesComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
 {
-    Ref<OScriptVariable> variable = _orchestration->get_variable(_get_tree_item_name(p_item));
+    Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(_get_tree_item_name(p_item));
     if (!variable.is_valid())
         return;
 
@@ -257,12 +257,12 @@ void OrchestratorScriptVariablesComponentPanel::update()
     Callable callback = callable_mp(this, &OrchestratorScriptVariablesComponentPanel::_update_variables);
 
     // Make sure all variables are disconnected
-    for (const Ref<OScriptVariable>& variable : _orchestration->get_variables())
+    for (const Ref<OScriptVariable>& variable : _script->get_orchestration()->get_variables())
         ODISCONNECT(variable, "changed", callback);
 
     _clear_tree();
 
-    PackedStringArray variable_names = _orchestration->get_variable_names();
+    PackedStringArray variable_names = _script->get_orchestration()->get_variable_names();
     if (!variable_names.is_empty())
     {
         HashMap<String, Ref<OScriptVariable>> categorized;
@@ -270,7 +270,7 @@ void OrchestratorScriptVariablesComponentPanel::update()
         HashMap<String, String> categorized_names;
         for (const String& variable_name : variable_names)
         {
-            Ref<OScriptVariable> variable = _orchestration->get_variable(variable_name);
+            Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(variable_name);
             if (variable->is_grouped_by_category())
             {
                 const String category = variable->get_category().to_lower();
@@ -332,7 +332,7 @@ void OrchestratorScriptVariablesComponentPanel::_bind_methods()
 {
 }
 
-OrchestratorScriptVariablesComponentPanel::OrchestratorScriptVariablesComponentPanel(Orchestration* p_orchestration)
-    : OrchestratorScriptComponentPanel("Variables", p_orchestration)
+OrchestratorScriptVariablesComponentPanel::OrchestratorScriptVariablesComponentPanel(const Ref<OScript>& p_script)
+    : OrchestratorScriptComponentPanel("Variables", p_script)
 {
 }

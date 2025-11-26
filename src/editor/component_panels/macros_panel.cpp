@@ -66,7 +66,7 @@ void OrchestratorScriptMacrosComponentPanel::_bind_methods()
 {
 }
 
-OrchestratorScriptMacrosComponentPanel::OrchestratorScriptMacrosComponentPanel(Orchestration* p_orchestration)
-    : OrchestratorScriptComponentPanel("Macros", p_orchestration)
+OrchestratorScriptMacrosComponentPanel::OrchestratorScriptMacrosComponentPanel(const Ref<OScript>& p_script)
+    : OrchestratorScriptComponentPanel("Macros", p_script)
 {
 }

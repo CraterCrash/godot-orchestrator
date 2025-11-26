@@ -17,8 +17,6 @@
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 
 #include "orchestrator_editor_plugin.h"
-#include "script/serialization/binary_saver_instance.h"
-#include "script/serialization/text_loader_instance.h"
 
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/file_access.hpp>

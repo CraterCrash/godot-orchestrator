@@ -24,7 +24,6 @@
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/window_wrapper.h"
 #include "script/script.h"
-#include "script/serialization/text_loader_instance.h"
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>

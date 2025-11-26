@@ -139,6 +139,12 @@ TypedArray<Dictionary> OScriptLanguage::_get_built_in_templates(const StringName
 
 Ref<Script> OScriptLanguage::_make_template(const String& p_template, const String& p_class_name, const String& p_base_class_name) const
 {
+    // Construct the underlying orchestration
+    Ref<Orchestration> orchestration;
+    orchestration.instantiate();
+    orchestration->set_base_type(p_base_class_name);
+    orchestration->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+
     // NOTE:
     // The p_template argument is the content of the template, set in _get_built_in_templates.
     // Even if the user deselects the template option in the script dialog, this method is called.
@@ -148,12 +154,7 @@ Ref<Script> OScriptLanguage::_make_template(const String& p_template, const Stri
     //
     Ref<OScript> script;
     script.instantiate();
-
-    // Set the script's base actor/class type
-    script->set_base_type(p_base_class_name);
-
-    // All orchestrator scripts start with an "EventGraph" graph definition.
-    script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+    script->set_orchestration(orchestration);
 
     return script;
 }
@@ -186,12 +187,15 @@ Dictionary OScriptLanguage::_validate(const String& p_script, const String& p_pa
 
 Object* OScriptLanguage::_create_script() const
 {
-    // todo: this does not appear to be called in Godot.
+    // Construct the underlying orchestration
+    Ref<Orchestration> orchestration;
+    orchestration.instantiate();
+    orchestration->set_base_type(OrchestratorSettings::get_singleton()->get_setting("settings/default_type", "Node"));
+    orchestration->create_graph("EventGraph", OScriptGraph::GF_EVENT);
 
     OScript* script = memnew(OScript);
-    script->set_base_type(OrchestratorSettings::get_singleton()->get_setting("settings/default_type", "Node"));
-    // All orchestrator scripts start with an "EventGraph" graph definition.
-    script->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+    script->set_orchestration(orchestration);
+
     return script;
 }
 
@@ -399,13 +403,17 @@ Dictionary OScriptLanguage::_debug_get_stack_level_members(int32_t p_level, int3
     PackedStringArray member_names;
     Array member_values;
 
-    for (const String& variable_name: script->get_variable_names())
+    const Ref<Orchestration> orchestration = script->get_orchestration();
+    if (orchestration.is_valid())
     {
-        Variant value;
-        if (_call_stack[l].instance->get_variable(variable_name, value))
+        for (const String& variable_name: orchestration->get_variable_names())
         {
-            member_names.push_back("Variables/" + variable_name);
-            member_values.push_back(value);
+            Variant value;
+            if (_call_stack[l].instance->get_variable(variable_name, value))
+            {
+                member_names.push_back("Variables/" + variable_name);
+                member_values.push_back(value);
+            }
         }
     }
 

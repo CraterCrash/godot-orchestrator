@@ -19,138 +19,52 @@
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/variant_utils.h"
+#include "godot_cpp/classes/os.hpp"
+#include "io/orchestration_format.h"
+#include "io/orchestration_serializer.h"
+#include "script/function.h"
 #include "script/node.h"
 #include "script/nodes/functions/call_script_function.h"
 #include "script/nodes/functions/function_entry.h"
 #include "script/nodes/functions/function_result.h"
-#include "script/nodes/signals/emit_member_signal.h"
 #include "script/nodes/signals/emit_signal.h"
 #include "script/nodes/variables/variable.h"
+#include "script/signals.h"
 #include "script/variable.h"
 
-#include <godot_cpp/classes/os.hpp>
-
-TypedArray<OScriptNode> Orchestration::_get_nodes_internal() const
+void Orchestration::_connect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port)
 {
-    Array r_out;
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
-        r_out.push_back(E.value);
+    OScriptConnection connection;
+    connection.from_node = p_source_id;
+    connection.from_port = p_source_port;
+    connection.to_node = p_target_id;
+    connection.to_port = p_target_port;
 
-    return r_out;
+    ERR_FAIL_COND_MSG(_connections.has(connection), "A connection already exists: " + connection.to_string());
+    _connections.insert(connection);
+
+    emit_signal("connections_changed", "connect_nodes");
 }
 
-void Orchestration::_set_nodes_internal(const TypedArray<OScriptNode>& p_nodes)
+void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port)
 {
-    _nodes.clear();
-    for (int i = 0; i < p_nodes.size(); i++)
-    {
-        Ref<OScriptNode> node = p_nodes[i];
-        node->_orchestration = this;
-        _nodes[node->get_id()] = node;
-    }
-}
+    OScriptConnection connection;
+    connection.from_node = p_source_id;
+    connection.from_port = p_source_port;
+    connection.to_node = p_target_id;
+    connection.to_port = p_target_port;
 
-TypedArray<int> Orchestration::_get_connections_internal() const
-{
-    Array connections;
-    for (const OScriptConnection& E : _connections)
-    {
-        connections.push_back(E.from_node);
-        connections.push_back(E.from_port);
-        connections.push_back(E.to_node);
-        connections.push_back(E.to_port);
-    }
-    return connections;
-}
+    ERR_FAIL_COND_MSG(!_connections.has(connection), "Cannot remove non-existant connection: " + connection.to_string());
+    _connections.erase(connection);
 
-void Orchestration::_set_connections_internal(const TypedArray<int>& p_connections)
-{
-    _connections.clear();
-    for (int i = 0; i < p_connections.size(); i += 4)
-    {
-        OScriptConnection connection;
-        connection.from_node = p_connections[i];
-        connection.from_port = p_connections[i + 1];
-        connection.to_node = p_connections[i + 2];
-        connection.to_port = p_connections[i + 3];
-
-        _connections.insert(connection);
-    }
-}
-
-TypedArray<OScriptGraph> Orchestration::_get_graphs_internal() const
-{
-    TypedArray<OScriptGraph> graphs;
+    // Clean-up graph knots for the connection
     for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
-        graphs.push_back(E.value);
-    return graphs;
-}
-
-void Orchestration::_set_graphs_internal(const TypedArray<OScriptGraph>& p_graphs)
-{
-    for (int i = 0; i < p_graphs.size(); i++)
     {
-        Ref<OScriptGraph> graph = p_graphs[i];
-        graph->_orchestration = this;
-        _graphs[graph->get_graph_name()] = graph;
+        if (E.value->has_node(p_source_id) || E.value->has_node(p_target_id))
+            E.value->remove_connection_knot(connection.id);
     }
-}
 
-TypedArray<OScriptFunction> Orchestration::_get_functions_internal() const
-{
-    TypedArray<OScriptFunction> functions;
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _functions)
-        functions.push_back(E.value);
-    return functions;
-}
-
-void Orchestration::_set_functions_internal(const TypedArray<OScriptFunction>& p_functions)
-{
-    _functions.clear();
-    for (int i = 0; i < p_functions.size(); i++)
-    {
-        Ref<OScriptFunction> function = p_functions[i];
-        function->_orchestration = this;
-        _functions[function->get_function_name()] = function;
-    }
-}
-
-TypedArray<OScriptVariable> Orchestration::_get_variables_internal() const
-{
-    TypedArray<OScriptVariable> variables;
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
-        variables.push_back(E.value);
-    return variables;
-}
-
-void Orchestration::_set_variables_internal(const TypedArray<OScriptVariable>& p_variables)
-{
-    _variables.clear();
-    for (int i = 0; i < p_variables.size(); i++)
-    {
-        Ref<OScriptVariable> variable = p_variables[i];
-        variable->_orchestration = this;
-        _variables[variable->get_variable_name()] = variable;
-    }
-}
-
-TypedArray<OScriptSignal> Orchestration::_get_signals_internal() const
-{
-    TypedArray<OScriptSignal> signals;
-    for (const KeyValue<StringName, Ref<OScriptSignal>>& E : _signals)
-        signals.push_back(E.value);
-    return signals;
-}
-
-void Orchestration::_set_signals_internal(const TypedArray<OScriptSignal>& p_signals)
-{
-    _signals.clear();
-    for (int i = 0; i < p_signals.size(); i++)
-    {
-        Ref<OScriptSignal> signal = p_signals[i];
-        signal->_orchestration = this;
-        _signals[signal->get_signal_name()] = signal;
-    }
+    emit_signal("connections_changed", "disconnect_nodes");
 }
 
 void Orchestration::_fix_orphans()
@@ -219,43 +133,33 @@ void Orchestration::_fix_orphans()
     }
 }
 
-void Orchestration::_connect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port)
+int Orchestration::get_available_id() const
 {
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot connect nodes, instances exist.");
+    int max = -1;
+    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
+        max = Math::max(E.key, max);
 
-    OScriptConnection connection;
-    connection.from_node = p_source_id;
-    connection.from_port = p_source_port;
-    connection.to_node = p_target_id;
-    connection.to_port = p_target_port;
-
-    ERR_FAIL_COND_MSG(_connections.has(connection), "A connection already exists: " + connection.to_string());
-    _connections.insert(connection);
-
-    _self->emit_signal("connections_changed", "connect_nodes");
+    return max + 1;
 }
 
-void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port)
+Ref<OScript> Orchestration::get_self()
 {
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot disconnect nodes, instances exist.");
+    return _script;
+}
 
-    OScriptConnection connection;
-    connection.from_node = p_source_id;
-    connection.from_port = p_source_port;
-    connection.to_node = p_target_id;
-    connection.to_port = p_target_port;
+void Orchestration::set_self(const Ref<OScript>& p_script)
+{
+    _script = p_script.ptr();
+}
 
-    ERR_FAIL_COND_MSG(!_connections.has(connection), "Cannot remove non-existant connection: " + connection.to_string());
-    _connections.erase(connection);
-
-    // Clean-up graph knots for the connection
-    for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
+void Orchestration::set_edited(bool p_edited)
+{
+    if (_edited != p_edited)
     {
-        if (E.value->has_node(p_source_id) || E.value->has_node(p_target_id))
-            E.value->remove_connection_knot(connection.id);
+        _edited = p_edited;
+        if (_edited)
+            emit_changed();
     }
-
-    _self->emit_signal("connections_changed", "disconnect_nodes");
 }
 
 StringName Orchestration::get_base_type() const
@@ -265,76 +169,158 @@ StringName Orchestration::get_base_type() const
 
 void Orchestration::set_base_type(const StringName& p_base_type)
 {
-    if (!_base_type.match(p_base_type))
+    if (_base_type != p_base_type)
     {
         _base_type = p_base_type;
-        _self->emit_changed();
+        emit_changed();
     }
 }
 
-int Orchestration::get_available_id() const
+bool Orchestration::get_tool() const
 {
-    // We should eventually consider a better strategy for node unique ids to deal with
-    // scripts that are constantly modified with new nodes added and removed.
-
-    int max = -1;
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
-        max = Math::max(E.key, max);
-
-    return (max + 1);
+    return _tool;
 }
 
-void Orchestration::set_edited(bool p_edited)
+void Orchestration::set_tool(bool p_tool)
 {
-    if (_edited != p_edited)
+    if (_tool != p_tool)
     {
-        _edited = p_edited;
-        if (_edited)
-            _self->emit_changed();
+        _tool = p_tool;
+        emit_changed();
     }
 }
 
-void Orchestration::post_initialize()
+TypedArray<OScriptGraph> Orchestration::get_graphs_serialized() const
 {
-    // Initialize variables
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
-        E.value->post_initialize();
+    TypedArray<OScriptGraph> graphs;
+    for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
+        graphs.push_back(E.value);
 
-    // Initialize nodes
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
-        E.value->post_initialize();
+    return graphs;
+}
 
-    // Initialize graphs
-    for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs)
-        G.value->post_initialize();
-
-    _fix_orphans();
-
-    // Check if upgrades are required
-    if (_version < OScriptResourceFormatInstance::FORMAT_VERSION)
+void Orchestration::set_graphs_serialized(const TypedArray<OScriptGraph>& p_graphs)
+{
+    _graphs.clear();
+    for (int i = 0; i < p_graphs.size(); i++)
     {
-        // Upgrade nodes that require it
-        for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
-            E.value->_upgrade(_version, OScriptResourceFormatInstance::FORMAT_VERSION);
-
-        _version = OScriptResourceFormatInstance::FORMAT_VERSION;
+        Ref<OScriptGraph> graph = p_graphs[i];
+        graph->_orchestration = this;
+        _graphs[graph->get_graph_name()] = graph;
     }
-
-    _initialized = true;
+    emit_changed();
 }
 
-void Orchestration::validate_and_build(BuildLog& p_log)
+bool Orchestration::has_graph(const StringName& p_name) const
 {
-    // Sanity check
-    _fix_orphans();
+    return _graphs.has(p_name);
+}
 
+Ref<OScriptGraph> Orchestration::create_graph(const StringName& p_name, int p_flags)
+{
+    ERR_FAIL_COND_V_MSG(has_graph(p_name), nullptr, "A graph with that name already exists: " + p_name);
+    ERR_FAIL_COND_V_MSG(p_name.is_empty(), nullptr, "A name is required to create a graph.");
+    ERR_FAIL_COND_V_MSG(!p_name.is_valid_identifier(), nullptr, "The name is not a valid graph name.");
+
+    Ref<OScriptGraph> graph(memnew(OScriptGraph));
+    graph->_orchestration = this;
+    graph->set_graph_name(p_name);
+    graph->set_flags(p_flags);
+
+    _graphs[p_name] = graph;
+
+    return graph;
+}
+
+void Orchestration::remove_graph(const StringName& p_name)
+{
+    ERR_FAIL_COND_MSG(!has_graph(p_name), "No graph exists with the specified name: " + p_name);
+
+    if (p_name.match("EventGraph"))
+    {
+        ERR_PRINT("The 'EventGraph' graph cannot be removed.");
+        return;
+    }
+
+    const Ref<OScriptGraph> graph = get_graph(p_name);
+    graph->remove_all_nodes();
+
+    // Remove the graph
+    _graphs.erase(p_name);
+}
+
+Ref<OScriptGraph> Orchestration::get_graph(const StringName& p_name) const
+{
+    ERR_FAIL_COND_V_MSG(!has_graph(p_name), nullptr, "No graph exists with the specified name: " + p_name);
+    return _graphs[p_name];
+}
+
+Ref<OScriptGraph> Orchestration::find_graph(const StringName& p_name) const
+{
+    return has_graph(p_name) ? _graphs[p_name] : nullptr;
+}
+
+Ref<OScriptGraph> Orchestration::find_graph(const Ref<OScriptNode>& p_node)
+{
+    ERR_FAIL_COND_V_MSG(!p_node.is_valid(), nullptr, "Cannot find a graph when the node reference is invalid.");
+
+    for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
+    {
+        if (E.value->has_node(p_node->get_id()))
+            return E.value;
+    }
+
+    ERR_FAIL_V_MSG(nullptr, "No graph contains the node with the unique ID: " + itos(p_node->get_id()));
+}
+
+bool Orchestration::rename_graph(const StringName& p_old_name, const StringName& p_new_name)
+{
+    ERR_FAIL_COND_V_MSG(!has_graph(p_old_name), false, "No graph exists with the old name: " + p_old_name);
+    ERR_FAIL_COND_V_MSG(has_graph(p_new_name), false, "A graph already exists with the new name: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!p_new_name.is_valid_identifier(), false, "The new graph name is not a valid.");
+
+    Ref<OScriptGraph> graph = get_graph(p_old_name);
+    if (!graph.is_valid())
+        return false;
+
+    graph->set_graph_name(p_new_name);
+
+    _graphs[p_new_name] = graph;
+    _graphs.erase(p_old_name);
+    return true;
+}
+
+Vector<Ref<OScriptGraph>> Orchestration::get_graphs() const
+{
+    Vector<Ref<OScriptGraph>> results;
+    for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
+        results.push_back(E.value);
+    return results;
+}
+
+TypedArray<OScriptNode> Orchestration::get_nodes_serialized() const
+{
+    TypedArray<OScriptNode> nodes;
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
-        E.value->validate_node_during_build(p_log);
+        nodes.push_back(E.value);
+
+    return nodes;
+}
+
+void Orchestration::set_nodes_serialized(const TypedArray<OScriptNode>& p_nodes)
+{
+    _nodes.clear();
+    for (int i = 0; i < p_nodes.size(); i++)
+    {
+        Ref<OScriptNode> node = p_nodes[i];
+        node->_orchestration = this;
+        _nodes[node->get_id()] = node;
+    }
+    emit_changed();
 }
 
 void Orchestration::add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node)
 {
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot add node, instances exist.");
     ERR_FAIL_COND(p_node.is_null());
     ERR_FAIL_COND(_nodes.has(p_node->get_id()));
 
@@ -351,7 +337,6 @@ void Orchestration::add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScript
 
 void Orchestration::remove_node(int p_node_id)
 {
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot remove node, instances exist.");
     ERR_FAIL_COND(!_nodes.has(p_node_id));
 
     const Ref<OScriptNode> node = _nodes[p_node_id];
@@ -406,6 +391,35 @@ Vector<Ref<OScriptNode>> Orchestration::get_nodes() const
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
         results.push_back(E.value);
     return results;
+}
+
+TypedArray<int> Orchestration::get_connections_serialized() const
+{
+    Array connections;
+    for (const OScriptConnection& E : _connections)
+    {
+        connections.push_back(E.from_node);
+        connections.push_back(E.from_port);
+        connections.push_back(E.to_node);
+        connections.push_back(E.to_port);
+    }
+    return connections;
+}
+
+void Orchestration::set_connections_serialized(const TypedArray<int>& p_connections)
+{
+    _connections.clear();
+    for (int i = 0; i < p_connections.size(); i += 4)
+    {
+        OScriptConnection connection;
+        connection.from_node = p_connections[i];
+        connection.from_port = p_connections[i + 1];
+        connection.to_node = p_connections[i + 2];
+        connection.to_port = p_connections[i + 3];
+
+        _connections.insert(connection);
+    }
+    emit_changed();
 }
 
 const RBSet<OScriptConnection>& Orchestration::get_connections() const
@@ -506,99 +520,28 @@ void Orchestration::adjust_connections(const OScriptNode* p_node, int p_offset, 
     for (const ConnectionData& cd : data)
         _connections.insert(cd.mutated);
 
-    _self->emit_signal("connections_changed", "adjust_connections");
+    emit_signal("connections_changed", "adjust_connections");
 }
 
-bool Orchestration::has_graph(const StringName& p_name) const
+TypedArray<OScriptFunction> Orchestration::get_functions_serialized() const
 {
-    return _graphs.has(p_name);
+    TypedArray<OScriptFunction> functions;
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _functions)
+        functions.push_back(E.value);
+
+    return functions;
 }
 
-Ref<OScriptGraph> Orchestration::create_graph(const StringName& p_name, int p_flags)
+void Orchestration::set_functions_serialized(const TypedArray<OScriptFunction>& p_functions)
 {
-    ERR_FAIL_COND_V_MSG(has_graph(p_name), nullptr, "A graph with that name already exists: " + p_name);
-    ERR_FAIL_COND_V_MSG(p_name.is_empty(), nullptr, "A name is required to create a graph.");
-    ERR_FAIL_COND_V_MSG(!p_name.is_valid_identifier(), nullptr, "The name is not a valid graph name.");
-
-    Ref<OScriptGraph> graph(memnew(OScriptGraph));
-    graph->_orchestration = this;
-    graph->set_graph_name(p_name);
-    graph->set_flags(p_flags);
-
-    _graphs[p_name] = graph;
-
-    // _self->emit_signal("graphs_changed");
-
-    return graph;
-}
-
-void Orchestration::remove_graph(const StringName& p_name)
-{
-    ERR_FAIL_COND_MSG(!has_graph(p_name), "No graph exists with the specified name: " + p_name);
-
-    if (get_type() == OrchestrationType::OT_Script)
+    _functions.clear();
+    for (int i = 0; i < p_functions.size(); i++)
     {
-        if (p_name.match("EventGraph"))
-        {
-            ERR_PRINT("The 'EventGraph' graph cannot be removed.");
-            return;
-        }
+        const Ref<OScriptFunction> function = p_functions[i];
+        function->_orchestration = this;
+        _functions[function->get_function_name()] = function;
     }
-
-    const Ref<OScriptGraph> graph = get_graph(p_name);
-    graph->remove_all_nodes();
-
-    // Remove the graph
-    _graphs.erase(p_name);
-}
-
-Ref<OScriptGraph> Orchestration::get_graph(const StringName& p_name) const
-{
-    ERR_FAIL_COND_V_MSG(!has_graph(p_name), nullptr, "No graph exists with the specified name: " + p_name);
-    return _graphs[p_name];
-}
-
-Ref<OScriptGraph> Orchestration::find_graph(const StringName& p_name) const
-{
-    return has_graph(p_name) ? _graphs[p_name] : nullptr;
-}
-
-Ref<OScriptGraph> Orchestration::find_graph(const Ref<OScriptNode>& p_node)
-{
-    ERR_FAIL_COND_V_MSG(!p_node.is_valid(), nullptr, "Cannot find a graph when the node reference is invalid.");
-
-    for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
-    {
-        if (E.value->has_node(p_node->get_id()))
-            return E.value;
-    }
-
-    ERR_FAIL_V_MSG(nullptr, "No graph contains the node with the unique ID: " + itos(p_node->get_id()));
-}
-
-bool Orchestration::rename_graph(const StringName& p_old_name, const StringName& p_new_name)
-{
-    ERR_FAIL_COND_V_MSG(!has_graph(p_old_name), false, "No graph exists with the old name: " + p_old_name);
-    ERR_FAIL_COND_V_MSG(has_graph(p_new_name), false, "A graph already exists with the new name: " + p_new_name);
-    ERR_FAIL_COND_V_MSG(!p_new_name.is_valid_identifier(), false, "The new graph name is not a valid.");
-
-    Ref<OScriptGraph> graph = get_graph(p_old_name);
-    if (!graph.is_valid())
-        return false;
-
-    graph->set_graph_name(p_new_name);
-
-    _graphs[p_new_name] = graph;
-    _graphs.erase(p_old_name);
-    return true;
-}
-
-Vector<Ref<OScriptGraph>> Orchestration::get_graphs() const
-{
-    Vector<Ref<OScriptGraph>> results;
-    for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs)
-        results.push_back(E.value);
-    return results;
+    emit_changed();
 }
 
 bool Orchestration::has_function(const StringName& p_name) const
@@ -608,7 +551,6 @@ bool Orchestration::has_function(const StringName& p_name) const
 
 Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, int p_node_id, bool p_user_defined)
 {
-    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot create functions, instances exist.");
     ERR_FAIL_COND_V_MSG(!String(p_method.name).is_valid_identifier(), nullptr, "Invalid function name: " + p_method.name);
     ERR_FAIL_COND_V_MSG(_functions.has(p_method.name), nullptr, "A function already exists with the name: " + p_method.name);
     ERR_FAIL_COND_V_MSG(_variables.has(p_method.name), nullptr, "A variable already exists with the name: " + p_method.name);
@@ -624,14 +566,13 @@ Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, 
 
     _functions[p_method.name] = function;
 
-    _self->emit_signal("functions_changed");
+    emit_signal("functions_changed");
 
     return function;
 }
 
 Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name, bool p_include_code)
 {
-    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot duplicate functions, instances exist.");
     ERR_FAIL_COND_V_MSG(!has_function(p_name), nullptr, "No function exists with the name: " + p_name);
 
     Ref<OScriptGraph> old_graph = find_graph(p_name);
@@ -798,7 +739,6 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
 
 void Orchestration::remove_function(const StringName& p_name)
 {
-    ERR_FAIL_COND_MSG(_has_instances(), "Cannot remove functions, instances exist.");
     ERR_FAIL_COND_MSG(!_functions.has(p_name), "Cannot remove function that does not exist with name: " + p_name);
     {
         Ref<OScriptFunction> function = _functions[p_name];
@@ -828,9 +768,9 @@ void Orchestration::remove_function(const StringName& p_name)
         // Let the editor handle node removal
         _functions.erase(p_name);
 
-        _self->emit_signal("functions_changed");
+        emit_signal("functions_changed");
     }
-    _self->emit_changed();
+    emit_changed();
 }
 
 Ref<OScriptFunction> Orchestration::find_function(const StringName& p_name) const
@@ -859,7 +799,6 @@ bool Orchestration::rename_function(const StringName& p_old_name, const StringNa
     if (p_old_name == p_new_name)
         return false;
 
-    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot rename function, instances exist.");
     ERR_FAIL_COND_V_MSG(!has_function(p_old_name), false, "Cannot rename, no function found with old name: " + p_old_name);
     ERR_FAIL_COND_V_MSG(has_function(p_new_name), false, "Cannot rename, a function already exists with new name: " + p_new_name);
     ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "New function name is invalid: " + p_new_name);
@@ -883,7 +822,7 @@ bool Orchestration::rename_function(const StringName& p_old_name, const StringNa
     _functions.erase(p_old_name);
     _functions[p_new_name] = function;
 
-    _self->emit_signal("functions_changed");
+    emit_signal("functions_changed");
     return true;
 }
 
@@ -909,6 +848,27 @@ Vector<Ref<OScriptFunction>> Orchestration::get_functions() const
     return results;
 }
 
+TypedArray<OScriptVariable> Orchestration::get_variables_serialized() const
+{
+    TypedArray<OScriptVariable> variables;
+    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
+        variables.push_back(E.value);
+
+    return variables;
+}
+
+void Orchestration::set_variables_serialized(const TypedArray<OScriptVariable>& p_variables)
+{
+    _variables.clear();
+    for (int i = 0; i < p_variables.size(); i++)
+    {
+        const Ref<OScriptVariable> variable = p_variables[i];
+        variable->_orchestration = this;
+        _variables[variable->get_variable_name()] = variable;
+    }
+    emit_changed();
+}
+
 bool Orchestration::has_variable(const StringName& p_name) const
 {
     return _variables.has(p_name);
@@ -916,7 +876,6 @@ bool Orchestration::has_variable(const StringName& p_name) const
 
 Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Variant::Type p_type)
 {
-    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot create variables, instances exist.");
     ERR_FAIL_COND_V_MSG(!String(p_name).is_valid_identifier(), nullptr, "Cannot create variable, invalid name: " + p_name);
     ERR_FAIL_COND_V_MSG(has_variable(p_name), nullptr, "A variable with that name already exists: " + p_name);
 
@@ -937,18 +896,13 @@ Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Va
     variable->_info.usage = PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_NIL_IS_VARIANT;
     _variables[p_name] = variable;
 
-    #ifdef TOOLS_ENABLED
-    _update_placeholders();
-    #endif
-
-    _self->emit_signal("variables_changed");
+    emit_signal("variables_changed");
 
     return variable;
 }
 
 Ref<OScriptVariable> Orchestration::duplicate_variable(const StringName& p_name)
 {
-    ERR_FAIL_COND_V_MSG(_has_instances(), {}, "Cannot duplicate variables, instances exist.");
     ERR_FAIL_COND_V_MSG(!has_variable(p_name), {}, "Cannot duplicate variable that does not exist: " + p_name);
 
     Ref<OScriptVariable> old_variable = get_variable(p_name);
@@ -976,13 +930,9 @@ void Orchestration::remove_variable(const StringName& p_name)
 
     _variables.erase(p_name);
 
-    _self->emit_signal("variables_changed");
-    _self->emit_changed();
-    _self->notify_property_list_changed();
-
-    #ifdef TOOLS_ENABLED
-    _update_placeholders();
-    #endif
+    emit_signal("variables_changed");
+    emit_changed();
+    notify_property_list_changed();
 }
 
 Ref<OScriptVariable> Orchestration::get_variable(const StringName& p_name)
@@ -995,7 +945,6 @@ bool Orchestration::rename_variable(const StringName& p_old_name, const StringNa
     if (p_old_name == p_new_name)
         return false;
 
-    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot rename variable, instances exist.");
     ERR_FAIL_COND_V_MSG(!has_variable(p_old_name), false, "Cannot rename, no variable exists with the old name: " + p_old_name);
     ERR_FAIL_COND_V_MSG(has_variable(p_new_name), false, "Cannot rename, a variable already exists with the new name: " + p_new_name);
     ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "Cannot rename, variable name is not valid: " + p_new_name);
@@ -1006,13 +955,9 @@ bool Orchestration::rename_variable(const StringName& p_old_name, const StringNa
     _variables[p_new_name] = variable;
     _variables.erase(p_old_name);
 
-    _self->emit_signal("variables_changed");
-    _self->emit_changed();
-    _self->notify_property_list_changed();
-
-    #ifdef TOOLS_ENABLED
-    _update_placeholders();
-    #endif
+    emit_signal("variables_changed");
+    emit_changed();
+    notify_property_list_changed();
 
     return true;
 }
@@ -1063,10 +1008,31 @@ Ref<OScriptVariable> Orchestration::promote_to_variable(const Ref<OScriptNodePin
         variable->emit_changed();
         variable->notify_property_list_changed();
 
-        _self->emit_signal("variables_changed");
+        emit_signal("variables_changed");
     }
 
     return variable;
+}
+
+TypedArray<OScriptSignal> Orchestration::get_signals_serialized() const
+{
+    TypedArray<OScriptSignal> signals;
+    for (const KeyValue<StringName, Ref<OScriptSignal>>& E : _signals)
+        signals.push_back(E.value);
+
+    return signals;
+}
+
+void Orchestration::set_signals_serialized(const TypedArray<OScriptSignal>& p_signals)
+{
+    _signals.clear();
+    for (int i = 0; i < p_signals.size(); i++)
+    {
+        const Ref<OScriptSignal> signal = p_signals[i];
+        signal->_orchestration = this;
+        _signals[signal->get_signal_name()] = signal;
+    }
+    emit_changed();
 }
 
 bool Orchestration::has_custom_signal(const StringName& p_name) const
@@ -1087,10 +1053,9 @@ Ref<OScriptSignal> Orchestration::create_custom_signal(const StringName& p_name)
     Ref<OScriptSignal> signal(memnew(OScriptSignal));
     signal->_orchestration = this;
     signal->_method = method;
-
     _signals[p_name] = signal;
 
-    _self->emit_signal("signals_changed");
+    emit_signal("signals_changed");
 
     return signal;
 }
@@ -1109,7 +1074,7 @@ void Orchestration::remove_custom_signal(const StringName& p_name)
 
     _signals.erase(p_name);
 
-    _self->emit_signal("signals_changed");
+    emit_signal("signals_changed");
 }
 
 Ref<OScriptSignal> Orchestration::get_custom_signal(const StringName& p_name)
@@ -1128,7 +1093,6 @@ bool Orchestration::rename_custom_user_signal(const StringName& p_old_name, cons
     if (p_old_name == p_new_name)
         return false;
 
-    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot rename custom signal, instances exist.");
     ERR_FAIL_COND_V_MSG(!has_custom_signal(p_old_name), false, "No custom signal exists with the old name: " + p_old_name);
     ERR_FAIL_COND_V_MSG(has_custom_signal(p_new_name), false, "A custom signal already exists with the new name: " + p_new_name);
     ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "The custom signal name is invalid: " + p_new_name);
@@ -1139,13 +1103,9 @@ bool Orchestration::rename_custom_user_signal(const StringName& p_old_name, cons
     _signals[p_new_name] = signal;
     _signals.erase(p_old_name);
 
-    _self->emit_signal("signals_changed");
-    _self->emit_changed();
-    _self->notify_property_list_changed();
-
-    #ifdef TOOLS_ENABLED
-    _update_placeholders();
-    #endif
+    emit_signal("signals_changed");
+    emit_changed();
+    notify_property_list_changed();
 
     return true;
 }
@@ -1177,9 +1137,89 @@ bool Orchestration::can_remove_custom_signal(const StringName& p_name) const
     return true;
 }
 
-Orchestration::Orchestration(Resource* p_self, OrchestrationType p_type)
-    : _type(p_type)
-    , _base_type("Object")
-    , _self(p_self)
+void Orchestration::post_initialize()
+{
+    // Initialize variables
+    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
+        E.value->post_initialize();
+
+    // Initialize nodes
+    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
+        E.value->post_initialize();
+
+    // Initialize graphs
+    for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs)
+        G.value->post_initialize();
+
+    _fix_orphans();
+
+    // Check if upgrades are required
+    if (_version < OrchestrationFormat::FORMAT_VERSION)
+    {
+        // Upgrade nodes that require it
+        for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
+            E.value->_upgrade(_version, OrchestrationFormat::FORMAT_VERSION);
+
+        _version = OrchestrationFormat::FORMAT_VERSION;
+    }
+
+    _initialized = true;
+}
+
+void Orchestration::validate_and_build(BuildLog& p_log)
+{
+    // Sanity check
+    _fix_orphans();
+
+    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
+        E.value->validate_node_during_build(p_log);
+}
+
+
+void Orchestration::_bind_methods()
+{
+    ClassDB::bind_method(D_METHOD("set_base_type", "p_base_type"), &Orchestration::set_base_type);
+    ClassDB::bind_method(D_METHOD("get_base_type"), &Orchestration::get_base_type);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "base_type", PROPERTY_HINT_TYPE_STRING, "Node"), "set_base_type", "get_base_type");
+
+    ClassDB::bind_method(D_METHOD("set_tool", "p_tool"), &Orchestration::set_tool);
+    ClassDB::bind_method(D_METHOD("get_tool"), &Orchestration::get_tool);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "tool", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_tool", "get_tool");
+
+    ClassDB::bind_method(D_METHOD("set_variables_serialized", "p_variables"), &Orchestration::set_variables_serialized);
+    ClassDB::bind_method(D_METHOD("get_variables_serialized"), &Orchestration::get_variables_serialized);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "variables", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_variables_serialized", "get_variables_serialized");
+
+    ClassDB::bind_method(D_METHOD("set_functions_serialized", "p_functions"), &Orchestration::set_functions_serialized);
+    ClassDB::bind_method(D_METHOD("get_functions_serialized"), &Orchestration::get_functions_serialized);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "functions", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_functions_serialized", "get_functions_serialized");
+
+    ClassDB::bind_method(D_METHOD("set_signals_serialized", "p_signals"), &Orchestration::set_signals_serialized);
+    ClassDB::bind_method(D_METHOD("get_signals_serialized"), &Orchestration::get_signals_serialized);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "signals", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_signals_serialized", "get_signals_serialized");
+
+    ClassDB::bind_method(D_METHOD("set_connections_serialized", "p_connections"), &Orchestration::set_connections_serialized);
+    ClassDB::bind_method(D_METHOD("get_connections_serialized"), &Orchestration::get_connections_serialized);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "connections", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_connections_serialized", "get_connections_serialized");
+
+    ClassDB::bind_method(D_METHOD("set_nodes_serialized", "nodes"), &Orchestration::set_nodes_serialized);
+    ClassDB::bind_method(D_METHOD("get_nodes_serialized"), &Orchestration::get_nodes_serialized);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "nodes", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_nodes_serialized", "get_nodes_serialized");
+
+    ClassDB::bind_method(D_METHOD("set_graphs_serialized", "graphs"), &Orchestration::set_graphs_serialized);
+    ClassDB::bind_method(D_METHOD("get_graphs_serialized"), &Orchestration::get_graphs_serialized);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "graphs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_graphs_serialized", "get_graphs_serialized");
+
+    ADD_SIGNAL(MethodInfo("connections_changed", PropertyInfo(Variant::STRING, "caller")));
+    ADD_SIGNAL(MethodInfo("functions_changed"));
+    ADD_SIGNAL(MethodInfo("variables_changed"));
+    ADD_SIGNAL(MethodInfo("signals_changed"));
+}
+
+Orchestration::Orchestration()
+{
+}
+
+Orchestration::~Orchestration()
 {
 }

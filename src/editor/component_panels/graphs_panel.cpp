@@ -35,7 +35,7 @@ void OrchestratorScriptGraphsComponentPanel::_show_graph_item(TreeItem* p_item)
 
 void OrchestratorScriptGraphsComponentPanel::_focus_graph_function(TreeItem* p_item)
 {
-    const int node_id = _orchestration->get_function_node_id(_get_tree_item_name(p_item));
+    const int node_id = _script->get_orchestration()->get_function_node_id(_get_tree_item_name(p_item));
 
     // Specific event node
     emit_signal("focus_node_requested", _get_tree_item_name(p_item->get_parent()), node_id);
@@ -47,19 +47,19 @@ void OrchestratorScriptGraphsComponentPanel::_remove_graph(TreeItem* p_item)
     const String graph_name = _get_tree_item_name(p_item);
     emit_signal("close_graph_requested", graph_name);
 
-    _orchestration->remove_graph(graph_name);
+    _script->get_orchestration()->remove_graph(graph_name);
 }
 
 void OrchestratorScriptGraphsComponentPanel::_remove_graph_function(TreeItem* p_item)
 {
-    _orchestration->remove_function(_get_tree_item_name(p_item));
+    _script->get_orchestration()->remove_function(_get_tree_item_name(p_item));
     update();
 }
 
 PackedStringArray OrchestratorScriptGraphsComponentPanel::_get_existing_names() const
 {
     PackedStringArray result;
-    for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
+    for (const Ref<OScriptGraph>& graph : _script->get_orchestration()->get_graphs())
         result.push_back(graph->get_graph_name());
     return result;
 }
@@ -87,7 +87,7 @@ bool OrchestratorScriptGraphsComponentPanel::_populate_context_menu(TreeItem* p_
     if (p_item->get_parent() == _tree->get_root())
     {
         // Graph
-        Ref<OScriptGraph> graph = _orchestration->get_graph(_get_tree_item_name(p_item));
+        Ref<OScriptGraph> graph = _script->get_orchestration()->get_graph(_get_tree_item_name(p_item));
         bool rename_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_RENAMABLE);
         bool delete_disabled = !graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_DELETABLE);
         _context_menu->add_item("Open Graph", CM_OPEN_GRAPH, KEY_ENTER);
@@ -139,7 +139,7 @@ void OrchestratorScriptGraphsComponentPanel::_handle_context_menu(int p_id)
 bool OrchestratorScriptGraphsComponentPanel::_handle_add_new_item(const String& p_name)
 {
     // Add the new graph and update the components display
-    return _orchestration->create_graph(p_name, OScriptGraph::GF_EVENT | OScriptGraph::GF_DEFAULT).is_valid();
+    return _script->get_orchestration()->create_graph(p_name, OScriptGraph::GF_EVENT | OScriptGraph::GF_DEFAULT).is_valid();
 }
 
 void OrchestratorScriptGraphsComponentPanel::_handle_item_selected()
@@ -150,7 +150,7 @@ void OrchestratorScriptGraphsComponentPanel::_handle_item_selected()
         if (item->get_parent() != _tree->get_root())
         {
             const StringName name = _get_tree_item_name(item);
-            const Ref<OScriptFunction> function = _orchestration->find_function(name);
+            const Ref<OScriptFunction> function = _script->get_orchestration()->find_function(name);
             if (function.is_valid())
                 EditorInterface::get_singleton()->edit_resource(function);
         }
@@ -179,7 +179,7 @@ bool OrchestratorScriptGraphsComponentPanel::_handle_item_renamed(const String& 
         return false;
     }
 
-    if (!_orchestration->rename_graph(p_old_name, p_new_name))
+    if (!_script->get_orchestration()->rename_graph(p_old_name, p_new_name))
         return false;
 
     emit_signal("graph_renamed", p_old_name, p_new_name);
@@ -194,10 +194,10 @@ void OrchestratorScriptGraphsComponentPanel::_handle_remove(TreeItem* p_item)
 
 void OrchestratorScriptGraphsComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
 {
-    if (_orchestration->get_type() != OrchestrationType::OT_Script)
-        return;
+    // if (_orchestration->get_type() != OrchestrationType::OT_Script)
+    //     return;
 
-    const Ref<OScript> script = _orchestration->get_self();
+    const Ref<OScript> script = _script;
     const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
 
     OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
@@ -220,7 +220,7 @@ void OrchestratorScriptGraphsComponentPanel::_handle_tree_gui_input(const Ref<In
     {
         if (_tree->get_root() == p_item->get_parent())
         {
-            Ref<OScriptGraph> graph = _orchestration->get_graph(_get_tree_item_name(p_item));
+            Ref<OScriptGraph> graph = _script->get_orchestration()->get_graph(_get_tree_item_name(p_item));
             if (graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_RENAMABLE))
                 _handle_context_menu(CM_RENAME_GRAPH);
         }
@@ -230,7 +230,7 @@ void OrchestratorScriptGraphsComponentPanel::_handle_tree_gui_input(const Ref<In
     {
         if (_tree->get_root() == p_item->get_parent())
         {
-            Ref<OScriptGraph> graph = _orchestration->get_graph(_get_tree_item_name(p_item));
+            Ref<OScriptGraph> graph = _script->get_orchestration()->get_graph(_get_tree_item_name(p_item));
             if(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_DELETABLE))
                 _handle_context_menu(CM_REMOVE_GRAPH);
         }
@@ -243,10 +243,10 @@ void OrchestratorScriptGraphsComponentPanel::_handle_tree_gui_input(const Ref<In
 
 void OrchestratorScriptGraphsComponentPanel::_update_slots()
 {
-    if (_orchestration->get_type() != OrchestrationType::OT_Script)
-        return;
+    // if (_orchestration->get_type() != OrchestrationType::OT_Script)
+    //     return;
 
-    const Ref<OScript> script = _orchestration->get_self();
+    const Ref<OScript> script = _script;
     const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
     const String base_type = script->get_instance_base_type();
 
@@ -278,7 +278,7 @@ void OrchestratorScriptGraphsComponentPanel::update()
 
     _clear_tree();
 
-    Vector<Ref<OScriptGraph>> graphs = _orchestration->get_graphs();
+    Vector<Ref<OScriptGraph>> graphs = _script->get_orchestration()->get_graphs();
     if (graphs.is_empty())
     {
         TreeItem* item = _tree->get_root()->create_child();
@@ -290,7 +290,7 @@ void OrchestratorScriptGraphsComponentPanel::update()
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
     bool use_friendly_names = settings->get_setting("ui/components_panel/show_graph_friendly_names", true);
 
-    const PackedStringArray functions = _orchestration->get_function_names();
+    const PackedStringArray functions = _script->get_orchestration()->get_function_names();
     for (const Ref<OScriptGraph>& graph : graphs)
     {
         if (!(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_EVENT)))
@@ -304,7 +304,7 @@ void OrchestratorScriptGraphsComponentPanel::update()
 
         for (const String& function_name : functions)
         {
-            int function_id = _orchestration->get_function_node_id(function_name);
+            int function_id = _script->get_orchestration()->get_function_node_id(function_name);
             if (graph->has_node(function_id))
             {
                 friendly_name = function_name;
@@ -346,7 +346,7 @@ void OrchestratorScriptGraphsComponentPanel::_bind_methods()
     ADD_SIGNAL(MethodInfo("focus_node_requested", PropertyInfo(Variant::STRING, "graph_name"), PropertyInfo(Variant::INT, "node_id")));
 }
 
-OrchestratorScriptGraphsComponentPanel::OrchestratorScriptGraphsComponentPanel(Orchestration* p_orchestration)
-    : OrchestratorScriptComponentPanel("Graphs", p_orchestration)
+OrchestratorScriptGraphsComponentPanel::OrchestratorScriptGraphsComponentPanel(const Ref<OScript>& p_script)
+    : OrchestratorScriptComponentPanel("Graphs", p_script)
 {
 }

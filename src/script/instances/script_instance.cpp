@@ -89,11 +89,14 @@ OScriptInstance::OScriptInstance(const Ref<OScript>& p_script, OScriptLanguage* 
     _vm.set_owner(p_owner);
     _vm.set_script(p_script);
 
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : p_script->_variables)
-        _vm.register_variable(E.value);
+    if (p_script->get_orchestration().is_valid())
+    {
+        for (const Ref<OScriptVariable>& E : p_script->get_orchestration()->get_variables())
+            _vm.register_variable(E);
 
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : p_script->_functions)
-        _vm.register_function(E.value);
+        for (const Ref<OScriptFunction>& E : p_script->get_orchestration()->get_functions())
+            _vm.register_function(E);
+    }
 }
 
 OScriptInstance::~OScriptInstance()
@@ -156,20 +159,25 @@ bool OScriptInstance::get(const StringName& p_name, Variant& p_value, PropertyEr
 GDExtensionPropertyInfo* OScriptInstance::get_property_list(uint32_t* r_count)
 {
     LocalVector<GDExtensionPropertyInfo> infos;
-    for (const Ref<OScriptVariable>& variable : _script->get_variables())
+
+    const Ref<Orchestration> orchestration = _script->get_orchestration();
+    if (orchestration.is_valid())
     {
-        // Only exported
-        if (!variable->is_exported())
-            continue;
+        for (const Ref<OScriptVariable>& variable : orchestration->get_variables())
+        {
+            // Only exported
+            if (!variable->is_exported())
+                continue;
 
-        PropertyInfo info = variable->get_info();
+            PropertyInfo info = variable->get_info();
 
-        if (variable->is_grouped_by_category())
-            info.name = vformat("%s/%s", variable->get_category(), info.name);
+            if (variable->is_grouped_by_category())
+                info.name = vformat("%s/%s", variable->get_category(), info.name);
 
-        const Dictionary property = DictionaryUtils::from_property(info);
-        GDExtensionPropertyInfo pi = DictionaryUtils::to_extension_property(property);
-        infos.push_back(pi);
+            const Dictionary property = DictionaryUtils::from_property(info);
+            GDExtensionPropertyInfo pi = DictionaryUtils::to_extension_property(property);
+            infos.push_back(pi);
+        }
     }
 
     *r_count = infos.size();
@@ -199,7 +207,11 @@ Variant::Type OScriptInstance::get_property_type(const StringName& p_name, bool*
 
 bool OScriptInstance::has_method(const StringName& p_name) const
 {
-    return _script->has_function(p_name);
+    const Ref<Orchestration> orchestration = _script->get_orchestration();
+    if (!orchestration.is_valid())
+        return false;
+
+    return orchestration->has_function(p_name);
 }
 
 Object* OScriptInstance::get_owner() const
@@ -224,12 +236,16 @@ bool OScriptInstance::is_placeholder() const
 
 String OScriptInstance::get_base_type() const
 {
-    return _script->get_base_type();
+    const Ref<Orchestration> orchestration = _script->get_orchestration();
+    ERR_FAIL_COND_V_MSG(!orchestration.is_valid(), "", "Cannot get base type without an orchestration attached");
+
+    return orchestration->get_base_type();
 }
 
 void OScriptInstance::set_base_type(const String& p_base_type)
 {
-    _script->set_base_type(p_base_type);
+    ERR_FAIL_COND_MSG(!_script->get_orchestration().is_valid(), "Cannot set base type without an orchestration");
+    _script->get_orchestration()->set_base_type(p_base_type);
 }
 
 bool OScriptInstance::property_can_revert(const StringName& p_name)
