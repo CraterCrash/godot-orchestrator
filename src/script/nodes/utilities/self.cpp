@@ -54,7 +54,7 @@ void OScriptNodeSelf::_upgrade(uint32_t p_version, uint32_t p_current_version)
 void OScriptNodeSelf::post_initialize()
 {
     if (_is_in_editor() && get_orchestration())
-        OCONNECT(get_orchestration()->get_self(), "changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+        OCONNECT(get_orchestration(), "changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
 
     super::post_initialize();
 }
@@ -62,7 +62,7 @@ void OScriptNodeSelf::post_initialize()
 void OScriptNodeSelf::post_placed_new_node()
 {
     if (_is_in_editor() && get_orchestration())
-        OCONNECT(get_orchestration()->get_self(), "changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
+        OCONNECT(get_orchestration(), "changed", callable_mp(this, &OScriptNodeSelf::_on_script_changed));
 
     super::post_placed_new_node();
 }

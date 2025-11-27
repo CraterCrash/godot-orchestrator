@@ -18,6 +18,7 @@
 
 #include "common/settings.h"
 #include "common/version.h"
+#include "orchestration/orchestration.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
 #include "script/serialization/resource_cache.h"
@@ -79,6 +80,9 @@ void register_script_types()
 
     // Purposely public
     GDREGISTER_CLASS(OScript)
+
+    GDREGISTER_ABSTRACT_CLASS(AbstractOrchestration);
+    GDREGISTER_CLASS(Orchestration);
 
     // Create the ScriptExtension
     language = memnew(OScriptLanguage);

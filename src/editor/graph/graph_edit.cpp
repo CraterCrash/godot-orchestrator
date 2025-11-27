@@ -180,7 +180,7 @@ void OrchestratorGraphEdit::_notification(int p_what)
         validate_and_build->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_validate_and_build));
         get_menu_hbox()->add_child(validate_and_build);
 
-        const Ref<Resource> self = get_orchestration()->get_self();
+        const Ref<Resource> self = get_orchestration();
         self->connect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
         self->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
 
@@ -2208,7 +2208,7 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
 
 void OrchestratorGraphEdit::_on_inspect_script()
 {
-    EditorInterface::get_singleton()->inspect_object(get_orchestration()->get_self().ptr());
+    EditorInterface::get_singleton()->inspect_object(get_orchestration());
 
     EditorInspector* inspector = EditorInterface::get_singleton()->get_inspector();
 

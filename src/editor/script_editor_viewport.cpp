@@ -32,6 +32,11 @@
 
 #include <godot_cpp/classes/scene_tree.hpp>
 
+Ref<Orchestration> OrchestratorScriptEditorViewport::_get_orchestration() const
+{
+    return _script->get_orchestration();
+}
+
 void OrchestratorScriptEditorViewport::_update_components()
 {
     _graphs->update();
@@ -79,7 +84,7 @@ void OrchestratorScriptEditorViewport::_save_state()
         /// For each graph, record its current transient state
         Dictionary graph_states;
         state["graphs"] = graph_states;
-        for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
+        for (const Ref<OScriptGraph>& graph : _get_orchestration()->get_graphs())
         {
             Dictionary graph_state;
             graph_state["viewport_offset"] = graph->get_viewport_offset();
@@ -98,7 +103,7 @@ void OrchestratorScriptEditorViewport::_save_state()
         panel_states["variables"] = _variables->is_collapsed();
         panel_states["signals"] = _signals->is_collapsed();
 
-        cache->set_script_state(_orchestration->get_self()->get_path(), state);
+        cache->set_script_state(_script->get_path(), state);
         cache->save();
     }
 }
@@ -108,7 +113,7 @@ void OrchestratorScriptEditorViewport::_restore_state()
     Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
     if (cache.is_valid())
     {
-        const Dictionary& state = cache->get_script_state(_orchestration->get_self()->get_path());
+        const Dictionary& state = cache->get_script_state(_script->get_path());
 
         // Restores graph state
         if (state.has("graphs"))
@@ -120,7 +125,7 @@ void OrchestratorScriptEditorViewport::_restore_state()
                 const Dictionary& graph_data = graphs[graph_name];
 
                 // Restore graph transient data
-                Ref<OScriptGraph> graph = _orchestration->find_graph(graph_name);
+                Ref<OScriptGraph> graph = _get_orchestration()->find_graph(graph_name);
                 if (graph.is_valid())
                 {
                     graph->set_viewport_offset(graph_data.get("viewport_offset", Vector2()));
@@ -147,9 +152,9 @@ void OrchestratorScriptEditorViewport::_restore_state()
 
 Ref<OScriptFunction> OrchestratorScriptEditorViewport::_create_new_function(const String& p_name, bool p_has_return)
 {
-    ERR_FAIL_COND_V_MSG(_orchestration->has_graph(p_name), {}, "Script already has graph named " + p_name);
+    ERR_FAIL_COND_V_MSG(_get_orchestration()->has_graph(p_name), {}, "Script already has graph named " + p_name);
 
-    Ref<OScriptGraph> graph = _orchestration->create_graph(p_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
+    Ref<OScriptGraph> graph = _get_orchestration()->create_graph(p_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
     ERR_FAIL_COND_V_MSG(!graph.is_valid(), {}, "Failed to create new function graph named " + p_name);
 
     MethodInfo mi;
@@ -165,7 +170,7 @@ Ref<OScriptFunction> OrchestratorScriptEditorViewport::_create_new_function(cons
     const Ref<OScriptNodeFunctionEntry> entry = graph->create_node<OScriptNodeFunctionEntry>(context);
     if (!entry.is_valid())
     {
-        _orchestration->remove_graph(graph->get_graph_name());
+        _get_orchestration()->remove_graph(graph->get_graph_name());
         ERR_FAIL_V_MSG({}, "Failed to create function entry node for function " + p_name);
     }
 
@@ -257,7 +262,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
     ERR_FAIL_COND_EDMSG(connections.output_data > 1, "Cannot collapse to function with more than one output data wire.");
     ERR_FAIL_COND_EDMSG(connections.outputs.size() > 2, "Cannot output more than one execution and one data pin.");
 
-    const String new_function_name = NameUtils::create_unique_name("NewFunction", _orchestration->get_function_names());
+    const String new_function_name = NameUtils::create_unique_name("NewFunction", _get_orchestration()->get_function_names());
     Ref<OScriptFunction> function = _create_new_function(new_function_name, !connections.outputs.is_empty());
     if (!function.is_valid())
         return;
@@ -283,7 +288,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
 
     Ref<OScriptNode> call_node = source_graph->create_node<OScriptNodeCallScriptFunction>(context, area.get_center());
 
-    const Ref<OScriptNodeFunctionEntry> entry = _orchestration->get_node(function->get_owning_node_id());
+    const Ref<OScriptNodeFunctionEntry> entry = _get_orchestration()->get_node(function->get_owning_node_id());
     const Ref<OScriptNodeFunctionResult> result = function->get_return_node();
 
     int input_index = 1;
@@ -294,7 +299,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
     for (const OScriptConnection& E : connections.inputs)
     {
         // The exterior node connected to the selected node
-        const Ref<OScriptNode> source = _orchestration->get_node(E.from_node);
+        const Ref<OScriptNode> source = _get_orchestration()->get_node(E.from_node);
         const Ref<OScriptNodePin> source_pin = source->find_pins(PD_Output)[E.from_port];
         if (source_pin->is_execution() && !call_execution_wired)
         {
@@ -307,7 +312,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
         }
 
         // The selected node that is connected from the outside
-        const Ref<OScriptNode> target = _orchestration->get_node(E.to_node);
+        const Ref<OScriptNode> target = _get_orchestration()->get_node(E.to_node);
         const Ref<OScriptNodePin> target_pin = target->find_pins(PD_Input)[E.to_port];
 
         if (!entry_positioned)
@@ -355,7 +360,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
         for (const OScriptConnection& E : connections.outputs)
         {
             // The selected node that is connected from the ouside world
-            const Ref<OScriptNode> source = _orchestration->get_node(E.from_node);
+            const Ref<OScriptNode> source = _get_orchestration()->get_node(E.from_node);
             const Ref<OScriptNodePin> source_pin = source->find_pins(PD_Output)[E.from_port];
 
             if (!positioned)
@@ -402,7 +407,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
     for (const OScriptConnection& E : connections.outputs)
     {
         // The exterior node connected to the selected node
-        const Ref<OScriptNode> target = _orchestration->get_node(E.to_node);
+        const Ref<OScriptNode> target = _get_orchestration()->get_node(E.to_node);
         const Ref<OScriptNodePin> target_pin = target->find_pins(PD_Input)[E.to_port];
         if (target_pin->is_execution() && !call_execution_wired)
         {
@@ -422,7 +427,7 @@ void OrchestratorScriptEditorViewport::_collapse_selected_to_function(Orchestrat
 
 void OrchestratorScriptEditorViewport::_expand_node(int p_node_id, OrchestratorGraphEdit* p_graph)
 {
-    const Ref<OScriptNodeCallScriptFunction> call_node = _orchestration->get_node(p_node_id);
+    const Ref<OScriptNodeCallScriptFunction> call_node = _get_orchestration()->get_node(p_node_id);
     if (!call_node.is_valid())
         return;
 
@@ -480,7 +485,7 @@ void OrchestratorScriptEditorViewport::apply_changes()
 void OrchestratorScriptEditorViewport::add_script_function(Object* p_object, const String& p_function_name, const PackedStringArray& p_args)
 {
     // Check whether a function already exists with the given name
-    if (_orchestration->has_function(p_function_name))
+    if (_get_orchestration()->has_function(p_function_name))
     {
         // This could be the user relinking an existing function to a signal.
         // In this case the component viewport needs a redraw.
@@ -550,7 +555,7 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
 
     if (p_what == NOTIFICATION_READY)
     {
-        _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_orchestration));
+        _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_script));
         _graphs->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_show_graph));
         _graphs->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_close_graph));
         _graphs->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_focus_node));
@@ -559,7 +564,7 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
         _component_container->add_child(_graphs);
 
         Callable create_func = callable_mp(this, &OrchestratorScriptEditorViewport::_create_new_function);
-        _functions = memnew(OrchestratorScriptFunctionsComponentPanel(_orchestration, create_func));
+        _functions = memnew(OrchestratorScriptFunctionsComponentPanel(_script, create_func));
         _functions->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_show_graph));
         _functions->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_close_graph));
         _functions->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_focus_node));
@@ -568,15 +573,15 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
         _functions->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_functions);
 
-        _macros = memnew(OrchestratorScriptMacrosComponentPanel(_orchestration));
+        _macros = memnew(OrchestratorScriptMacrosComponentPanel(_script));
         _macros->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_macros);
 
-        _variables = memnew(OrchestratorScriptVariablesComponentPanel(_orchestration));
+        _variables = memnew(OrchestratorScriptVariablesComponentPanel(_script));
         _variables->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_variables);
 
-        _signals = memnew(OrchestratorScriptSignalsComponentPanel(_orchestration));
+        _signals = memnew(OrchestratorScriptSignalsComponentPanel(_script));
         _signals->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_signals);
 
@@ -594,8 +599,8 @@ void OrchestratorScriptEditorViewport::_bind_methods()
 {
 }
 
-OrchestratorScriptEditorViewport::OrchestratorScriptEditorViewport(const Ref<OScript>& p_script) : OrchestratorEditorViewport(p_script)
+OrchestratorScriptEditorViewport::OrchestratorScriptEditorViewport(const Ref<OScript>& p_script)
+    : OrchestratorEditorViewport(p_script)
+    , _script(p_script)
 {
-    if (p_script.is_valid())
-        _orchestration = p_script->get_orchestration();
 }

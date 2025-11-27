@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/resource_utils.h"
+#include "orchestration/io/orchestration_parser_binary.h"
 #include "script/instances/script_instance.h"
 #include "script/instances/script_instance_placeholder.h"
 #include "script/nodes/script_nodes.h"
@@ -28,55 +29,13 @@
 #include <godot_cpp/core/mutex_lock.hpp>
 
 OScript::OScript()
-    : Orchestration(this, OT_Script)
-    , _valid(true)
+    : _valid(true)
     , _language(OScriptLanguage::get_singleton())
 {
 }
 
 void OScript::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("_set_base_type", "p_base_type"), &OScript::_set_base_type);
-    ClassDB::bind_method(D_METHOD("_get_base_type"), &OScript::_get_base_type);
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "base_type", PROPERTY_HINT_TYPE_STRING, "Node"), "_set_base_type",
-                 "_get_base_type");
-
-    // Purposely hidden until tested
-    ClassDB::bind_method(D_METHOD("set_tool", "p_tool"), &OScript::set_tool);
-    ClassDB::bind_method(D_METHOD("get_tool"), &OScript::get_tool);
-    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "tool", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_tool",
-                 "get_tool");
-
-    ClassDB::bind_method(D_METHOD("_set_variables", "variables"), &OScript::_set_variables);
-    ClassDB::bind_method(D_METHOD("_get_variables"), &OScript::_get_variables);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "variables", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
-                 "_set_variables", "_get_variables");
-
-    ClassDB::bind_method(D_METHOD("_set_functions", "functions"), &OScript::_set_functions);
-    ClassDB::bind_method(D_METHOD("_get_functions"), &OScript::_get_functions);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "functions", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
-                 "_set_functions", "_get_functions");
-
-    ClassDB::bind_method(D_METHOD("_set_signals", "signals"), &OScript::_set_signals);
-    ClassDB::bind_method(D_METHOD("_get_signals"), &OScript::_get_signals);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "signals", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
-                 "_set_signals", "_get_signals");
-
-    ClassDB::bind_method(D_METHOD("_set_connections", "connections"), &OScript::_set_connections);
-    ClassDB::bind_method(D_METHOD("_get_connections"), &OScript::_get_connections);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "connections", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE),
-                 "_set_connections", "_get_connections");
-
-    ClassDB::bind_method(D_METHOD("_set_nodes", "nodes"), &OScript::_set_nodes);
-    ClassDB::bind_method(D_METHOD("_get_nodes"), &OScript::_get_nodes);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "nodes", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_nodes",
-                 "_get_nodes");
-
-    ClassDB::bind_method(D_METHOD("_set_graphs", "graphs"), &OScript::_set_graphs);
-    ClassDB::bind_method(D_METHOD("_get_graphs"), &OScript::_get_graphs);
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "graphs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_graphs",
-                 "_get_graphs");
-
     ADD_SIGNAL(MethodInfo("connections_changed", PropertyInfo(Variant::STRING, "caller")));
     ADD_SIGNAL(MethodInfo("functions_changed"));
     ADD_SIGNAL(MethodInfo("variables_changed"));
@@ -131,9 +90,12 @@ bool OScript::placeholder_has(Object* p_object) const
 
 void* OScript::_instance_create(Object* p_object) const
 {
-    if (!ClassDB::is_parent_class(p_object->get_class(), _base_type))
+    ERR_FAIL_COND_V_MSG(!_orchestration.is_valid(), nullptr, "Cannot create instance with no orchestration");
+
+    const String base_type = _orchestration->get_base_type();
+    if (!ClassDB::is_parent_class(p_object->get_class(), base_type))
     {
-        const String message = vformat("Orchestration inherits from native type '%s', so it can't be assigned to an object of type: '%s'", _base_type, p_object->get_class());
+        const String message = vformat("Orchestration inherits from native type '%s', so it can't be assigned to an object of type: '%s'", base_type, p_object->get_class());
         if (EngineDebugger::get_singleton()->is_active())
             OScriptLanguage::get_singleton()->debug_break_parse(get_path(), -1, message);
         ERR_FAIL_V_MSG(nullptr, message);
@@ -148,7 +110,7 @@ void* OScript::_instance_create(Object* p_object) const
     si->_script_instance = GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptInstance::INSTANCE_INFO, si);
 
     // Dispatch the "Init Event" if its wired
-    if (has_function("_init"))
+    if (_orchestration->has_function("_init"))
     {
         Variant result;
         GDExtensionCallError err;
@@ -193,7 +155,8 @@ StringName OScript::_get_global_name() const
 
 StringName OScript::_get_instance_base_type() const
 {
-    return _base_type;
+    ERR_FAIL_COND_V_MSG(!_orchestration.is_valid(), "", "Cannot get instance base type without an orchestration");
+    return _orchestration->get_base_type();
 }
 
 bool OScript::_has_source_code() const
@@ -233,7 +196,10 @@ bool OScript::_has_static_method(const StringName& p_method) const
 
 bool OScript::_has_method(const StringName& p_method) const
 {
-    return _functions.has(p_method);
+    if (!_orchestration.is_valid())
+        return false;
+
+    return _orchestration->has_function(p_method);
 }
 
 Dictionary OScript::_get_method_info(const StringName& p_method) const
@@ -244,25 +210,32 @@ Dictionary OScript::_get_method_info(const StringName& p_method) const
 TypedArray<Dictionary> OScript::_get_script_method_list() const
 {
     TypedArray<Dictionary> results;
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _functions)
-        results.push_back(E.value->to_dict());
-
+    if (_orchestration.is_valid())
+    {
+        for (const Ref<OScriptFunction>& function : _orchestration->get_functions())
+            results.push_back(function->to_dict());
+    }
     return results;
 }
 
 TypedArray<Dictionary> OScript::_get_script_property_list() const
 {
     TypedArray<Dictionary> results;
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
-        if (E.value->is_exported())
-            results.push_back(DictionaryUtils::from_property(E.value->get_info()));
-
+    if (_orchestration.is_valid())
+    {
+        for (const Ref<OScriptVariable>& E : _orchestration->get_variables())
+            if (E->is_exported())
+                results.push_back(DictionaryUtils::from_property(E->get_info()));
+    }
     return results;
 }
 
 bool OScript::_is_tool() const
 {
-    return _tool;
+    if (_orchestration.is_valid())
+        return _orchestration->get_tool();
+
+    return false;
 }
 
 bool OScript::_is_valid() const
@@ -277,34 +250,42 @@ ScriptLanguage* OScript::_get_language() const
 
 bool OScript::_has_script_signal(const StringName& p_signal) const
 {
-    return has_custom_signal(p_signal);
+    if (!_orchestration.is_valid())
+        return false;
+
+    return _orchestration->has_custom_signal(p_signal);
 }
 
 TypedArray<Dictionary> OScript::_get_script_signal_list() const
 {
     TypedArray<Dictionary> list;
-
-    for (const KeyValue<StringName, Ref<OScriptSignal>>& E : _signals)
-        list.push_back(DictionaryUtils::from_method(E.value->get_method_info()));
-
+    if (_orchestration.is_valid())
+    {
+        for (const Ref<OScriptSignal>& E : _orchestration->get_custom_signals())
+            list.push_back(DictionaryUtils::from_method(E->get_method_info()));
+    }
     return list;
 }
 
 bool OScript::_has_property_default_value(const StringName& p_property) const
 {
-    HashMap<StringName, Ref<OScriptVariable>>::ConstIterator E = _variables.find(p_property);
-    if (E)
-        return true;
-
+    if (_orchestration.is_valid())
+    {
+        const Ref<OScriptVariable>& E = _orchestration->get_variable(p_property);
+        if (E.is_valid())
+            return true;
+    }
     return false;
 }
 
 Variant OScript::_get_property_default_value(const StringName& p_property) const
 {
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables)
-        if (E.key.match(p_property))
-            return E.value->get_default_value();
-
+    if (_orchestration.is_valid())
+    {
+        const Ref<OScriptVariable>& E = _orchestration->get_variable(p_property);
+        if (E.is_valid())
+            return E->get_default_value();
+    }
     return {};
 }
 
@@ -313,10 +294,6 @@ void OScript::_update_exports()
     #ifdef TOOLS_ENABLED
     _update_exports_down(false);
     #endif
-}
-
-void OScript::_update_placeholders()
-{
 }
 
 int32_t OScript::_get_member_line(const StringName& p_member) const
@@ -355,7 +332,10 @@ StringName OScript::_get_doc_class_name() const
 
 void OScript::_update_export_values(HashMap<StringName, Variant>& r_values, List<PropertyInfo>& r_properties) const
 {
-    for (const Ref<OScriptVariable>& variable : get_variables())
+    if (!_orchestration.is_valid())
+        return;
+
+    for (const Ref<OScriptVariable>& variable : _orchestration->get_variables())
     {
         PropertyInfo property = variable->get_info();
         if (variable->is_grouped_by_category())
@@ -389,6 +369,13 @@ void OScript::_update_exports_down(bool p_base_exports_changed)
     // todo: add inheriters_cache
 }
 
+void OScript::set_orchestration(const Ref<Orchestration>& p_orchestration)
+{
+    _orchestration = p_orchestration;
+    _orchestration->set_self(this);
+    emit_changed();
+}
+
 void OScript::reload_from_file()
 {
     constexpr ResourceLoader::CacheMode CACHE_MODE_IGNORE = ResourceLoader::CACHE_MODE_IGNORE;
@@ -396,27 +383,13 @@ void OScript::reload_from_file()
 
     // This logic was taken directly from Script::reload_from_file
     #ifdef TOOLS_ENABLED
-    Ref<OScript> reload = ResourceLoader::get_singleton()->load(path, get_class(), CACHE_MODE_IGNORE);
-    if (reload.is_valid())
+    Ref<OScript> other = ResourceLoader::get_singleton()->load(path, get_class(), CACHE_MODE_IGNORE);
+    if (other.is_valid())
     {
-        set_block_signals(true);
+        const Ref<Orchestration> orchestration = other->get_orchestration();
+        other.unref();
 
-        // With the reload, this reapplies all the data from the reloaded script to this
-        // Signals are blocked, so no observers are notified.
-        _set_base_type(reload->_get_base_type());
-        _set_nodes(reload->_get_nodes());
-        _set_connections(reload->_get_connections());
-        _set_graphs(reload->_get_graphs());
-        _set_functions(reload->_get_functions());
-        _set_variables(reload->_get_variables());
-        _set_signals(reload->_get_signals());
-        reload.unref();
-        _postinitialize();
-
-        set_edited(false);
-        set_block_signals(true);
-
-        emit_changed();
+        set_orchestration(orchestration);
 
         if (_is_valid())
         {

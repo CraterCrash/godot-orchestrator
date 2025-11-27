@@ -30,6 +30,8 @@ class OrchestratorScriptEditorViewport : public OrchestratorEditorViewport
     GDCLASS(OrchestratorScriptEditorViewport, OrchestratorEditorViewport);
     static void _bind_methods();
 
+    Ref<OScript> _script;
+
 protected:
     OrchestratorGraphEdit* _event_graph{ nullptr };           //! The event graph
     OrchestratorScriptComponentPanel* _graphs{ nullptr };     //! Graphs section
@@ -43,6 +45,7 @@ protected:
     //~ End Godot Interface
 
     //~ Begin OrchestratorEditorViewport Interface
+    Ref<Orchestration> _get_orchestration() const override;
     void _update_components() override;
     bool _can_graph_be_closed(OrchestratorGraphEdit* p_graph) override;
     void _focus_object(Object* p_object) override;

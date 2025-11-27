@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_EDITOR_VIEWPORT_H
 
 #include "common/version.h"
+#include "orchestration/orchestration.h"
 
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
@@ -33,7 +34,6 @@
 using namespace godot;
 
 /// Forward declarations
-class Orchestration;
 class OrchestratorEditorPanel;
 class OrchestratorGraphEdit;
 class OScriptNode;
@@ -62,7 +62,6 @@ protected:
     };
 
     Ref<Resource> _resource;                         //! The edited resource
-    Orchestration* _orchestration{ nullptr };        //! The orchestration instance
     TabContainer* _tabs{ nullptr };                  //! The graph editor tab container
     ScrollContainer* _scroll_container{ nullptr };   //! The right component container
     ConfirmationDialog* _confirm_dialog{ nullptr };  //! Build confirmation dialog
@@ -76,6 +75,8 @@ protected:
     /// @param p_nodes the nodes to calculate the rect about
     /// @return a Rect2 that is large enough to contain all the given nodes
     static Rect2 _get_node_set_rect(const Vector<Ref<OScriptNode>>& p_nodes);
+
+    virtual Ref<Orchestration> _get_orchestration() const { return {}; }
 
     /// Update components, by default nothing is updated
     virtual void _update_components() { }

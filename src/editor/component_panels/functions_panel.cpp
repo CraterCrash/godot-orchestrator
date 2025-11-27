@@ -36,13 +36,13 @@ void OrchestratorScriptFunctionsComponentPanel::_show_function_graph(TreeItem* p
     // Function name and graph names are synonymous
     const String function_name = _get_tree_item_name(p_item);
     emit_signal("show_graph_requested", function_name);
-    emit_signal("focus_node_requested", function_name, _orchestration->get_function_node_id(function_name));
+    emit_signal("focus_node_requested", function_name, _script->get_orchestration()->get_function_node_id(function_name));
     _tree->deselect_all();
 }
 
 void OrchestratorScriptFunctionsComponentPanel::_duplicate_function(TreeItem* p_item, bool p_include_code)
 {
-    const Ref<OScriptFunction> duplicate = _orchestration->duplicate_function(_get_tree_item_name(p_item), p_include_code);
+    const Ref<OScriptFunction> duplicate = _script->get_orchestration()->duplicate_function(_get_tree_item_name(p_item), p_include_code);
     if (duplicate.is_valid())
     {
         const String function_name = duplicate->get_function_name();
@@ -56,17 +56,17 @@ void OrchestratorScriptFunctionsComponentPanel::_duplicate_function(TreeItem* p_
 
 void OrchestratorScriptFunctionsComponentPanel::_update_slots()
 {
-    if (_orchestration->get_type() != OrchestrationType::OT_Script)
-        return;
+    // if (_orchestration->get_type() != OrchestrationType::OT_Script)
+    //     return;
 
-    const Ref<OScript> script = _orchestration->get_self();
+    const Ref<OScript> script = _script;
     const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
     const String base_type = script->get_instance_base_type();
 
     _iterate_tree_items(callable_mp_lambda(this, [&](TreeItem* item) {
         if (item->has_meta("__name"))
         {
-            Ref<OScriptGraph> graph = _orchestration->get_graph(item->get_meta("__name"));
+            Ref<OScriptGraph> graph = _script->get_orchestration()->get_graph(item->get_meta("__name"));
             if (graph.is_valid() && graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION))
             {
                 const String function_name = item->get_meta("__name");
@@ -90,7 +90,7 @@ void OrchestratorScriptFunctionsComponentPanel::_update_slots()
 
 PackedStringArray OrchestratorScriptFunctionsComponentPanel::_get_existing_names() const
 {
-    return _orchestration->get_function_names();
+    return _script->get_orchestration()->get_function_names();
 }
 
 String OrchestratorScriptFunctionsComponentPanel::_get_tooltip_text() const
@@ -166,7 +166,7 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_item_selected()
     TreeItem* item = _tree->get_selected();
     if (item)
     {
-        const Ref<OScriptFunction> function = _orchestration->find_function(StringName(_get_tree_item_name(item)));
+        const Ref<OScriptFunction> function = _script->get_orchestration()->find_function(StringName(_get_tree_item_name(item)));
         if (function.is_valid())
             EditorInterface::get_singleton()->edit_resource(function);
     }
@@ -191,7 +191,7 @@ bool OrchestratorScriptFunctionsComponentPanel::_handle_item_renamed(const Strin
         return false;
     }
 
-    if (!_orchestration->rename_function(p_old_name, p_new_name))
+    if (!_script->get_orchestration()->rename_function(p_old_name, p_new_name))
         return false;
 
     emit_signal("graph_renamed", p_old_name, p_new_name);
@@ -204,16 +204,16 @@ void OrchestratorScriptFunctionsComponentPanel::_handle_remove(TreeItem* p_item)
     const String function_name = _get_tree_item_name(p_item);
     emit_signal("close_graph_requested", function_name);
 
-    _orchestration->remove_function(function_name);
+    _script->get_orchestration()->remove_function(function_name);
 }
 
 void OrchestratorScriptFunctionsComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id,
                                                                     int p_mouse_button)
 {
-    if (_orchestration->get_type() != OrchestrationType::OT_Script)
-        return;
+    // if (_orchestration->get_type() != OrchestrationType::OT_Script)
+    //     return;
 
-    const Ref<OScript> script = _orchestration->get_self();
+    const Ref<OScript> script = _script;
     const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
 
     OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
@@ -228,7 +228,7 @@ Dictionary OrchestratorScriptFunctionsComponentPanel::_handle_drag_data(const Ve
     TreeItem* selected = _tree->get_selected();
     if (selected)
     {
-        Ref<OScriptFunction> function = _orchestration->find_function(StringName(_get_tree_item_name(selected)));
+        Ref<OScriptFunction> function = _script->get_orchestration()->find_function(StringName(_get_tree_item_name(selected)));
         if (function.is_valid())
         {
             data["type"] = "function";
@@ -271,7 +271,7 @@ void OrchestratorScriptFunctionsComponentPanel::update()
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
     bool use_friendly_names = settings->get_setting("ui/components_panel/show_function_friendly_names", true);
 
-    for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
+    for (const Ref<OScriptGraph>& graph : _script->get_orchestration()->get_graphs())
     {
         if (!(graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION)))
             continue;
@@ -337,7 +337,7 @@ void OrchestratorScriptFunctionsComponentPanel::_bind_methods()
     ADD_SIGNAL(MethodInfo("override_function_requested"));
 }
 
-OrchestratorScriptFunctionsComponentPanel::OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, Callable p_new_function_callback)
-    : OrchestratorScriptComponentPanel("Functions", p_orchestration), _new_function_callback(p_new_function_callback)
+OrchestratorScriptFunctionsComponentPanel::OrchestratorScriptFunctionsComponentPanel(const Ref<OScript>& p_script, Callable p_new_function_callback)
+    : OrchestratorScriptComponentPanel("Functions", p_script), _new_function_callback(p_new_function_callback)
 {
 }

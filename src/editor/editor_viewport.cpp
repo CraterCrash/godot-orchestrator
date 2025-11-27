@@ -87,7 +87,7 @@ void OrchestratorEditorViewport::_resolve_node_set_connections(const Vector<Ref<
         }
     }
 
-    for (const OScriptConnection& E : _orchestration->get_connections())
+    for (const OScriptConnection& E : _get_orchestration()->get_connections())
     {
         if (node_map.has(E.from_node) && node_map.has(E.to_node))
             r_connections.connections.insert(E);
@@ -159,7 +159,7 @@ OrchestratorGraphEdit* OrchestratorEditorViewport::_get_or_create_tab(const Stri
     if (!p_create)
         return nullptr;
 
-    const Ref<OScriptGraph> script_graph = _orchestration->get_graph(p_name);
+    const Ref<OScriptGraph> script_graph = _get_orchestration()->get_graph(p_name);
     if (!script_graph.is_valid())
         return nullptr;
 
@@ -194,7 +194,7 @@ void OrchestratorEditorViewport::_rename_tab(const String& p_old_name, const Str
 
 void OrchestratorEditorViewport::apply_changes()
 {
-    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
+    for (const Ref<OScriptNode>& node : _get_orchestration()->get_nodes())
         node->pre_save();
 
     for (int i = 0; i < _tabs->get_tab_count(); i++)
@@ -210,7 +210,7 @@ void OrchestratorEditorViewport::apply_changes()
         if (OrchestratorGraphEdit* graph = Object::cast_to<OrchestratorGraphEdit>(_tabs->get_child(i)))
             graph->post_apply_changes();
 
-    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
+    for (const Ref<OScriptNode>& node : _get_orchestration()->get_nodes())
         node->post_save();
 }
 
@@ -243,13 +243,13 @@ bool OrchestratorEditorViewport::is_same_script(const Ref<Script>& p_script) con
 
 bool OrchestratorEditorViewport::is_modified() const
 {
-    return _orchestration->is_edited();
+    return _get_orchestration()->is_edited();
 }
 
 bool OrchestratorEditorViewport::build(bool p_show_success)
 {
     BuildLog log;
-    _orchestration->validate_and_build(log);
+    _get_orchestration()->validate_and_build(log);
 
     OrchestratorPlugin::get_singleton()->make_build_panel_active();
     OrchestratorBuildOutputPanel* build_panel = OrchestratorPlugin::get_singleton()->get_build_panel();
@@ -317,16 +317,16 @@ bool OrchestratorEditorViewport::build(bool p_show_success)
 void OrchestratorEditorViewport::clear_breakpoints()
 {
     OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton();
-    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
+    for (const Ref<OScriptNode>& node : _get_orchestration()->get_nodes())
     {
         node->set_breakpoint_flag(OScriptNode::BREAKPOINT_NONE);
-        debugger->set_breakpoint(_orchestration->get_self()->get_path(), node->get_id(), false);
+        debugger->set_breakpoint(_get_orchestration()->get_self()->get_path(), node->get_id(), false);
     }
 }
 
 void OrchestratorEditorViewport::set_breakpoint(int p_node_id, bool p_enabled)
 {
-    const Ref<OScriptNode> node = _orchestration->get_node(p_node_id);
+    const Ref<OScriptNode> node = _get_orchestration()->get_node(p_node_id);
     if (node.is_valid())
         node->set_breakpoint_flag(p_enabled ? OScriptNode::BREAKPOINT_ENABLED : OScriptNode::BREAKPOINT_NONE);
 }
@@ -334,10 +334,10 @@ void OrchestratorEditorViewport::set_breakpoint(int p_node_id, bool p_enabled)
 PackedStringArray OrchestratorEditorViewport::get_breakpoints() const
 {
     PackedStringArray breakpoints;
-    for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
+    for (const Ref<OScriptNode>& node : _get_orchestration()->get_nodes())
     {
         if (node->has_breakpoint())
-            breakpoints.push_back(vformat("%s:%d", _orchestration->get_self()->get_path(), node->get_id()));
+            breakpoints.push_back(vformat("%s:%d", _resource->get_path(), node->get_id()));
     }
     return breakpoints;
 }
@@ -345,11 +345,11 @@ PackedStringArray OrchestratorEditorViewport::get_breakpoints() const
 
 void OrchestratorEditorViewport::goto_node(int p_node_id)
 {
-    Ref<OScriptNode> node = _orchestration->get_node(p_node_id);
+    Ref<OScriptNode> node = _get_orchestration()->get_node(p_node_id);
     if (!node.is_valid())
         return;
 
-    for (const Ref<OScriptGraph>& graph : _orchestration->get_graphs())
+    for (const Ref<OScriptGraph>& graph : _get_orchestration()->get_graphs())
     {
         if (graph->has_node(p_node_id))
         {

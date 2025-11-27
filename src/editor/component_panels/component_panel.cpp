@@ -184,7 +184,7 @@ void OrchestratorScriptComponentPanel::_iterate_tree_items(const Callable& p_cal
 
 void OrchestratorScriptComponentPanel::_disconnect_slot(TreeItem* p_item)
 {
-    const Ref<OScript> script = _orchestration->get_self();
+    const Ref<OScript> script = _script;
     const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
 
     const String method_name = _get_tree_item_name(p_item);
@@ -498,9 +498,9 @@ void OrchestratorScriptComponentPanel::_bind_methods()
     ADD_SIGNAL(MethodInfo("scroll_to_item", PropertyInfo(Variant::OBJECT, "item")));
 }
 
-OrchestratorScriptComponentPanel::OrchestratorScriptComponentPanel(const String& p_title, Orchestration* p_orchestration)
+OrchestratorScriptComponentPanel::OrchestratorScriptComponentPanel(const String& p_title, const Ref<OScript>& p_script)
     : _title(p_title)
-    , _orchestration(p_orchestration)
+    , _script(p_script)
 {
     set_v_size_flags(SIZE_SHRINK_BEGIN);
     set_h_size_flags(SIZE_EXPAND_FILL);

@@ -14,10 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_SERIALIZATION_H
-#define ORCHESTRATOR_SCRIPT_SERIALIZATION_H
+#ifndef ORCHESTRATOR_ORCHESTRATION_FORMAT_H
+#define ORCHESTRATOR_ORCHESTRATION_FORMAT_H
 
-#include "script/serialization/serialization_binary.h"
-#include "script/serialization/serialization_text.h"
+#include <godot_cpp/core/defs.hpp>
 
-#endif // ORCHESTRATOR_SCRIPT_SERIALIZATION_H
+class OrchestrationFormat
+{
+public:
+    static const uint32_t FORMAT_VERSION;
+};
+
+#endif // ORCHESTRATOR_ORCHESTRATION_FORMAT_H

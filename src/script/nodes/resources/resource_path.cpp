@@ -18,6 +18,8 @@
 
 #include "common/property_utils.h"
 
+#include <godot_cpp/classes/file_access.hpp>
+
 class OScriptNodeResourcePathInstance : public OScriptNodeInstance
 {
     DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeResourcePath);

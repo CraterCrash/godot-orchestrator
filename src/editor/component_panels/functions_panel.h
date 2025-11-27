@@ -82,9 +82,9 @@ public:
     //~ End Wrapped Interface
 
     /// Construct the function component panel
-    /// @param p_orchestration the orchestration
+    /// @param p_script the script
     /// @param p_new_function_callback the callable to call when a new function is to be added
-    explicit OrchestratorScriptFunctionsComponentPanel(Orchestration* p_orchestration, Callable p_new_function_callback);
+    explicit OrchestratorScriptFunctionsComponentPanel(const Ref<OScript>& p_script, Callable p_new_function_callback);
 };
 
 #endif // ORCHESTRATOR_SCRIPT_FUNCTIONS_COMPONENT_PANEL_H

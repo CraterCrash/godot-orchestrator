@@ -14,10 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_SERIALIZATION_H
-#define ORCHESTRATOR_SCRIPT_SERIALIZATION_H
+#include "orchestration/io/orchestration_format_binary.h"
 
-#include "script/serialization/serialization_binary.h"
-#include "script/serialization/serialization_text.h"
-
-#endif // ORCHESTRATOR_SCRIPT_SERIALIZATION_H
+const uint32_t OrchestrationBinaryFormat::NUM_RESERVED_FIELDS = 10;

@@ -169,22 +169,25 @@ bool OScriptPlaceHolderInstance::get(const StringName& p_name, Variant& r_value,
 GDExtensionPropertyInfo* OScriptPlaceHolderInstance::get_property_list(uint32_t* r_count)
 {
     LocalVector<GDExtensionPropertyInfo> infos;
-    for (const Ref<OScriptVariable>& variable : _script->get_variables())
+    if (_script->get_orchestration().is_valid())
     {
-        // Only exported
-        if (!variable->is_exported())
-            continue;
+        for (const Ref<OScriptVariable>& variable : _script->get_orchestration()->get_variables())
+        {
+            // Only exported
+            if (!variable->is_exported())
+                continue;
 
-        PropertyInfo info = variable->get_info();
-        info.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
+            PropertyInfo info = variable->get_info();
+            info.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
 
-        if (variable->is_grouped_by_category())
-            info.name = vformat("%s/%s", variable->get_category(), info.name);
+            if (variable->is_grouped_by_category())
+                info.name = vformat("%s/%s", variable->get_category(), info.name);
 
-        const Dictionary property = DictionaryUtils::from_property(info);
+            const Dictionary property = DictionaryUtils::from_property(info);
 
-        GDExtensionPropertyInfo  pi = DictionaryUtils::to_extension_property(property);
-        infos.push_back(pi);
+            GDExtensionPropertyInfo  pi = DictionaryUtils::to_extension_property(property);
+            infos.push_back(pi);
+        }
     }
 
     *r_count = infos.size();
@@ -200,7 +203,15 @@ GDExtensionPropertyInfo* OScriptPlaceHolderInstance::get_property_list(uint32_t*
 
 Variant::Type OScriptPlaceHolderInstance::get_property_type(const StringName& p_name, bool* r_is_valid) const
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
+    if (!_script->get_orchestration().is_valid())
+    {
+        if (r_is_valid)
+            *r_is_valid = false;
+
+        return Variant::NIL;
+    }
+
+    Ref<OScriptVariable> variable = _script->get_orchestration()->get_variable(_get_variable_name_from_path(p_name));
     if (!variable.is_valid() || !variable->is_exported())
     {
         if(r_is_valid)
@@ -216,7 +227,11 @@ Variant::Type OScriptPlaceHolderInstance::get_property_type(const StringName& p_
 
 bool OScriptPlaceHolderInstance::has_method(const StringName& p_name) const
 {
-    return _script->has_function(p_name);
+    const Ref<Orchestration> orchestration = _script->get_orchestration();
+    if (!orchestration.is_valid())
+        return false;
+
+    return orchestration->has_function(p_name);
 }
 
 Ref<OScript> OScriptPlaceHolderInstance::get_script() const
@@ -241,7 +256,11 @@ bool OScriptPlaceHolderInstance::is_placeholder() const
 
 bool OScriptPlaceHolderInstance::property_can_revert(const StringName& p_name)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
+    const Ref<Orchestration> orchestration = _script->get_orchestration();
+    if (!orchestration.is_valid())
+        return false;
+
+    const Ref<OScriptVariable> variable = orchestration->get_variable(_get_variable_name_from_path(p_name));
     if (!variable.is_valid() || !variable->is_exported())
         return false;
 
@@ -250,7 +269,11 @@ bool OScriptPlaceHolderInstance::property_can_revert(const StringName& p_name)
 
 bool OScriptPlaceHolderInstance::property_get_revert(const StringName& p_name, Variant* r_ret)
 {
-    Ref<OScriptVariable> variable = _script->get_variable(_get_variable_name_from_path(p_name));
+    const Ref<Orchestration> orchestration = _script->get_orchestration();
+    if (!orchestration.is_valid())
+        return false;
+
+    const Ref<OScriptVariable> variable = orchestration->get_variable(_get_variable_name_from_path(p_name));
     if (!variable.is_valid() || !variable->is_exported())
         return false;
 
