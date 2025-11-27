@@ -2208,7 +2208,7 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
 
 void OrchestratorGraphEdit::_on_inspect_script()
 {
-    EditorInterface::get_singleton()->inspect_object(get_orchestration()->get_self().ptr());
+    EditorInterface::get_singleton()->inspect_object(get_orchestration());
 
     EditorInspector* inspector = EditorInterface::get_singleton()->get_inspector();
 
