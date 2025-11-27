@@ -24,6 +24,7 @@
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 
 PackedStringArray OScriptTextResourceLoader::_get_recognized_extensions() const
@@ -132,7 +133,14 @@ Variant OScriptTextResourceLoader::_load(const String& p_path, const String& p_o
     script.instantiate();
     if (script.is_valid())
     {
-        script->set_path(local_path);
+        if (p_cache_mode != CACHE_MODE_IGNORE)
+        {
+            if (!ResourceLoader::get_singleton()->has_cached(p_path))
+                script->set_path(local_path);
+        }
+        else
+            script->set_path_cache(local_path);
+
         script->set_orchestration(orchestration);
     }
     return script;
