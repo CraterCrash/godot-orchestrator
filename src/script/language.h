@@ -160,6 +160,7 @@ public:
     bool has_any_global_constant(const StringName& p_name) const;
     Variant get_any_global_constant(const StringName& p_name);
     PackedStringArray get_global_constant_names() const;
+    PackedStringArray get_global_named_constant_names() const;
 
     // Debugging
     bool debug_break(const String& p_error, bool p_allow_continue);

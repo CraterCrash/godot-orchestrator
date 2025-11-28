@@ -583,11 +583,19 @@ Variant OScriptLanguage::get_any_global_constant(const StringName& p_name)
 PackedStringArray OScriptLanguage::get_global_constant_names() const
 {
     PackedStringArray keys;
-    for (const KeyValue<StringName, Variant>& E : _named_global_constants)
+    keys.append_array(get_global_named_constant_names());
+
+    for (const KeyValue<StringName, Variant>& E : _global_constants)
         if (!keys.has(E.key))
             keys.push_back(E.key);
 
-    for (const KeyValue<StringName, Variant>& E : _global_constants)
+    return keys;
+}
+
+PackedStringArray OScriptLanguage::get_global_named_constant_names() const
+{
+    PackedStringArray keys;
+    for (const KeyValue<StringName, Variant>& E : _named_global_constants)
         if (!keys.has(E.key))
             keys.push_back(E.key);
 

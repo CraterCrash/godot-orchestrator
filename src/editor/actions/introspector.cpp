@@ -227,8 +227,8 @@ String OrchestratorEditorIntrospector::_get_builtin_function_category_from_godot
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::_get_actions_for_class(
-    const String& p_class_name, const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties,
-    const TypedArray<Dictionary>& p_signals)
+    const String& p_class_name, const String& p_category_name,
+    const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals)
 {
     Vector<Ref<Action>> actions;
 
@@ -236,16 +236,16 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     if (p_class_name.begins_with("Editor") || p_class_name.begins_with("Orchestrator") || p_class_name.begins_with("OScript"))
         return actions;
 
-    const String properties_category = vformat("Properties/%s", p_class_name);
+    const String properties_category = vformat("Properties/%s", p_category_name);
     actions.append_array(_create_categories_from_path(properties_category, p_class_name));
 
-    const String methods_category = vformat("Methods/%s", p_class_name);
+    const String methods_category = vformat("Methods/%s", p_category_name);
     actions.append_array(_create_categories_from_path(methods_category, p_class_name));
 
-    const String static_methods_category = vformat("Methods (Static)/%s", p_class_name);
+    const String static_methods_category = vformat("Methods (Static)/%s", p_category_name);
     actions.append_array(_create_categories_from_path(static_methods_category, p_class_name));
 
-    const String signals_category = vformat("Signals/%s", p_class_name);
+    const String signals_category = vformat("Signals/%s", p_category_name);
     actions.append_array(_create_categories_from_path(signals_category, p_class_name));
 
     PackedStringArray property_methods;
@@ -278,8 +278,13 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             }
 
             #if GODOT_VERSION >= 0x040400
-            const String getter_name = ClassDB::class_get_property_getter(p_class_name, property.name);
-            const String setter_name = ClassDB::class_get_property_setter(p_class_name, property.name);
+            String getter_name = ClassDB::class_get_property_getter(p_class_name, property.name);
+            if (getter_name.is_empty() && property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE)
+                getter_name = "get_" + property.name;
+
+            String setter_name = ClassDB::class_get_property_setter(p_class_name, property.name);
+            if (setter_name.is_empty() && property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE)
+                setter_name = "set_" + property.name;
             #else
             String getter_name = vformat("get_%s", property.name);
             String setter_name = vformat("set_%s", property.name);
@@ -445,6 +450,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 .target_class(p_class_name)
                 .selectable(true)
                 .method(signal)
+                .class_name(p_class_name)
                 .data(DictionaryUtils::of({ { "target_class", p_class_name } }))
                 .executions(true)
                 .build());
@@ -495,6 +501,21 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     if (script.is_valid())
         global_name = ScriptServer::get_global_name(script);
 
+    String autoload_name = "";
+    for (const String& constant_name : OScriptLanguage::get_singleton()->get_global_named_constant_names())
+    {
+        Variant value = OScriptLanguage::get_singleton()->get_any_global_constant(constant_name);
+        if (value.get_type() == Variant::OBJECT)
+        {
+            Object* other = Object::cast_to<Object>(value);
+            if (other == p_object)
+            {
+                autoload_name = constant_name;
+                break;
+            }
+        }
+    }
+
     if (!global_name.is_empty())
     {
         // The object has a named script attached
@@ -507,6 +528,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             actions.append_array(
                 _get_actions_for_class(
                     global_class.name,
+                    global_class.name,
                     global_class.get_method_list(),
                     global_class.get_property_list(),
                     global_class.get_signal_list()));
@@ -517,6 +539,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         actions.append_array(
             _get_actions_for_class(
                 p_object->get_class(),
+                autoload_name.is_empty() ? p_object->get_class() : autoload_name,
                 script->get_script_method_list(),
                 script->get_script_property_list(),
                 script->get_script_signal_list()));
@@ -527,6 +550,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     {
         actions.append_array(
             _get_actions_for_class(
+                native_class,
                 native_class,
                 ClassDB::class_get_method_list(native_class, true),
                 ClassDB::class_get_property_list(native_class, true),
@@ -561,6 +585,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                     actions.append_array(
                         _get_actions_for_class(
                             class_name,
+                            class_name,
                             global_class.get_method_list(),
                             global_class.get_property_list(),
                             global_class.get_signal_list()));
@@ -569,6 +594,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 {
                     actions.append_array(
                         _get_actions_for_class(
+                            class_name,
                             class_name,
                             ClassDB::class_get_method_list(class_name, true),
                             ClassDB::class_get_property_list(class_name, true),
@@ -586,12 +612,27 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 {
     Vector<Ref<Action>> actions;
 
-    actions.append_array(
-        _get_actions_for_class(
-            p_class_name,
-            ClassDB::class_get_method_list(p_class_name, true),
-            ClassDB::class_get_property_list(p_class_name, true),
-            ClassDB::class_get_signal_list(p_class_name, true)));
+    if (ScriptServer::is_global_class(p_class_name))
+    {
+        const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(p_class_name);
+        actions.append_array(
+            _get_actions_for_class(
+                global_class.name,
+                global_class.name,
+                global_class.get_method_list(),
+                global_class.get_property_list(),
+                global_class.get_signal_list()));
+    }
+    else
+    {
+        actions.append_array(
+            _get_actions_for_class(
+                p_class_name,
+                p_class_name,
+                ClassDB::class_get_method_list(p_class_name, true),
+                ClassDB::class_get_property_list(p_class_name, true),
+                ClassDB::class_get_signal_list(p_class_name, true)));
+    }
 
     return actions;
 }
@@ -1024,6 +1065,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 info.name,
                 DictionaryUtils::from_method(method))
             .method(method)
+            .tooltip(vformat("Calls the specified built-in Godot function '%s'.", method.name))
             .build());
     }
 
@@ -1039,8 +1081,10 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         actions.push_back(
             _script_node_builder<OScriptNodeAutoload>(
                 vformat("Project/Autoloads"),
-                global_constant_name,
+                vformat("Get %s", global_constant_name),
                 DictionaryUtils::of({ { "class_name", global_constant_name } }))
+            .tooltip(vformat("Get a reference to the project autoload %s.", global_constant_name))
+            .no_capitalize(true)
             .build());
     }
 
@@ -1097,6 +1141,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(class_name);
             actions.append_array(
                 _get_actions_for_class(
+                    global_class.name,
                     global_class.name,
                     global_class.get_method_list(),
                     global_class.get_property_list(),

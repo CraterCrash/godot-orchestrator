@@ -64,6 +64,12 @@ OrchestratorEditorActionBuilder& OrchestratorEditorActionBuilder::selectable(boo
     return *this;
 }
 
+OrchestratorEditorActionBuilder& OrchestratorEditorActionBuilder::no_capitalize(bool p_no_capitalize)
+{
+    _action->no_capitalize = p_no_capitalize;
+    return *this;
+}
+
 OrchestratorEditorActionBuilder& OrchestratorEditorActionBuilder::node_class(const String& p_node_class)
 {
     _action->node_class = p_node_class;

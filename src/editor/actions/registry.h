@@ -62,6 +62,8 @@ public:
 
     Vector<Ref<Action>> get_actions();
     Vector<Ref<Action>> get_actions(const Ref<Script>& p_script, const Ref<Script>& p_other = Ref<Script>());
+    Vector<Ref<Action>> get_actions(Object* p_target);
+    Vector<Ref<Action>> get_actions(const StringName& p_class_name);
 
     OrchestratorEditorActionRegistry();
     ~OrchestratorEditorActionRegistry() override;
