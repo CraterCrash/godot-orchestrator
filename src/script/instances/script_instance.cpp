@@ -105,7 +105,7 @@ bool OScriptInstance::set(const StringName& p_name, const Variant& p_value, Prop
     const String variable_name = _get_variable_name_from_path(p_name);
 
     OScriptVirtualMachine::Variable* variable = _vm.get_variable(variable_name);
-    if (!variable || !variable->exported)
+    if (!variable)
     {
         if (r_err)
             *r_err = PROP_NOT_FOUND;
@@ -127,7 +127,7 @@ bool OScriptInstance::get(const StringName& p_name, Variant& p_value, PropertyEr
     if (_vm.has_variable(variable_name))
     {
         OScriptVirtualMachine::Variable* variable = _vm.get_variable(variable_name);
-        if (!variable || !variable->exported)
+        if (!variable)
         {
             if (r_err)
                 *r_err = PROP_NOT_FOUND;
