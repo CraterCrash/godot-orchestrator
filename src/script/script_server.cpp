@@ -22,28 +22,104 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
 
+Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) const
+{
+    if (ResourceLoader::get_singleton()->has_cached(path))
+        return ResourceLoader::get_singleton()->load(path);
+
+    return ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+}
+
 TypedArray<Dictionary> ScriptServer::GlobalClass::get_property_list() const
 {
-    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+    const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_property_list() : TypedArray<Dictionary>();
 }
 
 TypedArray<Dictionary> ScriptServer::GlobalClass::get_method_list() const
 {
-    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+    const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_method_list() : TypedArray<Dictionary>();
 }
 
 TypedArray<Dictionary> ScriptServer::GlobalClass::get_signal_list() const
 {
-    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+    const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_signal_list() : TypedArray<Dictionary>();
 }
 
 Dictionary ScriptServer::GlobalClass::get_constants_list() const
 {
-    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+    const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_constant_map() : Dictionary();
+}
+
+StringName ScriptServer::GlobalClass::get_integer_constant_enum(const StringName& p_enum_constant_name) const
+{
+    const Dictionary constants_map = get_constants_list();
+    if (!constants_map.is_empty())
+    {
+        const Array& keys = constants_map.keys();
+        for (int i = 0; i < keys.size(); i++)
+        {
+            const Variant& value = constants_map[keys[i]];
+            if (value.get_type() == Variant::DICTIONARY)
+            {
+                const Dictionary& enum_dict = value;
+                if (enum_dict.has(p_enum_constant_name))
+                    return keys[i];
+            }
+        }
+    }
+    return "";
+}
+
+PackedStringArray ScriptServer::GlobalClass::get_integer_constant_list() const
+{
+    PackedStringArray names;
+
+    const Dictionary constants_map = get_constants_list();
+    if (!constants_map.is_empty())
+    {
+        const Array& keys = constants_map.keys();
+        for (int i= 0; i < keys.size(); i++)
+        {
+            // Check and skip enums
+            const Variant& value = constants_map[keys[i]];
+            if (value.get_type() == Variant::DICTIONARY)
+            {
+                const Dictionary& enum_dict = value;
+                names.append_array(enum_dict.keys());
+            }
+            else
+                names.push_back(keys[i]);
+        }
+    }
+    return names;
+}
+
+int64_t ScriptServer::GlobalClass::get_integer_constant(const StringName& p_constant_name) const
+{
+    const Dictionary constants_map = get_constants_list();
+    if (!constants_map.is_empty())
+    {
+        const Array& keys = constants_map.keys();
+        for (int i= 0; i < keys.size(); i++)
+        {
+            if (keys[i] == p_constant_name)
+                return constants_map[keys[i]];
+
+            // Check and skip enums
+            const Variant& value = constants_map[keys[i]];
+            if (value.get_type() == Variant::DICTIONARY)
+            {
+                const Dictionary& enum_dict = value;
+                if (enum_dict.has(p_constant_name))
+                    return enum_dict[p_constant_name];
+            }
+        }
+    }
+    return 0;
 }
 
 bool ScriptServer::GlobalClass::has_method(const StringName& p_method_name) const
