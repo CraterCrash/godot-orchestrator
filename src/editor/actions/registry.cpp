@@ -87,6 +87,26 @@ Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRe
     return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
+Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(Object* p_target)
+{
+    Vector<Ref<Action>> actions;
+    actions.append_array(get_actions());
+
+    if (p_target)
+        actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_object(p_target));
+
+    return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
+}
+
+Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(const StringName& p_class_name)
+{
+    Vector<Ref<Action>> actions;
+    actions.append_array(get_actions());
+    actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_class(p_class_name));
+
+    return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
+}
+
 void OrchestratorEditorActionRegistry::_bind_methods()
 {
 }
