@@ -458,7 +458,7 @@ void OrchestratorEditorActionMenu::_update_search()
         TreeItem* parent = category_items.has(path) ? category_items[path] : root;
 
         TreeItem* item = _results->create_item(parent);
-        item->set_text(0, leaf->name.capitalize());
+        item->set_text(0, leaf->no_capitalize ? leaf->name : leaf->name.capitalize());
         item->set_selectable(0, leaf->selectable);
 
         if (!leaf->icon.is_empty())
