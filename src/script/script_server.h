@@ -30,6 +30,10 @@ public:
     /// Represents a Global Class entry in the script server.
     struct GlobalClass
     {
+    private:
+        Ref<Script> _load_script(const String& path) const;
+
+    public:
         StringName name;        //! Global class name
         StringName base_type;   //! The type that the global class extends
         String icon_path;       //! The path to the `@icon`
@@ -48,9 +52,23 @@ public:
         /// @return an array of dictionary entries for signals
         TypedArray<Dictionary> get_signal_list() const;
 
-        /// Returns the constants of a global class
+        /// Returns all constants of a global class (constants and enumerations)
         /// @return the constants map
         Dictionary get_constants_list() const;
+
+        /// Gets the name of the enum that the constant enum belongs
+        /// @param p_enum_constant_name the enumeration element name
+        /// @return the name of the container enumeration
+        StringName get_integer_constant_enum(const StringName& p_enum_constant_name) const;
+
+        /// Gets the various constants defined in the global class
+        /// @return all the defined constants
+        PackedStringArray get_integer_constant_list() const;
+
+        /// Gets the constant value
+        /// @param p_constant_name
+        /// @return the constant value
+        int64_t get_integer_constant(const StringName& p_constant_name) const;
 
         /// Checks whether the method name exists for the global class
         /// @param p_method_name the method name to check
