@@ -73,6 +73,7 @@ public:
     ActionType type = ACTION_NONE;
     GraphType graph_type = GRAPH_ALL;
     bool selectable = false;
+    bool no_capitalize = false;
     ActionFlags flags = FLAG_NONE;
 
     std::optional<String> node_class;                   //! Node to spawn
@@ -124,6 +125,7 @@ public:
     OrchestratorEditorActionBuilder& type(OrchestratorEditorActionDefinition::ActionType p_type);
     OrchestratorEditorActionBuilder& graph_type(OrchestratorEditorActionDefinition::GraphType p_type);
     OrchestratorEditorActionBuilder& selectable(bool p_selectable);
+    OrchestratorEditorActionBuilder& no_capitalize(bool p_no_capitalize);
     OrchestratorEditorActionBuilder& node_class(const String& p_node_class);
     OrchestratorEditorActionBuilder& method(const MethodInfo& p_method);
     OrchestratorEditorActionBuilder& property(const PropertyInfo& p_property);

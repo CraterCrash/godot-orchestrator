@@ -1637,14 +1637,9 @@ void OrchestratorGraphEdit::_connect_with_menu(PinHandle p_handle, const Vector2
 
     Vector<Ref<OrchestratorEditorActionDefinition>> actions;
     if (target)
-    {
-        const Ref<Script> target_script = target->get_script();
-        if (target_script.is_valid())
-        {
-            // Want to scope to the target script
-            actions = action_registry->get_actions(source_script, target_script);
-        }
-    }
+        actions = action_registry->get_actions(target);
+    else if (resolved_type.is_class_type())
+        actions = action_registry->get_actions(resolved_type.class_name);
 
     if (actions.is_empty())
         actions = action_registry->get_actions(source_script);
