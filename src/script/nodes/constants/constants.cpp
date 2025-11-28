@@ -21,6 +21,7 @@
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
 
@@ -589,9 +590,18 @@ void OScriptNodeClassConstantBase::_upgrade(uint32_t p_version, uint32_t p_curre
 
 Ref<OScriptNodePin> OScriptNodeClassConstantBase::_create_constant_pin()
 {
-    const String enum_name = ClassDB::class_get_integer_constant_enum(_class_name, _constant_name);
-    if (!enum_name.is_empty())
-        return create_pin(PD_Output, PT_Data, PropertyUtils::make_class_enum("constant", _class_name, enum_name));
+    if (ScriptServer::is_global_class(_class_name))
+    {
+        const StringName enum_name = ScriptServer::get_global_class(_class_name).get_integer_constant_enum(_constant_name);
+        if (!enum_name.is_empty())
+            return create_pin(PD_Output, PT_Data, PropertyUtils::make_class_enum("constant", _class_name, enum_name));
+    }
+    else
+    {
+        const StringName enum_name = ClassDB::class_get_integer_constant_enum(_class_name, _constant_name);
+        if (!enum_name.is_empty())
+            return create_pin(PD_Output, PT_Data, PropertyUtils::make_class_enum("constant", _class_name, enum_name));
+    }
 
     return create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("constant", Variant::INT));
 }
@@ -641,6 +651,9 @@ OScriptNodeClassConstant::OScriptNodeClassConstant()
 
 PackedStringArray OScriptNodeClassConstant::_get_class_constant_choices(const String& p_class_name) const
 {
+    if (ScriptServer::is_global_class(p_class_name))
+        return ScriptServer::get_global_class(p_class_name).get_integer_constant_list();
+
     return ClassDB::class_get_integer_constant_list(_class_name, false);
 }
 
@@ -648,7 +661,12 @@ OScriptNodeInstance* OScriptNodeClassConstant::instantiate()
 {
     OScriptNodeClassConstantInstance* i = memnew(OScriptNodeClassConstantInstance);
     i->_node = this;
-    i->_value = ClassDB::class_get_integer_constant(_class_name, _constant_name);
+
+    if (ScriptServer::is_global_class(_class_name))
+        i->_value = ScriptServer::get_global_class(_class_name).get_integer_constant(_constant_name);
+    else
+        i->_value = ClassDB::class_get_integer_constant(_class_name, _constant_name);
+
     return i;
 }
 
