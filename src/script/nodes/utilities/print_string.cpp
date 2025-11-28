@@ -17,6 +17,8 @@
 #include "print_string.h"
 
 #include "common/property_utils.h"
+#include "common/settings.h"
+#include "godot_cpp/classes/editor_settings.hpp"
 #include "script/script.h"
 #include "script/vm/script_state.h"
 
@@ -42,6 +44,8 @@ private:
     static HashMap<String, Node*> _scene_containers;
 
 public:
+    float _scale{ 1.f };
+
     int get_working_memory_size() const override { return 1; }
     int step(OScriptExecutionContext& p_context) override;
 
@@ -143,6 +147,7 @@ Node* OScriptNodePrintStringInstance::_get_or_create_ui_container(Node* p_root_n
         container->set_custom_minimum_size(Vector2(300, 100));
         container->set_name("PrintStringUI");
         container->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+        container->set_scale(Vector2(_scale, _scale));
 
         // We maintain a cache of the container by scene to guarantee that if multiple PrintString
         // nodes attempt to render text, the UI will only have a single container.
@@ -237,6 +242,9 @@ OScriptNodeInstance* OScriptNodePrintString::instantiate()
 {
     OScriptNodePrintStringInstance* i = memnew(OScriptNodePrintStringInstance);
     i->_node = this;
+
+    const String scale_str = ORCHESTRATOR_GET("settings/runtime/print_string_scale", "100%");
+    i->_scale = scale_str.replace("%", "").to_float() / 100.0f;
     return i;
 }
 
