@@ -21,6 +21,7 @@
 #include "common/variant_utils.h"
 #include "script/script.h"
 
+#include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 
@@ -79,6 +80,10 @@ static OScriptInstanceInfo init_placeholder_instance_info()
     info.refcount_decremented_func = [](void*) -> GDExtensionBool {
         // If false (default), object cannot die
         return true;
+    };
+
+    info.to_string_func = [](void* p_self, GDExtensionBool* r_valid, GDExtensionStringPtr r_value) {
+        ((OScriptPlaceHolderInstance*) p_self)->to_string(r_valid, static_cast<String*>(r_value));
     };
 
     return info;
@@ -273,8 +278,21 @@ void OScriptPlaceHolderInstance::notification(int32_t p_what, bool p_reversed)
 
 void OScriptPlaceHolderInstance::to_string(GDExtensionBool* r_is_valid, String* r_out)
 {
-    *r_is_valid = true;
-    *r_out = "OrchestratorPlaceHolderScriptInstance[" + _script->get_name() + "]";
+    if (r_is_valid)
+        *r_is_valid = true;
+
+    // Align this behavior with Godot
+    if (r_out)
+    {
+        String prefix = "";
+        if (Node* node = Object::cast_to<Node>(_owner))
+        {
+            if (!node->get_name().is_empty())
+                prefix = vformat("%s:", node->get_name());
+        }
+
+        *r_out = vformat("%s<%s#%d>", prefix, _owner->get_class(), _owner->get_instance_id());
+    }
 }
 
 void OScriptPlaceHolderInstance::update(const List<PropertyInfo>& p_properties, const HashMap<StringName, Variant>& p_values)
