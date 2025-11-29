@@ -19,7 +19,7 @@ INCLUDE_GUARD()
 INCLUDE(markdown-utils)
 
 FUNCTION( GENERATE_DONORS )
-    FILE(STRINGS "DONORS.md" lines)
+    FILE(STRINGS "DONORS.md" lines ENCODING UTF-8)
     SET(index 0)
     LIST(LENGTH lines max_index)
     WHILE (index LESS max_index)
