@@ -681,8 +681,12 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
 void OrchestratorEditorGraphPanel::_node_position_changed(const Vector2& p_old_position, const Vector2& p_new_position, OrchestratorEditorGraphNode* p_node)
 {
     ERR_FAIL_NULL_MSG(p_node, "Cannot update node position with an invalid node reference");
-    p_node->_node->set_position(p_new_position);
-    p_node->set_position_offset(p_new_position);
+    if (p_node->_node->get_position() != p_new_position)
+    {
+        p_node->_node->set_position(p_new_position);
+        p_node->set_position_offset(p_new_position);
+        _set_edited(true);
+    }
 }
 
 void OrchestratorEditorGraphPanel::_node_resized(OrchestratorEditorGraphNode* p_node)
