@@ -46,7 +46,7 @@ jobs:
           echo "SCCACHE_DIR=${{ github.workspace }}/.sccache" >> $GITHUB_ENV
           echo "SCCACHE_CACHE_SIZE=1G" >> $GITHUB_ENV
           echo "SCCACHE_PATH=sccache" >> $GITHUB_ENV
-          sccache --start-server
+          sccache server
 
       - name: Run sccache stat for check
         shell: bash
