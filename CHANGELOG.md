@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## [2.2.1.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.2.1.stable) - 2025-11-29
+
+- [0fa4d99](http://github.com/CraterCrash/godot-orchestrator/commit/0fa4d999c1e8d9a1361296c2e424e71be4acf4d4) - GH-1072 Extend scale up to 400%
+- [5bf25be](http://github.com/CraterCrash/godot-orchestrator/commit/5bf25be2391dd0277e39533ec108acf074a3d339) - GH-1072 Add setting to control PrintStringUI text scale
+- [7f94e54](http://github.com/CraterCrash/godot-orchestrator/commit/7f94e543248dcf9f3fd77adb20735ead75788c17) - GH-1030 Do not remove selected nodes if clipboard cut fails
+- [a2d2803](http://github.com/CraterCrash/godot-orchestrator/commit/a2d28033e8ce85cad835d8dbd75a99eadd94e18c) - GH-1081 Correctly populate actions for autoloads/global scripts
+- [1b5efc0](http://github.com/CraterCrash/godot-orchestrator/commit/1b5efc0c4c57457afc8952fd4e01862624542a79) - GH-1079 Support Global classes in ClassConstant node
+- [8835bd8](http://github.com/CraterCrash/godot-orchestrator/commit/8835bd8b417663159affd3bc6292dfcd20f9ade3) - GH-1077 Implement GDExtensionScriptInstanceInfo `to_string` handler
+- [9cff243](http://github.com/CraterCrash/godot-orchestrator/commit/9cff2431acb459d71af394f79c383cf8ee89f6f6) - GH-1070 Allow get/set non-exported variables at runtime
+- [3935c30](http://github.com/CraterCrash/godot-orchestrator/commit/3935c30d59539448509fb5318d009c035d316ec6) - GH-1070 Always expose all variable declarations
+- [b317938](http://github.com/CraterCrash/godot-orchestrator/commit/b317938c98e92f23a591c743dfd862ef6102e32c) - Update README.md icon images - part 2
+- [1a0a224](http://github.com/CraterCrash/godot-orchestrator/commit/1a0a22494d09cbf50539f475713376042d219de8) - Update README.md icon images
+
 ## [2.2.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.2.stable) - 2025-11-24
 
 - [cc934ec](http://github.com/CraterCrash/godot-orchestrator/commit/cc934ecbeba1839b9f44c0d7a82ac713408624a5) - GH-1046 Trim new signal argument values
