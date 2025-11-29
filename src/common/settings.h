@@ -108,4 +108,6 @@ private:
     void _update_default_settings();
 };
 
+#define ORCHESTRATOR_GET(x, y) OrchestratorSettings::get_singleton()->get_setting(x, y)
+
 #endif  // ORCHESTRATOR_SETTINGS_H
