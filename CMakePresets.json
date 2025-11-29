@@ -151,8 +151,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
-        "CMAKE_C_COMPILER_LAUNCHER": "sccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "ORCH_GODOTCPP_TARGET": "godot-cpp.template_release",
         "ORCH_GODOTCPP_NAMESPACE": "godot-cpp::template_release",
         "CMAKE_SHARED_LINKER_FLAGS": "-s SIDE_MODULE=1"
