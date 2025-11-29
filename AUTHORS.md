@@ -26,4 +26,6 @@ no other name is available.
     K.S. Ernest Lee (iFire)
     Malik Enes Safak (NullMember)
     Paven Ganti (gvrocksnow)
+    Raphaël Cima (AtlasRW)
     ShalokShalom (ShalokShalom)
+    企鹅2035 (QiE2035)
