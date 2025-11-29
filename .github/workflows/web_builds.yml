@@ -4,7 +4,7 @@ on:
 
 env:
   EM_VERSION: 3.1.64
-  SCCACHE_GHA_ENABLED: "true"
+  EM_INSTALL_DIR: "${{ github.workspace }}/.emsdk"
 
 jobs:
   build-web:
@@ -31,22 +31,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.9
-
-      - name: Run sccache stat for check
-        shell: bash
-        run: ${SCCACHE_PATH} --show-stats
-
-      - name: Set up Emscripten latest
-        uses: mymindstorm/setup-emsdk@v14
+      - uses: ./.github/actions/setup-emsdk
         with:
           version: ${{ env.EM_VERSION }}
-          no-cache: true
-
-      - name: Verify Emscripten setup
-        run: |
-          emcc -v
+          install-path: ${{ env.EM_INSTALL_DIR }}
 
       - name: Install Ninja (Linux)
         shell: sh
@@ -59,7 +47,3 @@ jobs:
           artifact-name: ${{ matrix.artifact-name }}
           cache-name: ${{ matrix.cache-name }}
           preset-name: ${{ matrix.preset }}
-
-      - name: Run sccache stat for check
-        shell: bash
-        run: ${SCCACHE_PATH} --show-stats
