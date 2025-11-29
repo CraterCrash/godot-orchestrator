@@ -342,12 +342,15 @@ void OrchestratorScriptGraphEditorView::_toggle_bookmark_for_selected_nodes()
     }
 }
 
-void OrchestratorScriptGraphEditorView::_remove_bookmark_for_selected_nodes()
+void OrchestratorScriptGraphEditorView::_remove_all_bookmarks()
 {
     if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
     {
-        for (OrchestratorEditorGraphNode* node : active_panel->get_selected<OrchestratorEditorGraphNode>())
-            active_panel->set_bookmarked(node, false);
+        for (OrchestratorEditorGraphNode* node : active_panel->get_all<OrchestratorEditorGraphNode>(false))
+        {
+            if (node->is_bookmarked())
+                active_panel->set_bookmarked(node, false);
+        }
     }
 }
 
@@ -360,12 +363,15 @@ void OrchestratorScriptGraphEditorView::_toggle_breakpoint_for_selected_nodes()
     }
 }
 
-void OrchestratorScriptGraphEditorView::_remove_breakpoint_for_selected_nodes()
+void OrchestratorScriptGraphEditorView::_remove_all_breakpoints()
 {
     if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
     {
-        for (OrchestratorEditorGraphNode* node : active_panel->get_selected<OrchestratorEditorGraphNode>())
-            active_panel->set_breakpoint(node, false);
+        for (OrchestratorEditorGraphNode* node : active_panel->get_all<OrchestratorEditorGraphNode>(false))
+        {
+            if (node->is_breakpoint())
+                active_panel->set_breakpoint(node, false);
+        }
     }
 }
 
@@ -469,7 +475,7 @@ void OrchestratorScriptGraphEditorView::_menu_option(int p_index)
         }
         case REMOVE_BOOKMARKS:
         {
-            _remove_bookmark_for_selected_nodes();
+            _remove_all_bookmarks();
             break;
         }
         case GOTO_NEXT_BOOKMARK:
@@ -489,7 +495,7 @@ void OrchestratorScriptGraphEditorView::_menu_option(int p_index)
         }
         case REMOVE_BREAKPOINTS:
         {
-            _remove_breakpoint_for_selected_nodes();
+            _remove_all_breakpoints();
             break;
         }
         case GOTO_NEXT_BREAKPOINT:
