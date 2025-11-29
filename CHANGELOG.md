@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## [2.0.6.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.0.6.stable) - 2025-11-29
+
+- [393aa21](http://github.com/CraterCrash/godot-orchestrator/commit/393aa2162b41d0f1ee88e7743bcdcd4266e2cbc4) - GH-1072 Add `ORCHESTRATOR_GET` macro
+- [d4a4221](http://github.com/CraterCrash/godot-orchestrator/commit/d4a42218a2c2945bb0e533e9a74ddadb31eda250) - GH-1072 Extend scale up to 400%
+- [2bb86cf](http://github.com/CraterCrash/godot-orchestrator/commit/2bb86cffdf8cc5def2b1f25aacdbedea2b6f996f) - GH-1072 Add setting to control PrintStringUI text scale
+- [5879531](http://github.com/CraterCrash/godot-orchestrator/commit/587953110d2345f44c4a34ba1cc981b3e06a31bc) - GH-1030 Do not remove selected nodes if clipboard cut fails
+- [9bd8cb8](http://github.com/CraterCrash/godot-orchestrator/commit/9bd8cb8c28d9fbc2adff3df03daed401e82334f3) - GH-1079 Support Global classes in ClassConstant node
+- [91b07f0](http://github.com/CraterCrash/godot-orchestrator/commit/91b07f07d5d2033359274fa82e45fcb6382a6cee) - GH-1077 Implement GDExtensionScriptInstanceInfo `to_string` handler
+- [2fce45d](http://github.com/CraterCrash/godot-orchestrator/commit/2fce45dd27f40face5027e85d4d8e335540175c7) - GH-1070 Allow get/set non-exported variables at runtime
+- [4815113](http://github.com/CraterCrash/godot-orchestrator/commit/4815113b5455f10ec919332dc8dc975b4b3dd0ea) - GH-1070 Always expose all variable declarations
+- [37c5f76](http://github.com/CraterCrash/godot-orchestrator/commit/37c5f761c165d0657bd281fceb32aa29a040a7ec) - GH-1046 Trim new signal argument values
+- [4ef51a8](http://github.com/CraterCrash/godot-orchestrator/commit/4ef51a81b83268100008a6a6cf8e6660c5bf01fe) - GH-1038 Fix compatibility
+- [d9c2544](http://github.com/CraterCrash/godot-orchestrator/commit/d9c2544d08de1c5810ef507ea7eef1bde37ca4bd) - GH-1038 Fix crash when input map changed
+- [8552cf3](http://github.com/CraterCrash/godot-orchestrator/commit/8552cf3a6c259273e8a8975e6750274bc27016e7) - GH-1031 Make sure variable values are unique per instance
+- [693b54d](http://github.com/CraterCrash/godot-orchestrator/commit/693b54dc56789879171210e48c8a10477e7b94c2) - GH-1027 Fix signal blocking for node pins
+- [b1819c3](http://github.com/CraterCrash/godot-orchestrator/commit/b1819c38086e3821f807450c4b325937584c16bb) - GH-1022 Do not allocate an empty method list
+- [afa1431](http://github.com/CraterCrash/godot-orchestrator/commit/afa14317e2a1298487de8cbaf1cbe1f6fc0b9ccc) - [ci] Use macOS 14 for builds explicitly
+- [f8e52fe](http://github.com/CraterCrash/godot-orchestrator/commit/f8e52fe3a63ee012e0fef8b1668cc3f02e1f8b6a) - GH-1020 Fix GODOT_VERSION checks for `PropertyInfo`
+- [073a14b](http://github.com/CraterCrash/godot-orchestrator/commit/073a14baa93d9c2b6238801b97dc8875c0773c4b) - GH-1020 Fix GODOT_VERSION checks for `notification`
+- [412366e](http://github.com/CraterCrash/godot-orchestrator/commit/412366eca6ecce1e036084d1bb030604dad3cca3) - GH-1012 Remove `Logger` class
+- [3ec0954](http://github.com/CraterCrash/godot-orchestrator/commit/3ec09545f66d4d718e282f934ca284e4d9130a99) - GH-1008 Introduce `GDExtensionGodotVersion` wrapper
+- [925c513](http://github.com/CraterCrash/godot-orchestrator/commit/925c5133d3ef7868069ee195922cd1aa0f83d80d) - GH-1006 Use build's resolved python version
+
 ## [2.0.5.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.0.5.stable) - 2025-07-05
 
 - [db639a8](http://github.com/CraterCrash/godot-orchestrator/commit/db639a885d9e52c57245e66b423229d05bf5d5e6) - GH-995 Clear inspector when closing an Orchestration
