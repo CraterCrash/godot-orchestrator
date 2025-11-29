@@ -2309,6 +2309,10 @@ void OrchestratorGraphEdit::_on_cut_nodes_request()
 
     _on_copy_nodes_request();
 
+    // If the clipboard is empty, this implies the copy request likely failed.
+    if (_clipboard->is_empty())
+        return;
+
     PackedStringArray selected_names;
     for (int index = 0; index < get_child_count(); index++)
     {
