@@ -123,9 +123,9 @@ protected:
     void _focus_object(Object* p_object);
 
     void _toggle_bookmark_for_selected_nodes();
-    void _remove_bookmark_for_selected_nodes();
+    void _remove_all_bookmarks();
     void _toggle_breakpoint_for_selected_nodes();
-    void _remove_breakpoint_for_selected_nodes();
+    void _remove_all_breakpoints();
     void _breakpoints_menu_option(int p_index);
     void _bookmarks_menu_option(int p_index);
     void _update_bookmarks_list();
