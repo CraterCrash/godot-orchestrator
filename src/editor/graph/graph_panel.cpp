@@ -3486,14 +3486,19 @@ void OrchestratorEditorGraphPanel::set_edit_state(const Variant& p_state, const 
         const int node_id = data.keys()[0];
         const bool status = data[node_id];
 
-        OrchestratorEditorGraphNode* node = find_node(node_id);
-        if (!node)
+        if (!_graph->has_node(node_id))
             continue;
 
         _breakpoint_state[node_id] = status;
         _breakpoints.push_back(node_id);
 
-        node->notify_breakpoints_changed();
+        // Notify in deferred as GraphEdit does not yet have GraphNode instances
+        callable_mp_lambda(this, [this, node_id] {
+            OrchestratorEditorGraphNode* node = find_node(node_id);
+            if (node) {
+                node->notify_breakpoints_changed();
+            }
+        }).call_deferred();
     }
 
     #if GODOT_VERSION >= 0x040300
