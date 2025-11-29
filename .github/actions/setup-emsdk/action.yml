@@ -1,0 +1,37 @@
+name: Install Emscripten
+description: Installs Emscripten
+
+inputs:
+  install-path:
+    description: The path where Emscripten should be installed
+    required: true
+    default: ${{ github.runner_temp }}/emsdk
+  version:
+    description: The version of Emscripten to install
+    required: true
+    default: latest
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Download Emscripten
+      shell: sh
+      run: |
+        mkdir -p '${{ inputs.install-path }}'
+        git clone https://github.com/emscripten-core/emsdk.git "${{ inputs.install-path }}"
+
+    - name: Install and Activate
+      shell: sh
+      working-directory: "${{ inputs.install-path }}"
+      run: |
+        ./emsdk install ${{ inputs.version }}
+        ./emsdk activate ${{ inputs.version }}
+        echo "${{ inputs.install-path }}" >> $GITHUB_PATH
+        echo "${{ inputs.install-path }}/upstream/emscripten" >> $GITHUB_PATH
+        echo "EMSDK=${{ inputs.install-path }}" >> $GITHUB_ENV
+
+    - name: Verify Installation
+      shell: sh
+      run: |
+        emcc -v
