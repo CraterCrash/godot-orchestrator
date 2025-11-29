@@ -3,7 +3,7 @@ on:
   workflow_call:
 
 env:
-  EM_VERSION: 3.1.64
+  EM_VERSION: 4.0.11
   EM_INSTALL_DIR: "${{ github.workspace }}/.emsdk"
 
 jobs:
