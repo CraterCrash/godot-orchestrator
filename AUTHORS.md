@@ -22,8 +22,10 @@ no other name is available.
 
     Aaron Franke (aaronfranke)
     Carles Homs (ch0m5)
-    Jan Thoma (derkork)
+    Jan Thomä (derkork)
     K.S. Ernest Lee (iFire)
     Malik Enes Safak (NullMember)
     Paven Ganti (gvrocksnow)
+    Raphaël Cima (AtlasRW)
     ShalokShalom (ShalokShalom)
+    企鹅2035 (QiE2035)
