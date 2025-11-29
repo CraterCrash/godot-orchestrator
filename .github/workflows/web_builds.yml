@@ -31,8 +31,19 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Install sccache (Linux)
+        shell: sh
+        run: |
+          sudo apt-get install -y sccache
+
+      - name: Setup sccache with local cache
+        shell: bash
+        run: |
+          mkdir -p .sccache
+          echo "SCCACHE_DIR=${{ github.workspace }}/.sccache" >> $GITHUB_ENV
+          echo "SCCACHE_CACHE_SIZE=1G" >> $GITHUB_ENV
+          echo "SCCACHE_PATH=sccache" >> $GITHUB_ENV
+          sccache --start-server
 
       - name: Run sccache stat for check
         shell: bash
@@ -59,6 +70,7 @@ jobs:
           artifact-name: ${{ matrix.artifact-name }}
           cache-name: ${{ matrix.cache-name }}
           preset-name: ${{ matrix.preset }}
+          cache-path: ${SCCACHE_DIR}
 
       - name: Run sccache stat for check
         shell: bash
