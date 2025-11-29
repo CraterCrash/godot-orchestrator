@@ -3008,7 +3008,7 @@ namespace godot
 				type.methods.push_back(_make_method("slice", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, { { Variant::INT, "begin" }, { Variant::INT, "end" } }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_BYTE_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" } }));
@@ -3100,7 +3100,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_INT32_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_INT32_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" } }));
@@ -3145,7 +3145,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::INT, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_INT64_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_INT64_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::INT, "value" } }));
@@ -3190,7 +3190,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_FLOAT32_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_FLOAT32_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" } }));
@@ -3235,7 +3235,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_FLOAT64_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_FLOAT64_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::FLOAT, "value" } }));
@@ -3280,7 +3280,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::STRING, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_STRING_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_STRING_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::STRING, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::STRING, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::STRING, "value" } }));
@@ -3326,7 +3326,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::VECTOR2, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_VECTOR2_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_VECTOR2_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR2, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR2, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR2, "value" } }));
@@ -3372,7 +3372,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::VECTOR3, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_VECTOR3_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_VECTOR3_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR3, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR3, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR3, "value" } }));
@@ -3417,7 +3417,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::COLOR, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_COLOR_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_COLOR_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::COLOR, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::COLOR, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::COLOR, "value" } }));
@@ -3462,7 +3462,7 @@ namespace godot
 				type.methods.push_back(_make_method("to_byte_array", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_BYTE_ARRAY, {  }));
 				type.methods.push_back(_make_method("sort", METHOD_FLAG_NORMAL, Variant::NIL, {  }));
 				type.methods.push_back(_make_method("bsearch", METHOD_FLAG_NORMAL, Variant::INT, { { Variant::VECTOR4, "value" }, { Variant::BOOL, "before" } }));
-				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL, Variant::PACKED_VECTOR4_ARRAY, {  }));
+				type.methods.push_back(_make_method("duplicate", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::PACKED_VECTOR4_ARRAY, {  }));
 				type.methods.push_back(_make_method("find", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR4, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("rfind", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR4, "value" }, { Variant::INT, "from" } }));
 				type.methods.push_back(_make_method("count", METHOD_FLAG_NORMAL | METHOD_FLAG_CONST, Variant::INT, { { Variant::VECTOR4, "value" } }));
@@ -4708,10 +4708,59 @@ namespace godot
 			ExtensionDB::_singleton->_classes["AnimationNodeExtension"].static_function_hashes["is_looping"] = 2035584311;
 			ExtensionDB::_singleton->_classes["AnimationNodeExtension"].static_function_hashes["get_remaining_time"] = 2851904656;
 			
-			// AudioStreamMP3
-			ExtensionDB::_singleton->_classes["AudioStreamMP3"].name = "AudioStreamMP3";
-			ExtensionDB::_singleton->_classes["AudioStreamMP3"].static_function_hashes["load_from_buffer"] = 1674970313;
-			ExtensionDB::_singleton->_classes["AudioStreamMP3"].static_function_hashes["load_from_file"] = 4238362998;
+			// Tween
+			ExtensionDB::_singleton->_classes["Tween"].name = "Tween";
+			ExtensionDB::_singleton->_classes["Tween"].static_function_hashes["interpolate_value"] = 3452526450;
+			
+			// PathFollow3D
+			ExtensionDB::_singleton->_classes["PathFollow3D"].name = "PathFollow3D";
+			ExtensionDB::_singleton->_classes["PathFollow3D"].static_function_hashes["correct_posture"] = 2686588690;
+			
+			// XRBodyModifier3D
+			ExtensionDB::_singleton->_classes["XRBodyModifier3D"].name = "XRBodyModifier3D";
+			ExtensionDB::_singleton->_classes["XRBodyModifier3D"].bitfield_enums.push_back("BodyUpdate");
+			
+			// CopyTransformModifier3D
+			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].name = "CopyTransformModifier3D";
+			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].bitfield_enums.push_back("TransformFlag");
+			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].bitfield_enums.push_back("AxisFlag");
+			
+			// RetargetModifier3D
+			ExtensionDB::_singleton->_classes["RetargetModifier3D"].name = "RetargetModifier3D";
+			ExtensionDB::_singleton->_classes["RetargetModifier3D"].bitfield_enums.push_back("TransformFlag");
+			
+			// Mesh
+			ExtensionDB::_singleton->_classes["Mesh"].name = "Mesh";
+			ExtensionDB::_singleton->_classes["Mesh"].bitfield_enums.push_back("ArrayFormat");
+			
+			// GLTFPhysicsShape
+			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].name = "GLTFPhysicsShape";
+			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_node"] = 3613751275;
+			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_resource"] = 3845569786;
+			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_dictionary"] = 2390691823;
+			
+			// GLTFPhysicsBody
+			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].name = "GLTFPhysicsBody";
+			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].static_function_hashes["from_node"] = 420544174;
+			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].static_function_hashes["from_dictionary"] = 1177544336;
+			
+			// GLTFLight
+			ExtensionDB::_singleton->_classes["GLTFLight"].name = "GLTFLight";
+			ExtensionDB::_singleton->_classes["GLTFLight"].static_function_hashes["from_node"] = 3907677874;
+			ExtensionDB::_singleton->_classes["GLTFLight"].static_function_hashes["from_dictionary"] = 4057087208;
+			
+			// GLTFCamera
+			ExtensionDB::_singleton->_classes["GLTFCamera"].name = "GLTFCamera";
+			ExtensionDB::_singleton->_classes["GLTFCamera"].static_function_hashes["from_node"] = 237784;
+			ExtensionDB::_singleton->_classes["GLTFCamera"].static_function_hashes["from_dictionary"] = 2495512509;
+			
+			// GLTFBufferView
+			ExtensionDB::_singleton->_classes["GLTFBufferView"].name = "GLTFBufferView";
+			ExtensionDB::_singleton->_classes["GLTFBufferView"].static_function_hashes["from_dictionary"] = 2594413512;
+			
+			// GLTFAccessor
+			ExtensionDB::_singleton->_classes["GLTFAccessor"].name = "GLTFAccessor";
+			ExtensionDB::_singleton->_classes["GLTFAccessor"].static_function_hashes["from_dictionary"] = 3495091019;
 			
 			// AudioStreamOggVorbis
 			ExtensionDB::_singleton->_classes["AudioStreamOggVorbis"].name = "AudioStreamOggVorbis";
@@ -4723,18 +4772,188 @@ namespace godot
 			ExtensionDB::_singleton->_classes["AudioStreamWAV"].static_function_hashes["load_from_buffer"] = 4266838938;
 			ExtensionDB::_singleton->_classes["AudioStreamWAV"].static_function_hashes["load_from_file"] = 4015802384;
 			
+			// DPITexture
+			ExtensionDB::_singleton->_classes["DPITexture"].name = "DPITexture";
+			ExtensionDB::_singleton->_classes["DPITexture"].static_function_hashes["create_from_string"] = 755140520;
+			
+			// ImageTexture
+			ExtensionDB::_singleton->_classes["ImageTexture"].name = "ImageTexture";
+			ExtensionDB::_singleton->_classes["ImageTexture"].static_function_hashes["create_from_image"] = 2775144163;
+			
+			// ResourceImporterOggVorbis
+			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].name = "ResourceImporterOggVorbis";
+			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].static_function_hashes["load_from_buffer"] = 354904730;
+			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].static_function_hashes["load_from_file"] = 797568536;
+			
+			// EditorInspector
+			ExtensionDB::_singleton->_classes["EditorInspector"].name = "EditorInspector";
+			ExtensionDB::_singleton->_classes["EditorInspector"].static_function_hashes["instantiate_property_editor"] = 1429914152;
+			
+			// EditorDock
+			ExtensionDB::_singleton->_classes["EditorDock"].name = "EditorDock";
+			ExtensionDB::_singleton->_classes["EditorDock"].bitfield_enums.push_back("DockLayout");
+			
+			// OpenXRInterface
+			ExtensionDB::_singleton->_classes["OpenXRInterface"].name = "OpenXRInterface";
+			ExtensionDB::_singleton->_classes["OpenXRInterface"].bitfield_enums.push_back("HandJointFlags");
+			
+			// AudioStreamMP3
+			ExtensionDB::_singleton->_classes["AudioStreamMP3"].name = "AudioStreamMP3";
+			ExtensionDB::_singleton->_classes["AudioStreamMP3"].static_function_hashes["load_from_buffer"] = 1674970313;
+			ExtensionDB::_singleton->_classes["AudioStreamMP3"].static_function_hashes["load_from_file"] = 4238362998;
+			
+			// XRHandTracker
+			ExtensionDB::_singleton->_classes["XRHandTracker"].name = "XRHandTracker";
+			ExtensionDB::_singleton->_classes["XRHandTracker"].bitfield_enums.push_back("HandJointFlags");
+			
+			// XRBodyTracker
+			ExtensionDB::_singleton->_classes["XRBodyTracker"].name = "XRBodyTracker";
+			ExtensionDB::_singleton->_classes["XRBodyTracker"].bitfield_enums.push_back("BodyFlags");
+			ExtensionDB::_singleton->_classes["XRBodyTracker"].bitfield_enums.push_back("JointFlags");
+			
+			// NavigationPathQueryParameters3D
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters3D"].name = "NavigationPathQueryParameters3D";
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters3D"].bitfield_enums.push_back("PathMetadataFlags");
+			
+			// NavigationPathQueryParameters2D
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters2D"].name = "NavigationPathQueryParameters2D";
+			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters2D"].bitfield_enums.push_back("PathMetadataFlags");
+			
+			// MovieWriter
+			ExtensionDB::_singleton->_classes["MovieWriter"].name = "MovieWriter";
+			ExtensionDB::_singleton->_classes["MovieWriter"].static_function_hashes["add_writer"] = 4023702871;
+			
+			// UniformSetCacheRD
+			ExtensionDB::_singleton->_classes["UniformSetCacheRD"].name = "UniformSetCacheRD";
+			ExtensionDB::_singleton->_classes["UniformSetCacheRD"].static_function_hashes["get_cache"] = 658571723;
+			
+			// FramebufferCacheRD
+			ExtensionDB::_singleton->_classes["FramebufferCacheRD"].name = "FramebufferCacheRD";
+			ExtensionDB::_singleton->_classes["FramebufferCacheRD"].static_function_hashes["get_cache_multipass"] = 3437881813;
+			
+			// ShaderIncludeDB
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].name = "ShaderIncludeDB";
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["list_built_in_include_files"] = 2981934095;
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["has_built_in_include_file"] = 2323990056;
+			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["get_built_in_include_file"] = 1703090593;
+			
+			// Window
+			ExtensionDB::_singleton->_classes["Window"].name = "Window";
+			ExtensionDB::_singleton->_classes["Window"].static_function_hashes["get_focused_window"] = 1835468782;
+			
+			// WebRTCPeerConnection
+			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].name = "WebRTCPeerConnection";
+			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].static_function_hashes["set_default_extension"] = 3304788590;
+			
+			// TextServer
+			ExtensionDB::_singleton->_classes["TextServer"].name = "TextServer";
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("JustificationFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("LineBreakFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("TextOverrunFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("GraphemeFlag");
+			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("FontStyle");
+			
+			// RichTextLabel
+			ExtensionDB::_singleton->_classes["RichTextLabel"].name = "RichTextLabel";
+			ExtensionDB::_singleton->_classes["RichTextLabel"].bitfield_enums.push_back("ImageUpdateMask");
+			
+			// ResourceSaver
+			ExtensionDB::_singleton->_classes["ResourceSaver"].name = "ResourceSaver";
+			ExtensionDB::_singleton->_classes["ResourceSaver"].bitfield_enums.push_back("SaverFlags");
+			
+			// RenderingServer
+			ExtensionDB::_singleton->_classes["RenderingServer"].name = "RenderingServer";
+			ExtensionDB::_singleton->_classes["RenderingServer"].bitfield_enums.push_back("ArrayFormat");
+			
+			// RenderingDevice
+			ExtensionDB::_singleton->_classes["RenderingDevice"].name = "RenderingDevice";
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("BarrierMask");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("TextureUsageBits");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("StorageBufferUsage");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("BufferCreationBits");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("PipelineDynamicStateFlags");
+			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("DrawFlags");
+			
+			// RegEx
+			ExtensionDB::_singleton->_classes["RegEx"].name = "RegEx";
+			ExtensionDB::_singleton->_classes["RegEx"].static_function_hashes["create_from_string"] = 4249111514;
+			
+			// PortableCompressedTexture2D
+			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].name = "PortableCompressedTexture2D";
+			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].static_function_hashes["set_keep_all_compressed_buffers"] = 2586408642;
+			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].static_function_hashes["is_keeping_all_compressed_buffers"] = 2240911060;
+			
+			// PhysicsRayQueryParameters3D
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters3D"].name = "PhysicsRayQueryParameters3D";
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters3D"].static_function_hashes["create"] = 3110599579;
+			
+			// PhysicsRayQueryParameters2D
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters2D"].name = "PhysicsRayQueryParameters2D";
+			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters2D"].static_function_hashes["create"] = 3196569324;
+			
+			// OpenXRAPIExtension
+			ExtensionDB::_singleton->_classes["OpenXRAPIExtension"].name = "OpenXRAPIExtension";
+			ExtensionDB::_singleton->_classes["OpenXRAPIExtension"].static_function_hashes["openxr_is_enabled"] = 2703660260;
+			
+			// Node
+			ExtensionDB::_singleton->_classes["Node"].name = "Node";
+			ExtensionDB::_singleton->_classes["Node"].static_function_hashes["print_orphan_nodes"] = 3218959716;
+			ExtensionDB::_singleton->_classes["Node"].static_function_hashes["get_orphan_node_ids"] = 2915620761;
+			ExtensionDB::_singleton->_classes["Node"].bitfield_enums.push_back("ProcessThreadMessages");
+			
+			// MultiplayerAPI
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].name = "MultiplayerAPI";
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["set_default_interface"] = 3304788590;
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["get_default_interface"] = 2737447660;
+			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["create_default_interface"] = 3294156723;
+			
+			// GLTFDocument
+			ExtensionDB::_singleton->_classes["GLTFDocument"].name = "GLTFDocument";
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["import_object_model_property"] = 1206708632;
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["export_object_model_property"] = 314209806;
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["register_gltf_document_extension"] = 3752678331;
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["unregister_gltf_document_extension"] = 2684415758;
+			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["get_supported_gltf_extensions"] = 2981934095;
+			
+			// FileDialog
+			ExtensionDB::_singleton->_classes["FileDialog"].name = "FileDialog";
+			ExtensionDB::_singleton->_classes["FileDialog"].static_function_hashes["set_favorite_list"] = 4015028928;
+			ExtensionDB::_singleton->_classes["FileDialog"].static_function_hashes["get_favorite_list"] = 2981934095;
+			ExtensionDB::_singleton->_classes["FileDialog"].static_function_hashes["set_recent_list"] = 4015028928;
+			ExtensionDB::_singleton->_classes["FileDialog"].static_function_hashes["get_recent_list"] = 2981934095;
+			ExtensionDB::_singleton->_classes["FileDialog"].static_function_hashes["set_get_icon_callback"] = 1611583062;
+			ExtensionDB::_singleton->_classes["FileDialog"].static_function_hashes["set_get_thumbnail_callback"] = 1611583062;
+			
+			// EditorExportPlatform
+			ExtensionDB::_singleton->_classes["EditorExportPlatform"].name = "EditorExportPlatform";
+			ExtensionDB::_singleton->_classes["EditorExportPlatform"].static_function_hashes["get_forced_export_files"] = 1939331020;
+			ExtensionDB::_singleton->_classes["EditorExportPlatform"].bitfield_enums.push_back("DebugFlags");
+			
 			// Control
 			ExtensionDB::_singleton->_classes["Control"].name = "Control";
 			ExtensionDB::_singleton->_classes["Control"].bitfield_enums.push_back("SizeFlags");
 			
-			// CopyTransformModifier3D
-			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].name = "CopyTransformModifier3D";
-			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].bitfield_enums.push_back("TransformFlag");
-			ExtensionDB::_singleton->_classes["CopyTransformModifier3D"].bitfield_enums.push_back("AxisFlag");
+			// ResourceUID
+			ExtensionDB::_singleton->_classes["ResourceUID"].name = "ResourceUID";
+			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["uid_to_path"] = 1703090593;
+			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["path_to_uid"] = 1703090593;
+			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["ensure_path"] = 1703090593;
 			
-			// DPITexture
-			ExtensionDB::_singleton->_classes["DPITexture"].name = "DPITexture";
-			ExtensionDB::_singleton->_classes["DPITexture"].static_function_hashes["create_from_string"] = 755140520;
+			// ImageFormatLoader
+			ExtensionDB::_singleton->_classes["ImageFormatLoader"].name = "ImageFormatLoader";
+			ExtensionDB::_singleton->_classes["ImageFormatLoader"].bitfield_enums.push_back("LoaderFlags");
+			
+			// JSON
+			ExtensionDB::_singleton->_classes["JSON"].name = "JSON";
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["stringify"] = 462733549;
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["parse_string"] = 309047738;
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["from_native"] = 2963479484;
+			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["to_native"] = 2963479484;
+			
+			// Thread
+			ExtensionDB::_singleton->_classes["Thread"].name = "Thread";
+			ExtensionDB::_singleton->_classes["Thread"].static_function_hashes["set_thread_safety_checks_enabled"] = 2586408642;
+			ExtensionDB::_singleton->_classes["Thread"].static_function_hashes["is_main_thread"] = 2240911060;
 			
 			// DirAccess
 			ExtensionDB::_singleton->_classes["DirAccess"].name = "DirAccess";
@@ -4751,15 +4970,6 @@ namespace godot
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["copy_absolute"] = 1063198817;
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["rename_absolute"] = 852856452;
 			ExtensionDB::_singleton->_classes["DirAccess"].static_function_hashes["remove_absolute"] = 166001499;
-			
-			// EditorExportPlatform
-			ExtensionDB::_singleton->_classes["EditorExportPlatform"].name = "EditorExportPlatform";
-			ExtensionDB::_singleton->_classes["EditorExportPlatform"].static_function_hashes["get_forced_export_files"] = 1939331020;
-			ExtensionDB::_singleton->_classes["EditorExportPlatform"].bitfield_enums.push_back("DebugFlags");
-			
-			// EditorInspector
-			ExtensionDB::_singleton->_classes["EditorInspector"].name = "EditorInspector";
-			ExtensionDB::_singleton->_classes["EditorInspector"].static_function_hashes["instantiate_property_editor"] = 1429914152;
 			
 			// FileAccess
 			ExtensionDB::_singleton->_classes["FileAccess"].name = "FileAccess";
@@ -4785,38 +4995,11 @@ namespace godot
 			ExtensionDB::_singleton->_classes["FileAccess"].static_function_hashes["get_read_only_attribute"] = 2323990056;
 			ExtensionDB::_singleton->_classes["FileAccess"].bitfield_enums.push_back("UnixPermissionFlags");
 			
-			// FramebufferCacheRD
-			ExtensionDB::_singleton->_classes["FramebufferCacheRD"].name = "FramebufferCacheRD";
-			ExtensionDB::_singleton->_classes["FramebufferCacheRD"].static_function_hashes["get_cache_multipass"] = 3437881813;
-			
-			// GLTFCamera
-			ExtensionDB::_singleton->_classes["GLTFCamera"].name = "GLTFCamera";
-			ExtensionDB::_singleton->_classes["GLTFCamera"].static_function_hashes["from_node"] = 237784;
-			ExtensionDB::_singleton->_classes["GLTFCamera"].static_function_hashes["from_dictionary"] = 2495512509;
-			
-			// GLTFDocument
-			ExtensionDB::_singleton->_classes["GLTFDocument"].name = "GLTFDocument";
-			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["import_object_model_property"] = 1206708632;
-			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["export_object_model_property"] = 314209806;
-			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["register_gltf_document_extension"] = 3752678331;
-			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["unregister_gltf_document_extension"] = 2684415758;
-			ExtensionDB::_singleton->_classes["GLTFDocument"].static_function_hashes["get_supported_gltf_extensions"] = 2981934095;
-			
-			// GLTFLight
-			ExtensionDB::_singleton->_classes["GLTFLight"].name = "GLTFLight";
-			ExtensionDB::_singleton->_classes["GLTFLight"].static_function_hashes["from_node"] = 3907677874;
-			ExtensionDB::_singleton->_classes["GLTFLight"].static_function_hashes["from_dictionary"] = 4057087208;
-			
-			// GLTFPhysicsBody
-			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].name = "GLTFPhysicsBody";
-			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].static_function_hashes["from_node"] = 420544174;
-			ExtensionDB::_singleton->_classes["GLTFPhysicsBody"].static_function_hashes["from_dictionary"] = 1177544336;
-			
-			// GLTFPhysicsShape
-			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].name = "GLTFPhysicsShape";
-			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_node"] = 3613751275;
-			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_resource"] = 3845569786;
-			ExtensionDB::_singleton->_classes["GLTFPhysicsShape"].static_function_hashes["from_dictionary"] = 2390691823;
+			// TLSOptions
+			ExtensionDB::_singleton->_classes["TLSOptions"].name = "TLSOptions";
+			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["client"] = 3565000357;
+			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["client_unsafe"] = 2090251749;
+			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["server"] = 36969539;
 			
 			// Image
 			ExtensionDB::_singleton->_classes["Image"].name = "Image";
@@ -4825,170 +5008,9 @@ namespace godot
 			ExtensionDB::_singleton->_classes["Image"].static_function_hashes["create_from_data"] = 299398494;
 			ExtensionDB::_singleton->_classes["Image"].static_function_hashes["load_from_file"] = 736337515;
 			
-			// ImageFormatLoader
-			ExtensionDB::_singleton->_classes["ImageFormatLoader"].name = "ImageFormatLoader";
-			ExtensionDB::_singleton->_classes["ImageFormatLoader"].bitfield_enums.push_back("LoaderFlags");
-			
-			// ImageTexture
-			ExtensionDB::_singleton->_classes["ImageTexture"].name = "ImageTexture";
-			ExtensionDB::_singleton->_classes["ImageTexture"].static_function_hashes["create_from_image"] = 2775144163;
-			
-			// JSON
-			ExtensionDB::_singleton->_classes["JSON"].name = "JSON";
-			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["stringify"] = 462733549;
-			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["parse_string"] = 309047738;
-			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["from_native"] = 2963479484;
-			ExtensionDB::_singleton->_classes["JSON"].static_function_hashes["to_native"] = 2963479484;
-			
-			// Mesh
-			ExtensionDB::_singleton->_classes["Mesh"].name = "Mesh";
-			ExtensionDB::_singleton->_classes["Mesh"].bitfield_enums.push_back("ArrayFormat");
-			
-			// MovieWriter
-			ExtensionDB::_singleton->_classes["MovieWriter"].name = "MovieWriter";
-			ExtensionDB::_singleton->_classes["MovieWriter"].static_function_hashes["add_writer"] = 4023702871;
-			
-			// MultiplayerAPI
-			ExtensionDB::_singleton->_classes["MultiplayerAPI"].name = "MultiplayerAPI";
-			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["set_default_interface"] = 3304788590;
-			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["get_default_interface"] = 2737447660;
-			ExtensionDB::_singleton->_classes["MultiplayerAPI"].static_function_hashes["create_default_interface"] = 3294156723;
-			
-			// NavigationPathQueryParameters2D
-			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters2D"].name = "NavigationPathQueryParameters2D";
-			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters2D"].bitfield_enums.push_back("PathMetadataFlags");
-			
-			// NavigationPathQueryParameters3D
-			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters3D"].name = "NavigationPathQueryParameters3D";
-			ExtensionDB::_singleton->_classes["NavigationPathQueryParameters3D"].bitfield_enums.push_back("PathMetadataFlags");
-			
-			// Node
-			ExtensionDB::_singleton->_classes["Node"].name = "Node";
-			ExtensionDB::_singleton->_classes["Node"].static_function_hashes["print_orphan_nodes"] = 3218959716;
-			ExtensionDB::_singleton->_classes["Node"].static_function_hashes["get_orphan_node_ids"] = 2915620761;
-			ExtensionDB::_singleton->_classes["Node"].bitfield_enums.push_back("ProcessThreadMessages");
-			
-			// OpenXRAPIExtension
-			ExtensionDB::_singleton->_classes["OpenXRAPIExtension"].name = "OpenXRAPIExtension";
-			ExtensionDB::_singleton->_classes["OpenXRAPIExtension"].static_function_hashes["openxr_is_enabled"] = 2703660260;
-			
-			// OpenXRInterface
-			ExtensionDB::_singleton->_classes["OpenXRInterface"].name = "OpenXRInterface";
-			ExtensionDB::_singleton->_classes["OpenXRInterface"].bitfield_enums.push_back("HandJointFlags");
-			
-			// PathFollow3D
-			ExtensionDB::_singleton->_classes["PathFollow3D"].name = "PathFollow3D";
-			ExtensionDB::_singleton->_classes["PathFollow3D"].static_function_hashes["correct_posture"] = 2686588690;
-			
-			// PhysicsRayQueryParameters2D
-			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters2D"].name = "PhysicsRayQueryParameters2D";
-			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters2D"].static_function_hashes["create"] = 3196569324;
-			
-			// PhysicsRayQueryParameters3D
-			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters3D"].name = "PhysicsRayQueryParameters3D";
-			ExtensionDB::_singleton->_classes["PhysicsRayQueryParameters3D"].static_function_hashes["create"] = 3110599579;
-			
-			// PortableCompressedTexture2D
-			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].name = "PortableCompressedTexture2D";
-			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].static_function_hashes["set_keep_all_compressed_buffers"] = 2586408642;
-			ExtensionDB::_singleton->_classes["PortableCompressedTexture2D"].static_function_hashes["is_keeping_all_compressed_buffers"] = 2240911060;
-			
-			// RegEx
-			ExtensionDB::_singleton->_classes["RegEx"].name = "RegEx";
-			ExtensionDB::_singleton->_classes["RegEx"].static_function_hashes["create_from_string"] = 4249111514;
-			
-			// RenderingDevice
-			ExtensionDB::_singleton->_classes["RenderingDevice"].name = "RenderingDevice";
-			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("BarrierMask");
-			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("TextureUsageBits");
-			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("StorageBufferUsage");
-			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("BufferCreationBits");
-			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("PipelineDynamicStateFlags");
-			ExtensionDB::_singleton->_classes["RenderingDevice"].bitfield_enums.push_back("DrawFlags");
-			
-			// RenderingServer
-			ExtensionDB::_singleton->_classes["RenderingServer"].name = "RenderingServer";
-			ExtensionDB::_singleton->_classes["RenderingServer"].bitfield_enums.push_back("ArrayFormat");
-			
 			// Resource
 			ExtensionDB::_singleton->_classes["Resource"].name = "Resource";
 			ExtensionDB::_singleton->_classes["Resource"].static_function_hashes["generate_scene_unique_id"] = 2841200299;
-			
-			// ResourceImporterOggVorbis
-			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].name = "ResourceImporterOggVorbis";
-			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].static_function_hashes["load_from_buffer"] = 354904730;
-			ExtensionDB::_singleton->_classes["ResourceImporterOggVorbis"].static_function_hashes["load_from_file"] = 797568536;
-			
-			// ResourceSaver
-			ExtensionDB::_singleton->_classes["ResourceSaver"].name = "ResourceSaver";
-			ExtensionDB::_singleton->_classes["ResourceSaver"].bitfield_enums.push_back("SaverFlags");
-			
-			// ResourceUID
-			ExtensionDB::_singleton->_classes["ResourceUID"].name = "ResourceUID";
-			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["uid_to_path"] = 1703090593;
-			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["path_to_uid"] = 1703090593;
-			ExtensionDB::_singleton->_classes["ResourceUID"].static_function_hashes["ensure_path"] = 1703090593;
-			
-			// RetargetModifier3D
-			ExtensionDB::_singleton->_classes["RetargetModifier3D"].name = "RetargetModifier3D";
-			ExtensionDB::_singleton->_classes["RetargetModifier3D"].bitfield_enums.push_back("TransformFlag");
-			
-			// RichTextLabel
-			ExtensionDB::_singleton->_classes["RichTextLabel"].name = "RichTextLabel";
-			ExtensionDB::_singleton->_classes["RichTextLabel"].bitfield_enums.push_back("ImageUpdateMask");
-			
-			// ShaderIncludeDB
-			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].name = "ShaderIncludeDB";
-			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["list_built_in_include_files"] = 2981934095;
-			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["has_built_in_include_file"] = 2323990056;
-			ExtensionDB::_singleton->_classes["ShaderIncludeDB"].static_function_hashes["get_built_in_include_file"] = 1703090593;
-			
-			// TLSOptions
-			ExtensionDB::_singleton->_classes["TLSOptions"].name = "TLSOptions";
-			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["client"] = 3565000357;
-			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["client_unsafe"] = 2090251749;
-			ExtensionDB::_singleton->_classes["TLSOptions"].static_function_hashes["server"] = 36969539;
-			
-			// TextServer
-			ExtensionDB::_singleton->_classes["TextServer"].name = "TextServer";
-			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("JustificationFlag");
-			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("LineBreakFlag");
-			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("TextOverrunFlag");
-			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("GraphemeFlag");
-			ExtensionDB::_singleton->_classes["TextServer"].bitfield_enums.push_back("FontStyle");
-			
-			// Thread
-			ExtensionDB::_singleton->_classes["Thread"].name = "Thread";
-			ExtensionDB::_singleton->_classes["Thread"].static_function_hashes["set_thread_safety_checks_enabled"] = 2586408642;
-			
-			// Tween
-			ExtensionDB::_singleton->_classes["Tween"].name = "Tween";
-			ExtensionDB::_singleton->_classes["Tween"].static_function_hashes["interpolate_value"] = 3452526450;
-			
-			// UniformSetCacheRD
-			ExtensionDB::_singleton->_classes["UniformSetCacheRD"].name = "UniformSetCacheRD";
-			ExtensionDB::_singleton->_classes["UniformSetCacheRD"].static_function_hashes["get_cache"] = 658571723;
-			
-			// WebRTCPeerConnection
-			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].name = "WebRTCPeerConnection";
-			ExtensionDB::_singleton->_classes["WebRTCPeerConnection"].static_function_hashes["set_default_extension"] = 3304788590;
-			
-			// Window
-			ExtensionDB::_singleton->_classes["Window"].name = "Window";
-			ExtensionDB::_singleton->_classes["Window"].static_function_hashes["get_focused_window"] = 1835468782;
-			
-			// XRBodyModifier3D
-			ExtensionDB::_singleton->_classes["XRBodyModifier3D"].name = "XRBodyModifier3D";
-			ExtensionDB::_singleton->_classes["XRBodyModifier3D"].bitfield_enums.push_back("BodyUpdate");
-			
-			// XRBodyTracker
-			ExtensionDB::_singleton->_classes["XRBodyTracker"].name = "XRBodyTracker";
-			ExtensionDB::_singleton->_classes["XRBodyTracker"].bitfield_enums.push_back("BodyFlags");
-			ExtensionDB::_singleton->_classes["XRBodyTracker"].bitfield_enums.push_back("JointFlags");
-			
-			// XRHandTracker
-			ExtensionDB::_singleton->_classes["XRHandTracker"].name = "XRHandTracker";
-			ExtensionDB::_singleton->_classes["XRHandTracker"].bitfield_enums.push_back("HandJointFlags");
 		}
 		
 		void ExtensionDBLoader::prime()
