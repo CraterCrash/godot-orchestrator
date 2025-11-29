@@ -36,6 +36,7 @@ jobs:
         run: |
           mkdir -p ~/.local/bin
           curl -L https://github.com/mozilla/sccache/releases/download/v0.12.0/sccache-dist-v0.12.0-x86_64-unknown-linux-musl.tar.gz | tar xz -C ~/.local/bin --strip-components=1
+          mv ~/.local/bin/sccache-dist ~/.local/bin/sccache
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Setup sccache with local cache
