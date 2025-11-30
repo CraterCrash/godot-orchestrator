@@ -83,6 +83,7 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer
     void _close_graph(const String& p_graph_name);
 
     void _show_invalid_identifier(const String& p_name, bool p_friendly_names);
+    bool _is_identifier_used(const String& p_name);
 
     void _component_show_context_menu(Node* p_node, TreeItem* p_item, const Vector2& p_position);
     void _component_item_gui_input(TreeItem* p_item, const Ref<InputEvent>& p_event);
