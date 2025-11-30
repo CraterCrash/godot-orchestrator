@@ -22,6 +22,7 @@
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
 #include "editor/autowire_connection_dialog.h"
+#include "editor/connections_dock.h"
 #include "editor/context_menu.h"
 #include "editor/editor.h"
 #include "editor/file_dialog.h"
@@ -96,6 +97,7 @@ void register_editor_types()
 
     // View components
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditor)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorConnectionsDock)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorContextMenu)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorView) // todo: should be abstract internal
     GDREGISTER_INTERNAL_CLASS(OrchestratorScriptGraphEditorView)
