@@ -22,6 +22,7 @@
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "editor/connections_dock.h"
 #include "editor/context_menu.h"
 #include "editor/dialogs_helper.h"
 #include "editor/editor.h"
@@ -37,6 +38,8 @@
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -143,7 +146,7 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
             menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
             if (p_item->get_meta("__slot", false))
             {
-                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", Callable());
+                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", callable_mp_this(_disconnect_slot_item).bind(p_item));
                 menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
             }
 
@@ -161,7 +164,7 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
 
             if (p_item->get_meta("__slot", false))
             {
-                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", Callable());
+                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", callable_mp_this(_disconnect_slot_item).bind(p_item));
                 menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
             }
 
@@ -1020,7 +1023,7 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions()
     _graphs->add_tree_empty_item("No graphs defined");
     _functions->add_tree_empty_item("No functions defined");
 
-    _update_slots();
+    callable_mp_this(_update_slots).call_deferred();
 }
 
 void OrchestratorScriptComponentsContainer::_update_macros()
@@ -1202,6 +1205,18 @@ void OrchestratorScriptComponentsContainer::_update_slot_item(TreeItem* p_item)
         default:
             break;
     }
+}
+
+void OrchestratorScriptComponentsContainer::_disconnect_slot_item(TreeItem* p_item)
+{
+    ERR_FAIL_COND(!p_item);
+
+    const Ref<OScript> script = _orchestration->as_script();
+    ERR_FAIL_COND(!script.is_valid());
+
+    const String method_name = p_item->get_meta("__name", "");
+    if (OrchestratorEditorConnectionsDock::get_singleton()->disconnect_slot(script, method_name))
+        _update_slot_item(p_item);
 }
 
 void OrchestratorScriptComponentsContainer::_scene_changed(Node* p_node)
@@ -1392,6 +1407,7 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer()
 
     OrchestratorEditor::get_singleton()->connect("scene_changed", callable_mp_this(_scene_changed));
     ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_project_settings_changed));
+    OrchestratorEditorConnectionsDock::get_singleton()->connect("changed", callable_mp_this(_update_slots));
 
     _project_settings_changed();
 }
