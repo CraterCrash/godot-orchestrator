@@ -72,6 +72,7 @@ private:
         FILE_NEW,
         FILE_OPEN,
         FILE_OPEN_RECENT,
+        FILE_REOPEN_CLOSED,
         FILE_SAVE,
         FILE_SAVE_AS,
         FILE_SAVE_ALL,
