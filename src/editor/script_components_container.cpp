@@ -911,14 +911,26 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions()
     _graphs->clear_tree();
     _functions->clear_tree();
 
-    const PackedStringArray function_names = _get_orchestration()->get_function_names();
+    PackedStringArray graph_names = _get_orchestration()->get_graph_names();
+    graph_names.sort();
+
+    // Always guarantee that "EventGraph" is at the top
+    if (graph_names.has("EventGraph"))
+    {
+        graph_names.erase("EventGraph");
+        graph_names.insert(0, "EventGraph");
+    }
+
+    PackedStringArray function_names = _get_orchestration()->get_function_names();
+    function_names.sort();
 
     //~ Populate graphs and functions panels
     const Ref<Texture2D> graph_icon = SceneUtils::get_editor_icon("ClassList");
     const Ref<Texture2D> event_icon = SceneUtils::get_editor_icon("PlayStart");
     const Ref<Texture2D> function_icon = SceneUtils::get_editor_icon("MemberMethod");
-    for (const Ref<OScriptGraph>& script_graph : _get_orchestration()->get_graphs())
+    for (const String& graph_name : graph_names)
     {
+        const Ref<OScriptGraph>& script_graph = _get_orchestration()->get_graph(graph_name);
         if (script_graph->get_flags().has_flag(OScriptGraph::GF_EVENT))
         {
             String name = script_graph->get_graph_name();
@@ -1090,16 +1102,19 @@ void OrchestratorScriptComponentsContainer::_update_signals()
 
     _signals->clear_tree();
 
-    const Vector<Ref<OScriptSignal>> signals = _get_orchestration()->get_custom_signals();
-    if (signals.is_empty())
+    PackedStringArray signal_names = _get_orchestration()->get_custom_signal_names();
+    if (signal_names.is_empty())
     {
         _signals->add_tree_empty_item("No signals defined");
         return;
     }
 
+    signal_names.sort();
+
     const Ref<Texture2D> signal_icon = SceneUtils::get_editor_icon("MemberSignal");
-    for (const Ref<OScriptSignal>& signal : signals)
+    for (const String& signal_name: signal_names)
     {
+        const Ref<OScriptSignal> signal = _get_orchestration()->get_custom_signal(signal_name);
         TreeItem* item = _signals->add_tree_item(signal->get_signal_name(), signal_icon);
         item->set_meta("__component_type", SCRIPT_SIGNAL);
     }
