@@ -37,6 +37,7 @@
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -459,6 +460,20 @@ void OrchestratorScriptGraphEditorView::_update_breakpoints_list()
     }
 }
 
+void OrchestratorScriptGraphEditorView::_update_debug_menu()
+{
+    if (_debug_menu)
+    {
+        const bool debugger_active = OrchestratorEditorDebuggerPlugin::get_singleton()->is_active();
+
+        PopupMenu* popup = _debug_menu->get_popup();
+        popup->set_item_disabled(popup->get_item_index(DEBUG_STEP_INTO), !debugger_active);
+        popup->set_item_disabled(popup->get_item_index(DEBUG_STEP_OVER), !debugger_active);
+        popup->set_item_disabled(popup->get_item_index(DEBUG_BREAK), false);
+        popup->set_item_disabled(popup->get_item_index(DEBUG_CONTINUE), !debugger_active);
+    }
+}
+
 void OrchestratorScriptGraphEditorView::_menu_option(int p_index)
 {
     switch (p_index)
@@ -506,6 +521,26 @@ void OrchestratorScriptGraphEditorView::_menu_option(int p_index)
         case GOTO_PREV_BREAKPOINT:
         {
             _get_active_graph_tab()->goto_previous_breakpoint();
+            break;
+        }
+        case DEBUG_BREAK:
+        {
+            OrchestratorEditorDebuggerPlugin::get_singleton()->debug_break();
+            break;
+        }
+        case DEBUG_STEP_INTO:
+        {
+            OrchestratorEditorDebuggerPlugin::get_singleton()->debug_step_into();
+            break;
+        }
+        case DEBUG_STEP_OVER:
+        {
+            OrchestratorEditorDebuggerPlugin::get_singleton()->debug_step_over();
+            break;
+        }
+        case DEBUG_CONTINUE:
+        {
+            OrchestratorEditorDebuggerPlugin::get_singleton()->debug_continue();
             break;
         }
         default:
@@ -567,6 +602,15 @@ void OrchestratorScriptGraphEditorView::_enable_editor()
     _breakpoints_menu->connect("about_to_popup", callable_mp_this(_update_breakpoints_list));
     _breakpoints_menu->connect("index_pressed", callable_mp_this(_breakpoints_menu_option));
     #endif
+
+    _edit_hb->add_child(_debug_menu);
+    _debug_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
+    _debug_menu->get_popup()->add_item("Step Into", DEBUG_STEP_INTO, KEY_F11);
+    _debug_menu->get_popup()->add_item("Step Over", DEBUG_STEP_OVER, KEY_F10);
+    _debug_menu->get_popup()->add_separator();
+    _debug_menu->get_popup()->add_item("Break", DEBUG_BREAK);
+    _debug_menu->get_popup()->add_item("Continue", DEBUG_CONTINUE, KEY_F12);
+    _debug_menu->connect("about_to_popup", callable_mp_this(_update_debug_menu));
 }
 
 void OrchestratorScriptGraphEditorView::_validate_script()
@@ -1167,6 +1211,11 @@ OrchestratorScriptGraphEditorView::OrchestratorScriptGraphEditorView()
     _goto_menu->set_switch_on_hover(true);
     _goto_menu->set_shortcut_context(this);
 
+    _debug_menu = memnew(MenuButton);
+    _debug_menu->set_text("Debug");
+    _debug_menu->set_switch_on_hover(true);
+    _debug_menu->set_shortcut_context(this);
+
     _bookmarks_menu = memnew(PopupMenu);
     _breakpoints_menu = memnew(PopupMenu);
 }
@@ -1179,6 +1228,7 @@ OrchestratorScriptGraphEditorView::~OrchestratorScriptGraphEditorView()
         memdelete(_edit_menu);
         memdelete(_search_menu);
         memdelete(_goto_menu);
+        memdelete(_debug_menu);
         memdelete(_bookmarks_menu);
         memdelete(_breakpoints_menu);
     }

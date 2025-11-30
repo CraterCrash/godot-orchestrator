@@ -36,6 +36,7 @@ class OrchestratorEditorDebuggerPlugin : public EditorDebuggerPlugin
 protected:
     static OrchestratorEditorDebuggerPlugin* _singleton;  //! Singleton instance
     Ref<EditorDebuggerSession> _current_session;          //! Current debugger session
+    bool _session_active = false;                         //! Whether session is active
 
     //~ Begin Signal Handlers
     void _session_started(int32_t p_session_id);
@@ -64,6 +65,12 @@ public:
 
     void reload_all_scripts();
     void reload_scripts(const Vector<String>& p_script_paths);
+
+    bool is_active() const;
+    void debug_step_into();
+    void debug_step_over();
+    void debug_break();
+    void debug_continue();
 
     /// Constructor
     OrchestratorEditorDebuggerPlugin();
