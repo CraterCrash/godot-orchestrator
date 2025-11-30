@@ -22,11 +22,13 @@ OrchestratorEditorDebuggerPlugin* OrchestratorEditorDebuggerPlugin::_singleton =
 void OrchestratorEditorDebuggerPlugin::_session_started(int32_t p_session_id)
 {
     // Session id is 0, when game starts.
+    _session_active = true;
 }
 
 void OrchestratorEditorDebuggerPlugin::_session_stopped(int32_t p_session_id)
 {
     // Session id is 0, when game ends.
+    _session_active = false;
 }
 
 void OrchestratorEditorDebuggerPlugin::_session_breaked(bool p_can_debug, int32_t p_session_id)
@@ -95,6 +97,44 @@ void OrchestratorEditorDebuggerPlugin::reload_scripts(const Vector<String>& p_sc
         scripts.push_back(value);
 
     _current_session->send_message("reload_scripts", scripts);
+}
+
+bool OrchestratorEditorDebuggerPlugin::is_active() const
+{
+    return _session_active;
+}
+
+void OrchestratorEditorDebuggerPlugin::debug_step_into()
+{
+    ERR_FAIL_COND(!_current_session.is_valid());
+    ERR_FAIL_COND(!is_active());
+
+    _current_session->send_message("step");
+}
+
+void OrchestratorEditorDebuggerPlugin::debug_step_over()
+{
+    ERR_FAIL_COND(!_current_session.is_valid());
+    ERR_FAIL_COND(!is_active());
+
+    _current_session->send_message("next");
+}
+
+void OrchestratorEditorDebuggerPlugin::debug_break()
+{
+    ERR_FAIL_COND(!_current_session.is_valid());
+    ERR_FAIL_COND(!is_active());
+
+    _current_session->send_message("break");
+}
+
+void OrchestratorEditorDebuggerPlugin::debug_continue()
+{
+    ERR_FAIL_COND(!_current_session.is_valid());
+    ERR_FAIL_COND(!is_active());
+
+    _current_session->send_message("continue");
+    _current_session->send_message("servers:foreground");
 }
 
 void OrchestratorEditorDebuggerPlugin::_bind_methods()
