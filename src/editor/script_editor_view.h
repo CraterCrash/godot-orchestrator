@@ -62,6 +62,11 @@ class OrchestratorScriptGraphEditorView : public OrchestratorEditorView
         REMOVE_BREAKPOINTS,
         GOTO_NEXT_BREAKPOINT,
         GOTO_PREV_BREAKPOINT,
+
+        DEBUG_STEP_INTO,
+        DEBUG_STEP_OVER,
+        DEBUG_BREAK,
+        DEBUG_CONTINUE
     };
 
     Ref<OScript> _script;
@@ -78,6 +83,7 @@ class OrchestratorScriptGraphEditorView : public OrchestratorEditorView
     MenuButton* _edit_menu = nullptr;
     MenuButton* _search_menu = nullptr;
     MenuButton* _goto_menu = nullptr;
+    MenuButton* _debug_menu = nullptr;
     PopupMenu* _bookmarks_menu = nullptr;
     PopupMenu* _breakpoints_menu = nullptr;
 
@@ -130,6 +136,8 @@ protected:
     void _bookmarks_menu_option(int p_index);
     void _update_bookmarks_list();
     void _update_breakpoints_list();
+
+    void _update_debug_menu();
 
     void _menu_option(int p_index);
 
