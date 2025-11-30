@@ -88,6 +88,7 @@ void OrchestratorEditor::_prepare_file_menu()
     OrchestratorEditorView* editor = _get_current_editor();
     const Ref<Resource> res = editor ? editor->get_edited_resource() : Ref<Resource>();
 
+    menu->set_item_disabled(menu->get_item_index(FILE_REOPEN_CLOSED), _previous_scripts.is_empty());
     menu->set_item_disabled(menu->get_item_index(FILE_SAVE), res.is_null());
     menu->set_item_disabled(menu->get_item_index(FILE_SAVE_AS), res.is_null());
     menu->set_item_disabled(menu->get_item_index(FILE_SAVE_ALL), res.is_null());
@@ -178,6 +179,26 @@ void OrchestratorEditor::_menu_option(int p_option)
                 _file_dialog->add_filter("*." + extension, extension.to_upper());
 
             _file_dialog->popup_file_dialog();
+            break;
+        }
+        case FILE_REOPEN_CLOSED:
+        {
+            if (_previous_scripts.is_empty())
+                return;
+
+            const String path = _previous_scripts.back()->get();
+            _previous_scripts.pop_back();
+
+            const Ref<Resource> script = ResourceLoader::get_singleton()->load(path);
+            if (script.is_null())
+            {
+                OrchestratorEditorDialogs::error("Could not load file at: " + path);
+                _file_dialog_option = -1;
+                return;
+            }
+
+            edit(script);
+            _file_dialog_option = -1;
             break;
         }
         case FILE_SAVE_ALL:
@@ -2603,6 +2624,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
 
     _file_menu->get_popup()->add_item("New Orchestration...", FILE_NEW, OACCEL_KEY(KEY_MASK_CTRL, KEY_N));
     _file_menu->get_popup()->add_item("Open...", FILE_OPEN);
+    _file_menu->get_popup()->add_item("Reopen Closed Orchestration", FILE_REOPEN_CLOSED, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_SHIFT, KEY_T));
     #if GODOT_VERSION >= 0x040300
     _file_menu->get_popup()->add_submenu_node_item("Open Recent", _recent_history, FILE_OPEN_RECENT);
     #else
@@ -2614,10 +2636,13 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _file_menu->get_popup()->add_item("Save As...", FILE_SAVE_AS);
     _file_menu->get_popup()->add_item("Save All", FILE_SAVE_ALL, OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S));
     _file_menu->get_popup()->add_separator();
+    _file_menu->get_popup()->add_item("Copy Orchestration Path", FILE_COPY_PATH);
+    _file_menu->get_popup()->add_item("Copy Orchestration UID", FILE_COPY_UID);
     _file_menu->get_popup()->add_item("Show in Filesystem", FILE_SHOW_IN_FILESYSTEM);
     _file_menu->get_popup()->add_separator();
     _file_menu->get_popup()->add_item("Close", FILE_CLOSE, OACCEL_KEY(KEY_MASK_CTRL, KEY_W));
     _file_menu->get_popup()->add_item("Close All", FILE_CLOSE_ALL);
+    _file_menu->get_popup()->add_item("Close Others", FILE_CLOSE_OTHERS);
     _file_menu->get_popup()->add_separator();
     _file_menu->get_popup()->add_item("Toggle Orchestration List", FILE_TOGGLE_LEFT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_BACKSLASH));
     _file_menu->get_popup()->add_item("Toggle Component Panel", FILE_TOGGLE_RIGHT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_SLASH));
