@@ -24,6 +24,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "editor/actions/registry.h"
+#include "editor/connections_dock.h"
 #include "editor/dialogs_helper.h"
 #include "editor/editor_view.h"
 #include "editor/file_dialog.h"
@@ -2539,10 +2540,11 @@ void OrchestratorEditor::_create_ui()
 
 OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapper)
 {
-    add_child(memnew(OrchestratorEditorActionRegistry));
-
     _window_wrapper = p_window_wrapper;
     _editor = this;
+
+    add_child(memnew(OrchestratorEditorActionRegistry));
+    add_child(memnew(OrchestratorEditorConnectionsDock));
 
     _editor_cache.instantiate();
     _editor_cache->load(EI->get_editor_paths()->get_project_settings_dir().path_join("orchestrator_editor_cache.cfg"));

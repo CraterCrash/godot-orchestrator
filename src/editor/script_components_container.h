@@ -107,6 +107,7 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer
     void _update_signals();
     void _update_slots();
     void _update_slot_item(TreeItem* p_item);
+    void _disconnect_slot_item(TreeItem* p_item);
 
     void _scene_changed(Node* p_node);
     void _project_settings_changed();
