@@ -78,6 +78,37 @@ void OrchestratorScriptComponentsContainer::_show_invalid_identifier(const Strin
     ORCHESTRATOR_ACCEPT(message);
 }
 
+bool OrchestratorScriptComponentsContainer::_is_identifier_used(const String& p_name)
+{
+    if (_get_orchestration()->has_variable(p_name))
+    {
+        OrchestratorEditorDialogs::accept(vformat("A %s already exists with the name \"%s\".", "variable", p_name));
+        return true;
+    }
+
+    if (_get_orchestration()->has_custom_signal(p_name))
+    {
+        OrchestratorEditorDialogs::accept(vformat("A %s already exists with the name \"%s\".", "signal", p_name));
+        return true;
+    }
+
+    if (_get_orchestration()->has_function(p_name))
+    {
+        String item_name = _use_function_friendly_names ? p_name.capitalize() : p_name;
+        OrchestratorEditorDialogs::accept(vformat("A %s already exists with the name \"%s\".", "function", item_name));
+        return true;
+    }
+
+    if (_get_orchestration()->has_graph(p_name))
+    {
+        String item_name = _use_graph_friendly_names ? p_name.capitalize() : p_name;
+        OrchestratorEditorDialogs::accept(vformat("A %s already exists with the name \"%s\".", "graph", item_name));
+        return true;
+    }
+
+    return false;
+}
+
 void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p_node, TreeItem* p_item, const Vector2& p_position)
 {
     #define RENAME_ITEM(x, i) callable_mp(x, &OrchestratorEditorComponentView::rename_tree_item).bind(i, callable_mp_this(_component_rename_item))
@@ -499,6 +530,9 @@ void OrchestratorScriptComponentsContainer::_component_add_item_commit(TreeItem*
         return;
     }
 
+    if (_is_identifier_used(item_name))
+        return;
+
     const uint32_t type = p_item->get_meta("__component_type", NONE);
     switch (type)
     {
@@ -655,6 +689,9 @@ void OrchestratorScriptComponentsContainer::_component_rename_item(TreeItem* p_i
         _show_invalid_identifier(new_name, _use_graph_friendly_names);
         return;
     }
+
+    if (_is_identifier_used(new_name))
+        return;
 
     const uint32_t type = p_item->get_meta("__component_type", NONE);
     switch (type)
