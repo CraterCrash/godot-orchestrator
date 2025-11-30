@@ -110,5 +110,15 @@ private:
 
 #define ORCHESTRATOR_GET(x, y) OrchestratorSettings::get_singleton()->get_setting(x, y)
 
+template <typename T>
+_FORCE_INLINE_ bool ORCHESTRATOR_GET_TRACK(T& r_field, const String& p_key, T p_default)
+{
+    T new_value = ORCHESTRATOR_GET(p_key, p_default);
+    if (new_value != r_field) {
+        r_field = new_value;
+        return true;
+    }
+    return false;
+}
 
 #endif  // ORCHESTRATOR_SETTINGS_H
