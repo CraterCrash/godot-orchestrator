@@ -31,9 +31,12 @@
 
 Popup* OrchestratorEditorComponentView::_get_tree_editor_popup()
 {
-    TypedArray<Node> popups = find_children("*", "Popup", true, false);
-    if (popups.size() >= 2)
-        return cast_to<Popup>(popups[1]);
+    for (const Variant& value : find_children("*", "Popup", true, false))
+    {
+        Popup* popup = cast_to<Popup>(value);
+        if (Popup::get_class_static() == popup->get_class())
+            return popup;
+    }
 
     return nullptr;
 }
