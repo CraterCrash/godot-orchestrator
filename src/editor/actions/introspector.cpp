@@ -534,7 +534,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                     global_class.get_signal_list()));
         }
     }
-    else
+    else if (script.is_valid())
     {
         actions.append_array(
             _get_actions_for_class(
