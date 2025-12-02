@@ -982,6 +982,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                     method.name,
                     DictionaryUtils::of({ { "target_type", type.type }, { "method", method_dict } }))
                 .method(method)
+                .target_class(Variant::get_type_name(type.type))
                 .executions(true)
                 .build());
         }
