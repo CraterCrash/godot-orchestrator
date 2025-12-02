@@ -37,6 +37,11 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
     if (!_target_classes.is_empty() && _target_classes.has(p_action->class_name.value_or("")))
         return true;
 
+    // Match against methods that are associated with variant types.
+    // For example, dragging from a Callable pin provides access to methods like bind.
+    if (_type != Variant::VARIANT_MAX && _target_classes.has(p_action->target_class))
+        return true;
+
     // Match against method
     // For output pins, we check whether the method can accept the pin's class/variant type as an input
     // For input pins, we check whether the method return matches the input pin's class/variant type
@@ -113,6 +118,7 @@ void OrchestratorEditorActionPortRule::configure(const OrchestratorGraphNodePin*
     if (property.type != Variant::NIL && property.type != Variant::OBJECT) {
         // Only match against property type
         _type = property.type;
+        _target_classes.push_back(Variant::get_type_name(_type));
     }
     else {
         _type = Variant::VARIANT_MAX;
