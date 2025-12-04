@@ -326,7 +326,31 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
         }
 
         if (ScriptServer::is_global_class(clazz_name))
-            item->script_filename = ScriptServer::get_global_class(clazz_name).path.get_file();
+        {
+            ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(clazz_name);
+            item->script_filename = global_class.path.get_file();
+
+            const Dictionary constants_map = global_class.get_constants_list();
+            if (!constants_map.is_empty())
+            {
+                const Array& keys = constants_map.keys();
+                for (int i = 0; i < keys.size(); i++)
+                {
+                    const Variant& value = constants_map[keys[i]];
+                    if (value.get_type() == Variant::DICTIONARY)
+                    {
+                        Ref<SearchItem> sub_item(memnew(SearchItem));
+                        sub_item->path = vformat("Types/%s/%s", _create_class_hierarchy_path(clazz_name), keys[i]);
+                        sub_item->name = vformat("%s:%s.%s", "class_enum", clazz_name, keys[i]);
+                        sub_item->text = keys[i];
+                        sub_item->icon = SceneUtils::get_editor_icon("Enum");
+                        sub_item->parent = item;
+
+                        items.push_back(sub_item);
+                    }
+                }
+            }
+        }
 
         items.push_back(item);
 
