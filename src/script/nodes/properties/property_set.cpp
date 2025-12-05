@@ -31,6 +31,7 @@ class OScriptNodePropertySetInstance : public OScriptNodeInstance
     String _target_class;
     PropertyInfo _property;
     NodePath _node_path;
+    bool _enforce_self = false;
 
     Node* _get_node_path_target(OScriptExecutionContext& p_context)
     {
@@ -46,22 +47,29 @@ public:
         switch (_call_mode)
         {
             case OScriptNodeProperty::CALL_SELF:
+            {
                 p_context.get_owner()->set(_property.name, input);
                 break;
-
+            }
             case OScriptNodeProperty::CALL_NODE_PATH:
+            {
                 if (Node* target = _get_node_path_target(p_context))
                     target->set(_property.name, input);
                 break;
-
+            }
             case OScriptNodeProperty::CALL_INSTANCE:
-                Variant instance = p_context.get_input(0);
+            {
+                Variant instance = _enforce_self
+                    ? Variant(p_context.get_owner())
+                    : p_context.get_input(0);
+
                 if (instance.get_type() == Variant::OBJECT)
                 {
                     Object* obj = Object::cast_to<Object>(instance);
                     obj->set(_property.name, p_context.get_input(1));
                 }
                 break;
+            }
         }
         return 0;
     }
@@ -108,6 +116,17 @@ OScriptNodeInstance* OScriptNodePropertySet::instantiate()
     OScriptNodePropertySetInstance* i = memnew(OScriptNodePropertySetInstance);
     i->_node = this;
     i->_call_mode = _call_mode;
+
+    if (_call_mode == CALL_INSTANCE)
+    {
+        const Ref<OScriptNodePin> target = find_pin("target", PD_Input);
+        if (target.is_valid() && !target->has_any_connections())
+        {
+            if (_is_same_or_parent(target->get_target_class()))
+                i->_enforce_self = true;
+        }
+    }
+
     i->_target_class = _base_type;
     i->_property = _property;
     i->_node_path = _node_path;
