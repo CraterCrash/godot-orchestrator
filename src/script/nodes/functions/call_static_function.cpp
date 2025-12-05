@@ -246,7 +246,10 @@ void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) 
         const PropertyInfo& pi = _method.arguments[i];
         const Ref<OScriptNodePin> pin = find_pin(pi.name, PD_Input);
         if (pin.is_valid() && !pin->has_any_connections())
-            p_log.error(this, pin, "Requires a connection.");
+        {
+            if (pin->get_effective_default_value() == pin->get_generated_default_value())
+                p_log.error(this, pin, "Requires a connection.");
+        }
     }
 
     if (!(_method.flags & METHOD_FLAG_STATIC))
