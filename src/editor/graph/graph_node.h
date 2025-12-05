@@ -85,7 +85,12 @@ protected:
     OrchestratorGraphNode() = default;
     static void _bind_methods();
 
+    void _draw_port2(int32_t p_slot_index, const Vector2i& p_position, bool p_left, const Color& p_color, const Color& p_rim_color);
+
 public:
+    //~ Begin GraphNode Interface
+    void _draw_port(int32_t p_slot_index, const Vector2i &p_position, bool p_left, const Color &p_color) override;
+    //~ End GraphNode Interface
 
     /// Creates an editor graph node
     /// @param p_graph the owning graph, should not be null

@@ -40,6 +40,33 @@
 #include <godot_cpp/classes/script_editor_base.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 
+void OrchestratorGraphNode::_draw_port2(int32_t p_slot_index, const Vector2i& p_position, bool p_left, const Color& p_color, const Color& p_rim_color)
+{
+    Ref<Texture2D> port_icon = p_left
+        ? get_slot_custom_icon_left(p_slot_index)
+        : get_slot_custom_icon_right(p_slot_index);
+
+    if (port_icon.is_null())
+        port_icon = get_theme_icon("port", "GraphNode");
+
+    const int port_type = p_left
+        ? get_slot_type_left(p_slot_index)
+        : get_slot_type_right(p_slot_index);
+
+    const Point2 icon_offset = -port_icon->get_size() * 0.5;
+
+    // Draw "shadow" / outline in the connection rim color
+    const float scale = port_type == 0 ? 1.f : EDSCALE;
+    draw_texture_rect(port_icon, Rect2(p_position + (icon_offset - Size2(2, 2)) * scale, (port_icon->get_size() + Size2(4, 4)) * scale), false, p_rim_color);
+    draw_texture_rect(port_icon, Rect2(p_position + icon_offset * scale, port_icon->get_size() * scale), false, p_color);
+}
+
+void OrchestratorGraphNode::_draw_port(int32_t p_slot_index, const Vector2i& p_position, bool p_left, const Color& p_color)
+{
+    const Color rim_color = get_theme_color("connection_rim_color", "GraphEdit");
+    _draw_port2(p_slot_index, p_position, p_left, p_color, rim_color);
+}
+
 OrchestratorGraphNode::OrchestratorGraphNode(OrchestratorGraphEdit* p_graph, const Ref<OScriptNode>& p_node)
 {
     _graph = p_graph;
