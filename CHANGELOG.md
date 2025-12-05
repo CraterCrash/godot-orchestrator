@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [2.0.7.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.0.7.stable) - 2025-12-05
+
+- [b6b8efa](http://github.com/CraterCrash/godot-orchestrator/commit/b6b8efae5d922514bf6a9831a3f696dda4a3a6ea) - GH-1110 Improve static function argument validation
+- [cb229b9](http://github.com/CraterCrash/godot-orchestrator/commit/cb229b9cb922d044806a97f21abf4d44b269680a) - GH-1112 Allow global class enums as variable/function args
+- [a6e473f](http://github.com/CraterCrash/godot-orchestrator/commit/a6e473f1072d5356a4f809d58b80640eab4b86cd) - GH-1098 Read authors/donors using UTF-8 encoding
+
 ## [2.0.6.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.0.6.stable) - 2025-11-29
 
 - [393aa21](http://github.com/CraterCrash/godot-orchestrator/commit/393aa2162b41d0f1ee88e7743bcdcd4266e2cbc4) - GH-1072 Add `ORCHESTRATOR_GET` macro
