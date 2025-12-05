@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [2.3.2.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.3.2.stable) - 2025-12-05
+
+- [38f97f1](http://github.com/CraterCrash/godot-orchestrator/commit/38f97f1dad9246cb1a97f5e388c6ac3df7d7025f) - GH-1110 Improve static function argument validation
+- [8520bd6](http://github.com/CraterCrash/godot-orchestrator/commit/8520bd6c2e5f08b2cda3c4510e5d3ab1d7e5ec2e) - GH-1114 Scale data pin port icons with display scale
+- [40d3c52](http://github.com/CraterCrash/godot-orchestrator/commit/40d3c52216c356a93200966a5f123b6da82be908) - GH-1112 Allow global class enums as variable/function args
+- [1e6e6af](http://github.com/CraterCrash/godot-orchestrator/commit/1e6e6af8f91eb71e002e0cbb68eb52001b75bd00) - GH-1108 Fix port rule matching variant type methods
+- [1abbae3](http://github.com/CraterCrash/godot-orchestrator/commit/1abbae3aca63c33056cdaa081e9666df95199e81) - GH-1098 Read authors/donors using UTF-8 encoding
+- [a60cd5c](http://github.com/CraterCrash/godot-orchestrator/commit/a60cd5c823115efad0fd99f57d91492f76e09029) - GH-1103 Fix introspector crash when object has no script
+- [9a5fcca](http://github.com/CraterCrash/godot-orchestrator/commit/9a5fcca49301d5ecbad5d1b91a459e9365009208) - GH-1087 Update Emscripten to 4.0.11
+
 ## [2.3.1.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.3.1.stable) - 2025-11-29
 
 - [91ca072](http://github.com/CraterCrash/godot-orchestrator/commit/91ca072614e991230fccc65c776c8a6a6fdd7c0b) - GH-1072 Extend scale up to 400%
