@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [2.1.5.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.5.stable) - 2025-12-05
+
+- [d352751](http://github.com/CraterCrash/godot-orchestrator/commit/d35275160aa3411ea0e911fd13e084fe06ff6c0e) - GH-1110 Improve static function argument validation
+- [a568d14](http://github.com/CraterCrash/godot-orchestrator/commit/a568d14980adf69c9b332eb17dbe0156fd49bdc0) - GH-1114 Backport `EI` and `EDSCALE` macros
+- [4f5e546](http://github.com/CraterCrash/godot-orchestrator/commit/4f5e5469965c3de15d5d74e804e37d341be7156d) - GH-1114 Scale data pin port icons with display scale
+- [25c621c](http://github.com/CraterCrash/godot-orchestrator/commit/25c621cc1b235eb55fda257fa84d8568993c81ff) - GH-1112 Allow global class enums as variable/function args
+- [11adf32](http://github.com/CraterCrash/godot-orchestrator/commit/11adf32d01f4890906c73e57971dc338e4bfd45a) - GH-1098 Read authors/donors using UTF-8 encoding
+
 ## [2.1.4.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.4.stable) - 2025-11-29
 
 - [1864bd4](http://github.com/CraterCrash/godot-orchestrator/commit/1864bd47d5c14f5de9f88a2ef73c87cbfc1a64fc) - GH-1072 Add `ORCHESTRATOR_GET` macro
