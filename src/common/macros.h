@@ -29,4 +29,7 @@
             obj->disconnect(signal, method);        \
         }
 
+#define EI godot::EditorInterface::get_singleton()
+#define EDSCALE EI->get_editor_scale()
+
 #endif // ORCHESTRATOR_MACROS_H
