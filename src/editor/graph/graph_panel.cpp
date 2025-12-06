@@ -2109,8 +2109,8 @@ void OrchestratorEditorGraphPanel::_update_theme_item_cache()
     // as a no-op and exits early.
     ScopedThemeGuard guard(_in_theme_update);
 
-    Control* control = get_menu_hbox()->get_parent_control();
-    Ref<StyleBoxFlat> panel = control->get_theme_stylebox("panel")->duplicate();
+    Control* parent_control = get_menu_control()->get_parent_control();
+    Ref<StyleBoxFlat> panel = parent_control->get_theme_stylebox("panel")->duplicate();
     panel->set_shadow_size(1);
     panel->set_shadow_offset(Vector2(2.f, 2.f));
     panel->set_bg_color(panel->get_bg_color() + Color(0, 0, 0, .3));
@@ -2133,7 +2133,7 @@ void OrchestratorEditorGraphPanel::_update_theme_item_cache()
 
 void OrchestratorEditorGraphPanel::_update_menu_theme()
 {
-    Control* control = get_menu_hbox()->get_parent_control();
+    Control* control = get_menu_control()->get_parent_control();
     control->add_theme_stylebox_override("panel", _theme_cache.panel);
 }
 
@@ -2939,6 +2939,11 @@ void OrchestratorEditorGraphPanel::reloaded_from_file()
     _refresh_panel_with_model();
 }
 
+Control* OrchestratorEditorGraphPanel::get_menu_control() const
+{
+    return _toolbar_hflow;
+}
+
 Node* OrchestratorEditorGraphPanel::get_connection_layer_node() const
 {
     for (int i = 0; i < get_child_count(); i++)
@@ -3557,6 +3562,7 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel()
     set_h_size_flags(SIZE_EXPAND_FILL);
     set_v_size_flags(SIZE_EXPAND_FILL);
 
+    get_menu_hbox()->set_h_size_flags(SIZE_EXPAND_FILL);
     get_menu_hbox()->add_child(memnew(VSeparator));
     get_menu_hbox()->move_child(get_menu_hbox()->get_child(-1), 4);
 
@@ -3613,6 +3619,10 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel()
 
     get_menu_hbox()->add_child(_grid_pattern);
     get_menu_hbox()->move_child(_grid_pattern, 5);
+
+    VSeparator* sep = memnew(VSeparator());
+    get_menu_hbox()->add_child(sep);
+    get_menu_hbox()->move_child(sep, 6);
     #endif
 
     set_minimap_enabled(ORCHESTRATOR_GET("ui/graph/show_minimap", false));
@@ -3626,6 +3636,26 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel()
     EI->get_editor_settings()->connect("settings_changed", callable_mp_this(_settings_changed));
 
     _settings_changed();
+
+    PanelContainer* toolbar_panel = static_cast<PanelContainer*>(get_menu_hbox()->get_parent());
+    toolbar_panel->set_anchors_and_offsets_preset(PRESET_TOP_WIDE, PRESET_MODE_MINSIZE, 10);
+    toolbar_panel->set_mouse_filter(MOUSE_FILTER_IGNORE);
+
+    _toolbar_hflow = memnew(HFlowContainer);
+    {
+        Vector<Node*> nodes;
+        for (int i = 0; i < get_menu_hbox()->get_child_count(); i++)
+            nodes.push_back(get_menu_hbox()->get_child(i));
+
+        for (Node* node : nodes)
+        {
+            get_menu_hbox()->remove_child(node);
+            _toolbar_hflow->add_child(node);
+        }
+
+        get_menu_hbox()->hide();
+        toolbar_panel->add_child(_toolbar_hflow);
+    }
 
     connect("child_entered_tree", callable_mp_this(_child_entered_tree));
     connect("child_exiting_tree", callable_mp_this(_child_exiting_tree));
