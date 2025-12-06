@@ -205,6 +205,7 @@ void OrchestratorScriptGraphEditorView::_restore_next_tab()
 void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
 {
     static String DETAILS_BUTTON_NAME = "ScriptDetailsButton";
+    static String WARN_ERROR_SEP = "ScriptWarnErrorSep";
     static String WARNING_BUTTON_NAME = "ScriptWarningButton";
     static String ERROR_BUTTON_NAME   = "ScriptErrorButton";
 
@@ -212,22 +213,30 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
     {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
 
-        Button* button = cast_to<Button>(tab_panel->get_menu_hbox()->find_child(DETAILS_BUTTON_NAME, false, false));
+        Button* button = cast_to<Button>(tab_panel->get_menu_control()->find_child(DETAILS_BUTTON_NAME, false, false));
         if (!button)
         {
             button = memnew(Button);
             button->set_name(DETAILS_BUTTON_NAME);
             button->set_focus_mode(FOCUS_NONE);
             button->connect("pressed", callable_mp_this(_change_script_type));
-            tab_panel->get_menu_hbox()->add_child(memnew(VSeparator));
-            tab_panel->get_menu_hbox()->add_child(button);
+            tab_panel->get_menu_control()->add_child(memnew(VSeparator));
+            tab_panel->get_menu_control()->add_child(button);
         }
 
         const String script_type = _script->get_orchestration()->get_base_type();
         button->set_text(vformat("Extends %s", script_type));
         button->set_button_icon(SceneUtils::get_class_icon(script_type));
 
-        button = cast_to<Button>(tab_panel->get_menu_hbox()->find_child(WARNING_BUTTON_NAME, false, false));
+        VSeparator* sep = cast_to<VSeparator>(tab_panel->get_menu_control()->find_child(WARN_ERROR_SEP, false, false));
+        if (!sep)
+        {
+            sep = memnew(VSeparator);
+            sep->set_name(WARN_ERROR_SEP);
+            tab_panel->get_menu_control()->add_child(sep);
+        }
+
+        button = cast_to<Button>(tab_panel->get_menu_control()->find_child(WARNING_BUTTON_NAME, false, false));
         if (!button)
         {
             button = memnew(Button);
@@ -237,14 +246,14 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
             button->set_button_icon(SceneUtils::get_editor_icon("NodeWarning"));
             button->connect("pressed", callable_mp_lambda(this, [&] { _show_warnings_panel(!_warnings_panel->is_visible()); }));
             button->set_tooltip_text("There are script warnings.");
-            tab_panel->get_menu_hbox()->add_child(button);
+            tab_panel->get_menu_control()->add_child(button);
         }
 
         button->set_visible(_warnings.size() > 0);
         button->set_pressed_no_signal(_warnings_panel->is_visible());
         button->set_text(vformat("%d", _warnings.size()));
 
-        button = cast_to<Button>(tab_panel->get_menu_hbox()->find_child(ERROR_BUTTON_NAME, false, false));
+        button = cast_to<Button>(tab_panel->get_menu_control()->find_child(ERROR_BUTTON_NAME, false, false));
         if (!button)
         {
             button = memnew(Button);
@@ -254,12 +263,14 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
             button->set_button_icon(SceneUtils::get_editor_icon("StatusError"));
             button->connect("pressed", callable_mp_lambda(this, [&] { _show_errors_panel(!_errors_panel->is_visible()); }));
             button->set_tooltip_text("There are script errors.");
-            tab_panel->get_menu_hbox()->add_child(button);
+            tab_panel->get_menu_control()->add_child(button);
         }
 
         button->set_visible(_errors.size() > 0);
         button->set_pressed_no_signal(_errors_panel->is_visible());
         button->set_text(vformat("%d", _errors.size()));
+
+        sep->set_visible(_errors.size() > 0 || _warnings.size() > 0);
     }
 }
 
