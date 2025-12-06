@@ -17,10 +17,13 @@
 #include "script/script_server.h"
 
 #include "common/version.h"
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
+
+bool ScriptServer::_reload_scripts_on_save = false;
 
 Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) const
 {
@@ -287,4 +290,14 @@ String ScriptServer::get_global_name(const Ref<Script>& p_script)
         #endif
     }
     return "";
+}
+
+bool ScriptServer::is_scripting_enabled()
+{
+    #ifdef TOOLS_ENABLED
+    // By default false in editor
+    return false;
+    #else
+    return true;
+    #endif
 }

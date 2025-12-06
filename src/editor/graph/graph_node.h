@@ -14,272 +14,147 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_GRAPH_NODE_H
-#define ORCHESTRATOR_GRAPH_NODE_H
+#ifndef ORCHESTRATOR_EDITOR_GRAPH_NODE_H
+#define ORCHESTRATOR_EDITOR_GRAPH_NODE_H
 
-#include "common/version.h"
 #include "script/node.h"
 
 #include <godot_cpp/classes/graph_node.hpp>
 #include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/popup_menu.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 
 using namespace godot;
 
-/// Forward declarations
-class OScript;
-class OrchestratorGraphEdit;
-class OrchestratorGraphNodePin;
+class OrchestratorEditorGraphPanel;
+class OrchestratorEditorGraphPin;
 
-/// Specialized implementation of the Godot's GraphNode for Orchestrations.
+/// A node represents a logical step within the visual graph, which can act as a function entry or return,
+/// a function call, mathematical operation, or more complex behaviors like for loops, and more. The node
+/// acts as a container that houses one or more <code>OrchestratorEditorGraphPin</code> widgets.
 ///
-/// When creating an Orchestration in the editor, the user interacts with a specialized
-/// GraphEdit interface. This class is meant to provide custom functionality which is
-/// part of GraphNode, a component of a node graph.
-///
-class OrchestratorGraphNode : public GraphNode
+class OrchestratorEditorGraphNode : public GraphNode
 {
-    GDCLASS(OrchestratorGraphNode, GraphNode);
+    friend class OrchestratorEditorGraphPanel;
 
-    enum ContextMenuId
-    {
-        CM_NONE,
-        CM_SELECT_GROUP,
-        CM_DESELECT_GROUP,
-        CM_DELETE,
-        CM_CUT,
-        CM_COPY,
-        CM_PASTE,
-        CM_DUPLICATE,
-        CM_REFRESH,
-        CM_BREAK_LINKS,
-        CM_ADD_OPTION_PIN,
-        CM_RENAME,
-        CM_TOGGLE_BREAKPOINT,
-        CM_ADD_BREAKPOINT,
-        CM_ENABLE_BREAKPOINT,
-        CM_REMOVE_BREAKPOINT,
-        CM_DISABLE_BREAKPOINT,
-        CM_VIEW_DOCUMENTATION,
-        CM_COLLAPSE_FUNCTION,
-        CM_EXPAND_NODE,
-        CM_RESIZABLE,
-        CM_MAKE_PURE_GETTER,
-        CM_MAKE_VALIDATED_GETTER,
-        CM_ALIGN_TOP,
-        CM_ALIGN_MIDDLE,
-        CM_ALIGN_BOTTOM,
-        CM_ALIGN_LEFT,
-        CM_ALIGN_CENTER,
-        CM_ALIGN_RIGHT,
-        CM_NODE_ACTION = 1000
+    GDCLASS(OrchestratorEditorGraphNode, GraphNode);
+
+    struct Slot {
+        int64_t slot = 0;
+        Control* row = nullptr;
+        OrchestratorEditorGraphPin* left = nullptr;
+        OrchestratorEditorGraphPin* right = nullptr;
     };
 
-    OrchestratorGraphEdit* _graph{ nullptr };   //! The editor graph that owns this node
-    Ref<OScriptNode> _node;                     //! The script node instance
-    List<Ref<OScriptAction>> _context_actions;  //! Context menu actions
-    PopupMenu* _context_menu{ nullptr };        //! The node's context menu
-    HBoxContainer* _indicators{ nullptr };      //! Container for indicators
+    typedef HashMap<int, Slot> SlotMap;
+    typedef KeyValue<int, Slot> SlotMapKeyValue;
+
+    Ref<OrchestrationGraphNode> _node;
+    HBoxContainer* _indicators_hbox = nullptr;
+    SlotMap _slots;
+    bool _show_type_icons = true;
+    bool _show_advanced_tooltips = false;
 
 protected:
-    OrchestratorGraphNode() = default;
     static void _bind_methods();
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what); // NOLINT
+    //~ End Wrapped Interface
+
+    const Ref<OrchestrationGraphNode> get_graph_node() const { return _node; }
+
+    void _resize_to_content();
+
+    void _node_selected();
+    void _pin_connection_status_changed(int p_type, int p_index, bool p_connected);
+
+    void _update_titlebar();
+
+    virtual void _create_pin_widgets();
+    void _update_pin_widgets();
+
+    virtual void _create_add_button_widgets();
+    void _add_pin_requested();
+
+    virtual void _create_indicators();
+    void _add_indicator(const String& p_icon_name, const String& p_tooltip_text = String());
+
+    void _update_styles();
+
+    virtual String _get_tooltip_text();
 
     void _draw_port2(int32_t p_slot_index, const Vector2i& p_position, bool p_left, const Color& p_color, const Color& p_rim_color);
 
 public:
+    //~ Begin Control Interface
+    void _gui_input(const Ref<InputEvent>& p_event) override;
+    //~ End Control Interface
+
     //~ Begin GraphNode Interface
     void _draw_port(int32_t p_slot_index, const Vector2i &p_position, bool p_left, const Color &p_color) override;
     //~ End GraphNode Interface
 
-    /// Creates an editor graph node
-    /// @param p_graph the owning graph, should not be null
-    /// @param p_node the script node this editor node represents, should not be null
-    OrchestratorGraphNode(OrchestratorGraphEdit* p_graph, const Ref<OScriptNode>& p_node);
+    void set_node(const Ref<OrchestrationGraphNode>& p_node);
 
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
-    void _notification(int p_what);
+    OrchestratorEditorGraphPanel* get_graph() const;
 
-    /// Process and accept UI element inputs
-    /// @param p_event the event
-    void _gui_input(const Ref<InputEvent>& p_event) override;
+    int get_id() const;
 
-    /// Return the owning graph
-    /// @return the graph
-    OrchestratorGraphEdit* get_graph();
+    bool can_user_delete_node() const;
+    bool is_bookmarked() const;
+    bool is_breakpoint() const;
 
-    /// Get the node's script unique id
-    /// @return node's script unique id
-    int get_script_node_id() const;
+    bool can_jump_to_definition() const;
+    Object* get_definition_object() const;
 
-    /// Get the script node
-    /// @return the script node reference
-    Ref<OScriptNode> get_script_node() { return _node; }
+    Vector<OrchestratorEditorGraphPin*> get_pins() const;
 
-    /// Toggles breakpoint on this node
-    void toggle_breakpoint() { _handle_context_menu(CM_TOGGLE_BREAKPOINT); }
+    Vector<OrchestratorEditorGraphPin*> get_eligible_autowire_pins(OrchestratorEditorGraphPin* p_pin) const;
 
-    /// Get the graph node input pin at a given port
-    /// @param p_port the port or slot index
-    /// @return the editor graph node pin, or null if not found
-    virtual OrchestratorGraphNodePin* get_input_pin(int p_port) { return nullptr; }
+    // These expect you to use get_input_port_slot/get_output_port_slot methods first
+    OrchestratorEditorGraphPin* get_input_pin(int32_t p_slot);
+    OrchestratorEditorGraphPin* get_output_pin(int32_t p_slot);
+    OrchestratorEditorGraphPin* get_pin(int32_t p_slot, EPinDirection p_direction = PD_Input);
 
-    /// Get the graph node output pin at the given port
-    /// @param p_port the port or slot index
-    /// @return the editor graph node pin, or null if not found
-    virtual OrchestratorGraphNodePin* get_output_pin(int p_port) { return nullptr; }
+    // Because we overload these in this class, we pull them back in
+    using GraphNode::get_input_port_slot;
+    using GraphNode::get_output_port_slot;
 
-    /// Sets the input port opacity if it cannot accept connection with pin.
-    /// @param p_opacity the opacity to set
-    /// @param p_other the pin
-    void set_inputs_for_accept_opacity(float p_opacity, OrchestratorGraphNodePin* p_other);
+    // Helper methods to locate pin slots by pin names
+    int32_t get_input_port_slot(const String& p_pin_name);
+    int32_t get_output_port_slot(const String& p_pin_name);
+    int32_t get_port_slot(const String& p_pin_name, EPinDirection p_direction = PD_Input);
+    int32_t get_port_slot(int32_t p_port, EPinDirection p_direction = PD_Input);
 
-    /// Sets the output port opacity if it cannot accept connection with pin.
-    /// @param p_opacity the opacity to set
-    /// @param p_other the pin
-    void set_outputs_for_accept_opacity(float p_opacity, OrchestratorGraphNodePin* p_other);
+    Vector2 get_port_position_for_pin(OrchestratorEditorGraphPin* p_pin);
+    int32_t get_port_at_position(const Vector2& p_position);
+    int32_t get_slot_at_position(const Vector2& p_position);
 
-    /// Sets all input ports opacity to the specified value
-    /// @param p_opacity the opacity to set
-    void set_all_inputs_opacity(float p_opacity = 1.f);
+    int32_t get_pin_port(OrchestratorEditorGraphPin* p_pin);
 
-    /// Sets all output ports opacity to the specified value
-    /// @param p_opacity the opacity to set
-    void set_all_outputs_opacity(float p_opacity = 1.f);
+    Vector<GraphElement*> get_overlapping_elements() const;
 
-    /// Get the count of input ports with the specified opacity
-    /// @param p_opacity the opacity, defaults to 1.f
-    /// @return the number of ports found
-    int get_inputs_with_opacity(float p_opacity = 1.f);
+    Rect2 get_graph_rect() const;
 
-    /// Get the count of output ports with the specified opacity
-    /// @param p_opacity the opacity, defaults to 1.f
-    /// @return the number of ports found
-    int get_outputs_with_opacity(float p_opacity = 1.f);
+    bool is_selected_exclusively() const;
 
-    /// Unlinks all connections to all pins on this node
-    void unlink_all();
+    bool is_add_pin_button_visible() const;
 
-    /// Updates state for each pin on the node
-    /// @param p_show_icons specifies whether icons should be shown on pins
-    virtual void update_pins(bool p_show_icons) { }
+    void set_show_type_icons(bool p_show_type_icons);
+    void set_show_advanced_tooltips(bool p_show_advanced_tooltips);
+    void set_slot_color_opacity(float p_opacity, EPinDirection p_direction = PD_MAX);
 
-    /// Get a list of elements within this node's global rect.
-    List<GraphElement*> get_elements_within_global_rect();
+    // Provides a way for an external actor to refresh the node
+    // It's also virtual to allow derived classes to change how nodes are composed
+    virtual void update();
+    virtual void redraw_connections();
 
-    /// Get the specified point index at the given position and direction
-    /// @param p_position the position
-    /// @param p_direction the direction
-    /// @return the point index
-    int32_t get_port_at_position(const Vector2& p_position, EPinDirection p_direction);
+    virtual void notify_connections_changed();
+    virtual void notify_pin_default_value_changed(OrchestratorEditorGraphPin* p_pin) {}
+    virtual void notify_bookmarks_changed();
+    virtual void notify_breakpoints_changed();
 
-    Rect2 get_node_rect() const;
-
-    int32_t get_port_slot(int p_port, EPinDirection p_direction);
-
-    virtual Vector<OrchestratorGraphNodePin*> get_pins() const { return {}; }
-    virtual Vector<OrchestratorGraphNodePin*> get_eligible_autowire_pins(OrchestratorGraphNodePin* p_pin) const { return {}; }
-
-    // Group API
-
-    virtual bool is_groupable() const { return false; }
-    virtual bool is_group_selected() { return false; }
-    virtual void select_group() {}
-    virtual void deselect_group() {}
-
-protected:
-    /// Update pins for this graph node
-    virtual void _update_pins();
-
-    /// Updates node indicators
-    virtual void _update_indicators();
-
-    /// Should the node resize on updates, by default is true.
-    virtual bool _resize_on_update() const { return true; }
-
-    /// Update the nodes titlebar details
-    void _update_titlebar();
-
-    /// Update the node's styles
-    void _update_styles();
-
-    /// Get the selection color
-    /// @return the border color for when nodes are selected
-    Color _get_selection_color() const;
-
-    /// Called by various callbacks to update node attributes
-    void _update_node_attributes();
-
-    /// Updates the node's tooltip
-    void _update_tooltip();
-
-    /// Display the node's context menu
-    void _show_context_menu(const Vector2& p_position);
-
-    /// Returns whether the node is considered editable
-    bool _is_editable() const;
-
-    /// Is the "add-pin" button visible
-    /// @return true if the add-pin is visible, otherwise false
-    bool _is_add_pin_button_visible() const;
-
-    /// Adds a new option pin to the node
-    void _add_option_pin();
-
-    /// Simulates the action being pressed
-    /// @param p_action_name the action to simulate
-    void _simulate_action_pressed(const String& p_action_name);
-
-    #if GODOT_VERSION >= 0x040300
-    /// Initializes the node's breakpoint state
-    void _initialize_node_beakpoint_state();
-
-    /// Set the breakpoint state
-    /// @param p_flag the breakpoint flag state
-    void _set_breakpoint_state(OScriptNode::BreakpointFlags p_flag);
-    #endif
-
-private:
-    /// Called when the graph node is moved
-    /// @param p_old_pos old position
-    /// @param p_new_pos new position
-    void _on_node_moved(Vector2 p_old_pos, Vector2 p_new_pos);
-
-    #if GODOT_VERSION < 0x040300
-    /// Called when the graph node is resized
-    void _on_node_resized();
-    #else
-    /// Called when the graph node manual resize finishes
-    /// @param p_size the new size
-    void _on_resize_end(const Vector2& p_size);
-    #endif
-
-    /// Called when any pin detail has changed for this node
-    void _on_pins_changed();
-
-    /// Called when a pin is connected
-    /// @param p_type pin type
-    /// @param p_index the pin index
-    void _on_pin_connected(int p_type, int p_index);
-
-    /// Called when a pin is disconnected
-    /// @param p_type pin type
-    /// @param p_index the pin index
-    void _on_pin_disconnected(int p_type, int p_index);
-
-    /// Called when the underlying script node calls "emit_changed()"
-    void _on_changed();
-
-    /// Called when the "add-pin" button pressed
-    void _on_add_pin_pressed();
-
-    /// Handles the selection of a context menu item
-    /// @param p_id the selected context-menu option
-    void _handle_context_menu(int p_id);
-
-    /// Cleans up the context menu after it has closed
-    void _cleanup_context_menu();
+    OrchestratorEditorGraphNode();
 };
 
-#endif  // ORCHESTRATOR_GRAPH_NODE_H
+#endif // ORCHESTRATOR_EDITOR_GRAPH_NODE_H
