@@ -25,6 +25,7 @@
 
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
+#include <godot_cpp/classes/h_flow_container.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/style_box.hpp>
@@ -122,6 +123,7 @@ private:
 
     KnotHelper* _knot_editor = nullptr;
 
+    HFlowContainer* _toolbar_hflow = nullptr;
     Control* _center_status = nullptr;
     Label* _drag_hint = nullptr;
     Timer* _drag_hint_timer = nullptr;
@@ -300,6 +302,7 @@ public:
     void set_graph(const Ref<OrchestrationGraph>& p_graph);
     void reloaded_from_file();
 
+    Control* get_menu_control() const;
     Node* get_connection_layer_node() const;
 
     bool is_bookmarked(const OrchestratorEditorGraphNode* p_node) const;
