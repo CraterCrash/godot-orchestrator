@@ -21,113 +21,24 @@
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
-#include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
-
-class OScriptNodeNewInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeNew);
-    String _class_name;
-    String _script_path;
-
-public:
-    int step(OScriptExecutionContext& p_context) override
-    {
-        if (!_class_name.is_empty() && ClassDB::can_instantiate(_class_name))
-        {
-            if (!_script_path.is_empty())
-            {
-                // Loading a script object instance type
-                Ref<Script> script = ResourceLoader::get_singleton()->load(_script_path);
-                if (script.is_valid())
-                {
-                    Variant base = ClassDB::instantiate(script->get_instance_base_type());
-                    Object* object = Object::cast_to<Object>(base);
-                    if (object)
-                    {
-                        object->set_script(script);
-                        p_context.set_output(0, object);
-                        return 0;
-                    }
-                }
-            }
-            else
-            {
-                // Loading a native class
-                Variant object = ClassDB::instantiate(_class_name);
-                p_context.set_output(0, object);
-                return 0;
-            }
-        }
-
-        p_context.set_output(0, Variant());
-        return 0;
-    }
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class OScriptNodeFreeInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeFree);
-public:
-    int step(OScriptExecutionContext& p_context) override
-    {
-        Variant object = p_context.get_input(0);
-        if (object)
-        {
-            Object* casted = Object::cast_to<Object>(object);
-            if (ClassDB::is_parent_class(casted->get_class(), "Node"))
-            {
-                Node* node = Object::cast_to<Node>(casted);
-                node->queue_free();
-            }
-            else if (ClassDB::is_parent_class(casted->get_class(), "RefCounted"))
-            {
-                RefCounted *ref = Object::cast_to<RefCounted>(casted);
-                ref->unreference();
-            }
-            else
-            {
-                memdelete(casted);
-            }
-        }
-        return 0;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-OScriptNodeNew::OScriptNodeNew()
-{
-    _flags.set_flag(OScriptNode::ScriptNodeFlags::EXPERIMENTAL);
-}
-
-void OScriptNodeNew::_bind_methods()
-{
-}
-
-void OScriptNodeNew::_get_property_list(List<PropertyInfo>* r_list) const
-{
+void OScriptNodeNew::_get_property_list(List<PropertyInfo>* r_list) const {
     r_list->push_back(PropertyInfo(Variant::STRING, "class_name", PROPERTY_HINT_TYPE_STRING, "Object"));
 }
 
-bool OScriptNodeNew::_get(const StringName& p_name, Variant& r_value) const
-{
-    if (p_name.match("class_name"))
-    {
+bool OScriptNodeNew::_get(const StringName& p_name, Variant& r_value) const {
+    if (p_name.match("class_name")) {
         r_value = _class_name;
         return true;
     }
     return false;
 }
 
-bool OScriptNodeNew::_set(const StringName& p_name, const Variant& p_value)
-{
-    if (p_name.match("class_name"))
-    {
-        if (_class_name != p_value)
-        {
+bool OScriptNodeNew::_set(const StringName& p_name, const Variant& p_value) {
+    if (p_name.match("class_name")) {
+        if (_class_name != p_value) {
             const bool is_singleton = Engine::get_singleton()->get_singleton_list().has(p_value);
             ERR_FAIL_COND_V_MSG(is_singleton, false, vformat("Cannot create an instance of '%s', a singleton.", p_value));
 
@@ -139,16 +50,14 @@ bool OScriptNodeNew::_set(const StringName& p_name, const Variant& p_value)
     return false;
 }
 
-void OScriptNodeNew::post_initialize()
-{
+void OScriptNodeNew::post_initialize() {
     // Fixup - always reconstruct the node
     reconstruct_node();
 
     super::post_initialize();
 }
 
-void OScriptNodeNew::allocate_default_pins()
-{
+void OScriptNodeNew::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
     create_pin(PD_Output, PT_Data, PropertyUtils::make_object("instance", _class_name));
@@ -156,18 +65,15 @@ void OScriptNodeNew::allocate_default_pins()
     super::allocate_default_pins();
 }
 
-String OScriptNodeNew::get_tooltip_text() const
-{
+String OScriptNodeNew::get_tooltip_text() const {
     return vformat("Creates a new instance of %s.", _class_name.is_empty() ? "a class" : _class_name);
 }
 
-String OScriptNodeNew::get_node_title() const
-{
+String OScriptNodeNew::get_node_title() const {
     return _class_name.is_empty() ? "Create instance" : vformat("Create a %s", _class_name);
 }
 
-String OScriptNodeNew::get_help_topic() const
-{
+String OScriptNodeNew::get_help_topic() const {
     #if GODOT_VERSION >= 0x040300
     return vformat("class:%s", _class_name);
     #else
@@ -175,60 +81,33 @@ String OScriptNodeNew::get_help_topic() const
     #endif
 }
 
-String OScriptNodeNew::get_icon() const
-{
+String OScriptNodeNew::get_icon() const {
     return "CurveCreate";
 }
 
-OScriptNodeInstance* OScriptNodeNew::instantiate()
-{
-    OScriptNodeNewInstance* i = memnew(OScriptNodeNewInstance);
-    i->_node = this;
-    i->_class_name = _class_name;
-
-    const TypedArray<Dictionary> global_class_list = ProjectSettings::get_singleton()->get_global_class_list();
-    for (int index = 0; index < global_class_list.size(); index++)
-    {
-        const Dictionary& entry = global_class_list[index];
-        if (entry.has("class") && _class_name.match(entry["class"]))
-        {
-            i->_script_path = entry["path"];
-            break;
-        }
-    }
-
-    return i;
-}
-
-void OScriptNodeNew::initialize(const OScriptNodeInitContext& p_context)
-{
+void OScriptNodeNew::initialize(const OScriptNodeInitContext& p_context) {
     _class_name = "Object";
 
-    if (p_context.user_data && p_context.user_data.value().has("class_name"))
+    if (p_context.user_data && p_context.user_data.value().has("class_name")) {
         _class_name = p_context.user_data.value()["class_name"];
+    }
 
     super::initialize(p_context);
 }
 
+OScriptNodeNew::OScriptNodeNew() {
+    _flags.set_flag(EXPERIMENTAL);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OScriptNodeFree
 
-OScriptNodeFree::OScriptNodeFree()
-{
-    _flags.set_flag(OScriptNode::ScriptNodeFlags::EXPERIMENTAL);
-}
-
-void OScriptNodeFree::_bind_methods()
-{
-}
-
-void OScriptNodeFree::post_initialize()
-{
+void OScriptNodeFree::post_initialize() {
     reconstruct_node();
     super::post_initialize();
 }
 
-void OScriptNodeFree::allocate_default_pins()
-{
+void OScriptNodeFree::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
 
     Ref<OScriptNodePin> instance = create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target"));
@@ -240,33 +119,26 @@ void OScriptNodeFree::allocate_default_pins()
     super::allocate_default_pins();
 }
 
-String OScriptNodeFree::get_tooltip_text() const
-{
+String OScriptNodeFree::get_tooltip_text() const {
     return "Free the memory used by the specified object.";
 }
 
-String OScriptNodeFree::get_node_title() const
-{
+String OScriptNodeFree::get_node_title() const {
     return "Free instance";
 }
 
-String OScriptNodeFree::get_icon() const
-{
+String OScriptNodeFree::get_icon() const {
     return "CurveDelete";
 }
 
-OScriptNodeInstance* OScriptNodeFree::instantiate()
-{
-    OScriptNodeFreeInstance* i = memnew(OScriptNodeFreeInstance);
-    i->_node = this;
-    return i;
-}
-
-void OScriptNodeFree::validate_node_during_build(BuildLog& p_log) const
-{
+void OScriptNodeFree::validate_node_during_build(BuildLog& p_log) const {
     Ref<OScriptNodePin> target = find_pin("target", PD_Input);
     if (!target.is_valid() || !target->has_any_connections())
         p_log.error(this, target, "Requires a connection.");
 
     super::validate_node_during_build(p_log);
+}
+
+OScriptNodeFree::OScriptNodeFree() {
+    _flags.set_flag(EXPERIMENTAL);
 }

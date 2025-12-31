@@ -21,8 +21,7 @@
 
 HashMap<StringName, OScriptNodeFactory::ScriptNodeInfo> OScriptNodeFactory::_nodes;
 
-void OScriptNodeFactory::_add_node_class(const StringName& p_class, const StringName& p_inherits)
-{
+void OScriptNodeFactory::_add_node_class(const StringName& p_class, const StringName& p_inherits) {
     ERR_FAIL_COND_MSG(_nodes.has(p_class), vformat("Class '%s' already exists.", p_class));
 
     _nodes[p_class] = ScriptNodeInfo();
@@ -31,20 +30,17 @@ void OScriptNodeFactory::_add_node_class(const StringName& p_class, const String
     info.name = p_class;
     info.inherits = p_inherits;
 
-    if (!info.inherits.is_empty())
-    {
+    if (!info.inherits.is_empty()) {
         ERR_FAIL_COND_MSG(!_nodes.has(info.inherits), vformat("Class '%s' is not defined as a node", p_inherits));
         info.inherits_ptr = &_nodes[info.inherits];
     }
 }
 
-bool OScriptNodeFactory::_is_base_node_type(const StringName& p_class)
-{
+bool OScriptNodeFactory::_is_base_node_type(const StringName& p_class) {
     return OScriptNode::get_class_static().match(p_class);
 }
 
-Ref<OScriptNode> OScriptNodeFactory::create_node_from_name(const String& p_class_name, Orchestration* p_owner)
-{
+Ref<OScriptNode> OScriptNodeFactory::create_node_from_name(const String& p_class_name, Orchestration* p_owner) {
     ERR_FAIL_COND_V_MSG(!_nodes.has(p_class_name), nullptr, "No node found with name: " + p_class_name);
 
     // No unique ID is assigned by default

@@ -19,6 +19,8 @@
 
 #include "script/script.h"
 
+#include <godot_cpp/classes/margin_container.hpp>
+
 using namespace godot;
 
 /// A custom function that allows for printing text to the render viewport.
@@ -28,13 +30,13 @@ using namespace godot;
 /// your game is started from the editor. This node allows for this functionality and will
 /// not perform any actions when your games are exported.
 ///
-class OScriptNodePrintString : public OScriptNode
-{
+class OScriptNodePrintString : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePrintString, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
-
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
@@ -42,10 +44,33 @@ public:
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override { return "MemberMethod"; }
     void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     OScriptNodePrintString();
+};
+
+/// The overlay control that is added to the scene
+class OScriptNodePrintStringOverlay : public MarginContainer {
+    GDCLASS(OScriptNodePrintStringOverlay, MarginContainer)
+
+    static HashMap<Node*, OScriptNodePrintStringOverlay*> _overlays;
+
+    bool _is_in_tree = false;
+
+    void _tree_entered();
+    void _tree_exiting();
+    void _root_tree_exiting(Node* p_root);
+
+protected:
+    static void _bind_methods();
+
+public:
+    static OScriptNodePrintStringOverlay* get_or_create_overlay();
+
+    void add_text(const String& p_text, const String& p_key = "None", float p_duration_sec = 2, const Color& p_color = Color(1,1,1,1));
+
+    OScriptNodePrintStringOverlay();
+    ~OScriptNodePrintStringOverlay() override;
 };
 
 #endif  // ORCHESTRATOR_NODE_PRINT_STRING_H

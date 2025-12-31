@@ -21,14 +21,13 @@
 
 /// An implementation of OrchestratorScript CallFunction node that calls functions
 /// that are defined as a part of an Orchestration script.
-class OScriptNodeCallScriptFunction : public OScriptNodeCallFunction
-{
+class OScriptNodeCallScriptFunction : public OScriptNodeCallFunction {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCallScriptFunction, OScriptNodeCallFunction);
 
-    static void _bind_methods() {}
+    Ref<OScriptFunction> _function;
 
 protected:
-    Ref<OScriptFunction> _function;    //! Function declaration
+    static void _bind_methods() {}
 
     /// Called when the script function is modified
     void _on_function_changed();

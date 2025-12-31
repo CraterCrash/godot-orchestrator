@@ -28,12 +28,12 @@ using namespace godot;
 
 /// An Orchestrator resource cache, mimicking the Godot ResourceCache.
 /// This primarily exists to track resource IDs across loads and saves, reducing data diffs.
+/// todo: Review whether or not this class remains necessary beyond Godot 4.4+
 class ResourceCache
 {
     static ResourceCache* _singleton;
 
-    struct CacheEntry
-    {
+    struct CacheEntry {
         Variant reference;
         String id;
 

@@ -18,42 +18,44 @@
 
 #include "common/settings.h"
 #include "common/version.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
+#include "script/script_cache.h"
+#include "script/serialization/binary/resource_loader_binary.h"
+#include "script/serialization/binary/resource_saver_binary.h"
 #include "script/serialization/resource_cache.h"
-#include "script/serialization/serialization.h"
-#include "script/vm/script_state.h"
-#include "utility_functions.h"
+#include "script/serialization/text/resource_loader_text.h"
+#include "script/serialization/text/resource_saver_text.h"
+#include "script/utility_functions.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
-namespace orchestrator
-{
-    namespace internal
-    {
+namespace orchestrator {
+    namespace internal {
         Vector<Ref<ResourceFormatLoader>> loaders;
         Vector<Ref<ResourceFormatSaver>> savers;
 
-        OScriptLanguage* language{ nullptr };
-        OrchestratorSettings* settings{ nullptr };
-        ExtensionDB* extension_db{ nullptr };
-
-        ResourceCache* resource_cache{ nullptr };
+        OScriptLanguage* language = nullptr;
+        OrchestratorSettings* settings = nullptr;
+        ExtensionDB* extension_db = nullptr;
+        OScriptCache* script_cache = nullptr;
+        ResourceCache* resource_cache = nullptr;
     }
 }
 
-void register_script_types()
-{
+void register_script_types() {
     using namespace orchestrator::internal;
 
     // Register loader/savers
-    GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceLoader)
-    GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceSaver)
-    GDREGISTER_INTERNAL_CLASS(OScriptTextResourceLoader)
-    GDREGISTER_INTERNAL_CLASS(OScriptTextResourceSaver)
+    GDREGISTER_INTERNAL_CLASS(OScriptTextResourceFormatLoader)
+    GDREGISTER_INTERNAL_CLASS(OScriptTextResourceFormatSaver)
+    GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceFormatLoader)
+    GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceFormatSaver)
 
     // Settings
     GDREGISTER_INTERNAL_CLASS(OrchestratorSettings)
@@ -74,33 +76,42 @@ void register_script_types()
     GDREGISTER_INTERNAL_CLASS(OScriptVariable)
     GDREGISTER_INTERNAL_CLASS(OScriptSignal)
     #endif
-    GDREGISTER_INTERNAL_CLASS(OScriptState)
     GDREGISTER_INTERNAL_CLASS(OScriptAction)
 
     // Purposely public
     GDREGISTER_CLASS(OScript)
+    GDREGISTER_CLASS(Orchestration) // todo: make private?
+    GDREGISTER_INTERNAL_CLASS(OScriptNativeClass)
+    GDREGISTER_INTERNAL_CLASS(OScriptFunctionState)
 
-    // Create the ScriptExtension
+    CoreStringNames::create();
+    SceneStringNames::create();
+
+    // Create the ScriptExtension and ScriptCache
     language = memnew(OScriptLanguage);
+    script_cache = memnew(OScriptCache);
 
     OScriptUtilityFunctions::register_functions();
 }
 
-void unregister_script_types()
-{
+void unregister_script_types() {
     using namespace orchestrator::internal;
 
-    if (language)
-    {
+    if (script_cache) {
+        memdelete(script_cache);
+        script_cache = nullptr;
+    }
+    if (language) {
         memdelete(language);
         language = nullptr;
     }
 
     OScriptUtilityFunctions::unregister_functions();
+    SceneStringNames::free();
+    CoreStringNames::free();
 }
 
-void register_script_extension()
-{
+void register_script_extension() {
     using namespace orchestrator::internal;
 
     // Create the settings implementation
@@ -109,22 +120,19 @@ void register_script_extension()
     Engine::get_singleton()->register_script_language(language);
 }
 
-void unregister_script_extension()
-{
+void unregister_script_extension() {
     using namespace orchestrator::internal;
 
-    if (language)
+    if (language) {
         Engine::get_singleton()->unregister_script_language(language);
-
-    if (settings)
-    {
+    }
+    if (settings) {
         memdelete(settings);
         settings = nullptr;
     }
 }
 
-void register_script_node_types()
-{
+void register_script_node_types() {
     // Script Nodes (Abstracts first)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptEditablePinNode)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeProperty)
@@ -230,43 +238,39 @@ void register_script_node_types()
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAssignLocalVariable)
 }
 
-void unregister_script_node_types()
-{
-
+void unregister_script_node_types() {
 }
 
-void register_script_resource_formats()
-{
+void register_script_resource_formats() {
     using namespace orchestrator::internal;
 
     resource_cache = new ResourceCache();
 
     // Create loaders & register
-    loaders.push_back(memnew(OScriptBinaryResourceLoader));
-    loaders.push_back(memnew(OScriptTextResourceLoader));
-    for (const Ref<ResourceFormatLoader>& loader : loaders)
+    loaders.push_back(memnew(OScriptBinaryResourceFormatLoader));
+    loaders.push_back(memnew(OScriptTextResourceFormatLoader));
+    for (const Ref<ResourceFormatLoader>& loader : loaders) {
         ResourceLoader::get_singleton()->add_resource_format_loader(loader);
+    }
 
     // Create savers & register
-    savers.push_back(memnew(OScriptBinaryResourceSaver));
-    savers.push_back(memnew(OScriptTextResourceSaver));
-    for (const Ref<ResourceFormatSaver>& saver : savers)
+    savers.push_back(memnew(OScriptBinaryResourceFormatSaver));
+    savers.push_back(memnew(OScriptTextResourceFormatSaver));
+    for (const Ref<ResourceFormatSaver>& saver : savers) {
         ResourceSaver::get_singleton()->add_resource_format_saver(saver);
+    }
 }
 
-void unregister_script_resource_formats()
-{
+void unregister_script_resource_formats() {
     using namespace orchestrator::internal;
 
-    for (Ref<ResourceFormatSaver>& saver : savers)
-    {
+    for (Ref<ResourceFormatSaver>& saver : savers) {
         ResourceSaver::get_singleton()->remove_resource_format_saver(saver);
         saver.unref();
     }
     savers.clear();
 
-    for (Ref<ResourceFormatLoader>& loader : loaders)
-    {
+    for (Ref<ResourceFormatLoader>& loader : loaders) {
         ResourceLoader::get_singleton()->remove_resource_format_loader(loader);
         loader.unref();
     }
@@ -276,8 +280,14 @@ void unregister_script_resource_formats()
     resource_cache = nullptr;
 }
 
-void register_extension_db()
-{
+void register_script_scene_types() {
+    GDREGISTER_INTERNAL_CLASS(OScriptNodePrintStringOverlay)
+}
+
+void unregister_script_scene_types() {
+}
+
+void register_extension_db() {
     using namespace orchestrator::internal;
 
     extension_db = new ExtensionDB();
@@ -286,8 +296,7 @@ void register_extension_db()
     loader.prime();
 }
 
-void unregister_extension_db()
-{
+void unregister_extension_db() {
     using namespace orchestrator::internal;
 
     delete extension_db;

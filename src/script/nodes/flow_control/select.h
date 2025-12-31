@@ -24,10 +24,11 @@
 class OScriptNodeSelect : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSelect, OScriptNode);
-    static void _bind_methods() { }
+
+    int _type = 0;
 
 protected:
-    int _type = 0;
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -49,7 +50,7 @@ public:
     bool can_change_pin_type() override { return true; }
     void change_pin_types(Variant::Type p_type) override;
     Vector<Variant::Type> get_possible_pin_types() const override;
-    OScriptNodeInstance* instantiate() override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
 };

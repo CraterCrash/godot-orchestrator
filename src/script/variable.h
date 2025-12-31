@@ -25,12 +25,11 @@ using namespace godot;
 class Orchestration;
 
 /// Utility class for converting between <code>PropertyInfo</code> and classification strings
-class ClassificationParser
-{
+class ClassificationParser {
 protected:
     PropertyInfo _property;
     String _classification;
-    bool _convert_default_value{ false };
+    bool _convert_default_value = false;
 
 public:
     /// Parses a classification string
@@ -62,28 +61,27 @@ public:
 /// us to use Godot's serialization technique for them as embedded elements in the script
 /// while also exposing the directly in the Editor's InspectorDock.
 ///
-class OScriptVariable : public Resource
-{
+class OScriptVariable : public Resource {
     friend class Orchestration;
 
     GDCLASS(OScriptVariable, Resource);
 
-    static void _bind_methods();
-
-    Orchestration* _orchestration{ nullptr };  //! The owning orchestration
+    Orchestration* _orchestration = nullptr;   //! The owning orchestration
     PropertyInfo _info;                        //! Basic property details
     Variant _default_value;                    //! Optional defined default value
     String _description;                       //! An optional description for the variable
     String _category;                          //! Category for variables
-    bool _exported{ false };                   //! Whether the variable is exposed on the node
-    bool _exportable{ false };                 //! Tracks whether the variable can be exported
+    bool _exported = false;                    //! Whether the variable is exposed on the node
+    bool _exportable = false;                  //! Tracks whether the variable can be exported
     String _classification;                    //! Variable classification
-    int _type_category{ 0 };                   //! Defaults to basic
+    int _type_category = 0;                    //! Defaults to basic
     Variant _type_subcategory;                 //! Subcategory type
     String _value_list;                        //! Enum/Bitfield custom value list
-    bool _constant{ false };                   //! Whether variable is a constant
+    bool _constant = false;                    //! Whether variable is a constant
 
 protected:
+    static void _bind_methods();
+
     //~ Begin Wrapped Interface
     void _validate_property(PropertyInfo& p_property) const;
     bool _property_can_revert(const StringName& p_name) const;

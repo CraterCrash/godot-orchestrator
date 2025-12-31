@@ -57,7 +57,7 @@ namespace SceneUtils
             if (!icon.is_empty())
                 return ResourceLoader::get_singleton()->load(icon);
 
-            return get_class_icon(ScriptServer::get_native_class_name(p_class_name));
+            return get_class_icon(ScriptServer::get_global_class_native_base(p_class_name));
         }
 
         return nullptr;

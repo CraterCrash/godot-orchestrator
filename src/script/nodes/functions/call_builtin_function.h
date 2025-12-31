@@ -17,32 +17,32 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_CALL_BUILTIN_FUNCTION_H
 #define ORCHESTRATOR_SCRIPT_NODE_CALL_BUILTIN_FUNCTION_H
 
-#include "call_function.h"
+#include "script/nodes/functions/call_function.h"
 
 /// Supports calling a built-in Godot function
-class OScriptNodeCallBuiltinFunction : public OScriptNodeCallFunction
-{
+class OScriptNodeCallBuiltinFunction : public OScriptNodeCallFunction {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCallBuiltinFunction, OScriptNodeCallFunction);
 
-    static void _bind_methods() {}
-
 protected:
+    static void _bind_methods() {}
 
     //~ Begin OScriptNodeCallFunction Interface
     bool _has_execution_pins(const MethodInfo& p_method) const override;
     //~ End OScriptNodeCallFunction Interface
 
 public:
-    OScriptNodeCallBuiltinFunction();
-
     //~ Begin OScriptNode Interface
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "pure_function_call"; }
     String get_help_topic() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
+    const MethodInfo& get_method_info() const { return _reference.method; }
+
+    OScriptNodeCallBuiltinFunction();
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_CALL_BUILTIN_FUNCTION_H

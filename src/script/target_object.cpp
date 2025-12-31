@@ -18,17 +18,13 @@
 
 OScriptTargetObject::OScriptTargetObject(Object* p_object, bool p_owned)
     : _wrapped(p_object)
-    , _owned(p_owned)
-{
+    , _owned(p_owned) {
 }
 
-OScriptTargetObject::~OScriptTargetObject()
-{
-    if (_owned)
-    {
-        const RefCounted* referenced = Object::cast_to<RefCounted>(_wrapped);
-        if (!referenced)
-        {
+OScriptTargetObject::~OScriptTargetObject() {
+    if (_owned) {
+        const RefCounted* referenced = cast_to<RefCounted>(_wrapped);
+        if (!referenced) {
             memdelete(_wrapped);
             _wrapped = nullptr;
         }

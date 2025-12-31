@@ -49,6 +49,10 @@ protected:
     void _graph_opened(OrchestratorGraphEdit* p_graph) override;
     //~ End OrchestratorEditorViewport Interface
 
+    /// Called when an Orchestration reload event is triggered
+    /// This forces all active graph edit viewports to be reloaded.
+    void _reload_all();
+
     /// Saves the editor state to the cache
     void _save_state();
 

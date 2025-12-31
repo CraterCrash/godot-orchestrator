@@ -20,13 +20,13 @@
 #include "script/script.h"
 
 /// Instantiates the specified scene
-class OScriptNodeInstantiateScene : public OScriptNode
-{
+class OScriptNodeInstantiateScene : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeInstantiateScene, OScriptNode);
-    static void _bind_methods() { }
+
+    String _scene;
 
 protected:
-    String _scene;
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -54,8 +54,9 @@ public:
     void pin_default_value_changed(const Ref<OScriptNodePin>& p_pin) override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
+
+    String get_scene_path() const { return _scene; }
 };
 
 #endif // ORCHESTRATOR_SCRIPT_NODE_INSTANTIATE_SCENE_H

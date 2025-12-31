@@ -33,38 +33,31 @@ class OScriptNode;
 ///
 /// A pin can either represent an input, where data or control flow enters the
 /// owning node or an output, where data or control flow exits the node.
-enum EPinDirection : int
-{
+enum EPinDirection : int {
     PD_Input,
     PD_Output,
     PD_MAX
 };
-
-VARIANT_ENUM_CAST(EPinDirection);
 
 /// Pin Type
 ///
 /// A pin can either represent an execution or control flow where the execution of
 /// the graph is controlled by these connections, or a data pin where the pin is
 /// responsible for accepting or passing data between nodes.
-enum EPinType : int
-{
+enum EPinType : int {
     PT_Execution,
     PT_Data,
     PT_MAX
 };
 
-VARIANT_ENUM_CAST(EPinType);
-
 /// Node Pin
 ///
 /// This class represents a connection point on a given script node. We utilize a pin class
 /// to centralize behaviors around pins and their connections.
-class OScriptNodePin : public Resource
-{
-    friend class OScriptNode;
-
+class OScriptNodePin : public Resource {
     GDCLASS(OScriptNodePin, Resource);
+
+    friend class OScriptNode;
 
 public:
 
@@ -73,8 +66,7 @@ public:
     /// These flags control the state that a pin should be used, both at runtime, and
     /// within the editor's UI. This allows custom nodes to control precisely how a
     /// node and its pined are presented and used.
-    enum Flags
-    {
+    enum Flags {
         NONE            = 1 << 0,   //! Typically not used, just a placeholder
         DATA            = 1 << 1,   //! Pin allows connections to/from data pins
         EXECUTION       = 1 << 2,   //! Pin allows connections to/from execution pins
@@ -102,13 +94,13 @@ private:
     String _target_class;                      //! The target class associated with the pin
     Variant _default_value;                    //! The default value
     Variant _generated_default_value;          //! Generated default value
-    EPinDirection _direction{ PD_Input };      //! The direction
-    BitField<Flags> _flags{ 0 };               //! Pin flags
+    EPinDirection _direction = PD_Input;       //! The direction
+    BitField<Flags> _flags = 0;                //! Pin flags
     String _label;                             //! A custom label name
-    OScriptNode* _owning_node{ nullptr };      //! The node that owns this pin
-    bool _set_type_resets_default{ false };    //! Whether changing the type resets the default value
-    bool _valid{ true };                       //! Indicates if the pin is valid
-    int _cached_pin_index{ -1 };               //! Cached pin index calculated after pins added to node
+    OScriptNode* _owning_node = nullptr;       //! The node that owns this pin
+    bool _set_type_resets_default = false;     //! Whether changing the type resets the default value
+    bool _valid = true;                        //! Indicates if the pin is valid
+    int _cached_pin_index = -1;                //! Cached pin index calculated after pins added to node
 
 protected:
     static void _bind_methods();
@@ -116,7 +108,7 @@ protected:
     /// Creates a pin for the specified node.
     /// @param p_owning_node the owning node
     /// @param p_property the property info for the pin
-    /// @return the script pin refererence
+    /// @return the script pin reference
     static Ref<OScriptNodePin> create(OScriptNode* p_owning_node, const PropertyInfo& p_property);
 
     /// Clears a specific flag on the pin
@@ -153,7 +145,7 @@ public:
     OScriptNode* get_owning_node() const;
 
     /// Set the script node that owns this pin
-    /// @param p_script the owning script node
+    /// @param p_owning_node the owning script node
     void set_owning_node(OScriptNode* p_owning_node);
 
     /// Get the pin's slot index
@@ -286,6 +278,14 @@ public:
     /// @return the connected pins
     Vector<Ref<OScriptNodePin>> get_connections() const;
 
+    /// Get the target connection for this pin.
+    ///
+    /// For control flow, there is always one output pin, while for data flow pins there is always one input.
+    /// This utility method checks the pin's direction and returns the single connection if one exists, or it
+    /// will throw an error if the direction and use case mismatch, with an invalid reference.
+    /// @return the singular connected pin
+    Ref<OScriptNodePin> get_connection() const;
+
     /// Return whether this pin is hidden.
     /// @return true if the pin is hidden, false otherwise
     _FORCE_INLINE_ bool is_hidden() const { return _flags.has_flag(HIDDEN); }
@@ -337,9 +337,11 @@ public:
     /// Resolves signal names for pin's connected object. Only applicable for input pins.
     /// @param p_self_fallback whether to get signal names from script's node as a fallback
     /// @return signal names list
-    PackedStringArray resolve_signal_names(bool p_self_fallback = false);
+    PackedStringArray resolve_signal_names(bool p_self_fallback = false) const;
 };
 
+VARIANT_ENUM_CAST(EPinDirection);
+VARIANT_ENUM_CAST(EPinType);
 VARIANT_BITFIELD_CAST(OScriptNodePin::Flags)
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_PIN_H
