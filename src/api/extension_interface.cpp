@@ -20,7 +20,6 @@
 #include "script/register_script_types.h"
 
 #include <gdextension_interface.h>
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
@@ -47,6 +46,7 @@ namespace orchestrator
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
         {
+            register_script_scene_types();
             register_editor_types();
         }
     }
@@ -55,6 +55,7 @@ namespace orchestrator
     {
         if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
         {
+            unregister_script_scene_types();
             unregister_editor_types();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)

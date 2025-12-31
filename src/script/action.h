@@ -24,27 +24,20 @@ using namespace godot;
 
 /// An action that can be added to a popup-menu with a delegate callable to invoke
 /// when the menu option is selected.
-class OScriptAction : public RefCounted
-{
+class OScriptAction : public RefCounted {
     GDCLASS(OScriptAction, RefCounted);
-    static void _bind_methods() { }
 
     String _text;
     String _icon;
     Callable _callback;
-    bool _disabled{ false };
+    bool _disabled = false;
 
     OScriptAction() = default;
 
-public:
-    OScriptAction(const String& p_text, const String& p_icon, Callable p_callable, bool p_disabled = false)
-        : _text(p_text)
-        , _icon(p_icon)
-        , _callback(p_callable)
-        , _disabled(p_disabled)
-    {
-    }
+protected:
+    static void _bind_methods() { }
 
+public:
     /// Get the text for the item
     /// @return the item text
     String get_text() const { return _text; }
@@ -56,6 +49,13 @@ public:
     /// Get the callback handler or Callable
     /// @return the callback callable object
     Callable get_handler() const { return _callback; }
+
+    OScriptAction(const String& p_text, const String& p_icon, const Callable& p_callable, bool p_disabled = false)
+        : _text(p_text)
+        , _icon(p_icon)
+        , _callback(p_callable)
+        , _disabled(p_disabled) { }
+
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_ACTION_H

@@ -47,11 +47,15 @@ class OrchestratorEditorActionRegistry : public Node
     using GraphType = OrchestratorEditorActionDefinition::GraphType;
 
     Vector<Ref<Action>> _actions;
+    Vector<Ref<Action>> _global_classes;
+    Vector<Ref<Action>> _autoloads;
     bool _building = false;
     Timer* _global_script_class_update_timer = nullptr;
+    Timer* _project_settings_update_timer = nullptr;
 
     void _build_actions();
     void _global_script_classes_updated();
+    void _autoloads_updated();
     void _resources_reloaded(const PackedStringArray& p_file_names);
 
 protected:

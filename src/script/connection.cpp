@@ -16,8 +16,7 @@
 //
 #include "script/connection.h"
 
-OScriptConnection OScriptConnection::from_dict(const Dictionary& p_dict)
-{
+OScriptConnection OScriptConnection::from_dict(const Dictionary& p_dict) {
     OScriptConnection conn;
     conn.from_node = StringName(p_dict["from_node"]).to_int();
     conn.from_port = p_dict["from_port"];
@@ -26,8 +25,7 @@ OScriptConnection OScriptConnection::from_dict(const Dictionary& p_dict)
     return conn;
 }
 
-Dictionary OScriptConnection::to_dict() const
-{
+Dictionary OScriptConnection::to_dict() const {
     Dictionary d;
     d["from_node"] = StringName(vformat("%d", from_node));
     d["from_port"] = from_port;

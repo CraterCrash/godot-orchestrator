@@ -24,25 +24,18 @@
 using namespace godot;
 
 /// Reference counted object that deallocates the target object when destroyed.
-class OScriptTargetObject : public Resource
-{
+class OScriptTargetObject : public Resource {
     GDCLASS(OScriptTargetObject, Resource);
+
+    Object* _wrapped = nullptr;   //! The wrapped target object
+    bool _owned = false;          //! Whether the wrapped object is already owned
+
+    OScriptTargetObject() = default;
+
+protected:
     static void _bind_methods() { }
 
-    Object* _wrapped{ nullptr };  //! The wrapped target object
-    bool _owned{ false };         //! Whether the wrapped object is already owned
-
-    OScriptTargetObject() { }
-
 public:
-    /// Creates the wrapped target object
-    /// @param p_object the object being wrapped
-    /// @param p_owner whether the object is owned by another object
-    explicit OScriptTargetObject(Object* p_object, bool p_owner);
-
-    /// Destructor
-    ~OScriptTargetObject() override;
-
     /// Returns whether there is a target object
     /// @return <code>true</code> if there is a target object, <code>false</code> otherwise
     bool has_target() const { return _wrapped != nullptr; }
@@ -66,6 +59,14 @@ public:
     /// Get the target object signal list
     /// @return the signal list
     TypedArray<Dictionary> get_target_signal_list() const { return _wrapped->get_signal_list(); }
+
+    /// Creates the wrapped target object
+    /// @param p_object the object being wrapped
+    /// @param p_owner whether the object is owned by another object
+    explicit OScriptTargetObject(Object* p_object, bool p_owner);
+
+    /// Destructor
+    ~OScriptTargetObject() override;
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_TARGET_OBJECT_H

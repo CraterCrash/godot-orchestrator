@@ -29,14 +29,14 @@
 /// signal name and dynamically looks up the signal arguments, mimics the same behavior
 /// as OScriptNodeCallFunction.
 ///
-class OScriptNodeEmitSignal : public OScriptNode
-{
+class OScriptNodeEmitSignal : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEmitSignal, OScriptNode);
-    static void _bind_methods() { }
 
-protected:
     Ref<OScriptSignal> _signal;     //! Signal reference
     String _signal_name;            //! Signal name reference
+
+protected:
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -62,7 +62,6 @@ public:
     String get_node_title_color_name() const override { return "signals"; }
     bool can_inspect_node_properties() const override;
     Ref<Resource> get_inspect_object() override { return _signal; }
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
@@ -70,7 +69,6 @@ public:
     /// Get the associated signal object
     /// @return the signal object
     Ref<OScriptSignal> get_signal() const { return _signal; }
-
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_EMIT_SIGNAL_H

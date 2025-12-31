@@ -25,166 +25,64 @@
 
 #include <godot_cpp/classes/resource_loader.hpp>
 
-class OScriptNodeCallStaticFunctionInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeCallStaticFunction);
-
-    MethodInfo _method;
-    StringName _class_name;
-    StringName _method_name;
-    Ref<Script> _script;
-
-    int _call_script_method(OScriptExecutionContext& p_context, const Array& p_args)
-    {
-        if (!_script->has_method(_method_name))
-        {
-            p_context.set_error(vformat("Failed to find method '%s' on '%s'", _method_name, _class_name));
-            return -1 | STEP_FLAG_END;
-        }
-
-        Variant result = _script->callv(_method_name, p_args);
-        if (MethodUtils::has_return_value(_method))
-            p_context.set_output(0, result);
-
-        return 0;
-    }
-
-    int _call_native_method(OScriptExecutionContext& p_context, const Array& p_args)
-    {
-        // We need to get the hash, stored from the extension_api.json
-        const int64_t hash = ExtensionDB::get_static_function_hash(_class_name, _method_name);
-
-        // Store a reference to the MethodBind structure
-        GDExtensionMethodBindPtr mb = internal::gdextension_interface_classdb_get_method_bind(
-            _class_name._native_ptr(), _method_name._native_ptr(), hash);
-
-        if (!mb)
-        {
-            p_context.set_error(vformat("Failed to find method '%s' on '%s'", _method_name, _class_name));
-            return -1 | STEP_FLAG_END;
-        }
-
-        std::vector<const Variant*> call_args;
-        call_args.resize(_method.arguments.size());
-
-        for (int i = 0; i < p_args.size(); i++)
-            call_args[i] = &p_args[i];
-
-        Variant ret;
-        GDExtensionCallError r_error;
-        internal::gdextension_interface_object_method_bind_call(
-            mb, nullptr, reinterpret_cast<GDExtensionConstVariantPtr*>(call_args.data()), call_args.size(), &ret, &r_error);
-
-        if (r_error.error != GDEXTENSION_CALL_OK)
-        {
-            p_context.set_error(r_error);
-            return -1 | STEP_FLAG_END;
-        }
-
-        if (MethodUtils::has_return_value(_method))
-            p_context.set_output(0, ret);
-
-        return 0;
-
-    }
-
-public:
-    int step(OScriptExecutionContext& p_context) override
-    {
-        if (!(_method.flags & METHOD_FLAG_STATIC))
-        {
-            p_context.set_error(vformat("Expected static method '%s' but method is not static.", _method_name));
-            return -1 | STEP_FLAG_END;
-        }
-
-        Array args;
-        for (size_t i = 0; i < _method.arguments.size(); i++)
-            args.push_back(p_context.get_input(i));
-
-        if (_script.is_valid())
-            return _call_script_method(p_context, args);
-
-        return _call_native_method(p_context, args);
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void OScriptNodeCallStaticFunction::_get_property_list(List<PropertyInfo>* r_list) const
-{
+void OScriptNodeCallStaticFunction::_get_property_list(List<PropertyInfo>* r_list) const {
     r_list->push_back(PropertyInfo(Variant::STRING, "class_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
-bool OScriptNodeCallStaticFunction::_get(const StringName& p_name, Variant& r_value) const
-{
-    if (p_name.match("class_name"))
-    {
+bool OScriptNodeCallStaticFunction::_get(const StringName& p_name, Variant& r_value) const {
+    if (p_name.match("class_name")) {
         r_value = _class_name;
         return true;
-    }
-    else if (p_name.match("function_name"))
-    {
+    } else if (p_name.match("function_name")) {
         r_value = _method_name;
         return true;
     }
     return false;
 }
 
-bool OScriptNodeCallStaticFunction::_set(const StringName& p_name, const Variant& p_value)
-{
-    if (p_name.match("class_name"))
-    {
+bool OScriptNodeCallStaticFunction::_set(const StringName& p_name, const Variant& p_value) {
+    if (p_name.match("class_name")) {
         _class_name = p_value;
         return true;
-    }
-    else if (p_name.match("function_name"))
-    {
+    } else if (p_name.match("function_name")) {
         _method_name = p_value;
         return true;
     }
     return false;
 }
 
-void OScriptNodeCallStaticFunction::_resolve_method_info()
-{
+void OScriptNodeCallStaticFunction::_resolve_method_info() {
     // Lookup the MethodInfo
     TypedArray<Dictionary> methods;
-    if (ScriptServer::is_global_class(_class_name))
+    if (ScriptServer::is_global_class(_class_name)) {
         methods = ScriptServer::get_global_class(_class_name).get_method_list();
-    else
+    }
+    else {
         methods = ClassDB::class_get_method_list(_class_name, true);
+    }
 
-    for (int i = 0; i < methods.size(); i++)
-    {
-        const Dictionary& dict = methods[i];
-        if (_method_name.match(dict["name"]))
-        {
-            _method = DictionaryUtils::to_method(methods[i]);
+    for (const Variant& method : methods) {
+        const Dictionary& dict = method;
+        if (_method_name.match(dict["name"])) {
+            _method = DictionaryUtils::to_method(method);
             break;
         }
     }
 }
 
-void OScriptNodeCallStaticFunction::post_initialize()
-{
+void OScriptNodeCallStaticFunction::post_initialize() {
     _resolve_method_info();
-
     reconstruct_node();
-
     super::post_initialize();
 }
 
-void OScriptNodeCallStaticFunction::post_placed_new_node()
-{
+void OScriptNodeCallStaticFunction::post_placed_new_node() {
     _resolve_method_info();
-
     super::post_placed_new_node();
 }
 
-void OScriptNodeCallStaticFunction::allocate_default_pins()
-{
+void OScriptNodeCallStaticFunction::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
@@ -193,95 +91,68 @@ void OScriptNodeCallStaticFunction::allocate_default_pins()
         : _method.arguments.size() - _method.default_arguments.size();
 
     size_t def_index = 0;
-    for (size_t arg_index = 0; arg_index < _method.arguments.size(); arg_index++)
-    {
+    for (size_t arg_index = 0; arg_index < _method.arguments.size(); arg_index++) {
         const PropertyInfo& pi = _method.arguments[arg_index];
         const Variant default_value = arg_index >= default_start_index ? _method.default_arguments[def_index++] : Variant();
         create_pin(PD_Input, PT_Data, pi, default_value);
     }
 
-    if (MethodUtils::has_return_value(_method))
-    {
+    if (MethodUtils::has_return_value(_method)) {
         Ref<OScriptNodePin> rvalue = create_pin(PD_Output, PT_Data, PropertyUtils::as("return_value", _method.return_val));
-        if (_method.return_val.type == Variant::OBJECT)
+        if (_method.return_val.type == Variant::OBJECT) {
             rvalue->set_label(_method.return_val.class_name);
-        else
+        } else {
             rvalue->hide_label();
+        }
     }
 
     super::allocate_default_pins();
 }
 
-String OScriptNodeCallStaticFunction::get_tooltip_text() const
-{
-    if (!_class_name.is_empty() && !_method_name.is_empty())
+String OScriptNodeCallStaticFunction::get_tooltip_text() const {
+    if (!_class_name.is_empty() && !_method_name.is_empty()) {
         return vformat("Calls the static function '%s.%s'", _class_name, _method_name);
-
+    }
     return "Calls a static function";
 }
 
-String OScriptNodeCallStaticFunction::get_node_title() const
-{
-    if (!_class_name.is_empty() && !_method_name.is_empty())
+String OScriptNodeCallStaticFunction::get_node_title() const {
+    if (!_class_name.is_empty() && !_method_name.is_empty()) {
         return vformat("%s %s", _class_name, _method_name.capitalize());
-
+    }
     return "Call Static Function";
 }
 
-String OScriptNodeCallStaticFunction::get_help_topic() const
-{
+String OScriptNodeCallStaticFunction::get_help_topic() const {
     #if GODOT_VERSION >= 0x040300
     const String class_name = MethodUtils::get_method_class(_class_name, _method_name);
-    if (!class_name.is_empty())
+    if (!class_name.is_empty()) {
         return vformat("class_method:%s:%s", class_name, _method_name);
+    }
     #endif
     return super::get_help_topic();
 }
 
-void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) const
-{
+void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) const {
     const int args_no_defs = _method.arguments.size() - _method.default_arguments.size();
-    for (int i = 0; i < args_no_defs; i++)
-    {
+    for (int i = 0; i < args_no_defs; i++) {
         const PropertyInfo& pi = _method.arguments[i];
         const Ref<OScriptNodePin> pin = find_pin(pi.name, PD_Input);
-        if (pin.is_valid() && !pin->has_any_connections())
-        {
-            if (pin->get_effective_default_value() == pin->get_generated_default_value())
+        if (pin.is_valid() && !pin->has_any_connections()) {
+            if (pin->get_effective_default_value() == pin->get_generated_default_value()) {
                 p_log.error(this, pin, "Requires a connection.");
+            }
         }
     }
 
-    if (!(_method.flags & METHOD_FLAG_STATIC))
+    if (!(_method.flags & METHOD_FLAG_STATIC)) {
         p_log.error(this, vformat("Expected a static method but '%s' is not static.", _method_name));
+    }
 
     return super::validate_node_during_build(p_log);
 }
 
-OScriptNodeInstance* OScriptNodeCallStaticFunction::instantiate()
-{
-    OScriptNodeCallStaticFunctionInstance* i = memnew(OScriptNodeCallStaticFunctionInstance);
-    i->_node = this;
-    i->_method = _method;
-    i->_class_name = _class_name;
-    i->_method_name = _method_name;
-
-    if (ScriptServer::is_global_class(_class_name))
-    {
-        const ScriptServer::GlobalClass gc = ScriptServer::get_global_class(_class_name);
-        if (!gc.path.is_empty())
-        {
-            Ref<Script> script = ResourceLoader::get_singleton()->load(gc.path, "Script");
-            if (script.is_valid() && _method.flags & METHOD_FLAG_STATIC)
-                i->_script = script;
-        }
-    }
-
-    return i;
-}
-
-void OScriptNodeCallStaticFunction::initialize(const OScriptNodeInitContext& p_context)
-{
+void OScriptNodeCallStaticFunction::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "Failed to initialize CallStaticFunction without user data");
 
     const Dictionary data = p_context.user_data.value();

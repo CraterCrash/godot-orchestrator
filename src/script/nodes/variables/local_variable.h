@@ -19,12 +19,12 @@
 
 #include "script/script.h"
 
-class OScriptNodeLocalVariable : public OScriptNode
-{
+class OScriptNodeLocalVariable : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeLocalVariable, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     Guid _guid;           //! Uniquely identifies this variable from any other.
     Variant::Type _type;  //! Transient type used to initialize the pin.
     String _description;  //! User-defined description
@@ -45,20 +45,20 @@ public:
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     bool can_duplicate() const override { return false; }
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
-    /// Get the associated variable GUID
     String get_variable_guid() const { return _guid.to_string(); }
+    String get_variable_name() const;
 };
 
-class OScriptNodeAssignLocalVariable : public OScriptNode
-{
+class OScriptNodeAssignLocalVariable : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeAssignLocalVariable, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     Variant::Type _type{ Variant::NIL }; //! Transient type used to identify pin type
 
     //~ Begin OScriptNode Interface
@@ -74,7 +74,6 @@ public:
     String get_node_title_color_name() const override { return "variable"; }
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
-    OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
     void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
     void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;

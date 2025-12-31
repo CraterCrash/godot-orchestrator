@@ -14,51 +14,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "call_builtin_function.h"
+#include "script/nodes/functions/call_builtin_function.h"
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/version.h"
 #include "script/utility_functions.h"
 
-OScriptNodeCallBuiltinFunction::OScriptNodeCallBuiltinFunction()
-{
-    _flags = ScriptNodeFlags::CATALOGABLE;
-    _function_flags = FunctionFlags::FF_PURE;
-}
-
-bool OScriptNodeCallBuiltinFunction::_has_execution_pins(const MethodInfo& p_method) const
-{
+bool OScriptNodeCallBuiltinFunction::_has_execution_pins(const MethodInfo& p_method) const {
     return !MethodUtils::has_return_value(p_method);
 }
 
-String OScriptNodeCallBuiltinFunction::get_tooltip_text() const
-{
-    if (!_reference.method.name.is_empty())
+String OScriptNodeCallBuiltinFunction::get_tooltip_text() const {
+    if (!_reference.method.name.is_empty()) {
         return vformat("Calls the built-in Godot function '%s'", _reference.method.name);
-
+    }
     return "Calls the specified built-in Godot function";
 }
 
-String OScriptNodeCallBuiltinFunction::get_node_title() const
-{
+String OScriptNodeCallBuiltinFunction::get_node_title() const {
     return vformat("%s", _reference.method.name.capitalize());
 }
 
-String OScriptNodeCallBuiltinFunction::get_help_topic() const
-{
+String OScriptNodeCallBuiltinFunction::get_help_topic() const {
     #if GODOT_VERSION >= 0x040300
-    if (OScriptUtilityFunctions::function_exists(_reference.method.name))
+    if (OScriptUtilityFunctions::function_exists(_reference.method.name)) {
         return vformat("class_method:@OScript:%s", _reference.method.name);
-
+    }
     return vformat("class_method:@GlobalScope:%s", _reference.method.name);
     #else
     return super::get_help_topic();
     #endif
 }
 
-void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_context)
-{
+void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "Failed to initialize BuiltInFunction without data");
 
     const Dictionary& data = p_context.user_data.value();
@@ -70,4 +59,9 @@ void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_
     _set_function_flags(_reference.method);
 
     super::initialize(p_context);
+}
+
+OScriptNodeCallBuiltinFunction::OScriptNodeCallBuiltinFunction() {
+    _flags = CATALOGABLE;
+    _function_flags = FF_PURE;
 }

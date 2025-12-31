@@ -20,14 +20,14 @@
 #include "script/script.h"
 
 /// A terminal node for an event or function call
-class OScriptNodeFunctionTerminator : public OScriptNode
-{
+class OScriptNodeFunctionTerminator : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeFunctionTerminator, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
     Guid _guid;                      //! Function guid
     Ref<OScriptFunction> _function;  //! Function reference
+
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;

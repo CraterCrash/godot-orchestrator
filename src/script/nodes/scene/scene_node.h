@@ -25,14 +25,14 @@
 /// To work with nodes in other unopened scenes requires work beyond what this implementation is
 /// capable of doing at this time.
 ///
-class OScriptNodeSceneNode : public OScriptNode
-{
+class OScriptNodeSceneNode : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSceneNode, OScriptNode);
-    static void _bind_methods() { }
 
-protected:
     NodePath _node_path;    //! The node's path
     String _class_name;     //! Node's class type
+
+protected:
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -57,11 +57,13 @@ public:
     String get_icon() const override;
     String get_help_topic() const override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override;
     //~ End OScriptNode Interface
 
+    NodePath get_scene_node_path() const { return _node_path; }
+    String get_scene_node_class_name() const { return _class_name; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_SCENE_NODE_H

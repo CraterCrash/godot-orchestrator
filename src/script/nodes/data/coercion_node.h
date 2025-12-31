@@ -20,32 +20,12 @@
 #include "script/script.h"
 
 /// A class that supports coercion of one data type to another.
-///
-class OScriptNodeCoercion : public OScriptNode
-{
+/// @deprecated scheduled for removal
+[[deprecated]] class OScriptNodeCoercion : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCoercion, OScriptNode);
 
-    Variant::Type _left;
-    Variant::Type _right;
-
-    static void _bind_methods() {}
-
-public:
-
-    OScriptNodeCoercion();
-
-    //~ Begin OScriptNode Interface
-    void post_initialize() override;
-    void post_placed_new_node() override;
-    void allocate_default_pins() override;
-    String get_tooltip_text() const override;
-    String get_node_title() const override;
-    bool should_draw_as_bead() const override { return true; }
-    OScriptNodeInstance* instantiate() override;
-    void initialize(const OScriptNodeInitContext &p_context) override;
-    //~ End OScriptNode Interface
-
-private:
+    Variant::Type _left = Variant::NIL;
+    Variant::Type _right = Variant::NIL;
 
     Ref<OScriptNodePin> _get_input_pin();
     Ref<OScriptNodePin> _get_output_pin();
@@ -57,6 +37,22 @@ private:
 
     void _on_source_pin_changed(const Ref<OScriptNodePin>& p_pin);
     void _on_target_pin_changed(const Ref<OScriptNodePin>& p_pin);
+
+protected:
+    static void _bind_methods() {}
+
+public:
+    //~ Begin OScriptNode Interface
+    void post_initialize() override;
+    void post_placed_new_node() override;
+    void allocate_default_pins() override;
+    String get_tooltip_text() const override;
+    String get_node_title() const override;
+    bool should_draw_as_bead() const override { return true; }
+    void initialize(const OScriptNodeInitContext &p_context) override;
+    //~ End OScriptNode Interface
+
+    OScriptNodeCoercion();
 };
 
 #endif // ORCHESTRATOR_SCRIPT_NODE_COERCION_NODE_H

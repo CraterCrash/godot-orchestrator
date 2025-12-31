@@ -23,10 +23,11 @@
 class OScriptNodeWhile : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeWhile, OScriptNode);
-    static void _bind_methods() { }
+
+    bool _condition = false;
 
 protected:
-    bool _condition = false;
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -37,7 +38,6 @@ public:
     String get_icon() const override;
     PackedStringArray get_keywords() const override { return Array::make("while", "loop"); }
     bool is_loop_port(int p_port) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };

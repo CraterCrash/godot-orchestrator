@@ -17,7 +17,6 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_H
 #define ORCHESTRATOR_SCRIPT_NODE_H
 
-#include "instances/node_instance.h"
 #include "orchestration/build_log.h"
 #include "script/action.h"
 #include "script/language.h"
@@ -43,8 +42,7 @@ class OScriptInstance;
 /// The context provides either a reference to a MethodInfo or PropertyInfo combined with details
 /// about a target class type, variable name, or custom data attributes.
 ///
-struct OScriptNodeInitContext
-{
+struct OScriptNodeInitContext {
     std::optional<MethodInfo> method;
     std::optional<PropertyInfo> property;
     std::optional<NodePath> node_path;
@@ -59,8 +57,7 @@ struct OScriptNodeInitContext
 /// An Orchestration is a collection of script nodes that allow the user to create visual script like
 /// implementations of code. All script nodes that are possible derive from this base class.
 ///
-class OScriptNode : public Resource
-{
+class OScriptNode : public Resource {
     friend class Orchestration;
     friend class OScriptGraph;
     friend class OScriptLanguage;
@@ -73,17 +70,15 @@ protected:
 
 public:
     /// Flags for script nodes
-    enum ScriptNodeFlags
-    {
-        NONE = 1 << 0,              //! No specific flags
-        CATALOGABLE = 1 << 1,       //! Node should appear in the action catalog
-        DEVELOPMENT_ONLY = 1 << 2,  //! Node should be marked in the UI as development only
-        EXPERIMENTAL = 1 << 3       //! Node is experimental and may change
+    enum ScriptNodeFlags {
+        NONE             = 1 << 0,      //! No specific flags
+        CATALOGABLE      = 1 << 1,      //! Node should appear in the action catalog
+        DEVELOPMENT_ONLY = 1 << 2,      //! Node should be marked in the UI as development only
+        EXPERIMENTAL     = 1 << 3       //! Node is experimental and may change
     };
 
     #if GODOT_VERSION >= 0x040300
-    enum BreakpointFlags
-    {
+    enum BreakpointFlags {
         BREAKPOINT_NONE,
         BREAKPOINT_ENABLED,
         BREAKPOINT_DISABLED
@@ -91,15 +86,15 @@ public:
     #endif
 
 protected:
-    Orchestration* _orchestration{ nullptr };  //! Owning orchestration
-    bool _initialized{ false };                //! Manages whether the node is initialized
-    int _id{ -1 };                             //! Unique node id, assigned by the owning script
+    Orchestration* _orchestration = nullptr;   //! Owning orchestration
+    bool _initialized = false;                 //! Manages whether the node is initialized
+    int _id = -1;                              //! Unique node id, assigned by the owning script
     Vector2 _size;                             //! Size of the node
     Vector2 _position;                         //! Position of the node
     BitField<ScriptNodeFlags> _flags;          //! Flags
     Vector<Ref<OScriptNodePin>> _pins;         //! Pins
-    bool _reconstruction_queued{ false };      //! Tracks if node reconstruction has been queued
-    bool _reconstructing{ false };             //! Tracks if the node is in reconstruction
+    bool _reconstruction_queued = false;       //! Tracks if node reconstruction has been queued
+    bool _reconstructing = false;              //! Tracks if the node is in reconstruction
     #if GODOT_VERSION >= 0x040300
     BreakpointFlags _breakpoint_flag;          //! Transient state for breakpoints
     #endif
@@ -132,10 +127,10 @@ public:
 
     /// Gets the owning graph
     /// @return the owning graph
-    Ref<OScriptGraph> get_owning_graph();
+    Ref<OScriptGraph> get_owning_graph() const;
 
     /// Get the node's unique identifier
-    /// @return the node's unique identifer
+    /// @return the node's unique identifier
     int get_id() const { return _id; }
 
     /// Set the node's unique id
@@ -161,11 +156,11 @@ public:
     #if GODOT_VERSION >= 0x040300
     /// Returns whether this node has a breakpoint, regardless if breakpoint is disabled.
     /// @return if this node has a breakpoint
-    bool has_breakpoint() const { return _breakpoint_flag != BreakpointFlags::BREAKPOINT_NONE; }
+    bool has_breakpoint() const { return _breakpoint_flag != BREAKPOINT_NONE; }
 
     /// Returns whether the breakpoint on this node is disabled.
     /// @return if this node's breakpoint is disabled
-    bool has_disabled_breakpoint() const { return _breakpoint_flag == BreakpointFlags::BREAKPOINT_DISABLED; }
+    bool has_disabled_breakpoint() const { return _breakpoint_flag == BREAKPOINT_DISABLED; }
 
     /// Sets the node's breakpoint flag
     /// @param p_flag the breakpoint flag state
@@ -217,8 +212,10 @@ public:
     /// @details The default behavior is to call "allocate_default_pins".
     virtual void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins);
 
-    virtual void rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins,
-                                             const Vector<Ref<OScriptNodePin>>& p_new_pins);
+    /// Rewires all old pin values adn state to the newly constructed pins.
+    /// @param p_old_pins the old pin state
+    /// @param p_new_pins the new pin state
+    virtual void rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins, const Vector<Ref<OScriptNodePin>>& p_new_pins);
 
     /// Recreates the node from its internal state.
     virtual void reconstruct_node();
@@ -316,10 +313,6 @@ public:
     /// @param p_log the build log
     virtual void validate_node_during_build(BuildLog& p_log) const;
 
-    /// Instantiate the script node's runtime instance.
-    /// @return node's runtime instance
-    virtual OScriptNodeInstance* instantiate();
-
     /// Initializes the node from spawner data
     /// @param p_context the initialization context
     virtual void initialize(const OScriptNodeInitContext& p_context);
@@ -361,7 +354,7 @@ public:
     /// Find all lines for a given direction.
     /// @param p_direction the pin direction, defaults to PD_MAX which returns all pins
     /// @return vector of pin references for this node
-    Vector<Ref<OScriptNodePin>> find_pins(EPinDirection p_direction = PD_MAX);
+    Vector<Ref<OScriptNodePin>> find_pins(EPinDirection p_direction = PD_MAX) const;
 
     /// Removes the specified pin from this node
     /// @param p_pin the pin to be removed
@@ -398,7 +391,25 @@ public:
     /// Get suggestion options for the specified pin.
     /// @param p_pin the pin
     /// @return a list of suggestion options as contextual choices
-    virtual PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) { return PackedStringArray(); }
+    virtual PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) { return {}; }
+
+    /// Returns whether this node is pure.
+    /// Pure nodes are cheap and lightweight and will be reevaluated when called rather than
+    /// it's value being cached into an intermediate variable.
+    /// @return whether this node is pure and its value should not be cached
+    virtual bool is_pure() const { return false; }
+
+    /// Utility method that returns whether the node has any control flow pins
+    /// @return true if the node has control flow pins, false otherwise
+    virtual bool has_execution_pins() const;
+
+    /// Utility to help with casting and checking node types.
+    /// @param <T> the type to check
+    /// @return true if the node instance is of the specified T type
+    template <typename T>
+    bool is_type() {
+        return cast_to<T>(this) != nullptr;
+    }
 
 protected:
     /// Notify that node pins have been changed.
@@ -413,7 +424,7 @@ protected:
 };
 
 #define DECLARE_SCRIPT_NODE_INSTANCE(x) /*************************************/ \
-    friend class x;                                                             \
-    x* _node = nullptr;
+    friend class (x);                                                           \
+    (x)* _node = nullptr;
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_H

@@ -17,274 +17,265 @@
 #include "script/script_server.h"
 
 #include "common/version.h"
+
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
 
-Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) const
-{
-    if (ResourceLoader::get_singleton()->has_cached(path))
+Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) {
+    if (ResourceLoader::get_singleton()->has_cached(path)) {
         return ResourceLoader::get_singleton()->load(path);
-
+    }
     return ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
 }
 
-TypedArray<Dictionary> ScriptServer::GlobalClass::get_property_list() const
-{
+TypedArray<Dictionary> ScriptServer::GlobalClass::get_property_list() const {
     const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_property_list() : TypedArray<Dictionary>();
 }
 
-TypedArray<Dictionary> ScriptServer::GlobalClass::get_method_list() const
-{
+TypedArray<Dictionary> ScriptServer::GlobalClass::get_method_list() const {
     const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_method_list() : TypedArray<Dictionary>();
 }
 
-TypedArray<Dictionary> ScriptServer::GlobalClass::get_signal_list() const
-{
+TypedArray<Dictionary> ScriptServer::GlobalClass::get_signal_list() const {
     const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_signal_list() : TypedArray<Dictionary>();
 }
 
-Dictionary ScriptServer::GlobalClass::get_constants_list() const
-{
+Dictionary ScriptServer::GlobalClass::get_constants_list() const {
     const Ref<Script> script = _load_script(path);
     return script.is_valid() ? script->get_script_constant_map() : Dictionary();
 }
 
-StringName ScriptServer::GlobalClass::get_integer_constant_enum(const StringName& p_enum_constant_name) const
-{
+StringName ScriptServer::GlobalClass::get_integer_constant_enum(const StringName& p_enum_constant_name) const {
     const Dictionary constants_map = get_constants_list();
-    if (!constants_map.is_empty())
-    {
+    if (!constants_map.is_empty()) {
         const Array& keys = constants_map.keys();
-        for (int i = 0; i < keys.size(); i++)
-        {
+        for (int i = 0; i < keys.size(); i++) {
             const Variant& value = constants_map[keys[i]];
-            if (value.get_type() == Variant::DICTIONARY)
-            {
+            if (value.get_type() == Variant::DICTIONARY) {
                 const Dictionary& enum_dict = value;
-                if (enum_dict.has(p_enum_constant_name))
+                if (enum_dict.has(p_enum_constant_name)) {
                     return keys[i];
+                }
             }
         }
     }
     return "";
 }
 
-PackedStringArray ScriptServer::GlobalClass::get_integer_constant_list() const
-{
+PackedStringArray ScriptServer::GlobalClass::get_integer_constant_list() const {
     PackedStringArray names;
 
     const Dictionary constants_map = get_constants_list();
-    if (!constants_map.is_empty())
-    {
+    if (!constants_map.is_empty()) {
         const Array& keys = constants_map.keys();
-        for (int i= 0; i < keys.size(); i++)
-        {
+        for (int i= 0; i < keys.size(); i++) {
             // Check and skip enums
             const Variant& value = constants_map[keys[i]];
-            if (value.get_type() == Variant::DICTIONARY)
-            {
+            if (value.get_type() == Variant::DICTIONARY) {
                 const Dictionary& enum_dict = value;
                 names.append_array(enum_dict.keys());
-            }
-            else
+            } else {
                 names.push_back(keys[i]);
+            }
         }
     }
     return names;
 }
 
-int64_t ScriptServer::GlobalClass::get_integer_constant(const StringName& p_constant_name) const
-{
+int64_t ScriptServer::GlobalClass::get_integer_constant(const StringName& p_constant_name) const {
     const Dictionary constants_map = get_constants_list();
-    if (!constants_map.is_empty())
-    {
+    if (!constants_map.is_empty()) {
         const Array& keys = constants_map.keys();
-        for (int i= 0; i < keys.size(); i++)
-        {
-            if (keys[i] == p_constant_name)
+        for (int i= 0; i < keys.size(); i++) {
+            if (keys[i] == p_constant_name) {
                 return constants_map[keys[i]];
+            }
 
             // Check and skip enums
             const Variant& value = constants_map[keys[i]];
-            if (value.get_type() == Variant::DICTIONARY)
-            {
+            if (value.get_type() == Variant::DICTIONARY) {
                 const Dictionary& enum_dict = value;
-                if (enum_dict.has(p_constant_name))
+                if (enum_dict.has(p_constant_name)) {
                     return enum_dict[p_constant_name];
+                }
             }
         }
     }
     return 0;
 }
 
-bool ScriptServer::GlobalClass::has_method(const StringName& p_method_name) const
-{
-    if (!name.is_empty() && !path.is_empty())
-    {
-        const TypedArray<Dictionary> methods = get_method_list();
-        for (int index = 0; index < methods.size(); ++index)
-        {
-            const Dictionary& dict = methods[index];
-            if (dict.has("name") && p_method_name.match(dict["name"]))
+bool ScriptServer::GlobalClass::has_method(const StringName& p_method_name) const {
+    if (!name.is_empty() && !path.is_empty()) {
+        for (const Variant& method : get_method_list()) {
+            const Dictionary& dict = method;
+            if (dict.has("name") && p_method_name.match(dict["name"])) {
                 return true;
+            }
         }
     }
     return false;
 }
 
-bool ScriptServer::GlobalClass::has_property(const StringName& p_property_name) const
-{
-    if (!name.is_empty() && !path.is_empty())
-    {
-        const TypedArray<Dictionary> properties = get_property_list();
-        for (int index = 0; index < properties.size(); ++index)
-        {
-            const Dictionary& dict = properties[index];
-            if (dict.has("name") && p_property_name.match(dict["name"]))
+bool ScriptServer::GlobalClass::has_property(const StringName& p_property_name) const {
+    if (!name.is_empty() && !path.is_empty()) {
+        for (const Variant& property : get_property_list()) {
+            const Dictionary& dict = property;
+            if (dict.has("name") && p_property_name.match(dict["name"])) {
                 return true;
+            }
         }
     }
     return false;
 }
 
-bool ScriptServer::GlobalClass::has_signal(const StringName& p_signal_name) const
-{
-    if (!name.is_empty() && !path.is_empty())
-    {
-        const TypedArray<Dictionary> signals = get_signal_list();
-        for (int index = 0; index < signals.size(); ++index)
-        {
-            const Dictionary& dict = signals[index];
-            if (dict.has("name") && p_signal_name.match(dict["name"]))
+bool ScriptServer::GlobalClass::has_signal(const StringName& p_signal_name) const {
+    if (!name.is_empty() && !path.is_empty()) {
+        for (const Variant& signal : get_signal_list()) {
+            const Dictionary& dict = signal;
+            if (dict.has("name") && p_signal_name.match(dict["name"])) {
                 return true;
+            }
         }
     }
     return false;
 }
 
-TypedArray<Dictionary> ScriptServer::GlobalClass::get_static_method_list() const
-{
-    const TypedArray<Dictionary> methods = get_method_list();
-
+TypedArray<Dictionary> ScriptServer::GlobalClass::get_static_method_list() const {
     TypedArray<Dictionary> results;
-    for (int i = 0; i < methods.size(); i++)
-    {
-        const Dictionary& dict = methods[i];
+    for (const Variant& method : get_method_list()) {
+        const Dictionary& dict = method;
         const uint32_t flags = dict.get("flags", METHOD_FLAGS_DEFAULT);
-        if (flags & METHOD_FLAG_STATIC)
+        if (flags & METHOD_FLAG_STATIC) {
             results.append(dict);
+        }
     }
-
     return results;
 }
 
-Dictionary ScriptServer::_get_global_class(const StringName& p_class_name)
-{
-    TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
-    for (int index = 0; index < global_classes.size(); ++index)
-    {
-        const Dictionary& entry = global_classes[index];
-        if (entry.has("class") && p_class_name.match(entry["class"]))
+ScriptServer::GlobalClass::GlobalClass(const Dictionary& p_dict) {
+    name = p_dict["class"];
+    base_type = p_dict["base"];
+    path = p_dict["path"];
+    language = p_dict["language"];
+    icon_path = p_dict.get("icon", "");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// ScriptServer
+
+TypedArray<Dictionary> ScriptServer::_get_global_class_list() {
+    // ProjectSettings automatically caches the global class list, so it's safe to recall it.
+    return ProjectSettings::get_singleton()->get_global_class_list();
+}
+
+Dictionary ScriptServer::_get_global_class(const StringName& p_class_name) {
+    for (const Variant& global_class : _get_global_class_list()) {
+        const Dictionary& entry = global_class;
+        if (entry.has("class") && p_class_name.match(entry["class"])) {
             return entry;
+        }
     }
     return {};
 }
 
-bool ScriptServer::is_global_class(const StringName& p_class_name)
-{
+bool ScriptServer::is_global_class(const StringName& p_class_name) {
     return !_get_global_class(p_class_name).is_empty();
 }
 
-bool ScriptServer::is_parent_class(const StringName& p_source_class_name, const StringName& p_target_class_name)
-{
+bool ScriptServer::is_parent_class(const StringName& p_source_class_name, const StringName& p_target_class_name) {
     return get_class_hierarchy(p_source_class_name, true).has(p_target_class_name);
 }
 
-PackedStringArray ScriptServer::get_global_class_list()
-{
-    const TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
-
+PackedStringArray ScriptServer::get_global_class_list() {
     PackedStringArray global_class_names;
-    for (int index = 0; index < global_classes.size(); ++index)
-    {
-        const Dictionary& entry = global_classes[index];
-        if (entry.has("class"))
+    for (const Variant& global_class : _get_global_class_list()) {
+        const Dictionary& entry = global_class;
+        if (entry.has("class")) {
             global_class_names.push_back(entry["class"]);
+        }
     }
     return global_class_names;
 }
 
-ScriptServer::GlobalClass ScriptServer::get_global_class(const StringName& p_class_name)
-{
-    GlobalClass global_class;
-
+ScriptServer::GlobalClass ScriptServer::get_global_class(const StringName& p_class_name) {
     const Dictionary entry = _get_global_class(p_class_name);
-    if (!entry.is_empty())
-    {
-        global_class.name = entry["class"];
-        global_class.base_type = entry["base"];
-        global_class.path = entry["path"];
-        global_class.language = entry["language"];
-
-        if (entry.has("icon"))
-            global_class.icon_path = entry["icon"];
+    if (!entry.is_empty()) {
+        return GlobalClass(entry);
     }
-    return global_class;
+    return {};
 }
 
-StringName ScriptServer::get_native_class_name(const StringName& p_class_name)
-{
+String ScriptServer::get_global_class_path(const StringName& p_class_name) {
+    if (!is_global_class(p_class_name)) {
+        return "";
+    }
+    return get_global_class(p_class_name).path;
+}
+
+StringName ScriptServer::get_global_class_native_base(const StringName& p_class_name) {
     PackedStringArray hierarchy = get_class_hierarchy(p_class_name, true);
-    for (const String& class_name : hierarchy)
-    {
-        if (!is_global_class(class_name))
+    for (const String& class_name : hierarchy) {
+        if (!is_global_class(class_name)) {
             return class_name;
+        }
     }
     return Object::get_class_static();
 }
 
-PackedStringArray ScriptServer::get_class_hierarchy(const StringName& p_class_name, bool p_include_native_classes)
-{
+PackedStringArray ScriptServer::get_class_hierarchy(const StringName& p_class_name, bool p_include_native_classes) {
     PackedStringArray hierarchy;
     StringName class_name = p_class_name;
-    while (!class_name.is_empty())
-    {
-        if (is_global_class(class_name))
-        {
+    while (!class_name.is_empty()) {
+        if (is_global_class(class_name)) {
             hierarchy.push_back(class_name);
             class_name = get_global_class(class_name).base_type;
-        }
-        else if (p_include_native_classes)
-        {
+        } else if (p_include_native_classes) {
             hierarchy.push_back(class_name);
             class_name = ClassDB::get_parent_class(class_name);
-        }
-        else
+        } else {
             break;
+        }
     }
     return hierarchy;
 }
 
-String ScriptServer::get_global_name(const Ref<Script>& p_script)
-{
-    if (p_script.is_valid())
-    {
+String ScriptServer::get_global_name(const Ref<Script>& p_script) {
+    if (p_script.is_valid()) {
         #if GODOT_VERSION >= 0x040300
         return p_script->get_global_name();
         #else
-        TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
-        for (int index = 0; index < global_classes.size(); ++index)
-        {
-            const Dictionary& entry = global_classes[index];
-            if (entry.has("path") && p_script->get_path().match(entry["path"]) && entry.has("class"))
+        for (const Variant& global_class : _get_global_class_list()) {
+            const Dictionary& entry = global_class;
+            if (entry.has("path") && p_script->get_path().match(entry["path"]) && entry.has("class")) {
                 return entry["class"];
+            }
         }
         #endif
     }
     return "";
+}
+
+void ScriptServer::set_scripting_enabled(bool p_enabled) {
+    _scripting_enabled = p_enabled;
+}
+
+bool ScriptServer::is_scripting_enabled() {
+    #ifdef TOOLS_ENABLED
+    // Other than '@tool' scripts, the editor does not enable scripting
+    if (Engine::get_singleton()->is_editor_hint()) {
+        return false;
+    }
+    #endif
+    return _scripting_enabled;
+}
+
+bool ScriptServer::is_reload_scripts_on_save_enabled() {
+    // This is based on the ScriptEditor settings so that if GDScript is set to do this, so will Orchestrations
+    return ProjectSettings::get_singleton()->get_setting("text_editor/behavior/files/auto_reload_and_parse_scripts_on_save", true);
 }

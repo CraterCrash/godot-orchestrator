@@ -24,10 +24,11 @@
 class OScriptNodeSwitch : public OScriptEditablePinNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitch, OScriptEditablePinNode);
-    static void _bind_methods() { }
+
+    int _cases = 0;     //! Transient case count
 
 protected:
-    int _cases{ 0 };     //! Transient case count
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* p_list) const;
@@ -48,7 +49,6 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
@@ -60,15 +60,15 @@ public:
     //~ End OScriptEditablePinNode Interface
 };
 
-class OScriptNodeSwitchEditablePin : public OScriptEditablePinNode
-{
+class OScriptNodeSwitchEditablePin : public OScriptEditablePinNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchEditablePin, OScriptEditablePinNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     PackedStringArray _pin_names;
-    bool _case_sensitive{ false };
-    bool _has_default_value{ true };
+    bool _case_sensitive = false;
+    bool _has_default_value = true;
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* p_list) const;
@@ -96,16 +96,20 @@ public:
     void add_dynamic_pin() override;
     void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptEditablePinNode Interface
+
+    PackedStringArray get_pin_names() const { return _pin_names; }
+    bool is_case_sensitive() const { return _case_sensitive; }
+    bool has_default_value() const { return _has_default_value; }
 };
 
 /// A switch statement that takes an input string value and compares it against
 /// one of the output pins, exiting on the pin that matches or the default pin.
-class OScriptNodeSwitchString : public OScriptNodeSwitchEditablePin
-{
+class OScriptNodeSwitchString : public OScriptNodeSwitchEditablePin {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchString, OScriptNodeSwitchEditablePin);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNodeSwitchEditablePin Interface
     bool _supports_case_sensitive_pins() const override { return true; }
     Variant::Type _get_input_pin_type() const override { return Variant::STRING; }
@@ -115,19 +119,18 @@ protected:
 public:
     //~ Begin OScriptNode Interface
     String get_node_title() const override { return "Switch on String"; }
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 
 /// A switch statement that takes an input numeric value and compares it against
 /// one of the output pins, exiting on the pin that matches or the default pin.
-class OScriptNodeSwitchInteger : public OScriptNodeSwitchEditablePin
-{
+class OScriptNodeSwitchInteger : public OScriptNodeSwitchEditablePin {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchInteger, OScriptNodeSwitchEditablePin);
-    static void _bind_methods() { }
+
+    int _start_index = 0;
 
 protected:
-    int _start_index{ 0 };
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* p_list) const;
@@ -146,19 +149,20 @@ protected:
 public:
     //~ Begin OScriptNode Interface
     String get_node_title() const override { return "Switch on Integer"; }
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
+
+    int get_start_index() const { return _start_index; }
 };
 
 /// A switch statement that takes an input enum, and compares it against all the
 /// possible values, exiting on the pin that matches the enum value.
-class OScriptNodeSwitchEnum : public OScriptNode
-{
+class OScriptNodeSwitchEnum : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSwitchEnum, OScriptNode);
-    static void _bind_methods() { }
+
+    String _enum_name; //! Transient enum name
 
 protected:
-    String _enum_name; //! Transient enum name
+    static void _bind_methods() { }
 
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
@@ -172,9 +176,10 @@ public:
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override { return "ClassList"; }
     String get_tooltip_text() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    String get_enum_name() const { return _enum_name; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_SWITCH_H

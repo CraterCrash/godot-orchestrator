@@ -20,10 +20,8 @@
 #include "script/script.h"
 
 /// Allows checking whether an input action is pressed, released, or recently pressed or released.
-class OScriptNodeInputAction : public OScriptNode
-{
+class OScriptNodeInputAction : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeInputAction, OScriptNode);
-    static void _bind_methods();
 
 public:
     // Various action modes
@@ -34,9 +32,12 @@ public:
         AM_JUST_RELEASED
     };
 
-protected:
+private:
     String _action_name;
-    int _mode{ AM_PRESSED };
+    int _mode = AM_PRESSED;
+
+protected:
+    static void _bind_methods();
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo> *r_list) const;
@@ -47,7 +48,7 @@ protected:
     /// Called when the project settings are modified.
     void _settings_changed();
 
-    PackedStringArray _get_action_names() const;
+    static PackedStringArray _get_action_names();
     String _get_mode() const;
 
 public:
@@ -60,10 +61,12 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "pure_function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
+    ActionMode get_action_mode() const { return static_cast<ActionMode>(_mode); }
+    String get_action_name() const { return _action_name; }
 };
 
 VARIANT_ENUM_CAST(OScriptNodeInputAction::ActionMode)

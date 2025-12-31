@@ -65,6 +65,20 @@ void OrchestratorScriptEditorViewport::_graph_opened(OrchestratorGraphEdit* p_gr
     p_graph->connect("expand_node", callable_mp(this, &OrchestratorScriptEditorViewport::_expand_node).bind(p_graph));
 }
 
+void OrchestratorScriptEditorViewport::_reload_all()
+{
+    for (int i = 0; i < _tabs->get_tab_count(); i++)
+    {
+        const String tab_name = _tabs->get_tab_control(i)->get_name();
+        const Ref<OScriptGraph> graph = _orchestration->get_graph(tab_name);
+        ERR_CONTINUE(!graph.is_valid());
+
+        OrchestratorGraphEdit* editor = _get_or_create_tab(tab_name, false, false);
+        if (editor)
+            editor->set_owning_graph(graph);
+    }
+}
+
 void OrchestratorScriptEditorViewport::_save_state()
 {
     Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
@@ -98,7 +112,7 @@ void OrchestratorScriptEditorViewport::_save_state()
         panel_states["variables"] = _variables->is_collapsed();
         panel_states["signals"] = _signals->is_collapsed();
 
-        cache->set_script_state(_orchestration->get_self()->get_path(), state);
+        cache->set_script_state(_orchestration->get_orchestration_path(), state);
         cache->save();
     }
 }
@@ -108,7 +122,7 @@ void OrchestratorScriptEditorViewport::_restore_state()
     Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
     if (cache.is_valid())
     {
-        const Dictionary& state = cache->get_script_state(_orchestration->get_self()->get_path());
+        const Dictionary& state = cache->get_script_state(_orchestration->get_orchestration_path());
 
         // Restores graph state
         if (state.has("graphs"))
@@ -550,7 +564,7 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
 
     if (p_what == NOTIFICATION_READY)
     {
-        _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_orchestration));
+        _graphs = memnew(OrchestratorScriptGraphsComponentPanel(_orchestration.ptr()));
         _graphs->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_show_graph));
         _graphs->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_close_graph));
         _graphs->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_focus_node));
@@ -559,7 +573,7 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
         _component_container->add_child(_graphs);
 
         Callable create_func = callable_mp(this, &OrchestratorScriptEditorViewport::_create_new_function);
-        _functions = memnew(OrchestratorScriptFunctionsComponentPanel(_orchestration, create_func));
+        _functions = memnew(OrchestratorScriptFunctionsComponentPanel(_orchestration.ptr(), create_func));
         _functions->connect("show_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_show_graph));
         _functions->connect("close_graph_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_close_graph));
         _functions->connect("focus_node_requested", callable_mp(this, &OrchestratorScriptEditorViewport::_focus_node));
@@ -568,17 +582,19 @@ void OrchestratorScriptEditorViewport::_notification(int p_what)
         _functions->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_functions);
 
-        _macros = memnew(OrchestratorScriptMacrosComponentPanel(_orchestration));
+        _macros = memnew(OrchestratorScriptMacrosComponentPanel(_orchestration.ptr()));
         _macros->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_macros);
 
-        _variables = memnew(OrchestratorScriptVariablesComponentPanel(_orchestration));
+        _variables = memnew(OrchestratorScriptVariablesComponentPanel(_orchestration.ptr()));
         _variables->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_variables);
 
-        _signals = memnew(OrchestratorScriptSignalsComponentPanel(_orchestration));
+        _signals = memnew(OrchestratorScriptSignalsComponentPanel(_orchestration.ptr()));
         _signals->connect("scroll_to_item", callable_mp(this, &OrchestratorScriptEditorViewport::_scroll_to_item));
         _component_container->add_child(_signals);
+
+        _orchestration->connect("reloaded", callable_mp(this, &OrchestratorScriptEditorViewport::_reload_all));
 
         // Always open the event graph
         _event_graph = _get_or_create_tab(EVENT_GRAPH_NAME);
