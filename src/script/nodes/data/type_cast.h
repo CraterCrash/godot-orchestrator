@@ -22,13 +22,13 @@
 using namespace godot;
 
 /// Represents a type cast.
-class OScriptNodeTypeCast : public OScriptNode
-{
+class OScriptNodeTypeCast : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeTypeCast, OScriptNode);
-    static void _bind_methods() { }
+
+    String _target_type{ "Object" };
 
 protected:
-    String _target_type{ "Object" };
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -52,7 +52,6 @@ public:
     String get_node_title_color_name() const override { return "type_cast"; }
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface

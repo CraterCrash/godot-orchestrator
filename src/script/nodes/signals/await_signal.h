@@ -28,9 +28,10 @@
 /// This node requires two inputs, the object that will emit the signal and the signal name
 /// that should cause the yield until it is raised.
 ///
-class OScriptNodeAwaitSignal : public OScriptNode
-{
+class OScriptNodeAwaitSignal : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeAwaitSignal, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -39,7 +40,6 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "signals"; }
-    OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
     void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
     PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;

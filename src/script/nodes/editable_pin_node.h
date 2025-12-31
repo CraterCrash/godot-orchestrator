@@ -21,12 +21,11 @@
 
 /// An abstract implementation of OScriptNode that allows for editable pins
 /// to be added or removed from the node.
-class OScriptEditablePinNode : public OScriptNode
-{
+class OScriptEditablePinNode : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptEditablePinNode, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
 
     /// Adjust this node's connections after a pin has been removed.
     /// @param p_start_offset the slot offset to start adjustments

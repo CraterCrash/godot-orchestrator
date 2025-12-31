@@ -14,117 +14,103 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "call_script_function.h"
+#include "script/nodes/functions/call_script_function.h"
 
-void OScriptNodeCallScriptFunction::_on_function_changed()
-{
-    if (_function.is_valid())
+void OScriptNodeCallScriptFunction::_on_function_changed() {
+    if (_function.is_valid()) {
         _reference.method = _function->get_method_info();
-
+    }
     reconstruct_node();
 }
 
-MethodInfo OScriptNodeCallScriptFunction::get_method_info()
-{
-    if (_function.is_valid())
+MethodInfo OScriptNodeCallScriptFunction::get_method_info() {
+    if (_function.is_valid()) {
         return _function->get_method_info();
-
+    }
     ERR_PRINT(vformat("Script function node has an invalid function %s", _reference.guid));
     return {};
 }
 
-int OScriptNodeCallScriptFunction::get_argument_count() const
-{
-    if (_function.is_valid())
+int OScriptNodeCallScriptFunction::get_argument_count() const {
+    if (_function.is_valid()) {
         return _function->get_argument_count();
-
+    }
     ERR_PRINT(vformat("Script function node has an invalid function %s", _reference.guid));
     return 0;
 }
 
-void OScriptNodeCallScriptFunction::post_initialize()
-{
-    if (_reference.guid.is_valid())
-    {
+void OScriptNodeCallScriptFunction::post_initialize() {
+    if (_reference.guid.is_valid()) {
         _function = get_orchestration()->find_function(_reference.guid);
-        if (_function.is_valid())
-        {
+        if (_function.is_valid()) {
             _reference.method = _function->get_method_info();
             _function_flags.set_flag(FF_IS_SELF);
-            if (_is_in_editor())
-            {
+            if (_is_in_editor()) {
                 Callable callable = callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed);
-                if (!_function->is_connected("changed", callable))
+                if (!_function->is_connected("changed", callable)) {
                     _function->connect("changed", callable);
+                }
             }
         }
     }
     super::post_initialize();
 }
 
-void OScriptNodeCallScriptFunction::post_placed_new_node()
-{
+void OScriptNodeCallScriptFunction::post_placed_new_node() {
     super::post_placed_new_node();
-    if (_function.is_valid() && _is_in_editor())
-    {
+    if (_function.is_valid() && _is_in_editor()) {
         Callable callable = callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed);
-        if (!_function->is_connected("changed", callable))
+        if (!_function->is_connected("changed", callable)) {
             _function->connect("changed", callable);
+        }
     }
 }
 
-String OScriptNodeCallScriptFunction::get_tooltip_text() const
-{
+String OScriptNodeCallScriptFunction::get_tooltip_text() const {
     return vformat("Target is %s", get_orchestration()->get_base_type());
 }
 
-String OScriptNodeCallScriptFunction::get_node_title() const
-{
-    if (_function.is_valid())
+String OScriptNodeCallScriptFunction::get_node_title() const {
+    if (_function.is_valid()) {
         return vformat("%s", _function->get_function_name().capitalize());
-
+    }
     return super::get_node_title();
 }
 
-Object* OScriptNodeCallScriptFunction::get_jump_target_for_double_click() const
-{
-    if (_function.is_valid())
+Object* OScriptNodeCallScriptFunction::get_jump_target_for_double_click() const {
+    if (_function.is_valid()) {
         return _function.ptr();
-
+    }
     return super::get_jump_target_for_double_click();
 }
 
-bool OScriptNodeCallScriptFunction::can_jump_to_definition() const
-{
+bool OScriptNodeCallScriptFunction::can_jump_to_definition() const {
     return get_jump_target_for_double_click() != nullptr;
 }
 
-void OScriptNodeCallScriptFunction::validate_node_during_build(BuildLog& p_log) const
-{
+void OScriptNodeCallScriptFunction::validate_node_during_build(BuildLog& p_log) const {
     super::validate_node_during_build(p_log);
 
-    if (!_function.is_valid())
+    if (!_function.is_valid()) {
         p_log.error(this, "There is no function instance defined.");
+    }
 }
 
-bool OScriptNodeCallScriptFunction::can_inspect_node_properties() const
-{
-    if (_function.is_valid() && !_function->get_function_name().is_empty())
-    {
-        if (get_orchestration()->has_graph(_function->get_function_name()))
+bool OScriptNodeCallScriptFunction::can_inspect_node_properties() const {
+    if (_function.is_valid() && !_function->get_function_name().is_empty()) {
+        if (get_orchestration()->has_graph(_function->get_function_name())) {
             return true;
+        }
     }
     return false;
 }
 
-void OScriptNodeCallScriptFunction::initialize(const OScriptNodeInitContext& p_context)
-{
+void OScriptNodeCallScriptFunction::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.method, "Failed to initialize CallScriptFunction without a MethodInfo");
 
     const MethodInfo& mi = p_context.method.value();
     _function = get_orchestration()->find_function(mi.name);
-    if (_function.is_valid())
-    {
+    if (_function.is_valid()) {
         _reference.guid = _function->get_guid();
         _reference.method = _function->get_method_info();
         _function_flags.set_flag(FF_IS_SELF);

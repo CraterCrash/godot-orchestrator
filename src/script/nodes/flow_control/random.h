@@ -20,13 +20,13 @@
 #include "script/nodes/editable_pin_node.h"
 
 /// A simple node implementation that picks one of the specified outputs at random.
-class OScriptNodeRandom : public OScriptEditablePinNode
-{
+class OScriptNodeRandom : public OScriptEditablePinNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeRandom, OScriptEditablePinNode);
-    static void _bind_methods() { }
+
+    int _possibilities = 1;
 
 protected:
-    int _possibilities = 1;
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -41,7 +41,6 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     void pin_default_value_changed(const Ref<OScriptNodePin>& p_pin) override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
@@ -51,6 +50,8 @@ public:
     void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) override;
     String get_pin_prefix() const override { return "Choice"; }
     //~ End OScriptEditablePinNode Interface
+
+    int get_possibility_count() const { return _possibilities; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_RANDOM_H

@@ -20,10 +20,10 @@
 #include "script/nodes/editable_pin_node.h"
 
 /// A node that executes each output execution pin in sequential order.
-class OScriptNodeSequence : public OScriptEditablePinNode
-{
+class OScriptNodeSequence : public OScriptEditablePinNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSequence, OScriptEditablePinNode);
-    static void _bind_methods() { }
+
+    int _steps = 2;  //! The number of sequence steps
 
 public:
     enum InsertPosition
@@ -33,7 +33,7 @@ public:
     };
 
 protected:
-    int _steps{ 2 };  //! The number of sequence steps
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -48,7 +48,6 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface

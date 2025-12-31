@@ -41,22 +41,22 @@ class OScriptNode;
 /// This object should not be managed directly in the InspectorDock but rather the various nodes
 /// that hold a reference should act as a delegate for managing the function's state.
 ///
-class OScriptFunction : public Resource
-{
+class OScriptFunction : public Resource {
     friend class Orchestration;
 
     GDCLASS(OScriptFunction, Resource);
-    static void _bind_methods() { }
 
-    Orchestration* _orchestration{ nullptr };  //! Owning orchestration
+    Orchestration* _orchestration = nullptr;   //! Owning orchestration
     Guid _guid;                                //! Unique function id
     MethodInfo _method;                        //! The function definition
-    bool _user_defined{ false };               //! Whether function is user-defined
-    int _owning_node_id{ -1 };                 //! Owning node id
-    bool _returns_value{ false };              //! Whether the function returns a value
+    bool _user_defined = false;                //! Whether function is user-defined
+    int _owning_node_id = -1;                  //! Owning node id
+    bool _returns_value = false;               //! Whether the function returns a value
     String _description;                       //! Optional description for a function
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value);
@@ -120,6 +120,13 @@ public:
     /// Get the function graph
     /// @return the graph this function is associated with
     Ref<OScriptGraph> get_function_graph() const;
+
+    /// Locates the specific graph this function is defined within
+    /// The <code>get_function_graph</code> only returns graphs if the function declaration is defined
+    /// as a user-defined function; meaning that event functions won't have a return value. For this,
+    /// this method will always return a value, as the graph that contains the function entry point.
+    /// @return the graph the function is defined within.
+    Ref<OScriptGraph> get_graph() const;
 
     /// Return the function definition as a Dictionary that contains a MethodInfo definition.
     /// In addition, the dictionary will include two custom properties,  "_oscript_guid" and

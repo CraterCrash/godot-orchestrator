@@ -26,12 +26,11 @@ using namespace godot;
 /// In Godot, there are numerous built-in events such as '_ready' or '_process'
 /// and this node simulates those.
 ///
-class OScriptNodeEvent : public OScriptNodeFunctionEntry
-{
+class OScriptNodeEvent : public OScriptNodeFunctionEntry {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEvent, OScriptNodeFunctionEntry);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
 
     //~ Begin OScriptNodeFunctionTerminator Interface
     bool _is_inputs_outputs_mutable() const override { return false; }

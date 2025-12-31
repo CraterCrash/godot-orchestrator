@@ -131,10 +131,12 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
             $<${compiler_is_gnu}:
                 -Wno-attributes
                 -Wno-attributes=r1::
+                -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
             >
             $<${compiler_is_clang}:
                 -Wno-ignored-attributes
                 -Wno-unknown-attributes
+                -ffile-prefix-map=${CMAKE_SOURCE_DIR}/=
             >
             $<$<CONFIG:Debug>:
                 -g

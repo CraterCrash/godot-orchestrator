@@ -21,13 +21,13 @@
 #include "script/nodes/editable_pin_node.h"
 
 /// Creates a new array
-class OScriptNodeMakeArray : public OScriptEditablePinNode
-{
+class OScriptNodeMakeArray : public OScriptEditablePinNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeMakeArray, OScriptEditablePinNode);
-    static void _bind_methods() { }
+
+    int _element_count = 0;
 
 protected:
-    int _element_count{ 0 };
+    static void _bind_methods() { }
 
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
@@ -42,7 +42,7 @@ public:
     String get_node_title_color_name() const override { return "constants_and_literals"; }
     String get_icon() const override;
     void pin_default_value_changed(const Ref<OScriptNodePin>& p_pin) override;
-    OScriptNodeInstance* instantiate() override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
@@ -54,15 +54,15 @@ public:
 };
 
 /// A node that gets a specific element at a given index within an array.
-class OScriptNodeArrayGet : public OScriptNode
-{
+class OScriptNodeArrayGet : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayGet, OScriptNode);
-    static void _bind_methods() { }
+
+    Variant::Type _collection_type = Variant::ARRAY;
+    Variant::Type _index_type = Variant::NIL;
+    String _collection_name = "Array";
 
 protected:
-    Variant::Type _collection_type{ Variant::ARRAY };
-    Variant::Type _index_type{ Variant::NIL };
-    String _collection_name{ "Array" };
+    static void _bind_methods() { }
 
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
@@ -76,21 +76,21 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
+    bool is_pure() const override { return true; }
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };
 
 /// A node that sets a specific element at a given index within an array.
-class OScriptNodeArraySet : public OScriptNode
-{
+class OScriptNodeArraySet : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArraySet, OScriptNode);
-    static void _bind_methods() { }
+
+    Variant::Type _collection_type = Variant::ARRAY;
+    Variant::Type _index_type = Variant::NIL;
+    String _collection_name = "Array";
 
 protected:
-    Variant::Type _collection_type{ Variant::ARRAY };
-    Variant::Type _index_type{ Variant::NIL };
-    String _collection_name{ "Array" };
+    static void _bind_methods() { }
 
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
@@ -104,18 +104,17 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };
 
 /// A node that looks for a given item in an array returning the index if found.
-class OScriptNodeArrayFind : public OScriptNode
-{
+class OScriptNodeArrayFind : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayFind, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
@@ -127,14 +126,15 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 };
 
 /// A node that clears the contents of a given array.
-class OScriptNodeArrayClear : public OScriptNode
-{
+class OScriptNodeArrayClear : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayClear, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -144,15 +144,15 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 
 
 /// A node that takes two nodes and appends the second into the first.
-class OScriptNodeArrayAppend : public OScriptNode
-{
+class OScriptNodeArrayAppend : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayAppend, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -162,17 +162,16 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 
 /// A node that adds an element to an existing array.
-class OScriptNodeArrayAddElement : public OScriptNode
-{
+class OScriptNodeArrayAddElement : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayAddElement, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
@@ -184,17 +183,16 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 
 /// A node that removes an element from an existing array.
-class OScriptNodeArrayRemoveElement : public OScriptNode
-{
+class OScriptNodeArrayRemoveElement : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayRemoveElement, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
@@ -206,14 +204,14 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 
 /// A node that removes an element by index from an existing array.
-class OScriptNodeArrayRemoveIndex : public OScriptNode
-{
+class OScriptNodeArrayRemoveIndex : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeArrayRemoveIndex, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -223,7 +221,6 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 

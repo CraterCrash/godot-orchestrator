@@ -21,13 +21,13 @@
 #include "api/extension_db.h"
 
 /// A node that accepts a set of inputs and performs an operation.
-class OScriptNodeOperator : public OScriptNode
-{
+class OScriptNodeOperator : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeOperator, OScriptNode);
-    static void _bind_methods();
+
+    OperatorInfo _info;
 
 protected:
-    OperatorInfo _info; //! Operator information
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -38,6 +38,8 @@ protected:
     String _get_expression() const;
     bool _is_unary() const;
 
+    bool _should_expand_instead_compile() const;
+
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
@@ -46,10 +48,12 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "math_operations"; }
     String get_icon() const override { return "Translation"; }
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override;
     //~ End OScriptNode Interface
+
+    const OperatorInfo& get_info() { return _info; }
 
     /// Returns whether the type is supported.
     /// @param p_type the type

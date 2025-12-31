@@ -56,7 +56,6 @@
 #include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
-#include "script/serialization/text_loader_instance.h"
 
 void register_editor_types()
 {

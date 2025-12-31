@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/version.h"
+#include "script/script_warning.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
 
@@ -165,6 +166,16 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(RANGE_SETTING("settings/runtime/max_call_stack", "256,1024,256", 1024));
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
     _settings.emplace_back(SENUM_SETTING("settings/runtime/print_string_scale", "75%,100%,125%,150%,175%,200%,225%,250%,275%,300%,325%,350%,375%,400%", "100%"));
+
+    // Debugging
+    #ifdef DEBUG_ENABLED
+    _settings.emplace_back(BOOL_SETTING("debug/warnings/enable", true));
+    for (int i = 0; i < static_cast<int>(OScriptWarning::WARNING_MAX); i++) {
+        const OScriptWarning::Code code = static_cast<OScriptWarning::Code>(i);
+        const Variant default_value = OScriptWarning::get_default_value(code);
+        _settings.emplace_back(OScriptWarning::get_property_info(code), default_value);
+    }
+    #endif
 
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/close_on_focus_lost", false));

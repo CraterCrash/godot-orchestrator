@@ -20,19 +20,19 @@
 #include "script/script.h"
 
 /// Provides the ability to add a comment/text section with a frame around existing nodes.
-class OScriptNodeComment : public OScriptNode
-{
+class OScriptNodeComment : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeComment, OScriptNode);
-    static void _bind_methods() { }
+
+    String _comments;
+    String _title = "Comment";
+    String _icon;
+    bool _align_center = false;
+    Color _background_color = Color(0.6, 0.6, 0.6, 0.05);
+    Color _text_color = Color(1.0, 1.0, 1.0, 1.0);
+    int _font_size = 0;
 
 protected:
-    String _comments;
-    String _title{ "Comment" };
-    String _icon;
-    bool _align_center{ false };
-    Color _background_color{ 0.6, 0.6, 0.6, 0.05 };
-    Color _text_color{ 1.0, 1.0, 1.0, 1.0 };
-    int _font_size{ 0 };
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo> *r_list) const;
