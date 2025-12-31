@@ -24,7 +24,6 @@
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/window_wrapper.h"
 #include "script/script.h"
-#include "script/serialization/text_loader_instance.h"
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
@@ -79,8 +78,10 @@ void OrchestratorPlugin::_notification(int p_what)
 
         // Register the plugin's icon for CreateScript Dialog
         Ref<Theme> theme = get_editor_interface()->get_editor_theme();
-        if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons"))
+        if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons")) {
             theme->set_icon(_get_plugin_name(), "EditorIcons", _get_plugin_icon());
+            theme->set_icon(OScriptLanguage::get_singleton()->_get_type(), "EditorIcons", _get_plugin_icon());
+        }
 
         _editor_cache.instantiate();
         _editor_cache->load();
@@ -165,7 +166,7 @@ String OrchestratorPlugin::_get_plugin_name() const
 
 Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const
 {
-    return ResourceLoader::get_singleton()->load(OScriptLanguage::ICON);
+    return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_16x16.png");
 }
 
 String OrchestratorPlugin::get_plugin_online_documentation_url() const

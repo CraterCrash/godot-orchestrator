@@ -19,22 +19,20 @@
 
 #include "script/nodes/editable_pin_node.h"
 
-struct OScriptFunctionReference
-{
+struct OScriptFunctionReference {
     Guid guid;                                  //! The function's GUID, only applicable for script functions
     MethodInfo method;                          //! The godot method reference
-    Variant::Type target_type{ Variant::NIL };  //! The target type
+    Variant::Type target_type = Variant::NIL;   //! The target type
     String target_class_name;                   //! The target class name
 };
 
 /// Represents a call to a function.
 ///
-class OScriptNodeCallFunction : public OScriptEditablePinNode
-{
+class OScriptNodeCallFunction : public OScriptEditablePinNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCallFunction, OScriptEditablePinNode);
-    static void _bind_methods();
 
 public:
+    // clang-format off
     enum FunctionFlags
     {
         FF_NONE         = 0,        //! No flags
@@ -49,13 +47,16 @@ public:
         FF_EDITOR       = 1 << 8,   //! Function is an editor method
         FF_TARGET       = 1 << 9,   //! Function has a target object
     };
+    // clang-format on
 
 protected:
-    BitField<FunctionFlags> _function_flags{ FF_NONE };  //! Function flags
+    static void _bind_methods();
+
+    BitField<FunctionFlags> _function_flags = FF_NONE;   //! Function flags
     OScriptFunctionReference _reference;                 //! Function reference
-    int _vararg_count{ 0 };                              //! Variable argument count
-    bool _chain{ false };                                //! If the node should chain function calls
-    bool _chainable{ false };                            //! Whether the node is chainable
+    int _vararg_count = 0;                               //! Variable argument count
+    bool _chain = false;                                 //! If the node should chain function calls
+    bool _chainable = false;                             //! Whether the node is chainable
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -115,9 +116,9 @@ public:
     void post_initialize() override;
     void allocate_default_pins() override;
     String get_icon() const override { return "MemberMethod"; }
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
@@ -128,7 +129,9 @@ public:
     void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptEditablePinNode Interface
 
-    OScriptNodeCallFunction() { _flags = ScriptNodeFlags::NONE; }
+    bool is_chained() const { return _chain; }
+
+    OScriptNodeCallFunction() { _flags = NONE; }
 };
 
 VARIANT_ENUM_CAST(OScriptNodeCallFunction::FunctionFlags)

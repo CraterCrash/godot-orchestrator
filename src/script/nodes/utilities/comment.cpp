@@ -14,12 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "comment.h"
+#include "script/nodes/utilities/comment.h"
 
 #include "common/string_utils.h"
 
-void OScriptNodeComment::_get_property_list(List<PropertyInfo>* r_list) const
-{
+void OScriptNodeComment::_get_property_list(List<PropertyInfo>* r_list) const {
     const String movement_modes = "Group Movement,Comment";
 
     r_list->push_back(PropertyInfo(Variant::STRING, "title"));
@@ -31,86 +30,60 @@ void OScriptNodeComment::_get_property_list(List<PropertyInfo>* r_list) const
     r_list->push_back(PropertyInfo(Variant::STRING, "comments", PROPERTY_HINT_MULTILINE_TEXT));
 }
 
-bool OScriptNodeComment::_get(const StringName& p_name, Variant& r_value) const
-{
-    if (p_name.match("comments"))
-    {
+bool OScriptNodeComment::_get(const StringName& p_name, Variant& r_value) const {
+    if (p_name.match("comments")) {
         r_value = _comments;
         return true;
-    }
-    else if (p_name.match("align_center"))
-    {
+    } else if (p_name.match("align_center")) {
         r_value = _align_center;
         return true;
-    }
-    else if (p_name.match("background_color"))
-    {
+    } else if (p_name.match("background_color")) {
         r_value = _background_color;
         return true;
-    }
-    else if (p_name.match("font_size"))
-    {
+    } else if (p_name.match("font_size")) {
         r_value = _font_size;
         return true;
-    }
-    else if (p_name.match("text_color"))
-    {
+    } else if (p_name.match("text_color")) {
         r_value = _text_color;
         return true;
-    }
-    else if (p_name.match("title"))
-    {
+    } else if (p_name.match("title")) {
         r_value = _title;
         return true;
-    }
-    else if (p_name.match("icon"))
-    {
+    } else if (p_name.match("icon")) {
         r_value = _icon;
         return true;
     }
     return false;
 }
 
-bool OScriptNodeComment::_set(const StringName& p_name, const Variant& p_value)
-{
-    if (p_name.match("comments"))
-    {
+bool OScriptNodeComment::_set(const StringName& p_name, const Variant& p_value) {
+    if (p_name.match("comments")) {
         _comments = p_value;
         _notify_pins_changed();
         return true;
     }
-    else if (p_name.match("align_center"))
-    {
+    else if (p_name.match("align_center")) {
         _align_center = p_value;
         _notify_pins_changed();
         return true;
     }
-    else if (p_name.match("background_color"))
-    {
+    else if (p_name.match("background_color")) {
         _background_color = p_value;
         _notify_pins_changed();
         return true;
-    }
-    else if (p_name.match("font_size"))
-    {
+    } else if (p_name.match("font_size")) {
         _font_size = p_value;
         _notify_pins_changed();
         return true;
-    }
-    else if (p_name.match("text_color"))
-    {
+    } else if (p_name.match("text_color")) {
         _text_color = p_value;
         _notify_pins_changed();
         return true;
-    }
-    else if (p_name.match("title"))
-    {
+    } else if (p_name.match("title")) {
         _title = p_value;
         _notify_pins_changed();
         return true;
-    }
-    else if (p_name.match("icon"))
-    {
+    } else if (p_name.match("icon")) {
         _icon = p_value;
         _notify_pins_changed();
         return true;
@@ -118,20 +91,18 @@ bool OScriptNodeComment::_set(const StringName& p_name, const Variant& p_value)
     return false;
 }
 
-String OScriptNodeComment::get_tooltip_text() const
-{
-    if (!_comments.is_empty())
+String OScriptNodeComment::get_tooltip_text() const {
+    if (!_comments.is_empty()) {
         return _comments;
-    else
+    } else {
         return "Adds comment functionality to the node graph.";
+    }
 }
 
-String OScriptNodeComment::get_node_title() const
-{
+String OScriptNodeComment::get_node_title() const {
     return _title;
 }
 
-String OScriptNodeComment::get_icon() const
-{
+String OScriptNodeComment::get_icon() const {
     return StringUtils::default_if_empty(_icon, "VisualShaderNodeComment");
 }

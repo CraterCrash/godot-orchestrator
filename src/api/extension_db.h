@@ -53,6 +53,7 @@ namespace godot
 		PropertyInfo return_val;
 		StringName category;
 		bool is_vararg{ false };
+		int64_t hash{ 0 };
 		Vector<PropertyInfo> arguments;
 	};
 	
@@ -97,6 +98,7 @@ namespace godot
 		Vector<ConstantInfo> constants;
 		Vector<EnumInfo> enums;
 		Variant::Type index_returning_type{ Variant::NIL };
+		HashMap<StringName, int64_t> method_hashes;
 	};
 	
 	/// Describes a Godot Class

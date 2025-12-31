@@ -14,25 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "branch.h"
+#include "script/nodes/flow_control/branch.h"
 
 #include "common/property_utils.h"
 
-class OScriptNodeBranchInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeBranch);
-
-public:
-    int step(OScriptExecutionContext& p_context) override
-    {
-        return p_context.get_input(0) ? 0 : 1;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void OScriptNodeBranch::allocate_default_pins()
-{
+void OScriptNodeBranch::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"))->set_label("if [condition]");
     create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("condition", Variant::BOOL), false);
 
@@ -42,24 +28,15 @@ void OScriptNodeBranch::allocate_default_pins()
     super::allocate_default_pins();
 }
 
-String OScriptNodeBranch::get_tooltip_text() const
-{
+String OScriptNodeBranch::get_tooltip_text() const {
     return "If condition is true, execution goes to true; otherwise, it goes to false.";
 }
 
-String OScriptNodeBranch::get_node_title() const
-{
+String OScriptNodeBranch::get_node_title() const {
     return "Branch";
 }
 
-String OScriptNodeBranch::get_icon() const
-{
+String OScriptNodeBranch::get_icon() const {
     return "VcsBranches";
 }
 
-OScriptNodeInstance* OScriptNodeBranch::instantiate()
-{
-    OScriptNodeBranchInstance* i = memnew(OScriptNodeBranchInstance);
-    i->_node = this;
-    return i;
-}

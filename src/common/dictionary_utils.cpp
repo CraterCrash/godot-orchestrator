@@ -16,10 +16,6 @@
 //
 #include "dictionary_utils.h"
 
-#include "memory_utils.h"
-
-#include <godot_cpp/variant/utility_functions.hpp>
-
 namespace DictionaryUtils
 {
     bool is_property_equal(const PropertyInfo& p_left, const PropertyInfo& p_right)
@@ -88,20 +84,6 @@ namespace DictionaryUtils
             dict["usage"] = usage;
 
         return dict;
-    }
-
-    GDExtensionPropertyInfo to_extension_property(const Dictionary& p_dict)
-    {
-        PropertyInfo pi = to_property(p_dict);
-
-        GDExtensionPropertyInfo gpi;
-        gpi.class_name = MemoryUtils::memnew_stringname(pi.class_name);
-        gpi.name = MemoryUtils::memnew_stringname(pi.name);
-        gpi.type = GDExtensionVariantType(pi.type);
-        gpi.hint = pi.hint;
-        gpi.hint_string = MemoryUtils::memnew_string(pi.hint_string);
-        gpi.usage = pi.usage;
-        return gpi;
     }
 
     MethodInfo to_method(const Dictionary& p_dict)

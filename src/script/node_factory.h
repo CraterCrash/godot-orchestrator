@@ -27,20 +27,17 @@ class Orchestration;
 class OScriptNode;
 
 /// Factory that stores and provides a way to create OScriptNode instances
-class OScriptNodeFactory
-{
+class OScriptNodeFactory {
     // Describes a registered script node that provides functionality
-    struct ScriptNodeInfo
-    {
-        StringName name; //! Name of this node
-        StringName inherits; //! Name of parent script node
-        ScriptNodeInfo* inherits_ptr{ nullptr }; //! Parent script node type
-        void* class_ptr{ nullptr }; //!
-
-        Object* (*creation_func)() { nullptr }; //! Function used to create instance of node
+    struct ScriptNodeInfo {
+        StringName name;
+        StringName inherits;
+        ScriptNodeInfo* inherits_ptr = nullptr;
+        void* class_ptr = nullptr;
+        Object* (*creation_func)() = nullptr;
     };
 
-    static HashMap<StringName, ScriptNodeInfo> _nodes; //! Registry of nodes
+    static HashMap<StringName, ScriptNodeInfo> _nodes;
 
     /// Standard creator method for nodes
     /// @tparam T the node class type
@@ -64,8 +61,7 @@ public:
     /// Adds a node class to the factory by type
     /// @tparam T the node class type
     template <class T>
-    static void add_node_class()
-    {
+    static void add_node_class() {
         const bool is_base_node = _is_base_node_type(T::get_class_static());
         _add_node_class(T::get_class_static(), is_base_node ? StringName() : T::get_parent_class_static());
     }
@@ -73,8 +69,7 @@ public:
     /// Registers the node class with the factory
     /// @tparam T the node class type
     template <typename T>
-    static void register_node_class()
-    {
+    static void register_node_class() {
         static_assert(TypesAreSame<typename T::self_node_type, T>::value,
               "Node not declared properly, please use ORCHESTRATOR_CLASS.");
 
@@ -102,11 +97,10 @@ public:
     /// @param p_owner the orchestration that should own the node instance
     /// @return the node reference
     template <typename T>
-    static Ref<T> create_node_from_type(Orchestration* p_owner)
-    {
-        if (_nodes.has(T::get_class_static()))
+    static Ref<T> create_node_from_type(Orchestration* p_owner) {
+        if (_nodes.has(T::get_class_static())) {
             return create_node_from_name(T::get_class_static(), p_owner);
-
+        }
         ERR_FAIL_V_MSG(Ref<T>(), "No node definition found with class type: " + T::get_class_static());
     }
 };
@@ -118,8 +112,7 @@ private:                                                                        
 public:                                                                                             \
     typedef m_class self_node_type;                                                                 \
     typedef m_inherits super;                                                                       \
-    static _FORCE_INLINE_ void* get_orchestrator_node_ptr_static()                                  \
-    {                                                                                               \
+    static _FORCE_INLINE_ void* get_orchestrator_node_ptr_static() {                                \
         static int ptr;                                                                             \
         return &ptr;                                                                                \
     }
@@ -127,30 +120,26 @@ public:                                                                         
 #define ORCHESTRATOR_NODE_CLASS_BASE(m_class, m_inherits) /***************************************/ \
     ORCHESTRATOR_NODE_CLASS_COMMON(m_class, m_inherits);                                            \
 public:                                                                                             \
-    static void initialize_orchestrator_class()                                                     \
-    {                                                                                               \
+    static void initialize_orchestrator_class() {                                                   \
         static bool orchestrator_initialized = false;                                               \
-        if (orchestrator_initialized)                                                               \
-        {                                                                                           \
+        if (orchestrator_initialized) {                                                             \
             return;                                                                                 \
         }                                                                                           \
         OScriptNodeFactory::add_node_class<m_class>();                                              \
         orchestrator_initialized = true;                                                            \
     }                                                                                               \
 protected:                                                                                          \
-    virtual void _initialize_orchestator_classv()                                                   \
-    {                                                                                               \
+    virtual void _initialize_orchestator_classv() {                                                 \
         initialize_orchestrator_class();                                                            \
-    }
+    }                                                                                               \
+private:
 
 #define ORCHESTRATOR_NODE_CLASS(m_class, m_inherits) /********************************************/ \
     ORCHESTRATOR_NODE_CLASS_COMMON(m_class, m_inherits);                                            \
 public:                                                                                             \
-    static void initialize_orchestrator_class()                                                     \
-    {                                                                                               \
+    static void initialize_orchestrator_class() {                                                   \
         static bool orchestrator_initialized = false;                                               \
-        if (orchestrator_initialized)                                                               \
-        {                                                                                           \
+        if (orchestrator_initialized) {                                                             \
             return;                                                                                 \
         }                                                                                           \
         m_inherits::initialize_orchestrator_class();                                                \
@@ -158,8 +147,7 @@ public:                                                                         
         orchestrator_initialized = true;                                                            \
     }                                                                                               \
 protected:                                                                                          \
-    virtual void _initialize_orchestator_classv() override                                          \
-    {                                                                                               \
+    virtual void _initialize_orchestator_classv() override {                                        \
         initialize_orchestrator_class();                                                            \
     }                                                                                               \
 private:

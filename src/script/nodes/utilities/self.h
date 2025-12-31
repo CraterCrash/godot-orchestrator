@@ -21,14 +21,14 @@
 
 /// A node that outputs a reference to self, which is the orchestration and the
 /// owning node of the OrchestratorScript instance.
-class OScriptNodeSelf : public OScriptNode
-{
+class OScriptNodeSelf : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSelf, OScriptNode);
-    static void _bind_methods() { }
 
-    void _on_script_changed();
+    void _on_base_type_changed();
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
@@ -45,8 +45,8 @@ public:
     bool should_draw_as_bead() const override { return true; }
     String get_icon() const override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 };
 

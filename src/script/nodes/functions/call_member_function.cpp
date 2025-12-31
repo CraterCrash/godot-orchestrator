@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "call_member_function.h"
+#include "script/nodes/functions/call_member_function.h"
 
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
@@ -27,92 +27,72 @@
 
 #include <godot_cpp/classes/node3d.hpp>
 
-OScriptNodeCallMemberFunction::OScriptNodeCallMemberFunction()
-{
-    _flags = ScriptNodeFlags::CATALOGABLE;
-    _function_flags.set_flag(FF_IS_SELF);
-}
-
-void OScriptNodeCallMemberFunction::_upgrade(uint32_t p_version, uint32_t p_current_version)
-{
-    if (p_version == 1 && p_current_version >= 2)
-    {
+void OScriptNodeCallMemberFunction::_upgrade(uint32_t p_version, uint32_t p_current_version) {
+    if (p_version == 1 && p_current_version >= 2) {
         Ref<OScriptNodePin> target = find_pin("target", PD_Input);
-        if (target.is_valid() && PropertyUtils::is_nil_no_variant(target->get_property_info()))
-        {
+        if (target.is_valid() && PropertyUtils::is_nil_no_variant(target->get_property_info())) {
             bool reconstruct = false;
-            if (target->has_any_connections())
-            {
+            if (target->has_any_connections()) {
                 // VariableGet missing class encoding - player.torch - _character property??
 
                 Ref<OScriptNodePin> source = target->get_connections()[0];
-                if (source.is_valid() && !source->get_property_info().class_name.is_empty())
-                {
+                if (source.is_valid() && !source->get_property_info().class_name.is_empty()) {
                     const String target_class = source->get_property_info().class_name;
-                    if (ClassDB::class_has_method(target_class, _reference.method.name))
-                    {
+                    if (ClassDB::class_has_method(target_class, _reference.method.name)) {
                         _reference.target_class_name = target_class;
                         _reference.target_type = Variant::OBJECT;
                         reconstruct = true;
                     }
-                }
-                else
-                {
+                } else {
                     // Can the target be resolved by traversing the target_class_name hierarchy
                     // If the method match is found, update the reference details
                     const String class_name = _get_method_class_hierarchy_owner(_reference.target_class_name, _reference.method.name);
-                    if (!class_name.is_empty())
-                    {
+                    if (!class_name.is_empty()) {
                         _reference.target_class_name = class_name;
                         _reference.target_type = Variant::OBJECT;
                         reconstruct = true;
                     }
                 }
-            }
-            else
-            {
+            } else {
                 // No connections, traverse base type hierarchy
                 const String class_name = _get_method_class_hierarchy_owner(get_orchestration()->get_base_type(), _reference.method.name);
-                if (!class_name.is_empty())
-                {
+                if (!class_name.is_empty()) {
                     _reference.target_class_name = class_name;
                     _reference.target_type = Variant::OBJECT;
                     reconstruct = true;
                 }
             }
 
-            if (reconstruct)
+            if (reconstruct) {
                 reconstruct_node();
+            }
         }
     }
 
     super::_upgrade(p_version, p_current_version);
 }
 
-Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin()
-{
+Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin() {
     PropertyInfo property;
     property.type = _reference.target_type;
     property.name = "target";
     property.hint = PROPERTY_HINT_NONE;
     property.usage = PROPERTY_USAGE_DEFAULT;
 
-    if (ClassDB::is_parent_class(_reference.target_class_name, RefCounted::get_class_static()))
-    {
+    if (ClassDB::is_parent_class(_reference.target_class_name, RefCounted::get_class_static())) {
         property.hint = PROPERTY_HINT_RESOURCE_TYPE;
         property.hint_string = _reference.target_class_name;
     }
 
-    if (property.type == Variant::OBJECT)
+    if (property.type == Variant::OBJECT) {
         property.class_name = _reference.target_class_name;
+    }
 
     // Create target pin
     Ref<OScriptNodePin> target = create_pin(PD_Input, PT_Data, property);
-    if (target.is_valid())
-    {
+    if (target.is_valid()) {
         _function_flags.set_flag(FF_TARGET);
-        if (property.type != Variant::OBJECT && !PropertyUtils::is_nil(property))
-        {
+        if (property.type != Variant::OBJECT && !PropertyUtils::is_nil(property)) {
             target->set_label(VariantUtils::get_friendly_type_name(property.type));
             target->no_pretty_format();
 
@@ -121,8 +101,7 @@ Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin()
             // "get_as_property_path" function on "NodePath", construct a NodePath and then connect that
             // node to a member function call for "get_as_property_path".
             target->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
-        }
-        else if (!property.class_name.is_empty())
+        } else if (!property.class_name.is_empty())
         {
             target->set_label(property.class_name);
             target->no_pretty_format();
@@ -135,20 +114,19 @@ Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin()
     return target;
 }
 
-StringName OScriptNodeCallMemberFunction::_get_method_class_hierarchy_owner(const String& p_class_name, const String& p_method_name)
-{
+StringName OScriptNodeCallMemberFunction::_get_method_class_hierarchy_owner(const String& p_class_name, const String& p_method_name) {
     String class_name = p_class_name;
-    while (!class_name.is_empty())
-    {
+    while (!class_name.is_empty()) {
         TypedArray<Dictionary> methods;
-        if (ScriptServer::is_global_class(class_name))
+        if (ScriptServer::is_global_class(class_name)) {
             methods = ScriptServer::get_global_class(class_name).get_method_list();
-        else
+        }
+        else {
             methods = ClassDB::class_get_method_list(class_name, true);
+        }
 
-        for (int index = 0; index < methods.size(); ++index)
-        {
-            const Dictionary& dict = methods[index];
+        for (const Variant& method : methods) {
+            const Dictionary& dict = method;
             if (dict.has("name") && p_method_name.match(dict["name"]))
                 return class_name;
         }
@@ -159,75 +137,62 @@ StringName OScriptNodeCallMemberFunction::_get_method_class_hierarchy_owner(cons
     return "";
 }
 
-String OScriptNodeCallMemberFunction::get_tooltip_text() const
-{
-    if (!_reference.method.name.is_empty())
+String OScriptNodeCallMemberFunction::get_tooltip_text() const {
+    if (!_reference.method.name.is_empty()) {
         return vformat("Calls the function '%s'", _reference.method.name);
-
+    }
     return "Calls the specified function";
 }
 
-String OScriptNodeCallMemberFunction::get_node_title() const
-{
-    if (!_reference.method.name.is_empty())
+String OScriptNodeCallMemberFunction::get_node_title() const {
+    if (!_reference.method.name.is_empty()) {
         return vformat("%s", _reference.method.name.capitalize());
-
+    }
     return super::get_node_title();
 }
 
-String OScriptNodeCallMemberFunction::get_node_title_color_name() const
-{
-    if (!ClassDB::class_exists(_reference.target_class_name))
+String OScriptNodeCallMemberFunction::get_node_title_color_name() const {
+    if (!ClassDB::class_exists(_reference.target_class_name)) {
         return "other_script_function_call";
-
+    }
     return "function_call";
 }
 
-String OScriptNodeCallMemberFunction::get_help_topic() const
-{
+String OScriptNodeCallMemberFunction::get_help_topic() const {
     #if GODOT_VERSION >= 0x040300
-    if (_reference.target_type != Variant::OBJECT)
-    {
+    if (_reference.target_type != Variant::OBJECT) {
         BuiltInType type = ExtensionDB::get_builtin_type(_reference.target_type);
         return vformat("class_method:%s:%s", type.name, _reference.method.name);
-    }
-    else
-    {
+    } else {
         const String class_name = MethodUtils::get_method_class(_reference.target_class_name, _reference.method.name);
-        if (!class_name.is_empty())
+        if (!class_name.is_empty()) {
             return vformat("class_method:%s:%s", class_name, _reference.method.name);
+        }
     }
     #endif
     return super::get_help_topic();
 }
 
-void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_context)
-{
+void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_context) {
     MethodInfo mi;
     StringName target_class = get_orchestration()->get_base_type();
     Variant::Type target_type = Variant::NIL;
-    if (p_context.user_data)
-    {
+    if (p_context.user_data) {
         // Built-in types supply target_type (Variant.Type) and "method" (dictionary)
         const Dictionary& data = p_context.user_data.value();
-        if (!data.has("target_type") && !data.has("method"))
-        {
+        if (!data.has("target_type") && !data.has("method")) {
             ERR_FAIL_MSG("Cannot initialize member function node, missing 'target_type' and 'method'");
         }
 
         target_type = VariantUtils::to_type(data["target_type"]);
         mi = DictionaryUtils::to_method(data["method"]);
         target_class = "";
-    }
-    else if (p_context.method && p_context.class_name)
-    {
+    } else if (p_context.method && p_context.class_name) {
         // Class-type member function call, includes 'class_name' and 'method' (MethodInfo)
         mi = p_context.method.value();
         target_class = p_context.class_name.value();
         target_type = Variant::OBJECT;
-    }
-    else
-    {
+    } else {
         ERR_FAIL_MSG("Cannot initialize member function node, missing attributes.");
     }
 
@@ -242,22 +207,20 @@ void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_c
     super::initialize(p_context);
 }
 
-void OScriptNodeCallMemberFunction::validate_node_during_build(BuildLog& p_log) const
-{
+void OScriptNodeCallMemberFunction::validate_node_during_build(BuildLog& p_log) const {
     const Ref<OScriptNodePin> target = find_pin("target", PD_Input);
-    if (target.is_valid())
-    {
+    if (target.is_valid()) {
         String target_class = target->get_property_info().class_name;
-        if (!target_class.is_empty() && !target->has_any_connections())
-            if (!ClassDB::is_parent_class(get_orchestration()->get_base_type(), target_class))
+        if (!target_class.is_empty() && !target->has_any_connections()) {
+            if (!ClassDB::is_parent_class(get_orchestration()->get_base_type(), target_class)) {
                 p_log.error(this, target, "Requires a connection.");
+            }
+        }
     }
-
     super::validate_node_during_build(p_log);
 }
 
-PackedStringArray OScriptNodeCallMemberFunction::get_suggestions(const Ref<OScriptNodePin>& p_pin)
-{
+PackedStringArray OScriptNodeCallMemberFunction::get_suggestions(const Ref<OScriptNodePin>& p_pin) {
     if (p_pin.is_valid() && p_pin->is_input() && p_pin->get_pin_name().match("signal"))
     {
         const MethodInfo method = get_method_info();
@@ -268,14 +231,18 @@ PackedStringArray OScriptNodeCallMemberFunction::get_suggestions(const Ref<OScri
         const bool object_is_connected = method.name.match("is_connected") && is_object;
         const bool object_emit_signal = method.name.match("emit_signal") && is_object;
 
-        if (object_connect || object_disconnect || object_is_connected || object_emit_signal)
-        {
+        if (object_connect || object_disconnect || object_is_connected || object_emit_signal) {
             const Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
-            if (target_pin.is_valid())
+            if (target_pin.is_valid()) {
                 return target_pin->resolve_signal_names(true);
+            }
         }
     }
 
     return super::get_suggestions(p_pin);
 }
 
+OScriptNodeCallMemberFunction::OScriptNodeCallMemberFunction() {
+    _flags = CATALOGABLE;
+    _function_flags.set_flag(FF_IS_SELF);
+}

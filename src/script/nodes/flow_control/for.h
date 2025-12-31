@@ -22,15 +22,15 @@
 /// Provides a basic for-loop construct based on start/end index values.
 /// These start/end index values can be supplied by a connecting node.
 ///
-class OScriptNodeForLoop : public OScriptNode
-{
+class OScriptNodeForLoop : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeForLoop, OScriptNode);
-    static void _bind_methods() { }
+
+    bool _with_break = false;   //! Whether break is enabled
+    int _start_index = 0;       //! Starting index
+    int _end_index = 10000;     //! Ending index
 
 protected:
-    bool _with_break{ false };  //! Whether break is enabled
-    int _start_index{ 0 };      //! Starting index
-    int _end_index{ 10000 };    //! Ending index
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -54,9 +54,10 @@ public:
     PackedStringArray get_keywords() const override { return Array::make("for", "loop"); }
     bool is_loop_port(int p_port) const override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    bool is_breakable() const { return _with_break; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_FOR_LOOP_H

@@ -24,17 +24,15 @@
 /// All function graphs contain a function entry node, it's mandatory. It represents
 /// the entrypoint into the function graph and the function itself.
 ///
-class OScriptNodeFunctionEntry : public OScriptNodeFunctionTerminator
-{
+class OScriptNodeFunctionEntry : public OScriptNodeFunctionTerminator {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeFunctionEntry, OScriptNodeFunctionTerminator);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     virtual bool _is_user_defined() const { return true; }
 
 public:
-    OScriptNodeFunctionEntry();
-
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
     bool can_user_delete_node() const override { return false; }
@@ -44,13 +42,14 @@ public:
     bool draw_node_as_entry() const override { return true; }
     bool can_duplicate() const override { return false; }
     bool can_create_user_defined_pin(EPinDirection p_direction, String& r_message) override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 
     /// Gets the execution pin for this function entry node
     /// @return the execution pin
     Ref<OScriptNodePin> get_execution_pin() const;
+
+    OScriptNodeFunctionEntry();
 };
 
 #endif  // ORCHESTRATOR_FUNCTION_ENTRY_H

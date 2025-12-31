@@ -143,6 +143,9 @@ private:
 protected:
     static void _bind_methods();
 
+    /// Sets the graph's connections
+    void _set_graph_connections();
+
     /// Move the selected nodes by the delta
     /// @param p_delta the delta to move selected nodes by
     void _move_selected(const Vector2& p_delta);
@@ -188,6 +191,10 @@ public:
     /// Godot callback that handles notifications
     /// @param p_what the notification to be handled
     void _notification(int p_what);
+
+    /// Sets the owning orchestration script graph.
+    /// @param the script graph reference, should always be valid
+    void set_owning_graph(const Ref<OScriptGraph>& p_graph);
 
     /// Get the owning orchestration script graph.
     /// @return the script graph reference, should always be valid
@@ -477,6 +484,11 @@ private:
 
     /// Validates and builds the script
     void _on_validate_and_build();
+
+    #ifdef DEV_TOOLS
+    /// Compiles and dumps the contents for the open script.
+    void _on_compile_and_dump();
+    #endif
 
     /// Dispatched when the user presses {@code Ctrl+C} to copy selected nodes to the clipboard.
     void _on_copy_nodes_request();

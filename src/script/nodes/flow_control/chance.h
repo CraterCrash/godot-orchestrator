@@ -22,11 +22,11 @@
 class OScriptNodeChance : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeChance, OScriptNode);
-    static void _bind_methods() { }
+
+    int _chance = 0;
 
 protected:
-
-    int _chance{ 0 };
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo> *r_list) const;
@@ -42,8 +42,9 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
+
+    int get_chance() const { return _chance; }
 
 };
 
