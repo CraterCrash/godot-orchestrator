@@ -346,7 +346,9 @@ Vector<PropertyInfo> GDE::Variant::get_property_list(const godot::Variant& p_val
     if (p_value.get_type() == godot::Variant::DICTIONARY) {
         Vector<PropertyInfo> properties;
         const Dictionary& dict = p_value;
-        for (const godot::Variant& key : dict.keys()) {
+        const Array keys = dict.keys();
+        for (uint32_t i = 0; i < keys.size(); i++) {
+            const godot::Variant& key = keys[i];
             if (key.get_type() == godot::Variant::STRING){
                 properties.push_back(PropertyInfo(dict.get(key, godot::Variant()).get_type(), key));
             }

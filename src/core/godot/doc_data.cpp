@@ -452,7 +452,9 @@ DocData::ClassDoc DocData::ClassDoc::from_dict(const Dictionary& p_dict) {
 	}
 
 	const Dictionary enums = p_dict.get("enums", Dictionary());
-    for (const Variant& key : enums.keys()) {
+    const Array keys = enums.keys();
+    for (uint32_t i = 0; i < keys.size(); i++) {
+        const Variant& key = keys[i];
         doc.enums[key] = EnumDoc::from_dict(enums[key]);
 	}
 
