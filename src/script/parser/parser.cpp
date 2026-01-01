@@ -588,7 +588,9 @@ bool OScriptParser::register_annotation(const MethodInfo& p_info, uint32_t p_tar
 
     AnnotationInfo new_annotation;
     new_annotation.info = p_info;
-    std::copy(p_default_arguments.begin(), p_default_arguments.end(), std::back_inserter(new_annotation.info.default_arguments));
+    for (const Variant& item : p_default_arguments) {
+        new_annotation.info.default_arguments.push_back(item);
+    }
     if (p_is_vararg) {
         new_annotation.info.flags |= METHOD_FLAG_VARARG;
     }
