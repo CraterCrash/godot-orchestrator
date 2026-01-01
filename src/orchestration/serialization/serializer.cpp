@@ -191,7 +191,9 @@ void OrchestrationSerializer::_find_resources_array(const Array& p_array, bool p
 }
 
 void OrchestrationSerializer::_find_resources_dictionary(const Dictionary& p_dictionary, bool p_main) { // NOLINT
-    for (const Variant& key : p_dictionary.keys()) {
+    const Array keys = p_dictionary.keys();
+    for (uint32_t i = 0; i < keys.size(); i++) {
+        const Variant& key = keys[i];
         _find_resources(key, false);
         _find_resources(p_dictionary[key], false);
     }

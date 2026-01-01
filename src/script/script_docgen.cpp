@@ -212,14 +212,15 @@ String OScriptDocGen::_docvalue_from_variant(const Variant& p_value, int p_recur
 			} else {
 				result += "{";
 
-			    Vector<Variant> keys;
-			    for (const Variant& key : dict.keys()) {
-			        keys.push_back(key);
+			    Vector<Variant> sorted_keys;
+			    const Array keys = dict.keys();
+			    for (uint32_t i = 0; i < keys.size(); i++) {
+			        sorted_keys.push_back(keys[i]);
 			    }
-				keys.sort_custom<GDE::Variant::StringLikeVariantOrder>();
+				sorted_keys.sort_custom<GDE::Variant::StringLikeVariantOrder>();
 
-				for (uint32_t i = 0; i < keys.size(); i++) {
-					const Variant &key = keys[i];
+				for (uint32_t i = 0; i < sorted_keys.size(); i++) {
+					const Variant &key = sorted_keys[i];
 					if (i > 0) {
 						result += ", ";
 					}

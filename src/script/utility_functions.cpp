@@ -487,7 +487,9 @@ struct OScriptUtilityFunctionsDefinitions
         Dictionary data = *p_args[2];
         if (data.has("options")) {
             Dictionary options = data["options"];
-            for (const Variant& key : options.keys()) {
+            const Array keys = options.keys();
+            for (uint32_t i = 0; i < keys.size(); i++) {
+                const Variant& key = keys[i];
                 Dictionary choice = options[key];
                 if (choice.has("visible") && choice["visible"]) {
                     options[key] = choice["text"];
