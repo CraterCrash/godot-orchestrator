@@ -396,6 +396,9 @@ private:
     /// @param p_action the action definition
     void _on_action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action);
 
+    /// Handles when the action menu is closed without a selection
+    void _on_action_menu_canceled();
+
     /// Connection drag started
     /// @param p_from the source node
     /// @param p_from_port source node port
