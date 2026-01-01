@@ -25,8 +25,8 @@ bool OScriptNativeClass::_get(const StringName& p_name, Variant& r_value) const 
     }
 
     const TypedArray<Dictionary> methods = ClassDB::class_get_method_list(_name);
-    for (const Variant& entry : methods) {
-        const Dictionary& method = entry;
+    for (uint32_t i = 0; i < methods.size(); i++) {
+        const Dictionary& method = methods[i];
         if (method.get("name", "") == p_name) {
             const MethodInfo info = DictionaryUtils::to_method(method);
             if (info.flags & METHOD_FLAG_STATIC) {

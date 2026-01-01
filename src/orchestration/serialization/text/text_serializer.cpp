@@ -281,8 +281,9 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
         }
 
         Dictionary missing_properties = p_resource->get_meta("_missing_resources_", Dictionary());
-        for (const Variant& entry : res->get_property_list()) {
-            const PropertyInfo pi = DictionaryUtils::to_property(entry);
+        const TypedArray<Dictionary> property_list = res->get_property_list();
+        for (uint32_t i = 0; i < property_list.size(); i++) {
+            const PropertyInfo pi = DictionaryUtils::to_property(property_list[i]);
             if (_skip_editor && pi.name.begins_with("__editor")) {
                 continue;
             }

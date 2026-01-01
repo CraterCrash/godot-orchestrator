@@ -32,7 +32,8 @@ TypedArray<Dictionary> OScriptNode::_get_pin_data() const {
 }
 
 void OScriptNode::_set_pin_data(const TypedArray<Dictionary>& p_pin_data) {
-    for (const Variant& data : p_pin_data) {
+    for (uint32_t i = 0; i < p_pin_data.size(); i++) {
+        const Dictionary& data = p_pin_data[i];
         Ref<OScriptNodePin> pin;
         pin.instantiate();
         pin->set_owning_node(this);

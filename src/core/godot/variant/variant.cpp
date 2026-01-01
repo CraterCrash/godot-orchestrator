@@ -331,8 +331,8 @@ Vector<MethodInfo> GDE::Variant::get_method_list(const godot::Variant& p_value) 
         if (object) {
             Vector<MethodInfo> methods;
             const TypedArray<Dictionary> method_list = object->get_method_list();
-            for (const godot::Variant& entry : method_list) {
-                methods.push_back(DictionaryUtils::to_method(entry));
+            for (uint32_t i = 0; i < method_list.size(); i++) {
+                methods.push_back(DictionaryUtils::to_method(method_list[i]));
             }
             return methods;
         }
@@ -360,8 +360,8 @@ Vector<PropertyInfo> GDE::Variant::get_property_list(const godot::Variant& p_val
         ERR_FAIL_NULL_V(object, properties);
 
         const TypedArray<Dictionary> property_list = object->get_property_list();
-        for (const godot::Variant& entry : property_list) {
-            properties.push_back(DictionaryUtils::to_property(entry));
+        for (uint32_t i = 0; i < property_list.size(); i++) {
+            properties.push_back(DictionaryUtils::to_property(property_list[i]));
         }
         return properties;
     }

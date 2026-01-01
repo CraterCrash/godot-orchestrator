@@ -33,8 +33,9 @@ void OScriptNodeInputAction::_settings_changed() {
 
 PackedStringArray OScriptNodeInputAction::_get_action_names() {
     PackedStringArray action_names;
-    for (const Variant& entry : ProjectSettings::get_singleton()->get_property_list()) {
-        const PropertyInfo pi = DictionaryUtils::to_property(entry);
+    const TypedArray<Dictionary> property_list = ProjectSettings::get_singleton()->get_property_list();
+    for (uint32_t i = 0; i < property_list.size(); i++) {
+        const PropertyInfo pi = DictionaryUtils::to_property(property_list[i]);
         if (pi.name.begins_with("input/")) {
             const String action_name = pi.name.substr(pi.name.find("/") + 1, pi.name.length());
             action_names.push_back(action_name);
