@@ -1622,6 +1622,7 @@ void OrchestratorGraphEdit::_connect_with_menu(PinHandle p_handle, const Vector2
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(true);
     menu->connect("action_selected", callable_mp_this(_on_action_menu_selection));
+    menu->connect("canceled", callable_mp_this(_on_action_menu_canceled));
 
     Ref<OrchestratorEditorActionFilterEngine> filter_engine;
     filter_engine.instantiate();
@@ -1852,6 +1853,11 @@ void OrchestratorGraphEdit::_on_action_menu_selection(const Ref<OrchestratorEdit
             break;
         }
     }
+}
+
+void OrchestratorGraphEdit::_on_action_menu_canceled()
+{
+    _drag_from_pin.reset();
 }
 
 void OrchestratorGraphEdit::_on_connection_drag_ended()
