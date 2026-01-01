@@ -429,9 +429,9 @@ OScriptCompiledFunction* OScriptCompiler::parse_function(Error& r_error, OScript
             method_info.flags |= METHOD_FLAG_VARARG;
         }
 
-        std::copy(p_func->default_arg_values.begin(),
-            p_func->default_arg_values.end(),
-            std::back_inserter(method_info.default_arguments));
+        for (const Variant& item : p_func->default_arg_values) {
+            method_info.default_arguments.push_back(item);
+        }
     }
 
     // Parse initializer if applies.
