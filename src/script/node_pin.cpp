@@ -700,14 +700,15 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback) con
             const Ref<OScriptNodePin> connection = get_connections()[0];
             const Ref<OScriptTargetObject> target = connection->resolve_target();
             if (target.is_valid() && target->has_target()) {
-                for (const Variant& entry : target->get_target()->get_signal_list()) {
-                    const Dictionary& dict = entry;
+                const TypedArray<Dictionary> signal_list = target->get_target()->get_signal_list();
+                for (uint32_t i = 0; i < signal_list.size(); i++) {
+                    const Dictionary& dict = signal_list[i];
                     signal_names.push_back(dict["name"]);
                 }
             } else {
                 const TypedArray<Dictionary> signals = ClassDB::class_get_signal_list(connection->get_target_class());
-                for (const Variant& entry : ClassDB::class_get_signal_list(connection->get_target_class())) {
-                    const Dictionary& dict = entry;
+                for (uint32_t i = 0; i < signals.size(); i++) {
+                    const Dictionary& dict = signals[i];
                     signal_names.push_back(dict["name"]);
                 }
             }
@@ -717,21 +718,24 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback) con
                 MainLoop* main_loop = Engine::get_singleton()->get_main_loop();
                 if (Node* root = cast_to<SceneTree>(main_loop)->get_edited_scene_root()) {
                     if (Node* node = SceneUtils::get_node_with_script(script, root, root)) {
-                        for (const Variant& entry : node->get_signal_list()) {
-                            const Dictionary& dict = entry;
+                        const TypedArray<Dictionary> signal_list = node->get_signal_list();
+                        for (uint32_t i = 0; i < signal_list.size(); i++) {
+                            const Dictionary& dict = signal_list[i];
                             signal_names.push_back(dict["name"]);
                         }
                     }
                 }
 
                 if (signal_names.is_empty()) {
-                    for (const Variant& entry : script->get_script_signal_list()) {
-                        const Dictionary& dict = entry;
+                    TypedArray<Dictionary> signal_list = script->get_script_signal_list();
+                    for (uint32_t i = 0; i < signal_list.size(); i++) {
+                        const Dictionary& dict = signal_list[i];
                         signal_names.push_back(dict["name"]);
                     }
 
-                    for (const Variant& entry : script->get_signal_list()) {
-                        const Dictionary& dict = entry;
+                    signal_list = script->get_signal_list();
+                    for (uint32_t i = 0; i < signal_list.size(); i++) {
+                        const Dictionary& dict = signal_list[i];
                         if (!signal_names.has(dict["name"])) {
                             signal_names.push_back(dict["name"]);
                         }

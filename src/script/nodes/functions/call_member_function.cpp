@@ -125,8 +125,8 @@ StringName OScriptNodeCallMemberFunction::_get_method_class_hierarchy_owner(cons
             methods = ClassDB::class_get_method_list(class_name, true);
         }
 
-        for (const Variant& method : methods) {
-            const Dictionary& dict = method;
+        for (uint32_t i = 0; i < methods.size(); i++) {
+            const Dictionary& dict = methods[i];
             if (dict.has("name") && p_method_name.match(dict["name"]))
                 return class_name;
         }

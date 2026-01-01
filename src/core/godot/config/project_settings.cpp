@@ -22,8 +22,8 @@ HashMap<StringName, GDE::ProjectSettings::AutoloadInfo> GDE::ProjectSettings::ge
     HashMap<StringName, AutoloadInfo> results;
 
     const TypedArray<Dictionary> properties = godot::ProjectSettings::get_singleton()->get_property_list();
-    for (const Variant& entry : properties) {
-        const Dictionary& dict = entry;
+    for (uint32_t i = 0; i < properties.size(); i++) {
+        const Dictionary& dict = properties[i];
         if (!dict.has("name")) {
             continue;
         }

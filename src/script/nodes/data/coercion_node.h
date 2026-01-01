@@ -21,7 +21,7 @@
 
 /// A class that supports coercion of one data type to another.
 /// @deprecated scheduled for removal
-class [[deprecated]] OScriptNodeCoercion : public OScriptNode {
+class OScriptNodeCoercion : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCoercion, OScriptNode);
 
     Variant::Type _left = Variant::NIL;

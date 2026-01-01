@@ -40,8 +40,6 @@ public:
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
-    const MethodInfo& get_method_info() const { return _reference.method; }
-
     OScriptNodeCallBuiltinFunction();
 };
 

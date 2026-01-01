@@ -67,6 +67,7 @@ static bool is_exact_type(const PropertyInfo &p_par_type, const OScriptDataType 
     }
 }
 
+#ifdef ALLOW_VALIDATED_METHOD_CALL
 static bool can_use_validate_call(const MethodBind *p_method, const Vector<OScriptCodeGenerator::Address> &p_arguments) {
     ERR_FAIL_NULL_V_MSG(p_method, false, "Cannot use validated method call, method lookup failed");
 
@@ -81,13 +82,14 @@ static bool can_use_validate_call(const MethodBind *p_method, const Vector<OScri
 
     MethodInfo info;
     GDE::ClassDB::get_method_info(p_method->get_instance_class(), p_method->get_name(), info);
-    for (int64_t i = 0; i < info.arguments.size(); i++) {
+    for (uint64_t i = 0; i < info.arguments.size(); i++) {
         if (!is_exact_type(info.arguments[i], p_arguments[i].type)) {
             return false;
         }
     }
     return true;
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// OScriptCompiler::CompilerContext
@@ -1609,8 +1611,8 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 									} else {
 										class_name = base.type.native_type == StringName() ? base.type.script_type->get_instance_base_type() : base.type.native_type;
 									}
+								    #ifdef ALLOW_VALIDATED_METHOD_CALL
 									if (OScriptAnalyzer::class_exists(class_name) && ClassDB::class_has_method(class_name, call->function_name)) {
-									    #ifdef ALLOW_VALIDATED_METHOD_CALL
 										MethodBind *method = ClassDB::get_method(class_name, call->function_name);
 										if (can_use_validate_call(method, arguments)) {
 											// Exact arguments, use validated call.
@@ -1619,12 +1621,12 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 											// Not exact arguments, but still can use method bind call.
 											generator->write_call_method_bind(result, base, method, arguments);
 										}
-									    #else
-									    generator->write_call(result, base, call->function_name, arguments);
-									    #endif
 									} else {
 										generator->write_call(result, base, call->function_name, arguments);
 									}
+								    #else
+								    generator->write_call(result, base, call->function_name, arguments);
+								    #endif
 								} else if (base.type.kind == OScriptDataType::BUILTIN) {
 									generator->write_call_builtin_type(result, base, base.type.builtin_type, call->function_name, arguments);
 								} else {
@@ -3164,7 +3166,7 @@ Error OScriptCompiler::compile_class(OScript* p_script, const OScriptParser::Cla
                 }
                 #endif
             } else {
-                OScriptInstance* si = static_cast<OScriptInstance*>(si);
+                OScriptInstance* si = static_cast<OScriptInstance*>(sib);
                 si->reload_members();
             }
 
@@ -3183,7 +3185,7 @@ Error OScriptCompiler::compile_class(OScript* p_script, const OScriptParser::Cla
         StringName name = inner_class->identifier->name;
         OScript *subclass = p_script->subclasses[name].ptr();
 
-        Error err = compile_class(subclass, inner_class, p_keep_state);
+        err = compile_class(subclass, inner_class, p_keep_state);
         if (err) {
             return err;
         }

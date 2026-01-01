@@ -25,8 +25,8 @@ MethodInfo GDE::Script::get_method_info(const Ref<godot::Script>& p_script, cons
     ERR_FAIL_COND_V(p_script.is_null(), {});
 
     const TypedArray<Dictionary> methods = p_script->get_script_method_list();
-    for (const Variant& entry : methods) {
-        const MethodInfo method = DictionaryUtils::to_method(entry);
+    for (uint32_t i = 0; i < methods.size(); i++) {
+        const MethodInfo method = DictionaryUtils::to_method(methods[i]);
         if (method.name == p_function) {
             return method;
         }
