@@ -98,10 +98,6 @@ protected:
     /// @return true if the pin is labeled, false otherwise
     virtual bool _is_return_value_labeled(const Ref<OScriptNodePin>& p_pin) const;
 
-    /// Get the Godot method object.
-    /// @return the available Godot MethodInfo
-    virtual MethodInfo get_method_info() { return _reference.method; }
-
     /// Get the input data pin offset for where function call arguments start.
     /// @return the function argument offset, defaults to 0
     virtual int get_argument_offset() const { return 0; }
@@ -130,6 +126,10 @@ public:
     //~ End OScriptEditablePinNode Interface
 
     bool is_chained() const { return _chain; }
+
+    /// Get the Godot method object.
+    /// @return the available Godot MethodInfo
+    virtual MethodInfo get_method_info() { return _reference.method; }
 
     OScriptNodeCallFunction() { _flags = NONE; }
 };

@@ -26,6 +26,7 @@
 #include "core/godot/io/resource_loader.h"
 #include "core/godot/object/class_db.h"
 #include "core/godot/object/script_language.h"
+#include "core/godot/templates/hashfuncs.h"
 #include "core/godot/variant/variant.h"
 #include "core/godot/variant/variant_internal.h"
 #include "script/script_server.h"
@@ -1588,7 +1589,8 @@ void OScriptAnalyzer::resolve_annotation(OScriptParser::AnnotationNode* p_node) 
     p_node->is_resolved = true;
 
     const MethodInfo& annotation_info = OScriptParser::valid_annotations[p_node->name].info;
-    for (int64_t i = 0, j = 0; i < p_node->arguments.size(); i++) {
+    const uint64_t node_arguments_size = p_node->arguments.size();
+    for (uint64_t i = 0, j = 0; i < node_arguments_size; i++) {
 
         OScriptParser::ExpressionNode* argument = p_node->arguments[i];
         const PropertyInfo& argument_info = annotation_info.arguments[j];
@@ -2686,6 +2688,7 @@ void OScriptAnalyzer::resolve_node(OScriptParser::Node* p_node, bool p_is_root) 
 		case OScriptParser::Node::CONTINUE:
 		case OScriptParser::Node::ENUM:
 		case OScriptParser::Node::FUNCTION:
+	    case OScriptParser::Node::PASS:
 		case OScriptParser::Node::SIGNAL: {
 		    // Nothing to do.
 	        break;
@@ -3403,6 +3406,7 @@ void OScriptAnalyzer::reduce_expression(OScriptParser::ExpressionNode* p_express
 		case OScriptParser::Node::MATCH:
 		case OScriptParser::Node::MATCH_BRANCH:
 		case OScriptParser::Node::PARAMETER:
+	    case OScriptParser::Node::PASS:
 		case OScriptParser::Node::PATTERN:
 		case OScriptParser::Node::RETURN:
 		case OScriptParser::Node::SIGNAL:
@@ -3931,13 +3935,14 @@ void OScriptAnalyzer::reduce_call(OScriptParser::CallNode* p_call, bool p_is_awa
 
 			    bool match = false;
 			    const Vector<MethodInfo> constructors = GDE::Variant::get_constructor_list(builtin_type);
-				for (const MethodInfo &info : constructors) {
-					if (p_call->arguments.size() < info.arguments.size() - info.default_arguments.size()) {
-						continue;
-					}
-					if (p_call->arguments.size() > info.arguments.size()) {
-						continue;
-					}
+			    const size_t call_arg_size = p_call->arguments.size();
+			    for (const MethodInfo &info : constructors) {
+			        if (call_arg_size < info.arguments.size() - info.default_arguments.size()) {
+			            continue;
+			        }
+			        if (call_arg_size > info.arguments.size()) {
+			            continue;
+			        }
 
 					bool types_match = true;
 
@@ -4410,7 +4415,7 @@ void OScriptAnalyzer::reduce_cast(OScriptParser::CastNode* p_cast) {
 }
 
 void OScriptAnalyzer::reduce_dictionary(OScriptParser::DictionaryNode* p_dictionary) {
-    HashMap<Variant, OScriptParser::ExpressionNode*, HashableHasher<Variant>, GDE::Variant::StringLikeVariantComparator> elements;
+    HashMap<Variant, OScriptParser::ExpressionNode*, THashableHasher<Variant>, GDE::Variant::StringLikeVariantComparator> elements;
 
     for (int i = 0; i < p_dictionary->elements.size(); i++) {
         const OScriptParser::DictionaryNode::Pair& element = p_dictionary->elements[i];
@@ -4983,8 +4988,8 @@ void OScriptAnalyzer::reduce_identifier_from_base(OScriptParser::IdentifierNode 
 
 	if (base_class == nullptr && script_type.is_valid()) {
 	    const TypedArray<Dictionary> property_list = script_type->get_script_property_list();
-	    for (const Variant& entry : property_list) {
-	        const PropertyInfo property_info = DictionaryUtils::to_property(entry);
+	    for (uint32_t i = 0; i < property_list.size(); i++) {
+	        const PropertyInfo property_info = DictionaryUtils::to_property(property_list[i]);
 			if (property_info.name != p_identifier->name) {
 				continue;
 			}
@@ -5005,8 +5010,8 @@ void OScriptAnalyzer::reduce_identifier_from_base(OScriptParser::IdentifierNode 
 		}
 
 	    const TypedArray<Dictionary> signal_list = script_type->get_script_signal_list();
-		for (const Variant& entry : signal_list) {
-		    const MethodInfo signal_info = DictionaryUtils::to_method(entry);
+	    for (uint32_t i = 0 ; i < signal_list.size(); i++) {
+		    const MethodInfo signal_info = DictionaryUtils::to_method(signal_list[i]);
 			if (signal_info.name != p_identifier->name) {
 				continue;
 			}
@@ -5981,8 +5986,8 @@ void OScriptAnalyzer::is_shadowing(OScriptParser::IdentifierNode* p_identifier, 
     const StringName &name = p_identifier->name;
 	{
         const TypedArray<Dictionary> oscript_funcs = OScriptLanguage::get_singleton()->_get_public_functions();
-		for (const Variant& entry : oscript_funcs) {
-		    const Dictionary& dict = entry;
+        for (uint32_t i = 0; i < oscript_funcs.size(); i++) {
+		    const Dictionary& dict = oscript_funcs[i];
 		    if (dict.get("name", "") == name) {
 				parser->push_warning(p_identifier, OScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "built-in function");
 				return;
@@ -6320,10 +6325,15 @@ void OScriptAnalyzer::downgrade_node_type_source(OScriptParser::Node* p_node) {
 
 Ref<OScript> OScriptAnalyzer::get_depended_shallow_script(const String& p_path, Error& r_error) {
     // To keep a local cache of the parser for resolving external nodes later.
+    #if GODOT_VERSION >= 0x040500
     const String path = ResourceUID::ensure_path(p_path);
     parser->get_depended_parser_for(path);
-
     Ref<OScript> scr = OScriptCache::get_shallow_script(path, r_error, parser->script_path);
+    #else
+    parser->get_depended_parser_for(p_path);
+    Ref<OScript> scr = OScriptCache::get_shallow_script(p_path, r_error, parser->script_path);
+    #endif
+
     return scr;
 }
 

@@ -30,7 +30,7 @@ namespace GDE {
             ArrayType result;
             result.resize(p_size);
 
-            for (uint32_t i = 0; i < p_size; i++) {
+            for (int i = 0; i < p_size; i++) {
                 result[i] = *p_variants[i];
             }
 

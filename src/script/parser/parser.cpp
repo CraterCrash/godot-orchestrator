@@ -1227,7 +1227,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
 
         call_node->function_name = method.name;
 
-        for (int i = 0; i < method.arguments.size(); i++) {
+        for (size_t i = 0; i < method.arguments.size(); i++) {
             call_node->arguments.push_back(build_expression(member_func->find_pin(argument_offset + i, PD_Input)));
         }
 
@@ -1237,7 +1237,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
         call_node->callee = build_identifier(method.name);
         call_node->function_name = method.name;
 
-        for (int i = 0; i < method.arguments.size(); i++) {
+        for (size_t i = 0; i < method.arguments.size(); i++) {
             call_node->arguments.push_back(build_expression(builtin_func->find_pin(i, PD_Input)));
         }
 
@@ -1248,7 +1248,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
         call_node->callee = build_identifier(function->get_function_name());
         call_node->function_name = function->get_function_name();
 
-        for (int i = 0; i < method.arguments.size(); i++) {
+        for (size_t i = 0; i < method.arguments.size(); i++) {
             call_node->arguments.push_back(build_expression(script_func->find_pin(i, PD_Input)));
         }
     }
@@ -1459,6 +1459,11 @@ void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, co
                 } else {
                     return;
                 }
+                break;
+            }
+            #else
+            default: {
+                // Do nothing
                 break;
             }
             #endif
@@ -1681,7 +1686,7 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
     }
 
     // todo: Avoid creating expressions for defaults if possible
-    for (int i = 0; i < method.arguments.size(); i++) {
+    for (size_t i = 0; i < method.arguments.size(); i++) {
         const Ref<OScriptNodePin> input = p_script_node->find_pin(argument_offset + i, PD_Input);
         ERR_CONTINUE(input.is_null());
 
@@ -2235,7 +2240,8 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
         // In this case we always start at input pin index 2 and compare against input pin 1.
         // This provides for output pin 1 to be treated as the "else" block.
         const Vector<Ref<OScriptNodePin>> output_pins = p_script_node->find_pins(PD_Output);
-        if (input_pins_size != output_pins.size()) {
+        const uint64_t output_pins_size = output_pins.size();
+        if (input_pins_size != output_pins_size) {
             // Should never happen
             push_error("Unexpected difference of input and output pins for switch node.");
             return create_stop_result();
@@ -2243,7 +2249,7 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
 
         IfNode* base_if = nullptr;
         IfNode* prev_if = nullptr;
-        for (int i = 2; i < input_pins_size; i++) {
+        for (uint64_t i = 2; i < input_pins_size; i++) {
             ExpressionNode* lhs = resolve_input(input_pins[1]); // Always value pin
             ExpressionNode* rhs = resolve_input(input_pins[i]); // Case pin
             BinaryOpNode* cond = create_binary_op(VariantOperators::OP_EQUAL, lhs, rhs);

@@ -3339,7 +3339,12 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 #endif
 
                 *counter = Variant();
+                #if GODOT_VERSION >= 0x040500
                 Array ref = { *counter };
+                #else
+                Array ref;
+                ref.push_back(*counter);
+                #endif
                 Variant vref;
                 GDE::VariantInternal::initialize(&vref, Variant::ARRAY);
                 *VariantInternal::get_array(&vref) = ref;
@@ -3723,7 +3728,12 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 Object *obj = *VariantInternal::get_object(container);
                 #endif
 
+                #if GODOT_VERSION >= 0x040500
                 Array ref = { *counter };
+                #else
+                Array ref;
+                ref.push_back(*counter);
+                #endif
                 Variant vref;
                 GDE::VariantInternal::initialize(&vref, Variant::ARRAY);
                 *VariantInternal::get_array(&vref) = ref;

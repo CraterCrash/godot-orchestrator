@@ -717,8 +717,9 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
         auto& [type, properties] = res_infos.push_back(ResourceInfo())->get();
         type = _resource_get_class(E);
 
-        for (const Variant& var_property : E->get_property_list()) {
-            const PropertyInfo pi = DictionaryUtils::to_property(var_property);
+        const TypedArray<Dictionary> property_list = E->get_property_list();
+        for (uint32_t i = 0; i < property_list.size(); i++) {
+            const PropertyInfo pi = DictionaryUtils::to_property(property_list[i]);
             if (_skip_editor && pi.name.begins_with("__editor")) {
                 continue;
             }

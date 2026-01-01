@@ -112,8 +112,9 @@ int64_t ScriptServer::GlobalClass::get_integer_constant(const StringName& p_cons
 
 bool ScriptServer::GlobalClass::has_method(const StringName& p_method_name) const {
     if (!name.is_empty() && !path.is_empty()) {
-        for (const Variant& method : get_method_list()) {
-            const Dictionary& dict = method;
+        const TypedArray<Dictionary> method_list = get_method_list();
+        for (uint32_t i = 0; i < method_list.size(); i++) {
+            const Dictionary& dict = method_list[i];
             if (dict.has("name") && p_method_name.match(dict["name"])) {
                 return true;
             }
@@ -124,8 +125,9 @@ bool ScriptServer::GlobalClass::has_method(const StringName& p_method_name) cons
 
 bool ScriptServer::GlobalClass::has_property(const StringName& p_property_name) const {
     if (!name.is_empty() && !path.is_empty()) {
-        for (const Variant& property : get_property_list()) {
-            const Dictionary& dict = property;
+        const TypedArray<Dictionary> property_list = get_property_list();
+        for (uint32_t i = 0; i < property_list.size(); i++) {
+            const Dictionary& dict = property_list[i];
             if (dict.has("name") && p_property_name.match(dict["name"])) {
                 return true;
             }
@@ -136,8 +138,9 @@ bool ScriptServer::GlobalClass::has_property(const StringName& p_property_name) 
 
 bool ScriptServer::GlobalClass::has_signal(const StringName& p_signal_name) const {
     if (!name.is_empty() && !path.is_empty()) {
-        for (const Variant& signal : get_signal_list()) {
-            const Dictionary& dict = signal;
+        const TypedArray<Dictionary> signal_list = get_signal_list();
+        for (uint32_t i = 0; i < signal_list.size(); i++) {
+            const Dictionary& dict = signal_list[i];
             if (dict.has("name") && p_signal_name.match(dict["name"])) {
                 return true;
             }
@@ -148,8 +151,9 @@ bool ScriptServer::GlobalClass::has_signal(const StringName& p_signal_name) cons
 
 TypedArray<Dictionary> ScriptServer::GlobalClass::get_static_method_list() const {
     TypedArray<Dictionary> results;
-    for (const Variant& method : get_method_list()) {
-        const Dictionary& dict = method;
+    const TypedArray<Dictionary> method_list = get_method_list();
+    for (uint32_t i = 0; i < method_list.size(); i++) {
+        const Dictionary& dict = method_list[i];
         const uint32_t flags = dict.get("flags", METHOD_FLAGS_DEFAULT);
         if (flags & METHOD_FLAG_STATIC) {
             results.append(dict);
@@ -175,8 +179,9 @@ TypedArray<Dictionary> ScriptServer::_get_global_class_list() {
 }
 
 Dictionary ScriptServer::_get_global_class(const StringName& p_class_name) {
-    for (const Variant& global_class : _get_global_class_list()) {
-        const Dictionary& entry = global_class;
+    const TypedArray<Dictionary> list = _get_global_class_list();
+    for (uint32_t i = 0; i < list.size(); i++) {
+        const Dictionary& entry = list[i];
         if (entry.has("class") && p_class_name.match(entry["class"])) {
             return entry;
         }
@@ -194,8 +199,9 @@ bool ScriptServer::is_parent_class(const StringName& p_source_class_name, const 
 
 PackedStringArray ScriptServer::get_global_class_list() {
     PackedStringArray global_class_names;
-    for (const Variant& global_class : _get_global_class_list()) {
-        const Dictionary& entry = global_class;
+    const TypedArray<Dictionary> class_list = _get_global_class_list();
+    for (uint32_t i = 0; i < class_list.size(); i++) {
+        const Dictionary& entry = class_list[i];
         if (entry.has("class")) {
             global_class_names.push_back(entry["class"]);
         }

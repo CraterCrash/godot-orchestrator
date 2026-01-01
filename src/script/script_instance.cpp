@@ -302,9 +302,11 @@ const OScriptInstanceInfo OScriptInstance::INSTANCE_INFO = [] {
     return result;
 }();
 
+#if GODOT_VERSION >= 0x040500
 bool OScriptInstanceBase::_is_same_script_instance() const {
     return _owner && internal::gdextension_interface_object_get_script_instance(_owner->_owner, OScriptLanguage::get_singleton()) == this;
 }
+#endif
 
 void OScriptInstanceBase::property_set_fallback(const StringName& p_name, const Variant& p_value, bool* r_valid) {
     if (r_valid) {
@@ -350,7 +352,7 @@ void OScriptInstanceBase::get_property_state(List<Pair<StringName, Variant>>& p_
 GDExtensionPropertyInfo* OScriptInstanceBase::get_property_list(uint32_t* r_size) {
     const LocalVector<PropertyInfo> properties = _get_property_list();
 
-    int categories = 0;
+    uint32_t categories = 0;
     for (const PropertyInfo& property : properties) {
         if (property.usage & PROPERTY_USAGE_CATEGORY) {
             categories++;
@@ -383,7 +385,7 @@ GDExtensionPropertyInfo* OScriptInstanceBase::get_property_list(uint32_t* r_size
 
 void OScriptInstanceBase::free_property_list(const GDExtensionPropertyInfo* p_list, uint32_t p_size) {
     if (p_list) {
-        for (int i = 0; i < p_size; i++) {
+        for (uint32_t i = 0; i < p_size; i++) {
             MemoryUtils::free_property_info(p_list[i]);
         }
         MemoryUtils::memdelete_with_size<GDExtensionPropertyInfo>(p_list);
@@ -422,7 +424,7 @@ GDExtensionMethodInfo* OScriptInstanceBase::get_method_list(uint32_t* r_size) co
 
 void OScriptInstanceBase::free_method_list(const GDExtensionMethodInfo* p_list, uint32_t p_size) const {
     if (p_list) {
-        for (int i = 0; i < p_size; i++) {
+        for (uint32_t i = 0; i < p_size; i++) {
             MemoryUtils::free_method_info(p_list[i]);
         }
         MemoryUtils::memdelete_with_size<GDExtensionMethodInfo>(p_list);
@@ -1013,8 +1015,8 @@ LocalVector<MethodInfo> OScriptPlaceHolderInstance::_get_method_list() const {
     }
 
     const TypedArray<Dictionary> methods = _script->get_script_method_list();
-    for (const Variant& entry : methods) {
-        result.push_back(DictionaryUtils::to_method(entry));
+    for (uint32_t i = 0; i < methods.size(); i++) {
+        result.push_back(DictionaryUtils::to_method(methods[i]));
     }
     return result;
 }
@@ -1212,9 +1214,16 @@ void OScriptPlaceHolderInstance::update(const List<PropertyInfo>& p_properties, 
         to_remove.pop_front();
     }
 
+    #if GODOT_VERSION >= 0x040500
     if (_owner && _is_same_script_instance()) {
         _owner->notify_property_list_changed();
     }
+    #else
+    // This may be less efficient on older versions
+    if (_owner) {
+        _owner->notify_property_list_changed();
+    }
+    #endif
 
     _constants.clear();
     _script->get_constants(&_constants);

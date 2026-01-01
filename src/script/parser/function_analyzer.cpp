@@ -210,7 +210,7 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context, b
         HashMap<Ref<OScriptNode>, uint64_t> edge_map;
         int64_t total_edges_left = 0;
 
-        for (const Ref<OScriptNode> node : all_nodes) {
+        for (const Ref<OScriptNode>& node : all_nodes) {
             const uint64_t edges = count_incoming_edges(node);
             edge_map[node] = edges;
             total_edges_left += edges;
