@@ -65,14 +65,15 @@ Variant OrchestrationSerializer::_class_get_property_default_value(const StringN
 }
 
 bool OrchestrationSerializer::_is_resource_built_in(const Ref<Resource>& p_resource) {
-    #if GODOT_VERSION >= 0x040500
     if (p_resource.is_valid()) {
+        #if GODOT_VERSION >= 0x040500
         return p_resource->is_built_in();
+        #else
+        String path_cache = p_resource->get_path();
+        return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
+        #endif
     }
-    #endif
-
-    String path_cache = p_resource->get_path();
-    return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
+    return false;
 }
 
 int64_t OrchestrationSerializer::_get_resource_id_for_path(const String& p_path, bool p_generate) {
