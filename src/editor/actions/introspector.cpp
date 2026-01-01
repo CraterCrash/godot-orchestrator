@@ -1016,9 +1016,18 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                                                               { "right_type_name", info.right_type_name },
                                                               { "return_type", info.return_type } });
 
+                PackedStringArray keywords = Array::make(info.name, info.code, info.left_type_name, info.right_type_name);
+                if (info.op == VariantOperators::OP_MODULE)
+                {
+                    keywords.push_back("mod");
+                    keywords.push_back("modulus");
+                }
+
                 actions.push_back(_script_node_builder<OScriptNodeOperator>(operator_category, operator_name, data)
                     .inputs(Vector({ info.left_type, info.right_type }))
                     .outputs(Vector({ info.return_type }))
+                    .keywords(keywords)
+                    .no_capitalize(true)
                     .build());
             }
         }
