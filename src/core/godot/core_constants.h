@@ -31,7 +31,7 @@ namespace GDE {
 
             CoreConstant() = default;
             CoreConstant(const StringName& p_enum_name, const StringName& p_name, int64_t p_value)
-                : enum_name(p_enum_name), name(p_name), value(p_value) {}
+                : name(p_name), enum_name(p_enum_name), value(p_value) {}
         };
 
         static Vector<CoreConstant> global_constants;

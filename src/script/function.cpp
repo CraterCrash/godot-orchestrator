@@ -288,7 +288,8 @@ void OScriptFunction::set_argument(size_t p_index, const PropertyInfo& p_propert
 void OScriptFunction::set_arguments(const TypedArray<Dictionary>& p_arguments) {
     if (_user_defined) {
         _method.arguments.clear();
-        for (const Variant& argument : p_arguments) {
+        for (uint32_t i = 0; i < p_arguments.size(); i++) {
+            const Variant& argument = p_arguments[i];
             _method.arguments.push_back(DictionaryUtils::to_property(argument));
         }
         emit_changed();

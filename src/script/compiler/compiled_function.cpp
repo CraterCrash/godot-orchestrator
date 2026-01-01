@@ -456,8 +456,8 @@ void OScriptFunctionState::_clear_stack() {
 
 void OScriptFunctionState::_clear_connections() {
     const TypedArray<Dictionary> signals = get_incoming_connections();
-    for (const Variant& entry : signals) {
-        const Dictionary& dict = entry;
+    for (uint32_t i = 0; i < signals.size(); i++) {
+        const Dictionary& dict = signals[i];
         if (dict.has("signal")) {
             const Signal& signal = dict["signal"];
             const Callable& callable = dict["callable"];

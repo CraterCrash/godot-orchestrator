@@ -32,8 +32,8 @@ TypedArray<int> OScriptGraph::_get_nodes() const {
 
 void OScriptGraph::_set_nodes(const TypedArray<int>& p_nodes) {
     _nodes.clear();
-    for (const Variant& id : p_nodes) {
-        _nodes.insert(id);
+    for (uint32_t i = 0; i < p_nodes.size(); i++) {
+        _nodes.insert(p_nodes[i]);
     }
     emit_changed();
 }
@@ -51,8 +51,8 @@ TypedArray<Dictionary> OScriptGraph::_get_knots() const {
 
 void OScriptGraph::_set_knots(const TypedArray<Dictionary>& p_knots) {
     _knots.clear();
-    for (const Variant& knot : p_knots) {
-        const Dictionary& data = knot;
+    for (uint32_t i = 0; i < p_knots.size(); i++) {
+        const Dictionary& data = p_knots[i];
         const uint64_t id = data["id"];
         const PackedVector2Array points = data["points"];
         _knots[id] = points;
@@ -69,8 +69,8 @@ TypedArray<int> OScriptGraph::_get_functions() const {
 
 void OScriptGraph::_set_functions(const TypedArray<int>& p_functions) {
     _functions.clear();
-    for (const Variant& function : p_functions) {
-        _functions.insert(function);
+    for (uint32_t i = 0; i < p_functions.size(); i++) {
+        _functions.insert(p_functions[i]);
     }
     emit_changed();
 }

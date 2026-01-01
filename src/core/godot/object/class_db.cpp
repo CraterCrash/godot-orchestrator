@@ -68,8 +68,8 @@ bool GDE::ClassDB::has_integer_constant(const StringName& p_class_name, const St
 bool GDE::ClassDB::get_method_info(const StringName& p_class_name, const StringName& p_method_name, MethodInfo& r_info, bool p_no_inheritance, bool p_exclude_from_properties) {
     if (GClassDB::class_has_method(p_class_name, p_method_name, p_no_inheritance)) {
         const TypedArray<Dictionary> methods = GClassDB::class_get_method_list(p_class_name, p_no_inheritance);
-        for (const Variant& entry : methods) {
-            const MethodInfo method = DictionaryUtils::to_method(entry);
+        for (uint32_t i = 0; i < methods.size(); i++) {
+            const MethodInfo method = DictionaryUtils::to_method(methods[i]);
             if (method.name == p_method_name) {
                 r_info = method;
                 return true;
@@ -81,8 +81,8 @@ bool GDE::ClassDB::get_method_info(const StringName& p_class_name, const StringN
 
 bool GDE::ClassDB::has_property(const StringName& p_class_name, const StringName& p_property_name, bool p_no_inheritance) {
     const TypedArray<Dictionary> properties = GClassDB::class_get_property_list(p_class_name, p_no_inheritance);
-    for (const Variant& entry : properties) { // NOLINT
-        const Dictionary& dict = entry;
+    for (uint32_t i = 0; i < properties.size(); i++) {
+        const Dictionary& dict = properties[i];
         if (StringName(dict.get("name", "")) == p_property_name) {
             return true;
         }
@@ -100,8 +100,8 @@ StringName GDE::ClassDB::get_property_getter(const StringName& p_class_name, con
 
 bool GDE::ClassDB::has_signal(const StringName& p_class_name, const StringName& p_signal_name, bool p_no_inheritance) {
     const TypedArray<Dictionary> signals = GClassDB::class_get_signal_list(p_class_name, p_no_inheritance);
-    for (const Variant& entry : signals) {
-        const Dictionary& dict = entry;
+    for (uint32_t i = 0; i < signals.size(); i++) {
+        const Dictionary& dict = signals[i];
         if (StringName(dict.get("name", "")) == p_signal_name) {
             return true;
         }

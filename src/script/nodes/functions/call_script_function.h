@@ -35,7 +35,6 @@ protected:
     //~ Begin OScriptNodeCallFunction Interface
     bool _is_method_info_serialized() const override { return false; }
     bool _use_argument_class_name() const override { return false; }
-    MethodInfo get_method_info() override;
     int get_argument_count() const override;
     //~ End OScriptNodeCallFunction Interface
 
@@ -53,6 +52,10 @@ public:
     bool can_inspect_node_properties() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    //~ Begin OScriptNodeCallFunction Interface
+    MethodInfo get_method_info() override;
+    //~ End OScriptNodeCallFunction Interface
 
     /// Get the function reference
     /// @return the script function reference the node calls

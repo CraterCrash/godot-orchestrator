@@ -62,10 +62,10 @@ void OScriptNodeCallStaticFunction::_resolve_method_info() {
         methods = ClassDB::class_get_method_list(_class_name, true);
     }
 
-    for (const Variant& method : methods) {
-        const Dictionary& dict = method;
+    for (uint32_t i = 0; i < methods.size(); i++) {
+        const Dictionary& dict = methods[i];
         if (_method_name.match(dict["name"])) {
-            _method = DictionaryUtils::to_method(method);
+            _method = DictionaryUtils::to_method(dict);
             break;
         }
     }

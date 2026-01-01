@@ -203,8 +203,17 @@ void OScriptLanguage::_finish() {
         s = s->next();
     }
 
+    #if GODOT_VERSION >= 0x040500
     _scripts.clear();
     function_list.clear();
+    #else
+    while (_scripts.first()) {
+        _scripts.remove(_scripts.first());
+    }
+    while (function_list.first()) {
+        function_list.remove(function_list.first());
+    }
+    #endif
 
     finishing = false;
 }
@@ -680,7 +689,12 @@ void OScriptLanguage::_reload_scripts(const Array& p_scripts, bool p_soft_reload
 }
 
 void OScriptLanguage::_reload_tool_script(const Ref<Script>& p_script, bool p_soft_reload) {
+    #if GODOT_VERSION >= 0x040500
     Array scripts = { p_script };
+    #else
+    Array scripts;
+    scripts.push_back(p_script);
+    #endif
     _reload_scripts(scripts, p_soft_reload);
 }
 

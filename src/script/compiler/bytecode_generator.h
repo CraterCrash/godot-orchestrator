@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H
 #define ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H
 
+#include "core/godot/templates/hashfuncs.h"
 #include "script/compiler/code_generator.h"
 #include "script/utility_functions.h"
 
@@ -98,7 +99,7 @@ class OScriptBytecodeGenerator : public OScriptCodeGenerator {
     List<int> temp_stack;
     #endif
 
-    HashMap<Variant, int, HashableHasher<Variant>> constant_map;
+    HashMap<Variant, int, THashableHasher<Variant>> constant_map;
     RBMap<StringName, int> name_map;
     #ifdef TOOLS_ENABLED
     Vector<StringName> named_globals;
