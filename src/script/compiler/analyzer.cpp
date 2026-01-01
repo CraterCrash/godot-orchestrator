@@ -2529,7 +2529,10 @@ void OScriptAnalyzer::resolve_function_signature(OScriptParser::FunctionNode* p_
 	}
     #endif // DEBUG_ENABLED
 
-    std::copy(p_function->default_arg_values.begin(), p_function->default_arg_values.end(), std::back_inserter(method_info.default_arguments));
+    for (const Variant& item : p_function->default_arg_values) {
+        method_info.default_arguments.push_back(item);
+    }
+
 	method_info.return_val = p_function->get_datatype().to_property_info("");
     p_function->method = method_info;
 
