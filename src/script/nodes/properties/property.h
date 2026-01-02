@@ -75,6 +75,11 @@ protected:
     /// @return true if found, false otherwise
     bool _get_class_property(const String& p_class_name, const String& p_name, PropertyInfo& r_property);
 
+    /// Check whether the specified target class is the same or the parent of the orchestration
+    /// @param p_target_class the class to check
+    /// @return true if its the same or a parent type
+    bool _is_same_or_parent(const String& p_target_class) const;
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
