@@ -103,12 +103,24 @@ namespace PropertyUtils
     /// Checks whether the property represents an enum.
     /// @param p_property the property to check
     /// @return true if the property is an enumeration, false otherwise
-    _FORCE_INLINE_ bool is_enum(const PropertyInfo& p_property) { return p_property.hint == PROPERTY_HINT_ENUM || p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM; }
+    _FORCE_INLINE_ bool is_enum(const PropertyInfo& p_property)
+    {
+        if (p_property.type != Variant::INT)
+            return false;
+
+        return p_property.hint == PROPERTY_HINT_ENUM || p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM;
+    }
 
     /// Checks whether the property is a bitfield.
     /// @param p_property the property to check
     /// @return true if the property is a bitfield, false otherwise
-    _FORCE_INLINE_ bool is_bitfield(const PropertyInfo& p_property) { return p_property.hint == PROPERTY_HINT_FLAGS || p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD; }
+    _FORCE_INLINE_ bool is_bitfield(const PropertyInfo& p_property)
+    {
+        if (p_property.type != Variant::INT)
+            return false;
+
+        return p_property.hint == PROPERTY_HINT_FLAGS || p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD;
+    }
 
     /// Checks whether the property is a class enum.
     /// @param p_property the property to check

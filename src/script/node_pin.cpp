@@ -490,24 +490,32 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
     // Types match
     if (_property.type == p_pin->get_type())
     {
-        const String target_class = _property.class_name;
-        const String source_class = p_pin->get_property_info().class_name;
-        if (!target_class.is_empty() && !source_class.is_empty())
+        // Certain properties specify more than one class type separated by commas.
+        // For example, CanvasItem materials which can be ShaderMaterial,CanvasItemMaterial
+        const PackedStringArray source_classes = p_pin->get_property_info().class_name.split(",");
+        const PackedStringArray target_classes = _property.class_name.split(",");
+        if (!target_classes.is_empty() && !source_classes.is_empty())
         {
-            // Check inheritance of global classes
-            if (ScriptServer::is_global_class(source_class) && ScriptServer::is_parent_class(source_class, target_class))
-                return true;
+            for (const String& source_class : source_classes)
+            {
+                for (const String& target_class : target_classes)
+                {
+                    // Check inheritance of global classes
+                    if (ScriptServer::is_global_class(source_class) && ScriptServer::is_parent_class(source_class, target_class))
+                        return true;
 
-            // Either must be the same or the target must be a super type of the source
-            // The equality check is to handle enum classes that aren't registered as "classes" in Godot terms
-            if (ClassDB::is_parent_class(source_class, target_class) || target_class == source_class)
-                return true;
+                    // Either must be the same or the target must be a super type of the source
+                    // The equality check is to handle enum classes that aren't registered as "classes" in Godot terms
+                    if (ClassDB::is_parent_class(source_class, target_class) || target_class == source_class)
+                        return true;
+                }
+            }
 
             return false;
         }
-        else if (target_class.is_empty() && !source_class.is_empty())
+        else if (_property.class_name.is_empty() && !source_classes.is_empty())
         {
-            // If the source is a derived object type of the target, thats fine
+            // If the source is a derived object type of the target, that's fine
             if (_property.type == Variant::OBJECT)
                 return true;
 
