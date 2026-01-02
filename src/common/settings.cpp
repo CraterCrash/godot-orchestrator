@@ -186,6 +186,7 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_overlay_action_tooltips", true));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f)));
 
+    _settings.emplace_back(SENUM_SETTING("ui/nodes/connection_hotzone_scale", "100%,150%,200%", "100%"));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/resizable_by_default", false));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/highlight_selected_connections", false));

@@ -562,6 +562,23 @@ bool OrchestratorGraphEdit::_is_comment_node(Node* p_node) const
     return Object::cast_to<OrchestratorGraphNodeComment>(p_node);
 }
 
+bool OrchestratorGraphEdit::_is_in_port_hotzone(const Vector2& p_pos, const Vector2& p_mouse_pos, const Vector2i& p_port_size, bool p_left)
+{
+    const int32_t port_hotzone_outer_extent = get_theme_constant("port_hotzone_outer_extent");
+    const int32_t port_hotzone_inner_extent = get_theme_constant("port_hotzone_inner_extent");
+
+    const String hotzone_percent = ORCHESTRATOR_GET("ui/nodes/connection_hotzone_scale", "100%");
+    const Vector2i port_size = p_port_size * (hotzone_percent.replace("%", "").to_float() / 100.0);
+
+    const Rect2 hotzone = Rect2(
+        p_pos.x - (p_left ? port_hotzone_outer_extent : port_hotzone_inner_extent),
+        p_pos.y - port_size.height / 2.0,
+        port_hotzone_inner_extent + port_hotzone_outer_extent,
+        port_size.height);
+
+    return hotzone.has_point(p_mouse_pos);
+}
+
 void OrchestratorGraphEdit::_gui_input(const Ref<InputEvent>& p_event)
 {
     // In Godot 4.2, the UI delete events only apply to GraphNode and not GraphElement objects
@@ -1169,6 +1186,46 @@ PackedVector2Array OrchestratorGraphEdit::_get_connection_line(const Vector2& p_
     }
 
     return curve_points;
+}
+
+bool OrchestratorGraphEdit::_is_in_input_hotzone(Object* p_in_node, int32_t p_in_port, const Vector2& p_mouse_position)
+{
+    GraphNode* node = cast_to<GraphNode>(p_in_node);
+    if (!node)
+        return false;
+
+    const Ref<Texture2D> icon = node->get_slot_custom_icon_left(p_in_port);
+    if (!icon.is_valid())
+        return false;
+
+    Vector2i port_size = Vector2i(icon->get_width(), icon->get_height());
+    int slot_index = node->get_input_port_slot(p_in_port);
+    Control* child = cast_to<Control>(node->get_child(slot_index, false));
+    port_size.height = MAX(port_size.height, child ? child->get_size().y : 0);
+
+    const float zoom = get_zoom();
+    const Vector2 pos = node->get_input_port_position(p_in_port) * zoom + node->get_position();
+    return _is_in_port_hotzone(pos / zoom, p_mouse_position, port_size, true);
+}
+
+bool OrchestratorGraphEdit::_is_in_output_hotzone(Object* p_in_node, int32_t p_in_port, const Vector2& p_mouse_position)
+{
+    GraphNode* node = cast_to<GraphNode>(p_in_node);
+    if (!node)
+        return false;
+
+    const Ref<Texture2D> icon = node->get_slot_custom_icon_right(p_in_port);
+    if (!icon.is_valid())
+        return false;
+
+    Vector2i port_size = Vector2i(icon->get_width(), icon->get_height());
+    int slot_index = node->get_output_port_slot(p_in_port);
+    Control* child = cast_to<Control>(node->get_child(slot_index, false));
+    port_size.height = MAX(port_size.height, child ? child->get_size().y : 0);
+
+    const float zoom = get_zoom();
+    const Vector2 pos = node->get_output_port_position(p_in_port) * zoom + node->get_position();
+    return _is_in_port_hotzone(pos / zoom, p_mouse_position, port_size, false);
 }
 
 bool OrchestratorGraphEdit::_get_connection_for_points(const Vector2& p_from_position,
