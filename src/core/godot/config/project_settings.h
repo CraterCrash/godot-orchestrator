@@ -28,6 +28,7 @@ namespace GDE {
         struct AutoloadInfo {
             StringName name;
             String path;
+            String uid;
             bool is_singleton = false;
         };
 
