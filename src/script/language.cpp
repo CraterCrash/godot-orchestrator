@@ -291,7 +291,7 @@ String OScriptLanguage::_make_function(const String& p_class_name, const String&
 }
 
 void OScriptLanguage::_add_global_constant(const StringName& p_name, const Variant& p_value) {
-    _add_global(p_value, p_value);
+    _add_global(p_name, p_value);
 }
 
 void OScriptLanguage::_add_named_global_constant(const StringName& p_name, const Variant& p_value) {
