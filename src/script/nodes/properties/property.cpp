@@ -168,6 +168,12 @@ bool OScriptNodeProperty::_get_class_property(const String& p_class_name, const 
     return false;
 }
 
+bool OScriptNodeProperty::_is_same_or_parent(const String& p_target_class) const
+{
+    return _orchestration->get_base_type() == p_target_class
+        || ClassDB::is_parent_class(_orchestration->get_base_type(), p_target_class);
+}
+
 void OScriptNodeProperty::_upgrade(uint32_t p_version, uint32_t p_current_version)
 {
     if (p_version == 1 && p_current_version >= 2)
@@ -279,7 +285,8 @@ void OScriptNodeProperty::validate_node_during_build(BuildLog& p_log) const
         const Ref<OScriptNodePin> target = find_pin("target", PD_Input);
         if (!target->has_any_connections())
         {
-            p_log.error(this, "Requires a connection.");
+            if (!_is_same_or_parent(target->get_target_class()))
+                p_log.error(this, "Requires a connection.");
         }
         // todo: Temporarily disabled as lookups are not always reliable, and validation errors are mistakenly thrown
         // else
