@@ -492,8 +492,8 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
     {
         // Certain properties specify more than one class type separated by commas.
         // For example, CanvasItem materials which can be ShaderMaterial,CanvasItemMaterial
-        const PackedStringArray source_classes = p_pin->get_property_info().class_name.split(",");
-        const PackedStringArray target_classes = _property.class_name.split(",");
+        const PackedStringArray source_classes = p_pin->get_property_info().class_name.split(",", false);
+        const PackedStringArray target_classes = _property.class_name.split(",", false);
         if (!target_classes.is_empty() && !source_classes.is_empty())
         {
             for (const String& source_class : source_classes)
