@@ -295,7 +295,7 @@ void OrchestratorGraphNode::_update_indicators()
     {
         TextureRect* notification = memnew(TextureRect);
         notification->set_texture(SceneUtils::get_editor_icon("Notification"));
-        notification->set_custom_minimum_size(Vector2(0, 24));
+        notification->set_custom_minimum_size(Vector2(0, 20));
         notification->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         notification->set_tooltip_text("Node only executes during development builds, not included in exported builds.");
         _indicators->add_child(notification);
@@ -305,7 +305,7 @@ void OrchestratorGraphNode::_update_indicators()
     {
         TextureRect* notification = memnew(TextureRect);
         notification->set_texture(SceneUtils::get_editor_icon("NodeWarning"));
-        notification->set_custom_minimum_size(Vector2(0, 24));
+        notification->set_custom_minimum_size(Vector2(0, 20));
         notification->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         notification->set_tooltip_text("Node is experimental and behavior may change without notice.");
         _indicators->add_child(notification);
@@ -315,7 +315,7 @@ void OrchestratorGraphNode::_update_indicators()
     if (_node->has_breakpoint())
     {
         TextureRect* breakpoint = memnew(TextureRect);
-        breakpoint->set_custom_minimum_size(Vector2(0, 24));
+        breakpoint->set_custom_minimum_size(Vector2(0, 20));
         breakpoint->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         if (!_node->has_disabled_breakpoint())
         {
@@ -579,7 +579,7 @@ void OrchestratorGraphNode::_initialize_node_beakpoint_state()
     Ref<OrchestratorEditorCache> cache = OrchestratorPlugin::get_singleton()->get_editor_cache();
     if (cache.is_valid())
     {
-        const String path = _node->get_orchestration()->get_self()->get_path();
+        const String path = _node->get_orchestration()->get_orchestration_path();
         #if GODOT_VERSION >= 0x040300
         const bool disabled = cache->is_node_disabled_breakpoint(path, _node->get_id());
         const bool enabled  = cache->is_node_breakpoint(path, _node->get_id());
@@ -600,7 +600,7 @@ void OrchestratorGraphNode::_set_breakpoint_state(OScriptNode::BreakpointFlags p
         return;
 
     const int node_id = _node->get_id();
-    const String path = _node->get_orchestration()->get_self()->get_path();
+    const String path = _node->get_orchestration()->get_orchestration_path();
 
     debugger->set_breakpoint(path, node_id, p_flag != OScriptNode::BreakpointFlags::BREAKPOINT_NONE);
 

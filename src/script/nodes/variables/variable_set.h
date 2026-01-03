@@ -17,15 +17,15 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_VARIABLE_SET_H
 #define ORCHESTRATOR_SCRIPT_NODE_VARIABLE_SET_H
 
-#include "variable.h"
+#include "script/nodes/variables/variable.h"
 
 /// A variable implementation that sets the value of a variable.
-class OScriptNodeVariableSet : public OScriptNodeVariable
-{
+class OScriptNodeVariableSet : public OScriptNodeVariable {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeVariableSet, OScriptNodeVariable);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
@@ -41,7 +41,6 @@ public:
     String get_node_title() const override;
     void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
     void validate_node_during_build(BuildLog& p_log) const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 

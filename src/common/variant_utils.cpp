@@ -16,6 +16,8 @@
 //
 #include "variant_utils.h"
 
+#include "core/godot/variant/variant.h"
+
 #include <godot_cpp/variant/utility_functions.hpp>
 
 namespace VariantUtils
@@ -109,7 +111,7 @@ namespace VariantUtils
 
     Variant::Type to_type(int p_type)
     {
-        return Variant::Type(int(p_type));
+        return GDE::Variant::as_type(p_type);
     }
 
     Variant make_default(Variant::Type p_type)
@@ -298,14 +300,12 @@ namespace VariantUtils
     bool evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right, Variant& r_value)
     {
         bool valid = true;
-        Variant::evaluate(p_operator, p_left, p_right, r_value, valid);
+        r_value = GDE::Variant::evaluate(p_operator, p_left,p_right, valid);
         return valid;
     }
 
     Variant evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right)
     {
-        Variant result;
-        evaluate(p_operator, p_left, p_right, result);
-        return result;
+        return GDE::Variant::evaluate(p_operator, p_left, p_right);
     }
 }

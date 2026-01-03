@@ -14,50 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "await_signal.h"
+#include "script/nodes/signals/await_signal.h"
 
 #include "common/property_utils.h"
-#include "script/vm/script_state.h"
 
-class OScriptNodeAwaitSignalInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeAwaitSignal);
-
-public:
-    int get_working_memory_size() const override { return 1; }
-
-    int step(OScriptExecutionContext& p_context) override
-    {
-        // Check whether the signal was raised and we should resume.
-        if (p_context.get_step_mode() == STEP_MODE_RESUME)
-            return 0;
-
-        // Get the target, falling back to self when not specified.
-        Object* target = p_context.get_input(0);
-        if (!target)
-            target = p_context.get_owner();
-
-
-        const String signal_name = p_context.get_input(1);
-        if (!target->has_signal(signal_name))
-        {
-            p_context.set_error(vformat("No signal '%s' defined on target object.", signal_name));
-            return -1;
-        }
-
-        // Connect to signal and await
-        Ref<OScriptState> state;
-        state.instantiate();
-        state->connect_to_signal(target, signal_name, Array());
-        p_context.set_working_memory(0, state);
-        return STEP_FLAG_YIELD;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void OScriptNodeAwaitSignal::allocate_default_pins()
-{
+void OScriptNodeAwaitSignal::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("signal_name", Variant::STRING));
@@ -65,47 +26,34 @@ void OScriptNodeAwaitSignal::allocate_default_pins()
     super::allocate_default_pins();
 }
 
-String OScriptNodeAwaitSignal::get_tooltip_text() const
-{
+String OScriptNodeAwaitSignal::get_tooltip_text() const {
     return "Yields/Awaits the script's execution until the given signal occurs.";
 }
 
-String OScriptNodeAwaitSignal::get_node_title() const
-{
+String OScriptNodeAwaitSignal::get_node_title() const {
     return "Await Signal";
 }
 
-OScriptNodeInstance* OScriptNodeAwaitSignal::instantiate()
-{
-    OScriptNodeAwaitSignalInstance* i = memnew(OScriptNodeAwaitSignalInstance);
-    i->_node = this;
-    return i;
-}
-
-void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const
-{
+void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const {
     // todo: need to validate signal exists on target object instance
-
     return super::validate_node_during_build(p_log);
 }
 
-void OScriptNodeAwaitSignal::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin)
-{
+void OScriptNodeAwaitSignal::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) {
     // Makes sure that signal list pin changes to string renderer
-    if (p_pin.is_valid() && p_pin->get_pin_name().match("target"))
+    if (p_pin.is_valid() && p_pin->get_pin_name().match("target")) {
         _notify_pins_changed();
-
+    }
     super::on_pin_disconnected(p_pin);
 }
 
-PackedStringArray OScriptNodeAwaitSignal::get_suggestions(const Ref<OScriptNodePin>& p_pin)
-{
+PackedStringArray OScriptNodeAwaitSignal::get_suggestions(const Ref<OScriptNodePin>& p_pin) {
     if (p_pin.is_valid() && p_pin->is_input() && p_pin->get_pin_name().match("signal_name"))
     {
         const Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
-        if (target_pin.is_valid())
+        if (target_pin.is_valid()) {
             return target_pin->resolve_signal_names();
+        }
     }
-
     return super::get_suggestions(p_pin);
 }

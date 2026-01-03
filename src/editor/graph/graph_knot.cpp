@@ -49,8 +49,8 @@ void OrchestratorGraphKnot::set_graph(const Ref<OScriptGraph>& p_graph)
 {
     _graph = p_graph;
 
-    const Ref<Resource> self = _graph->get_orchestration()->get_self();
-    self->connect("connections_changed", callable_mp(this, &OrchestratorGraphKnot::_connections_changed));
+    _graph->get_orchestration()->connect(
+        "connections_changed", callable_mp(this, &OrchestratorGraphKnot::_connections_changed));
 }
 
 void OrchestratorGraphKnot::set_knot(const Ref<OrchestratorKnotPoint>& p_knot)

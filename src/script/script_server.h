@@ -19,19 +19,18 @@
 
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
-#include <godot_cpp/variant/variant.hpp>
 
 using namespace godot;
 
 /// A helper class to accessing methods similarly found in Godot's ScriptServer.
-class ScriptServer
-{
+class ScriptServer {
+    static inline bool _scripting_enabled = true;
+
 public:
     /// Represents a Global Class entry in the script server.
-    struct GlobalClass
-    {
+    struct GlobalClass {
     private:
-        Ref<Script> _load_script(const String& path) const;
+        static Ref<Script> _load_script(const String& path);
 
     public:
         StringName name;        //! Global class name
@@ -88,9 +87,16 @@ public:
         /// Returns the list of static methods on this class
         /// @return an array of dictionary entries for static methods
         TypedArray<Dictionary> get_static_method_list() const;
+
+        GlobalClass() = default;
+        explicit GlobalClass(const Dictionary& p_dict);
     };
 
 protected:
+    /// Gets the global classes
+    /// @return an array of dictionary entries for the global class list
+    static TypedArray<Dictionary> _get_global_class_list();
+
     /// Get the global class dictionary entry
     /// @param p_class_name the global class name to find
     /// @return the dictionary for the global class, or an empty dictionary if not found
@@ -117,10 +123,15 @@ public:
     /// @return the global class info structure, or an empty structure if not found
     static GlobalClass get_global_class(const StringName& p_class_name);
 
+    /// Returns the global class script path
+    /// @param p_class_name the global class name to check
+    /// @return the script path if found, an empty string otherwise
+    static String get_global_class_path(const StringName& p_class_name);
+
     /// Returns the native class for which this global class derives
     /// @param p_class_name the global class name
     /// @return the native class name
-    static StringName get_native_class_name(const StringName& p_class_name);
+    static StringName get_global_class_native_base(const StringName& p_class_name);
 
     /// Returns a list of class hierarchies, starting with the global class first
     /// @param p_class_name the global class name to check
@@ -132,6 +143,18 @@ public:
     /// @param p_script the script instance
     /// @return the global name of the script, if one is present
     static String get_global_name(const Ref<Script>& p_script);
+
+    /// Set whether scripting is enabled
+    /// @param p_enabled whether to enable scripting or not.
+    static void set_scripting_enabled(bool p_enabled);
+
+    /// Check whether scripting is enabled
+    /// @return if scripting is enabled
+    static bool is_scripting_enabled();
+
+    /// Check whether scripts should be reloaded on save operations.
+    /// @return true if scripts should be reloaded on save
+    static bool is_reload_scripts_on_save_enabled();
 };
 
 #endif // ORCHESTRATOR_SCRIPT_SERVER_H

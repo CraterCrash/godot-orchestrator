@@ -20,13 +20,13 @@
 #include "script/script.h"
 
 /// Creates a new instance of a Godot class
-class OScriptNodeNew : public OScriptNode
-{
+class OScriptNodeNew : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeNew, OScriptNode);
-    static void _bind_methods();
+
+    String _class_name;
 
 protected:
-    String _class_name;
+    static void _bind_methods() {}
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -44,18 +44,20 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override { return _class_name; }
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    String get_allocated_class_name() { return _class_name; }
 
     OScriptNodeNew();
 };
 
 /// Destroys an instance of a Godot class
-class OScriptNodeFree : public OScriptNode
-{
+class OScriptNodeFree : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeFree, OScriptNode);
-    static void _bind_methods();
+
+protected:
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -65,7 +67,6 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "memory"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 

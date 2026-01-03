@@ -16,6 +16,7 @@
 //
 #include "editor/editor_viewport.h"
 
+#include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "editor/graph/graph_edit.h"
@@ -159,6 +160,9 @@ OrchestratorGraphEdit* OrchestratorEditorViewport::_get_or_create_tab(const Stri
     if (!p_create)
         return nullptr;
 
+    if (!_orchestration.is_valid())
+        return nullptr;
+
     const Ref<OScriptGraph> script_graph = _orchestration->get_graph(p_name);
     if (!script_graph.is_valid())
         return nullptr;
@@ -203,6 +207,10 @@ void OrchestratorEditorViewport::apply_changes()
 
     if (ResourceSaver::get_singleton()->save(_resource, _resource->get_path()) != OK)
         OS::get_singleton()->alert(vformat("Failed to save %s", _resource->get_path()), "Error");
+
+    Ref<OScript> script = _resource;
+    if (script.is_valid())
+        script->reload(true);
 
     _update_components();
 
@@ -273,7 +281,7 @@ bool OrchestratorEditorViewport::build(bool p_show_success)
 
             const String text = vformat("Node #[url={\"goto_node\":\"%d\",\"script\":\"%s\"}]%d - %s[/url]\n\t%s",
                 failure.node->get_id(),
-                failure.node->get_orchestration()->get_self()->get_path(),
+                failure.node->get_orchestration()->get_orchestration_path(),
                 failure.node->get_id(),
                 failure.node->get_node_title(),
                 message);
@@ -320,7 +328,7 @@ void OrchestratorEditorViewport::clear_breakpoints()
     for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
     {
         node->set_breakpoint_flag(OScriptNode::BREAKPOINT_NONE);
-        debugger->set_breakpoint(_orchestration->get_self()->get_path(), node->get_id(), false);
+        debugger->set_breakpoint(_orchestration->get_orchestration_path(), node->get_id(), false);
     }
 }
 
@@ -337,7 +345,7 @@ PackedStringArray OrchestratorEditorViewport::get_breakpoints() const
     for (const Ref<OScriptNode>& node : _orchestration->get_nodes())
     {
         if (node->has_breakpoint())
-            breakpoints.push_back(vformat("%s:%d", _orchestration->get_self()->get_path(), node->get_id()));
+            breakpoints.push_back(vformat("%s:%d", _orchestration->get_orchestration_path(), node->get_id()));
     }
     return breakpoints;
 }
@@ -384,7 +392,7 @@ void OrchestratorEditorViewport::_notification(int p_what)
         panel->add_child(margin);
 
         _tabs = memnew(TabContainer);
-        _tabs->get_tab_bar()->set_tab_close_display_policy(TabBar::CLOSE_BUTTON_SHOW_ACTIVE_ONLY);
+        _tabs->get_tab_bar()->set_tab_close_display_policy(TabBar::CLOSE_BUTTON_SHOW_ALWAYS);
         _tabs->get_tab_bar()->connect("tab_close_pressed", callable_mp(this, &OrchestratorEditorViewport::_close_tab_requested));
         margin->add_child(_tabs);
 

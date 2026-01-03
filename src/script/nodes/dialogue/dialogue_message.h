@@ -20,13 +20,13 @@
 #include "script/nodes/editable_pin_node.h"
 
 /// A node that represents a dialogue message that is part of a conversation.
-class OScriptNodeDialogueMessage : public OScriptEditablePinNode
-{
+class OScriptNodeDialogueMessage : public OScriptEditablePinNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDialogueMessage, OScriptEditablePinNode);
-    static void _bind_methods() { }
+
+    int _choices = 0;
 
 protected:
-    int _choices{ 0 };
+    static void _bind_methods() { }
 
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
@@ -40,7 +40,6 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "dialogue"; }
     void validate_node_during_build(BuildLog& p_log) const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
@@ -50,6 +49,8 @@ public:
     void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) override;
     String get_pin_prefix() const override { return "choice"; }
     //~ End OScriptEditablePinNode Interface
+
+    int get_choices() const { return _choices; }
 };
 
 #endif // ORCHESTRATOR_SCRIPT_NODE_DIALOGUE_MESSAGE_H

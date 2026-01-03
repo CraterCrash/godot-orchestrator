@@ -35,12 +35,16 @@
 #include "editor/graph/graph_node_pin.h"
 #include "editor/graph/nodes/graph_node_comment.h"
 #include "nodes/graph_node_factory.h"
+#include "script/compiler/analyzer.h"
 #include "script/nodes/script_nodes.h"
+#include "script/parser/parser_tree_utils.h"
 #include "script/script.h"
+#include "script/script_cache.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/center_container.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/editor_file_system.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/geometry2d.hpp>
@@ -71,13 +75,27 @@ OrchestratorGraphEdit::OrchestratorGraphEdit(const Ref<OScriptGraph>& p_graph)
     set_show_arrange_button(OrchestratorSettings::get_singleton()->get_setting("ui/graph/show_arrange_button", false));
     set_right_disconnects(true);
 
+    set_owning_graph(p_graph);
+}
+
+void OrchestratorGraphEdit::set_owning_graph(const Ref<OScriptGraph>& p_graph) {
+    const Ref<OScriptGraph> previous_graph = _script_graph;
     _script_graph = p_graph;
 
     _cache_connection_knots();
 
-    set_zoom(_script_graph->get_viewport_zoom());
-    set_scroll_offset(_script_graph->get_viewport_offset());
-    set_show_zoom_label(true);
+    // only update the current graph's zoom/scroll on initial set, not reloads.
+    if (!previous_graph.is_valid()) {
+        set_zoom(_script_graph->get_viewport_zoom());
+        set_scroll_offset(_script_graph->get_viewport_offset());
+        set_show_zoom_label(true);
+    }
+
+    // Only apply graph connections to the new graph if there was an old one
+    if (previous_graph.is_valid()) {
+        _set_graph_connections();
+        _synchronize_graph_with_script(false);
+    }
 }
 
 void OrchestratorGraphEdit::initialize_clipboard()
@@ -180,14 +198,20 @@ void OrchestratorGraphEdit::_notification(int p_what)
         validate_and_build->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_validate_and_build));
         get_menu_hbox()->add_child(validate_and_build);
 
-        const Ref<Resource> self = get_orchestration()->get_self();
-        self->connect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
-        self->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
+        #ifdef DEV_TOOLS
+        Button* compile_dump = memnew(Button);
+        compile_dump->set_text("Disassemble");
+        compile_dump->set_button_icon(SceneUtils::get_editor_icon("TexturePreviewChannels"));
+        compile_dump->set_tooltip_text("Writes compiled information to a local file");
+        compile_dump->set_focus_mode(FOCUS_NONE);
+        compile_dump->connect("pressed", callable_mp(this, &OrchestratorGraphEdit::_on_compile_and_dump));
+        get_menu_hbox()->add_child(compile_dump);
+        #endif
 
-        _script_graph->connect("node_added", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_added));
-        _script_graph->connect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
-        _script_graph->connect("knots_updated", callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots));
-        _script_graph->connect("connection_knots_removed", callable_mp(this, &OrchestratorGraphEdit::_remove_connection_knots));
+        get_orchestration()->connect("connections_changed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_connections_changed));
+        get_orchestration()->connect("changed", callable_mp(this, &OrchestratorGraphEdit::_on_script_changed));
+
+        _set_graph_connections();
 
         // Wire up our signals
         connect("child_entered_tree", callable_mp(this, &OrchestratorGraphEdit::_resort_child_nodes_on_add));
@@ -530,6 +554,13 @@ Dictionary OrchestratorGraphEdit::get_closest_connection_at_point(const Vector2&
     return closest_connection;
 }
 #endif
+
+void OrchestratorGraphEdit::_set_graph_connections() {
+    _script_graph->connect("node_added", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_added));
+    _script_graph->connect("node_removed", callable_mp(this, &OrchestratorGraphEdit::_on_graph_node_removed));
+    _script_graph->connect("knots_updated", callable_mp(this, &OrchestratorGraphEdit::_synchronize_graph_knots));
+    _script_graph->connect("connection_knots_removed", callable_mp(this, &OrchestratorGraphEdit::_remove_connection_knots));
+}
 
 void OrchestratorGraphEdit::_move_selected(const Vector2& p_delta)
 {
@@ -2269,7 +2300,7 @@ void OrchestratorGraphEdit::_on_project_settings_changed()
 
 void OrchestratorGraphEdit::_on_inspect_script()
 {
-    EditorInterface::get_singleton()->inspect_object(get_orchestration()->get_self().ptr());
+    EditorInterface::get_singleton()->inspect_object(get_orchestration());
 
     EditorInspector* inspector = EditorInterface::get_singleton()->get_inspector();
 
@@ -2292,6 +2323,57 @@ void OrchestratorGraphEdit::_on_validate_and_build()
 {
     emit_signal("validation_requested");
 }
+
+#ifdef DEV_TOOLS
+void OrchestratorGraphEdit::_on_compile_and_dump() {
+    Orchestration* orchestration = _script_graph->get_orchestration();
+    if (orchestration != nullptr) {
+        const Ref<OScript> script = orchestration->get_self();
+        if (script.is_valid()) {
+
+            OScriptParser parser;
+            parser.parse(orchestration, script->get_path());
+
+            OScriptAnalyzer analyzer(&parser);
+            analyzer.analyze();
+
+            OScriptParserUtils::Printer printer;
+            const String printed_code = printer.print_tree(parser.get_tree());
+
+            OScriptParserUtils::Writer writer;
+            const String tree = writer.write_tree(parser.get_tree());
+
+            const String compiled = script->dump_compiled_state();
+
+            const String path = script->get_path() + ".tree.txt";
+            const Ref<FileAccess> file = FileAccess::open(path, FileAccess::WRITE);
+            if (file.is_valid()) {
+                file->store_line("Printed Tree");
+                file->store_line(String("-").repeat(120));
+                file->store_line(printed_code);
+                file->store_line("");
+                file->store_line("Compiled Code");
+                file->store_line(String("-").repeat(120));
+                file->store_line(compiled.strip_edges());
+                file->store_line("");
+                file->store_line("AST");
+                file->store_line(String("-").repeat(120));
+                file->store_line(tree);
+                file->store_line("");
+            }
+
+            AcceptDialog* accept = memnew(AcceptDialog);
+            accept->set_title("Disassembly");
+            accept->set_text("The orchestration disassembly saved as " + path);
+            accept->connect("confirmed", callable_mp_lambda(this, [accept, path]() {
+                EI->get_resource_filesystem()->update_file(path);
+                accept->queue_free();
+            }));
+            EI->popup_dialog_centered(accept);
+        }
+    }
+}
+#endif
 
 void OrchestratorGraphEdit::_on_copy_nodes_request()
 {

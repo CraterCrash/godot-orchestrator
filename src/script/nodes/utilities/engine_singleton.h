@@ -20,13 +20,13 @@
 #include "script/script.h"
 
 /// Provides a reference to a specific engine singleton object.
-class OScriptNodeEngineSingleton : public OScriptNode
-{
+class OScriptNodeEngineSingleton : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEngineSingleton, OScriptNode);
-    static void _bind_methods() { }
+
+    String _singleton{ "Engine" };  //! Name of the singleton
 
 protected:
-    String _singleton{ "Engine" };  //! Name of the singleton
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo> *r_list) const;
@@ -38,7 +38,6 @@ protected:
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
 
-
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
@@ -49,11 +48,12 @@ public:
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
-};
 
+    String get_singleton_name() const { return _singleton; }
+};
 
 #endif // ORCHESTRATOR_SCRIPT_NODE_ENGINE_SINGLETON_H

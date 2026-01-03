@@ -24,19 +24,16 @@
 using namespace godot;
 
 /// Defines a connection between two nodes and their respective ports.
-struct OScriptConnection
-{
-    union
-    {
-        struct
-        {
+struct OScriptConnection {
+    union {
+        struct {
             // Allow for 24 million nodes, each with 255 ports per script.
             uint64_t from_node : 24;
             uint64_t from_port : 8;
             uint64_t to_node   : 24;
             uint64_t to_port   : 8;
         };
-        uint64_t id{ 0 };
+        uint64_t id = 0;
     };
 
     /// Check whether this connection is connected with the specified node ID.

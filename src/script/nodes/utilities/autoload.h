@@ -20,13 +20,13 @@
 #include "script/script.h"
 
 /// Retrieves a specific auto-load by name
-class OScriptNodeAutoload : public OScriptNode
-{
+class OScriptNodeAutoload : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeAutoload, OScriptNode);
-    static void _bind_methods() { }
+
+    String _autoload;  //! Name of the autoload
 
 protected:
-    String _autoload;  //! Name of the autoload
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo> *r_list) const;
@@ -55,10 +55,12 @@ public:
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
+
+    String get_autoload_name() const { return _autoload; }
 };
 
 #endif // ORCHESTRATOR_SCRIPT_NODE_AUTOLOAD_H

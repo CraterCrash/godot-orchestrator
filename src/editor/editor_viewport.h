@@ -62,7 +62,7 @@ protected:
     };
 
     Ref<Resource> _resource;                         //! The edited resource
-    Orchestration* _orchestration{ nullptr };        //! The orchestration instance
+    Ref<Orchestration> _orchestration;               //! The orchestration instance
     TabContainer* _tabs{ nullptr };                  //! The graph editor tab container
     ScrollContainer* _scroll_container{ nullptr };   //! The right component container
     ConfirmationDialog* _confirm_dialog{ nullptr };  //! Build confirmation dialog

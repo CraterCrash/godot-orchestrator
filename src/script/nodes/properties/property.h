@@ -32,10 +32,8 @@ using namespace godot;
 /// In these cases a new input pin is created to set the incoming node path or the object
 /// instance that should be used as the source for setting or getting the property from.
 ///
-class OScriptNodeProperty : public OScriptNode
-{
+class OScriptNodeProperty : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeProperty, OScriptNode);
-    static void _bind_methods();
 
 public:
     enum CallMode : uint32_t
@@ -46,11 +44,13 @@ public:
     };
 
 protected:
-    CallMode _call_mode{ CALL_SELF };
+    static void _bind_methods();
+
+    CallMode _call_mode = CALL_SELF;
     StringName _base_type;
     NodePath _node_path;
     PropertyInfo _property;
-    bool _has_property{ false };
+    bool _has_property = false;
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -85,8 +85,6 @@ protected:
     //~ End OScriptNode Interface
 
 public:
-    OScriptNodeProperty();
-
     //~ Begin OScriptNode Interface
     void post_initialize() override;
     String get_icon() const override;
@@ -95,6 +93,13 @@ public:
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
+
+    CallMode get_call_mode() const { return _call_mode; }
+    StringName get_base_type() const { return _base_type; }
+    NodePath get_node_path() const { return _node_path; }
+    PropertyInfo get_property() const { return _property; }
+
+    OScriptNodeProperty();
 };
 
 VARIANT_ENUM_CAST(OScriptNodeProperty::CallMode)

@@ -279,6 +279,7 @@ def create_structs():
                                   "PropertyInfo return_val",
                                   "StringName category",
                                   "bool is_vararg{ false }",
+                                  "int64_t hash{ 0 }",
                                   "Vector<PropertyInfo> arguments"])
 
     print_indent("/// Describes an operator for a Godot type")
@@ -310,7 +311,8 @@ def create_structs():
                                  "Vector<PropertyInfo> properties",
                                  "Vector<ConstantInfo> constants",
                                  "Vector<EnumInfo> enums",
-                                 "Variant::Type index_returning_type{ Variant::NIL }"])
+                                 "Variant::Type index_returning_type{ Variant::NIL }",
+                                 "HashMap<StringName, int64_t> method_hashes"])
 
     print_indent("/// Describes a Godot Class")
     print_struct("ClassInfo", ["StringName name",
@@ -572,6 +574,7 @@ def write_builtin_type_methods(godot_type):
                 nil_is_variant = ", true"
 
             print_indent("type.methods.push_back(_make_method(" + quote(method["name"]) + ", " + get_method_flags(method) + ", " + get_method_return_type(method) + ", { " + args + " }" + nil_is_variant + "));")
+            print_indent("type.method_hashes[" + quote(method["name"]) + "] = " + str(method["hash"]) + ";")
 
 
 def write_builtin_types(types):
@@ -620,6 +623,7 @@ def write_utility_functions(functions):
         else:
             print_indent("fi.return_val = PropertyInfo(Variant::NIL, \"\");")
         print_indent("fi.is_vararg = " + str(func["is_vararg"]).lower() + ";")
+        print_indent("fi.hash = " + str(func["hash"]) + ";")
         if 'arguments' in func:
             for arg in func["arguments"]:
                 if arg["type"] == "Variant":

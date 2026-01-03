@@ -20,6 +20,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "editor/script_connections.h"
+#include "orchestration/orchestration_utils.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
@@ -194,11 +195,10 @@ void OrchestratorScriptGraphsComponentPanel::_handle_remove(TreeItem* p_item)
 
 void OrchestratorScriptGraphsComponentPanel::_handle_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_mouse_button)
 {
-    if (_orchestration->get_type() != OrchestrationType::OT_Script)
+    if (_orchestration->get_type() != OT_Script)
         return;
 
-    const Ref<OScript> script = _orchestration->get_self();
-    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+    const Vector<Node*> nodes = OrchestrationUtils::find_all_nodes_in_edited_scene_using_orchestration(_orchestration);
 
     OrchestratorScriptConnectionsDialog* dialog = memnew(OrchestratorScriptConnectionsDialog);
     add_child(dialog);
@@ -243,12 +243,11 @@ void OrchestratorScriptGraphsComponentPanel::_handle_tree_gui_input(const Ref<In
 
 void OrchestratorScriptGraphsComponentPanel::_update_slots()
 {
-    if (_orchestration->get_type() != OrchestrationType::OT_Script)
+    if (_orchestration->get_type() != OT_Script)
         return;
 
-    const Ref<OScript> script = _orchestration->get_self();
-    const Vector<Node*> script_nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
-    const String base_type = script->get_instance_base_type();
+    const Vector<Node*> script_nodes = OrchestrationUtils::find_all_nodes_in_edited_scene_using_orchestration(_orchestration);
+    const String base_type = _orchestration->get_base_type();
 
     _iterate_tree_items(callable_mp_lambda(this, [&](TreeItem* item) {
         if (item->has_meta("__name"))

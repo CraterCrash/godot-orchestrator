@@ -20,14 +20,14 @@
 #include "script/script.h"
 
 /// Preloads a resource
-class OScriptNodePreload : public OScriptNode
-{
+class OScriptNodePreload : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePreload, OScriptNode);
-    static void _bind_methods() { }
 
-protected:
     Ref<Resource> _resource;  //! The loaded resource
     String _resource_path;    //! The resource path
+
+protected:
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -44,10 +44,12 @@ public:
     String get_node_title_color_name() const override { return "resources"; }
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
+
+    String get_resource_path() const { return _resource_path; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_PRELOAD_H

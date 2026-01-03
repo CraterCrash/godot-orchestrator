@@ -20,13 +20,13 @@
 #include "script/script.h"
 
 /// A simple node that provides a reference to a resource path
-class OScriptNodeResourcePath : public OScriptNode
-{
+class OScriptNodeResourcePath : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeResourcePath, OScriptNode);
-    static void _bind_methods() { }
+
+    String _path;  //! The resource path
 
 protected:
-    String _path;  //! The resource path
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -42,10 +42,12 @@ public:
     String get_node_title_color_name() const override { return "resources"; }
     bool should_draw_as_bead() const override { return true; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
+
+    String get_resource_path() const { return _path; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_RESOURCE_PATH_H

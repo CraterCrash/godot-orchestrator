@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "operator_node.h"
+#include "script/nodes/math/operator_node.h"
 
 #include "common/dictionary_utils.h"
 #include "common/property_utils.h"
@@ -23,48 +23,7 @@
 
 #include <godot_cpp/core/math.hpp>
 
-class OScriptNodeOperatorInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeOperator);
-    Variant::Operator _operator{ Variant::Operator::OP_EQUAL };
-    bool _unary{ false };
-    Variant _result;
-
-    int _evaluate_variant(OScriptExecutionContext& p_context, const Variant& p_arg0, const Variant& p_arg1)
-    {
-        bool valid = true;
-        Variant::evaluate(_operator, p_arg0, p_arg1, _result, valid);
-        if (!valid)
-        {
-            const String message = vformat("Operation type #%d failed: ({arg0=[%s,%s]}, {arg1=[%s,%s]})",
-                                           _operator,
-                                           Variant::get_type_name(p_arg0.get_type()), p_arg0,
-                                           Variant::get_type_name(p_arg1.get_type()), p_arg1);
-            p_context.set_error(message);
-            return -1 | STEP_FLAG_END;
-        }
-        p_context.set_output(0, &_result);
-        return 0;
-    }
-
-public:
-    int step(OScriptExecutionContext& p_context) override
-    {
-        if (_unary)
-            return _evaluate_variant(p_context, p_context.get_input(0), Variant());
-        else
-            return _evaluate_variant(p_context, p_context.get_input(0), p_context.get_input(1));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void OScriptNodeOperator::_bind_methods()
-{
-}
-
-void OScriptNodeOperator::_get_property_list(List<PropertyInfo>* r_list) const
-{
+void OScriptNodeOperator::_get_property_list(List<PropertyInfo>* r_list) const {
     // OperatorInfo struct details
     r_list->push_back(PropertyInfo(Variant::INT, "op", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::STRING_NAME, "code", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
@@ -76,102 +35,67 @@ void OScriptNodeOperator::_get_property_list(List<PropertyInfo>* r_list) const
     r_list->push_back(PropertyInfo(Variant::INT, "return_type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
-bool OScriptNodeOperator::_get(const StringName& p_name, Variant& r_value) const
-{
-    if (p_name.match("op"))
-    {
+bool OScriptNodeOperator::_get(const StringName& p_name, Variant& r_value) const {
+    if (p_name.match("op")) {
         r_value = _info.op;
         return true;
-    }
-    else if (p_name.match("code"))
-    {
+    } else if (p_name.match("code")) {
         r_value = _info.code;
         return true;
-    }
-    else if (p_name.match("name"))
-    {
+    } else if (p_name.match("name")) {
         r_value = _info.name;
         return true;
-    }
-    else if (p_name.match("left_type"))
-    {
+    } else if (p_name.match("left_type")) {
         r_value = _info.left_type;
         return true;
-    }
-    else if (p_name.match("left_type_name"))
-    {
+    } else if (p_name.match("left_type_name")) {
         r_value = _info.left_type_name;
         return true;
-    }
-    else if (p_name.match("right_type"))
-    {
+    } else if (p_name.match("right_type")) {
         r_value = _info.right_type;
         return true;
-    }
-    else if (p_name.match("right_type_name"))
-    {
+    } else if (p_name.match("right_type_name")) {
         r_value = _info.right_type_name;
         return true;
-    }
-    else if (p_name.match("return_type"))
-    {
+    } else if (p_name.match("return_type")) {
         r_value = _info.return_type;
         return true;
     }
     return false;
 }
 
-bool OScriptNodeOperator::_set(const StringName &p_name, const Variant &p_value)
-{
-    if (p_name.match("op"))
-    {
+bool OScriptNodeOperator::_set(const StringName &p_name, const Variant &p_value) {
+    if (p_name.match("op")) {
         _info.op = VariantOperators::Code(int(p_value));
         return true;
-    }
-    else if (p_name.match("code"))
-    {
+    } else if (p_name.match("code")) {
         _info.code = p_value;
         return true;
-    }
-    else if (p_name.match("name"))
-    {
+    } else if (p_name.match("name")) {
         _info.name = p_value;
         return true;
-    }
-    else if (p_name.match("left_type"))
-    {
+    } else if (p_name.match("left_type")) {
         _info.left_type = VariantUtils::to_type(p_value);
         return true;
-    }
-    else if (p_name.match("left_type_name"))
-    {
+    } else if (p_name.match("left_type_name")) {
         _info.left_type_name = p_value;
         return true;
-    }
-    else if (p_name.match("right_type"))
-    {
+    } else if (p_name.match("right_type")) {
         _info.right_type = VariantUtils::to_type(p_value);
         return true;
-    }
-    else if (p_name.match("right_type_name"))
-    {
+    } else if (p_name.match("right_type_name")) {
         _info.right_type_name = p_value;
         return true;
-    }
-    else if (p_name.match("return_type"))
-    {
+    } else if (p_name.match("return_type")) {
         _info.return_type = VariantUtils::to_type(p_value);
         return true;
     }
     return false;
 }
 
-String OScriptNodeOperator::_get_expression() const
-{
-    if (_is_unary())
-    {
-        switch (_info.op)
-        {
+String OScriptNodeOperator::_get_expression() const {
+    if (_is_unary()) {
+        switch (_info.op) {
             case VariantOperators::OP_POSITIVE:
                 return "+%s";
             case VariantOperators::OP_NEGATE:
@@ -184,45 +108,47 @@ String OScriptNodeOperator::_get_expression() const
                 // we should never reach this point
                 return "%s";
         }
-    }
-    else if (_info.op == VariantOperators::OP_POWER)
-    {
+    } else if (_info.op == VariantOperators::OP_POWER) {
         return "Power(%s, %s)";
     }
     return "%s " + _info.code.replacen("%", "%%") + " %s";
 }
 
-bool OScriptNodeOperator::_is_unary() const
-{
+bool OScriptNodeOperator::_is_unary() const {
     return _info.right_type_name.is_empty();
 }
 
-void OScriptNodeOperator::post_initialize()
-{
+bool OScriptNodeOperator::_should_expand_instead_compile() const {
+    const int32_t nodes = 2;
+    if (nodes >= get_owning_graph()->get_nodes().size()) {
+        return true;
+    }
+    return false;
+}
+
+void OScriptNodeOperator::post_initialize() {
     reconstruct_node();
     super::post_initialize();
 }
 
-void OScriptNodeOperator::allocate_default_pins()
-{
+void OScriptNodeOperator::allocate_default_pins() {
     create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("a", _info.left_type));
-    if (!_is_unary())
+    if (!_is_unary()) {
         create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("b", _info.right_type));
-
+    }
     create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("result", _info.return_type));
 
     super::allocate_default_pins();
 }
 
-String OScriptNodeOperator::get_tooltip_text() const
-{
+String OScriptNodeOperator::get_tooltip_text() const {
     // If the operator structure isn't populated, return no tooltip.
     // This is currently used by the actions menu
-    if (_info.code.is_empty())
+    if (_info.code.is_empty()) {
         return "";
+    }
 
-    switch (_info.op)
-    {
+    switch (_info.op) {
         case VariantOperators::OP_EQUAL:
             return "Returns true if A is equal to B (A == B)";
         case VariantOperators::OP_NOT_EQUAL:
@@ -278,25 +204,15 @@ String OScriptNodeOperator::get_tooltip_text() const
     }
 }
 
-String OScriptNodeOperator::get_node_title() const
-{
-    if (_is_unary())
+String OScriptNodeOperator::get_node_title() const {
+    if (_is_unary()) {
         return vformat(_get_expression(), "A");
-    else
+    } else {
         return vformat(_get_expression(), "A", "B");
+    }
 }
 
-OScriptNodeInstance* OScriptNodeOperator::instantiate()
-{
-    OScriptNodeOperatorInstance* i = memnew(OScriptNodeOperatorInstance);
-    i->_node = this;
-    i->_unary = _is_unary();
-    i->_operator = VariantOperators::to_engine(_info.op);
-    return i;
-}
-
-void OScriptNodeOperator::initialize(const OScriptNodeInitContext& p_context)
-{
+void OScriptNodeOperator::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "No data provided to create an Operator node");
 
     const Dictionary &data = p_context.user_data.value();
@@ -315,11 +231,12 @@ void OScriptNodeOperator::initialize(const OScriptNodeInitContext& p_context)
     super::initialize(p_context);
 }
 
-void OScriptNodeOperator::validate_node_during_build(BuildLog& p_log) const
-{
+void OScriptNodeOperator::validate_node_during_build(BuildLog& p_log) const {
     Ref<OScriptNodePin> result = find_pin("result", PD_Output);
-    if (!result.is_valid())
+    if (!result.is_valid()) {
         p_log.error(this, "No result pin found, right-click node and select 'Refresh Nodes'.");
+    }
+
     // GH-667 Relaxed temporarily until we can introduce graph traversal to determine if the
     // node actually will be discarded at runtime.
     // else if (!result->has_any_connections())
@@ -328,12 +245,14 @@ void OScriptNodeOperator::validate_node_during_build(BuildLog& p_log) const
     super::validate_node_during_build(p_log);
 }
 
-bool OScriptNodeOperator::is_supported(Variant::Type p_type)
-{
+bool OScriptNodeOperator::is_pure() const {
+    return !_should_expand_instead_compile();
+}
+
+bool OScriptNodeOperator::is_supported(Variant::Type p_type) {
     return p_type != Variant::NIL && p_type < Variant::PACKED_BYTE_ARRAY;
 }
 
-bool OScriptNodeOperator::is_operator_supported(const OperatorInfo& p_operator)
-{
+bool OScriptNodeOperator::is_operator_supported(const OperatorInfo& p_operator) {
     return p_operator.right_type < Variant::PACKED_BYTE_ARRAY;
 }

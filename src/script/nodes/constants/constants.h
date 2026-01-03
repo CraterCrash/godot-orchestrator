@@ -20,27 +20,30 @@
 #include "script/script.h"
 
 /// Base class for all constant-based script nodes
-class OScriptNodeConstant : public OScriptNode
-{
+class OScriptNodeConstant : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeConstant, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
-    OScriptNodeConstant();
-
     //~ Begin OScriptNode Interface
     String get_node_title_color_name() const override { return "constants_and_literals"; }
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
+
+    OScriptNodeConstant();
 };
 
 /// Allows specifying a global constant value
 class OScriptNodeGlobalConstant : public OScriptNodeConstant
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeGlobalConstant, OScriptNodeConstant);
-    static void _bind_methods() { }
+
+    StringName _constant_name;
 
 protected:
-    StringName _constant_name;
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -67,20 +70,21 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNodeInterface
+
+    String get_constant_name() const { return _constant_name; }
 };
 
 /// Allows specifying a math-specific constant value
-class OScriptNodeMathConstant : public OScriptNodeConstant
-{
+class OScriptNodeMathConstant : public OScriptNodeConstant {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeMathConstant, OScriptNodeConstant);
-    static void _bind_methods() { }
+
+    String _constant_name = "One";  //! The math constant
 
 protected:
-    String _constant_name{ "One" };  //! The math constant
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -96,23 +100,24 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
-    OScriptNodeInstance* instantiate() override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNodeInterface
+
+    String get_constant_name() const { return _constant_name; }
 };
 
 /// Allows specifying a type-based constant
-class OScriptNodeTypeConstant : public OScriptNodeConstant
-{
+class OScriptNodeTypeConstant : public OScriptNodeConstant {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeTypeConstant, OScriptNodeConstant);
-    static void _bind_methods();
 
     static Vector<Variant::Type> _types;
     static HashMap<Variant::Type, HashMap<StringName, Variant>> _type_constants;
 
-protected:
-    Variant::Type _type{ Variant::NIL };  //! Constant basic type
+    Variant::Type _type = Variant::NIL;   //! Constant basic type
     String _constant_name;                //! Constant name
+
+protected:
+    static void _bind_methods();
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -136,19 +141,21 @@ public:
     String get_node_title() const override;
     String get_help_topic() const override;
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNodeInterface
+
+    Variant::Type get_type() const { return _type; }
+    String get_constant_name() const { return _constant_name; }
 };
 
 /// Base class for class-based and singleton-based constants
-class OScriptNodeClassConstantBase : public OScriptNodeConstant
-{
+class OScriptNodeClassConstantBase : public OScriptNodeConstant {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeClassConstantBase, OScriptNodeConstant);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     String _class_name;     //! Constant class name
     String _constant_name;  //! Constant name
 
@@ -185,35 +192,34 @@ public:
     String get_icon() const override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNodeInterface
+
+    String get_constant_class_name() const { return _class_name; }
+    String get_constant_name() const { return _constant_name; }
 };
 
 /// Allows specifying a class-based constant
-class OScriptNodeClassConstant : public OScriptNodeClassConstantBase
-{
+class OScriptNodeClassConstant : public OScriptNodeClassConstantBase {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeClassConstant, OScriptNodeClassConstantBase);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNodeClassConstantBase Interface
     PackedStringArray _get_class_constant_choices(const String& p_class_name) const override;
     //~ End OScriptNodeClassConstantBase Interface
 
 public:
     OScriptNodeClassConstant();
-
-    //~ Begin OScriptNode Interface
-    OScriptNodeInstance* instantiate() override;
-    //~ End OScriptNodeInterface
 };
 
 /// Allows specifying singleton-based constants.
-class OScriptNodeSingletonConstant : public OScriptNodeClassConstantBase
-{
+class OScriptNodeSingletonConstant : public OScriptNodeClassConstantBase {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSingletonConstant, OScriptNodeClassConstantBase);
-    static void _bind_methods() { }
+
+    PackedStringArray _singletons;    //! Cached list of applicable singletons
 
 protected:
-    PackedStringArray _singletons;    //! Cached list of applicable singletons
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     PackedStringArray _get_class_names() const override;
@@ -223,11 +229,11 @@ protected:
     PackedStringArray _get_singletons_with_enum_constants() const;
 
 public:
-    OScriptNodeSingletonConstant();
-
     //~ Begin OScriptNode Interface
     String get_node_title() const override { return "Singleton Class Constant"; }
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNodeInterface
+
+    OScriptNodeSingletonConstant();
 };
+
 #endif  // ORCHESTRATOR_SCRIPT_NODE_CONSTANTS_H

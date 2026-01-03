@@ -19,6 +19,7 @@
 #include "common/callable_lambda.h"
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
+#include "orchestration/orchestration_utils.h"
 
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/button.hpp>
@@ -184,8 +185,7 @@ void OrchestratorScriptComponentPanel::_iterate_tree_items(const Callable& p_cal
 
 void OrchestratorScriptComponentPanel::_disconnect_slot(TreeItem* p_item)
 {
-    const Ref<OScript> script = _orchestration->get_self();
-    const Vector<Node*> nodes = SceneUtils::find_all_nodes_for_script_in_edited_scene(script);
+    const Vector<Node*> nodes = OrchestrationUtils::find_all_nodes_in_edited_scene_using_orchestration(_orchestration);
 
     const String method_name = _get_tree_item_name(p_item);
 
@@ -201,7 +201,7 @@ void OrchestratorScriptComponentPanel::_disconnect_slot(TreeItem* p_item)
 
             const Signal& signal = dict["signal"];
 
-            if (Node* source = Object::cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
+            if (Node* source = cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
             {
                 source->disconnect(signal.get_name(), callable);
 

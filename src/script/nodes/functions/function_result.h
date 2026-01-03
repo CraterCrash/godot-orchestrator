@@ -32,9 +32,10 @@
 /// By removing all output parameters for the function call, the return node will
 /// automatically be removed from the function graph.
 ///
-class OScriptNodeFunctionResult : public OScriptNodeFunctionTerminator
-{
+class OScriptNodeFunctionResult : public OScriptNodeFunctionTerminator {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeFunctionResult, OScriptNodeFunctionTerminator);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -48,7 +49,6 @@ public:
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     void post_placed_new_node() override;
     bool can_user_delete_node() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
     OScriptNodeFunctionResult();

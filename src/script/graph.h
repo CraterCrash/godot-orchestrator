@@ -39,31 +39,32 @@ struct OScriptNodeInitContext;
 /// Therefore, at runtime, no OScriptInstance or OScriptNodeInstance should make any claim
 /// or attempt to use any OScriptGraph object at all.
 ///
-class OScriptGraph : public Resource
-{
+class OScriptGraph : public Resource {
     friend class Orchestration;
 
     GDCLASS(OScriptGraph, Resource);
 
+protected:
     static void _bind_methods();
 
 public:
-    enum GraphFlags
-    {
-        GF_NONE = 0,                              //! None, should never be used technically
-        GF_RENAMABLE = 1 << 1,                    //! The graph name can be changed
-        GF_DELETABLE = 1 << 2,                    //! The graph can be deleted
-        GF_EVENT = 1 << 3,                        //! The graph represents an event graph
-        GF_FUNCTION = 1 << 4,                     //! The graph represents a free function
-        GF_DEFAULT = GF_RENAMABLE | GF_DELETABLE  //! Default flags
+    // clang-format off
+    enum GraphFlags {
+        GF_NONE         = 1 << 0,                       //! None, should never be used technically
+        GF_RENAMABLE    = 1 << 1,                       //! The graph name can be changed
+        GF_DELETABLE    = 1 << 2,                       //! The graph can be deleted
+        GF_EVENT        = 1 << 3,                       //! The graph represents an event graph
+        GF_FUNCTION     = 1 << 4,                       //! The graph represents a free function
+        GF_DEFAULT      = GF_RENAMABLE | GF_DELETABLE   //! Default flags
     };
+    // clangformat-on
 
 private:
-    Orchestration* _orchestration{ nullptr };      //! Owning orchestration
+    Orchestration* _orchestration = nullptr;       //! Owning orchestration
     StringName _name;                              //! Unique name for this graph
     Vector2 _offset;                               //! Viewport offset
-    double _zoom{ 1.f };                           //! Viewport zoom
-    BitField<GraphFlags> _flags{ 0 };              //! Flags
+    double _zoom = 1.f;                            //! Viewport zoom
+    BitField<GraphFlags> _flags = 0;               //! Flags
     RBSet<int> _nodes;                             //! Set of node ids that participate in this graph
     RBSet<int> _functions;                         //! Set of node ids that represent entry points or functions
     HashMap<uint64_t, PackedVector2Array> _knots;  //! Knots for each graph connection
@@ -222,8 +223,7 @@ public:
     /// @param p_position the position to place the node, only used if the value isn't <code>Vector2(0,0)</code>.
     /// @return the newly created node refereence, or an invalid reference if the creation failed
     template<typename T>
-    Ref<T> create_node(const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2())
-    {
+    Ref<T> create_node(const OScriptNodeInitContext& p_context, const Vector2& p_position = Vector2()) {
         return create_node(T::get_class_static(), p_context, p_position);
     }
 

@@ -24,45 +24,8 @@
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
-#include "script/nodes/constants/constants.h"
-#include "script/nodes/data/arrays.h"
-#include "script/nodes/data/compose.h"
-#include "script/nodes/data/decompose.h"
-#include "script/nodes/data/dictionary.h"
-#include "script/nodes/data/type_cast.h"
-#include "script/nodes/dialogue/dialogue_choice.h"
-#include "script/nodes/dialogue/dialogue_message.h"
-#include "script/nodes/flow_control/branch.h"
-#include "script/nodes/flow_control/chance.h"
-#include "script/nodes/flow_control/delay.h"
-#include "script/nodes/flow_control/for.h"
-#include "script/nodes/flow_control/for_each.h"
-#include "script/nodes/flow_control/random.h"
-#include "script/nodes/flow_control/select.h"
-#include "script/nodes/flow_control/sequence.h"
-#include "script/nodes/flow_control/switch.h"
-#include "script/nodes/flow_control/while.h"
-#include "script/nodes/functions/call_builtin_function.h"
-#include "script/nodes/functions/call_member_function.h"
-#include "script/nodes/functions/call_static_function.h"
-#include "script/nodes/functions/event.h"
-#include "script/nodes/functions/function_result.h"
-#include "script/nodes/input/input_action.h"
-#include "script/nodes/math/operator_node.h"
-#include "script/nodes/memory/memory.h"
-#include "script/nodes/resources/preload.h"
-#include "script/nodes/resources/resource_path.h"
-#include "script/nodes/scene/instantiate_scene.h"
-#include "script/nodes/scene/scene_node.h"
-#include "script/nodes/scene/scene_tree.h"
-#include "script/nodes/signals/await_signal.h"
-#include "script/nodes/signals/emit_signal.h"
-#include "script/nodes/utilities/autoload.h"
-#include "script/nodes/utilities/comment.h"
-#include "script/nodes/utilities/engine_singleton.h"
-#include "script/nodes/utilities/print_string.h"
-#include "script/nodes/utilities/self.h"
-#include "script/nodes/variables/local_variable.h"
+#include "core/godot/config/project_settings.h"
+#include "script/nodes/script_nodes.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -645,7 +608,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     const Ref<OScript> oscript = p_script;
     if (oscript.is_valid())
     {
-        const String base_type = oscript->get_instance_base_type();
+        const String base_type = oscript->get_orchestration()->get_base_type(); // oscript->get_instance_base_type();
         for (const Ref<OScriptFunction>& function : oscript->get_orchestration()->get_functions())
         {
             if (!function.is_valid() || !function->is_user_defined())
@@ -879,6 +842,11 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     for (int i = 0; i < language_functions.size(); i++)
     {
         const MethodInfo& mi = DictionaryUtils::to_method(language_functions[i]);
+        // Exclude any internal methods that are prefixed with `_`.
+        if (mi.name.begins_with("_")) {
+            continue;
+        }
+
         actions.push_back(_script_node_builder<OScriptNodeCallBuiltinFunction>("@OScript", mi.name, language_functions[i]).build());
     }
 
@@ -912,7 +880,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             _script_node_builder<OScriptNodeLocalVariable>(
                 category,
                 vformat("Local %s Variable", type_name), type_dict)
-            .graph_type(GraphType::GRAPH_MACRO)
+            //.graph_type(GraphType::GRAPH_MACRO)
             .build());
 
         if (!type.properties.is_empty())
@@ -1086,14 +1054,14 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 {
     Vector<Ref<Action>> actions;
 
-    for (const String& global_constant_name : OScriptLanguage::get_singleton()->get_global_constant_names())
+    for (const KeyValue<StringName, GDE::ProjectSettings::AutoloadInfo>& E : GDE::ProjectSettings::get_autoload_list())
     {
         actions.push_back(
             _script_node_builder<OScriptNodeAutoload>(
                 vformat("Project/Autoloads"),
-                vformat("Get %s", global_constant_name),
-                DictionaryUtils::of({ { "class_name", global_constant_name } }))
-            .tooltip(vformat("Get a reference to the project autoload %s.", global_constant_name))
+                vformat("Get %s", E.key),
+                DictionaryUtils::of({ { "class_name", E.key } }))
+            .tooltip(vformat("Get a reference to the project autoload %s.", E.key))
             .no_capitalize(true)
             .build());
     }

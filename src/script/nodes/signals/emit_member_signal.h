@@ -24,14 +24,14 @@
 /// Unlike the <code>OScriptNodeEmitSignal</code> class, this specific implementation is designed to emit
 /// any Godot built-in signal associated with a given class type.
 ///
-class OScriptNodeEmitMemberSignal : public OScriptNode
-{
+class OScriptNodeEmitMemberSignal : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeEmitMemberSignal, OScriptNode);
-    static void _bind_methods() { }
 
-protected:
     String _target_class;   //! Signal target class name reference
     MethodInfo _method;     //! Signal method reference
+
+protected:
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -51,10 +51,11 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "signals"; }
     String get_help_topic() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
+
+    MethodInfo get_signal_info() const { return _method; }
 };
 
 #endif // ORCHESTRATOR_SCRIPT_NODE_EMIT_MEMBER_SIGNAL_H

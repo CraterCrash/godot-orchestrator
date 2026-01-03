@@ -841,6 +841,7 @@ void OrchestratorEditorPanel::edit_resource(const Ref<Resource>& p_resource)
 void OrchestratorEditorPanel::edit_script(const Ref<OScript>& p_script)
 {
     ERR_FAIL_COND_MSG(p_script->get_path().is_empty(), "Script has no path, cannot be opened.");
+    ERR_FAIL_COND_MSG(p_script->get_orchestration().is_null(), "No orchestration associated with script.");
 
     // When editing an Orchestration; make panel active
     OrchestratorPlugin::get_singleton()->make_active();

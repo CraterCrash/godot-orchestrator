@@ -17,15 +17,12 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_CALL_MEMBER_FUNCTION_H
 #define ORCHESTRATOR_SCRIPT_NODE_CALL_MEMBER_FUNCTION_H
 
-#include "call_function.h"
+#include "script/nodes/functions/call_function.h"
 
 /// An implementation of OrchestratorScript CallFunction node that calls a method
 /// on a Godot object.
-class OScriptNodeCallMemberFunction : public OScriptNodeCallFunction
-{
+class OScriptNodeCallMemberFunction : public OScriptNodeCallFunction {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCallMemberFunction, OScriptNodeCallFunction);
-
-    static void _bind_methods() {}
 
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
@@ -42,9 +39,10 @@ class OScriptNodeCallMemberFunction : public OScriptNodeCallFunction
     /// @return the class name that owns the method or an empty string if not found
     StringName _get_method_class_hierarchy_owner(const String& p_class_name, const String& p_method_name);
 
-public:
-    OScriptNodeCallMemberFunction();
+protected:
+    static void _bind_methods() {}
 
+public:
     //~ Begin OScriptNode Interface
     String get_tooltip_text() const override;
     String get_node_title() const override;
@@ -63,6 +61,7 @@ public:
     /// @return the function reference
     const MethodInfo& get_function() const { return _reference.method; }
 
+    OScriptNodeCallMemberFunction();
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_CALL_MEMBER_FUNCTION_H

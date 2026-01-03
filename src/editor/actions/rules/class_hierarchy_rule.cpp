@@ -17,6 +17,7 @@
 #include "editor/actions/rules/class_hierarchy_rule.h"
 
 #include "editor/actions/filter_engine.h"
+#include "script/script.h"
 #include "script/script_server.h"
 
 bool OrchestratorEditorActionClassHierarchyScopeRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
@@ -35,6 +36,12 @@ bool OrchestratorEditorActionClassHierarchyScopeRule::matches(const Ref<Orchestr
         return true;
 
     String class_to_check = p_context.graph_context.script->get_instance_base_type();
+
+    Ref<OScript> oscript = p_context.graph_context.script;
+    if (oscript.is_valid()) {
+        class_to_check = oscript->get_orchestration()->get_base_type();
+    }
+
     while (!class_to_check.is_empty())
     {
         if (class_to_check == target_class)

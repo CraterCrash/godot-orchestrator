@@ -19,15 +19,15 @@
 
 #include "script/node.h"
 
-class OScriptNodeCallStaticFunction : public OScriptNode
-{
+class OScriptNodeCallStaticFunction : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCallStaticFunction, OScriptNode);
-    static void _bind_methods() { }
 
-protected:
     StringName _class_name;
     StringName _method_name;
     MethodInfo _method;
+
+protected:
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -48,9 +48,12 @@ public:
     String get_help_topic() const override;
     String get_icon() const override { return "MemberMethod"; }
     void validate_node_during_build(BuildLog& p_log) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    StringName get_target_class_name() const { return _class_name; }
+    StringName get_target_method_name() const { return _method_name; }
+    MethodInfo get_target_method() const { return _method; }
 };
 
 #endif // ORCHESTRATOR_SCRIPT_NODE_CALL_STATIC_FUNCTION_H

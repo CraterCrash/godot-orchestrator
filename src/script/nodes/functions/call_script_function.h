@@ -21,14 +21,13 @@
 
 /// An implementation of OrchestratorScript CallFunction node that calls functions
 /// that are defined as a part of an Orchestration script.
-class OScriptNodeCallScriptFunction : public OScriptNodeCallFunction
-{
+class OScriptNodeCallScriptFunction : public OScriptNodeCallFunction {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCallScriptFunction, OScriptNodeCallFunction);
 
-    static void _bind_methods() {}
+    Ref<OScriptFunction> _function;
 
 protected:
-    Ref<OScriptFunction> _function;    //! Function declaration
+    static void _bind_methods() {}
 
     /// Called when the script function is modified
     void _on_function_changed();
@@ -36,7 +35,6 @@ protected:
     //~ Begin OScriptNodeCallFunction Interface
     bool _is_method_info_serialized() const override { return false; }
     bool _use_argument_class_name() const override { return false; }
-    MethodInfo get_method_info() override;
     int get_argument_count() const override;
     //~ End OScriptNodeCallFunction Interface
 
@@ -54,6 +52,10 @@ public:
     bool can_inspect_node_properties() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    //~ Begin OScriptNodeCallFunction Interface
+    MethodInfo get_method_info() override;
+    //~ End OScriptNodeCallFunction Interface
 
     /// Get the function reference
     /// @return the script function reference the node calls

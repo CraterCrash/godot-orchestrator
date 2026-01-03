@@ -26,19 +26,23 @@
 
 namespace MethodUtils
 {
-    bool has_return_value(const MethodInfo& p_method)
-    {
+    bool has_return_value(const PropertyInfo& p_return_val) {
         // When the method specifies a non-NIL type, this means it isn't Variant, but
         // instead returns an explicit type.
-        if (p_method.return_val.type != Variant::NIL)
+        if (p_return_val.type != Variant::NIL)
             return true;
 
         // When the usage flag PROPERTY_USAGE_NIL_IS_VARIANT is set, the return value is Variant
-        if (p_method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT)
+        if (p_return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT)
             return true;
 
         // No return value
         return false;
+    }
+
+    bool has_return_value(const MethodInfo& p_method)
+    {
+        return has_return_value(p_method.return_val);
     }
 
     void set_no_return_value(MethodInfo& p_method)

@@ -59,6 +59,7 @@ namespace StringUtils
     String path_to(const String &p_local, const String &p_path);
     String property_name_encode(const String& p_name);
     String c_escape_multiline(const String& p_name);
+    String quote(const String& p_base, const String& quotechar = "\"");
     //~ End "taken from ustring.h"
 }
 

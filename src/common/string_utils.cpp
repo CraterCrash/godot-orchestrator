@@ -133,4 +133,8 @@ namespace StringUtils
         return escaped;
     }
 
+    String quote(const String& p_base, const String& quotechar) {
+        return quotechar + p_base + quotechar;
+    }
+
 }
