@@ -1656,8 +1656,11 @@ void OrchestratorGraphEdit::_connect_with_menu(PinHandle p_handle, const Vector2
         target = resolved_type.object->get_target();
 
     Ref<OrchestratorEditorActionPortRule> port_rule;
-    port_rule.instantiate();
-    port_rule->configure(_drag_from_pin, target);
+    if (!PropertyUtils::is_variant(_drag_from_pin->get_property_info()))
+    {
+        port_rule.instantiate();
+        port_rule->configure(_drag_from_pin, target);
+    }
 
     Ref<OrchestratorEditorActionGraphTypeRule> graph_type_rule;
     graph_type_rule.instantiate();
@@ -1684,7 +1687,8 @@ void OrchestratorGraphEdit::_connect_with_menu(PinHandle p_handle, const Vector2
     filter_engine.instantiate();
     filter_engine->add_rule(memnew(OrchestratorEditorActionSearchTextRule));
     filter_engine->add_rule(graph_type_rule);
-    filter_engine->add_rule(port_rule);
+    if (port_rule.is_valid())
+        filter_engine->add_rule(port_rule);
 
     if (_drag_from_pin->is_execution())
         filter_engine->add_rule(memnew(OrchestratorEditorActionClassHierarchyScopeRule));
