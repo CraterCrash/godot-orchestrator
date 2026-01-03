@@ -46,9 +46,9 @@ OScriptLanguage* OScriptLanguage::_singleton = nullptr;
 
 thread_local OScriptLanguage::CallLevel* OScriptLanguage::_call_stack = nullptr;
 thread_local uint32_t OScriptLanguage::_call_stack_size = 0;
-thread_local String OScriptLanguage::_debug_parse_err_file = "";
+thread_local StringPtr OScriptLanguage::_debug_parse_err_file = StringPtr();
 thread_local int OScriptLanguage::_debug_parse_err_line = 0;
-thread_local String OScriptLanguage::_debug_error = "";
+thread_local StringPtr OScriptLanguage::_debug_error = StringPtr();
 
 struct OScriptDepSort {
     //must support sorting so inheritance works properly (parent must be reloaded first)
@@ -304,7 +304,7 @@ void OScriptLanguage::_remove_named_global_constant(const StringName& p_name) {
 }
 
 String OScriptLanguage::_debug_get_error() const {
-    return _debug_error;
+    return _debug_error.get();
 }
 
 int32_t OScriptLanguage::_debug_get_stack_level_count() const {
@@ -347,7 +347,7 @@ String OScriptLanguage::_debug_get_stack_level_function(int32_t p_level) const {
 String OScriptLanguage::_debug_get_stack_level_source(int32_t p_level) const {
     #if GODOT_VERSION >= 0x040300
     if (_debug_parse_err_line >= 0) {
-        return _debug_parse_err_file;
+        return _debug_parse_err_file.get();
     }
 
     ERR_FAIL_INDEX_V(p_level, _call_stack_size, {});
