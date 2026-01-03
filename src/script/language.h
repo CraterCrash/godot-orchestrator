@@ -17,6 +17,7 @@
 #ifndef ORCHESTRATOR_SCRIPT_LANGUAGE_H
 #define ORCHESTRATOR_SCRIPT_LANGUAGE_H
 
+#include "core/godot/string/string.h"
 #include "common/version.h"
 #include "script/compiler/compiled_function.h"
 #include "script/serialization/format_defs.h"
@@ -73,8 +74,8 @@ class OScriptLanguage : public ScriptLanguageExtension {
     #endif
 
     static thread_local int _debug_parse_err_line;
-    static thread_local String _debug_parse_err_file;
-    static thread_local String _debug_error;
+    static thread_local StringPtr _debug_parse_err_file;
+    static thread_local StringPtr _debug_error;
     static thread_local CallLevel* _call_stack;
     static thread_local uint32_t _call_stack_size;
     uint32_t _debug_max_call_stack = 0;
