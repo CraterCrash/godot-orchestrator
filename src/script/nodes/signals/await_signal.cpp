@@ -34,11 +34,6 @@ String OScriptNodeAwaitSignal::get_node_title() const {
     return "Await Signal";
 }
 
-void OScriptNodeAwaitSignal::validate_node_during_build(BuildLog& p_log) const {
-    // todo: need to validate signal exists on target object instance
-    return super::validate_node_during_build(p_log);
-}
-
 void OScriptNodeAwaitSignal::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) {
     // Makes sure that signal list pin changes to string renderer
     if (p_pin.is_valid() && p_pin->get_pin_name().match("target")) {

@@ -40,7 +40,6 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 };
 

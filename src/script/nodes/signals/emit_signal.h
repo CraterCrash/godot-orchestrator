@@ -63,7 +63,6 @@ public:
     bool can_inspect_node_properties() const override;
     Ref<Resource> get_inspect_object() override { return _signal; }
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
     /// Get the script signal name

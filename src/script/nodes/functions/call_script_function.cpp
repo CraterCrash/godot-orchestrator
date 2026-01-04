@@ -80,14 +80,6 @@ bool OScriptNodeCallScriptFunction::can_jump_to_definition() const {
     return get_jump_target_for_double_click() != nullptr;
 }
 
-void OScriptNodeCallScriptFunction::validate_node_during_build(BuildLog& p_log) const {
-    super::validate_node_during_build(p_log);
-
-    if (!_function.is_valid()) {
-        p_log.error(this, "There is no function instance defined.");
-    }
-}
-
 bool OScriptNodeCallScriptFunction::can_inspect_node_properties() const {
     if (_function.is_valid() && !_function->get_function_name().is_empty()) {
         if (get_orchestration()->has_graph(_function->get_function_name())) {
