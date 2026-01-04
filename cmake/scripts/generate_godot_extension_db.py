@@ -188,7 +188,7 @@ def get_operator_name(op_type):
     elif op_type == "unary+":
         return "Unary+"
     elif op_type == "%":
-        return "Module"
+        return "Modulo"
     elif op_type == "**":
         return "Power"
     elif op_type == "<<":

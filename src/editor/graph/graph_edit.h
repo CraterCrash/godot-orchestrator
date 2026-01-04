@@ -172,6 +172,8 @@ protected:
     void _drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable);
     void _drop_data_variable(const String& p_name, const Vector2& p_at_position, bool p_validated, bool p_setter);
 
+    bool _is_in_port_hotzone(const Vector2& p_pos, const Vector2& p_mouse_pos, const Vector2i& p_port_size, bool p_left);
+
 public:
     // The OrchestratorGraphEdit maintains a static clipboard so that data can be shared across different graph
     // instances easily in the tab view, and so these methods are called by the MainView during the
@@ -257,6 +259,8 @@ public:
     void _drop_data(const Vector2& p_position, const Variant& p_data) override;
     bool _is_node_hover_valid(const StringName& p_from, int p_from_port, const StringName& p_to, int p_to_port) override;
     PackedVector2Array _get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const override;
+    bool _is_in_input_hotzone(Object* p_in_node, int32_t p_in_port, const Vector2& p_mouse_position) override;
+    bool _is_in_output_hotzone(Object* p_in_node, int32_t p_in_port, const Vector2& p_mouse_position) override;
     //~ End GraphEdit overrides
 
     /// Spawn a node in the graph
@@ -395,6 +399,9 @@ private:
     /// Handles adding selected action item
     /// @param p_action the action definition
     void _on_action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action);
+
+    /// Handles when the action menu is closed without a selection
+    void _on_action_menu_canceled();
 
     /// Connection drag started
     /// @param p_from the source node
