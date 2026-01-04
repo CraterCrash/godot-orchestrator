@@ -2931,6 +2931,12 @@ void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_gr
     _knot_editor->connect("refresh_connections_requested", callable_mp_this(_refresh_panel_connections_with_model));
     _knot_editor->connect("changed", callable_mp_this(_knots_changed));
 
+    // When model triggers link/unlink, makes sure the UI updates
+    // Great use case is when changing a variable type where a connection is no longer valid
+    _graph->get_orchestration()->connect("connections_changed", callable_mp_lambda(this, [&](const String& p_data) {
+        _refresh_panel_connections_with_model();
+    }));
+
     callable_mp_this(_refresh_panel_with_model).call_deferred();
 }
 
