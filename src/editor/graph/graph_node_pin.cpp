@@ -193,7 +193,11 @@ bool is_numeric(Variant::Type p_type)
 
 bool OrchestratorGraphNodePin::can_accept(OrchestratorGraphNodePin* p_pin)
 {
-    return _pin->can_accept(p_pin->_pin);
+    ERR_FAIL_NULL_V(p_pin, false);
+
+    const OrchestratorGraphNodePin* source = _pin->is_output() ? this : p_pin;
+    const OrchestratorGraphNodePin* target = _pin->is_output() ? p_pin : this;
+    return target->_pin->can_accept(source->_pin);
 }
 
 void OrchestratorGraphNodePin::link(OrchestratorGraphNodePin* p_pin)
