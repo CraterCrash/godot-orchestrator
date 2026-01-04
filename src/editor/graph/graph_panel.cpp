@@ -1673,7 +1673,7 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
         target = target_reference->get_target();
 
     Ref<OrchestratorEditorActionPortRule> port_rule;
-    if (PropertyUtils::is_variant(_drag_from_pin->get_property_info()))
+    if (!PropertyUtils::is_variant(_drag_from_pin->get_property_info()))
     {
         port_rule.instantiate();
         port_rule->configure(_drag_from_pin, target);
