@@ -249,11 +249,7 @@ Vector<OrchestratorGraphNodePin*> OrchestratorGraphNodeDefault::get_eligible_aut
 
         if (!pin->is_execution() && !p_pin->is_execution())
         {
-            const Variant::Type lhs_type = pin->get_property_info().type;
-            const Variant::Type rhs_type = p_pin->get_property_info().type;
-            const bool lhs_variant = PropertyUtils::is_variant(pin->get_property_info());
-            const bool rhs_variant = PropertyUtils::is_variant(p_pin->get_property_info());
-            if (lhs_type != rhs_type && !lhs_variant && !rhs_variant)
+            if (!p_pin->can_accept(pin))
                 continue;
         }
 
