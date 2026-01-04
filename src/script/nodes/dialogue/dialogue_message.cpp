@@ -57,7 +57,7 @@ public:
             return selection == -1 ? 0 : selection;
         }
 
-        Variant scene_file = p_context.get_input(2);
+        Variant scene_file = p_context.get_input(3);
         if (scene_file.get_type() == Variant::NIL || String(scene_file).is_empty())
             scene_file = _default_scene;
 
@@ -88,11 +88,12 @@ public:
                 Dictionary data;
                 data["character_name"] = p_context.get_input(0);
                 data["message"] = p_context.get_input(1);
+                data["audio"] = p_context.get_input(2);
 
                 Dictionary options;
                 for (int i = 0; i < _choices; i++)
                 {
-                    Dictionary choice = p_context.get_input(3 + i);
+                    Dictionary choice = p_context.get_input(4 + i);
                     if (choice.has("visible") && choice["visible"])
                         options[i] = choice["text"];
                 }
@@ -158,6 +159,7 @@ void OScriptNodeDialogueMessage::allocate_default_pins()
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_multiline("name"))->set_label("Speaker");
     create_pin(PD_Input, PT_Data, PropertyUtils::make_multiline("text"))->set_label("Message");
+    create_pin(PD_Input, PT_Data, PropertyUtils::make_file("audio", "*.wav,*.ogg,*.mp3; Audio Files"), "");
     create_pin(PD_Input, PT_Data, PropertyUtils::make_file("scene", "*.scn,*.tscn; Scene Files"), "");
 
     if (_choices > 0)
