@@ -74,7 +74,6 @@ public:
     String get_node_title_color_name() const override { return "variable"; }
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
     void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface

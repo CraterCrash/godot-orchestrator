@@ -146,13 +146,6 @@ void OScriptNodeSceneNode::initialize(const OScriptNodeInitContext& p_context) {
     super::initialize(p_context);
 }
 
-void OScriptNodeSceneNode::validate_node_during_build(BuildLog& p_log) const {
-    if (_node_path.is_empty()) {
-        p_log.error(this, "No NodePath specified.");
-    }
-    super::validate_node_during_build(p_log);
-}
-
 bool OScriptNodeSceneNode::is_pure() const {
     return true;
 }

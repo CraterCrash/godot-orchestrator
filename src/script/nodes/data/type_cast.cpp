@@ -142,16 +142,3 @@ StringName OScriptNodeTypeCast::resolve_type_class(const Ref<OScriptNodePin>& p_
     }
     return super::resolve_type_class(p_pin);
 }
-
-void OScriptNodeTypeCast::validate_node_during_build(BuildLog& p_log) const {
-    const Ref<OScriptNodePin> true_branch = find_pin("yes", PD_Output);
-    const Ref<OScriptNodePin> false_branch = find_pin("no", PD_Output);
-
-    if (true_branch.is_valid() && !true_branch->has_any_connections()) {
-        if (false_branch.is_valid() && !false_branch->has_any_connections()) {
-            p_log.error(this, "At least one output execution flow connection expected.");
-        }
-    }
-
-    super::validate_node_during_build(p_log);
-}

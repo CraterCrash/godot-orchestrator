@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_SCRIPT_PARSER_GRAPH_ANALYZER_H
 
 #include "script/function.h"
+#include "script/node_pin.h"
 
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>

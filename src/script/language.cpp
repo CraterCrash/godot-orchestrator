@@ -1090,45 +1090,88 @@ List<Ref<OScript>> OScriptLanguage::get_scripts() const {
 }
 #endif
 
+static void get_function_names_recursively(const OScriptParser::ClassNode* p_class, const String& p_prefix, HashMap<int, String>& r_funcs) {
+    for (int i = 0; i < p_class->members.size(); i++) {
+        if (p_class->members[i].type == OScriptParser::ClassNode::Member::FUNCTION) {
+            const OScriptParser::FunctionNode* function = p_class->members[i].function;
+            r_funcs[function->script_node_id] = vformat("%s%s", p_prefix.is_empty() ? "" : vformat("%s.", p_prefix), function->identifier->name);
+        } else if (p_class->members[i].type == OScriptParser::ClassNode::Member::CLASS) {
+            String new_prefix = p_class->members[i].m_class->identifier->name;
+            get_function_names_recursively(p_class->members[i].m_class, new_prefix.is_empty() ? new_prefix : vformat("%s.", new_prefix), r_funcs);
+        }
+    }
+}
+
+static String get_node_name(const Ref<OScriptNode>& p_node) {
+    if (!p_node.is_valid()) {
+        return {};
+    }
+    return p_node->get_node_title() + " / " + p_node->get_class().replace("OScriptNode", "").capitalize();
+}
+
 bool OScriptLanguage::validate(const Ref<OScript>& p_script, const String& p_path, List<String>* r_functions, List<Warning>* r_warnings, List<ScriptError>* r_errors) {
     if (!p_script.is_valid()) {
         return false;
     }
 
-    BuildLog build_log;
-    for (const Ref<OScriptNode>& node : p_script->get_orchestration()->get_nodes()) {
-        node->validate_node_during_build(build_log);
+    OScriptParser parser;
+    OScriptAnalyzer analyzer(&parser);
+
+    Error err = parser.parse(p_script->get_orchestration().ptr(), p_path);
+    if (err == OK) {
+        err = analyzer.analyze();
     }
 
-    bool valid = true;
-    for (const BuildLog::Failure& failure : build_log.get_failures()) {
-        valid = false;
+    #ifdef DEBUG_ENABLED
+    if (r_warnings) {
+        for (const OScriptWarning& E : parser.get_warnings()) {
+            Warning warning;
+            warning.name = OScriptWarning::get_name_from_code(E.code);
+            warning.node = E.node;
+            warning.message = E.get_message();
+            r_warnings->push_back(warning);
+        }
+    }
+    #endif
 
-        switch (failure.type) {
-            case BuildLog::FT_Warning: {
-                if (r_warnings) {
-                    Warning warning;
-                    warning.node = failure.node->get_id();
-                    warning.name = failure.node->get_node_title() + " / " + failure.node->get_class().replace("OScriptNode", "").capitalize();
-                    warning.message = failure.message;
-                    r_warnings->push_back(warning);
-                }
-                break;
+    if (err) {
+        if (r_errors) {
+            for (const OScriptParser::ParserError& E : parser.get_errors()) {
+                ScriptError error;
+                error.path = p_path;
+                error.node = E.node_id;
+                error.name = get_node_name(p_script->get_orchestration()->get_node(E.node_id));
+                error.message = E.message;
+                r_errors->push_back(error);
             }
-            case BuildLog::FT_Error: {
-                if (r_errors) {
+
+            for (const KeyValue<String, Ref<OScriptParserRef>>& E : parser.get_depended_parsers()) {
+                const OScriptParser* dependent_parser = E.value->get_parser();
+                for (const OScriptParser::ParserError& F : dependent_parser->get_errors()) {
                     ScriptError error;
-                    error.node = failure.node->get_id();
-                    error.name = failure.node->get_node_title() + " / " + failure.node->get_class().replace("OScriptNode", "").capitalize();
-                    error.message = failure.message;
+                    error.path = E.key;
+                    error.node = F.node_id;
+                    error.name = get_node_name(p_script->get_orchestration()->get_node(F.node_id));
+                    error.message = F.message;
                     r_errors->push_back(error);
                 }
-                break;
             }
+        }
+        return false;
+    }
+
+    if (r_functions) {
+        const OScriptParser::ClassNode* clazz = parser.get_tree();
+
+        HashMap<int, String> funcs;
+        get_function_names_recursively(clazz, "", funcs);
+
+        for (const KeyValue<int, String>& E : funcs) {
+            r_functions->push_back(vformat("%s:%d", E.value, E.key));
         }
     }
 
-    return valid;
+    return true;
 }
 
 OScriptLanguage* OScriptLanguage::get_singleton() {

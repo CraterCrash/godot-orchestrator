@@ -17,7 +17,6 @@
 #ifndef ORCHESTRATOR_ORCHESTRATION_H
 #define ORCHESTRATOR_ORCHESTRATION_H
 
-#include "orchestration/build_log.h"
 #include "script/connection.h"
 #include "script/function.h"
 #include "script/graph.h"
@@ -175,10 +174,6 @@ public:
 
     /// Performs post initialization/load steps
     virtual void post_initialize();
-
-    /// Validtes and the builds the orchestration
-    /// @param p_log the build log
-    virtual void validate_and_build(BuildLog& p_log);
 
     //~ Begin Node Interface
     void add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node);

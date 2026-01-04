@@ -45,7 +45,6 @@ public:
     bool should_draw_as_bead() const override { return true; }
     String get_icon() const override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 };
