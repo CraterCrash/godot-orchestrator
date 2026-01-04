@@ -234,64 +234,6 @@ void OScriptNodeProperty::initialize(const OScriptNodeInitContext& p_context) {
     super::initialize(p_context);
 }
 
-void OScriptNodeProperty::validate_node_during_build(BuildLog& p_log) const {
-    if (_call_mode == CALL_INSTANCE) {
-        const Ref<OScriptNodePin> target = find_pin("target", PD_Input);
-        if (!target->has_any_connections())
-        {
-            if (!_is_same_or_parent(target->get_target_class()))
-                p_log.error(this, "Requires a connection.");
-        }
-        // todo: Temporarily disabled as lookups are not always reliable, and validation errors are mistakenly thrown
-        // if (!target->has_any_connections()) {
-        //
-        //     UtilityFunctions::print(DictionaryUtils::from_property(target->get_property_info()), "|", _base_type);
-        //     p_log.error(this, "Requires a connection.");
-        // }
-        // else
-        // {
-        //     const Ref<OScriptNodePin> source = target->get_connections()[0];
-        //     const Ref<OScriptTargetObject> target_object = source->resolve_target();
-        //     if (!target_object.is_valid() || !target_object->has_target())
-        //     {
-        //         if (!_property_exists(ClassDB::class_get_property_list(target->get_property_info().class_name)))
-        //             p_log.error(this, vformat("No property name '%s' found in class '%s'", _property.name, _property.class_name));
-        //     }
-        //     else
-        //     {
-        //         const Ref<Script> script = target_object->get_target()->get_script();
-        //         const bool script_property = script.is_valid() && _property_exists(script->get_script_property_list());
-        //         const bool object_property = _property_exists(target_object->get_target()->get_property_list());
-        //
-        //         if (!script_property && !object_property)
-        //             p_log.error(this, vformat("No property name '%s' found", _property.name));
-        //     }
-        // }
-    }
-    else if (_call_mode == CALL_SELF) {
-        const String base_type = get_orchestration()->get_base_type();
-        if (!_property_exists(_get_class_property_list(base_type)))
-            p_log.error(this, vformat("No property named '%s' on class '%s'", _property.name, base_type));
-    }
-    else if (_call_mode == CALL_NODE_PATH) {
-        // todo: Temporarily disabled as lookups are not always reliable, and validation errors are mistakenly thrown
-        // if (SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop()))
-        // {
-        //     // Only if the node is found in the current edited scene, validate existance of property
-        //     if (Node* node = st->get_edited_scene_root()->get_node_or_null(_node_path))
-        //     {
-        //         const Ref<Script> script = node->get_script();
-        //         const bool script_property = script.is_valid() && _property_exists(script->get_script_property_list());
-        //         const bool object_property = _property_exists(node->get_property_list());
-        //
-        //         if (!script_property && !object_property)
-        //             p_log.error(this, vformat("No property name '%s' found for node path '%s'.", _property.name, _node_path));
-        //     }
-        // }
-    }
-    super::validate_node_during_build(p_log);
-}
-
 void OScriptNodeProperty::_bind_methods() {
     BIND_ENUM_CONSTANT(CallMode::CALL_SELF)
     BIND_ENUM_CONSTANT(CallMode::CALL_INSTANCE)

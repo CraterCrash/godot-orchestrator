@@ -337,15 +337,6 @@ void Orchestration::post_initialize() {
     _initialized = true;
 }
 
-void Orchestration::validate_and_build(BuildLog& p_log) {
-    // Sanity check
-    _fix_orphans();
-
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
-        E.value->validate_node_during_build(p_log);
-    }
-}
-
 void Orchestration::add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node) {
     ERR_FAIL_COND_MSG(_has_instances(), "Cannot add node, instances exist.");
     ERR_FAIL_COND(p_node.is_null());

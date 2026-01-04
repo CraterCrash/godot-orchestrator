@@ -91,7 +91,6 @@ public:
     String get_node_title_color_name() const override { return "properties"; }
     String get_help_topic() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
     CallMode get_call_mode() const { return _call_mode; }

@@ -63,10 +63,3 @@ void OScriptNodeResourcePath::initialize(const OScriptNodeInitContext& p_context
     }
     super::initialize(p_context);
 }
-
-void OScriptNodeResourcePath::validate_node_during_build(BuildLog& p_log) const {
-    if (!FileAccess::file_exists(_path)) {
-        p_log.error(this, "Resource path '" + _path + "' no longer exists.");
-    }
-    super::validate_node_during_build(p_log);
-}
