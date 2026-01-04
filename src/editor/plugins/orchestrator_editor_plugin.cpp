@@ -129,6 +129,8 @@ void OrchestratorPlugin::_edit(Object* p_object)
     if (resource->get_path().is_empty())
         return;
 
+    make_active();
+
     _editor_panel->edit(resource);
     _window_wrapper->move_to_foreground();
 }
