@@ -66,6 +66,10 @@ public:
     void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
+    /// Get the script signal name
+    /// @return the signal name
+    String get_signal_name() const { return _signal_name; }
+
     /// Get the associated signal object
     /// @return the signal object
     Ref<OScriptSignal> get_signal() const { return _signal; }

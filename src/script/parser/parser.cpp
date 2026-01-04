@@ -1499,6 +1499,9 @@ OScriptParser::StatementResult OScriptParser::build_type_cast(const Ref<OScriptN
     CastNode* cast_node = alloc_node<CastNode>();
     cast_node->operand = resolve_input(input_pin);
     cast_node->cast_type = build_type(casted_pin->get_property_info());
+    cast_node->script_node_id = p_script_node->get_id();
+    cast_node->operand->script_node_id = p_script_node->get_id();
+    cast_node->cast_type->script_node_id = p_script_node->get_id();
 
     // There are two ways to handle the branch logic, and it depends on where the variable is declared.
     //
@@ -1529,6 +1532,8 @@ OScriptParser::StatementResult OScriptParser::build_if(const Ref<OScriptNodeBran
     const Ref<OScriptNodePin> false_pin = p_script_node->find_pin(1, PD_Output);
 
     IfNode* if_node = create_if(resolve_input(cond_pin), true_pin, false_pin);
+    if_node->script_node_id = p_script_node->get_id();
+    if_node->condition->script_node_id = p_script_node->get_id();
     add_statement(if_node);
 
     return create_divergence_result(p_script_node);
@@ -1536,6 +1541,7 @@ OScriptParser::StatementResult OScriptParser::build_if(const Ref<OScriptNodeBran
 
 OScriptParser::StatementResult OScriptParser::build_return(const Ref<OScriptNodeFunctionResult>& p_script_node) {
     ReturnNode* return_node = alloc_node<ReturnNode>();
+    return_node->script_node_id = p_script_node->get_id();
     set_return();
 
     if (p_script_node.is_valid()) {
@@ -1568,6 +1574,9 @@ OScriptParser::StatementResult OScriptParser::build_variable_set(const Ref<OScri
     AssignmentNode* assign = alloc_node<AssignmentNode>();
     assign->assignee = build_identifier(variable_name);
     assign->assigned_value = resolve_input(value_pin);
+    assign->script_node_id = p_script_node->get_id();
+    assign->assignee->script_node_id = p_script_node->get_id();
+    assign->assigned_value->script_node_id = p_script_node->get_id();
     add_statement(assign);
 
     return create_statement_result(p_script_node, 0);
@@ -1582,6 +1591,9 @@ OScriptParser::StatementResult OScriptParser::build_property_set(const Ref<OScri
             AssignmentNode* assign = alloc_node<AssignmentNode>();
             assign->assignee = build_identifier(property_name);
             assign->assigned_value = resolve_input(value_pin);
+            assign->script_node_id = p_script_node->get_id();
+            assign->assignee->script_node_id = p_script_node->get_id();
+            assign->assigned_value->script_node_id = p_script_node->get_id();
             add_statement(assign);
             break;
         }
@@ -1600,6 +1612,9 @@ OScriptParser::StatementResult OScriptParser::build_property_set(const Ref<OScri
                 assign->assignee = build_identifier(property_name);
                 assign->assigned_value = resolve_input(value_pin);
             }
+            assign->script_node_id = p_script_node->get_id();
+            assign->assignee->script_node_id = p_script_node->get_id();
+            assign->assigned_value->script_node_id = p_script_node->get_id();
             add_statement(assign);
             break;
         }
@@ -1613,6 +1628,9 @@ OScriptParser::StatementResult OScriptParser::build_property_set(const Ref<OScri
             AssignmentNode* assign = alloc_node<AssignmentNode>();
             assign->assignee = subscript;
             assign->assigned_value = resolve_input(value_pin);
+            assign->script_node_id = p_script_node->get_id();
+            assign->assignee->script_node_id = p_script_node->get_id();
+            assign->assigned_value->script_node_id = p_script_node->get_id();
             add_statement(assign);
             break;
         };
@@ -1628,6 +1646,9 @@ OScriptParser::StatementResult OScriptParser::build_assign_local_variable(const 
     AssignmentNode* assign = alloc_node<AssignmentNode>();
     assign->assignee = resolve_input(variable_pin);
     assign->assigned_value = resolve_input(value_pin);
+    assign->script_node_id = p_script_node->get_id();
+    assign->assignee->script_node_id = p_script_node->get_id();
+    assign->assigned_value->script_node_id = p_script_node->get_id();
     add_statement(assign);
 
     return create_statement_result(p_script_node, 0);
@@ -1694,6 +1715,8 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
         call_node->arguments.push_back(value);
     }
 
+    call_node->script_node_id = p_script_node->get_id();
+
     if (has_return_value && result_pin.is_valid() && result_pin->has_any_connections()) {
         const String result_name = create_cached_variable_name(result_pin);
         create_local_and_push(result_name, call_node);
@@ -1708,6 +1731,7 @@ OScriptParser::StatementResult OScriptParser::build_call_builtin_function(const 
     const MethodInfo& method = p_script_node->get_method_info();
 
     CallNode* call_node = create_func_call(method.name);
+    call_node->script_node_id = p_script_node->get_id();
     for (const Ref<OScriptNodePin>& input : p_script_node->find_pins(PD_Input)) {
         if (!input->is_execution()) {
             // Only apply data input pins
@@ -1734,6 +1758,7 @@ OScriptParser::StatementResult OScriptParser::build_call_script_function(const R
     const Ref<OScriptFunction> function = p_script_node->get_function();
 
     CallNode* call_node = create_func_call(function->get_function_name());
+    call_node->script_node_id = p_script_node->get_id();
 
     int pin_offset = 0;
     const Ref<OScriptNodePin> base_output_pin = p_script_node->find_pin(0, PD_Output);
@@ -1768,6 +1793,7 @@ OScriptParser::StatementResult OScriptParser::build_call_static_function(const R
 
     CallNode* call_node = create_func_call(p_script_node->get_target_class_name(), method.name);
     call_node->is_static = true;
+    call_node->script_node_id = p_script_node->get_id();
 
     int pin_offset = 0;
     const Ref<OScriptNodePin> base_output_pin = p_script_node->find_pin(0, PD_Output);
@@ -1813,6 +1839,7 @@ OScriptParser::StatementResult OScriptParser::build_sequence(const Ref<OScriptNo
 
 OScriptParser::StatementResult OScriptParser::build_while(const Ref<OScriptNodeWhile>& p_script_node) {
     WhileNode *while_node = alloc_node<WhileNode>();
+    while_node->script_node_id = p_script_node->get_id();
 
     while_node->condition = resolve_input(p_script_node->find_pin(1, PD_Input));
     if (while_node->condition == nullptr) {
@@ -1856,6 +1883,8 @@ OScriptParser::StatementResult OScriptParser::build_array_set(const Ref<OScriptN
     AssignmentNode* assign = alloc_node<AssignmentNode>();
     assign->assignee = subscript_node;
     assign->assigned_value = resolve_input(p_script_node->find_pin(3, PD_Input));
+    assign->assignee->script_node_id = p_script_node->get_id();
+    assign->assigned_value->script_node_id = p_script_node->get_id();
     add_statement(assign);
 
     const Ref<OScriptNodePin> output = p_script_node->find_pin(1, PD_Output);
@@ -1868,7 +1897,10 @@ OScriptParser::StatementResult OScriptParser::build_array_set(const Ref<OScriptN
 
 OScriptParser::StatementResult OScriptParser::build_array_clear(const Ref<OScriptNodeArrayClear>& p_script_node) {
     const String array_term = get_term_name(p_script_node->find_pin(1, PD_Input));
-    add_statement(create_func_call(array_term, "clear"));
+    CallNode* clear_func = create_func_call(array_term, "clear");
+    clear_func->script_node_id = p_script_node->get_id();
+    add_statement(clear_func);
+
     add_pin_alias(array_term, p_script_node->find_pin(1, PD_Output));
 
     return create_statement_result(p_script_node, 0);
@@ -1880,6 +1912,7 @@ OScriptParser::StatementResult OScriptParser::build_array_append(const Ref<OScri
 
     CallNode* call_node = create_func_call(target_term, "append_array");
     call_node->arguments.push_back(source);
+    call_node->script_node_id = p_script_node->get_id();
     add_statement(call_node);
 
     const Ref<OScriptNodePin> array_out_pin = p_script_node->find_pin(1, PD_Output);
@@ -1905,6 +1938,7 @@ OScriptParser::StatementResult OScriptParser::build_array_add_element(const Ref<
 
     CallNode* call_node = create_func_call(array_term, "append");
     call_node->arguments.push_back(element);
+    call_node->script_node_id = p_script_node->get_id();
     add_statement(call_node);
     add_pin_alias(array_term, p_script_node->find_pin(1, PD_Output));
 
@@ -1927,22 +1961,28 @@ OScriptParser::StatementResult OScriptParser::build_array_remove_element(const R
         CallNode* call_node = create_func_call(array_term, "find");
         call_node->arguments.push_back(element);
         call_node->arguments.push_back(build_literal(0, p_script_node->get_id()));
+        call_node->script_node_id = p_script_node->get_id();
 
         const String find_var_name = vformat("temp_node_%d_find", p_script_node->get_id());
         create_local_and_push(find_var_name, call_node);
 
         IfNode* if_node = alloc_node<IfNode>();
         if_node->condition = create_binary_op(VariantOperators::OP_NOT_EQUAL, build_identifier(find_var_name), create_literal(-1));
+        if_node->condition->script_node_id = p_script_node->get_id();
 
         if_node->true_block = push_suite();
 
         CallNode* remove_call = create_func_call(array_term, "remove_at");
         remove_call->arguments.push_back(build_identifier(find_var_name));
+        remove_call->script_node_id = p_script_node->get_id();
         add_statement(remove_call);
 
         AssignmentNode* removed_assign = alloc_node<AssignmentNode>();
         removed_assign->assignee = build_identifier(element_removed_name);
         removed_assign->assigned_value = create_literal(true);
+        removed_assign->script_node_id = p_script_node->get_id();
+        removed_assign->assignee->script_node_id = p_script_node->get_id();
+        removed_assign->assigned_value->script_node_id = p_script_node->get_id();
         add_statement(removed_assign);
 
         pop_suite();
@@ -1952,6 +1992,7 @@ OScriptParser::StatementResult OScriptParser::build_array_remove_element(const R
     } else {
         CallNode* call_node = create_func_call(array_term, "erase");
         call_node->arguments.push_back(element);
+        call_node->script_node_id = p_script_node->get_id();
         add_statement(call_node);
     }
 
@@ -1965,6 +2006,7 @@ OScriptParser::StatementResult OScriptParser::build_array_remove_index(const Ref
 
     CallNode* call_node = create_func_call(array_term, "remove_at");
     call_node->arguments.push_back(index);
+    call_node->script_node_id = p_script_node->get_id();
     add_statement(call_node);
     add_pin_alias(array_term, p_script_node->find_pin(1, PD_Output));
 
@@ -1981,6 +2023,7 @@ OScriptParser::StatementResult OScriptParser::build_dictionary_set_item(const Re
         CallNode* get_old_value = create_func_call(dict_term, "get");
         get_old_value->arguments.push_back(key);
         get_old_value->arguments.push_back(create_literal(Variant()));
+        get_old_value->script_node_id = p_script_node->get_id();
 
         const String old_value_term = create_cached_variable_name(old_value_pin);
         create_local_and_push(old_value_term, get_old_value);
@@ -1991,6 +2034,7 @@ OScriptParser::StatementResult OScriptParser::build_dictionary_set_item(const Re
     CallNode* call_set = create_func_call(dict_term, "set");
     call_set->arguments.push_back(key);
     call_set->arguments.push_back(value);
+    call_set->script_node_id = p_script_node->get_id();
     add_pin_alias(dict_term, dict_out);
 
     const Ref<OScriptNodePin> replaced = p_script_node->find_pin(2, PD_Output);
@@ -2019,11 +2063,18 @@ OScriptParser::StatementResult OScriptParser::build_chance(const Ref<OScriptNode
     lhs->function_name = "randi_range";
     lhs->arguments.push_back(build_literal(0, p_script_node->get_id()));
     lhs->arguments.push_back(build_literal(100, p_script_node->get_id()));
+    lhs->script_node_id = p_script_node->get_id();
+    lhs->callee->script_node_id = p_script_node->get_id();
 
     ExpressionNode* rhs = create_literal(p_script_node->get_chance());
+    rhs->script_node_id = p_script_node->get_id();
 
     BinaryOpNode* branch_condition = create_binary_op(VariantOperators::OP_LESS_EQUAL, lhs, rhs);
-    add_statement(create_if(branch_condition, lower_pin, upper_pin));
+    branch_condition->script_node_id = p_script_node->get_id();
+
+    IfNode* if_node = create_if(branch_condition, lower_pin, upper_pin);
+    if_node->script_node_id = p_script_node->get_id();
+    add_statement(if_node);
 
     return create_divergence_result(p_script_node);
 }
@@ -2032,13 +2083,16 @@ OScriptParser::StatementResult OScriptParser::build_delay(const Ref<OScriptNodeD
     // get_tree().create_timer(<duration>)
     CallNode* call_create_timer = create_func_call(create_func_call("get_tree"), "create_timer");
     call_create_timer->arguments.push_back(create_literal(p_script_node->get_duration()));
+    call_create_timer->script_node_id = p_script_node->get_id();
 
     // Get the timeout signal from the base
     SubscriptNode* timeout = create_subscript_attribute(call_create_timer, build_identifier("timeout"));
+    timeout->script_node_id = p_script_node->get_id();
 
     // Await on the signal
     AwaitNode* await_node = alloc_node<AwaitNode>();
     await_node->to_await = timeout;
+    await_node->script_node_id = p_script_node->get_id();
 
     set_coroutine();
     add_statement(await_node);
@@ -2066,11 +2120,16 @@ OScriptParser::StatementResult OScriptParser::build_for_loop(const Ref<OScriptNo
     call_node->function_name = "_oscript_internal_range";
     call_node->arguments.push_back(resolve_input(p_script_node->find_pin(1, PD_Input)));
     call_node->arguments.push_back(add_op);
+    call_node->script_node_id = p_script_node->get_id();
+    call_node->callee->script_node_id = p_script_node->get_id();
 
     ForNode* for_node = alloc_node<ForNode>();
     for_node->variable = build_identifier(vformat("for_var_%d", p_script_node->get_id()));
     for_node->variable->data_type.builtin_type = Variant::INT;
     for_node->list = call_node;
+    for_node->script_node_id = p_script_node->get_id();
+    for_node->variable->script_node_id = p_script_node->get_id();
+    for_node->list->script_node_id = p_script_node->get_id();
 
     // Save break/continue state
     bool could_break = can_break;
@@ -2158,6 +2217,9 @@ OScriptParser::StatementResult OScriptParser::build_for_each(const Ref<OScriptNo
         for_node->variable->data_type.builtin_type = Variant::INT;
     }
     for_node->list = for_list;
+    for_node->script_node_id = p_script_node->get_id();
+    for_node->variable->script_node_id = p_script_node->get_id();
+    for_node->list->script_node_id = p_script_node->get_id();
 
     // Save break/continue state
     bool could_break = can_break;
@@ -2186,6 +2248,8 @@ OScriptParser::StatementResult OScriptParser::build_for_each(const Ref<OScriptNo
         SubscriptNode* subscript = alloc_node<SubscriptNode>();
         subscript->base = resolve_input(p_script_node->find_pin(1, PD_Input));
         subscript->index = build_identifier(for_node->variable->name, suite);
+        subscript->base->script_node_id = p_script_node->get_id();
+        subscript->index->script_node_id = p_script_node->get_id();
 
         VariableNode* index = create_local(index_name, subscript, suite);
         add_statement(index, suite);
@@ -2232,6 +2296,9 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
             ExpressionNode* true_literal = create_literal(true);
             BinaryOpNode* default_cond = create_binary_op(VariantOperators::OP_EQUAL, true_literal, true_literal);
             IfNode* default_scope = create_if(default_cond, true_pin, nullptr);
+            true_literal->script_node_id = p_script_node->get_id();
+            default_cond->script_node_id = p_script_node->get_id();
+            default_scope->script_node_id = p_script_node->get_id();
             add_statement(default_scope);
         }
         return create_statement_result(p_script_node, 0);
@@ -2254,8 +2321,13 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
             ExpressionNode* rhs = resolve_input(input_pins[i]); // Case pin
             BinaryOpNode* cond = create_binary_op(VariantOperators::OP_EQUAL, lhs, rhs);
 
+            cond->script_node_id = p_script_node->get_id();
+            lhs->script_node_id = p_script_node->get_id();
+            rhs->script_node_id = p_script_node->get_id();
+
             if (base_if == nullptr) {
                 base_if = create_if(cond, output_pins[i], nullptr);
+                base_if->script_node_id = p_script_node->get_id();
                 prev_if = base_if;
             } else {
                 // ElseIf
@@ -2266,6 +2338,7 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
                 current_suite = elseif_block;
 
                 IfNode* elif_node = create_if(cond, output_pins[i], nullptr);
+                elif_node->script_node_id = p_script_node->get_id();
                 elseif_block->statements.push_back(elif_node);
                 prev_if->false_block = elseif_block;
 
@@ -2287,11 +2360,14 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
 OScriptParser::StatementResult OScriptParser::build_switch_on_string(const Ref<OScriptNodeSwitchString>& p_script_node) {
     MatchNode* match_node = alloc_node<MatchNode>();
     match_node->test = resolve_input(p_script_node->find_pin(1, PD_Input));
+    match_node->script_node_id = p_script_node->get_id();
 
     for (const Ref<OScriptNodePin>& output_pin : p_script_node->find_pins(PD_Output)) {
         if (output_pin.is_valid() && output_pin->has_any_connections()) {
             MatchBranchNode* branch = alloc_node<MatchBranchNode>();
+            branch->script_node_id = p_script_node->get_id();
             PatternNode* pattern = alloc_node<PatternNode>();
+            pattern->script_node_id = p_script_node->get_id();
 
             const String pin_name = output_pin->get_label();
             if (pin_name != "Default") {
@@ -2314,11 +2390,14 @@ OScriptParser::StatementResult OScriptParser::build_switch_on_string(const Ref<O
 OScriptParser::StatementResult OScriptParser::build_switch_on_integer(const Ref<OScriptNodeSwitchInteger>& p_script_node) {
     MatchNode* match_node = alloc_node<MatchNode>();
     match_node->test = resolve_input(p_script_node->find_pin(1, PD_Input));
+    match_node->test->script_node_id = p_script_node->get_id();
 
     for (const Ref<OScriptNodePin>& output_pin : p_script_node->find_pins(PD_Output)) {
         if (output_pin.is_valid() && output_pin->has_any_connections()) {
             MatchBranchNode* branch = alloc_node<MatchBranchNode>();
+            branch->script_node_id = p_script_node->get_id();
             PatternNode* pattern = alloc_node<PatternNode>();
+            pattern->script_node_id = p_script_node->get_id();
 
             const String pin_name = output_pin->get_label();
             if (pin_name != "Default") {
@@ -2354,6 +2433,7 @@ OScriptParser::StatementResult OScriptParser::build_switch_on_integer(const Ref<
 OScriptParser::StatementResult OScriptParser::build_switch_on_enum(const Ref<OScriptNodeSwitchEnum>& p_script_node) {
     MatchNode* match_node = alloc_node<MatchNode>();
     match_node->test = resolve_input(p_script_node->find_pin(1, PD_Input));
+    match_node->test->script_node_id = p_script_node->get_id();
 
     const EnumInfo& ei = ExtensionDB::get_global_enum(p_script_node->get_enum_name());
     for (const Ref<OScriptNodePin>& output_pin : p_script_node->find_pins(PD_Output)) {
@@ -2362,7 +2442,9 @@ OScriptParser::StatementResult OScriptParser::build_switch_on_enum(const Ref<OSc
                 if (output_pin->get_generated_default_value() == Variant(value.value)) {
                     if (output_pin->has_any_connections()) {
                         MatchBranchNode* branch = alloc_node<MatchBranchNode>();
+                        branch->script_node_id = p_script_node->get_id();
                         PatternNode* pattern = alloc_node<PatternNode>();
+                        pattern->script_node_id = p_script_node->get_id();
                         pattern->pattern_type = PatternNode::PT_EXPRESSION;
                         pattern->expression = build_identifier(value.name);
                         branch->patterns.push_back(pattern);
@@ -2407,18 +2489,23 @@ OScriptParser::StatementResult OScriptParser::build_random(const Ref<OScriptNode
 
     CallNode* random_value = alloc_node<CallNode>();
     random_value->callee = build_identifier("randi_range");
+    random_value->callee->script_node_id = p_script_node->get_id();
     random_value->function_name = "randi_range";
     random_value->arguments.push_back(create_literal(1));
     random_value->arguments.push_back(create_literal(num_possibilities));
+    random_value->script_node_id = p_script_node->get_id();
 
     MatchNode* match_node = alloc_node<MatchNode>();
     match_node->test = random_value;
+    match_node->script_node_id = p_script_node->get_id();
 
     for (int i = 1; i <= num_possibilities; i++) {
         const Ref<OScriptNodePin> output_pin = p_script_node->find_pin(i - 1, PD_Output);
         if (output_pin.is_valid() && output_pin->has_any_connections()) {
             MatchBranchNode* match_branch = alloc_node<MatchBranchNode>();
+            match_branch->script_node_id = p_script_node->get_id();
             PatternNode* pattern = alloc_node<PatternNode>();
+            pattern->script_node_id = p_script_node->get_id();
             pattern->pattern_type = PatternNode::PT_LITERAL;
             pattern->literal = create_literal(i);
             match_branch->patterns.push_back(pattern);
@@ -2435,16 +2522,15 @@ OScriptParser::StatementResult OScriptParser::build_random(const Ref<OScriptNode
 
 OScriptParser::StatementResult OScriptParser::build_instantiate_scene(const Ref<OScriptNodeInstantiateScene>& p_script_node) {
     const Ref<OScriptNodePin> scene_pin = p_script_node->find_pin(1, PD_Output);
-    if (scene_pin.is_valid() && scene_pin->has_any_connections()) {
-        const String scene_term = create_cached_variable_name(scene_pin);
+    const String scene_term = create_cached_variable_name(scene_pin);
 
-        // todo: consider having the node operate via toggle to always create a new instance when traversed.
-        CallNode* call_node = create_func_call("_oscript_internal_instantiate_scene");
-        call_node->arguments.push_back(resolve_input(p_script_node->find_pin(1, PD_Input)));
+    // todo: consider having the node operate via toggle to always create a new instance when traversed.
+    CallNode* call_node = create_func_call("_oscript_internal_instantiate_scene");
+    call_node->arguments.push_back(resolve_input(p_script_node->find_pin(1, PD_Input)));
+    call_node->script_node_id = p_script_node->get_id();
 
-        create_local_and_push(scene_term, call_node);
-        add_pin_alias(scene_term, scene_pin);
-    }
+    create_local_and_push(scene_term, call_node);
+    add_pin_alias(scene_term, scene_pin);
 
     return create_statement_result(p_script_node, 0);
 }
@@ -2453,10 +2539,14 @@ OScriptParser::StatementResult OScriptParser::build_await_signal(const Ref<OScri
     SubscriptNode* the_signal = alloc_node<SubscriptNode>();
     the_signal->base = resolve_input(p_script_node->find_pin(1, PD_Input));
     the_signal->index = resolve_input(p_script_node->find_pin(2, PD_Input));
+    the_signal->base->script_node_id = p_script_node->get_id();
+    the_signal->index->script_node_id = p_script_node->get_id();
+    the_signal->script_node_id = p_script_node->get_id();
 
     // Await on the signal
     AwaitNode* await_node = alloc_node<AwaitNode>();
     await_node->to_await = the_signal;
+    await_node->script_node_id = p_script_node->get_id();
     set_coroutine();
 
     const String result_term = vformat("node_%s_result", p_script_node->get_id());
@@ -2468,6 +2558,7 @@ OScriptParser::StatementResult OScriptParser::build_await_signal(const Ref<OScri
 OScriptParser::StatementResult OScriptParser::build_emit_member_signal(const Ref<OScriptNodeEmitMemberSignal>& p_script_node) {
     const Ref<OScriptNodePin> member_pin = p_script_node->find_pin(1, PD_Input);
     CallNode* call_node = create_func_call(resolve_input(member_pin), "emit_signal");
+    call_node->script_node_id = p_script_node->get_id();
     call_node->arguments.push_back(create_literal(p_script_node->get_signal_info().name));
 
     const int inputs = p_script_node->find_pins(PD_Input).size() - 2; // execution and instance
@@ -2481,18 +2572,19 @@ OScriptParser::StatementResult OScriptParser::build_emit_member_signal(const Ref
 }
 
 OScriptParser::StatementResult OScriptParser::build_emit_signal(const Ref<OScriptNodeEmitSignal>& p_script_node) {
+    CallNode* emit_signal = create_func_call("emit_signal");
+    emit_signal->script_node_id = p_script_node->get_id();
+    emit_signal->arguments.push_back(create_literal(p_script_node->get_signal_name()));
     const Ref<OScriptSignal> the_signal = p_script_node->get_signal();
     if (the_signal.is_valid()) {
-        CallNode* emit_signal = create_func_call("emit_signal");
-        emit_signal->arguments.push_back(create_literal(the_signal->get_signal_name()));
         for (const Ref<OScriptNodePin>& input : p_script_node->find_pins(PD_Input)) {
             if (input->is_execution()) {
                 continue;
             }
             emit_signal->arguments.push_back(resolve_input(input));
         }
-        add_statement(emit_signal);
     }
+    add_statement(emit_signal);
     return create_statement_result(p_script_node, 0);
 }
 
@@ -2500,6 +2592,7 @@ OScriptParser::StatementResult OScriptParser::build_print_string(const Ref<OScri
     #if TOOLS_ENABLED
     // PrintString only is compiled when not in an exported game.
     CallNode* call_node = create_func_call("_oscript_internal_print_string");
+    call_node->script_node_id = p_script_node->get_id();
     for (const Ref<OScriptNodePin>& input : p_script_node->find_pins(PD_Input)) {
         if (input->is_execution()) {
             continue;
@@ -2534,6 +2627,7 @@ OScriptParser::StatementResult OScriptParser::build_message_dialogue(const Ref<O
     call_node->arguments.push_back(create_func_call("get_parent"));
     call_node->arguments.push_back(resolve_input(scene));
     call_node->arguments.push_back(options);
+    call_node->script_node_id = p_script_node->get_id();
 
     const String dialogue_node = create_cached_variable_name(p_script_node->find_pin(0, PD_Input));
     create_local_and_push(dialogue_node, call_node);
@@ -2582,6 +2676,7 @@ OScriptParser::StatementResult OScriptParser::build_message_dialogue(const Ref<O
 OScriptParser::StatementResult OScriptParser::build_new_object(const Ref<OScriptNodeNew>& p_script_node) {
     const Ref<OScriptNodePin> value_pin = p_script_node->find_pin(1, PD_Output);
     CallNode* new_object = create_func_call(p_script_node->get_allocated_class_name(), "new");
+    new_object->script_node_id = p_script_node->get_id();
     create_local_and_push(create_cached_variable_name(value_pin), new_object);
     return create_statement_result(p_script_node, 0);
 }
@@ -2590,6 +2685,7 @@ OScriptParser::StatementResult OScriptParser::build_free_object(const Ref<OScrip
     const Ref<OScriptNodePin> object_pin = p_script_node->find_pin(1, PD_Input);
 
     CallNode* free_object = create_func_call(resolve_input(object_pin), "free");
+    free_object->script_node_id = p_script_node->get_id();
     add_statement(free_object);
 
     return create_statement_result(p_script_node, 0);
