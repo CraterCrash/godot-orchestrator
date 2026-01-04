@@ -17,7 +17,6 @@
 #ifndef ORCHESTRATOR_SCRIPT_NODE_H
 #define ORCHESTRATOR_SCRIPT_NODE_H
 
-#include "orchestration/build_log.h"
 #include "script/action.h"
 #include "script/language.h"
 #include "script/node_factory.h"
@@ -308,10 +307,6 @@ public:
     /// @param r_message the message to be shown if return value is false.
     /// @return true if the user-defined pin can be created, false otherwise
     virtual bool can_create_user_defined_pin(EPinDirection p_direction, String& r_message) { return false; }
-
-    /// Callback to perform node validation during build step.
-    /// @param p_log the build log
-    virtual void validate_node_during_build(BuildLog& p_log) const;
 
     /// Initializes the node from spawner data
     /// @param p_context the initialization context

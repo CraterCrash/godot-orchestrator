@@ -31,12 +31,3 @@ String OScriptNodeDialogueChoice::get_tooltip_text() const {
 String OScriptNodeDialogueChoice::get_node_title() const {
     return "Dialogue Choice";
 }
-
-void OScriptNodeDialogueChoice::validate_node_during_build(BuildLog& p_log) const {
-    const Ref<OScriptNodePin> output = find_pin("choice", PD_Output);
-    if (output.is_valid() && !output->has_any_connections()) {
-        p_log.error(this, output, "Requires a connection.");
-    }
-    super::validate_node_during_build(p_log);
-}
-

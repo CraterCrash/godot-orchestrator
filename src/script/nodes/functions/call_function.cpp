@@ -263,31 +263,6 @@ void OScriptNodeCallFunction::initialize(const OScriptNodeInitContext& p_context
     super::initialize(p_context);
 }
 
-void OScriptNodeCallFunction::validate_node_during_build(BuildLog& p_log) const {
-    const size_t non_default_arguments = MethodUtils::get_argument_count_without_defaults(_reference.method);
-    for (size_t i = 0; i < non_default_arguments; i++)
-        {
-        const PropertyInfo& property = _reference.method.arguments[i];
-        const Ref<OScriptNodePin> property_pin = find_pin(property.name, PD_Input);
-
-        if (property_pin.is_valid()) {
-            Variant::Type pin_type = property_pin->get_property_info().type;
-            if (pin_type == Variant::OBJECT || pin_type == Variant::CALLABLE) {
-                if (!property_pin->has_any_connections()) {
-                    p_log.error(this, property_pin, "Requires a connection.");
-                }
-            } else if (pin_type == Variant::NODE_PATH && !property_pin->has_any_connections()) {
-                const NodePath value = property_pin->get_effective_default_value();
-                if (value.is_empty()) {
-                    p_log.error(this, property_pin, "Requires a NodePath value or a connection.");
-                }
-            }
-        }
-    }
-
-    super::validate_node_during_build(p_log);
-}
-
 bool OScriptNodeCallFunction::is_pure() const {
     // For now we say the node is pure when no execute pins are constructed
     OScriptNodeCallFunction* self = const_cast<OScriptNodeCallFunction*>(this);

@@ -131,14 +131,6 @@ String OScriptNodeFree::get_icon() const {
     return "CurveDelete";
 }
 
-void OScriptNodeFree::validate_node_during_build(BuildLog& p_log) const {
-    Ref<OScriptNodePin> target = find_pin("target", PD_Input);
-    if (!target.is_valid() || !target->has_any_connections())
-        p_log.error(this, target, "Requires a connection.");
-
-    super::validate_node_during_build(p_log);
-}
-
 OScriptNodeFree::OScriptNodeFree() {
     _flags.set_flag(EXPERIMENTAL);
 }

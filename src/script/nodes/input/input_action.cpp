@@ -124,16 +124,6 @@ String OScriptNodeInputAction::get_icon() const {
     return "InputEventAction";
 }
 
-void OScriptNodeInputAction::validate_node_during_build(BuildLog& p_log) const {
-    if (_action_name.is_empty()) {
-        p_log.error(this, "No input action name specified.");
-    } else if (!_get_action_names().has(_action_name)) {
-        p_log.error(this, "Input action '" + _action_name + "' is not defined.");
-    }
-
-    super::validate_node_during_build(p_log);
-}
-
 void OScriptNodeInputAction::_bind_methods() {
     BIND_ENUM_CONSTANT(AM_PRESSED)
     BIND_ENUM_CONSTANT(AM_RELEASED)

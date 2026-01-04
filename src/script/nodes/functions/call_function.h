@@ -113,7 +113,6 @@ public:
     void allocate_default_pins() override;
     String get_icon() const override { return "MemberMethod"; }
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     bool is_pure() const override;
     //~ End OScriptNode Interface
 
