@@ -277,7 +277,7 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
 void OrchestratorScriptGraphEditorView::_change_script_type()
 {
     OrchestratorEditor::get_singleton()->make_inspector_visible();
-    EI->inspect_object(_script->get_orchestration()->as_script().ptr());
+    EI->inspect_object(_script->get_orchestration().ptr());
 
     // todo: remove this when we introduce class support
     // Finds the ClassName editor property in the Inspector and toggles it as though the user clicked it.
