@@ -105,9 +105,12 @@ OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_open_graph_tab
 
         // Restore state
         const Dictionary graph_states = _editor_state.get("graphs", Dictionary());
-        const Dictionary graph_state = graph_states[p_name];
-        if (!graph_state.is_empty())
-            tab_panel->set_edit_state(graph_state, Callable());
+        if (graph_states.has(p_name))
+        {
+            const Dictionary graph_state = graph_states[p_name];
+            if (!graph_state.is_empty())
+                tab_panel->set_edit_state(graph_state, Callable());
+        }
     }
 
     if (tab_panel)
