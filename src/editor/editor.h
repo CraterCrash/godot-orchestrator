@@ -42,6 +42,7 @@
 using namespace godot;
 
 /// Forward declarations
+class OrchestratorEditorLogEventRouter;
 class OrchestratorGettingStarted;
 class OrchestratorEditorCache;
 class OrchestratorEditorView;
@@ -118,6 +119,7 @@ private:
 
     static OrchestratorEditor* _editor;
 
+    OrchestratorEditorLogEventRouter* _log_router = nullptr;
     OrchestratorWindowWrapper* _window_wrapper = nullptr;
     OrchestratorGettingStarted* _getting_started = nullptr;
     OrchestratorFileDialog* _file_dialog = nullptr;
