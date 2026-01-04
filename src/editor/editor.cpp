@@ -26,6 +26,7 @@
 #include "editor/actions/registry.h"
 #include "editor/connections_dock.h"
 #include "editor/dialogs_helper.h"
+#include "editor/editor_log_event_router.h"
 #include "editor/editor_view.h"
 #include "editor/file_dialog.h"
 #include "editor/getting_started.h"
@@ -2798,6 +2799,9 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     ps->connect("settings_changed", callable_mp_this(_project_settings_changed));
 
     OrchestratorPlugin::get_singleton()->connect("scene_changed", callable_mp_this(notify_scene_changed));
+
+    _log_router = memnew(OrchestratorEditorLogEventRouter);
+    add_child(_log_router);
 }
 
 OrchestratorEditor::~OrchestratorEditor()

@@ -25,6 +25,7 @@
 #include "editor/connections_dock.h"
 #include "editor/context_menu.h"
 #include "editor/editor.h"
+#include "editor/editor_log_event_router.h"
 #include "editor/file_dialog.h"
 #include "editor/getting_started.h"
 #include "editor/goto_node_dialog.h"
@@ -67,6 +68,7 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorThemeCache)
 
     // Editor bits
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorLogEventRouter)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyClassName)
     GDREGISTER_INTERNAL_CLASS(OrchestratorPropertyInfoContainerEditorProperty)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyVariableClassification)
