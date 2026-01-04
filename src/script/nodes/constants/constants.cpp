@@ -144,14 +144,6 @@ void OScriptNodeGlobalConstant::initialize(const OScriptNodeInitContext& p_conte
     super::initialize(p_context);
 }
 
-void OScriptNodeGlobalConstant::validate_node_during_build(BuildLog& p_log) const {
-    super::validate_node_during_build(p_log);
-
-    if (_constant_name.is_empty()) {
-        p_log.error(this, "Constant node has no constant name specified.");
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// OScriptNodeMathConstant
 
@@ -207,14 +199,6 @@ String OScriptNodeMathConstant::get_icon() const {
 
 PackedStringArray OScriptNodeMathConstant::get_keywords() const {
     return ExtensionDB::get_math_constant_names();
-}
-
-void OScriptNodeMathConstant::validate_node_during_build(BuildLog& p_log) const {
-    super::validate_node_during_build(p_log);
-
-    if (_constant_name.is_empty()) {
-        p_log.error(this, "No constant name specified.");
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -363,16 +347,6 @@ void OScriptNodeTypeConstant::initialize(const OScriptNodeInitContext& p_context
     super::initialize(p_context);
 }
 
-void OScriptNodeTypeConstant::validate_node_during_build(BuildLog& p_log) const {
-    super::validate_node_during_build(p_log);
-
-    if (_constant_name.is_empty()) {
-        p_log.error(this, "No constant name specified.");
-    } else if (_type == Variant::NIL) {
-        p_log.error(this, "No type specified.");
-    }
-}
-
 void OScriptNodeTypeConstant::_bind_methods() {
     for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
         if (!type.constants.is_empty()) {
@@ -489,16 +463,6 @@ String OScriptNodeClassConstantBase::get_help_topic() const {
 
 String OScriptNodeClassConstantBase::get_icon() const {
     return "MemberConstant";
-}
-
-void OScriptNodeClassConstantBase::validate_node_during_build(BuildLog& p_log) const {
-    super::validate_node_during_build(p_log);
-
-    if (_class_name.is_empty()) {
-        p_log.error(this, "No constant class name specified.");
-    } else if (_constant_name.is_empty()) {
-        p_log.error(this, "No constant specified.");
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -207,19 +207,6 @@ void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_c
     super::initialize(p_context);
 }
 
-void OScriptNodeCallMemberFunction::validate_node_during_build(BuildLog& p_log) const {
-    const Ref<OScriptNodePin> target = find_pin("target", PD_Input);
-    if (target.is_valid()) {
-        String target_class = target->get_property_info().class_name;
-        if (!target_class.is_empty() && !target->has_any_connections()) {
-            if (!ClassDB::is_parent_class(get_orchestration()->get_base_type(), target_class)) {
-                p_log.error(this, target, "Requires a connection.");
-            }
-        }
-    }
-    super::validate_node_during_build(p_log);
-}
-
 PackedStringArray OScriptNodeCallMemberFunction::get_suggestions(const Ref<OScriptNodePin>& p_pin) {
     if (p_pin.is_valid() && p_pin->is_input() && p_pin->get_pin_name().match("signal"))
     {

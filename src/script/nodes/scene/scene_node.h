@@ -58,7 +58,6 @@ public:
     String get_help_topic() const override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     bool is_pure() const override;
     //~ End OScriptNode Interface
 

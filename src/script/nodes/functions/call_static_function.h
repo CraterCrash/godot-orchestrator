@@ -47,7 +47,6 @@ public:
     String get_node_title_color_name() const override { return "function_call"; }
     String get_help_topic() const override;
     String get_icon() const override { return "MemberMethod"; }
-    void validate_node_during_build(BuildLog& p_log) const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 

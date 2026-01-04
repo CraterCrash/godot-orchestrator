@@ -18,7 +18,6 @@
 #define ORCHESTRATOR_SCRIPT_FUNCTION_H
 
 #include "common/guid.h"
-#include "orchestration/build_log.h"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/variant/dictionary.hpp>

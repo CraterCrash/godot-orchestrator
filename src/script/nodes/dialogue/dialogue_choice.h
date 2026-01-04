@@ -33,7 +33,6 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "dialogue"; }
-    void validate_node_during_build(BuildLog& p_log) const override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 };
