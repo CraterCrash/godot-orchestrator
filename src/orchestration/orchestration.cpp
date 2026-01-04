@@ -215,7 +215,7 @@ void Orchestration::_connect_nodes(int p_source_id, int p_source_port, int p_tar
     ERR_FAIL_COND_MSG(_connections.has(connection), "A connection already exists: " + connection.to_string());
     _connections.insert(connection);
 
-    emit_signal("connections_changed", "connect_nodes");
+    emit_signal("connections_changed");
 }
 
 void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port) {
@@ -237,7 +237,7 @@ void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_
         }
     }
 
-    emit_signal("connections_changed", "disconnect_nodes");
+    emit_signal("connections_changed");
 }
 
 String Orchestration::get_orchestration_path() const {
@@ -498,7 +498,7 @@ void Orchestration::adjust_connections(const OScriptNode* p_node, int p_offset, 
         _connections.insert(cd.mutated);
     }
 
-    emit_signal("connections_changed", "adjust_connections");
+    emit_signal("connections_changed");
 }
 
 bool Orchestration::has_graph(const StringName& p_name) const {
@@ -1177,7 +1177,7 @@ void Orchestration::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_get_graphs"), &Orchestration::_get_graphs_internal);
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "graphs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_graphs", "_get_graphs");
 
-    ADD_SIGNAL(MethodInfo("connections_changed", PropertyInfo(Variant::STRING, "caller")));
+    ADD_SIGNAL(MethodInfo("connections_changed"));
     ADD_SIGNAL(MethodInfo("functions_changed")); // todo: does not appear to have any subscribers atm
     ADD_SIGNAL(MethodInfo("variables_changed")); // todo: does not appear to have any subscribers atm
     ADD_SIGNAL(MethodInfo("signals_changed")); // todo: does not appear to have any subscribers atm
