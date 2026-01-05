@@ -19,6 +19,8 @@
 
 #include "editor/graph/pins/button_base_pin.h"
 
+#include <godot_cpp/classes/check_box.hpp>
+
 /// An implementation of <code>OrchestratorEditorGraphPin</code> for bitfield data type pins.
 ///
 /// A bitfield data pin is an <code>int64_t</code> value that can represent zero, one, or more options.
@@ -30,7 +32,7 @@ class OrchestratorEditorGraphPinBitfield : public OrchestratorEditorGraphPinButt
 {
     GDCLASS(OrchestratorEditorGraphPinBitfield, OrchestratorEditorGraphPinButtonBase);
 
-    String _compute_enum_prefix(const PackedStringArray& p_names);
+    void _update_checkboxes(bool p_state, const CheckBox* p_box_control);
 
 protected:
     static void _bind_methods() { }

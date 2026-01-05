@@ -14,44 +14,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/enum_resolver.h"
+#include "core/godot/object/enum_resolver.h"
 
 #include "api/extension_db.h"
 #include "common/string_utils.h"
-#include "godot_cpp/classes/ref.hpp"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
 
-static String _calculate_enum_prefix(const PackedStringArray& p_values)
-{
-    if (p_values.size() == 0)
+String EnumResolver::_calculate_enum_prefix(const PackedStringArray& p_values) {
+    if (p_values.size() == 0) {
         return {};
+    }
 
     String prefix = p_values[0];
 
     // Some Godot enums contain underscores, those are our target
-    if (!prefix.contains("_"))
+    if (!prefix.contains("_")) {
         return {};
+    }
 
-    for (const String& value : p_values)
-    {
-        while (value.find(prefix) != 0)
-        {
+    for (const String& value : p_values) {
+        while (value.find(prefix) != 0) {
             prefix = prefix.substr(0, prefix.length() - 1);
-            if (prefix.is_empty())
+            if (prefix.is_empty()) {
                 return {};
+            }
         }
     }
 
     return prefix;
 }
 
-static String _generate_friendly_name(const String& p_prefix, const String& p_name)
-{
-    if (p_prefix.is_empty())
+String EnumResolver::_generate_friendly_name(const String& p_prefix, const String& p_name) {
+    if (p_prefix.is_empty()) {
         return p_name.capitalize();
+    }
 
     const bool is_key = p_name.match("Key");
     const bool is_error = p_name.match("Error");
@@ -61,41 +60,39 @@ static String _generate_friendly_name(const String& p_prefix, const String& p_na
     String friendly_name = p_name.replace(p_prefix, "").capitalize();
 
     // Handle unique fixups
-    if (is_key && friendly_name.begins_with("Kp "))
+    if (is_key && friendly_name.begins_with("Kp ")) {
         friendly_name = friendly_name.substr(3, friendly_name.length()) + " (Keypad)";
-    else if (is_key && friendly_name.begins_with("F "))
+    } else if (is_key && friendly_name.begins_with("F ")) {
         friendly_name = friendly_name.replace(" ", "");
-    else if (is_error && friendly_name.begins_with("Err "))
+    } else if (is_error && friendly_name.begins_with("Err ")) {
         friendly_name = friendly_name.substr(4, friendly_name.length());
-    else if (is_method_flags & p_name.match("METHOD_FLAGS_DEFAULT"))
+    } else if (is_method_flags & p_name.match("METHOD_FLAGS_DEFAULT")) {
         friendly_name = ""; // Skipped by some nodes
+    }
 
-    if (is_upper)
+    if (is_upper) {
         friendly_name = friendly_name.to_upper();
+    }
 
     return friendly_name;
 }
 
-List<OrchestratorEditorEnumResolver::EnumItem> OrchestratorEditorEnumResolver::resolve_enum_items(const String& p_target_class)
-{
+List<EnumResolver::EnumItem> EnumResolver::_resolve_class_enums(const String& p_class_name) {
     List<EnumItem> results;
 
-    if (!p_target_class.is_empty() && p_target_class.contains(".") && p_target_class != "Variant.Type")
-    {
+    if (!p_class_name.is_empty() && p_class_name.contains(".") && p_class_name != "Variant.Type") {
         // Represents a nested enum in a Class or BuiltInType
         // Variant.Type is excluded as its treated as a global "enum" despite the dot.
-        if (p_target_class.begins_with("res://"))
-        {
+        if (p_class_name.begins_with("res://")) {
             // Represents an enum that is defined within a Script.
-            const int64_t last_dot = p_target_class.rfind(".");
-            const String class_name = p_target_class.substr(0, last_dot);
-            const String enum_name = p_target_class.substr(last_dot + 1);
+            const int64_t last_dot = p_class_name.rfind(".");
+            const String class_name = p_class_name.substr(0, last_dot);
+            const String enum_name = p_class_name.substr(last_dot + 1);
 
             const Ref<Script> script = ResourceLoader::get_singleton()->load(class_name);
-            ERR_FAIL_COND_V_MSG(!script.is_valid(), {}, "Failed to load enum " + p_target_class + " from script " + class_name);
+            ERR_FAIL_COND_V_MSG(!script.is_valid(), {}, "Failed to load enum " + p_class_name + " from script " + class_name);
 
             const Dictionary constants = script->get_script_constant_map();
-
             const Array constant_keys = constants.keys();
             for (int i = 0; i < constant_keys.size(); i++)
             {
@@ -109,19 +106,18 @@ List<OrchestratorEditorEnumResolver::EnumItem> OrchestratorEditorEnumResolver::r
                         const String& value_key = value_keys[j];
 
                         EnumItem item;
-                        item.real_name = value_key;
+                        item.name = value_key;
                         item.friendly_name = value_key.capitalize();
                         item.value = value[value_key];
                         results.push_back(item);
                     }
                 }
             }
-        }
-        else
-        {
-            const int64_t dot = p_target_class.find(".");
-            const String class_name = p_target_class.substr(0, dot);
-            const String enum_name = p_target_class.substr(dot + 1);
+        } else {
+
+            const int64_t dot = p_class_name.find(".");
+            const String class_name = p_class_name.substr(0, dot);
+            const String enum_name = p_class_name.substr(dot + 1);
 
             if (ExtensionDB::get_builtin_type_names().has(class_name))
             {
@@ -132,7 +128,7 @@ List<OrchestratorEditorEnumResolver::EnumItem> OrchestratorEditorEnumResolver::r
                     for (const EnumValue& enum_value : enum_info.values)
                     {
                         EnumItem item;
-                        item.real_name = enum_value.name;
+                        item.name = enum_value.name;
                         item.friendly_name = enum_value.friendly_name;
                         item.value = enum_value.value;
                         results.push_back(item);
@@ -147,8 +143,8 @@ List<OrchestratorEditorEnumResolver::EnumItem> OrchestratorEditorEnumResolver::r
                 for (int index = 0; index < enum_values.size(); index++)
                 {
                     EnumItem item;
-                    item.real_name = enum_values[index];
-                    item.friendly_name = _generate_friendly_name(prefix, item.real_name);
+                    item.name = enum_values[index];
+                    item.friendly_name = _generate_friendly_name(prefix, item.name);
                     item.value = index;
                     results.push_back(item);
                 }
@@ -164,23 +160,21 @@ List<OrchestratorEditorEnumResolver::EnumItem> OrchestratorEditorEnumResolver::r
                     for (int i = 0; i < entries_keys.size(); i++)
                     {
                         EnumItem item;
-                        item.real_name = entries_keys[i];
-                        item.friendly_name = _generate_friendly_name("", item.real_name);
+                        item.name = entries_keys[i];
+                        item.friendly_name = _generate_friendly_name("", item.name);
                         item.value = entries[entries_keys[i]];
                         results.push_back(item);
                     }
                 }
             }
         }
-    }
-    else if (ExtensionDB::get_global_enum_names().has(p_target_class))
-    {
-        // Handle global enum
-        const EnumInfo& ei = ExtensionDB::get_global_enum(p_target_class);
+    } else if (ExtensionDB::get_global_enum_names().has(p_class_name)) {
+        // Global enum
+        const EnumInfo& ei = ExtensionDB::get_global_enum(p_class_name);
         for (const EnumValue& value : ei.values)
         {
             EnumItem item;
-            item.real_name = value.name;
+            item.name = value.name;
             item.friendly_name = StringUtils::default_if_empty(value.friendly_name, value.name);
             item.value = value.value;
             results.push_back(item);
@@ -188,4 +182,46 @@ List<OrchestratorEditorEnumResolver::EnumItem> OrchestratorEditorEnumResolver::r
     }
 
     return results;
+}
+
+List<EnumResolver::EnumItem> EnumResolver::_resolve_comma_separated_items(const String& p_hint_string) {
+    List<EnumItem> results;
+
+    const PackedStringArray items = p_hint_string.split(",", false);
+    for (uint32_t i = 0; i < items.size(); i++) {
+        const String entry = items[i];
+
+        String item_name;
+        int64_t item_value = 0;
+        if (entry.contains(":")) {
+            item_value = entry.substr(entry.find(":") + 1).to_int();
+            item_name = entry.substr(0, entry.find(":"));
+        } else {
+            item_value = i;
+            item_name = entry;
+        }
+
+        EnumItem item;
+        item.name = item_name;
+        item.friendly_name = item.name.capitalize();
+        item.value = item_value;
+        results.push_back(item);
+    }
+
+    return results;
+}
+
+List<EnumResolver::EnumItem> EnumResolver::resolve(const PropertyInfo& p_property) {
+    if (!p_property.class_name.is_empty()) {
+        return _resolve_class_enums(p_property.class_name);
+    }
+
+    if (!p_property.hint_string.is_empty()) {
+        if (p_property.hint_string.contains(".")) {
+            return _resolve_class_enums(p_property.hint_string);
+        }
+        return _resolve_comma_separated_items(p_property.hint_string);
+    }
+
+    return {};
 }

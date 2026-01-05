@@ -14,25 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ENUM_RESOLVER_H
-#define ORCHESTRATOR_EDITOR_ENUM_RESOLVER_H
+#ifndef ORCHESTRATOR_CORE_GODOT_OBJECT_ENUM_RESOLVER_H
+#define ORCHESTRATOR_CORE_GODOT_OBJECT_ENUM_RESOLVER_H
 
+#include <godot_cpp/core/property_info.hpp>
 #include <godot_cpp/templates/list.hpp>
-#include <godot_cpp/variant/string.hpp>
 
 using namespace godot;
 
-class OrchestratorEditorEnumResolver
-{
+/// Resolves a <code>PropertyInfo</code> to a list of <code>EnumItem</code>.
+class EnumResolver {
 public:
-    struct EnumItem
-    {
+    struct EnumItem {
+        String name;
         String friendly_name;
-        String real_name;
-        int64_t value;
+        int64_t value = 0;
     };
 
-    static List<EnumItem> resolve_enum_items(const String& p_target_class);
+private:
+    static String _calculate_enum_prefix(const PackedStringArray& p_values);
+    static String _generate_friendly_name(const String& p_prefix, const String& p_name);
+
+    static List<EnumItem> _resolve_class_enums(const String& p_class_name);
+    static List<EnumItem> _resolve_comma_separated_items(const String& p_hint_string);
+
+public:
+    static List<EnumItem> resolve(const PropertyInfo& p_property);
 };
 
-#endif // ORCHESTRATOR_EDITOR_ENUM_RESOLVER_H
+#endif // ORCHESTRATOR_CORE_GODOT_OBJECT_ENUM_RESOLVER_H
