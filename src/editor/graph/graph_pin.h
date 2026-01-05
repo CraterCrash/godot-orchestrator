@@ -73,6 +73,8 @@ protected:
     void _notification(int p_what);
     //~ End Wrapped Interface
 
+    PackedStringArray _get_pin_suggestions() const;
+
     virtual String _get_pin_color_name() const;
 
     void _default_value_changed();
