@@ -30,7 +30,6 @@ class OrchestratorEditorGraphPinLineEdit : public OrchestratorEditorGraphPin
 
     LineEdit* _control = nullptr;
     PopupMenu* _popup = nullptr;
-    PackedStringArray _suggestions;
 
     void _focus_entered();
     void _popup_window_input(const Ref<InputEvent>& p_event);
@@ -44,9 +43,6 @@ protected:
     Variant _read_control_value() override;
     Control* _create_default_value_widget() override;
     //~ End OrchestratorEditorGraphPin Interface
-
-public:
-    void set_suggestions(const PackedStringArray& p_suggestions);
 };
 
 #endif // ORCHESTRATOR_EDITOR_GRAPH_PIN_LINE_EDIT_H
