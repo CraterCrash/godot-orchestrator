@@ -28,6 +28,11 @@
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 
+PackedStringArray OrchestratorEditorGraphPin::_get_pin_suggestions() const {
+    ERR_FAIL_COND_V(!_pin.is_valid(), {});
+    return _pin->get_suggestions();
+}
+
 String OrchestratorEditorGraphPin::_get_pin_color_name() const
 {
     static String COLOR_ANY = "ui/connection_colors/any";
