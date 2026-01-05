@@ -17,7 +17,8 @@
 #include "editor/graph/pins/enum_pin.h"
 
 #include "common/macros.h"
-#include "editor/graph/enum_resolver.h"
+#include "core/godot/object/enum_resolver.h"
+#include "script/script_server.h"
 
 void OrchestratorEditorGraphPinEnum::_item_selected(int p_index)
 {
@@ -29,21 +30,20 @@ void OrchestratorEditorGraphPinEnum::_item_selected(int p_index)
 
 void OrchestratorEditorGraphPinEnum::_update_control_value(const Variant& p_value)
 {
-    using EnumItem = OrchestratorEditorEnumResolver::EnumItem;
+    using EnumItem = EnumResolver::EnumItem;
 
     // Force deselection of any values
     _button->select(-1);
 
     if (!_generated)
     {
-        OrchestratorEditorEnumResolver resolver;
-        for (const EnumItem& item : resolver.resolve_enum_items(get_property_info().class_name))
+        const List<EnumItem>& items = EnumResolver::resolve(get_property_info());
+        for (const EnumItem& item : items)
         {
             const Variant item_value = item.value;
-
-            int32_t index = _button->get_item_count();
+            const int32_t index = _button->get_item_count();
             _button->add_item(item.friendly_name);
-            _button->set_item_metadata(index, item_value);
+            _button->set_item_metadata(index, item.value);
 
             if (item_value == p_value)
                 _button->select(index);
