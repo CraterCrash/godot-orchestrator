@@ -24,10 +24,11 @@
 
 void OrchestratorEditorGraphPinLineEdit::_focus_entered()
 {
-    if (!_suggestions.is_empty())
+    const PackedStringArray suggestions = _get_pin_suggestions();
+    if (!suggestions.is_empty())
     {
         _popup->clear();
-        for (const String& item : _suggestions)
+        for (const String& item : suggestions)
             _popup->add_item(item);
 
         _popup->set_position(_control->get_screen_position() + Vector2(0, _control->get_size().height));
@@ -83,16 +84,4 @@ Control* OrchestratorEditorGraphPinLineEdit::_create_default_value_widget()
     _control->add_child(_popup);
 
     return _control;
-}
-
-void OrchestratorEditorGraphPinLineEdit::set_suggestions(const PackedStringArray& p_suggestions)
-{
-    _suggestions = p_suggestions;
-
-    // If suggestions change and the popup is visible, this triggers updating the popup
-    if (is_inside_tree() && _popup->is_visible())
-    {
-        _popup->hide();
-        _focus_entered();
-    }
 }
