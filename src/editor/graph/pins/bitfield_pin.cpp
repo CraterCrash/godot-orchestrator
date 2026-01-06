@@ -36,27 +36,15 @@ void OrchestratorEditorGraphPinBitfield::_update_checkboxes(bool p_state, const 
     GridContainer* container = cast_to<GridContainer>(p_box_control->get_parent());
     if (container)
     {
-        bool separator_found = false;
         for (uint32_t i = 0; i < container->get_child_count(); i++)
         {
-            Node* child = container->get_child(i);
-            if (!separator_found)
+            CheckBox* box = cast_to<CheckBox>(container->get_child(i));
+            if (box && box != p_box_control)
             {
-                HSeparator* separator = cast_to<HSeparator>(child);
-                if (!separator)
-                    continue;
-
-                separator_found = true;
-                continue;
+                const int64_t box_bitmask_value = box->get_meta("bitmask_value", 0);
+                if (box_bitmask_value > 0)
+                    box->set_pressed_no_signal((new_value & box_bitmask_value) == box_bitmask_value);
             }
-
-            CheckBox* box = cast_to<CheckBox>(child);
-            if (!box && box != p_box_control)
-                continue;
-
-            // Only update other boxes, not the one that triggered the event
-            const int64_t box_bitmask_value = box->get_meta("bitmask_value", 0);
-            box->set_pressed_no_signal((new_value & box_bitmask_value) == box_bitmask_value);
         }
     }
 
