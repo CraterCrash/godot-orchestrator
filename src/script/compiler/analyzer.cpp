@@ -2557,7 +2557,8 @@ void OScriptAnalyzer::resolve_function_body(OScriptParser::FunctionNode* p_funct
         if (p_function->source_lambda != nullptr) {
             push_error(R"(A lambda function must have a ":" followed by a body.)", p_function);
         } else if (!p_function->is_abstract) {
-            push_error(vformat(R"(A function "%s" must either have a body, or be marked as "@abstract".)", p_function->identifier->name), p_function);
+            push_error(vformat(R"(The function "%s" is defined without a body.)", p_function->identifier->name), p_function);
+            // push_error(vformat(R"(A function "%s" must either have a body, or be marked as "@abstract".)", p_function->identifier->name), p_function);
         }
         return;
     } else {
