@@ -281,6 +281,9 @@ protected:
     void _get_graph_node_and_port(const Vector2& p_position, int& r_id, int& r_port_index) const;
     bool _is_point_inside_node(const Vector2& p_point) const;
 
+    void _disconnect_connection(const Dictionary& p_connection);
+    void _create_connection_reroute(const Dictionary& p_connection, const Vector2& p_position);
+
 public:
     //~ Begin Control Interface
     void _gui_input(const Ref<InputEvent>& p_event) override;

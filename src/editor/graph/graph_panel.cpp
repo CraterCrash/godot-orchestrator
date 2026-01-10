@@ -2358,6 +2358,31 @@ bool OrchestratorEditorGraphPanel::_is_point_inside_node(const Vector2& p_point)
     return false;
 }
 
+void OrchestratorEditorGraphPanel::_disconnect_connection(const Dictionary& p_connection)
+{
+    const OScriptConnection connection = OScriptConnection::from_dict(p_connection);
+
+    _disconnection_request(
+        vformat("%d", connection.from_node),
+        connection.from_port,
+        vformat("%d", connection.to_node),
+        connection.to_port);
+}
+
+void OrchestratorEditorGraphPanel::_create_connection_reroute(const Dictionary& p_connection, const Vector2& p_position)
+{
+    if (p_connection.is_empty())
+        return;
+
+    const Connection connection = Connection::from_dict(p_connection);
+    const Vector2 position = (p_position + get_scroll_offset()) / get_zoom();
+
+    GraphNode* source = find_node(connection.from_node);
+    GraphNode* target = find_node(connection.to_node);
+
+    _knot_editor->create_knot(connection, position, source, target, get_connection_lines_curvature());
+}
+
 void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable)
 {
     const MethodInfo method = DictionaryUtils::to_method(p_function);
@@ -2434,6 +2459,29 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event)
         }
     }
 
+    const Ref<InputEventMouseButton> mb = p_event;
+    if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_RIGHT)
+    {
+        Dictionary hovered_connection = get_closest_connection_at_point(mb->get_position());
+        if (!hovered_connection.is_empty())
+        {
+            const Vector2 pos = mb->get_position() + get_screen_position();
+
+            OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
+            menu->set_auto_destroy(true);
+            add_child(menu);
+
+            menu->add_separator("Connection Menu");
+            menu->add_item("Disconnect", callable_mp_this(_disconnect_connection).bind(hovered_connection));
+            menu->add_item("Insert Reroute Node", callable_mp_this(_create_connection_reroute).bind(hovered_connection, mb->get_position()));
+            menu->set_position(pos);
+            menu->popup();
+
+            get_viewport()->set_input_as_handled();
+            return;
+        }
+    }
+
     // There is a bug where if the mouse hovers a connection and a node concurrently,
     // the connection color is changed, even when the mouse is inside the node.
     GraphEdit::_gui_input(p_event);
@@ -2451,15 +2499,7 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event)
         }
 
         if (_knot_editor->is_create_knot_keybind(p_event) && !_hovered_connection.is_empty())
-        {
-            const Connection connection = Connection::from_dict(_hovered_connection);
-            const Vector2 position = (mouse->get_position() + get_scroll_offset()) / get_zoom();
-
-            GraphNode* source = find_node(connection.from_node);
-            GraphNode* target = find_node(connection.to_node);
-
-            _knot_editor->create_knot(connection, position, source, target, get_connection_lines_curvature());
-        }
+            _create_connection_reroute(_hovered_connection, mouse->get_position());
     }
 
     _update_box_selection_state(p_event);
