@@ -710,6 +710,10 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
     ERR_FAIL_NULL_MSG(p_pin, "Cannot create context menu for an invalid pin.");
     accept_event();
 
+    // Pin context-menu only operates on the current pin's node, so deselect any existing selections
+    for (GraphElement* element : get_selected<GraphElement>())
+        element->set_selected(false);
+
     OrchestratorEditorGraphNode* owning_node = p_pin->get_graph_node();
     owning_node->set_selected(true);
 
