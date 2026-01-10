@@ -1558,6 +1558,42 @@ OScriptParser::StatementResult OScriptParser::build_return(const Ref<OScriptNode
     return create_stop_result();
 }
 
+OScriptParser::StatementResult OScriptParser::build_variable_get_validated(const Ref<OScriptNodeVariableGet>& p_script_node) {
+    Ref<OScriptVariable> variable = p_script_node->get_variable();
+    if (!variable.is_valid()) {
+        push_error("Variable reference is invalid");
+        return create_stop_result();
+    }
+
+    BinaryOpNode* is_object = alloc_node<BinaryOpNode>();
+    is_object->left_operand = create_literal(variable->get_variable_type());
+    is_object->right_operand = create_literal(Variant::OBJECT);
+    is_object->operation = BinaryOpNode::OP_COMP_EQUAL;
+    is_object->variant_op = Variant::OP_EQUAL;
+    is_object->script_node_id = p_script_node->get_id();
+
+    CastNode* type_cast = alloc_node<CastNode>();
+    type_cast->cast_type = build_type(PropertyInfo(Variant::OBJECT, "x"));
+    type_cast->operand = build_identifier(variable->get_variable_name());
+
+    BinaryOpNode* and_op = alloc_node<BinaryOpNode>();
+    and_op->left_operand = is_object;
+    and_op->right_operand = type_cast;
+    and_op->operation = BinaryOpNode::OP_LOGIC_AND;
+    and_op->variant_op = Variant::OP_AND;
+
+    add_pin_alias(variable->get_variable_name(), p_script_node->find_pin(2, PD_Output));
+
+    const Ref<OScriptNodePin> true_pin = p_script_node->find_pin(0, PD_Output);
+    const Ref<OScriptNodePin> false_pin = p_script_node->find_pin(1, PD_Output);
+    IfNode* if_node = create_if(and_op, true_pin, false_pin);
+    if_node->script_node_id = p_script_node->get_id();
+
+    add_statement(if_node);
+
+    return create_divergence_result(p_script_node);
+}
+
 OScriptParser::StatementResult OScriptParser::build_variable_set(const Ref<OScriptNodeVariableSet>& p_script_node) {
     if (!p_script_node.is_valid()) {
         return create_stop_result();
@@ -3409,6 +3445,7 @@ OScriptParser::OScriptParser() {
     register_statement_handler<OScriptNodeBranch,               &OScriptParser::build_if>();
     register_statement_handler<OScriptNodeTypeCast,             &OScriptParser::build_type_cast>();
     register_statement_handler<OScriptNodeFunctionResult,       &OScriptParser::build_return>();
+    register_statement_handler<OScriptNodeVariableGet,          &OScriptParser::build_variable_get_validated>();
     register_statement_handler<OScriptNodeVariableSet,          &OScriptParser::build_variable_set>();
     register_statement_handler<OScriptNodePropertySet,          &OScriptParser::build_property_set>();
     register_statement_handler<OScriptNodeAssignLocalVariable,  &OScriptParser::build_assign_local_variable>();
