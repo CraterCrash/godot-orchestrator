@@ -109,6 +109,12 @@ namespace SceneUtils
         return vbox->get_theme_font_size(p_font_name, "EditorFonts");
     }
 
+    int get_editor_class_icon_size()
+    {
+        VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();
+        return vbox->get_theme_constant("class_icon_size", "Editor");
+    }
+
     Ref<StyleBox> get_editor_stylebox(const String& p_stylebox_name, const String& p_class_name)
     {
         VBoxContainer* vbox = EditorInterface::get_singleton()->get_editor_main_screen();

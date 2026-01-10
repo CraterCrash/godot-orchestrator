@@ -25,6 +25,7 @@
 #include "editor/graph/graph_pin.h"
 #include "editor/graph/graph_pin_factory.h"
 #include "editor/theme/theme_cache.h"
+#include "script/nodes/data/type_cast.h"
 #include "script/nodes/editable_pin_node.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -60,6 +61,8 @@ void OrchestratorEditorGraphNode::_update_titlebar()
     const String icon_name = _node->get_icon();
     if (!icon_name.is_empty() && icon_name.begins_with("res://"))
         icon = ResourceLoader::get_singleton()->load(icon_name);
+    else if (const Ref<OScriptNodeTypeCast> type_cast = _node; type_cast.is_valid())
+        icon = SceneUtils::get_class_icon(icon_name);
     else if (!icon_name.is_empty())
         icon = SceneUtils::get_editor_icon(icon_name);
 
