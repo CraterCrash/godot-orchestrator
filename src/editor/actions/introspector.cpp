@@ -25,6 +25,8 @@
 #include "common/variant_utils.h"
 #include "common/version.h"
 #include "core/godot/config/project_settings.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script_server.h"
 
@@ -337,7 +339,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 
         for (int i = 0; i < p_methods.size(); i++)
         {
-            const MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
+            MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
 
             // Skip private methods
             // if (method.name.begins_with("_") && !(method.flags & METHOD_FLAG_VIRTUAL))
@@ -372,6 +374,9 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             }
             else
             {
+                // Hook to override method details as needed
+                _apply_method_overrides(p_class_name, method);
+
                 actions.push_back(
                     ActionBuilder(methods_category, method.name)
                     .type(ActionType::ACTION_CALL_MEMBER_FUNCTION)
@@ -447,6 +452,23 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     }
 
     return actions;
+}
+
+void OrchestratorEditorIntrospector::_apply_method_overrides(const String& p_class_name, MethodInfo& r_method)
+{
+    // For Object.connect, override the flags attribute to disable a list of connect flag enum values
+    if (p_class_name == Object::get_class_static() && r_method.name == CoreStringName(_connect))
+    {
+        for (uint32_t j = 0; j < r_method.arguments.size(); j++)
+        {
+            if (r_method.arguments[j].name == StringName("flags"))
+            {
+                r_method.arguments[j].hint_string = "Object.ConnectFlags";
+                r_method.arguments[j].usage |= PROPERTY_USAGE_CLASS_IS_ENUM;
+                break;
+            }
+        }
+    }
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_object(

@@ -218,6 +218,7 @@ Ref<StyleBox> OrchestratorThemeCache::_get_editor_theme_stylebox(const String& p
 {
     return SceneUtils::get_editor_stylebox(p_name, p_type_name);
 }
+
 void OrchestratorThemeCache::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_POSTINITIALIZE)

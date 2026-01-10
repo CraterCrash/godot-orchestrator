@@ -95,19 +95,6 @@ Ref<OScriptTargetObject> OScriptNodeSelf::resolve_target(const Ref<OScriptNodePi
     return super::resolve_target(p_pin);
 }
 
-void OScriptNodeSelf::validate_node_during_build(BuildLog& p_log) const {
-    const String base_type = get_orchestration()->get_base_type();
-
-    const Ref<OScriptNodePin> self = find_pin("self", PD_Output);
-    if (!self.is_valid()) {
-        p_log.error(this, "No output pin found.");
-    } else if (self->get_property_info().class_name != base_type) {
-        p_log.error(this, "Node requires reconstruction, right-click node and select 'Refresh Nodes'.");
-    }
-
-    super::validate_node_during_build(p_log);
-}
-
 void OScriptNodeSelf::_on_base_type_changed() {
     reconstruct_node();
     _notify_pins_changed();

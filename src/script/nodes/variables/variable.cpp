@@ -75,13 +75,6 @@ void OScriptNodeVariable::initialize(const OScriptNodeInitContext& p_context) {
     super::initialize(p_context);
 }
 
-void OScriptNodeVariable::validate_node_during_build(BuildLog& p_log) const {
-    if (!_variable.is_valid()) {
-        p_log.error(this, "Variable is no longer defined.");
-    }
-    super::validate_node_during_build(p_log);
-}
-
 OScriptNodeVariable::OScriptNodeVariable() {
     // Catalog versions are added explicitly
     _flags = NONE;

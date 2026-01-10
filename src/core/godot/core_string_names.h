@@ -43,6 +43,7 @@ public:
     const StringName get_rid = "get_rid";
     const StringName _to_string = "_to_string";
     const StringName _custom_features = "_custom_features";
+    const StringName _connect = "connect";
 
     const StringName x = "x";
     const StringName y = "y";

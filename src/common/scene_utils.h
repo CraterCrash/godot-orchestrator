@@ -72,6 +72,10 @@ namespace SceneUtils
     /// @return the font size
     int get_editor_font_size(const String& p_font_name);
 
+    /// Get the editor class icon size
+    /// @return the icon width
+    int get_editor_class_icon_size();
+
     /// Get an editor stylebox
     /// @return the stylebox or an invalid reference if it wasn't found
     Ref<StyleBox> get_editor_stylebox(const String& p_stylebox_name, const String& p_class_type);
@@ -125,6 +129,21 @@ namespace SceneUtils
 
     // taken from VBoxContainer in the engine
     MarginContainer* add_margin_child(Node* p_parent, const String& p_label, Control* p_control, bool p_expand = false);
+
+    template<typename T>
+    T* find_parent_of_type(const Node* p_node)
+    {
+        Node* current = const_cast<Node*>(p_node);
+        while (current)
+        {
+            T* object = Object::cast_to<T>(current);
+            if (object)
+                return object;
+
+            current = current->get_parent();
+        }
+        return nullptr;
+    }
 }
 
 #endif  // ORCHESTRATOR_SCENE_UTILS_H

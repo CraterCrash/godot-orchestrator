@@ -215,7 +215,7 @@ void Orchestration::_connect_nodes(int p_source_id, int p_source_port, int p_tar
     ERR_FAIL_COND_MSG(_connections.has(connection), "A connection already exists: " + connection.to_string());
     _connections.insert(connection);
 
-    emit_signal("connections_changed", "connect_nodes");
+    emit_signal("connections_changed");
 }
 
 void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port) {
@@ -237,7 +237,7 @@ void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_
         }
     }
 
-    emit_signal("connections_changed", "disconnect_nodes");
+    emit_signal("connections_changed");
 }
 
 String Orchestration::get_orchestration_path() const {
@@ -265,6 +265,14 @@ void Orchestration::set_base_type(const StringName& p_base_type) {
 
 void Orchestration::set_self(Resource* p_self) {
     _self = p_self;
+}
+
+Ref<OScript> Orchestration::as_script() {
+    return cast_to<OScript>(_self);
+}
+
+void Orchestration::mark_dirty() {
+    as_script()->emit_changed();
 }
 
 String Orchestration::get_global_name() const {
@@ -327,15 +335,6 @@ void Orchestration::post_initialize() {
     }
 
     _initialized = true;
-}
-
-void Orchestration::validate_and_build(BuildLog& p_log) {
-    // Sanity check
-    _fix_orphans();
-
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
-        E.value->validate_node_during_build(p_log);
-    }
 }
 
 void Orchestration::add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node) {
@@ -499,7 +498,7 @@ void Orchestration::adjust_connections(const OScriptNode* p_node, int p_offset, 
         _connections.insert(cd.mutated);
     }
 
-    emit_signal("connections_changed", "adjust_connections");
+    emit_signal("connections_changed");
 }
 
 bool Orchestration::has_graph(const StringName& p_name) const {
@@ -585,6 +584,14 @@ Vector<Ref<OScriptGraph>> Orchestration::get_graphs() const {
     Vector<Ref<OScriptGraph>> results;
     for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs) {
         results.push_back(E.value);
+    }
+    return results;
+}
+
+PackedStringArray Orchestration::get_graph_names() const {
+    PackedStringArray results;
+    for (const Ref<OScriptGraph>& graph : get_graphs()) {
+        results.push_back(graph->get_graph_name());
     }
     return results;
 }
@@ -1107,16 +1114,6 @@ PackedStringArray Orchestration::get_custom_signal_names() const {
     return names;
 }
 
-bool Orchestration::can_remove_custom_signal(const StringName& p_name) const {
-    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
-        const Ref<OScriptNodeEmitSignal> emit_signal_node = E.value;
-        if (emit_signal_node.is_valid() && emit_signal_node->get_signal()->get_signal_name().match(p_name)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void Orchestration::copy_state(const Ref<Orchestration>& p_other) {
 
     set_block_signals(true);
@@ -1180,7 +1177,7 @@ void Orchestration::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_get_graphs"), &Orchestration::_get_graphs_internal);
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "graphs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_graphs", "_get_graphs");
 
-    ADD_SIGNAL(MethodInfo("connections_changed", PropertyInfo(Variant::STRING, "caller")));
+    ADD_SIGNAL(MethodInfo("connections_changed"));
     ADD_SIGNAL(MethodInfo("functions_changed")); // todo: does not appear to have any subscribers atm
     ADD_SIGNAL(MethodInfo("variables_changed")); // todo: does not appear to have any subscribers atm
     ADD_SIGNAL(MethodInfo("signals_changed")); // todo: does not appear to have any subscribers atm
