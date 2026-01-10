@@ -343,6 +343,7 @@ private:
     StatementResult build_type_cast(const Ref<OScriptNodeTypeCast>& p_script_node); // vars validated
     StatementResult build_if(const Ref<OScriptNodeBranch>& p_script_node); // vars validated
     StatementResult build_return(const Ref<OScriptNodeFunctionResult>& p_script_node); // vars validated
+    StatementResult build_variable_get_validated(const Ref<OScriptNodeVariableGet>& p_script_node); // vars validated
     StatementResult build_variable_set(const Ref<OScriptNodeVariableSet>& p_script_node); // vars validated
     StatementResult build_property_set(const Ref<OScriptNodePropertySet>& p_script_node); // vars validated
     StatementResult build_assign_local_variable(const Ref<OScriptNodeAssignLocalVariable>& p_script_node);
