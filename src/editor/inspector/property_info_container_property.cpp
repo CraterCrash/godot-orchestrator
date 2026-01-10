@@ -276,6 +276,7 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
             new_slot.type->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
             new_slot.type->set_custom_minimum_size(Vector2(100, 0));
             new_slot.type->set_tooltip_text(_args ? "Set argument type" : "Set return type");
+            new_slot.type->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
             new_slot.type->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_show_type_selection).bind(index, friendly_type_name));
             new_slot.type->set_disabled(is_read_only());
             add_focusable(new_slot.type);
