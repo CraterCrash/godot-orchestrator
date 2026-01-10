@@ -107,6 +107,7 @@ void OrchestratorEditorPropertyVariableClassification::_notification(int p_what)
         _property->set_clip_text(true);
         _property->set_text(_selected_name);
         _property->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+        _property->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
         add_child(_property);
         add_focusable(_property);
 

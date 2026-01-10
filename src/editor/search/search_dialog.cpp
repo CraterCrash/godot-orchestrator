@@ -88,6 +88,20 @@ void OrchestratorEditorSearchDialog::_bind_methods()
     ADD_SIGNAL(MethodInfo("closed"));
 }
 
+void OrchestratorEditorSearchDialog::_update_themes()
+{
+    const int icon_width = SceneUtils::get_editor_class_icon_size();
+    if (_search_options)
+    {
+        _search_options->add_theme_constant_override("icon_max_width", icon_width);
+        _favorites->add_theme_constant_override("icon_max_width", icon_width);
+        _recent->set_fixed_icon_size(Size2i(icon_width, icon_width));
+
+        _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
+        _favorite->set_button_icon(SceneUtils::get_editor_icon("Favorites"));
+    }
+}
+
 void OrchestratorEditorSearchDialog::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_ENTER_TREE)
@@ -179,6 +193,8 @@ void OrchestratorEditorSearchDialog::_notification(int p_what)
 
         _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
         _favorite->set_button_icon(SceneUtils::get_editor_icon("Favorites"));
+
+        _update_themes();
     }
     else if (p_what == NOTIFICATION_EXIT_TREE)
     {
@@ -200,16 +216,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what)
     }
     else if (p_what == NOTIFICATION_THEME_CHANGED)
     {
-        const int icon_width = get_theme_constant("class_icon_size", "Editor");
-        if (_search_options)
-        {
-            _search_options->add_theme_constant_override("icon_max_width", icon_width);
-            _favorites->add_theme_constant_override("icon_max_width", icon_width);
-            _recent->set_fixed_icon_size(Size2i(icon_width, icon_width));
-
-            _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
-            _favorite->set_button_icon(SceneUtils::get_editor_icon("Favorites"));
-        }
+        _update_themes();
     }
 }
 
