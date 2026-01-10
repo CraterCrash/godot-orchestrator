@@ -36,6 +36,8 @@
 #include "script/script.h"
 
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/image.hpp>
+#include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -1097,8 +1099,14 @@ void OrchestratorScriptComponentsContainer::_update_variables()
         }
 
         {
+            // There is no way to set the size of the image on the button, so we must rescale
+            Ref<Texture2D> class_icon = SceneUtils::get_class_icon(variable->get_variable_type_name());
+            const Ref<Image> image = class_icon->get_image();
+            image->resize(SceneUtils::get_editor_class_icon_size(), SceneUtils::get_editor_class_icon_size());
+            class_icon = ImageTexture::create_from_image(image);
+
             int32_t index = item->get_button_count(0);
-            item->add_button(0, SceneUtils::get_class_icon(variable->get_variable_type_name()), 2);
+            item->add_button(0, class_icon, 2);
             item->set_button_tooltip_text(0, index, "Change variable type");
         }
 

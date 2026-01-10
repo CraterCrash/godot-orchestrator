@@ -72,6 +72,10 @@ namespace SceneUtils
     /// @return the font size
     int get_editor_font_size(const String& p_font_name);
 
+    /// Get the editor class icon size
+    /// @return the icon width
+    int get_editor_class_icon_size();
+
     /// Get an editor stylebox
     /// @return the stylebox or an invalid reference if it wasn't found
     Ref<StyleBox> get_editor_stylebox(const String& p_stylebox_name, const String& p_class_type);

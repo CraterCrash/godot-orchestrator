@@ -104,6 +104,8 @@ protected:
     HashMap<String, TreeItem*> _search_options_hierarchy;   //! Hierarchy of created search items
     OrchestratorEditorSearchHelpBit* _help_bit{ nullptr };  //! Reference to the help bit
 
+    void _update_themes();
+
     /// Godot callback that handles notifications
     /// @param p_what the notification to be handled
     void _notification(int p_what);
