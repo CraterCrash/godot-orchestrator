@@ -1699,7 +1699,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 bool valid = false;
 
                 if (src->get_type() != Variant::NIL && src->operator Object *() != nullptr) {
-                    Script* script_ptr = Ref<OScript>(src->operator Object*()->get_script()).ptr();
+                    Script* script_ptr = Ref<Script>(src->operator Object*()->get_script()).ptr();
                     if (script_ptr) {
                         while (script_ptr) {
                             if (script_ptr == base_type) {
