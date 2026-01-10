@@ -94,10 +94,13 @@ void OrchestratorEditorGraphPin::_create_pin_layout()
     if (!_pin->is_execution())
     {
         const String type_name = _pin->get_pin_type_name();
+        const int icon_width = SceneUtils::get_editor_class_icon_size();
 
         _icon = memnew(TextureRect);
         _icon->set_texture(SceneUtils::get_class_icon(type_name));
+        _icon->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
         _icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        _icon->set_custom_minimum_size(Vector2i(icon_width, icon_width));
         _icon->set_visible(false);
 
         if (ORCHESTRATOR_GET("ui/nodes/show_type_icons", true))
