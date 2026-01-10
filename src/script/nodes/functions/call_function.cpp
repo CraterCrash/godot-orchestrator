@@ -65,7 +65,7 @@ bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) c
         r_value = DictionaryUtils::from_method(_reference.method, true);
         return true;
     } else if (p_name.match("variable_arg_count")) {
-        r_value = _vararg_count;
+        r_value = MAX(_vararg_count, 0);
         return true;
     } else if (p_name.match("chain")) {
         r_value = _chain;
@@ -92,7 +92,7 @@ bool OScriptNodeCallFunction::_set(const StringName& p_name, const Variant& p_va
         _reference.method = DictionaryUtils::to_method(p_value);
         return true;
     } else if (p_name.match("variable_arg_count")) {
-        _vararg_count = static_cast<int>(p_value);
+        _vararg_count = MAX(static_cast<int>(p_value), 0);
         _notify_pins_changed();
         return true;
     } else if (p_name.match("chain")) {
@@ -280,7 +280,7 @@ void OScriptNodeCallFunction::add_dynamic_pin() {
 }
 
 bool OScriptNodeCallFunction::can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const {
-    if (p_pin.is_valid() && can_add_dynamic_pin()) {
+    if (p_pin.is_valid() && !p_pin->is_execution() && can_add_dynamic_pin()) {
         for (const PropertyInfo& pi : _reference.method.arguments) {
             if (pi.name.match(p_pin->get_pin_name())) {
                 return false;
