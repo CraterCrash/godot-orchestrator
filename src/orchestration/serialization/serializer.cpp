@@ -17,6 +17,7 @@
 #include "orchestration/serialization/serializer.h"
 
 #include "common/dictionary_utils.h"
+#include "common/version.h"
 #include "orchestration/serialization/text/text_format.h"
 
 #include <godot_cpp/classes/missing_resource.hpp>
@@ -35,33 +36,6 @@ void OrchestrationSerializer::_decode_and_set_flags(const String& p_path, uint32
     if (!p_path.begins_with("res://")) {
         _take_over_paths = false;
     }
-}
-
-Variant OrchestrationSerializer::_class_get_property_default_value(const StringName& p_class, const StringName& p_name) {
-    #if GODOT_VERSION >= 0x040300
-    return ClassDB::class_get_property_default_value(p_class, p_name);
-    #else
-    if (!_default_value_cache.has(p_class)) {
-        if (ClassDB::can_instantiate(p_class)) {
-            const Variant instance = ClassDB::instantiate(p_class);
-            Ref<Resource> resource = instance;
-            if (resource.is_valid()) {
-                List<PropertyInfo> properties = DictionaryUtils::to_properties(resource->get_property_list());
-                for (const PropertyInfo& pi : properties) {
-                    if (pi.usage & (PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_EDITOR))
-                        _default_value_cache[p_class][pi.name] = resource->get(pi.name);
-                }
-            } else {
-                // An object
-                memdelete(Object::cast_to<Object>(instance));
-            }
-        }
-    }
-    if (_default_value_cache.has(p_class)) {
-        return _default_value_cache[p_class][p_name];
-    }
-    return {};
-    #endif
 }
 
 bool OrchestrationSerializer::_is_resource_built_in(const Ref<Resource>& p_resource) {

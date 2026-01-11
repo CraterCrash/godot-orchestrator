@@ -17,10 +17,7 @@
 #ifndef ORCHESTRATOR_ORCHESTRATION_SERIALIZER_H
 #define ORCHESTRATOR_ORCHESTRATION_SERIALIZER_H
 
-#include "common/version.h"
-
 #include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/rb_map.hpp>
 
@@ -28,9 +25,6 @@ using namespace godot;
 
 /// Defines the common contract for all Orchestration resource serializers.
 class OrchestrationSerializer {
-    #if GODOT_VERSION < 0x040300
-    HashMap<String, HashMap<String, Variant>> _default_value_cache;
-    #endif
 
 protected:
 
@@ -53,8 +47,6 @@ protected:
     String _path;
 
     virtual void _decode_and_set_flags(const String& p_path, uint32_t p_flags);
-
-    Variant _class_get_property_default_value(const StringName& p_class, const StringName& p_name);
 
     bool _is_resource_built_in(const Ref<Resource>& p_resource);
     static int64_t _get_resource_id_for_path(const String& p_path, bool p_generate = false);
