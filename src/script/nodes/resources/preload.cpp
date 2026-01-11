@@ -116,12 +116,3 @@ void OScriptNodePreload::initialize(const OScriptNodeInitContext& p_context) {
     }
     super::initialize(p_context);
 }
-
-void OScriptNodePreload::validate_node_during_build(BuildLog& p_log) const {
-    if (_resource_path.is_empty()) {
-        p_log.error(this, "No resource specified.");
-    } else if (!FileAccess::file_exists(_resource_path)) {
-        p_log.error(this, "Resource no longer exists.");
-    }
-    super::validate_node_during_build(p_log);
-}

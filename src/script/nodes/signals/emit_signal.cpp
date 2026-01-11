@@ -140,10 +140,3 @@ void OScriptNodeEmitSignal::initialize(const OScriptNodeInitContext& p_context) 
 
     super::initialize(p_context);
 }
-
-void OScriptNodeEmitSignal::validate_node_during_build(BuildLog& p_log) const {
-    if (!_signal.is_valid()) {
-        p_log.error(this, "No signal is defined.");
-    }
-    super::validate_node_during_build(p_log);
-}

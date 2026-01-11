@@ -98,11 +98,3 @@ void OScriptNodeVariableSet::reallocate_pins_during_reconstruction(const Vector<
         }
     }
 }
-
-void OScriptNodeVariableSet::validate_node_during_build(BuildLog& p_log) const {
-    if (_variable.is_valid() && _variable->is_constant()) {
-        p_log.error(this, "Cannot modify constant variable value.");
-    }
-
-    super::validate_node_during_build(p_log);
-}

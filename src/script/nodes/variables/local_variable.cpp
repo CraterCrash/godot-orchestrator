@@ -176,22 +176,6 @@ bool OScriptNodeAssignLocalVariable::is_compatible_with_graph(const Ref<OScriptG
     return p_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION);
 }
 
-void OScriptNodeAssignLocalVariable::validate_node_during_build(BuildLog& p_log) const {
-    const Ref<OScriptNodePin> variable = find_pin("variable", PD_Input);
-    if (variable.is_valid()) {
-        if (!variable->has_any_connections()) {
-            p_log.error(this, variable, "Requires a connection.");
-        } else {
-            const Ref<OScriptNodePin> source_pin = variable->get_connections()[0];
-            if (source_pin.is_valid()) {
-                if (!cast_to<OScriptNodeLocalVariable>(source_pin->get_owning_node())) {
-                    p_log.error(this, variable, "Connection expected with a Local Variable node.");
-                }
-            }
-        }
-    }
-}
-
 void OScriptNodeAssignLocalVariable::on_pin_connected(const Ref<OScriptNodePin>& p_pin) {
     if (p_pin->is_input() && p_pin->get_pin_name().match("variable")) {
         Vector<Ref<OScriptNodePin>> pin_connections = p_pin->get_connections();

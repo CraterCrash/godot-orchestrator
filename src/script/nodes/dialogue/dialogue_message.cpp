@@ -78,27 +78,6 @@ String OScriptNodeDialogueMessage::get_node_title() const {
     return "Show Dialogue Message";
 }
 
-void OScriptNodeDialogueMessage::validate_node_during_build(BuildLog& p_log) const {
-    Ref<OScriptNodePin> scene = find_pin("scene", PD_Input);
-    if (scene.is_valid()) {
-        String file_name = scene->get_effective_default_value();
-        if (!file_name.strip_edges().is_empty()) {
-            if (!FileAccess::file_exists(file_name)) {
-                p_log.error(this, vformat("File '%s' not found.", file_name));
-            }
-        }
-    }
-
-    for (int i = 0; i < _choices; i++) {
-        Ref<OScriptNodePin> choice = find_pin(_get_pin_name_given_index(i), PD_Input);
-        if (choice.is_valid() && !choice->has_any_connections()) {
-            p_log.error(this, choice, "Requires a connection.");
-        }
-    }
-
-    super::validate_node_during_build(p_log);
-}
-
 void OScriptNodeDialogueMessage::add_dynamic_pin() {
     _choices++;
     reconstruct_node();

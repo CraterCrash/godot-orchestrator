@@ -17,32 +17,32 @@
 #ifndef ORCHESTRATOR_GOTO_NODE_DIALOG_H
 #define ORCHESTRATOR_GOTO_NODE_DIALOG_H
 
-#include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
+#include <godot_cpp/classes/line_edit.hpp>
 
 using namespace godot;
+
+/// Forward declarations
+class OrchestratorScriptGraphEditorView;
 
 /// A simple confirmation dialog that allows the user to specify which node to jump to.
 class OrchestratorGotoNodeDialog : public ConfirmationDialog
 {
     GDCLASS(OrchestratorGotoNodeDialog, ConfirmationDialog);
-    static void _bind_methods();
+
+    LineEdit* _line_edit = nullptr;
+    OrchestratorScriptGraphEditorView* _editor_view = nullptr;
+
+    void _goto_node();
+    void _visibility_changed();
 
 protected:
-    LineEdit* _line_edit{ nullptr };
-
-    //~ Begin Godot Interface
-    void _notification(int p_what);
-    //~ End Godot Interface
-
-    //~ Begin Signal Handlers
-    void _confirmed();
-    void _cancelled();
-    //~ End Signal Handlers
+    static void _bind_methods();
 
 public:
 
-    /// Constructs the goto node dialog
+    void popup_find_node(OrchestratorScriptGraphEditorView* p_view);
+
     OrchestratorGotoNodeDialog();
 };
 

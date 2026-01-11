@@ -17,6 +17,7 @@
 #include "window_wrapper.h"
 
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -39,8 +40,6 @@ OrchestratorWindowWrapper::OrchestratorWindowWrapper()
     _window_background = memnew(Panel);
     _window_background->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
     _window->add_child(_window_background);
-
-    // todo: what about progress bar?
 }
 
 void OrchestratorWindowWrapper::_bind_methods()
@@ -110,6 +109,8 @@ void OrchestratorWindowWrapper::_set_window_enabled_with_rect(bool p_visible, co
     {
         // Move the control to the window
         _wrapped_control->reparent(parent, false);
+        // todo: fixes bug on Godot 4.4.1
+        _wrapped_control->call_deferred("reparent", parent, false);
 
         _set_window_rect(p_rect);
         _wrapped_control->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
@@ -178,7 +179,7 @@ bool OrchestratorWindowWrapper::get_window_enabled() const
 
 void OrchestratorWindowWrapper::set_window_enabled(bool p_enabled)
 {
-        _set_window_enabled_with_rect(p_enabled, _get_default_window_rect());
+    _set_window_enabled_with_rect(p_enabled, _get_default_window_rect());
 }
 
 Rect2i OrchestratorWindowWrapper::get_window_rect() const
@@ -210,6 +211,13 @@ void OrchestratorWindowWrapper::restore_window_from_saved_position(const Rect2 p
     int screen = p_screen;
     Rect2 restored_screen_rect = p_screen_rect;
 
+    // Wayland: Work around window scale ambiguity
+    if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SELF_FITTING_WINDOWS))
+    {
+        window_rect = Rect2i();
+        restored_screen_rect = Rect2i();
+    }
+
     if (screen < 0 || screen >= DisplayServer::get_singleton()->get_screen_count())
     {
         // Fallback to the main window screen if the saved screen is not available.
@@ -237,6 +245,10 @@ void OrchestratorWindowWrapper::restore_window_from_saved_position(const Rect2 p
     window_rect.position -= restored_screen_rect.position;
     window_rect = Rect2i(window_rect.position * screen_ratio, window_rect.size * screen_ratio);
     window_rect.position += real_screen_rect.position;
+
+    // Make sure to restore the window if the user minimized it the last time it was displayed.
+    if (_window->get_mode() == Window::MODE_MINIMIZED)
+        _window->set_mode(Window::MODE_WINDOWED);
 
     // All good, restore the window.
     _window->set_current_screen(p_screen);
@@ -321,7 +333,7 @@ OrchestratorScreenSelect::OrchestratorScreenSelect()
 {
     set_tooltip_text("Make this panel floating.");
     set_button_mask(MouseButtonMask::MOUSE_BUTTON_MASK_RIGHT);
-    set_flat(true);
+    set_theme_type_variation(SceneStringName(FlatButton));
     set_toggle_mode(true);
     set_focus_mode(FOCUS_NONE);
     set_action_mode(ACTION_MODE_BUTTON_PRESS);
@@ -329,12 +341,8 @@ OrchestratorScreenSelect::OrchestratorScreenSelect()
     // Create the popup.
     const Size2 borders = Size2(4, 4);
 
-    _popup = memnew(Popup);
+    _popup = memnew(PopupPanel);
     add_child(_popup);
-
-    _popup_background = memnew(Panel);
-    _popup_background->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
-    _popup->add_child(_popup_background);
 
     MarginContainer* root = memnew(MarginContainer);
     root->add_theme_constant_override("margin_right", borders.width);
@@ -376,7 +384,6 @@ void OrchestratorScreenSelect::_notification(int p_what)
         case NOTIFICATION_THEME_CHANGED:
         {
             set_button_icon(SceneUtils::get_editor_icon("MakeFloating"));
-            _popup_background->add_theme_stylebox_override("panel", get_theme_stylebox("PanelForeground", "EditorStyles"));
 
             const real_t popup_height = real_t(get_theme_font_size("font_size")) * 2.0;
             _popup->set_min_size(Size2(0, popup_height * 3));

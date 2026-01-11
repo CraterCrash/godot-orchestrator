@@ -231,20 +231,6 @@ void OScriptNodeOperator::initialize(const OScriptNodeInitContext& p_context) {
     super::initialize(p_context);
 }
 
-void OScriptNodeOperator::validate_node_during_build(BuildLog& p_log) const {
-    Ref<OScriptNodePin> result = find_pin("result", PD_Output);
-    if (!result.is_valid()) {
-        p_log.error(this, "No result pin found, right-click node and select 'Refresh Nodes'.");
-    }
-
-    // GH-667 Relaxed temporarily until we can introduce graph traversal to determine if the
-    // node actually will be discarded at runtime.
-    // else if (!result->has_any_connections())
-    //     p_log.error(this, result, "Requires a connection.");
-
-    super::validate_node_during_build(p_log);
-}
-
 bool OScriptNodeOperator::is_pure() const {
     return !_should_expand_instead_compile();
 }

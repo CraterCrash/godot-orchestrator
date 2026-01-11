@@ -771,6 +771,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
 
     _results = memnew(Tree);
     _results->set_hide_root(true);
+    _results->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
     #if GODOT_VERSION >= 0x040300
     _results->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
     #endif

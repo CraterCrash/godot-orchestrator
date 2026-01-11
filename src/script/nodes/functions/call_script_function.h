@@ -48,7 +48,6 @@ public:
     String get_node_title_color_name() const override { return "orchestration_function_call"; }
     Object* get_jump_target_for_double_click() const override;
     bool can_jump_to_definition() const override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     bool can_inspect_node_properties() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface

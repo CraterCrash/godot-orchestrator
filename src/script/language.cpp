@@ -20,6 +20,7 @@
 #include "common/dictionary_utils.h"
 #include "common/resource_utils.h"
 #include "common/settings.h"
+#include "common/resource_utils.h"
 #include "common/string_utils.h"
 #include "core/godot/core_constants.h"
 #include "core/godot/variant/variant.h"
@@ -1073,6 +1074,110 @@ String OScriptLanguage::get_script_extension_filter() const {
         results.push_back(vformat("*.%s", extension));
 
     return StringUtils::join(",", results);
+}
+
+#ifdef TOOLS_ENABLED
+List<Ref<OScript>> OScriptLanguage::get_scripts() const {
+    List<Ref<OScript>> scripts;
+    {
+        const PackedStringArray extensions = _get_recognized_extensions();
+
+        MutexLock mutex_lock(*this->lock.ptr());
+        const SelfList<OScript>* iterator = _scripts.first();
+        while (iterator) {
+            String path = iterator->self()->get_path();
+            if (extensions.has(path.get_extension().to_lower())) {
+                scripts.push_back(Ref<OScript>(iterator->self()));
+            }
+            iterator = iterator->next();
+        }
+    }
+    return scripts;
+}
+#endif
+
+static void get_function_names_recursively(const OScriptParser::ClassNode* p_class, const String& p_prefix, HashMap<int, String>& r_funcs) {
+    for (int i = 0; i < p_class->members.size(); i++) {
+        if (p_class->members[i].type == OScriptParser::ClassNode::Member::FUNCTION) {
+            const OScriptParser::FunctionNode* function = p_class->members[i].function;
+            r_funcs[function->script_node_id] = vformat("%s%s", p_prefix.is_empty() ? "" : vformat("%s.", p_prefix), function->identifier->name);
+        } else if (p_class->members[i].type == OScriptParser::ClassNode::Member::CLASS) {
+            String new_prefix = p_class->members[i].m_class->identifier->name;
+            get_function_names_recursively(p_class->members[i].m_class, new_prefix.is_empty() ? new_prefix : vformat("%s.", new_prefix), r_funcs);
+        }
+    }
+}
+
+static String get_node_name(const Ref<OScriptNode>& p_node) {
+    if (!p_node.is_valid()) {
+        return {};
+    }
+    return p_node->get_node_title() + " / " + p_node->get_class().replace("OScriptNode", "").capitalize();
+}
+
+bool OScriptLanguage::validate(const Ref<OScript>& p_script, const String& p_path, List<String>* r_functions, List<Warning>* r_warnings, List<ScriptError>* r_errors) {
+    if (!p_script.is_valid()) {
+        return false;
+    }
+
+    OScriptParser parser;
+    OScriptAnalyzer analyzer(&parser);
+
+    Error err = parser.parse(p_script->get_orchestration().ptr(), p_path);
+    if (err == OK) {
+        err = analyzer.analyze();
+    }
+
+    #ifdef DEBUG_ENABLED
+    if (r_warnings) {
+        for (const OScriptWarning& E : parser.get_warnings()) {
+            Warning warning;
+            warning.name = OScriptWarning::get_name_from_code(E.code);
+            warning.node = E.node;
+            warning.message = E.get_message();
+            r_warnings->push_back(warning);
+        }
+    }
+    #endif
+
+    if (err) {
+        if (r_errors) {
+            for (const OScriptParser::ParserError& E : parser.get_errors()) {
+                ScriptError error;
+                error.path = p_path;
+                error.node = E.node_id;
+                error.name = get_node_name(p_script->get_orchestration()->get_node(E.node_id));
+                error.message = E.message;
+                r_errors->push_back(error);
+            }
+
+            for (const KeyValue<String, Ref<OScriptParserRef>>& E : parser.get_depended_parsers()) {
+                const OScriptParser* dependent_parser = E.value->get_parser();
+                for (const OScriptParser::ParserError& F : dependent_parser->get_errors()) {
+                    ScriptError error;
+                    error.path = E.key;
+                    error.node = F.node_id;
+                    error.name = get_node_name(p_script->get_orchestration()->get_node(F.node_id));
+                    error.message = F.message;
+                    r_errors->push_back(error);
+                }
+            }
+        }
+        return false;
+    }
+
+    if (r_functions) {
+        const OScriptParser::ClassNode* clazz = parser.get_tree();
+
+        HashMap<int, String> funcs;
+        get_function_names_recursively(clazz, "", funcs);
+
+        for (const KeyValue<int, String>& E : funcs) {
+            r_functions->push_back(vformat("%s:%d", E.value, E.key));
+        }
+    }
+
+    return true;
 }
 
 OScriptLanguage* OScriptLanguage::get_singleton() {

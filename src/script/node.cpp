@@ -169,28 +169,6 @@ void OScriptNode::rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>&
     }
 }
 
-void OScriptNode::validate_node_during_build(BuildLog& p_log) const {
-    for (const Ref<OScriptNodePin>& pin : _pins) {
-        if (pin->is_output() && pin->has_any_connections()) {
-            for (const Ref<OScriptNodePin>& connection : pin->get_connections()) {
-                if (!connection->can_accept(pin)) {
-                    p_log.error(
-                        this,
-                        pin,
-                        vformat("Is not compatible with one of its connected input pins.\n\tTo fix, re-add the target node to the graph to fix the metadata."));
-                }
-            }
-        }
-
-        if (!pin->is_valid()) {
-            p_log.error(
-                this,
-                pin,
-                "Not valid and could not be upgraded.\n\tPlease re-create the node to fix the metadata.");
-        }
-    }
-}
-
 void OScriptNode::initialize(const OScriptNodeInitContext& p_context) {
     _initialized = true;
     allocate_default_pins();

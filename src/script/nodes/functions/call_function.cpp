@@ -65,7 +65,7 @@ bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) c
         r_value = DictionaryUtils::from_method(_reference.method, true);
         return true;
     } else if (p_name.match("variable_arg_count")) {
-        r_value = _vararg_count;
+        r_value = MAX(_vararg_count, 0);
         return true;
     } else if (p_name.match("chain")) {
         r_value = _chain;
@@ -92,7 +92,7 @@ bool OScriptNodeCallFunction::_set(const StringName& p_name, const Variant& p_va
         _reference.method = DictionaryUtils::to_method(p_value);
         return true;
     } else if (p_name.match("variable_arg_count")) {
-        _vararg_count = static_cast<int>(p_value);
+        _vararg_count = MAX(static_cast<int>(p_value), 0);
         _notify_pins_changed();
         return true;
     } else if (p_name.match("chain")) {
@@ -263,31 +263,6 @@ void OScriptNodeCallFunction::initialize(const OScriptNodeInitContext& p_context
     super::initialize(p_context);
 }
 
-void OScriptNodeCallFunction::validate_node_during_build(BuildLog& p_log) const {
-    const size_t non_default_arguments = MethodUtils::get_argument_count_without_defaults(_reference.method);
-    for (size_t i = 0; i < non_default_arguments; i++)
-        {
-        const PropertyInfo& property = _reference.method.arguments[i];
-        const Ref<OScriptNodePin> property_pin = find_pin(property.name, PD_Input);
-
-        if (property_pin.is_valid()) {
-            Variant::Type pin_type = property_pin->get_property_info().type;
-            if (pin_type == Variant::OBJECT || pin_type == Variant::CALLABLE) {
-                if (!property_pin->has_any_connections()) {
-                    p_log.error(this, property_pin, "Requires a connection.");
-                }
-            } else if (pin_type == Variant::NODE_PATH && !property_pin->has_any_connections()) {
-                const NodePath value = property_pin->get_effective_default_value();
-                if (value.is_empty()) {
-                    p_log.error(this, property_pin, "Requires a NodePath value or a connection.");
-                }
-            }
-        }
-    }
-
-    super::validate_node_during_build(p_log);
-}
-
 bool OScriptNodeCallFunction::is_pure() const {
     // For now we say the node is pure when no execute pins are constructed
     OScriptNodeCallFunction* self = const_cast<OScriptNodeCallFunction*>(this);
@@ -305,7 +280,7 @@ void OScriptNodeCallFunction::add_dynamic_pin() {
 }
 
 bool OScriptNodeCallFunction::can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const {
-    if (p_pin.is_valid() && can_add_dynamic_pin()) {
+    if (p_pin.is_valid() && !p_pin->is_execution() && can_add_dynamic_pin()) {
         for (const PropertyInfo& pi : _reference.method.arguments) {
             if (pi.name.match(p_pin->get_pin_name())) {
                 return false;

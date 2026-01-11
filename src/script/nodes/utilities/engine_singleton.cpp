@@ -98,10 +98,3 @@ void OScriptNodeEngineSingleton::initialize(const OScriptNodeInitContext& p_cont
     }
     super::initialize(p_context);
 }
-
-void OScriptNodeEngineSingleton::validate_node_during_build(BuildLog& p_log) const {
-    if (!Engine::get_singleton()->get_singleton_list().has(_singleton)) {
-        p_log.error(this, "No singleton found with the name: " + _singleton);
-    }
-    super::validate_node_during_build(p_log);
-}

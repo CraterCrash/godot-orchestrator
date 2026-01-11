@@ -85,7 +85,8 @@ void OScriptGraph::_initialize_node(const Ref<OScriptNode>& p_node, const OScrip
     _orchestration->add_node(this, p_node);
     p_node->post_placed_new_node();
 
-    add_node(p_node);
+    // todo: the _orchestration->add_node calls this !?!?
+    // add_node(p_node);
 }
 
 void OScriptGraph::_remove_node(int p_node_id) {
@@ -260,14 +261,15 @@ void OScriptGraph::add_node(const Ref<OScriptNode>& p_node) {
 }
 
 void OScriptGraph::remove_node(const Ref<OScriptNode>& p_node) {
+    if (!has_node(p_node->get_id())) {
+        return;
+    }
     _remove_node(p_node->get_id());
 }
 
 void OScriptGraph::remove_all_nodes() {
     while (!_nodes.is_empty()) {
-        // todo: handle this better
         const int node_id = _nodes.front()->get();
-        _remove_node(node_id);
         _orchestration->remove_node(node_id);
     }
 }
@@ -360,6 +362,16 @@ void OScriptGraph::remove_connection_knot(uint64_t p_connection_id) {
 }
 
 Ref<OScriptNode> OScriptGraph::create_node(const StringName& p_type, const OScriptNodeInitContext& p_context, const Vector2& p_position) {
+    // If we wanted to split this into stages, we need to be concerned that initialize calls
+    // the following, and we ideally would prefer to have nodes created detached without any
+    // reference to an Orchestration.
+    //
+    // OScriptNodeCallMemberFunction calls get_orchestration()->get_base_type
+    // OScriptNodeCallScriptFunction calls get_orchestration()->find_function
+    // OScriptNodeFunctionEntry calls get_orchestration()->create_function
+    // OScriptNodeEmitSignal calls get_orchestration()->get_custom_signal
+    // OScriptNodeVariable calls get_orchestration()->get_variable
+    //
     const Ref<OScriptNode> spawned = OScriptNodeFactory::create_node_from_name(p_type, _orchestration);
     if (spawned.is_valid()) {
         spawned->set_id(_orchestration->get_available_id());

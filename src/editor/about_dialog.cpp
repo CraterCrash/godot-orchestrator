@@ -278,7 +278,7 @@ void OrchestratorAboutDialog::_on_theme_changed()
 
 void OrchestratorAboutDialog::_on_patreon_button()
 {
-    OS::get_singleton()->shell_open(OrchestratorPlugin::get_singleton()->get_patreon_url());
+    OS::get_singleton()->shell_open(OrchestratorPlugin::get_patreon_url());
 }
 
 void OrchestratorAboutDialog::_on_item_website_selected(int p_id, ItemList* p_list)

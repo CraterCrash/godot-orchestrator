@@ -133,25 +133,6 @@ String OScriptNodeCallStaticFunction::get_help_topic() const {
     return super::get_help_topic();
 }
 
-void OScriptNodeCallStaticFunction::validate_node_during_build(BuildLog& p_log) const {
-    const int args_no_defs = _method.arguments.size() - _method.default_arguments.size();
-    for (int i = 0; i < args_no_defs; i++) {
-        const PropertyInfo& pi = _method.arguments[i];
-        const Ref<OScriptNodePin> pin = find_pin(pi.name, PD_Input);
-        if (pin.is_valid() && !pin->has_any_connections()) {
-            if (pin->get_effective_default_value() == pin->get_generated_default_value()) {
-                p_log.error(this, pin, "Requires a connection.");
-            }
-        }
-    }
-
-    if (!(_method.flags & METHOD_FLAG_STATIC)) {
-        p_log.error(this, vformat("Expected a static method but '%s' is not static.", _method_name));
-    }
-
-    return super::validate_node_during_build(p_log);
-}
-
 void OScriptNodeCallStaticFunction::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "Failed to initialize CallStaticFunction without user data");
 

@@ -112,39 +112,3 @@ void OScriptNodeEmitMemberSignal::initialize(const OScriptNodeInitContext& p_con
 
     super::initialize(p_context);
 }
-
-void OScriptNodeEmitMemberSignal::validate_node_during_build(BuildLog& p_log) const {
-    if (_target_class.is_empty()) {
-        p_log.error(this, "No target class defined.");
-        return;
-    }
-
-    if (_method.name.is_empty()) {
-        p_log.error(this, "No method defined");
-        return;
-    }
-
-    const Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
-    if (!target_pin.is_valid()) {
-        p_log.error(this, "Failed to find target pin");
-        return;
-    }
-
-    const Vector<Ref<OScriptNodePin>> connections = target_pin->get_connections();
-    if (connections.is_empty()) {
-        // If the node isn't connected on its execution input pin; safe to ignore this.
-        Ref<OScriptNodePin> exec_in = find_pin("ExecIn", PD_Input);
-        if (!(exec_in.is_valid() && exec_in->get_connections().is_empty())) {
-            if (!ClassDB::class_has_signal(get_orchestration()->get_base_type(), _method.name)) {
-                p_log.error(this, vformat("No signal found in %s with name: %s", get_orchestration()->get_orchestration_path(), _method.name));
-            }
-        }
-    } else {
-        const Ref<OScriptTargetObject> target = connections[0]->resolve_target();
-        if (target.is_null()) {
-            p_log.error(this, "No target object resolved");
-        } else if (!target->get_target()->has_signal(_method.name)) {
-            p_log.error(this, vformat("No signal found on target with method name: %s", _method.name));
-        }
-    }
-}
