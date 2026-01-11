@@ -21,6 +21,7 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
@@ -335,6 +336,8 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         const Ref<OScriptNodeEvent> event_node = _get_or_create_node_template<OScriptNodeEvent>(true);
         const Ref<OScriptNodeCallMemberFunction> func_node = _get_or_create_node_template<OScriptNodeCallMemberFunction>();
 
+        const bool prefer_properties_over_methods = ORCHESTRATOR_GET("ui/actions_menu/prefer_properties_over_methods", false);
+
         for (int i = 0; i < p_methods.size(); i++)
         {
             const MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
@@ -347,7 +350,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             // if (method.name.begins_with("@"))
             //     continue;
 
-            if (property_methods.has(method.name))
+            if (prefer_properties_over_methods && property_methods.has(method.name))
                 continue;
 
             PackedStringArray keywords = method.name.capitalize().to_lower().split(" ", false);
