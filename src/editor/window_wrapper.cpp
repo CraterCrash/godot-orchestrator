@@ -246,6 +246,10 @@ void OrchestratorWindowWrapper::restore_window_from_saved_position(const Rect2 p
     window_rect = Rect2i(window_rect.position * screen_ratio, window_rect.size * screen_ratio);
     window_rect.position += real_screen_rect.position;
 
+    // Make sure to restore the window if the user minimized it the last time it was displayed.
+    if (_window->get_mode() == Window::MODE_MINIMIZED)
+        _window->set_mode(Window::MODE_WINDOWED);
+
     // All good, restore the window.
     _window->set_current_screen(p_screen);
     if (_window->is_visible())
