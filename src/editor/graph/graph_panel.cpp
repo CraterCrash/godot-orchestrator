@@ -2352,7 +2352,7 @@ bool OrchestratorEditorGraphPanel::_is_point_inside_node(const Vector2& p_point)
     {
         GraphNode* node = cast_to<GraphNode>(get_child(i));
         OrchestratorEditorGraphNodeComment* comment = cast_to<OrchestratorEditorGraphNodeComment>(node);
-        if (comment || (node && node->get_rect().has_point(p_point)))
+        if (!comment && node && node->get_rect().has_point(p_point))
             return true;
     }
     return false;
