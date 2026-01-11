@@ -17,6 +17,7 @@
 #include "window_wrapper.h"
 
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -328,7 +329,7 @@ OrchestratorScreenSelect::OrchestratorScreenSelect()
 {
     set_tooltip_text("Make this panel floating.");
     set_button_mask(MouseButtonMask::MOUSE_BUTTON_MASK_RIGHT);
-    set_flat(true);
+    set_theme_type_variation(SceneStringName(FlatButton));
     set_toggle_mode(true);
     set_focus_mode(FOCUS_NONE);
     set_action_mode(ACTION_MODE_BUTTON_PRESS);
