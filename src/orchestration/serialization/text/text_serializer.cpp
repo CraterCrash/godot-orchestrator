@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/string_utils.h"
+#include "core/godot/object/class_db.h"
 #include "orchestration/orchestration.h"
 #include "orchestration/serialization/format.h"
 #include "orchestration/serialization/text/text_format.h"
@@ -316,7 +317,7 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
                 }
             }
 
-            Variant default_value = _class_get_property_default_value(res->get_class(), pi.name);
+            Variant default_value = GDE::ClassDB::get_property_default_value(res->get_class(), pi.name);
             if (default_value.get_type() != Variant::NIL) {
                 bool valid = false;
                 Variant result = false;
