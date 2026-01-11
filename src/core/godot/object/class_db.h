@@ -40,6 +40,8 @@ namespace GDE {
         static godot::StringName get_property_setter(const godot::StringName& p_class_name, const godot::StringName& p_property_name);
         static godot::StringName get_property_getter(const godot::StringName& p_class_name, const godot::StringName& p_property_name);
 
+        static godot::Variant get_property_default_value(const godot::StringName& p_class_name, const godot::StringName& p_property_name);
+
         static bool has_signal(const godot::StringName& p_class_name, const godot::StringName& p_signal_name, bool p_no_inheritance = false);
         static bool get_signal(const godot::StringName& p_class_name, const godot::StringName& p_signal_name, godot::MethodInfo& r_info);
     };
