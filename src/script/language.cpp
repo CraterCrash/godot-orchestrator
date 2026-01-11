@@ -1137,10 +1137,15 @@ bool OScriptLanguage::validate(const Ref<OScript>& p_script, const String& p_pat
     if (err) {
         if (r_errors) {
             for (const OScriptParser::ParserError& E : parser.get_errors()) {
+                Ref<OScriptNode> node;
+                if (E.node_id >= 0 && p_script->get_orchestration()->_nodes.has(E.node_id)) {
+                    node = p_script->get_orchestration()->get_node(E.node_id);
+                }
+
                 ScriptError error;
                 error.path = p_path;
                 error.node = E.node_id;
-                error.name = get_node_name(p_script->get_orchestration()->get_node(E.node_id));
+                error.name = get_node_name(node);
                 error.message = E.message;
                 r_errors->push_back(error);
             }
@@ -1148,10 +1153,15 @@ bool OScriptLanguage::validate(const Ref<OScript>& p_script, const String& p_pat
             for (const KeyValue<String, Ref<OScriptParserRef>>& E : parser.get_depended_parsers()) {
                 const OScriptParser* dependent_parser = E.value->get_parser();
                 for (const OScriptParser::ParserError& F : dependent_parser->get_errors()) {
+                    Ref<OScriptNode> node;
+                    if (F.node_id >= 0 && p_script->get_orchestration()->_nodes.has(F.node_id)) {
+                        node = p_script->get_orchestration()->get_node(F.node_id);
+                    }
+
                     ScriptError error;
                     error.path = E.key;
                     error.node = F.node_id;
-                    error.name = get_node_name(p_script->get_orchestration()->get_node(F.node_id));
+                    error.name = get_node_name(node);
                     error.message = F.message;
                     r_errors->push_back(error);
                 }
