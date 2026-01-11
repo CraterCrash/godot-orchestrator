@@ -103,7 +103,7 @@ public:
     OrchestratorEditorGraphNode* get_graph_node() const { return _node; }
     void set_graph_node(OrchestratorEditorGraphNode* p_owner_node);
 
-    void set_pin(const Ref<OrchestrationGraphPin>& p_pin);
+    virtual void set_pin(const Ref<OrchestrationGraphPin>& p_pin);
 
     String get_pin_name() const;
     EPinDirection get_direction() const;

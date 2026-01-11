@@ -29,24 +29,35 @@ class OrchestratorEditorGraphPinNodePath : public OrchestratorEditorGraphPinButt
 {
     GDCLASS(OrchestratorEditorGraphPinNodePath, OrchestratorEditorGraphPinButtonBase);
 
-    struct MethodDescriptor
+    struct DependencyDescriptor
     {
         String class_name;
         String method_name;
-        String pin_name;
+        String method_argument_name;
+        String property_name;
         String dependency_pin_name;
         bool is_property_selection = false;
         bool is_node_and_property_selection = false;
         bool is_property_optional = false;
     };
 
-    static Vector<MethodDescriptor> _descriptors;
+    static Vector<DependencyDescriptor> _descriptors;
 
     Ref<OrchestrationGraphPin> _owning_pin;
     OrchestratorPropertySelector* _property_selector = nullptr;
     OrchestratorSceneNodeSelector* _node_selector = nullptr;
-    MethodDescriptor* _descriptor = nullptr;
+    DependencyDescriptor* _descriptor = nullptr;
     NodePath _node_path;
+
+    DependencyDescriptor* _resolve_descriptor();
+    void _configure_descriptor(DependencyDescriptor* p_descriptor);
+
+    bool _is_only_node_selection_required() const;
+    Ref<OrchestrationGraphPin> _get_dependency_object_pin();
+
+    void _set_button_state(bool p_disabled, bool p_reset = false);
+    void _pin_connected(int p_type, int p_index);
+    void _pin_disconnected(int p_type, int p_index);
 
     void _open_node_selector();
     void _node_selected(const NodePath& p_path);
@@ -61,9 +72,11 @@ protected:
     void _handle_selector_button_pressed() override;
     //~ End OrchestratorEditorGraphPinButtonBase Interface
 
-public:
+    //~ Begin OrchestratorEditorGraphPin Interface
+    void set_pin(const Ref<OrchestrationGraphPin>& p_pin) override;
+    //~ End OrchestratorEditorGraphPin Interface
 
-    void set_owning_pin(const Ref<OrchestrationGraphPin>& p_pin);
+public:
 
     OrchestratorEditorGraphPinNodePath();
 };

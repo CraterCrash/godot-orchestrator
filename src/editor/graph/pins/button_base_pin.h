@@ -48,6 +48,8 @@ protected:
     //~ End OrchestratorEditorGraphPin Interface
 
     void _set_button_visible(bool p_visible) { _selector_button->set_visible(p_visible); }
+    void _set_button_disabled(bool p_disabled) { _selector_button->set_disabled(p_disabled); }
+    void _set_button_tooltip(const String& p_tooltip) { _selector_button->set_tooltip_text(p_tooltip); }
 
     Variant _get_button_value() const { return _button_value; }
     const Button* _get_selector_button() const { return _selector_button; }
