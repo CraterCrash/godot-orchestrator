@@ -21,6 +21,23 @@
 
 using namespace godot;
 
+/// Creates a Godot Variant array (vector) of values from a variadic list of arguments
+template <typename... VarArgs>
+std::vector<Variant> varray(VarArgs... p_args) {
+    std::vector<Variant> values;
+    const Variant args[sizeof...(p_args) + 1] = { p_args..., Variant() };
+
+    const uint32_t arg_count = sizeof...(p_args);
+    if (arg_count > 0) {
+        values.resize(arg_count);
+        for (uint32_t index = 0; index < arg_count; index++) {
+            values[index] = args[index];
+        }
+    }
+
+    return values;
+}
+
 namespace GDE {
     struct Variant {
         using ConstVariantPtrs = const godot::Variant**;

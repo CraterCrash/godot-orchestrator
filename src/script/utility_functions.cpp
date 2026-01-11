@@ -17,8 +17,8 @@
 #include "script/utility_functions.h"
 
 #include "common/settings.h"
-#include "common/varray.h"
 #include "common/version.h"
+#include "core/godot/variant/variant.h"
 #include "script/language.h"
 #include "script/nodes/utilities/print_string.h"
 
