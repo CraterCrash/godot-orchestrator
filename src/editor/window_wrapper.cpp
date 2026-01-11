@@ -337,12 +337,8 @@ OrchestratorScreenSelect::OrchestratorScreenSelect()
     // Create the popup.
     const Size2 borders = Size2(4, 4);
 
-    _popup = memnew(Popup);
+    _popup = memnew(PopupPanel);
     add_child(_popup);
-
-    _popup_background = memnew(Panel);
-    _popup_background->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
-    _popup->add_child(_popup_background);
 
     MarginContainer* root = memnew(MarginContainer);
     root->add_theme_constant_override("margin_right", borders.width);
@@ -384,7 +380,6 @@ void OrchestratorScreenSelect::_notification(int p_what)
         case NOTIFICATION_THEME_CHANGED:
         {
             set_button_icon(SceneUtils::get_editor_icon("MakeFloating"));
-            _popup_background->add_theme_stylebox_override("panel", get_theme_stylebox("PanelForeground", "EditorStyles"));
 
             const real_t popup_height = real_t(get_theme_font_size("font_size")) * 2.0;
             _popup->set_min_size(Size2(0, popup_height * 3));
