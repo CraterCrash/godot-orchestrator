@@ -23,13 +23,13 @@ using namespace godot;
 
 /// A useful template class for managing weak references to Godot objects
 template <typename T>
-class WeakRef
-{
+class WeakRef {
     ObjectID _id;
 
 public:
-
-    void set(T* p_object) { _id = p_object ? p_object->get_instance_id() : ObjectID(); }
+    void set(T* p_object) {
+        _id = p_object ? p_object->get_instance_id() : ObjectID();
+    }
 
     T* get() {
         Object* object = ObjectDB::get_instance(_id);
@@ -48,19 +48,18 @@ public:
 
     explicit operator bool() const { return is_valid(); }
 
-    operator T*() { return get(); }
-    operator T*() const { return get(); }
+    operator T*() { return get(); } // NOLINT
+    operator T*() const { return get(); } // NOLINT
 
-    WeakRef& operator=(T* p_object)
-    {
+    WeakRef& operator=(T* p_object) {
         set(p_object);
         return *this;
     }
 
-    explicit WeakRef(T* p_object)
-    {
-        if (p_object)
+    explicit WeakRef(T* p_object) {
+        if (p_object) {
             _id = p_object->get_instance_id();
+        }
     }
 
     WeakRef() : _id(ObjectID()) { }
