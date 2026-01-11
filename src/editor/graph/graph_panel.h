@@ -19,7 +19,7 @@
 
 #include "common/godot_utils.h"
 #include "common/godot_version.h"
-#include "common/weak_ref.h"
+#include "core/godot/object/weak_ref.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel_styler.h"
 
