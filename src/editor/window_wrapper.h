@@ -19,6 +19,7 @@
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
+#include <godot_cpp/classes/popup_panel.hpp>
 
 using namespace godot;
 
@@ -81,8 +82,7 @@ class OrchestratorScreenSelect : public Button
 {
     GDCLASS(OrchestratorScreenSelect, Button);
 
-    Popup* _popup{ nullptr };
-    Panel* _popup_background{ nullptr };
+    PopupPanel* _popup{ nullptr };
     HBoxContainer* _screen_list{ nullptr };
 
     void _build_advanced_menu();
