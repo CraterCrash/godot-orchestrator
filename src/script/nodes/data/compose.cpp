@@ -101,8 +101,7 @@ bool OScriptNodeCompose::is_supported(Variant::Type p_type) {
 
 void OScriptNodeCompose::_bind_methods() {
     // Populate the type components
-    for (const String& type_name : ExtensionDB::get_builtin_type_names()) {
-        const BuiltInType type = ExtensionDB::get_builtin_type(type_name);
+    for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
         if (!type.properties.is_empty()) {
             Array properties;
             for (const PropertyInfo& pi : type.properties) {

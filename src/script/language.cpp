@@ -140,16 +140,10 @@ void OScriptLanguage::_init() {
     }
 
     // Math constants
-    _add_global(StringName("One"), 1);
-    _add_global(StringName("PI"), Math_PI);
-    _add_global(StringName("PI/2"), Math_PI / 2);
-    _add_global(StringName("LN(2)"), Math_LN2);
-    _add_global(StringName("TAU"), Math_TAU);
-    _add_global(StringName("E"), Math_E);
-    _add_global(StringName("Sqrt1/2"), Math_SQRT12);
-    _add_global(StringName("Sqrt2"), Math_SQRT2);
-    _add_global(StringName("INF"), Math_INF);
-    _add_global(StringName("NAN"), Math_NAN);
+    for (const String& name : ExtensionDB::get_math_constant_names()) {
+        const ConstantInfo& constant = ExtensionDB::get_math_constant(name);
+        _add_global(constant.name, constant.value);
+    }
 
     // Native classes
     for (const String& class_name : ClassDB::get_class_list()) {
