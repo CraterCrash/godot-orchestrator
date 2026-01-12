@@ -119,7 +119,7 @@ List<EnumResolver::EnumItem> EnumResolver::_resolve_class_enums(const String& p_
             const String class_name = p_class_name.substr(0, dot);
             const String enum_name = p_class_name.substr(dot + 1);
 
-            if (ExtensionDB::get_builtin_type_names().has(class_name))
+            if (ExtensionDB::is_builtin_type(class_name))
             {
                 // Handle BuiltInType
                 BuiltInType type = ExtensionDB::get_builtin_type(class_name);
