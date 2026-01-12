@@ -374,17 +374,13 @@ void OScriptNodeTypeConstant::validate_node_during_build(BuildLog& p_log) const 
 }
 
 void OScriptNodeTypeConstant::_bind_methods() {
-    PackedStringArray builtin_type_names = ExtensionDB::get_builtin_type_names();
-    int type_index = 0;
-    for (const String& type_name : builtin_type_names) {
-        BuiltInType type = ExtensionDB::get_builtin_type(type_name);
+    for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
         if (!type.constants.is_empty()) {
-            _types.push_back(VariantUtils::to_type(type_index));
+            _types.push_back(type.type);
             for (const ConstantInfo& ci : type.constants) {
-                _type_constants[VariantUtils::to_type(type_index)][ci.name] = ci.value;
+                _type_constants[type.type][ci.name] = ci.value;
             }
         }
-        type_index++;
     }
 }
 

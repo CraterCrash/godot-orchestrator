@@ -339,7 +339,7 @@ Vector<MethodInfo> GDE::Variant::get_method_list(const godot::Variant& p_value) 
         return {};
     }
 
-    return ExtensionDB::get_builtin_type(p_value.get_type()).methods;
+    return ExtensionDB::get_builtin_type(p_value.get_type()).get_method_list();
 }
 
 Vector<PropertyInfo> GDE::Variant::get_property_list(const godot::Variant& p_value) {
@@ -502,12 +502,12 @@ StringName GDE::Variant::get_enum_for_enumeration(Type p_type, const StringName&
 }
 
 bool GDE::Variant::has_builtin_method(Type p_type, const StringName& p_name) {
-    return ExtensionDB::get_builtin_type(p_type).method_hashes.has(p_name);
+    return ExtensionDB::get_builtin_type(p_type).methods.has(p_name);
 }
 
 bool GDE::Variant::has_builtin_method_return_value(Type p_type, const StringName& p_name) {
     const BuiltInType built_in_type = ExtensionDB::get_builtin_type(p_type);
-    for (const MethodInfo& method : built_in_type.methods) {
+    for (const MethodInfo& method : built_in_type.get_method_list()) {
         if (method.name == p_name) {
             return MethodUtils::has_return_value(method);
         }
@@ -517,7 +517,7 @@ bool GDE::Variant::has_builtin_method_return_value(Type p_type, const StringName
 
 MethodInfo GDE::Variant::get_builtin_method_info(Type p_type, const StringName& p_name) {
     const BuiltInType built_in_type = ExtensionDB::get_builtin_type(p_type);
-    for (const MethodInfo& mi : built_in_type.methods) {
+    for (const MethodInfo& mi : built_in_type.get_method_list()) {
         if (mi.name == p_name) {
             return mi;
         }
@@ -531,19 +531,19 @@ MethodInfo GDE::Variant::get_builtin_method(Type p_type, const StringName& p_nam
 
 int64_t GDE::Variant::get_builtin_method_hash(Type p_type, const StringName& p_name) {
     const BuiltInType built_in_type = ExtensionDB::get_builtin_type(p_type);
-    if (built_in_type.method_hashes.has(p_name)) {
-        return built_in_type.method_hashes[p_name];
+    if (built_in_type.methods.has(p_name)) {
+        return built_in_type.methods[p_name].hash;
     }
     return 0;
 }
 
 bool GDE::Variant::has_utility_function(const StringName& p_function) {
-    return ExtensionDB::get_function_names().has(p_function);
+    return ExtensionDB::is_utility_function(p_function);
 }
 
 bool GDE::Variant::has_utility_function_return_value(const StringName& p_function) {
     if (has_utility_function(p_function)) {
-        return MethodUtils::has_return_value(ExtensionDB::get_function(p_function).return_val);
+        return MethodUtils::has_return_value(ExtensionDB::get_utility_function(p_function).method.return_val);
     }
     return false;
 }
@@ -586,45 +586,17 @@ bool GDE::Variant::call_utility_function(const StringName& p_function, godot::Va
 
 MethodInfo GDE::Variant::get_utility_function_method_info(const StringName& p_function) {
     ERR_FAIL_COND_V(!has_utility_function(p_function), {});
-
-    const FunctionInfo& fi = ExtensionDB::get_function(p_function);
-
-    MethodInfo info(p_function);
-    if (MethodUtils::has_return_value(fi.return_val)) {
-        info.return_val.type = fi.return_val.type;
-        if (info.return_val.type == godot::Variant::NIL) {
-            info.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
-        }
-    }
-
-    if (fi.is_vararg) {
-        info.flags |= METHOD_FLAG_VARARG;
-    } else {
-        // This intentionally copies minimal data during OScriptAnalyzer
-        for (int i = 0; i < fi.arguments.size(); i++) {
-            const PropertyInfo& pi = fi.arguments[i];
-            PropertyInfo property;
-            #ifdef DEBUG_ENABLED
-            property.name = pi.name;
-            #else
-            property.name = "arg" + itos(i + 1);
-            #endif
-            property.type = pi.type;
-            info.arguments.push_back(property);
-        }
-    }
-
-    return info;
+    return ExtensionDB::get_utility_function(p_function).method;
 }
 
 int GDE::Variant::get_utility_function_argument_count(const StringName& p_function) {
     ERR_FAIL_COND_V(!has_utility_function(p_function), 0);
-    return ExtensionDB::get_function(p_function).arguments.size();
+    return ExtensionDB::get_utility_function(p_function).method.arguments.size();
 }
 
 GDE::Variant::Type GDE::Variant::get_utility_function_return_type(const StringName& p_function) {
     if (has_utility_function(p_function)) {
-        return ExtensionDB::get_function(p_function).return_val.type;
+        return ExtensionDB::get_utility_function(p_function).method.return_val.type;
     }
     return godot::Variant::NIL;
 }
@@ -632,7 +604,7 @@ GDE::Variant::Type GDE::Variant::get_utility_function_return_type(const StringNa
 GDE::Variant::UtilityFunctionType GDE::Variant::get_utility_function_type(const StringName& p_function) {
     ERR_FAIL_COND_V(!has_utility_function(p_function), UTILITY_FUNC_TYPE_GENERAL);
 
-    const FunctionInfo& fi = ExtensionDB::get_function(p_function);
+    const FunctionInfo& fi = ExtensionDB::get_utility_function(p_function);
     if (fi.category == StringName("math")) {
         return UTILITY_FUNC_TYPE_MATH;
     } else if (fi.category == StringName("random")) {

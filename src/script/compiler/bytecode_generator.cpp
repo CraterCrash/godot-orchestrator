@@ -1615,13 +1615,13 @@ void OScriptBytecodeGenerator::write_call_async(const Address& p_target, const A
 void OScriptBytecodeGenerator::write_call_utility(const Address& p_target, const StringName& p_function, const Vector<Address>& p_arguments) {
     bool is_validated = true;
 
-    const FunctionInfo& fi = ExtensionDB::get_function(p_function);
-    if (fi.is_vararg) {
+    const FunctionInfo& fi = ExtensionDB::get_utility_function(p_function);
+    if (fi.is_vararg()) {
         is_validated = false; // Vararg needs runtime checks, can't use validated call.
-    } else if (p_arguments.size() == fi.arguments.size()) {
+    } else if (p_arguments.size() == fi.method.arguments.size()) {
         bool all_types_exact = true;
         for (int i = 0; i < p_arguments.size(); i++) {
-            if (!IS_BUILTIN_TYPE(p_arguments[i], fi.arguments[i].type)) {
+            if (!IS_BUILTIN_TYPE(p_arguments[i], fi.method.arguments[i].type)) {
                 all_types_exact = false;
                 break;
             }
@@ -1635,7 +1635,7 @@ void OScriptBytecodeGenerator::write_call_utility(const Address& p_target, const
     is_validated = false;
 
     if (is_validated) {
-        Variant::Type result_type = MethodUtils::has_return_value(fi.return_val) ? fi.return_val.type : Variant::NIL;
+        Variant::Type result_type = MethodUtils::has_return_value(fi.method.return_val) ? fi.method.return_val.type : Variant::NIL;
         CallTarget ct = get_call_target(p_target, result_type);
         Variant::Type temp_type = temporaries[ct.target.address].type;
         if (result_type != temp_type) {
@@ -1765,14 +1765,7 @@ void OScriptBytecodeGenerator::write_call_builtin_type_static(const Address& p_t
 }
 
 void OScriptBytecodeGenerator::write_call_native_static(const Address& p_target, const StringName& p_class, const StringName& p_method, const Vector<Address>& p_arguments) {
-    // The lookup must be based on the function hash to work
-    const int64_t hash = ExtensionDB::get_static_function_hash(p_class, p_method);
-
-    // Lookup the pointer
-    MethodBind* method = const_cast<MethodBind*>(static_cast<const MethodBind*>(
-        internal::gdextension_interface_classdb_get_method_bind(p_class._native_ptr(), p_method._native_ptr(), hash)));
-
-    // MethodBind *method = ClassDB::get_method(p_class, p_method);
+    MethodBind* method = ExtensionDB::get_method(p_class, p_method);
 
     // Perform regular call.
     append_opcode_and_argcount(OScriptCompiledFunction::OPCODE_CALL_NATIVE_STATIC, p_arguments.size() + 1);

@@ -14,177 +14,186 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_GODOT_EXTENSION_DB_GENERATED_H
-#define ORCHESTRATOR_GODOT_EXTENSION_DB_GENERATED_H
+#ifndef ORCHESTRATOR_EXTENSION_DB_H
+#define ORCHESTRATOR_EXTENSION_DB_H
 
 #include "common/variant_operators.h"
 
-#include <godot_cpp/core/math.hpp>
 #include <godot_cpp/core/method_bind.hpp>
-#include <godot_cpp/core/property_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
-#include <godot_cpp/templates/vector.hpp>
-#include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
-// THIS FILE IS GENERATED. EDITS WILL BE LOST.
+using namespace godot;
 
-namespace godot
-{
-	/// Describes a mapping between an enum name and value
-	struct EnumValue
-	{
-		StringName name;
-		StringName friendly_name;
-		int value{ 0 };
-	};
-	
-	/// Describes a definition of an Enumeration type
-	struct EnumInfo
-	{
-		StringName name;
-		bool is_bitfield{ false };
-		Vector<EnumValue> values;
-	};
-	
-	/// Describes a function
-	struct FunctionInfo
-	{
-		StringName name;
-		PropertyInfo return_val;
-		StringName category;
-		bool is_vararg{ false };
-		int64_t hash{ 0 };
-		Vector<PropertyInfo> arguments;
-	};
-	
-	/// Describes an operator for a Godot type
-	struct OperatorInfo
-	{
-		VariantOperators::Code op{ VariantOperators::OP_EQUAL };
-		StringName code;
-		StringName name;
-		Variant::Type left_type{ Variant::NIL };
-		StringName left_type_name;
-		Variant::Type right_type{ Variant::NIL };
-		StringName right_type_name;
-		Variant::Type return_type{ Variant::NIL };
-	};
-	
-	/// Describes a constructor definition
-	struct ConstructorInfo
-	{
-		Vector<PropertyInfo> arguments;
-	};
-	
-	/// Describes a Constant definition
-	struct ConstantInfo
-	{
-		StringName name;
-		Variant::Type type{ Variant::NIL };
-		Variant value;
-	};
-	
-	/// Builtin Godot Type details
-	struct BuiltInType
-	{
-		StringName name;
-		Variant::Type type{ Variant::NIL };
-		bool keyed{ false };
-		bool has_destructor{ false };
-		Vector<OperatorInfo> operators;
-		Vector<ConstructorInfo> constructors;
-		Vector<MethodInfo> methods;
-		Vector<PropertyInfo> properties;
-		Vector<ConstantInfo> constants;
-		Vector<EnumInfo> enums;
-		Variant::Type index_returning_type{ Variant::NIL };
-		HashMap<StringName, int64_t> method_hashes;
-	};
-	
-	/// Describes a Godot Class
-	struct ClassInfo
-	{
-		StringName name;
-		Vector<StringName> bitfield_enums;
-		HashMap<StringName, int64_t> static_function_hashes;
-	};
-	
-	namespace internal
-	{
-		/// Populates the contents of the ExtensionDB singleton database
-		class ExtensionDBLoader
-		{
-			/// Populates Math Constants
-			void prime_math_constants();
-			
-			/// Populates Global Enumerations
-			void prime_global_enumerations();
-			
-			/// Populates Builtin Data Types
-			void prime_builtin_classes();
-			
-			/// Populates Utility Functions
-			void prime_utility_functions();
-			
-			/// Populate class details
-			void prime_class_details();
-		
-		public:
-			/// Populates the ExtensionDB
-			void prime();
-		};
-	}
-	
-	/// A simple database that exposes GDExtension and Godot details
-	/// This is intended to supplement ClassDB, which does not expose all details to GDExtension.
-	class ExtensionDB
-	{
-		friend class internal::ExtensionDBLoader;
-		static ExtensionDB* _singleton;
-		
-		HashMap<Variant::Type, StringName> _builtin_types_to_name;
-		HashMap<StringName, BuiltInType> _builtin_types;
-		PackedStringArray _builtin_type_names;
-		
-		PackedStringArray _global_enum_names;
-		PackedStringArray _global_enum_value_names;
-		HashMap<StringName, EnumInfo> _global_enums;
-		
-		PackedStringArray _math_constant_names;
-		HashMap<StringName, ConstantInfo> _math_constants;
-		
-		PackedStringArray _function_names;
-		HashMap<StringName, FunctionInfo> _functions;
-		
-		HashMap<StringName, ClassInfo> _classes;
-		
-	public:
-		ExtensionDB();
-		~ExtensionDB();
-		
-		static PackedStringArray get_builtin_type_names();
-		static BuiltInType get_builtin_type(const StringName& p_type_name);
-		static BuiltInType get_builtin_type(Variant::Type p_type);
-		
-		static PackedStringArray get_global_enum_names();
-		static PackedStringArray get_global_enum_value_names();
-		static EnumInfo get_global_enum(const StringName& p_enum_name);
-		static EnumInfo get_global_enum_by_value(const StringName& p_name);
-		static EnumValue get_global_enum_value(const StringName& p_enum_value_name);
-		
-		static PackedStringArray get_math_constant_names();
-		static ConstantInfo get_math_constant(const StringName& p_constant_name);
-		
-		static PackedStringArray get_function_names();
-		static FunctionInfo get_function(const StringName& p_name);
-		
-		static bool is_class_enum_bitfield(const StringName& p_class_name, const String& p_enum_name);
-		
-		static PackedStringArray get_static_function_names(const StringName& p_class_name);
-		static int64_t get_static_function_hash(const StringName& p_class_name, const StringName& p_function_name);
-	};
-	
+namespace godot {
+
+    struct EnumValue {
+            StringName name;
+            StringName friendly_name;
+            int value = 0;
+        };
+
+        struct EnumInfo {
+            StringName name;
+            bool is_bitfield = false;
+            Vector<EnumValue> values;
+        };
+
+        struct FunctionInfo {
+            MethodInfo method;
+            StringName category;
+            int64_t hash = 0;
+            String description;
+
+            _FORCE_INLINE_ bool is_vararg() const { return method.flags & METHOD_FLAG_VARARG; }
+        };
+
+        struct OperatorInfo {
+            VariantOperators::Code op = VariantOperators::OP_EQUAL;
+            StringName code;
+            StringName name;
+            Variant::Type left_type = Variant::NIL;
+            StringName left_type_name;
+            Variant::Type right_type = Variant::NIL;
+            StringName right_type_name;
+            Variant::Type return_type = Variant::NIL;
+        };
+
+        struct ConstructorInfo {
+            Vector<PropertyInfo> arguments;
+        };
+
+        struct ConstantInfo {
+            StringName name;
+            Variant::Type type = Variant::NIL;
+            Variant value;
+        };
+
+        struct BuiltInType {
+            StringName name;
+            Variant::Type type = Variant::NIL;
+            bool keyed = false;
+            bool has_destructor = false;
+            Vector<OperatorInfo> operators;
+            Vector<ConstructorInfo> constructors;
+            Vector<PropertyInfo> properties;
+            Vector<ConstantInfo> constants;
+            Vector<EnumInfo> enums;
+            Variant::Type index_returning_type = Variant::NIL;
+            HashMap<StringName, FunctionInfo> methods;
+
+            Vector<MethodInfo> get_method_list() const;
+        };
+
+        struct ClassMethodInfo {
+            MethodInfo method;
+            int64_t hash = 0;
+            String description;
+        };
+
+        struct ClassPropertyInfo {
+            PropertyInfo property;
+            String getter;
+            String setter;
+            String description;
+        };
+
+        struct ClassSignalInfo {
+            MethodInfo method;
+            String description;
+        };
+
+        struct ClassInfo {
+            StringName name;
+            bool ref_counted = false;
+            bool instantiable = false;
+            StringName parent_class;
+            StringName api_type;
+            Vector<StringName> bitfield_enums;
+            HashMap<StringName, ClassMethodInfo> methods;
+            HashMap<StringName, ClassPropertyInfo> properties;
+            HashMap<StringName, ClassSignalInfo> signals;
+            String brief_description;
+            String description;
+            ClassInfo* parent = nullptr;
+        };
+
+    class ExtensionDB {
+        static ExtensionDB* _singleton;
+
+        HashMap<StringName, Variant::Type> variant_name_to_type;
+        HashMap<StringName, StringName> operator_names;
+        HashMap<StringName, VariantOperators::Code> operator_codes;
+
+        HashMap<StringName, ConstantInfo> math_constants;
+        PackedStringArray math_constant_names;
+
+        HashMap<StringName, BuiltInType> builtin_types;
+        HashMap<Variant::Type, StringName> builtin_types_to_name;
+
+        HashMap<StringName, EnumInfo> global_enums;
+        PackedStringArray global_enum_names;
+        PackedStringArray global_enum_value_names;
+
+        HashMap<StringName, FunctionInfo> utility_functions;
+
+        HashMap<StringName, ClassInfo> classes;
+
+        static String _resolve_enum_prefix(const Vector<EnumValue>& p_enum_values);
+        static bool _is_enum_values_upper_cased(const EnumInfo& p_enumeration);
+        static void _sanitize(EnumInfo& p_enumeration);
+
+        Variant::Type _resolve_variant_type_from_name(const String& p_name);
+
+        String _resolve_operator_name(const String& p_name);
+        VariantOperators::Code _resolve_operator_type(const String& p_name);
+
+        static int32_t _resolve_method_flags(const Dictionary& p_method);
+        PropertyInfo _resolve_type_to_property(const String& p_type, const String& p_name = String());
+        PropertyInfo _resolve_method_return(const Dictionary& p_method);
+        PropertyInfo _resolve_method_argument(const Dictionary& p_argument);
+        static Variant _resolve_method_argument_default(const Dictionary& p_argument);
+
+        void _decompress_and_load(); // NOLINT - generated dynamically
+        void _load(const PackedByteArray& p_data);
+
+        void _load_builtin_types(const Dictionary& p_data);
+        void _load_global_enumerations(const Dictionary& p_data);
+        void _load_utility_functions(const Dictionary& p_data);
+        void _load_classes(const Dictionary& p_data);
+
+    public:
+        // Built-in Types
+        static bool is_builtin_type(const StringName& p_type_name);
+        static Vector<BuiltInType> get_builtin_types();
+        static BuiltInType get_builtin_type(const StringName& p_type_name);
+        static BuiltInType get_builtin_type(Variant::Type p_type);
+
+        // Global Enumerations
+        static PackedStringArray get_global_enum_names();
+        static PackedStringArray get_global_enum_value_names();
+        static EnumInfo get_global_enum(const StringName& p_enum_name);
+        static EnumInfo get_global_enum_by_value(const StringName& p_enum_name);
+        static EnumValue get_global_enum_value(const StringName& p_enum_value_name);
+
+        // Math constants
+        static PackedStringArray get_math_constant_names();
+        static ConstantInfo get_math_constant(const StringName& p_constant_name);
+
+        // Utility Functions
+        static bool is_utility_function(const StringName& p_method_name);
+        static Vector<FunctionInfo> get_utility_functions();
+        static FunctionInfo get_utility_function(const StringName& p_name);
+
+        // Classes
+        static bool is_class_enum_bitfield(const StringName& p_class_name, const StringName& p_enum_name);
+        static PackedStringArray get_class_static_function_names(const StringName& p_class_name);
+        static bool get_class_method_info(const StringName& p_class_name, const StringName& p_method_name, MethodInfo& r_info, bool p_no_inheritance = false);
+        static MethodBind* get_method(const StringName& p_class_name, const StringName& p_method_name);
+
+        ExtensionDB();
+        ~ExtensionDB();
+    };
 }
 
-
-#endif // ORCHESTRATOR_GODOT_EXTENSION_DB_GENERATED_H
+#endif // ORCHESTRATOR_EXTENSION_DB_H
