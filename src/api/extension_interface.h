@@ -19,14 +19,11 @@
 
 #include <godot_cpp/core/class_db.hpp>
 
-namespace godot
-{
+namespace godot {
     void initialize_extension_module(ModuleInitializationLevel p_level);
-
     void uninitialize_extension_module(ModuleInitializationLevel p_level);
 
-    extern "C"
-    {
+    extern "C" {
         GDExtensionBool GDE_EXPORT extension_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
                                                           GDExtensionClassLibraryPtr p_library,
                                                           GDExtensionInitialization* r_initialization);

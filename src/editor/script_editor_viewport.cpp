@@ -526,7 +526,7 @@ void OrchestratorScriptEditorViewport::add_script_function(Object* p_object, con
             property.type = Variant::OBJECT;
             method.arguments.push_back(property);
         }
-        else if (ExtensionDB::get_builtin_type_names().has(bits[1]))
+        else if (ExtensionDB::is_builtin_type(bits[1]))
         {
             // Built-In Type
             PropertyInfo property;

@@ -25,61 +25,47 @@
 
 using namespace godot;
 
-namespace orchestrator
-{
-    void initialize_extension_module(ModuleInitializationLevel p_level)
-    {
-        if (p_level == MODULE_INITIALIZATION_LEVEL_CORE)
-        {
+namespace orchestrator {
+    void initialize_extension_module(ModuleInitializationLevel p_level) {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
             register_extension_db();
         }
-
-        if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS)
-        {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
             register_script_types();
         }
-        if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)
-        {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
             register_script_extension();
             register_script_resource_formats();
             register_script_node_types();
         }
-        if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
-        {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
             register_script_scene_types();
             register_editor_types();
         }
     }
 
-    void uninitialize_extension_module(ModuleInitializationLevel p_level)
-    {
-        if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
-        {
+    void uninitialize_extension_module(ModuleInitializationLevel p_level) {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
             unregister_script_scene_types();
             unregister_editor_types();
         }
-        if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)
-        {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
             unregister_script_node_types();
             unregister_script_extension();
         }
-        if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS)
-        {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
             unregister_script_resource_formats();
             unregister_script_types();
         }
-        if (p_level == MODULE_INITIALIZATION_LEVEL_CORE)
-        {
+        if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
             unregister_extension_db();
         }
     }
 
-    extern "C"
-    {
+    extern "C" {
         GDExtensionBool GDE_EXPORT extension_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
                                                           GDExtensionClassLibraryPtr p_library,
-                                                          GDExtensionInitialization* r_initialization)
-        {
+                                                          GDExtensionInitialization* r_initialization) {
             GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
             init_obj.register_initializer(initialize_extension_module);
             init_obj.register_terminator(uninitialize_extension_module);
