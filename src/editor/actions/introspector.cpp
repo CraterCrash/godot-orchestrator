@@ -420,7 +420,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         }
     }
 
-    const PackedStringArray static_functions = ExtensionDB::get_static_function_names(p_class_name);
+    const PackedStringArray static_functions = ExtensionDB::get_class_static_function_names(p_class_name);
     if (!static_functions.is_empty())
     {
         const Ref<OScriptNodeCallStaticFunction> node = _get_or_create_node_template<OScriptNodeCallStaticFunction>();
@@ -857,10 +857,8 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 {
     Vector<Ref<Action>> actions;
 
-    for (const String& builtin_type_name : ExtensionDB::get_builtin_type_names())
+    for (const BuiltInType& type : ExtensionDB::get_builtin_types())
     {
-        const BuiltInType type = ExtensionDB::get_builtin_type(builtin_type_name);
-
         // Nothing to show for NIL/Any
         if (type.type == Variant::NIL)
             continue;
@@ -940,7 +938,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             }
         }
 
-        for (const MethodInfo& method : type.methods)
+        for (const MethodInfo& method : type.get_method_list())
         {
             const Dictionary method_dict = DictionaryUtils::from_method(method);
 
@@ -1017,20 +1015,9 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 {
     Vector<Ref<Action>> actions;
 
-    for (const String& function_name : ExtensionDB::get_function_names())
+    for (const FunctionInfo& info : ExtensionDB::get_utility_functions())
     {
-        const FunctionInfo& info = ExtensionDB::get_function(function_name);
-
-        MethodInfo method;
-        method.name = info.name;
-        method.return_val = info.return_val;
-        method.flags = METHOD_FLAGS_DEFAULT;
-
-        if (info.is_vararg)
-            method.flags |= METHOD_FLAG_VARARG;
-
-        for (const PropertyInfo& argument : info.arguments)
-            method.arguments.push_back(argument);
+        const MethodInfo& method = info.method;
 
         // Godot exports utility functions under "math", "random", and "general"
         // We remap "general" to "utilities" and "random" to "random numbers"
@@ -1040,7 +1027,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         actions.push_back(
             _script_node_builder<OScriptNodeCallBuiltinFunction>(
                 category,
-                info.name,
+                method.name,
                 DictionaryUtils::from_method(method))
             .method(method)
             .tooltip(vformat("Calls the specified built-in Godot function '%s'.", method.name))

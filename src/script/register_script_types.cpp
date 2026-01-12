@@ -291,9 +291,6 @@ void register_extension_db() {
     using namespace orchestrator::internal;
 
     extension_db = new ExtensionDB();
-
-    internal::ExtensionDBLoader loader;
-    loader.prime();
 }
 
 void unregister_extension_db() {

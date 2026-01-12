@@ -16,6 +16,7 @@
 //
 #include "core/godot/object/class_db.h"
 
+#include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 
 #include <godot_cpp/core/class_db.hpp>
@@ -66,17 +67,7 @@ bool GDE::ClassDB::has_integer_constant(const StringName& p_class_name, const St
 }
 
 bool GDE::ClassDB::get_method_info(const StringName& p_class_name, const StringName& p_method_name, MethodInfo& r_info, bool p_no_inheritance, bool p_exclude_from_properties) {
-    if (GClassDB::class_has_method(p_class_name, p_method_name, p_no_inheritance)) {
-        const TypedArray<Dictionary> methods = GClassDB::class_get_method_list(p_class_name, p_no_inheritance);
-        for (uint32_t i = 0; i < methods.size(); i++) {
-            const MethodInfo method = DictionaryUtils::to_method(methods[i]);
-            if (method.name == p_method_name) {
-                r_info = method;
-                return true;
-            }
-        }
-    }
-    return false;
+    return ExtensionDB::get_class_method_info(p_class_name, p_method_name, r_info, p_no_inheritance);
 }
 
 bool GDE::ClassDB::has_property(const StringName& p_class_name, const StringName& p_property_name, bool p_no_inheritance) {

@@ -186,7 +186,7 @@ bool OScriptCompiler::is_local_or_parameter(CompilerContext& p_context, const St
 }
 
 bool OScriptCompiler::has_utility_function(const StringName& p_name) {
-    return ExtensionDB::get_function_names().has(p_name);
+    return ExtensionDB::is_utility_function(p_name);
 }
 
 void OScriptCompiler::set_error(const String& p_error, const OScriptParser::Node* p_node) {
