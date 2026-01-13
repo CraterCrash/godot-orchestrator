@@ -28,7 +28,7 @@
 #include "editor/editor.h"
 #include "editor/editor_component_view.h"
 #include "editor/graph/graph_panel.h"
-#include "editor/plugins/inspector_plugins.h"
+#include "editor/inspector/variable_inspector_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/script_connections.h"
 #include "script/nodes/functions/function_entry.h"

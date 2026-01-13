@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_INFO_CONTAINER_PROPERTY_H
-#define ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_INFO_CONTAINER_PROPERTY_H
+#ifndef ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_PIN_PROPERTIES_H
+#define ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_PIN_PROPERTIES_H
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_property.hpp>
@@ -32,30 +32,29 @@ class OrchestratorSelectTypeSearchDialog;
 
 /// An EditorProperty implementation that works with a TypedArray<Dictionary> collection of
 /// zero or more PropertyInfo objects, allowing the user to set the name and type of each property.
-class OrchestratorPropertyInfoContainerEditorProperty : public EditorProperty
-{
-    GDCLASS(OrchestratorPropertyInfoContainerEditorProperty, EditorProperty);
-    static void _bind_methods();
+class OrchestratorEditorPropertyPinProperties : public EditorProperty {
+    GDCLASS(OrchestratorEditorPropertyPinProperties, EditorProperty);
 
     /// A slot represents a collection of UI widgets for a given property.
     /// Each slot is mapped to a specific PropertyInfo object by index.
-    struct Slot
-    {
-        LineEdit* name{ nullptr };               //! Property name
-        Button* type{ nullptr };                 //! Property type
-        HBoxContainer* button_group{ nullptr };  //! Button group
+    struct Slot {
+        LineEdit* name = nullptr;                //! Property name
+        Button* type = nullptr;                  //! Property type
+        HBoxContainer* button_group = nullptr;   //! Button group
     };
 
-protected:
-    OrchestratorSelectTypeSearchDialog* _dialog{ nullptr };  //! Dialog for selecting property types
-    MarginContainer* _margin{ nullptr };                     //! Margin container for the widgets
-    GridContainer* _container{ nullptr };                    //! Grid container for all controls
-    Button* _add_button{ nullptr };                          //! Button for adding a new property
+    OrchestratorSelectTypeSearchDialog* _dialog = nullptr;   //! Dialog for selecting property types
+    MarginContainer* _margin = nullptr;                      //! Margin container for the widgets
+    GridContainer* _container = nullptr;                     //! Grid container for all controls
+    Button* _add_button = nullptr;                           //! Button for adding a new property
     Vector<Slot> _slots;                                     //! Slots
     Vector<PropertyInfo> _properties;                        //! Properties
-    int _max_entries{ INT_MAX };                             //! Maximum allowed properties
-    bool _args{ false };                                     //! Represents argument or return value list
-    bool _allow_rearrange{ false };                          //! Whether move up/down is enabled
+    int _max_entries = INT_MAX;                              //! Maximum allowed properties
+    bool _args = false;                                      //! Represents argument or return value list
+    bool _allow_rearrange = false;                           //! Whether move up/down is enabled
+
+protected:
+    static void _bind_methods();
 
     //~ Begin Wrapped Interface
     void _notification(int p_what);
@@ -102,4 +101,4 @@ public:
     void setup(bool p_inputs = false, int p_max_entries = INT_MAX);
 };
 
-#endif  // ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_INFO_CONTAINER_PROPERTY_H
+#endif  // ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_PIN_PROPERTIES_H
