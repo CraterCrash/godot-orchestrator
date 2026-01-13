@@ -35,10 +35,11 @@
 #include "editor/graph/nodes/comment_graph_node.h"
 #include "editor/graph/nodes/knot_node.h"
 #include "editor/graph/pins/pins.h"
-#include "editor/inspector/editor_property_class_name.h"
-#include "editor/inspector/property_info_container_property.h"
-#include "editor/inspector/property_type_button_property.h"
-#include "editor/plugins/inspector_plugins.h"
+#include "editor/inspector/function_inspector_plugin.h"
+#include "editor/inspector/signal_inspector_plugin.h"
+#include "editor/inspector/type_cast_inspector_plugin.h"
+#include "editor/inspector/variable_inspector_plugin.h"
+#include "editor/inspector/properties/editor_property_class_name.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/property_selector.h"
@@ -52,6 +53,8 @@
 #include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
+#include "inspector/properties/editor_property_pin_properties.h"
+#include "inspector/properties/editor_property_variable_classification.h"
 
 void register_editor_types()
 {
@@ -70,7 +73,7 @@ void register_editor_types()
     // Editor bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorLogEventRouter)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyClassName)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorPropertyInfoContainerEditorProperty)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyPinProperties)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyVariableClassification)
     GDREGISTER_INTERNAL_CLASS(OrchestratorFileDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
