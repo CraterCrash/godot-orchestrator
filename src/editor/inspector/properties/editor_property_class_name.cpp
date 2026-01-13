@@ -14,19 +14,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/inspector/editor_property_class_name.h"
+#include "editor/inspector/properties/editor_property_class_name.h"
 
-#include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "editor/select_class_dialog.h"
 
-Variant OrchestratorEditorPropertyClassName::_get_edited_property_value()
-{
+Variant OrchestratorEditorPropertyClassName::_get_edited_property_value() {
     ERR_FAIL_NULL_V(get_edited_object(), Variant());
     return get_edited_object()->get(get_edited_property());
 }
 
-void OrchestratorEditorPropertyClassName::setup(const String& p_base_type, const String& p_selected_type, bool p_allow_abstract)
-{
+void OrchestratorEditorPropertyClassName::_property_selected() {
+    _dialog->popup_create(true, true, _get_edited_property_value(), get_edited_property());
+}
+
+void OrchestratorEditorPropertyClassName::_dialog_selected() {
+    _selected_type = _dialog->get_selected();
+
+    emit_changed(get_edited_property(), _selected_type);
+
+    _property->set_text(_selected_type);
+}
+
+void OrchestratorEditorPropertyClassName::_update_property() {
+    const String value = _get_edited_property_value();
+
+    _property->set_text(value);
+    _selected_type = value;
+}
+
+void OrchestratorEditorPropertyClassName::_set_read_only(bool p_read_only) {
+    _property->set_disabled(p_read_only);
+}
+
+void OrchestratorEditorPropertyClassName::setup(const String& p_base_type, const String& p_selected_type, bool p_allow_abstract) {
     _base_type = p_base_type;
     _selected_type = p_selected_type;
 
@@ -36,50 +57,23 @@ void OrchestratorEditorPropertyClassName::setup(const String& p_base_type, const
     _property->set_text(_selected_type);
 }
 
-void OrchestratorEditorPropertyClassName::_update_property()
-{
-    const String value = _get_edited_property_value();
-
-    _property->set_text(value);
-    _selected_type = value;
-}
-
-void OrchestratorEditorPropertyClassName::_set_read_only(bool p_read_only)
-{
-    _property->set_disabled(p_read_only);
-}
-
-void OrchestratorEditorPropertyClassName::_property_selected()
-{
-    _dialog->popup_create(true, true, _get_edited_property_value(), get_edited_property());
-}
-
-void OrchestratorEditorPropertyClassName::_dialog_selected()
-{
-    _selected_type = _dialog->get_selected();
-
-    emit_changed(get_edited_property(), _selected_type);
-
-    _property->set_text(_selected_type);
-}
-
-void OrchestratorEditorPropertyClassName::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_READY)
-    {
-        _property->connect("pressed", callable_mp(this, &OrchestratorEditorPropertyClassName::_property_selected));
-        _dialog->connect("selected", callable_mp(this, &OrchestratorEditorPropertyClassName::_dialog_selected));
+void OrchestratorEditorPropertyClassName::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_READY: {
+            _property->connect("pressed", callable_mp_this(_property_selected));
+            _dialog->connect("selected", callable_mp_this(_dialog_selected));
+            break;
+        }
     }
 }
 
-void OrchestratorEditorPropertyClassName::_bind_methods()
-{
+void OrchestratorEditorPropertyClassName::_bind_methods() {
 }
 
-OrchestratorEditorPropertyClassName::OrchestratorEditorPropertyClassName()
-{
+OrchestratorEditorPropertyClassName::OrchestratorEditorPropertyClassName() {
     _property = memnew(Button);
     _property->set_clip_text(true);
+    _property->set_theme_type_variation("EditorInspectorButton");
 
     add_child(_property);
     add_focusable(_property);

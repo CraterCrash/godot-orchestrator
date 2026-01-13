@@ -28,7 +28,6 @@
 #include "editor/graph/graph_panel.h"
 #include "editor/script_components_container.h"
 #include "goto_node_dialog.h"
-#include "plugins/inspector_plugins.h"
 #include "plugins/orchestrator_editor_plugin.h"
 #include "script/nodes/functions/event.h"
 #include "script/script.h"

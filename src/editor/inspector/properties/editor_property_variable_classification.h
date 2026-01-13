@@ -26,20 +26,20 @@ using namespace godot;
 class OrchestratorSelectTypeSearchDialog;
 
 /// EditorProperty implementation for OScriptVariable classification properties
-class OrchestratorEditorPropertyVariableClassification : public EditorProperty
-{
+class OrchestratorEditorPropertyVariableClassification : public EditorProperty {
     GDCLASS(OrchestratorEditorPropertyVariableClassification, EditorProperty);
-    static void _bind_methods() { }
+
+    OrchestratorSelectTypeSearchDialog* _dialog = nullptr;
+    Button* _property = nullptr;
+    String _selected_name;
+    String _base_type = "Object";
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin Wrapped Interface
     void _notification(int p_what);
     //~ End Wrapped Interface
-
-    OrchestratorSelectTypeSearchDialog* _dialog{ nullptr };
-    Button* _property{ nullptr };
-    String _selected_name;
-    String _base_type{ "Object" };
 
     //~ Begin Signal Handlers
     void _property_selected();

@@ -24,20 +24,21 @@ using namespace godot;
 
 class OrchestratorSelectClassSearchDialog;
 
-/// An EditorProperty that works identical to Godot's EditorPropertyClassName, with the difference
-/// being that we use our own implementation of <code>CreateDialog</code>.
-class OrchestratorEditorPropertyClassName : public EditorProperty
-{
+/// An <code>EditorProperty</code> that works identical to <code>EditorPropertyClassName</code>. The difference
+/// is that this property uses <code>OrchestratorSelectClassSearchDialog</code>, which allows for the selection
+/// of abstract class types, which isn't possible with Godot's standard <code>CreateDialog</code>.
+class OrchestratorEditorPropertyClassName : public EditorProperty {
     GDCLASS(OrchestratorEditorPropertyClassName, EditorProperty);
 
-    OrchestratorSelectClassSearchDialog* _dialog{ nullptr };
-    Button* _property{ nullptr };
+    OrchestratorSelectClassSearchDialog* _dialog = nullptr;
+    Button* _property = nullptr;
     String _selected_type;
     String _base_type;
 
 protected:
-    //~ Begin Wrapped Interface
     static void _bind_methods();
+
+    //~ Begin Wrapped Interface
     void _notification(int p_what);
     //~ End Wrapped Interface
 
