@@ -14,9 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/inspector/property_info_container_property.h"
+#include "editor/inspector/properties/editor_property_pin_properties.h"
 
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/name_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
@@ -26,67 +27,11 @@
 
 #include <godot_cpp/classes/v_box_container.hpp>
 
-void OrchestratorPropertyInfoContainerEditorProperty::_get_properties()
-{
-    _properties.clear();
-
-    const TypedArray<Dictionary> properties = get_edited_object()->get(get_edited_property());
-    for (int index = 0; index < properties.size(); ++index)
-        _properties.push_back(DictionaryUtils::to_property(properties[index]));
-}
-
-void OrchestratorPropertyInfoContainerEditorProperty::_set_properties()
-{
-    TypedArray<Dictionary> properties;
-    for (int index = 0; index < _properties.size(); ++index)
-        properties.push_back(DictionaryUtils::from_property(_properties[index]));
-
-    emit_changed(get_edited_property(), properties);
-}
-
-void OrchestratorPropertyInfoContainerEditorProperty::_update_pass_by_details(int p_index, const PropertyInfo& p_property)
-{
-    Button* pass_by = Object::cast_to<Button>(_slots[p_index].button_group->get_child(0));
-    if (!pass_by)
-        return;
-
-    if (PropertyUtils::is_passed_by_reference(p_property))
-    {
-        pass_by->set_button_icon(SceneUtils::get_icon("CircleReference"));
-        pass_by->set_tooltip_text("Passed by reference");
-    }
-    else
-    {
-        pass_by->set_button_icon(SceneUtils::get_icon("CircleValue"));
-        pass_by->set_tooltip_text("Passed by value");
-    }
-}
-
-void OrchestratorPropertyInfoContainerEditorProperty::_update_move_buttons(bool p_force_disable)
-{
-    for (int index = 0; index < _slots.size(); ++index)
-    {
-        Button* move_up = Object::cast_to<Button>(_slots[index].button_group->get_child(2));
-        Button* move_down = Object::cast_to<Button>(_slots[index].button_group->get_child(3));
-
-        if (_allow_rearrange)
-        {
-            move_up->set_disabled(index == 0 || p_force_disable);
-            move_down->set_disabled(index == (_slots.size() - 1) || p_force_disable);
-        }
-        else
-        {
-            move_up->set_disabled(true);
-            move_down->set_disabled(true);
-        }
-    }
-}
-
-void OrchestratorPropertyInfoContainerEditorProperty::_add_property()
-{
+void OrchestratorEditorPropertyPinProperties::_add_property() {
     PackedStringArray existing_names;
-    for (const PropertyInfo& pi : _properties)
+    for (const PropertyInfo& pi : _properties) {
         existing_names.push_back(pi.name);
+    }
 
     PropertyInfo property;
     property.name = NameUtils::create_unique_name(_args ? "NewParam" : "return_value", existing_names);
@@ -99,20 +44,17 @@ void OrchestratorPropertyInfoContainerEditorProperty::_add_property()
     _set_properties();
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_rename_property(const String& p_name, int p_index)
-{
+void OrchestratorEditorPropertyPinProperties::_rename_property(const String& p_name, int p_index) {
     _properties.write[p_index].name = p_name;
     _set_properties();
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_remove_property(int p_index)
-{
+void OrchestratorEditorPropertyPinProperties::_remove_property(int p_index) {
     _properties.remove_at(p_index);
     _set_properties();
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_argument_type_selected(int p_index)
-{
+void OrchestratorEditorPropertyPinProperties::_argument_type_selected(int p_index) {
     // The dialog outputs selected values in encoded formats:
     //  type:<basic_type>
     //  class:<class_name>
@@ -122,45 +64,37 @@ void OrchestratorPropertyInfoContainerEditorProperty::_argument_type_selected(in
     //  class_bitfield:<class_name>.<bitfield_name>
 
     const String selected_type = _dialog->get_selected_type();
-    if (!selected_type.contains(":"))
+    if (!selected_type.contains(":")) {
         return;
+    }
 
     const PackedStringArray parts = selected_type.split(":");
 
     const String& classification = parts[0];
-    if (classification.match("type"))
-    {
-        for (int i = 0; i < Variant::VARIANT_MAX; i++)
-        {
+    if (classification.match("type")) {
+        for (int i = 0; i < Variant::VARIANT_MAX; i++) {
             Variant::Type type = VariantUtils::to_type(i);
-            if (Variant::get_type_name(type).match(parts[1]))
-            {
+            if (Variant::get_type_name(type).match(parts[1])) {
                 uint32_t usage = PROPERTY_USAGE_DEFAULT;
-                if (type == Variant::NIL)
+                if (type == Variant::NIL) {
                     usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+                }
 
                 _properties.write[p_index].type = type;
                 _properties.write[p_index].class_name = "";
                 _properties.write[p_index].usage = usage;
-
                 break;
             }
         }
-    }
-    else if (classification.match("class"))
-    {
+    } else if (classification.match("class")) {
         _properties.write[p_index].type = Variant::OBJECT;
         _properties.write[p_index].class_name = parts[1];
         _properties.write[p_index].usage = PROPERTY_USAGE_DEFAULT;
-    }
-    else if (classification.match("enum") || classification.match("class_enum"))
-    {
+    } else if (classification.match("enum") || classification.match("class_enum")) {
         _properties.write[p_index].type = Variant::INT;
         _properties.write[p_index].class_name = parts[1];
         _properties.write[p_index].usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_ENUM;
-    }
-    else if (classification.match("bitfield") || classification.match("class_bitfield"))
-    {
+    } else if (classification.match("bitfield") || classification.match("class_bitfield")) {
         _properties.write[p_index].type = Variant::INT;
         _properties.write[p_index].class_name = parts[1];
         _properties.write[p_index].usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_BITFIELD;
@@ -170,105 +104,103 @@ void OrchestratorPropertyInfoContainerEditorProperty::_argument_type_selected(in
     _set_properties();
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_show_type_selection(int p_index, const String& p_value)
-{
+void OrchestratorEditorPropertyPinProperties::_show_type_selection(int p_index, const String& p_value) {
     _dialog = memnew(OrchestratorSelectTypeSearchDialog);
     _dialog->set_data_suffix("inspector_property_container");
     _dialog->set_popup_title(_args ? "Select argument type" : "Select return type");
-    _dialog->connect("selected", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_argument_type_selected).bind(p_index));
-    _dialog->connect("closed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_cleanup_selection));
+    _dialog->connect("selected", callable_mp_this(_argument_type_selected).bind(p_index));
+    _dialog->connect("closed", callable_mp_this(_cleanup_selection));
     add_child(_dialog);
 
     _dialog->popup_create(true, true, p_value, p_value);
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_cleanup_selection()
-{
+void OrchestratorEditorPropertyPinProperties::_cleanup_selection() {
     _dialog->queue_free();
     _dialog = nullptr;
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_move_up(int p_index)
-{
-    if (p_index > 0)
-    {
+void OrchestratorEditorPropertyPinProperties::_move_up(int p_index) {
+    if (p_index > 0) {
         _update_move_buttons(true);
         emit_signal("move_up", p_index);
     }
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_move_down(int p_index)
-{
-    if (p_index < _properties.size())
-    {
+void OrchestratorEditorPropertyPinProperties::_move_down(int p_index) {
+    if (p_index < _properties.size()) {
         _update_move_buttons(true);
         emit_signal("move_down", p_index);
     }
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_notification(int p_what)
-{
-    #if GODOT_VERSION < 0x040202
-    EditorProperty::_notification(p_what);
-    #endif
+void OrchestratorEditorPropertyPinProperties::_get_properties() {
+    _properties.clear();
 
-    if (p_what == NOTIFICATION_READY)
-    {
-        _margin = memnew(MarginContainer);
-        _margin->set_theme_type_variation("MarginContainer4px");
-        set_bottom_editor(_margin);
-        add_child(_margin);
-
-        _container = memnew(GridContainer);
-        _container->set_columns(3);
-        _container->add_theme_constant_override("separation", 5);
-
-        VBoxContainer* outer = memnew(VBoxContainer);
-        outer->add_theme_constant_override("separation", 5);
-        outer->add_child(_container);
-
-        _add_button = memnew(Button);
-        _add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
-        _add_button->set_text(vformat("Add %s", get_label()));
-        _add_button->set_theme_type_variation("InspectorActionButton");
-        _add_button->set_h_size_flags(SIZE_SHRINK_CENTER);
-        _add_button->set_focus_mode(FOCUS_NONE);
-        _add_button->set_disabled(is_read_only());
-        _add_button->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_add_property));
-        outer->add_child(_add_button);
-
-        _margin->add_child(outer);
+    const TypedArray<Dictionary> properties = get_edited_object()->get(get_edited_property());
+    for (int index = 0; index < properties.size(); ++index) {
+        _properties.push_back(DictionaryUtils::to_property(properties[index]));
     }
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_bind_methods()
-{
-    ADD_SIGNAL(MethodInfo("move_up", PropertyInfo(Variant::INT, "index")));
-    ADD_SIGNAL(MethodInfo("move_down", PropertyInfo(Variant::INT, "index")));
+void OrchestratorEditorPropertyPinProperties::_set_properties() {
+    TypedArray<Dictionary> properties;
+    for (int index = 0; index < _properties.size(); ++index) {
+        properties.push_back(DictionaryUtils::from_property(_properties[index]));
+    }
+    emit_changed(get_edited_property(), properties);
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
-{
+void OrchestratorEditorPropertyPinProperties::_update_pass_by_details(int p_index, const PropertyInfo& p_property) {
+    Button* pass_by = cast_to<Button>(_slots[p_index].button_group->get_child(0));
+    if (!pass_by) {
+        return;
+    }
+
+    if (PropertyUtils::is_passed_by_reference(p_property)) {
+        pass_by->set_button_icon(SceneUtils::get_icon("CircleReference"));
+        pass_by->set_tooltip_text("Passed by reference");
+    } else {
+        pass_by->set_button_icon(SceneUtils::get_icon("CircleValue"));
+        pass_by->set_tooltip_text("Passed by value");
+    }
+}
+
+void OrchestratorEditorPropertyPinProperties::_update_move_buttons(bool p_force_disable) {
+    for (int index = 0; index < _slots.size(); ++index) {
+        Button* move_up = cast_to<Button>(_slots[index].button_group->get_child(2));
+        Button* move_down = cast_to<Button>(_slots[index].button_group->get_child(3));
+
+        if (_allow_rearrange) {
+            move_up->set_disabled(index == 0 || p_force_disable);
+            move_down->set_disabled(index == (_slots.size() - 1) || p_force_disable);
+        } else {
+            move_up->set_disabled(true);
+            move_down->set_disabled(true);
+        }
+    }
+}
+
+void OrchestratorEditorPropertyPinProperties::_update_property() {
     _get_properties();
 
-    for (int index = 0; index < _properties.size(); ++index)
-    {
+    for (int index = 0; index < _properties.size(); ++index) {
         const PropertyInfo& property = _properties[index];
 
         String type_name;
-        if (property.usage & PROPERTY_USAGE_CLASS_IS_ENUM || property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
+        if (property.usage & PROPERTY_USAGE_CLASS_IS_ENUM || property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD) {
             type_name = property.class_name;
-        else
+        } else {
             type_name = PropertyUtils::get_property_type_name(property);
+        }
 
         const String friendly_type_name = type_name == "Variant" ? "Any" : type_name;
 
-        if (index >= _slots.size())
-        {
+        if (index >= _slots.size()) {
             Slot new_slot;
             new_slot.name = memnew(LineEdit);
             new_slot.name->set_h_size_flags(SIZE_EXPAND_FILL);
-            new_slot.name->connect("text_changed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_rename_property).bind(index));
+            new_slot.name->connect("text_changed", callable_mp_this(_rename_property).bind(index));
             new_slot.name->set_editable(!is_read_only());
             add_focusable(new_slot.name);
 
@@ -277,7 +209,7 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
             new_slot.type->set_custom_minimum_size(Vector2(100, 0));
             new_slot.type->set_tooltip_text(_args ? "Set argument type" : "Set return type");
             new_slot.type->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
-            new_slot.type->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_show_type_selection).bind(index, friendly_type_name));
+            new_slot.type->connect("pressed", callable_mp_this(_show_type_selection).bind(index, friendly_type_name));
             new_slot.type->set_disabled(is_read_only());
             add_focusable(new_slot.type);
 
@@ -293,21 +225,21 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
             remove->set_button_icon(SceneUtils::get_editor_icon("Remove"));
             remove->set_tooltip_text(_args ? "Remove this argument" : "Remove this return value");
             remove->set_disabled(is_read_only());
-            remove->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_remove_property).bind(index));
+            remove->connect("pressed", callable_mp_this(_remove_property).bind(index));
             new_slot.button_group->add_child(remove);
 
             Button* move_up = memnew(Button);
             move_up->set_button_icon(SceneUtils::get_editor_icon("ArrowUp"));
             move_up->set_tooltip_text(_args ? "Move this argument up" : "Move this return value up");
             move_up->set_disabled(true);
-            move_up->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_move_up).bind(index));
+            move_up->connect("pressed", callable_mp_this(_move_up).bind(index));
             new_slot.button_group->add_child(move_up);
 
             Button* move_down = memnew(Button);
             move_down->set_button_icon(SceneUtils::get_editor_icon("ArrowDown"));
             move_down->set_tooltip_text(_args ? "Move this argument down" : "Move this return value down");
             move_down->set_disabled(true);
-            move_down->connect("pressed", callable_mp(this, &OrchestratorPropertyInfoContainerEditorProperty::_move_down).bind(index));
+            move_down->connect("pressed", callable_mp_this(_move_down).bind(index));
             new_slot.button_group->add_child(move_down);
 
             _container->add_child(new_slot.name);
@@ -317,16 +249,17 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
             _slots.push_back(new_slot);
         }
 
-        if (_slots[index].name->has_focus())
+        if (_slots[index].name->has_focus()) {
             continue;
+        }
 
-        if (!_args)
-        {
+        if (!_args) {
             _slots[index].name->set_text("Return Value");
             _slots[index].name->set_editable(false);
         }
-        else
+        else {
             _slots[index].name->set_text(property.name);
+        }
 
         _slots[index].type->set_text(friendly_type_name);
         _slots[index].type->set_button_icon(SceneUtils::get_class_icon(PropertyUtils::get_property_type_name(property)));
@@ -334,16 +267,13 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
         _update_pass_by_details(index, property);
     }
 
-    while (_slots.size() > _properties.size())
-    {
+    while (_slots.size() > _properties.size()) {
         // Cleanup grid container
-        for (int i = 0; i < _container->get_columns(); i++)
-        {
+        for (int i = 0; i < _container->get_columns(); i++) {
             Node* child = _container->get_child(_container->get_child_count() - 1);
             _container->remove_child(child);
             child->queue_free();
         }
-
         _slots.remove_at(_slots.size() - 1);
     }
 
@@ -351,8 +281,50 @@ void OrchestratorPropertyInfoContainerEditorProperty::_update_property()
     _update_move_buttons();
 }
 
-void OrchestratorPropertyInfoContainerEditorProperty::setup(bool p_inputs, int p_max_entries)
-{
+void OrchestratorEditorPropertyPinProperties::setup(bool p_inputs, int p_max_entries) {
     _args = p_inputs;
     _max_entries = p_max_entries;
+}
+
+void OrchestratorEditorPropertyPinProperties::_notification(int p_what)
+{
+    #if GODOT_VERSION < 0x040202
+    EditorProperty::_notification(p_what);
+    #endif
+
+    switch (p_what) {
+        case NOTIFICATION_READY: {
+            _margin = memnew(MarginContainer);
+            _margin->set_theme_type_variation("MarginContainer4px");
+            set_bottom_editor(_margin);
+            add_child(_margin);
+
+            _container = memnew(GridContainer);
+            _container->set_columns(3);
+            _container->add_theme_constant_override("separation", 5);
+
+            VBoxContainer* outer = memnew(VBoxContainer);
+            outer->add_theme_constant_override("separation", 5);
+            outer->add_child(_container);
+
+            _add_button = memnew(Button);
+            _add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
+            _add_button->set_text(vformat("Add %s", get_label()));
+            _add_button->set_theme_type_variation("InspectorActionButton");
+            _add_button->set_h_size_flags(SIZE_SHRINK_CENTER);
+            _add_button->set_focus_mode(FOCUS_NONE);
+            _add_button->set_disabled(is_read_only());
+            _add_button->connect("pressed", callable_mp_this(_add_property));
+            outer->add_child(_add_button);
+
+            _margin->add_child(outer);
+
+            break;
+        }
+    }
+}
+
+void OrchestratorEditorPropertyPinProperties::_bind_methods() {
+    ADD_SIGNAL(MethodInfo("move_up", PropertyInfo(Variant::INT, "index")));
+    ADD_SIGNAL(MethodInfo("move_down", PropertyInfo(Variant::INT, "index")));
 }
