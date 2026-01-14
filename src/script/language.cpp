@@ -428,7 +428,7 @@ void* OScriptLanguage::_debug_get_stack_level_instance(int32_t p_level) {
     }
 
     ERR_FAIL_INDEX_V(p_level, _call_stack_size, nullptr);
-    return _get_stack_level(p_level)->instance;
+    return _get_stack_level(p_level)->instance->_script_instance;
     #else
     return nullptr;
     #endif
