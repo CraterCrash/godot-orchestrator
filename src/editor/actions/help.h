@@ -26,8 +26,7 @@ using namespace godot;
 class OrchestratorEditorActionDefinition;
 
 /// Displays help information about a selected <code>OrchestratorEditorActionDefinition</code>
-class OrchestratorEditorActionHelp : public VBoxContainer
-{
+class OrchestratorEditorActionHelp : public VBoxContainer {
     GDCLASS(OrchestratorEditorActionHelp, VBoxContainer);
 
     Size2 _content_size;

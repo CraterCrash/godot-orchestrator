@@ -26,8 +26,7 @@ class OrchestratorEditorGraphPin;
 /// This rule is designed to match the details associated with the port that the dragged from. This
 /// checks information such as port type, class, and object reference.
 ///
-class OrchestratorEditorActionPortRule : public OrchestratorEditorActionFilterRule
-{
+class OrchestratorEditorActionPortRule : public OrchestratorEditorActionFilterRule {
     GDCLASS(OrchestratorEditorActionPortRule, OrchestratorEditorActionFilterRule);
 
     Variant::Type _type = Variant::NIL;

@@ -1689,12 +1689,6 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
         ? OrchestratorEditorActionDefinition::GRAPH_FUNCTION
         : OrchestratorEditorActionDefinition::GRAPH_EVENT);
 
-    GraphEditorFilterContext context;
-    context.script = _graph->get_orchestration()->as_script();
-    context.port_type = pin->get_property_info();
-    context.output = pin->get_direction() == PD_Output;
-    context.class_hierarchy = Array::make(_graph->get_orchestration()->get_base_type());
-
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
     menu->set_suffix("graph_editor");
@@ -1711,10 +1705,15 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
     if (port_rule.is_valid())
         filter_engine->add_rule(port_rule);
 
-    if (_drag_from_pin->is_execution())
-        filter_engine->add_rule(memnew(OrchestratorEditorActionClassHierarchyScopeRule));
-
     const Ref<Script> source_script = _graph->get_orchestration()->as_script();
+
+    if (_drag_from_pin->is_execution()) {
+        Ref<OrchestratorEditorActionClassHierarchyScopeRule> class_hierarchy_rule;
+        class_hierarchy_rule.instantiate();
+        class_hierarchy_rule->set_script_classes(source_script);
+        filter_engine->add_rule(class_hierarchy_rule);
+    }
+
     OrchestratorEditorActionRegistry* action_registry = OrchestratorEditorActionRegistry::get_singleton();
 
     Vector<Ref<OrchestratorEditorActionDefinition>> actions;
@@ -1726,7 +1725,7 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
     if (actions.is_empty())
         actions = action_registry->get_actions(source_script);
 
-    menu->popup(p_position + get_screen_position(), actions, filter_engine, context);
+    menu->popup(p_position + get_screen_position(), actions, filter_engine);
 }
 
 void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position)
@@ -1739,15 +1738,15 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position)
         ? OrchestratorEditorActionDefinition::GRAPH_FUNCTION
         : OrchestratorEditorActionDefinition::GRAPH_EVENT);
 
+    Ref<OrchestratorEditorActionClassHierarchyScopeRule> class_hierarchy_rule;
+    class_hierarchy_rule.instantiate();
+    class_hierarchy_rule->set_script_classes(_graph->get_orchestration()->as_script());
+
     Ref<OrchestratorEditorActionFilterEngine> filter_engine;
     filter_engine.instantiate();
     filter_engine->add_rule(memnew(OrchestratorEditorActionSearchTextRule));
-    filter_engine->add_rule(memnew(OrchestratorEditorActionClassHierarchyScopeRule));
+    filter_engine->add_rule(class_hierarchy_rule);
     filter_engine->add_rule(graph_type_rule);
-
-    GraphEditorFilterContext context;
-    context.script = _graph->get_orchestration()->as_script();
-    context.class_hierarchy = Array::make(_graph->get_orchestration()->get_base_type());
 
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
@@ -1761,8 +1760,7 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position)
     menu->popup(
         p_position + get_screen_position(),
         OrchestratorEditorActionRegistry::get_singleton()->get_actions(_graph->get_orchestration()->as_script()),
-        filter_engine,
-        context);
+        filter_engine);
 }
 
 void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action)
@@ -3169,16 +3167,20 @@ void OrchestratorEditorGraphPanel::show_override_function_action_menu()
     graph_type_rule.instantiate();
     graph_type_rule->set_graph_type(OrchestratorEditorActionDefinition::GRAPH_EVENT);
 
+    Ref<OrchestratorEditorActionVirtualFunctionRule> virtual_function_rule;
+    virtual_function_rule.instantiate();
+    virtual_function_rule->set_method_exclusions(_graph->get_orchestration()->get_function_names());
+
+    Ref<OrchestratorEditorActionClassHierarchyScopeRule> class_hierarchy_rule;
+    class_hierarchy_rule.instantiate();
+    class_hierarchy_rule->set_script_classes(_graph->get_orchestration()->as_script());
+
     Ref<OrchestratorEditorActionFilterEngine> filter_engine;
     filter_engine.instantiate();
     filter_engine->add_rule(memnew(OrchestratorEditorActionSearchTextRule));
-    filter_engine->add_rule(memnew(OrchestratorEditorActionClassHierarchyScopeRule));
-    filter_engine->add_rule(memnew(OrchestratorEditorActionVirtualFunctionRule));
+    filter_engine->add_rule(class_hierarchy_rule);
+    filter_engine->add_rule(virtual_function_rule);
     filter_engine->add_rule(graph_type_rule);
-
-    GraphEditorFilterContext context;
-    context.script = _graph->get_orchestration()->as_script();
-    context.class_hierarchy = Array::make(_graph->get_orchestration()->get_base_type());
 
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
@@ -3191,8 +3193,7 @@ void OrchestratorEditorGraphPanel::show_override_function_action_menu()
 
     menu->popup_centered(
         OrchestratorEditorActionRegistry::get_singleton()->get_actions(_graph->get_orchestration()->as_script()),
-        filter_engine,
-        context);
+        filter_engine);
 }
 
 bool OrchestratorEditorGraphPanel::are_pins_compatible(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target) const
