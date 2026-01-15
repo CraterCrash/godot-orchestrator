@@ -41,6 +41,53 @@ void OrchestratorEditorGraphNodeComment::_raise_request()
     panel->call_deferred("move_child", panel->get_connection_layer_node(), position + 1);
 }
 
+void OrchestratorEditorGraphNodeComment::_update_styles()
+{
+    parent_type::_update_styles();
+
+    if (!_theme_cache.panel.is_valid())
+    {
+        _theme_cache.panel = get_theme_stylebox("panel")->duplicate();
+        ERR_FAIL_COND(!_theme_cache.panel.is_valid());
+    }
+
+    if (!_theme_cache.panel_selected.is_valid())
+    {
+        _theme_cache.panel_selected = get_theme_stylebox("panel_selected")->duplicate();
+        ERR_FAIL_COND(!_theme_cache.panel_selected.is_valid());
+    }
+
+    const Ref<OScriptNodeComment> comment_node = get_graph_node();
+    if (comment_node.is_valid()) {
+        const int node_font_size = comment_node->get_font_size();
+        const int font_size = node_font_size <= 0 ? 14 : node_font_size;
+        _theme_cache.panel->set_bg_color(comment_node->get_background_color());
+        _theme_cache.panel_selected->set_bg_color(comment_node->get_background_color());
+
+        begin_bulk_theme_override();
+        add_theme_stylebox_override("panel", _theme_cache.panel);
+        add_theme_stylebox_override("panel_selected", _theme_cache.panel_selected);
+        end_bulk_theme_override();
+
+        _text->add_theme_font_size_override("font_size", font_size);
+        _text->set_text(comment_node->get("comments"));
+        _text->add_theme_color_override("font_color", comment_node->get_text_color());
+
+        HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_LEFT;
+        if (comment_node->is_title_center_aligned())
+            alignment = HORIZONTAL_ALIGNMENT_CENTER;
+
+        for (int i = 0; i < _title_hbox->get_child_count(); i++)
+        {
+            if (Label* label = cast_to<Label>(_title_hbox->get_child(i)))
+            {
+                label->set_horizontal_alignment(alignment);
+                break;
+            }
+        }
+    }
+}
+
 void OrchestratorEditorGraphNodeComment::_gui_input(const Ref<InputEvent>& p_event)
 {
     const Ref<InputEventMouseButton> mb = p_event;
@@ -97,50 +144,7 @@ bool OrchestratorEditorGraphNodeComment::_has_point(const Vector2& p_point) cons
 void OrchestratorEditorGraphNodeComment::update()
 {
     _update_titlebar();
-
-    const Ref<OScriptNodeComment> comment_node = get_graph_node();
-    if (comment_node.is_valid())
-    {
-        const int node_font_size = comment_node->get_font_size();
-        const int font_size = node_font_size <= 0 ? 14 : node_font_size;
-
-        if (!_theme_cache.panel.is_valid())
-        {
-            _theme_cache.panel = get_theme_stylebox("panel")->duplicate();
-            ERR_FAIL_COND(!_theme_cache.panel.is_valid());
-        }
-
-        if (!_theme_cache.panel_selected.is_valid())
-        {
-            _theme_cache.panel_selected = get_theme_stylebox("panel_selected")->duplicate();
-            ERR_FAIL_COND(!_theme_cache.panel_selected.is_valid());
-        }
-
-        _theme_cache.panel->set_bg_color(comment_node->get_background_color());
-        _theme_cache.panel_selected->set_bg_color(comment_node->get_background_color());
-
-        begin_bulk_theme_override();
-        add_theme_stylebox_override("panel", _theme_cache.panel);
-        add_theme_stylebox_override("panel_selected", _theme_cache.panel_selected);
-        end_bulk_theme_override();
-
-        _text->add_theme_font_size_override("font_size", font_size);
-        _text->set_text(comment_node->get("comments"));
-        _text->add_theme_color_override("font_color", comment_node->get_text_color());
-
-        HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_LEFT;
-        if (comment_node->is_title_center_aligned())
-            alignment = HORIZONTAL_ALIGNMENT_CENTER;
-
-        for (int i = 0; i < _title_hbox->get_child_count(); i++)
-        {
-            if (Label* label = cast_to<Label>(_title_hbox->get_child(i)))
-            {
-                label->set_horizontal_alignment(alignment);
-                break;
-            }
-        }
-    }
+    callable_mp_this(_update_styles).call_deferred();
 }
 
 void OrchestratorEditorGraphNodeComment::_bind_methods()
