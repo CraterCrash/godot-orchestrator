@@ -31,6 +31,7 @@ void OrchestratorEditorView::_bind_methods()
     ADD_SIGNAL(MethodInfo("request_save_previous_state", PropertyInfo(Variant::DICTIONARY, "state")));
     ADD_SIGNAL(MethodInfo("go_to_help", PropertyInfo(Variant::STRING, "what")));
     ADD_SIGNAL(MethodInfo("go_to_method", PropertyInfo(Variant::OBJECT, "script"), PropertyInfo(Variant::STRING, "method")));
+    ADD_SIGNAL(MethodInfo("view_layout_restored"));
 }
 
 OrchestratorEditorView::~OrchestratorEditorView()
