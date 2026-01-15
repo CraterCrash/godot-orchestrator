@@ -17,7 +17,7 @@
 #ifndef ORCHESTRATOR_EDITOR_PLUGIN_H
 #define ORCHESTRATOR_EDITOR_PLUGIN_H
 
-#include "editor/plugins/orchestrator_editor_debugger_plugin.h"
+#include "editor/debugger/script_debugger_plugin.h"
 
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/editor_export_plugin.hpp>
