@@ -79,7 +79,7 @@ protected:
     virtual void _create_indicators();
     void _add_indicator(const String& p_icon_name, const String& p_tooltip_text = String());
 
-    void _update_styles();
+    virtual void _update_styles();
 
     virtual String _get_tooltip_text();
 

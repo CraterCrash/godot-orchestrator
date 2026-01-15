@@ -40,6 +40,10 @@ class OrchestratorEditorGraphNodeComment : public OrchestratorEditorGraphNode
 protected:
     static void _bind_methods();
 
+    //~ Begin OrchestratorEditorGraphNode Interface
+    void _update_styles() override;
+    //~ End OrchestratorEditorGraphNode Interface
+
 public:
     //~ Begin Control Interface
     void _gui_input(const Ref<InputEvent>& p_event) override;
