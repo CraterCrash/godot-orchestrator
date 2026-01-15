@@ -34,7 +34,7 @@
 #endif
 
 #include "core/godot/error_macros.h"
-#include "editor/plugins/orchestrator_editor_debugger_plugin.h"
+#include "editor/debugger/script_debugger_plugin.h"
 #include "orchestration/serialization/binary/binary_parser.h"
 
 #include <godot_cpp/classes/engine.hpp>

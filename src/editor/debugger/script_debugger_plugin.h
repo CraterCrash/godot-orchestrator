@@ -28,15 +28,15 @@
 using namespace godot;
 
 /// Provides Orchestrator with Godot editor debugger integration
-class OrchestratorEditorDebuggerPlugin : public EditorDebuggerPlugin
-{
+class OrchestratorEditorDebuggerPlugin : public EditorDebuggerPlugin {
     GDCLASS(OrchestratorEditorDebuggerPlugin, EditorDebuggerPlugin);
-    static void _bind_methods();
 
-protected:
     static OrchestratorEditorDebuggerPlugin* _singleton;  //! Singleton instance
     Ref<EditorDebuggerSession> _current_session;          //! Current debugger session
     bool _session_active = false;                         //! Whether session is active
+
+protected:
+    static void _bind_methods();
 
     //~ Begin Signal Handlers
     void _session_started(int32_t p_session_id);
@@ -53,14 +53,8 @@ public:
     void _breakpoint_set_in_tree(const Ref<Script>& p_script, int p_line, bool p_enabled) override;
     //~ End EditorDebuggerPlugin Interface
 
-    /// Get the singleton instance for this plugin
-    /// @return the singleton instance
     static OrchestratorEditorDebuggerPlugin* get_singleton() { return _singleton; }
 
-    /// Set a specific breakpoint state for a given script file and line number
-    /// @param p_file the script file
-    /// @param p_line the line number, mapped to an Orchestrator script node ID
-    /// @param p_enabled whether the breakpoint is enabled
     void set_breakpoint(const String& p_file, int32_t p_line, bool p_enabled);
 
     void reload_all_scripts();
@@ -72,10 +66,7 @@ public:
     void debug_break();
     void debug_continue();
 
-    /// Constructor
     OrchestratorEditorDebuggerPlugin();
-
-    /// Destructor
     ~OrchestratorEditorDebuggerPlugin() override;
 };
 #endif
