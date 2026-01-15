@@ -419,7 +419,7 @@ Error OrchestrationTextParser::_load() {
                 if (_cache_mode == ResourceFormatLoader::CACHE_MODE_REPLACE) {
                     res->take_over_path(path);
                 } else {
-                    res->set_path(path);
+                    // res->set_path(path);
                 }
             } else {
                 #if GODOT_VERSION >= 0x040400
