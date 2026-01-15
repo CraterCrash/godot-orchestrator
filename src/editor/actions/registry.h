@@ -35,8 +35,7 @@ using namespace godot;
 /// been scanned, along with notifying when they're added or removed. These hooks are monitored by
 /// this class and all resource-related object's actions are kept synchronized.
 ///
-class OrchestratorEditorActionRegistry : public Node
-{
+class OrchestratorEditorActionRegistry : public Node {
     GDCLASS(OrchestratorEditorActionRegistry, Node);
 
     static OrchestratorEditorActionRegistry* _singleton;

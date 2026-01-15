@@ -25,8 +25,7 @@ using namespace godot;
 /// looking at the action's type and matching only those actions that have the same type. The action
 /// type to match is taken from the drop-down type filter field on the dialog, if set and available.
 ///
-class OrchestratorEditorActionTypeRule : public OrchestratorEditorActionFilterRule
-{
+class OrchestratorEditorActionTypeRule : public OrchestratorEditorActionFilterRule {
     GDCLASS(OrchestratorEditorActionTypeRule, OrchestratorEditorActionFilterRule);
 
 protected:
