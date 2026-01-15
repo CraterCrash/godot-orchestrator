@@ -184,7 +184,10 @@ void OrchestratorScriptGraphEditorView::_restore_next_tab()
 {
     // This handles multi-frame restoration of open tabs.
     if (_restore_tab_list.is_empty())
+    {
+        emit_signal("view_layout_restored");
         return;
+    }
 
     String graph_name = _restore_tab_list[0];
     _restore_tab_list.erase(graph_name);
