@@ -166,6 +166,7 @@ private:
     Object* _previous_item = nullptr;
     Vector<InputAction> _input_action_cache;
     HashMap<String, Variant> _extra_layout_values;
+    Vector<OrchestratorEditorView*> _restore_queue;
 
     void _create_ui();
 
@@ -259,6 +260,7 @@ protected:
     OrchestratorEditorView* _get_current_editor() const;
     TypedArray<OrchestratorEditorView> _get_open_script_editors() const;
 
+    void _view_layout_restored(OrchestratorEditorView* p_view);
     void _save_layout();
     void _save_editor_state(OrchestratorEditorView* p_editor);
     void _save_previous_state(Dictionary p_state);
