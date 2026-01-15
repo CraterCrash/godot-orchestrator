@@ -19,15 +19,19 @@
 
 #include "editor/actions/rules/rule.h"
 
+#include <godot_cpp/classes/script.hpp>
+
 using namespace godot;
 
 /// This rule is designed to filter all actions that have a <code>target_class</code> attribute and to
 /// make sure that class matches the script's class name, the script's native class name, or any one
 /// of the parent class types of the script.
 ///
-class OrchestratorEditorActionClassHierarchyScopeRule : public OrchestratorEditorActionFilterRule
-{
+class OrchestratorEditorActionClassHierarchyScopeRule : public OrchestratorEditorActionFilterRule {
     GDCLASS(OrchestratorEditorActionClassHierarchyScopeRule, OrchestratorEditorActionFilterRule);
+
+    String _global_class_name;
+    PackedStringArray _script_hierarchy_classes;
 
 protected:
     static void _bind_methods() { }
@@ -37,6 +41,8 @@ public:
     bool is_context_sensitive() const override { return true; }
     bool matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) override;
     //~ End ActionFilterRule Interface
+
+    void set_script_classes(const Ref<Script>& p_script);
 };
 
 #endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_CLASS_HIERARCHY_RULE_H

@@ -24,22 +24,18 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 
-void OrchestratorEditorActionHelp::_meta_clicked(const Variant& p_value)
-{
+void OrchestratorEditorActionHelp::_meta_clicked(const Variant& p_value) {
 }
 
-void OrchestratorEditorActionHelp::_add_text(const String& p_text)
-{
+void OrchestratorEditorActionHelp::_add_text(const String& p_text) {
     _help->append_text(p_text);
 }
 
-void OrchestratorEditorActionHelp::set_disabled(bool p_disabled)
-{
+void OrchestratorEditorActionHelp::set_disabled(bool p_disabled) {
     _help->set_modulate(Color(1, 1, 1, p_disabled ? 0.5f : 1.0f));
 }
 
-void OrchestratorEditorActionHelp::set_text(const String& p_text)
-{
+void OrchestratorEditorActionHelp::set_text(const String& p_text) {
     _help->clear();
     _add_text(p_text);
 
@@ -47,20 +43,19 @@ void OrchestratorEditorActionHelp::set_text(const String& p_text)
         update_content_height();
 }
 
-void OrchestratorEditorActionHelp::set_content_help_limits(float p_min, float p_max)
-{
+void OrchestratorEditorActionHelp::set_content_help_limits(float p_min, float p_max) {
     _content_size = Size2(p_min, p_max);
 
     if (is_inside_tree())
         update_content_height();
 }
 
-void OrchestratorEditorActionHelp::update_content_height()
-{
+void OrchestratorEditorActionHelp::update_content_height() {
     float content_height = _help->get_content_height();
     const Ref<StyleBox> style = _help->get_theme_stylebox("normal");
-    if (style.is_valid())
+    if (style.is_valid()) {
         content_height += style->get_content_margin(SIDE_TOP) + style->get_content_margin(SIDE_BOTTOM);
+    }
 
     _help->set_custom_minimum_size(
         Size2(
@@ -68,18 +63,15 @@ void OrchestratorEditorActionHelp::update_content_height()
             CLAMP(content_height, _content_size.x, _content_size.y)));
 }
 
-void OrchestratorEditorActionHelp::parse_action(const Ref<OrchestratorEditorActionDefinition>& p_action)
-{
-    if (p_action.is_valid())
-    {
+void OrchestratorEditorActionHelp::parse_action(const Ref<OrchestratorEditorActionDefinition>& p_action) {
+    if (p_action.is_valid()) {
         const Ref<Font> doc_bold_font = SceneUtils::get_editor_font("doc_bold");
 
         _title->clear();
         _title->push_font(doc_bold_font);
 
         const String categories = StringUtils::join(" > ", p_action->category.split("/"));
-        if (!categories.is_empty())
-        {
+        if (!categories.is_empty()) {
             _title->push_color(SceneUtils::get_editor_color("title_color", "EditorHelp"));
             _title->add_text(vformat("%s: ", categories));
             _title->pop();
@@ -92,9 +84,7 @@ void OrchestratorEditorActionHelp::parse_action(const Ref<OrchestratorEditorActi
 
         set_text(p_action->tooltip);
         set_disabled(false);
-    }
-    else
-    {
+    } else {
         _title->clear();
         _title->add_text(" ");
         set_text("");
@@ -102,17 +92,13 @@ void OrchestratorEditorActionHelp::parse_action(const Ref<OrchestratorEditorActi
     }
 }
 
-void OrchestratorEditorActionHelp::_notification(int p_what)
-{
-    switch (p_what)
-    {
-        case NOTIFICATION_ENTER_TREE:
-        {
+void OrchestratorEditorActionHelp::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_ENTER_TREE: {
             update_content_height();
             break;
         }
-        case NOTIFICATION_THEME_CHANGED:
-        {
+        case NOTIFICATION_THEME_CHANGED: {
             _help->clear();
             _help->add_theme_color_override("selection_color", get_theme_color("selection_color", "EditorHelp"));
             break;
@@ -120,8 +106,7 @@ void OrchestratorEditorActionHelp::_notification(int p_what)
     }
 }
 
-OrchestratorEditorActionHelp::OrchestratorEditorActionHelp()
-{
+OrchestratorEditorActionHelp::OrchestratorEditorActionHelp() {
     add_theme_constant_override("separation", 0);
 
     _title = memnew(RichTextLabel);

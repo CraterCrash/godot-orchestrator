@@ -20,28 +20,20 @@
 #include "script/function.h"
 #include "script/script.h"
 
-bool OrchestratorEditorActionVirtualFunctionRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
-{
+bool OrchestratorEditorActionVirtualFunctionRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
     ERR_FAIL_COND_V(!p_action.is_valid(), false);
 
-    if (p_action->method.has_value())
-    {
+    if (p_action->method.has_value()) {
         const MethodInfo& method = p_action->method.value();
-        if (method.flags & METHOD_FLAG_VIRTUAL)
-        {
+        if (method.flags & METHOD_FLAG_VIRTUAL) {
             // GH-282
             // Do not add virtual overrides for "_get" or "_set" methods
             // todo: do we want to add these back but with a config toggle?
-            if (method.name.match("_get") || method.name.match("_set"))
+            if (method.name.match("_get") || method.name.match("_set")) {
                 return false;
-
-            const Ref<OScript> script = p_context.graph_context.script;
-            for (const Ref<OScriptFunction>& function : script->get_orchestration()->get_functions())
-            {
-                if (function->get_function_name() == method.name)
-                    return false;
             }
-            return true;
+
+            return !_method_exclusion_names.has(method.name);
         }
     }
     return false;

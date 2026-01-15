@@ -23,9 +23,10 @@ using namespace godot;
 
 /// This rule is designed to match method flags set as <code>METHOD_FLAG_VIRTUAL</code>
 ///
-class OrchestratorEditorActionVirtualFunctionRule : public OrchestratorEditorActionFilterRule
-{
+class OrchestratorEditorActionVirtualFunctionRule : public OrchestratorEditorActionFilterRule {
     GDCLASS(OrchestratorEditorActionVirtualFunctionRule, OrchestratorEditorActionFilterRule);
+
+    PackedStringArray _method_exclusion_names;
 
 protected:
     static void _bind_methods() { }
@@ -35,6 +36,8 @@ public:
     bool is_context_sensitive() const override { return true; }
     bool matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) override;
     //~ End ActionFilterRule Interface
+
+    void set_method_exclusions(const PackedStringArray& p_method_names) { _method_exclusion_names = p_method_names; }
 };
 
 #endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_VIRTUAL_FUNCTION_RULE_H
