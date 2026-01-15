@@ -16,6 +16,7 @@
 //
 #include "editor/graph/graph_node.h"
 
+#include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
@@ -377,7 +378,7 @@ void OrchestratorEditorGraphNode::set_node(const Ref<OrchestrationGraphNode>& p_
 
     // When the editor is opened in floating mode, the styles need to be applied deferred.
     // This is so the parenting of the editor to the window has been applied before the style lookup occurs
-    callable_mp_this(_update_styles).call_deferred();
+    callable_mp_lambda(this, [this] { _update_styles(); }).call_deferred();
     update();
 }
 
