@@ -16,7 +16,6 @@
 //
 #include "editor/actions/registry.h"
 
-#include "api/extension_db.h"
 #include "common/callable_lambda.h"
 #include "common/godot_utils.h"
 #include "common/macros.h"
@@ -32,8 +31,7 @@
 
 OrchestratorEditorActionRegistry* OrchestratorEditorActionRegistry::_singleton = nullptr;
 
-void OrchestratorEditorActionRegistry::_build_actions()
-{
+void OrchestratorEditorActionRegistry::_build_actions() {
     // Immutable actions are ones that will never be overwritten
     Vector<Ref<Action>> actions;
 
@@ -48,41 +46,38 @@ void OrchestratorEditorActionRegistry::_build_actions()
     _actions = GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
-void OrchestratorEditorActionRegistry::_global_script_classes_updated()
-{
+void OrchestratorEditorActionRegistry::_global_script_classes_updated() {
     _global_classes = OrchestratorEditorIntrospector::generate_actions_from_script_global_classes();
 }
 
-void OrchestratorEditorActionRegistry::_autoloads_updated()
-{
+void OrchestratorEditorActionRegistry::_autoloads_updated() {
     _autoloads = OrchestratorEditorIntrospector::generate_actions_from_autoloads();
 }
 
-void OrchestratorEditorActionRegistry::_resources_reloaded(const PackedStringArray& p_file_names)
-{
+void OrchestratorEditorActionRegistry::_resources_reloaded(const PackedStringArray& p_file_names) {
     // No-op
 }
 
-Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions()
-{
+Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions() {
     // If something calls this method before the background thread finishes, it blocks
-    while (_building)
+    while (_building) {
         OS::get_singleton()->delay_msec(1000);
-
+    }
     return _actions;
 }
 
 Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(
-    const Ref<Script>& p_script, const Ref<Script>& p_other)
-{
+    const Ref<Script>& p_script, const Ref<Script>& p_other) {
     Vector<Ref<Action>> actions;
     actions.append_array(get_actions());
 
-    if (p_script.is_valid())
+    if (p_script.is_valid()) {
         actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_script(p_script));
+    }
 
-    if (p_other.is_valid())
+    if (p_other.is_valid()) {
         actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_script(p_other));
+    }
 
     actions.append_array(_global_classes);
     actions.append_array(_autoloads);
@@ -90,13 +85,13 @@ Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRe
     return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
-Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(Object* p_target)
-{
+Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(Object* p_target) {
     Vector<Ref<Action>> actions;
     actions.append_array(get_actions());
 
-    if (p_target)
+    if (p_target) {
         actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_object(p_target));
+    }
 
     actions.append_array(_global_classes);
     actions.append_array(_autoloads);
@@ -104,8 +99,7 @@ Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRe
     return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
-Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(const StringName& p_class_name)
-{
+Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(const StringName& p_class_name) {
     Vector<Ref<Action>> actions;
     actions.append_array(get_actions());
     actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_class(p_class_name));
@@ -115,8 +109,7 @@ Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRe
     return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
-void OrchestratorEditorActionRegistry::_bind_methods()
-{
+void OrchestratorEditorActionRegistry::_bind_methods() {
 }
 
 OrchestratorEditorActionRegistry::OrchestratorEditorActionRegistry()
@@ -158,8 +151,7 @@ OrchestratorEditorActionRegistry::OrchestratorEditorActionRegistry()
     EI->get_resource_filesystem()->connect("resources_reload", callable_mp_this(_resources_reloaded));
 }
 
-OrchestratorEditorActionRegistry::~OrchestratorEditorActionRegistry()
-{
+OrchestratorEditorActionRegistry::~OrchestratorEditorActionRegistry() {
     OrchestratorEditorIntrospector::free_resources();
     _singleton = nullptr;
 }

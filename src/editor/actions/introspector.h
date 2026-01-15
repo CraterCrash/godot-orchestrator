@@ -26,8 +26,8 @@
 /// A standalone component that is responsible for being able to read and generate a set of actions based on
 /// provided class, object, or script metadata. It also can provide actions based on the visual scripting
 /// language, built-in Godot types, and project configured autoloads.
-class OrchestratorEditorIntrospector
-{
+class OrchestratorEditorIntrospector {
+
     using ActionBuilder = OrchestratorEditorActionBuilder;
     using Action = OrchestratorEditorActionDefinition;
     using ActionType = Action::ActionType;

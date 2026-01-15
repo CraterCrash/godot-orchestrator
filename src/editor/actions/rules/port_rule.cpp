@@ -24,23 +24,25 @@
 #include "editor/graph/graph_pin.h"
 #include "script/script_server.h"
 
-bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
-{
+bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
     ERR_FAIL_COND_V(!p_action.is_valid(), false);
 
-    if (_execution)
+    if (_execution) {
         return p_action->executions;
+    }
 
     // Match against class types
     // These are typically methods that can be called within the scope of the action class, such as calling
     // the "quit" method on a "SceneTree" object.
-    if (!_target_classes.is_empty() && _target_classes.has(p_action->class_name.value_or("")))
+    if (!_target_classes.is_empty() && _target_classes.has(p_action->class_name.value_or(""))) {
         return true;
+    }
 
     // Match against methods that are associated with variant types.
     // For example, dragging from a Callable pin provides access to methods like bind.
-    if (_type != Variant::VARIANT_MAX && _target_classes.has(p_action->target_class))
+    if (_type != Variant::VARIANT_MAX && _target_classes.has(p_action->target_class)) {
         return true;
+    }
 
     // Match against method
     // For output pins, we check whether the method can accept the pin's class/variant type as an input
@@ -93,24 +95,26 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
                 }
                 break;
             }
-            default:
+            default: {
                 break;
+            }
         }
     }
 
     // Match operator input/outputs
     // Operators do not have
-    if (p_action->inputs.has_value() && !_output)
+    if (p_action->inputs.has_value() && !_output) {
         return p_action->inputs.value().has(_type);
+    }
 
-    if (p_action->outputs.has_value() && _output)
+    if (p_action->outputs.has_value() && _output) {
         return p_action->outputs.value().has(_type);
+    }
 
     return false;
 }
 
-void OrchestratorEditorActionPortRule::configure(const OrchestratorEditorGraphPin* p_pin, const Object* p_target)
-{
+void OrchestratorEditorActionPortRule::configure(const OrchestratorEditorGraphPin* p_pin, const Object* p_target) {
     _output = p_pin->get_direction() == PD_Output;
     _execution = p_pin->is_execution();
 

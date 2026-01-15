@@ -18,12 +18,12 @@
 
 #include "editor/actions/filter_engine.h"
 
-bool OrchestratorEditorActionTypeRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
-{
+bool OrchestratorEditorActionTypeRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
     ERR_FAIL_COND_V(!p_action.is_valid(), false);
 
-    if (p_context.menu_context._filter_action_type < 0)
+    if (p_context._filter_action_type < 0) {
         return true;
+    }
 
-    return p_action->type == p_context.menu_context._filter_action_type;
+    return p_action->type == p_context._filter_action_type;
 }

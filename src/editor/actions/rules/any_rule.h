@@ -28,8 +28,7 @@ using namespace godot;
 /// made available when only one rule matches. This class is designed to evaluate all provided rule's
 /// <code>matches</code> function result, returning <code>true</code> when at least one rule matches.
 ///
-class OrchestratorEditorActionAnyFilterRule : public OrchestratorEditorActionFilterRule
-{
+class OrchestratorEditorActionAnyFilterRule : public OrchestratorEditorActionFilterRule {
     GDCLASS(OrchestratorEditorActionAnyFilterRule, OrchestratorEditorActionFilterRule);
 
     Vector<Ref<OrchestratorEditorActionFilterRule>> _rules;
