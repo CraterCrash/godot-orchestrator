@@ -357,8 +357,12 @@ void OrchestratorEditorGraphPanelKnotEditor::create_knot(
     }
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::update(const KnotMap& p_knots) {
-    if (_are_knot_maps_equal(_previous_state, p_knots)) {
+void OrchestratorEditorGraphPanelKnotEditor::update(const KnotMap& p_knots, bool p_force) {
+    if (p_force) {
+        _previous_state.clear();
+    }
+
+    if (!p_force && _are_knot_maps_equal(_previous_state, p_knots)) {
         return;
     }
     _update_knots(p_knots);

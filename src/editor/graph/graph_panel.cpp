@@ -2036,7 +2036,8 @@ void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
         ERR_CONTINUE_MSG(err != OK, "Failed to create graph connection for connection id " + itos(E.id));
     }
 
-    _knot_editor->update(_graph->get_knots());
+    // This must be forced so that knots can be redrawn since all elements were deleted above
+    _knot_editor->update(_graph->get_knots(), true);
 
     // Queue up a revalidation sequence
     if (_idle_timer->is_stopped())
