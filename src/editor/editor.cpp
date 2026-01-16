@@ -1606,7 +1606,7 @@ void OrchestratorEditor::_update_input_actions_cache()
     }
 }
 
-Ref<OrchestratorThemeCache> OrchestratorEditor::get_theme_cache() const
+Ref<OrchestratorEditorGraphNodeThemeCache> OrchestratorEditor::get_theme_cache() const
 {
     return _theme_cache;
 }
