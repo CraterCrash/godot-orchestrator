@@ -24,8 +24,7 @@
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 
-void OrchestratorEditorGraphNodeComment::_raise_request()
-{
+void OrchestratorEditorGraphNodeComment::_raise_request() {
     // Comment nodes must always be behind the connection layer so that the connection lines are drawn
     // atop of the comment node rather than behind it.
     OrchestratorEditorGraphPanel* panel = cast_to<OrchestratorEditorGraphPanel>(get_parent());
@@ -41,18 +40,15 @@ void OrchestratorEditorGraphNodeComment::_raise_request()
     panel->call_deferred("move_child", panel->get_connection_layer_node(), position + 1);
 }
 
-void OrchestratorEditorGraphNodeComment::_update_styles()
-{
+void OrchestratorEditorGraphNodeComment::_update_styles() {
     parent_type::_update_styles();
 
-    if (!_theme_cache.panel.is_valid())
-    {
+    if (!_theme_cache.panel.is_valid()) {
         _theme_cache.panel = get_theme_stylebox("panel")->duplicate();
         ERR_FAIL_COND(!_theme_cache.panel.is_valid());
     }
 
-    if (!_theme_cache.panel_selected.is_valid())
-    {
+    if (!_theme_cache.panel_selected.is_valid()) {
         _theme_cache.panel_selected = get_theme_stylebox("panel_selected")->duplicate();
         ERR_FAIL_COND(!_theme_cache.panel_selected.is_valid());
     }
@@ -74,13 +70,12 @@ void OrchestratorEditorGraphNodeComment::_update_styles()
         _text->add_theme_color_override("font_color", comment_node->get_text_color());
 
         HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_LEFT;
-        if (comment_node->is_title_center_aligned())
+        if (comment_node->is_title_center_aligned()) {
             alignment = HORIZONTAL_ALIGNMENT_CENTER;
+        }
 
-        for (int i = 0; i < _title_hbox->get_child_count(); i++)
-        {
-            if (Label* label = cast_to<Label>(_title_hbox->get_child(i)))
-            {
+        for (int i = 0; i < _title_hbox->get_child_count(); i++) {
+            if (Label* label = cast_to<Label>(_title_hbox->get_child(i))) {
                 label->set_horizontal_alignment(alignment);
                 break;
             }
@@ -88,24 +83,21 @@ void OrchestratorEditorGraphNodeComment::_update_styles()
     }
 }
 
-void OrchestratorEditorGraphNodeComment::_gui_input(const Ref<InputEvent>& p_event)
-{
+void OrchestratorEditorGraphNodeComment::_gui_input(const Ref<InputEvent>& p_event) {
     const Ref<InputEventMouseButton> mb = p_event;
-    if (mb.is_valid() && mb->is_double_click() && mb->get_button_index() == MOUSE_BUTTON_LEFT)
-    {
+    if (mb.is_valid() && mb->is_double_click() && mb->get_button_index() == MOUSE_BUTTON_LEFT) {
         bool group_selected = true;
         const Vector<GraphElement*> overlapping_elements = get_overlapping_elements();
-        for (GraphElement* element : overlapping_elements)
-        {
-            if (!element->is_selected())
-            {
+        for (GraphElement* element : overlapping_elements) {
+            if (!element->is_selected()) {
                 group_selected = false;
                 break;
             }
         }
 
-        for (GraphElement* element : overlapping_elements)
+        for (GraphElement* element : overlapping_elements) {
             element->set_selected(!group_selected);
+        }
 
         accept_event();
         return;
@@ -114,8 +106,7 @@ void OrchestratorEditorGraphNodeComment::_gui_input(const Ref<InputEvent>& p_eve
     OrchestratorEditorGraphNode::_gui_input(p_event);
 }
 
-bool OrchestratorEditorGraphNodeComment::_has_point(const Vector2& p_point) const
-{
+bool OrchestratorEditorGraphNodeComment::_has_point(const Vector2& p_point) const {
     const Ref<StyleBox> panel_sbox = get_theme_stylebox("panel");
     const Ref<StyleBox> titlebar_sbox = get_theme_stylebox("titlebar");
     const Ref<Texture2D> resizer = get_theme_icon("resizer");
@@ -125,34 +116,34 @@ bool OrchestratorEditorGraphNodeComment::_has_point(const Vector2& p_point) cons
     ERR_FAIL_COND_V_MSG(!resizer.is_valid(), false, "Resizer is invalid");
 
     const Rect2 resizer_area = Rect2(get_size() - resizer->get_size(), resizer->get_size());
-    if (resizer_area.has_point(p_point))
+    if (resizer_area.has_point(p_point)) {
         return true;
+    }
 
     const int titlebar_height = _title_hbox->get_size().height + titlebar_sbox->get_minimum_size().height;
     const Rect2 titlebar_area = Rect2(0, 0, get_size().width, titlebar_height);
-    if (titlebar_area.has_point(p_point))
+    if (titlebar_area.has_point(p_point)) {
         return true;
+    }
 
     const Rect2 area = Rect2(0, 0, get_size().width, get_size().height);
     const Rect2 no_drag_rect = area.grow(-16);
-    if (area.has_point(p_point) && !no_drag_rect.has_point(p_point))
+    if (area.has_point(p_point) && !no_drag_rect.has_point(p_point)) {
         return true;
+    }
 
     return false;
 }
 
-void OrchestratorEditorGraphNodeComment::update()
-{
+void OrchestratorEditorGraphNodeComment::update() {
     _update_titlebar();
     callable_mp_this(_update_styles).call_deferred();
 }
 
-void OrchestratorEditorGraphNodeComment::_bind_methods()
-{
+void OrchestratorEditorGraphNodeComment::_bind_methods() {
 }
 
-OrchestratorEditorGraphNodeComment::OrchestratorEditorGraphNodeComment()
-{
+OrchestratorEditorGraphNodeComment::OrchestratorEditorGraphNodeComment() {
     // Used in _has_point and its const, so cache
     _title_hbox = get_titlebar_hbox();
 

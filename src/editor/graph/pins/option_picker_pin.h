@@ -27,8 +27,7 @@
 /// The current design is based on a <code>PackedStringArray</code> and a string-based value. This may need to
 /// change in the future with a much more robust and versatile approach.
 ///
-class OrchestratorEditorGraphPinOptionPicker : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinOptionPicker : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinOptionPicker, OrchestratorEditorGraphPin);
 
     OptionButton* _control = nullptr;

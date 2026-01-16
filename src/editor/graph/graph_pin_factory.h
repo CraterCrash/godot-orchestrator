@@ -20,18 +20,8 @@
 #include "script/node_pin.h"
 
 class OrchestratorEditorGraphPin;
-//class OrchestratorEditorGraphPinBase;
 
-/// A factory that can be used to create <code>OrchestratorEditorGraphPinBase</code> types.
-// class OrchestratorEditorGraphPinWidgetFactory
-// {
-// public:
-//     static OrchestratorEditorGraphPinBase* make_widget(EResolvedOrchestrationGraphPinType p_type,
-//         const PropertyInfo& p_property = PropertyInfo());
-// };
-
-class OrchestratorEditorGraphPinFactory
-{
+class OrchestratorEditorGraphPinFactory {
     static OrchestratorEditorGraphPin* _create_pin_widget_internal(const Ref<OrchestrationGraphPin>& p_pin);
 
 public:

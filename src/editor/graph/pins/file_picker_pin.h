@@ -24,8 +24,7 @@ class OrchestratorFileDialog;
 /// An implementation of <code>OrchestratorEditorGraphPinButtonBase</code> wrapping a <code>FileDialog</code>
 /// that provides selecting a file path value.
 ///
-class OrchestratorEditorGraphPinFilePicker : public OrchestratorEditorGraphPinButtonBase
-{
+class OrchestratorEditorGraphPinFilePicker : public OrchestratorEditorGraphPinButtonBase {
     GDCLASS(OrchestratorEditorGraphPinFilePicker, OrchestratorEditorGraphPinButtonBase);
 
     OrchestratorFileDialog* _dialog = nullptr;

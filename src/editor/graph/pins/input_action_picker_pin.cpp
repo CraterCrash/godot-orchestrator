@@ -19,20 +19,18 @@
 #include "common/macros.h"
 #include "editor/editor.h"
 
-void OrchestratorEditorGraphPinInputActionPicker::_update_action_items()
-{
+void OrchestratorEditorGraphPinInputActionPicker::_update_action_items() {
     clear();
 
     const OrchestratorEditor* editor = OrchestratorEditor::get_singleton();
-    for (const OrchestratorEditor::InputAction& action : editor->get_input_actions_cache())
-    {
-        if (!action.name.begins_with("spatial_editor/"))
+    for (const OrchestratorEditor::InputAction& action : editor->get_input_actions_cache()) {
+        if (!action.name.begins_with("spatial_editor/")) {
             add_item(action.name);
+        }
     }
 }
 
-Control* OrchestratorEditorGraphPinInputActionPicker::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinInputActionPicker::_create_default_value_widget() {
     Control* control = OrchestratorEditorGraphPinOptionPicker::_create_default_value_widget();
 
     set_tooltip_text("Actions defined in Project Settings: Input Map");

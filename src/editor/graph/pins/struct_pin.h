@@ -26,8 +26,7 @@
 /// data types, like Vector2, Quaternion, and Projection, which are types that are composed of two
 /// or more smaller struct-like or primitive data types.
 ///
-class OrchestratorEditorGraphPinStruct : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinStruct : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinStruct, OrchestratorEditorGraphPin);
 
     Vector<LineEdit*> _controls;

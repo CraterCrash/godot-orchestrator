@@ -19,8 +19,7 @@
 
 #include "editor/graph/pins/option_picker_pin.h"
 
-class OrchestratorEditorGraphPinInputActionPicker : public OrchestratorEditorGraphPinOptionPicker
-{
+class OrchestratorEditorGraphPinInputActionPicker : public OrchestratorEditorGraphPinOptionPicker {
     GDCLASS(OrchestratorEditorGraphPinInputActionPicker, OrchestratorEditorGraphPinOptionPicker);
 
     void _update_action_items();

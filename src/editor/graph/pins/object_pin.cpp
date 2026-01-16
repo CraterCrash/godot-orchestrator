@@ -16,7 +16,6 @@
 //
 #include "editor/graph/pins/object_pin.h"
 
-String OrchestratorEditorGraphPinObject::_get_label_text()
-{
+String OrchestratorEditorGraphPinObject::_get_label_text() {
     return is_target_self() ? "[Self]" : OrchestratorEditorGraphPin::_get_label_text();
 }

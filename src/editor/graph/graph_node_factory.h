@@ -19,8 +19,7 @@
 
 #include "editor/graph/graph_node.h"
 
-class OrchestratorEditorGraphNodeFactory
-{
+class OrchestratorEditorGraphNodeFactory {
 public:
     static OrchestratorEditorGraphNode* create_node(const Ref<OrchestrationGraphNode>& p_node);
 };

@@ -25,8 +25,7 @@
 /// with text derived from an external source, with a secondary button to reset the value when the
 /// value does not equal its default.
 ///
-class OrchestratorEditorGraphPinButtonBase : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinButtonBase : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinButtonBase, OrchestratorEditorGraphPin);
 
     Button* _clear_button = nullptr;

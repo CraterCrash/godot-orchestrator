@@ -32,8 +32,7 @@ class OrchestratorEditorContextMenu;
 class OrchestratorEditorGraphNode;
 class OrchestratorEditorGraphPanel;
 
-struct OrchestratorEditorGraphPinSlotInfo
-{
+struct OrchestratorEditorGraphPinSlotInfo {
     bool enabled = false;
     int type = 0;
     String icon;
@@ -43,8 +42,7 @@ struct OrchestratorEditorGraphPinSlotInfo
 /// A pin represents a specific port or connection point on a visual script node that identifies
 /// either execution control flow for the visual code or a data value.
 ///
-class OrchestratorEditorGraphPin : public VBoxContainer
-{
+class OrchestratorEditorGraphPin : public VBoxContainer {
 
     friend class OrchestratorEditorGraphPanel;
 

@@ -28,8 +28,7 @@
 /// but with values that represent specific bits within the numeric value. This allows for the selection
 /// of multiple values without overriding the other selections.
 ///
-class OrchestratorEditorGraphPinBitfield : public OrchestratorEditorGraphPinButtonBase
-{
+class OrchestratorEditorGraphPinBitfield : public OrchestratorEditorGraphPinButtonBase {
     GDCLASS(OrchestratorEditorGraphPinBitfield, OrchestratorEditorGraphPinButtonBase);
 
     void _update_checkboxes(bool p_state, const CheckBox* p_box_control);

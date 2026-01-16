@@ -20,63 +20,54 @@
 #include "core/godot/object/enum_resolver.h"
 #include "script/script_server.h"
 
-void OrchestratorEditorGraphPinEnum::_item_selected(int p_index)
-{
+void OrchestratorEditorGraphPinEnum::_item_selected(int p_index) {
     _selected_index = p_index;
     _button->release_focus();
 
     _default_value_changed();
 }
 
-void OrchestratorEditorGraphPinEnum::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinEnum::_update_control_value(const Variant& p_value) {
     using EnumItem = EnumResolver::EnumItem;
 
     // Force deselection of any values
     _button->select(-1);
 
-    if (!_generated)
-    {
+    if (!_generated) {
         const List<EnumItem>& items = EnumResolver::resolve(get_property_info());
-        for (const EnumItem& item : items)
-        {
+        for (const EnumItem& item : items) {
             const Variant item_value = item.value;
             const int32_t index = _button->get_item_count();
             _button->add_item(item.friendly_name);
             _button->set_item_metadata(index, item.value);
 
-            if (item_value == p_value)
+            if (item_value == p_value) {
                 _button->select(index);
+            }
         }
-
         _generated = true;
-    }
-    else
-    {
-        for (int index = 0; index < _button->get_item_count(); index++)
-        {
-            if (_button->get_item_metadata(index) == p_value)
-            {
+    } else {
+        for (int index = 0; index < _button->get_item_count(); index++) {
+            if (_button->get_item_metadata(index) == p_value) {
                 _button->select(index);
                 return;
             }
         }
     }
 
-    if (_button->get_item_count() > 0 && _button->get_selected_id() == -1)
+    if (_button->get_item_count() > 0 && _button->get_selected_id() == -1) {
         _button->select(0);
+    }
 }
 
-Variant OrchestratorEditorGraphPinEnum::_read_control_value()
-{
-    if (_selected_index >= 0 && _selected_index < _button->get_item_count())
+Variant OrchestratorEditorGraphPinEnum::_read_control_value() {
+    if (_selected_index >= 0 && _selected_index < _button->get_item_count()) {
         return _button->get_item_metadata(_selected_index);
-
+    }
     return Variant();
 }
 
-Control* OrchestratorEditorGraphPinEnum::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinEnum::_create_default_value_widget() {
     _button = memnew(OptionButton);
     _button->connect("item_selected", callable_mp_this(_item_selected));
 

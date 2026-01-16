@@ -23,69 +23,67 @@
 #include <string>
 #include <godot_cpp/classes/grid_container.hpp>
 
-int OrchestratorEditorGraphPinStruct::_get_grid_columns_for_type(Variant::Type p_type)
-{
-    switch (p_type)
-    {
+int OrchestratorEditorGraphPinStruct::_get_grid_columns_for_type(Variant::Type p_type) {
+    switch (p_type) {
         case Variant::TRANSFORM3D:
-        case Variant::PROJECTION:
+        case Variant::PROJECTION: {
             return 8;
+        }
         case Variant::TRANSFORM2D:
         case Variant::AABB:
-        case Variant::BASIS:
+        case Variant::BASIS: {
             return 6;
-        default:
+        }
+        default: {
             return -1;
+        }
     }
 }
 
-bool OrchestratorEditorGraphPinStruct::_is_property_excluded(Variant::Type p_type, const PropertyInfo& p_property)
-{
-    switch (p_type)
-    {
+bool OrchestratorEditorGraphPinStruct::_is_property_excluded(Variant::Type p_type, const PropertyInfo& p_property) {
+    switch (p_type) {
         case Variant::RECT2:
         case Variant::RECT2I:
-        case Variant::AABB:
+        case Variant::AABB: {
             return p_property.name.match("end");
-        case Variant::PLANE:
+        }
+        case Variant::PLANE: {
             return p_property.name.match("normal");
-        default:
+        }
+        default: {
             return false;
+        }
     }
 }
 
-PackedStringArray OrchestratorEditorGraphPinStruct::_get_property_paths(Variant::Type p_type)
-{
+PackedStringArray OrchestratorEditorGraphPinStruct::_get_property_paths(Variant::Type p_type) {
     PackedStringArray results;
 
     const BuiltInType type = ExtensionDB::get_builtin_type(p_type);
-    if (!type.properties.is_empty())
-    {
-        for (const PropertyInfo& property : type.properties)
-        {
-            if (_is_property_excluded(p_type, property))
+    if (!type.properties.is_empty()) {
+        for (const PropertyInfo& property : type.properties) {
+            if (_is_property_excluded(p_type, property)) {
                 continue;
+            }
 
             PackedStringArray sub_parts = _get_property_paths(property.type);
-            if (sub_parts.is_empty())
-            {
+            if (sub_parts.is_empty()) {
                 results.push_back(property.name);
                 continue;
             }
 
-            for (const String& sub_part :sub_parts)
+            for (const String& sub_part :sub_parts) {
                 results.push_back(vformat("%s.%s", property.name, sub_part));
+            }
         }
     }
 
     return results;
 }
 
-void OrchestratorEditorGraphPinStruct::_update_control_value_part(const String& p_path, int p_index, const Variant& p_value)
-{
+void OrchestratorEditorGraphPinStruct::_update_control_value_part(const String& p_path, int p_index, const Variant& p_value) {
     const PackedStringArray parts = p_path.split(".");
-    if (parts.size() == 1)
-    {
+    if (parts.size() == 1) {
         _controls[p_index]->set_text(p_value);
         return;
     }
@@ -94,14 +92,12 @@ void OrchestratorEditorGraphPinStruct::_update_control_value_part(const String& 
     _update_control_value_part(p_path.substr(p_path.find(".") + 1), p_index, part_value);
 }
 
-void OrchestratorEditorGraphPinStruct::_read_control_value_part(const String& p_path, int p_index, Variant& r_value)
-{
+void OrchestratorEditorGraphPinStruct::_read_control_value_part(const String& p_path, int p_index, Variant& r_value) {
     const PackedStringArray parts = p_path.split(".");
-    if (parts.size() == 1)
-    {
-        if (!_controls[p_index]->get_text().is_valid_float())
+    if (parts.size() == 1) {
+        if (!_controls[p_index]->get_text().is_valid_float()) {
             _controls[p_index]->set_text("0.0");
-
+        }
         r_value = std::stof(_controls[p_index]->get_text().utf8().get_data());
         return;
     }
@@ -112,8 +108,7 @@ void OrchestratorEditorGraphPinStruct::_read_control_value_part(const String& p_
     r_value.set(parts[1], part_value);
 }
 
-void OrchestratorEditorGraphPinStruct::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinStruct::_update_control_value(const Variant& p_value) {
     const PropertyInfo property = get_property_info();
     const PackedStringArray property_paths = _get_property_paths(property.type);
 
@@ -122,11 +117,11 @@ void OrchestratorEditorGraphPinStruct::_update_control_value(const Variant& p_va
     // If the default value hasn't been set, these pins expect there to be a reasonable value
     // for the given pin type, so we construct the actual value here.
     // todo: could we rely on the generated value by chance?
-    if (value.get_type() == Variant::NIL)
+    if (value.get_type() == Variant::NIL) {
         value = VariantUtils::make_default(property.type);
+    }
 
-    for (int i = 0; i < property_paths.size(); i++)
-    {
+    for (int i = 0; i < property_paths.size(); i++) {
         const String& property_path = property_paths[i];
         const PackedStringArray property_path_parts = property_path.split(".");
 
@@ -135,17 +130,16 @@ void OrchestratorEditorGraphPinStruct::_update_control_value(const Variant& p_va
     }
 }
 
-Variant OrchestratorEditorGraphPinStruct::_read_control_value()
-{
+Variant OrchestratorEditorGraphPinStruct::_read_control_value() {
     const PropertyInfo property = get_property_info();
 
     Variant pin_value = _get_default_value();
-    if (property.type == Variant::NIL)
+    if (property.type == Variant::NIL) {
         pin_value = VariantUtils::make_default(property.type);
+    }
 
     const PackedStringArray property_paths = _get_property_paths(property.type);
-    for (int i = 0; i < property_paths.size(); i++)
-    {
+    for (int i = 0; i < property_paths.size(); i++) {
         const String& property_path = property_paths[i];
         const PackedStringArray property_path_parts = property_path.split(".");
 
@@ -157,8 +151,7 @@ Variant OrchestratorEditorGraphPinStruct::_read_control_value()
     return pin_value;
 }
 
-Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget() {
     const PropertyInfo property = get_property_info();
     const PackedStringArray property_paths = _get_property_paths(property.type);
 
@@ -169,14 +162,14 @@ Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget()
     const int grid_columns = _get_grid_columns_for_type(property.type);
     container->set_columns(grid_columns != -1 ? grid_columns : static_cast<int>(property_paths.size()) * 2);
 
-    for (int i = 0; i < property_paths.size(); i++)
-    {
+    for (int i = 0; i < property_paths.size(); i++) {
         const String& property_path = property_paths[i];
         const PackedStringArray property_path_parts = property_path.split(".");
 
         String label_text;
-        for (const String& part : property_path_parts)
+        for (const String& part : property_path_parts) {
             label_text += part.substr(0, 1).capitalize();
+        }
 
         Label* label = memnew(Label);
         label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
@@ -194,8 +187,7 @@ Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget()
         _controls.push_back(line_edit);
     }
 
-    if (property.type == Variant::TRANSFORM3D)
-    {
+    if (property.type == Variant::TRANSFORM3D) {
         // Rework layout for TRANSFORM3D so that the fields are
         // BXX BXY BXZ OX
         // BYX BYY BYZ OY
@@ -204,9 +196,7 @@ Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget()
         container->move_child(container->get_child(19), 7);
         container->move_child(container->get_child(20), 14);
         container->move_child(container->get_child(21), 15);
-    }
-    else if (property.type == Variant::TRANSFORM2D)
-    {
+    } else if (property.type == Variant::TRANSFORM2D) {
         // Rework layout for TRANSFORM2D so that the fields are
         // XX XY OX
         // YX YY OY

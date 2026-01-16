@@ -24,8 +24,7 @@
 /// An execution pin is one that manages control flow between the graph, and these typically
 /// do not have labels, but most importantly any type or default value widgets.
 ///
-class OrchestratorEditorGraphPinExec : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinExec : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinExec, OrchestratorEditorGraphPin);
 
 protected:

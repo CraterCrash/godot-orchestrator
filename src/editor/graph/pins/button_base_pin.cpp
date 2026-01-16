@@ -22,19 +22,16 @@
 
 #include <godot_cpp/classes/h_box_container.hpp>
 
-void OrchestratorEditorGraphPinButtonBase::_clear_button_pressed()
-{
+void OrchestratorEditorGraphPinButtonBase::_clear_button_pressed() {
     _set_default_value(_clear_default);
     _update_control_value(_get_default_value());
 }
 
-void OrchestratorEditorGraphPinButtonBase::_selector_button_pressed()
-{
+void OrchestratorEditorGraphPinButtonBase::_selector_button_pressed() {
     _handle_selector_button_pressed();
 }
 
-void OrchestratorEditorGraphPinButtonBase::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinButtonBase::_update_control_value(const Variant& p_value) {
     _button_value = p_value;
 
     const String button_text = StringUtils::default_if_empty(_button_value, _default_text);
@@ -44,13 +41,11 @@ void OrchestratorEditorGraphPinButtonBase::_update_control_value(const Variant& 
     _clear_button->set_visible(!is_default);
 }
 
-Variant OrchestratorEditorGraphPinButtonBase::_read_control_value()
-{
+Variant OrchestratorEditorGraphPinButtonBase::_read_control_value() {
     return _button_value;
 }
 
-Control* OrchestratorEditorGraphPinButtonBase::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinButtonBase::_create_default_value_widget() {
     HBoxContainer* container = memnew(HBoxContainer);
     container->add_theme_constant_override("separation", 1);
 
@@ -69,8 +64,7 @@ Control* OrchestratorEditorGraphPinButtonBase::_create_default_value_widget()
     return container;
 }
 
-void OrchestratorEditorGraphPinButtonBase::_handle_selector_button_response(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinButtonBase::_handle_selector_button_response(const Variant& p_value) {
     _button_value = p_value;
     _default_value_changed();
 

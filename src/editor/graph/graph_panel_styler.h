@@ -33,8 +33,7 @@ class OrchestratorEditorGraphPin;
 /// This class specifically provides fading techniques when a user begins a drag connection within the panel,
 /// and will also highlight connected nodes if that feature is toggled on.
 ///
-class OrchestratorEditorGraphPanelStyler : public RefCounted
-{
+class OrchestratorEditorGraphPanelStyler : public RefCounted {
     GDCLASS(OrchestratorEditorGraphPanelStyler, RefCounted);
 
     OrchestratorEditorGraphPanel* _panel;

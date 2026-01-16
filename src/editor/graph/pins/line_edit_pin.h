@@ -24,8 +24,7 @@
 /// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>LineEdit</code>
 /// that provides and provides an optional list of suggestions.
 ///
-class OrchestratorEditorGraphPinLineEdit : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinLineEdit : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinLineEdit, OrchestratorEditorGraphPin);
 
     LineEdit* _control = nullptr;
