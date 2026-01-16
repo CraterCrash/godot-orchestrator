@@ -845,6 +845,11 @@ String OrchestrationBinaryParser::get_resource_script_class(const String& p_path
 }
 
 int64_t OrchestrationBinaryParser::get_resource_uid(const String& p_path) {
+    // When creating a new script, this is called, and the file path won't yet be valid.
+    if (!FileAccess::file_exists(p_path)) {
+        return ResourceUID::INVALID_ID;
+    }
+
     const Ref<FileAccess> file = FileAccess::open_compressed(p_path, FileAccess::READ);
     ERR_FAIL_COND_V(file.is_null(), ResourceUID::INVALID_ID);
 
