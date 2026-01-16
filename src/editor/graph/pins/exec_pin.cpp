@@ -16,7 +16,6 @@
 //
 #include "editor/graph/pins/exec_pin.h"
 
-String OrchestratorEditorGraphPinExec::_get_pin_color_name() const
-{
+String OrchestratorEditorGraphPinExec::_get_pin_color_name() const {
     return "ui/connection_colors/execution";
 }

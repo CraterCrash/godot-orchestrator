@@ -26,8 +26,7 @@
 /// An enumeration is a data type that is represented by human-readable values that map to
 /// exactly one value in a set of predefined mappings.
 ///
-class OrchestratorEditorGraphPinEnum : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinEnum : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinEnum, OrchestratorEditorGraphPin);
 
     OptionButton* _button;

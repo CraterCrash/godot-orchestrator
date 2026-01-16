@@ -32,8 +32,7 @@ class OrchestratorEditorGraphPin;
 /// a function call, mathematical operation, or more complex behaviors like for loops, and more. The node
 /// acts as a container that houses one or more <code>OrchestratorEditorGraphPin</code> widgets.
 ///
-class OrchestratorEditorGraphNode : public GraphNode
-{
+class OrchestratorEditorGraphNode : public GraphNode {
     friend class OrchestratorEditorGraphPanel;
 
     GDCLASS(OrchestratorEditorGraphNode, GraphNode);

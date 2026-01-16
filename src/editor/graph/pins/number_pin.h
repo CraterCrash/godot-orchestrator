@@ -24,8 +24,7 @@
 /// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>LineEdit</code>
 /// that provides entering either an integer or float value.
 ///
-class OrchestratorEditorGraphPinNumber : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinNumber : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinNumber, OrchestratorEditorGraphPin);
 
     LineEdit* _control = nullptr;

@@ -41,8 +41,7 @@ class OrchestratorEditorGraphPanelKnotEditor;
 /// A graph panel is a widget that allows the placement of pins that contain ports (aka pins) that provide a
 /// visual way to define logic behavior that can be used for scripting.
 ///
-class OrchestratorEditorGraphPanel : public GraphEdit
-{
+class OrchestratorEditorGraphPanel : public GraphEdit {
     friend class OrchestratorEditorGraphPanelKnotEditor;
 
     using KnotHelper = OrchestratorEditorGraphPanelKnotEditor;
@@ -141,8 +140,6 @@ private:
     bool _moving_selection = false;
     bool _pending_nodes_changed_event = false;
     bool _edited = false;
-
-    // Vector<OrchestratorEditorGraphNode*> _nodes_moved;
 
     bool _box_selection;
     Vector2 _box_selection_from;
@@ -373,60 +370,54 @@ public:
 using NodeSpawnOptions = OrchestratorEditorGraphPanel::NodeSpawnOptions;
 
 template <typename T, typename P>
-_FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::predicate_find(P&& p_predicate)
-{
+_FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::predicate_find(P&& p_predicate) {
     Vector<T*> results;
-    for (int i = 0; i < get_child_count(); i++)
-    {
+    for (int i = 0; i < get_child_count(); i++) {
         T* object = cast_to<T>(get_child(i));
-        if (object && p_predicate(object))
+        if (object && p_predicate(object)) {
             results.push_back(object);
+        }
     }
     return results;
 }
 
 template <typename T, typename F>
-_FORCE_INLINE_ void OrchestratorEditorGraphPanel::for_each(F&& p_function, bool p_selected)
-{
-    for (int i = 0; i < get_child_count(); i++)
-    {
-        if (T* object = cast_to<T>(get_child(i)))
-        {
-            if ((p_selected && object->is_selected()) || !p_selected)
+_FORCE_INLINE_ void OrchestratorEditorGraphPanel::for_each(F&& p_function, bool p_selected) {
+    for (int i = 0; i < get_child_count(); i++) {
+        if (T* object = cast_to<T>(get_child(i))) {
+            if ((p_selected && object->is_selected()) || !p_selected) {
                 p_function(object);
+            }
         }
     }
 }
 
 template <typename T>
-_FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_selected()
-{
+_FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_selected() {
     Vector<T*> selected;
-    for (int i = 0; i < get_child_count(); i++)
-    {
+    for (int i = 0; i < get_child_count(); i++) {
         T* selectable = cast_to<T>(get_child(i));
-        if (selectable && selectable->is_selected())
+        if (selectable && selectable->is_selected()) {
             selected.push_back(selectable);
+        }
     }
     return selected;
 }
 
 template <typename T>
-_FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_all(bool p_only_selected)
-{
+_FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_all(bool p_only_selected) {
     Vector<T*> objects;
-    for (int i = 0; i < get_child_count(); i++)
-    {
+    for (int i = 0; i < get_child_count(); i++) {
         T* child = cast_to<T>(get_child(i));
-        if (child && (!p_only_selected || (p_only_selected && child->is_selected())))
+        if (child && (!p_only_selected || (p_only_selected && child->is_selected()))) {
             objects.push_back(child);
+        }
     }
     return objects;
 }
 
 template <typename NodeType>
-_FORCE_INLINE_ OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_node(NodeSpawnOptions& p_options)
-{
+_FORCE_INLINE_ OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_node(NodeSpawnOptions& p_options) {
     p_options.node_class = NodeType::get_class_static();
     return spawn_node(p_options);
 }

@@ -21,8 +21,7 @@
 
 /// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping an <code>Object</code> pin.
 ///
-class OrchestratorEditorGraphPinObject : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinObject : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinObject, OrchestratorEditorGraphPin);
 
 protected:
