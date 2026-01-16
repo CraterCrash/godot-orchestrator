@@ -25,7 +25,6 @@
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/graph_pin.h"
 #include "editor/graph/graph_pin_factory.h"
-#include "editor/theme/theme_cache.h"
 #include "script/nodes/data/type_cast.h"
 #include "script/nodes/editable_pin_node.h"
 
@@ -264,7 +263,7 @@ void OrchestratorEditorGraphNode::_add_indicator(const String& p_icon_name, cons
 }
 
 void OrchestratorEditorGraphNode::_update_styles() {
-    const Ref<OrchestratorThemeCache> cache = OrchestratorEditor::get_singleton()->get_theme_cache();
+    const Ref<OrchestratorEditorGraphNodeThemeCache> cache = OrchestratorEditor::get_singleton()->get_theme_cache();
     ERR_FAIL_COND_MSG(!cache.is_valid(), "Cannot apply graph themes, theme cache is invalid");;
 
     const String type_name = vformat("GraphNode_%s", _node->get_node_title_color_name());
