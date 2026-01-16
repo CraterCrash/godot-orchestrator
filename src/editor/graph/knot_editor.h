@@ -107,7 +107,7 @@ public:
     void remove_knots(const TypedArray<GraphElement>& p_knot_elements);
 
     // Called by GraphPanel to update knots
-    void update(const KnotMap& p_knots);
+    void update(const KnotMap& p_knots, bool p_force = false);
 
     explicit OrchestratorEditorGraphPanelKnotEditor(const GodotVersionInfo& p_godot_version);
     ~OrchestratorEditorGraphPanelKnotEditor() override = default;
