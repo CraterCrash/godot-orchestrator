@@ -26,8 +26,7 @@ using namespace godot;
 /// A special implementation of <code>GraphElement</code> that places a small pin on a wire connection
 /// allowing the user to specify the drawing angle and position of the connection that it belongs.
 ///
-class OrchestratorEditorGraphNodeKnot : public GraphElement
-{
+class OrchestratorEditorGraphNodeKnot : public GraphElement {
     GDCLASS(OrchestratorEditorGraphNodeKnot, GraphElement)
 
     Color _color;

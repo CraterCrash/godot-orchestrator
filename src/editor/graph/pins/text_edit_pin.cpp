@@ -18,18 +18,15 @@
 
 #include "common/callable_lambda.h"
 
-void OrchestratorEditorGraphPinTextEdit::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinTextEdit::_update_control_value(const Variant& p_value) {
     _control->set_text(p_value);
 }
 
-Variant OrchestratorEditorGraphPinTextEdit::_read_control_value()
-{
+Variant OrchestratorEditorGraphPinTextEdit::_read_control_value() {
     return _control->get_text();
 }
 
-Control* OrchestratorEditorGraphPinTextEdit::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinTextEdit::_create_default_value_widget() {
     _control = memnew(TextEdit);
     _control->set_placeholder("No value...");
     _control->set_h_size_flags(SIZE_EXPAND);

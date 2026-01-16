@@ -19,11 +19,11 @@
 #include "script/node.h"
 #include "script/nodes/utilities/comment.h"
 
-OrchestratorEditorGraphNode* OrchestratorEditorGraphNodeFactory::create_node(const Ref<OrchestrationGraphNode>& p_node)
-{
+OrchestratorEditorGraphNode* OrchestratorEditorGraphNodeFactory::create_node(const Ref<OrchestrationGraphNode>& p_node) {
     const Ref<OScriptNodeComment> comment = p_node;
-    if (comment.is_valid())
+    if (comment.is_valid()) {
         return memnew(OrchestratorEditorGraphNodeComment);
+    }
 
     return memnew(OrchestratorEditorGraphNode);
 }

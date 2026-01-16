@@ -24,50 +24,50 @@
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
 
-bool OrchestratorEditorGraphPanelKnotEditor::_are_knot_maps_equal(const KnotMap& p_left, const KnotMap& p_right)
-{
-    if (p_left.size() != p_right.size())
+bool OrchestratorEditorGraphPanelKnotEditor::_are_knot_maps_equal(const KnotMap& p_left, const KnotMap& p_right) {
+    if (p_left.size() != p_right.size()) {
         return false;
+    }
 
-    for (const KeyValue<uint64_t, PointArray> &pair : p_left)
-    {
+    for (const KeyValue<uint64_t, PointArray> &pair : p_left) {
         const uint64_t &key = pair.key;
         const PointArray &value_a = pair.value;
 
-        if (!p_right.has(key))
+        if (!p_right.has(key)) {
             return false;
+        }
 
         const PointArray &value_b = p_right[key];
 
-        if (value_a.size() != value_b.size())
+        if (value_a.size() != value_b.size()) {
             return false;
+        }
 
-        for (int i = 0; i < value_a.size(); ++i)
-        {
-            if (value_a[i] != value_b[i])
+        for (int i = 0; i < value_a.size(); ++i) {
+            if (value_a[i] != value_b[i]) {
                 return false;
+            }
         }
     }
 
     return true;
 }
 
-bool OrchestratorEditorGraphPanelKnotEditor::_are_point_arrays_equal(const PointArray& p_left, const PointArray& p_right)
-{
-    if (p_left.size() != p_right.size())
+bool OrchestratorEditorGraphPanelKnotEditor::_are_point_arrays_equal(const PointArray& p_left, const PointArray& p_right) {
+    if (p_left.size() != p_right.size()) {
         return false;
+    }
 
-    for (int i = 0; i < p_left.size(); ++i)
-    {
-        if (p_left[i] != p_right[i])
+    for (int i = 0; i < p_left.size(); ++i) {
+        if (p_left[i] != p_right[i]) {
             return false;
+        }
     }
     return true;
 }
 
 void OrchestratorEditorGraphPanelKnotEditor::_knot_dragged(
-    const Vector2& p_old_position, const Vector2& p_new_position, GraphElement* p_knot)
-{
+    const Vector2& p_old_position, const Vector2& p_new_position, GraphElement* p_knot) {
     // When a GraphElement finishes being dragged, this event is emitted.
     //
     // The KnotEditor uses this to effectively debounce the position changes so that
@@ -76,68 +76,67 @@ void OrchestratorEditorGraphPanelKnotEditor::_knot_dragged(
     _notify_graph_to_refresh_connections();
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::_knot_position_offset_changed(GraphElement* p_knot)
-{
+void OrchestratorEditorGraphPanelKnotEditor::_knot_position_offset_changed(GraphElement* p_knot) {
     OrchestratorEditorGraphNodeKnot* knot = cast_to<OrchestratorEditorGraphNodeKnot>(p_knot);
-    if (!knot)
+    if (!knot) {
         return;
+    }
 
     // Update the KnotInfo's position details as its moved.
     // This makes sure that when we request a redraw of the connection lines, the position
     // state provided to the graph is accurate and represents the knot positions.
     Vector<KnotInfo>& entries = _knots[knot->get_connection_id()];
-    for (KnotInfo& entry : entries)
-    {
-        if (entry.guid == knot->get_guid())
+    for (KnotInfo& entry : entries) {
+        if (entry.guid == knot->get_guid()) {
             entry.position = knot->get_position_offset();
+        }
     }
 
     _notify_graph_to_refresh_connections();
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::_update_knots(const KnotMap& p_current_state)
-{
+void OrchestratorEditorGraphPanelKnotEditor::_update_knots(const KnotMap& p_current_state) {
     // Quick exit, comparing state
-    if (_previous_state.size() == p_current_state.size())
-    {
+    if (_previous_state.size() == p_current_state.size()) {
         bool all_matched = true;
-        for (const KeyValue<uint64_t, PointArray>& E : _previous_state)
-        {
-            if (!p_current_state.has(E.key) || !_are_point_arrays_equal(E.value, p_current_state[E.key]))
-            {
+        for (const KeyValue<uint64_t, PointArray>& E : _previous_state) {
+            if (!p_current_state.has(E.key) || !_are_point_arrays_equal(E.value, p_current_state[E.key])) {
                 all_matched = false;
                 break;
             }
         }
-        if (all_matched)
+        if (all_matched) {
             return;
+        }
     }
 
     // Incrementally rebuild changed knots
     HashSet<uint64_t> ids_to_remove;
     HashSet<uint64_t> ids_to_add_or_update;
 
-    for (const KeyValue<uint64_t, PointArray>& E : _previous_state)
-    {
+    for (const KeyValue<uint64_t, PointArray>& E : _previous_state) {
         const uint64_t& key = E.key;
-        if (!p_current_state.has(key))
+        if (!p_current_state.has(key)) {
             ids_to_remove.insert(key);
-        else if (!_are_point_arrays_equal(E.value, p_current_state[key]))
+        } else if (!_are_point_arrays_equal(E.value, p_current_state[key])) {
             ids_to_add_or_update.insert(key);
+        }
     }
 
-    for (const KeyValue<uint64_t, PointArray>& E : p_current_state)
-    {
+    for (const KeyValue<uint64_t, PointArray>& E : p_current_state) {
         const uint64_t& key = E.key;
-        if (!_previous_state.has(key))
+        if (!_previous_state.has(key)) {
             ids_to_add_or_update.insert(key);
+        }
     }
 
-    for (uint64_t connection_id : ids_to_remove)
+    for (uint64_t connection_id : ids_to_remove) {
         remove_knots_for_connection(connection_id);
+    }
 
-    for (uint64_t connection_id : ids_to_add_or_update)
+    for (uint64_t connection_id : ids_to_add_or_update) {
         _recreate_knots_for_connection(connection_id, p_current_state[connection_id]);
+    }
 
     _previous_state = p_current_state;
 }
@@ -149,24 +148,26 @@ void OrchestratorEditorGraphPanelKnotEditor::_recreate_knots_for_connection(uint
 
     // New set of points for a connection
     // It's easier to rebuild all knots for a connection
-    for (const Vector2& point : p_points)
+    for (const Vector2& point : p_points) {
         _create_knot(p_id, point);
+    }
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::_create_knot(uint64_t p_connection_id, const Vector2& p_point, int64_t p_index)
-{
-    if (!_knots.has(p_connection_id))
+void OrchestratorEditorGraphPanelKnotEditor::_create_knot(uint64_t p_connection_id, const Vector2& p_point, int64_t p_index) {
+    if (!_knots.has(p_connection_id)) {
         _knots[p_connection_id] = Vector<KnotInfo>();
+    }
 
     KnotInfo info;
     info.connection_id = p_connection_id;
     info.guid = Guid::create_guid();
     info.position = p_point;
 
-    if (p_index == -1)
+    if (p_index == -1) {
         _knots[p_connection_id].push_back(info);
-    else
+    } else {
         _knots[p_connection_id].insert(p_index, info);
+    }
 
     OrchestratorEditorGraphNodeKnot* knot = memnew(OrchestratorEditorGraphNodeKnot);
     knot->set_connection_id(info.connection_id);
@@ -185,32 +186,26 @@ void OrchestratorEditorGraphPanelKnotEditor::_create_knot(uint64_t p_connection_
     knot->connect("position_offset_changed", callable_mp_this(_knot_position_offset_changed).bind(knot));
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::_notify_changed()
-{
+void OrchestratorEditorGraphPanelKnotEditor::_notify_changed() {
     emit_signal("changed");
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::_notify_knot_nodes_selection_color_changed()
-{
+void OrchestratorEditorGraphPanelKnotEditor::_notify_knot_nodes_selection_color_changed() {
     emit_signal("selection_color_changed", _selected_color);
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::_notify_graph_to_refresh_connections()
-{
+void OrchestratorEditorGraphPanelKnotEditor::_notify_graph_to_refresh_connections() {
     emit_signal("refresh_connections_requested");
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::set_selected_color(const Color& p_color)
-{
-    if (_selected_color != p_color)
-    {
+void OrchestratorEditorGraphPanelKnotEditor::set_selected_color(const Color& p_color) {
+    if (_selected_color != p_color) {
         _selected_color = p_color;
         _notify_knot_nodes_selection_color_changed();
     }
 }
 
-bool OrchestratorEditorGraphPanelKnotEditor::is_create_knot_keybind(const Ref<InputEvent>& p_event) const
-{
+bool OrchestratorEditorGraphPanelKnotEditor::is_create_knot_keybind(const Ref<InputEvent>& p_event) const {
     const Ref<InputEventMouseButton> mb = p_event;
     return mb.is_valid()
         && mb->is_pressed()
@@ -218,38 +213,36 @@ bool OrchestratorEditorGraphPanelKnotEditor::is_create_knot_keybind(const Ref<In
         && mb->get_button_index() == MOUSE_BUTTON_LEFT;
 }
 
-bool OrchestratorEditorGraphPanelKnotEditor::is_remove_knot_keybind(const Ref<InputEvent>& p_event) const
-{
+bool OrchestratorEditorGraphPanelKnotEditor::is_remove_knot_keybind(const Ref<InputEvent>& p_event) const {
     return is_create_knot_keybind(p_event);
 }
 
-PackedVector2Array OrchestratorEditorGraphPanelKnotEditor::get_knots_for_connection(uint64_t p_connection_id) const
-{
+PackedVector2Array OrchestratorEditorGraphPanelKnotEditor::get_knots_for_connection(uint64_t p_connection_id) const {
     PackedVector2Array results;
-    if (_knots.has(p_connection_id))
-    {
-        for (const KnotInfo& entry : _knots[p_connection_id])
+    if (_knots.has(p_connection_id)) {
+        for (const KnotInfo& entry : _knots[p_connection_id]) {
             results.push_back(entry.position);
+        }
     }
     return results;
 }
 
 Vector<Ref<Curve2D>> OrchestratorEditorGraphPanelKnotEditor::get_curves_for_points(
-    const PackedVector2Array& p_points, float p_curvature) const
-{
+    const PackedVector2Array& p_points, float p_curvature) const {
     Vector<Ref<Curve2D>> curves;
 
     // For all points calculate the curve from point to point
-    for (int i = 0; i < p_points.size() - 1; i++)
-    {
+    for (int i = 0; i < p_points.size() - 1; i++) {
         float xdiff = (p_points[i].x - p_points[i + 1].x);
         float cp_offset = xdiff * p_curvature;
-        if (xdiff < 0)
+        if (xdiff < 0) {
             cp_offset *= -1;
+        }
 
         // Curvature is only applied between the first two points and last two points.
-        if (i > 0 && i < (p_points.size() - 2))
+        if (i > 0 && i < (p_points.size() - 2)) {
             cp_offset = 0;
+        }
 
         Ref<Curve2D> curve;
         curve.instantiate();
@@ -265,19 +258,16 @@ Vector<Ref<Curve2D>> OrchestratorEditorGraphPanelKnotEditor::get_curves_for_poin
     return curves;
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::flush_knot_cache(const Ref<OrchestrationGraph>& p_graph)
-{
+void OrchestratorEditorGraphPanelKnotEditor::flush_knot_cache(const Ref<OrchestrationGraph>& p_graph) {
     RBSet<Connection> connections = p_graph->get_connections();
 
     KnotMap knots;
-    for (const KeyValue<uint64_t, Vector<KnotInfo>>& E : _knots)
-    {
-        for (const KnotInfo& knot : E.value)
-        {
+    for (const KeyValue<uint64_t, Vector<KnotInfo>>& E : _knots) {
+        for (const KnotInfo& knot : E.value) {
             const Connection C(knot.connection_id);
-            if (!connections.has(C))
+            if (!connections.has(C)) {
                 continue;
-
+            }
             knots[E.key].push_back(knot.position);
         }
     }
@@ -285,43 +275,35 @@ void OrchestratorEditorGraphPanelKnotEditor::flush_knot_cache(const Ref<Orchestr
     p_graph->set_knots(knots);
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::remove_knots_for_connection(uint64_t p_id)
-{
+void OrchestratorEditorGraphPanelKnotEditor::remove_knots_for_connection(uint64_t p_id) {
     emit_signal("remove_connection_knots_requested", p_id);
 
     _knots.erase(p_id);
 }
 
-String OrchestratorEditorGraphPanelKnotEditor::get_hint_message() const
-{
+String OrchestratorEditorGraphPanelKnotEditor::get_hint_message() const {
     return "Use Ctrl + Left Click (LMB) to add a knot to the connection.\n"
            "Hover over an existing knot and pressing Ctrl + Left Click (LMB) will remove it.";
 }
 
-bool OrchestratorEditorGraphPanelKnotEditor::is_knot(const GraphElement* p_element)
-{
+bool OrchestratorEditorGraphPanelKnotEditor::is_knot(const GraphElement* p_element) {
     return cast_to<OrchestratorEditorGraphNodeKnot>(p_element) != nullptr;
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::remove_knots(const TypedArray<GraphElement>& p_knot_elements)
-{
-    for (int i = 0; i < p_knot_elements.size(); ++i)
-    {
+void OrchestratorEditorGraphPanelKnotEditor::remove_knots(const TypedArray<GraphElement>& p_knot_elements) {
+    for (int i = 0; i < p_knot_elements.size(); ++i) {
         OrchestratorEditorGraphNodeKnot* knot = cast_to<OrchestratorEditorGraphNodeKnot>(p_knot_elements[i]);
-        if (knot)
-        {
-            if (knot->is_selected())
+        if (knot) {
+            if (knot->is_selected()) {
                 knot->set_selected(false);
+            }
 
             const uint64_t connection_id = knot->get_connection_id();
-            if (_knots.has(connection_id))
-            {
+            if (_knots.has(connection_id)) {
                 Vector<KnotInfo>& data = _knots[connection_id];
-                for (int j = 0; j < data.size(); j++)
-                {
+                for (int j = 0; j < data.size(); j++) {
                     const KnotInfo& info = data[j];
-                    if (info.guid == knot->get_guid())
-                    {
+                    if (info.guid == knot->get_guid()) {
                         data.remove_at(j);
                         break;
                     }
@@ -337,10 +319,10 @@ void OrchestratorEditorGraphPanelKnotEditor::remove_knots(const TypedArray<Graph
 }
 
 void OrchestratorEditorGraphPanelKnotEditor::create_knot(
-    const Connection& p_connection, const Vector2& p_position, GraphNode* p_from, GraphNode* p_to, float p_curvature)
-{
-    if (!p_from || !p_to)
+    const Connection& p_connection, const Vector2& p_position, GraphNode* p_from, GraphNode* p_to, float p_curvature) {
+    if (!p_from || !p_to) {
         return;
+    }
 
     const int32_t from_port = static_cast<int32_t>(p_connection.from_port);
     const int32_t to_port = static_cast<int32_t>(p_connection.to_port);
@@ -357,14 +339,12 @@ void OrchestratorEditorGraphPanelKnotEditor::create_knot(
 
     int knot_position = 0;
     float closest_distance = INFINITY;
-    for (int i = 0; i < curves.size(); i++)
-    {
+    for (int i = 0; i < curves.size(); i++) {
         const Ref<Curve2D>& curve = curves[i];
 
         const Vector2 closest_point = curve->get_closest_point(p_position);
         float distance = closest_point.distance_to(p_position);
-        if (distance < closest_distance)
-        {
+        if (distance < closest_distance) {
             closest_distance = distance;
             knot_position = i;
         }
@@ -372,20 +352,19 @@ void OrchestratorEditorGraphPanelKnotEditor::create_knot(
 
     _create_knot(p_connection.id, p_position, knot_position);
 
-    if (_godot_version.at_least(4, 3))
+    if (_godot_version.at_least(4, 3)) {
         _notify_graph_to_refresh_connections();
+    }
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::update(const KnotMap& p_knots)
-{
-    if (_are_knot_maps_equal(_previous_state, p_knots))
+void OrchestratorEditorGraphPanelKnotEditor::update(const KnotMap& p_knots) {
+    if (_are_knot_maps_equal(_previous_state, p_knots)) {
         return;
-
+    }
     _update_knots(p_knots);
 }
 
-void OrchestratorEditorGraphPanelKnotEditor::_bind_methods()
-{
+void OrchestratorEditorGraphPanelKnotEditor::_bind_methods() {
     // Knot nodes listen for this and update their selection color when emitted
     ADD_SIGNAL(MethodInfo("selection_color_changed", PropertyInfo(Variant::COLOR, "color")));
 
@@ -400,7 +379,6 @@ void OrchestratorEditorGraphPanelKnotEditor::_bind_methods()
     ADD_SIGNAL(MethodInfo("remove_connection_knots_requested", PropertyInfo(Variant::INT, "connection_id")));
 }
 
-OrchestratorEditorGraphPanelKnotEditor::OrchestratorEditorGraphPanelKnotEditor(const GodotVersionInfo& p_godot_version)
-{
+OrchestratorEditorGraphPanelKnotEditor::OrchestratorEditorGraphPanelKnotEditor(const GodotVersionInfo& p_godot_version) {
     _godot_version = p_godot_version;
 }
