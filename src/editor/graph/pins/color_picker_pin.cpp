@@ -21,18 +21,15 @@
 
 #include <godot_cpp/classes/editor_interface.hpp>
 
-void OrchestratorEditorGraphPinColorPicker::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinColorPicker::_update_control_value(const Variant& p_value) {
     _control->set_pick_color(p_value);
 }
 
-Variant OrchestratorEditorGraphPinColorPicker::_read_control_value()
-{
+Variant OrchestratorEditorGraphPinColorPicker::_read_control_value() {
     return _control->get_pick_color();
 }
 
-Control* OrchestratorEditorGraphPinColorPicker::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinColorPicker::_create_default_value_widget() {
     _control = memnew(ColorPickerButton);
     _control->set_focus_mode(FOCUS_NONE);
     _control->set_h_size_flags(SIZE_SHRINK_BEGIN);

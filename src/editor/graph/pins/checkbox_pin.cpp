@@ -18,18 +18,15 @@
 
 #include "common/callable_lambda.h"
 
-void OrchestratorEditorGraphPinCheckbox::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinCheckbox::_update_control_value(const Variant& p_value) {
     _control->set_pressed(p_value);
 }
 
-Variant OrchestratorEditorGraphPinCheckbox::_read_control_value()
-{
+Variant OrchestratorEditorGraphPinCheckbox::_read_control_value() {
     return _control->is_pressed();
 }
 
-Control* OrchestratorEditorGraphPinCheckbox::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinCheckbox::_create_default_value_widget() {
     _control = memnew(CheckBox);
     _control->set_focus_mode(FOCUS_NONE);
     _control->set_h_size_flags(SIZE_EXPAND_FILL);

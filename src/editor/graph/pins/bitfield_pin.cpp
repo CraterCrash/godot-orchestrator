@@ -25,8 +25,7 @@
 #include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/popup_panel.hpp>
 
-void OrchestratorEditorGraphPinBitfield::_update_checkboxes(bool p_state, const CheckBox* p_box_control)
-{
+void OrchestratorEditorGraphPinBitfield::_update_checkboxes(bool p_state, const CheckBox* p_box_control) {
     ERR_FAIL_NULL(p_box_control);
     const int64_t item_value = p_box_control->get_meta("bitmask_value", 0);
 
@@ -34,16 +33,14 @@ void OrchestratorEditorGraphPinBitfield::_update_checkboxes(bool p_state, const 
     const int64_t new_value = p_state ? button_value | item_value : button_value & ~item_value;
 
     GridContainer* container = cast_to<GridContainer>(p_box_control->get_parent());
-    if (container)
-    {
-        for (uint32_t i = 0; i < container->get_child_count(); i++)
-        {
+    if (container) {
+        for (uint32_t i = 0; i < container->get_child_count(); i++) {
             CheckBox* box = cast_to<CheckBox>(container->get_child(i));
-            if (box && box != p_box_control)
-            {
+            if (box && box != p_box_control) {
                 const int64_t box_bitmask_value = box->get_meta("bitmask_value", 0);
-                if (box_bitmask_value > 0)
+                if (box_bitmask_value > 0) {
                     box->set_pressed_no_signal((new_value & box_bitmask_value) == box_bitmask_value);
+                }
             }
         }
     }
@@ -51,8 +48,7 @@ void OrchestratorEditorGraphPinBitfield::_update_checkboxes(bool p_state, const 
     _handle_selector_button_response(new_value);
 }
 
-void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed()
-{
+void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
     using BitfieldItem = BitfieldResolver::BitfieldItem;
 
     const int64_t default_value = _get_button_value();
@@ -73,26 +69,22 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed()
     // Create a map of all multivalued bitfield items
     // These will be appended at the end of the widget after a separator.
     HashMap<String, BitfieldItem> multivalued_items;
-    for (const BitfieldItem& item : items)
-    {
-        if (!item.components.is_empty())
+    for (const BitfieldItem& item : items) {
+        if (!item.components.is_empty()) {
             multivalued_items[item.name] = item;
+        }
     }
 
     HashSet<String> added_keys;
-    for (const BitfieldItem& item : items)
-    {
-        if (!multivalued_items.has(item.name) && !added_keys.has(item.name))
-        {
+    for (const BitfieldItem& item : items) {
+        if (!multivalued_items.has(item.name) && !added_keys.has(item.name)) {
             CheckBox* check = memnew(CheckBox);
             check->set_pressed(default_value & item.value);
 
             PackedStringArray names;
             names.push_back(item.friendly_name);
-            for (const BitfieldItem& match : item.matches)
-            {
-                if (!names.has(match.friendly_name) && !added_keys.has(match.name))
-                {
+            for (const BitfieldItem& match : item.matches) {
+                if (!names.has(match.friendly_name) && !added_keys.has(match.name)) {
                     names.push_back(match.friendly_name);
                     added_keys.insert(match.name);
                 }
@@ -107,11 +99,9 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed()
         }
     }
 
-    if (!multivalued_items.is_empty())
-    {
+    if (!multivalued_items.is_empty()) {
         container->add_child(memnew(HSeparator));
-        for (const KeyValue<String, BitfieldItem>& E : multivalued_items)
-        {
+        for (const KeyValue<String, BitfieldItem>& E : multivalued_items) {
             CheckBox* check = memnew(CheckBox);
             check->set_pressed((default_value & E.value.value) == E.value.value);
             check->set_text(E.value.friendly_name);

@@ -22,15 +22,13 @@
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 
-void OrchestratorEditorGraphPinLineEdit::_focus_entered()
-{
+void OrchestratorEditorGraphPinLineEdit::_focus_entered() {
     const PackedStringArray suggestions = _get_pin_suggestions();
-    if (!suggestions.is_empty())
-    {
+    if (!suggestions.is_empty()) {
         _popup->clear();
-        for (const String& item : suggestions)
+        for (const String& item : suggestions) {
             _popup->add_item(item);
-
+        }
         _popup->set_position(_control->get_screen_position() + Vector2(0, _control->get_size().height));
         _popup->popup();
     }
@@ -39,32 +37,28 @@ void OrchestratorEditorGraphPinLineEdit::_focus_entered()
     _control->select_all();
 }
 
-void OrchestratorEditorGraphPinLineEdit::_popup_window_input(const Ref<InputEvent>& p_event)
-{
+void OrchestratorEditorGraphPinLineEdit::_popup_window_input(const Ref<InputEvent>& p_event) {
     const Ref<InputEventKey> key = p_event;
-    if (key.is_valid() && key->is_pressed() && key->get_keycode() != KEY_ENTER)
+    if (key.is_valid() && key->is_pressed() && key->get_keycode() != KEY_ENTER) {
         _control->get_viewport()->push_input(p_event, false);
+    }
 }
 
-void OrchestratorEditorGraphPinLineEdit::_popup_index_pressed(int p_index)
-{
+void OrchestratorEditorGraphPinLineEdit::_popup_index_pressed(int p_index) {
     const String popup_suggestion = _popup->get_item_text(p_index);
     _control->set_text(popup_suggestion);
     _control->release_focus();
 }
 
-void OrchestratorEditorGraphPinLineEdit::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinLineEdit::_update_control_value(const Variant& p_value) {
     _control->set_text(p_value);
 }
 
-Variant OrchestratorEditorGraphPinLineEdit::_read_control_value()
-{
+Variant OrchestratorEditorGraphPinLineEdit::_read_control_value() {
     return _control->get_text();
 }
 
-Control* OrchestratorEditorGraphPinLineEdit::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinLineEdit::_create_default_value_widget() {
     _control = memnew(LineEdit);
     _control->set_custom_minimum_size(Vector2(30, 0));
     _control->set_expand_to_text_length_enabled(true);

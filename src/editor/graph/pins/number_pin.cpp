@@ -19,41 +19,35 @@
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 
-void OrchestratorEditorGraphPinNumber::_update_control_value(const Variant& p_value)
-{
+void OrchestratorEditorGraphPinNumber::_update_control_value(const Variant& p_value) {
     // Used in case the value entered is invalid
     _rollback_value = p_value;
 
     _control->set_text(p_value);
 }
 
-Variant OrchestratorEditorGraphPinNumber::_read_control_value()
-{
+Variant OrchestratorEditorGraphPinNumber::_read_control_value() {
     const String text_value = _control->get_text();
-    switch (get_property_info().type)
-    {
-        case Variant::FLOAT:
-        {
-            if (text_value.is_valid_float())
-            {
+    switch (get_property_info().type) {
+        case Variant::FLOAT: {
+            if (text_value.is_valid_float()) {
                 const double value = text_value.to_float();
                 callable_mp_this(_update_control_value).bind(value).call_deferred();
                 return value;
             }
             break;
         }
-        case Variant::INT:
-        {
-            if (text_value.is_valid_int())
-            {
+        case Variant::INT: {
+            if (text_value.is_valid_int()) {
                 const int value = text_value.to_int();
                 callable_mp_this(_update_control_value).bind(value).call_deferred();
                 return value;
             }
             break;
         }
-        default:
+        default: {
             break;
+        }
     }
 
     _control->set_text(_rollback_value);
@@ -63,8 +57,7 @@ Variant OrchestratorEditorGraphPinNumber::_read_control_value()
     return _rollback_value;
 }
 
-Control* OrchestratorEditorGraphPinNumber::_create_default_value_widget()
-{
+Control* OrchestratorEditorGraphPinNumber::_create_default_value_widget() {
     _control = memnew(LineEdit);
     _control->set_expand_to_text_length_enabled(true);
     _control->set_h_size_flags(SIZE_EXPAND);

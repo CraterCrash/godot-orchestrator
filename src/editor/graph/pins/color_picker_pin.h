@@ -24,8 +24,7 @@
 /// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>ColorPicker</code>
 /// that provides selecting a <code>Color</code> value for color-based pins.
 ///
-class OrchestratorEditorGraphPinColorPicker : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinColorPicker : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinColorPicker, OrchestratorEditorGraphPin);
 
     ColorPickerButton* _control = nullptr;

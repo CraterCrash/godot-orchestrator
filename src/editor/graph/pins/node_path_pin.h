@@ -25,12 +25,10 @@ class OrchestratorPropertySelector;
 
 /// An implementation of <code>OrchestratorEditorGraphPinButtonBase</code> select a <code>NodePath</code>
 ///
-class OrchestratorEditorGraphPinNodePath : public OrchestratorEditorGraphPinButtonBase
-{
+class OrchestratorEditorGraphPinNodePath : public OrchestratorEditorGraphPinButtonBase {
     GDCLASS(OrchestratorEditorGraphPinNodePath, OrchestratorEditorGraphPinButtonBase);
 
-    struct DependencyDescriptor
-    {
+    struct DependencyDescriptor {
         String class_name;
         String method_name;
         String method_argument_name;

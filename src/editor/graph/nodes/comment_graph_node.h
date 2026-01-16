@@ -23,8 +23,7 @@
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 
-class OrchestratorEditorGraphNodeComment : public OrchestratorEditorGraphNode
-{
+class OrchestratorEditorGraphNodeComment : public OrchestratorEditorGraphNode {
     GDCLASS(OrchestratorEditorGraphNodeComment, OrchestratorEditorGraphNode);
 
     struct {

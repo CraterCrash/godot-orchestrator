@@ -43,12 +43,10 @@ class OrchestratorEditorGraphPanel;
 /// knots would eventually be replaced by reroute nodes similar to the Godot Visual Shader
 /// plugin and other visual scripting tools.
 ///
-class OrchestratorEditorGraphPanelKnotEditor : public Node
-{
+class OrchestratorEditorGraphPanelKnotEditor : public Node {
     GDCLASS(OrchestratorEditorGraphPanelKnotEditor, Node);
 
-    struct KnotInfo
-    {
+    struct KnotInfo {
         uint64_t connection_id = 0;
         Guid guid;
         Vector2 position;

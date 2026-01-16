@@ -20,15 +20,15 @@
 #include "common/macros.h"
 #include "editor/file_dialog.h"
 
-void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed()
-{
+void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
     _dialog = memnew(OrchestratorFileDialog);
     _dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
     _dialog->set_hide_on_ok(true);
     _dialog->set_title("Select a file");
 
-    if (!_file_type_filters.is_empty())
+    if (!_file_type_filters.is_empty()) {
         _dialog->set_filters(_file_type_filters);
+    }
 
     _dialog->connect("file_selected", callable_mp_lambda(this, [&](const String& v) { _handle_selector_button_response(v); }));
     _dialog->connect("canceled", callable_mp_cast(this, Node, queue_free));
@@ -38,7 +38,6 @@ void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed()
     _dialog->popup_file_dialog();
 }
 
-OrchestratorEditorGraphPinFilePicker::OrchestratorEditorGraphPinFilePicker()
-{
+OrchestratorEditorGraphPinFilePicker::OrchestratorEditorGraphPinFilePicker() {
     set_default_text("Assign...");
 }

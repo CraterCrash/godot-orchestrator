@@ -24,8 +24,7 @@
 /// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>Checkbox</code>
 /// that provide toggling a default value as on/off for boolean-based pins.
 ///
-class OrchestratorEditorGraphPinCheckbox : public OrchestratorEditorGraphPin
-{
+class OrchestratorEditorGraphPinCheckbox : public OrchestratorEditorGraphPin {
     GDCLASS(OrchestratorEditorGraphPinCheckbox, OrchestratorEditorGraphPin);
 
     CheckBox* _control = nullptr;
