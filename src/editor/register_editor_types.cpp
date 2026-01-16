@@ -40,6 +40,8 @@
 #include "editor/inspector/type_cast_inspector_plugin.h"
 #include "editor/inspector/variable_inspector_plugin.h"
 #include "editor/inspector/properties/editor_property_class_name.h"
+#include "editor/inspector/properties/editor_property_pin_properties.h"
+#include "editor/inspector/properties/editor_property_variable_classification.h"
 #include "editor/plugins/orchestration_editor_export_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/property_selector.h"
@@ -50,11 +52,8 @@
 #include "editor/search/search_dialog.h"
 #include "editor/select_class_dialog.h"
 #include "editor/select_type_dialog.h"
-#include "editor/theme/theme_cache.h"
 #include "editor/updater.h"
 #include "editor/window_wrapper.h"
-#include "inspector/properties/editor_property_pin_properties.h"
-#include "inspector/properties/editor_property_variable_classification.h"
 
 void register_editor_types()
 {
@@ -68,7 +67,7 @@ void register_editor_types()
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginSignal)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginTypeCast)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorThemeCache)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeThemeCache)
 
     // Editor bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorLogEventRouter)
