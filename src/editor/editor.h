@@ -17,7 +17,7 @@
 #ifndef ORCHESTRATOR_EDITOR_H
 #define ORCHESTRATOR_EDITOR_H
 
-#include "editor/theme/theme_cache.h"
+#include "editor/graph/graph_node_theme_cache.h"
 
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
@@ -125,7 +125,7 @@ private:
     OrchestratorFileDialog* _file_dialog = nullptr;
     OrchestratorUpdaterButton* _updater = nullptr;
     Ref<ConfigFile> _editor_cache;
-    Ref<OrchestratorThemeCache> _theme_cache;
+    Ref<OrchestratorEditorGraphNodeThemeCache> _theme_cache;
 
     TextureRect* _script_icon = nullptr;
     Label* _script_name_label = nullptr;
@@ -279,7 +279,7 @@ protected:
 public:
     static OrchestratorEditor* get_singleton() { return _editor; }
 
-    Ref<OrchestratorThemeCache> get_theme_cache() const;
+    Ref<OrchestratorEditorGraphNodeThemeCache> get_theme_cache() const;
 
     bool toggle_scripts_panel();
     bool is_scripts_panel_toggled();
