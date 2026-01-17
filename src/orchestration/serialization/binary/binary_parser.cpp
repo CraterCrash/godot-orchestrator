@@ -851,7 +851,9 @@ int64_t OrchestrationBinaryParser::get_resource_uid(const String& p_path) {
     }
 
     const Ref<FileAccess> file = FileAccess::open_compressed(p_path, FileAccess::READ);
-    ERR_FAIL_COND_V(file.is_null(), ResourceUID::INVALID_ID);
+    if (file.is_null()) {
+        return ResourceUID::INVALID_ID;
+    }
 
     Error err = _open(file, true);
     if (err != OK) {
