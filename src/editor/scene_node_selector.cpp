@@ -19,6 +19,7 @@
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/version.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -176,11 +177,11 @@ bool OrchestratorSceneNodeSelector::_update_filter(TreeItem* p_parent, bool p_sc
 
 void OrchestratorSceneNodeSelector::_notification(int p_what) {
     if (p_what == NOTIFICATION_READY) {
-        OCONNECT(_filter, "text_changed", callable_mp_this(_filter_changed));
-        OCONNECT(_tree, "item_activated", callable_mp_this(_item_activated));
-        OCONNECT(_tree, "item_selected", callable_mp_this(_item_selected));
-        OCONNECT(this, "confirmed", callable_mp_this(_confirmed));
-        OCONNECT(this, "canceled", callable_mp_this(_close_requested));
+        OCONNECT(_filter, SceneStringName(text_changed), callable_mp_this(_filter_changed));
+        OCONNECT(_tree, SceneStringName(item_activated), callable_mp_this(_item_activated));
+        OCONNECT(_tree, SceneStringName(item_selected), callable_mp_this(_item_selected));
+        OCONNECT(this, SceneStringName(confirmed), callable_mp_this(_confirmed));
+        OCONNECT(this, SceneStringName(canceled), callable_mp_this(_close_requested));
 
         callable_mp_this(_update_tree).bind(false).call_deferred();
     }

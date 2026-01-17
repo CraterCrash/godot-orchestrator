@@ -275,7 +275,7 @@ void OrchestratorWindowWrapper::_notification(int p_what) {
             break;
         }
         case NOTIFICATION_THEME_CHANGED: {
-            _window_background->add_theme_stylebox_override("panel", get_theme_stylebox("PanelForeground", "EditorStyles"));
+            _window_background->add_theme_stylebox_override(SceneStringName(panel), get_theme_stylebox("PanelForeground", "EditorStyles"));
             break;
         }
     }
@@ -310,7 +310,7 @@ void OrchestratorScreenSelect::_build_advanced_menu() {
     }
 
     // Populate screen list
-    const real_t height = static_cast<real_t>(get_theme_font_size("font_size")) * 1.5; // NOLINT
+    const real_t height = static_cast<real_t>(get_theme_font_size(SceneStringName(font_size))) * 1.5; // NOLINT
 
     int current_screen = get_window()->get_current_screen();
     for (int i = 0; i < DisplayServer::get_singleton()->get_screen_count(); i++) {
@@ -327,12 +327,12 @@ void OrchestratorScreenSelect::_build_advanced_menu() {
 
         if (i == current_screen) {
             Color accent_color = get_theme_color("accent_color", "Editor");
-            button->add_theme_color_override("font_color", accent_color);
+            button->add_theme_color_override(SceneStringName(font_color), accent_color);
         }
 
-        button->connect("pressed", callable_mp_this(_emit_screen_signal).bind(i));
-        button->connect("pressed", callable_mp_cast(this, BaseButton, set_pressed).bind(false));
-        button->connect("pressed", callable_mp_cast(_popup, Window, hide));
+        button->connect(SceneStringName(pressed), callable_mp_this(_emit_screen_signal).bind(i));
+        button->connect(SceneStringName(pressed), callable_mp_cast(this, BaseButton, set_pressed).bind(false));
+        button->connect(SceneStringName(pressed), callable_mp_cast(_popup, Window, hide));
     }
 }
 
@@ -382,13 +382,13 @@ void OrchestratorScreenSelect::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_READY: {
             _popup->connect("popup_hide", callable_mp_cast(this, BaseButton, set_pressed).bind(false));
-            connect("gui_input", callable_mp_this(_handle_mouse_shortcut));
+            connect(SceneStringName(gui_input), callable_mp_this(_handle_mouse_shortcut));
             break;
         }
         case NOTIFICATION_THEME_CHANGED: {
             set_button_icon(SceneUtils::get_editor_icon("MakeFloating"));
 
-            const real_t popup_height = static_cast<real_t>(get_theme_font_size("font_size")) * 2.0; // NOLINT
+            const real_t popup_height = static_cast<real_t>(get_theme_font_size(SceneStringName(font_size))) * 2.0; // NOLINT
             _popup->set_min_size(Size2(0, popup_height * 3));
             break;
         }

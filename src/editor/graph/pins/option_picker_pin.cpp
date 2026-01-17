@@ -17,6 +17,7 @@
 #include "editor/graph/pins/option_picker_pin.h"
 
 #include "common/macros.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/popup_menu.hpp>
 
@@ -50,7 +51,7 @@ Control* OrchestratorEditorGraphPinOptionPicker::_create_default_value_widget() 
     _control = memnew(OptionButton);
     _control->set_allow_reselect(true);
     _control->get_popup()->set_max_size(Vector2(32768, 400));
-    _control->connect("item_selected", callable_mp_this(_option_item_selected));
+    _control->connect(SceneStringName(item_selected), callable_mp_this(_option_item_selected));
 
     return _control;
 }

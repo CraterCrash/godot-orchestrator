@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/macros.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
@@ -65,14 +66,14 @@ Control* OrchestratorEditorGraphPinLineEdit::_create_default_value_widget() {
     _control->set_h_size_flags(SIZE_EXPAND);
     _control->set_select_all_on_focus(true);
     _control->set_deselect_on_focus_loss_enabled(true);
-    _control->connect("text_submitted", callable_mp_lambda(this, [&] (const String&) { _control->release_focus(); }));
-    _control->connect("focus_entered", callable_mp_this(_focus_entered));
-    _control->connect("focus_exited", callable_mp_lambda(this, [&] { _default_value_changed(); }));
+    _control->connect(SceneStringName(text_submitted), callable_mp_lambda(this, [&] (const String&) { _control->release_focus(); }));
+    _control->connect(SceneStringName(focus_entered), callable_mp_this(_focus_entered));
+    _control->connect(SceneStringName(focus_exited), callable_mp_lambda(this, [&] { _default_value_changed(); }));
 
     _popup = memnew(PopupMenu);
     _popup->set_flag(PopupMenu::FLAG_NO_FOCUS, true);
     _popup->set_allow_search(true);
-    _popup->connect("window_input", callable_mp_this(_popup_window_input));
+    _popup->connect(SceneStringName(window_input), callable_mp_this(_popup_window_input));
     _popup->connect("index_pressed", callable_mp_this(_popup_index_pressed));
     _popup->connect("popup_hide", callable_mp_lambda(this, [&] { _control->release_focus(); }));
     _control->add_child(_popup);

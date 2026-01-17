@@ -17,6 +17,7 @@
 #include "editor/graph/pins/text_edit_pin.h"
 
 #include "common/callable_lambda.h"
+#include "core/godot/scene_string_names.h"
 
 void OrchestratorEditorGraphPinTextEdit::_update_control_value(const Variant& p_value) {
     _control->set_text(p_value);
@@ -36,7 +37,7 @@ Control* OrchestratorEditorGraphPinTextEdit::_create_default_value_widget() {
     _control->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
     _control->set_line_wrapping_mode(TextEdit::LINE_WRAPPING_BOUNDARY);
     _control->set_fit_content_height_enabled(true);
-    _control->connect("text_changed", callable_mp_lambda(this, [&] { _default_value_changed(); }));
+    _control->connect(SceneStringName(text_changed), callable_mp_lambda(this, [&] { _default_value_changed(); }));
 
     return _control;
 }
