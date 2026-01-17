@@ -82,7 +82,7 @@ void OScriptNodeEmitSignal::_on_signal_changed() {
 void OScriptNodeEmitSignal::post_initialize() {
     _signal = get_orchestration()->find_custom_signal(_signal_name);
     if (_signal.is_valid() && _is_in_editor()) {
-        _signal->connect("changed", callable_mp(this, &OScriptNodeEmitSignal::_on_signal_changed));
+        _signal->connect("changed", callable_mp_this(_on_signal_changed));
     }
     super::post_initialize();
 }
@@ -91,7 +91,7 @@ void OScriptNodeEmitSignal::post_placed_new_node() {
     super::post_placed_new_node();
 
     if (_signal.is_valid() && _is_in_editor()) {
-        OCONNECT(_signal, "changed", callable_mp(this, &OScriptNodeEmitSignal::_on_signal_changed));
+        OCONNECT(_signal, "changed", callable_mp_this(_on_signal_changed));
     }
 }
 

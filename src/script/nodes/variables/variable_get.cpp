@@ -17,6 +17,7 @@
 #include "script/nodes/variables/variable_get.h"
 
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/property_utils.h"
 
 void OScriptNodeVariableGet::_get_property_list(List<PropertyInfo>* r_list) const {
@@ -68,7 +69,7 @@ void OScriptNodeVariableGet::_variable_changed() {
         // Defer this so that all nodes have updated
         // This is necessary so that all target types that may have changed (i.e. get connected to set)
         // have updated to make sure that the "can_accept" logic works as expected.
-        callable_mp(this, &OScriptNodeVariableGet::_validate_output_connection).call_deferred();
+        callable_mp_this(_validate_output_connection).call_deferred();
     }
 
     super::_variable_changed();

@@ -16,6 +16,7 @@
 //
 #include "script/nodes/data/coercion_node.h"
 
+#include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/variant_utils.h"
 
@@ -65,13 +66,13 @@ void OScriptNodeCoercion::_add_source_target_listeners() {
     Ref<OScriptNodePin> source = _get_source_node_pin();
     if (source.is_valid()) {
         _on_source_pin_changed(source);
-        source->connect("changed", callable_mp(this, &OScriptNodeCoercion::_on_source_pin_changed).bind(source));
+        source->connect("changed", callable_mp_this(_on_source_pin_changed).bind(source));
     }
 
     Ref<OScriptNodePin> target = _get_target_node_pin();
     if (target.is_valid()) {
         _on_target_pin_changed(target);
-        target->connect("changed", callable_mp(this, &OScriptNodeCoercion::_on_target_pin_changed).bind(target));
+        target->connect("changed", callable_mp_this(_on_target_pin_changed).bind(target));
     }
 }
 

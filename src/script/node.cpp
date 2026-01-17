@@ -16,6 +16,7 @@
 //
 #include "script/node.h"
 
+#include "common/macros.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
 #include "script/script.h"
@@ -50,7 +51,7 @@ void OScriptNode::_queue_reconstruct() {
     if (_reconstruction_queued) {
         return;
     }
-    callable_mp(this, &OScriptNode::reconstruct_node).call_deferred();
+    callable_mp_this(reconstruct_node).call_deferred();
 }
 
 Ref<OScriptGraph> OScriptNode::get_owning_graph() const {

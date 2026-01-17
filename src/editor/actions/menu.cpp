@@ -176,7 +176,7 @@ void OrchestratorEditorActionMenu::_visibility_changed() {
     } else {
         _load_user_data();
 
-        callable_mp(static_cast<Control*>(_search_box), &Control::grab_focus).call_deferred();
+        callable_mp_cast(_search_box, Control, grab_focus).call_deferred();
         _search_box->select_all();
     }
 }
@@ -649,8 +649,8 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _favorites = memnew(ItemList);
     _favorites->set_allow_reselect(true);
     _favorites->set_focus_mode(Control::FOCUS_NONE);
-    _favorites->connect(SceneStringName(item_selected), callable_mp(this, &OrchestratorEditorActionMenu::_favorite_selected));
-    _favorites->connect(SceneStringName(item_activated), callable_mp(this, &OrchestratorEditorActionMenu::_favorite_activated));
+    _favorites->connect(SceneStringName(item_selected), callable_mp_this(_favorite_selected));
+    _favorites->connect(SceneStringName(item_activated), callable_mp_this(_favorite_activated));
     _favorites->add_theme_constant_override("draw_guides", 1);
 
     SceneUtils::add_margin_child(fav_vbox, "Favorites:", _favorites, true);
@@ -658,8 +658,8 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _recents = memnew(ItemList);
     _recents->set_allow_reselect(true);
     _recents->set_focus_mode(Control::FOCUS_NONE);
-    _recents->connect(SceneStringName(item_selected), callable_mp(this, &OrchestratorEditorActionMenu::_recent_selected));
-    _recents->connect(SceneStringName(item_activated), callable_mp(this, &OrchestratorEditorActionMenu::_recent_activated));
+    _recents->connect(SceneStringName(item_selected), callable_mp_this(_recent_selected));
+    _recents->connect(SceneStringName(item_activated), callable_mp_this(_recent_activated));
     _recents->add_theme_constant_override("draw_guides", 1);
 
     SceneUtils::add_margin_child(recents_vbox, "Recent:", _recents, true);
@@ -673,34 +673,34 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _search_box->set_clear_button_enabled(true);
     _search_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
     _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
-    _search_box->connect(SceneStringName(text_changed), callable_mp(this, &OrchestratorEditorActionMenu::_search_changed));
-    _search_box->connect(SceneStringName(gui_input), callable_mp(this, &OrchestratorEditorActionMenu::_search_gui_input));
+    _search_box->connect(SceneStringName(text_changed), callable_mp_this(_search_changed));
+    _search_box->connect(SceneStringName(gui_input), callable_mp_this(_search_gui_input));
 
     _favorite_button = memnew(Button);
     _favorite_button->set_toggle_mode(true);
     _favorite_button->set_tooltip_text("(Un)favorite selected item.");
     _favorite_button->set_focus_mode(Control::FOCUS_NONE);
     _favorite_button->set_button_icon(SceneUtils::get_editor_icon("Favorites"));
-    _favorite_button->connect(SceneStringName(pressed), callable_mp(this, &OrchestratorEditorActionMenu::_toggle_favorite));
+    _favorite_button->connect(SceneStringName(pressed), callable_mp_this(_toggle_favorite));
 
     _collapse_button = memnew(Button);
     _collapse_button->set_toggle_mode(true);
     _collapse_button->set_tooltip_text("Collapse search results");
     _collapse_button->set_focus_mode(Control::FOCUS_NONE);
     _collapse_button->set_button_icon(SceneUtils::get_editor_icon("CollapseTree"));
-    _collapse_button->connect(SceneStringName(pressed), callable_mp(this, &OrchestratorEditorActionMenu::_toggle_collapsed).bind(true));
+    _collapse_button->connect(SceneStringName(pressed), callable_mp_this(_toggle_collapsed).bind(true));
 
     _expand_button = memnew(Button);
     _expand_button->set_toggle_mode(true);
     _expand_button->set_tooltip_text("Expand search results");
     _expand_button->set_focus_mode(Control::FOCUS_NONE);
     _expand_button->set_button_icon(SceneUtils::get_editor_icon("ExpandTree"));
-    _expand_button->connect(SceneStringName(pressed), callable_mp(this, &OrchestratorEditorActionMenu::_toggle_collapsed).bind(false));
+    _expand_button->connect(SceneStringName(pressed), callable_mp_this(_toggle_collapsed).bind(false));
 
     _filter_options = memnew(OptionButton);
     _filter_options->add_item("Display All");
     _filter_options->add_separator();
-    _filter_options->connect(SceneStringName(item_selected), callable_mp(this, &OrchestratorEditorActionMenu::_filter_changed));
+    _filter_options->connect(SceneStringName(item_selected), callable_mp_this(_filter_changed));
 
     HBoxContainer* search_hbox = memnew(HBoxContainer);
     search_hbox->add_child(_search_box);
@@ -717,9 +717,9 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     #if GODOT_VERSION >= 0x040300
     _results->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
     #endif
-    _results->connect(SceneStringName(item_activated), callable_mp(this, &OrchestratorEditorActionMenu::_confirmed));
-    _results->connect("cell_selected", callable_mp(this, &OrchestratorEditorActionMenu::_item_selected));
-    _results->connect("nothing_selected", callable_mp(this, &OrchestratorEditorActionMenu::_nothing_selected));
+    _results->connect(SceneStringName(item_activated), callable_mp_this(_confirmed));
+    _results->connect("cell_selected", callable_mp_this(_item_selected));
+    _results->connect("nothing_selected", callable_mp_this(_nothing_selected));
 
     SceneUtils::add_margin_child(vbox, "Matches:", _results, true);
 
@@ -730,11 +730,11 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     register_text_enter(_search_box);
     set_hide_on_ok(false);
 
-    connect("about_to_popup", callable_mp(this, &OrchestratorEditorActionMenu::_about_to_popup));
-    connect(SceneStringName(visibility_changed), callable_mp(this, &OrchestratorEditorActionMenu::_visibility_changed));
-    connect(SceneStringName(confirmed), callable_mp(this, &OrchestratorEditorActionMenu::_confirmed));
-    connect(SceneStringName(canceled), callable_mp(static_cast<Node*>(this), &Node::queue_free));
-    connect(SceneStringName(focus_exited), callable_mp(this, &OrchestratorEditorActionMenu::_focus_lost));
+    connect("about_to_popup", callable_mp_this(_about_to_popup));
+    connect(SceneStringName(visibility_changed), callable_mp_this(_visibility_changed));
+    connect(SceneStringName(confirmed), callable_mp_this(_confirmed));
+    connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
+    connect(SceneStringName(focus_exited), callable_mp_this(_focus_lost));
 
     // Attempt to use Orchestrator bounds, falling back to Godot
     _last_size = PROJECT_GET("Orchestrator", "action_menu_bounds", Rect2());

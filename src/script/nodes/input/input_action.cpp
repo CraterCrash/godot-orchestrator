@@ -92,7 +92,7 @@ bool OScriptNodeInputAction::_set(const StringName& p_name, const Variant& p_val
 void OScriptNodeInputAction::post_initialize() {
     if (_is_in_editor()) {
         ProjectSettings* settings = ProjectSettings::get_singleton();
-        OCONNECT(settings, "settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
+        OCONNECT(settings, "settings_changed", callable_mp_this(_settings_changed));
     }
 
     super::post_initialize();
@@ -101,7 +101,7 @@ void OScriptNodeInputAction::post_initialize() {
 void OScriptNodeInputAction::post_placed_new_node() {
     if (_is_in_editor()) {
         ProjectSettings* settings = ProjectSettings::get_singleton();
-        OCONNECT(settings, "settings_changed", callable_mp(this, &OScriptNodeInputAction::_settings_changed));
+        OCONNECT(settings, "settings_changed", callable_mp_this(_settings_changed));
     }
 
     super::post_placed_new_node();
