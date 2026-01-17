@@ -29,6 +29,9 @@ namespace GDE {
         // isn't used, this incurs a potentially higherIO cost that could otherwise be lower, depending on the
         // resource's loader implementation.
         static String get_resource_type(const String& p_path);
+
+        // Reads the <code>p_path.remap</code> file if exists, providing the remapped filename if path is remapped
+        static String path_remap(const String& p_path);
     };
 }
 

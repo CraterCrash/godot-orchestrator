@@ -16,6 +16,7 @@
 //
 #include "script/script_cache.h"
 
+#include "core/godot/io/resource_loader.h"
 #include "orchestration/orchestration.h"
 #include "orchestration/serialization/binary/binary_parser.h"
 #include "orchestration/serialization/text/text_parser.h"
@@ -23,9 +24,9 @@
 #include "script/compiler/compiler.h"
 #include "script/parser/parser.h"
 
-#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/classes/native_menu.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/core/mutex_lock.hpp>
 
 OScriptParserRef::Status OScriptParserRef::get_status() const {
     return _status;
@@ -302,8 +303,7 @@ Ref<OScript> OScriptCache::get_shallow_script(const String& p_path, Error& r_err
         return _singleton->_shallow_cache[p_path];
     }
 
-    // todo: Support for remaps will require a Godot change :(
-    const String remapped_path = p_path;
+    const String remapped_path = GDE::ResourceLoader::path_remap(p_path);
 
     Ref<OScript> script;
     script.instantiate();
@@ -347,8 +347,7 @@ Ref<OScript> OScriptCache::get_full_script(const String& p_path, Error& r_error,
         }
     }
 
-    // todo: Support for remaps will require a Godot change :(
-    const String remapped_path = p_path;
+    const String remapped_path = GDE::ResourceLoader::path_remap(p_path);
 
     if (p_update_from_disk) {
         r_error = script->load_source_code(remapped_path);
