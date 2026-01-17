@@ -22,8 +22,7 @@
 using namespace godot;
 
 /// A simple Globally Unique Identifier implementation.
-class Guid
-{
+class Guid {
     uint32_t _a{ 0 };
     uint32_t _b{ 0 };
     uint32_t _c{ 0 };
@@ -65,8 +64,7 @@ public:
     bool operator==(const Guid &p_o) const;
     bool operator!=(const Guid &p_o) const;
 
-    _FORCE_INLINE_ uint64_t hash() const
-    {
+    _FORCE_INLINE_ uint64_t hash() const {
         return (static_cast<uint64_t>(_a) << 32 | _b) ^ (static_cast<uint64_t>(_c) << 32 | _d);
     }
 

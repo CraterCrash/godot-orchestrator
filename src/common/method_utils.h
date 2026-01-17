@@ -21,8 +21,8 @@
 
 using namespace godot;
 
-namespace MethodUtils
-{
+namespace MethodUtils {
+
     /// Checks whether the specified property info for a return method attribute returns a value.
     /// @param p_return_val the return attribute from a <code>MethodInfo</cde>
     /// @return true if a value is returned, false otherwise

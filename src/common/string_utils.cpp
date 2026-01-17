@@ -18,24 +18,21 @@
 
 #include <godot_cpp/variant/packed_string_array.hpp>
 
-namespace StringUtils
-{
-    String default_if_empty(const String& p_value, const String& p_default_value)
-    {
+namespace StringUtils {
+
+    String default_if_empty(const String& p_value, const String& p_default_value) {
         return p_value.is_empty() ? p_default_value : p_value;
     }
 
-    String replace_first(const String& p_value, const String& p_key, const String& p_with)
-    {
+    String replace_first(const String& p_value, const String& p_key, const String& p_with) {
         int pos = p_value.find(p_key);
-        if (pos >= 0)
+        if (pos >= 0) {
             return p_value.substr(0, pos) + p_with + p_value.substr(pos + p_key.length(), p_value.length());
-
+        }
         return p_value;
     }
 
-    String path_to_file(const String &p_local, const String &p_path)
-    {
+    String path_to_file(const String &p_local, const String &p_path) {
         // Don't get base dir for src, this is expected to be a dir already
         String src = p_local.replace("\\", "/");
         String dst = p_path.replace("\\", "/").get_base_dir();
@@ -45,37 +42,30 @@ namespace StringUtils
         return rel == dst ? p_path : rel + p_path.get_file();
     }
 
-    String path_to(const String &p_local, const String &p_path)
-    {
+    String path_to(const String &p_local, const String &p_path) {
         String src = p_local.replace("\\", "/");
         String dst = p_path.replace("\\", "/");
 
-        if (!src.ends_with("/"))
+        if (!src.ends_with("/")) {
             src += "/";
-        if (!dst.ends_with("/"))
+        }
+        if (!dst.ends_with("/")) {
             dst += "/";
+        }
 
-        if (src.begins_with("res://") && dst.begins_with("res://"))
-        {
+        if (src.begins_with("res://") && dst.begins_with("res://")) {
             src = src.replace("res://", "/");
             dst = dst.replace("res://", "/");
-        }
-        else if (src.begins_with("user://") && dst.begins_with("user://"))
-        {
+        } else if (src.begins_with("user://") && dst.begins_with("user://")) {
             src = src.replace("user://", "/");
             dst = dst.replace("user://", "/");
-        }
-        else if (src.begins_with("/") && dst.begins_with("/"))
-        {
+        } else if (src.begins_with("/") && dst.begins_with("/")) {
             // nothing
-        }
-        else
-        {
+        } else {
             // dos style
             String src_begin = src.get_slicec('/', 0);
             String dst_begin = dst.get_slicec('/', 0);
-            if (src_begin != dst_begin)
-            {
+            if (src_begin != dst_begin) {
                 // Impossible to do this
                 return p_path;
             }
@@ -90,15 +80,16 @@ namespace StringUtils
 
         // Find common part
         int common_parent = 0;
-        while (true)
-        {
-            if (src_dirs.size() == common_parent)
+        while (true) {
+            if (src_dirs.size() == common_parent) {
                 break;
-            if (dst_dirs.size() == common_parent)
+            }
+            if (dst_dirs.size() == common_parent) {
                 break;
-            if (src_dirs[common_parent] != dst_dirs[common_parent])
+            }
+            if (src_dirs[common_parent] != dst_dirs[common_parent]) {
                 break;
-
+            }
             common_parent++;
         }
         common_parent--;
@@ -106,27 +97,28 @@ namespace StringUtils
         int dirs_to_backtrack = (src_dirs.size() - 1) - common_parent;
         String dir = String("../").repeat(dirs_to_backtrack);
 
-        for (int i = common_parent + 1; i < dst_dirs.size(); i++)
+        for (int i = common_parent + 1; i < dst_dirs.size(); i++) {
             dir += dst_dirs[i] + "/";
+        }
 
-        if (dir.length() == 0)
+        if (dir.length() == 0) {
             dir = "./";
+        }
 
         return dir;
     }
 
-    String property_name_encode(const String& p_name)
-    {
+    String property_name_encode(const String& p_name) {
         const char32_t *cstr = p_name.ptr();
-        for (int i = 0; cstr[i]; i++)
-            if (cstr[i] == '=' || cstr[i] == '"' || cstr[i] == ';' || cstr[i] == '[' || cstr[i] == ']' || cstr[i] < 33 || cstr[i] > 126)
+        for (int i = 0; cstr[i]; i++) {
+            if (cstr[i] == '=' || cstr[i] == '"' || cstr[i] == ';' || cstr[i] == '[' || cstr[i] == ']' || cstr[i] < 33 || cstr[i] > 126) {
                 return "\"" + c_escape_multiline(p_name) + "\"";
-
+            }
+        }
         return p_name;
     }
 
-    String c_escape_multiline(const String& p_name)
-    {
+    String c_escape_multiline(const String& p_name) {
         String escaped = p_name.ptr();
         escaped = escaped.replace("\\", "\\\\");
         escaped = escaped.replace("\"", "\\\"");

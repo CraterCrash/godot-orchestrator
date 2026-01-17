@@ -16,42 +16,38 @@
 //
 #include "common/tree_utils.h"
 
-TreeIterator& TreeIterator::operator++()
-{
-    if (!_current)
+TreeIterator& TreeIterator::operator++() {
+    if (!_current) {
         return *this;
-
-    if (TreeItem* child = _current->get_first_child())
-    {
+    }
+    if (TreeItem* child = _current->get_first_child()) {
         _current = child;
         return *this;
     }
 
-    while (_current && !_current->get_next())
+    while (_current && !_current->get_next()) {
         _current = _current->get_parent();
+    }
 
-    if (_current)
+    if (_current) {
         _current = _current->get_next();
+    }
 
     return *this;
 }
 
-TreeItem* TreeIterator::operator*() const
-{
+TreeItem* TreeIterator::operator*() const {
     return _current;
 }
 
-bool TreeIterator::operator!=(const TreeIterator& p_other) const
-{
+bool TreeIterator::operator!=(const TreeIterator& p_other) const {
     return _current != p_other._current;
 }
 
-TreeIterator TreeIterable::begin() const
-{
+TreeIterator TreeIterable::begin() const {
     return TreeIterator(_root);
 }
 
-TreeIterator TreeIterable::end() const
-{
+TreeIterator TreeIterable::end() const {
     return TreeIterator(nullptr);
 }

@@ -20,18 +20,17 @@
 
 #include <godot_cpp/variant/variant.hpp>
 
-namespace NameUtils
-{
-    String create_unique_name(const String& p_prefix, const PackedStringArray& p_names)
-    {
-        if (!p_names.has(p_prefix))
+namespace NameUtils {
+    String create_unique_name(const String& p_prefix, const PackedStringArray& p_names) {
+        if (!p_names.has(p_prefix)) {
             return p_prefix;
+        }
 
-        for (int i = 0; i < std::numeric_limits<int>::max(); i++)
-        {
+        for (int i = 0; i < std::numeric_limits<int>::max(); i++) {
             const String name = vformat("%s_%s", p_prefix, i);
-            if (!p_names.has(name))
+            if (!p_names.has(name)) {
                 return name;
+            }
         }
 
         WARN_PRINT("Failed to create a unique name for prefix: " + p_prefix);

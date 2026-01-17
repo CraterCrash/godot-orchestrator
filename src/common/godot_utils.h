@@ -21,11 +21,10 @@
 #include <godot_cpp/templates/rb_set.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
-namespace GodotUtils
-{
+namespace GodotUtils {
+
     template<typename E, typename C = godot::Comparator<E>, typename A = godot::DefaultAllocator>
-    _FORCE_INLINE_ godot::RBSet<E, C, A> vector_to_rbset(const godot::Vector<E>& p_vector)
-    {
+    _FORCE_INLINE_ godot::RBSet<E, C, A> vector_to_rbset(const godot::Vector<E>& p_vector) {
         godot::RBSet<E, C, A> result;
         for (const E& item : p_vector)
             result.insert(item);
@@ -34,8 +33,7 @@ namespace GodotUtils
     }
 
     template<typename E, typename C = godot::Comparator<E>, typename A= godot::DefaultAllocator>
-    _FORCE_INLINE_ godot::Vector<E> rbset_to_vector(const godot::RBSet<E, C, A>& p_set)
-    {
+    _FORCE_INLINE_ godot::Vector<E> rbset_to_vector(const godot::RBSet<E, C, A>& p_set) {
         godot::Vector<E> result;
         for (const E& item : p_set)
             result.push_back(item);
@@ -44,8 +42,7 @@ namespace GodotUtils
     }
 
     template<typename T>
-    _FORCE_INLINE_ godot::TypedArray<T> set_to_typed_array(const godot::HashSet<T*>& p_set)
-    {
+    _FORCE_INLINE_ godot::TypedArray<T> set_to_typed_array(const godot::HashSet<T*>& p_set) {
         godot::TypedArray<T> result;
         for (T* entry : p_set)
             result.push_back(entry);
@@ -54,8 +51,7 @@ namespace GodotUtils
     }
 
     template<typename E, typename C = godot::Comparator<E>, typename A = godot::DefaultAllocator>
-    _FORCE_INLINE_ godot::Vector<E> deduplicate(const godot::Vector<E>& p_vector)
-    {
+    _FORCE_INLINE_ godot::Vector<E> deduplicate(const godot::Vector<E>& p_vector) {
         return rbset_to_vector<E>(vector_to_rbset<E, C, A>(p_vector));
     }
 }

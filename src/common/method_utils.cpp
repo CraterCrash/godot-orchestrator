@@ -24,114 +24,109 @@
 
 #include <godot_cpp/core/class_db.hpp>
 
-namespace MethodUtils
-{
+namespace MethodUtils {
+
     bool has_return_value(const PropertyInfo& p_return_val) {
         // When the method specifies a non-NIL type, this means it isn't Variant, but
         // instead returns an explicit type.
-        if (p_return_val.type != Variant::NIL)
+        if (p_return_val.type != Variant::NIL) {
             return true;
-
+        }
         // When the usage flag PROPERTY_USAGE_NIL_IS_VARIANT is set, the return value is Variant
-        if (p_return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT)
+        if (p_return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT) {
             return true;
-
+        }
         // No return value
         return false;
     }
 
-    bool has_return_value(const MethodInfo& p_method)
-    {
+    bool has_return_value(const MethodInfo& p_method) {
         return has_return_value(p_method.return_val);
     }
 
-    void set_no_return_value(MethodInfo& p_method)
-    {
+    void set_no_return_value(MethodInfo& p_method) {
         p_method.return_val.type = Variant::NIL;
         p_method.return_val.usage &= ~PROPERTY_USAGE_NIL_IS_VARIANT;
     }
 
-    void set_return_value(MethodInfo& p_method)
-    {
-        if (p_method.return_val.type == Variant::NIL)
+    void set_return_value(MethodInfo& p_method) {
+        if (p_method.return_val.type == Variant::NIL) {
             p_method.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
-        else
+        } else {
             p_method.return_val.usage &= ~PROPERTY_USAGE_NIL_IS_VARIANT;
+        }
     }
 
-    void set_return_value_type(MethodInfo& p_method, Variant::Type p_type)
-    {
+    void set_return_value_type(MethodInfo& p_method, Variant::Type p_type) {
         p_method.return_val.type = p_type;
         set_return_value(p_method);
     }
 
-    String get_method_class(const String& p_class_name, const String& p_method_name)
-    {
+    String get_method_class(const String& p_class_name, const String& p_method_name) {
         String class_name = p_class_name;
-        while (!class_name.is_empty())
-        {
+        while (!class_name.is_empty()) {
             TypedArray<Dictionary> methods;
-            if (ScriptServer::is_global_class(p_class_name))
+            if (ScriptServer::is_global_class(p_class_name)) {
                 methods = ScriptServer::get_global_class(p_class_name).get_method_list();
-            else
+            } else {
                 methods = ClassDB::class_get_method_list(class_name, true);
+            }
 
-            for (int i = 0; i < methods.size(); i++)
-            {
+            for (int i = 0; i < methods.size(); i++) {
                 const Dictionary& method = methods[i];
-                if (p_method_name.match(method["name"]))
+                if (p_method_name.match(method["name"])) {
                     return class_name;
+                }
             }
             class_name = ClassDB::get_parent_class(class_name);
         }
         return {};
     }
 
-    String get_signature(const MethodInfo& p_method)
-    {
+    String get_signature(const MethodInfo& p_method) {
         String signature = p_method.name.replace("_", " ").capitalize() + "\n\n";
 
-        if (MethodUtils::has_return_value(p_method))
-        {
-            if (PropertyUtils::is_variant(p_method.return_val))
+        if (has_return_value(p_method)) {
+            if (PropertyUtils::is_variant(p_method.return_val)) {
                 signature += "Variant";
-            else if (p_method.return_val.hint == PROPERTY_HINT_ARRAY_TYPE)
+            } else if (p_method.return_val.hint == PROPERTY_HINT_ARRAY_TYPE) {
                 signature += "Array[" + p_method.return_val.hint_string + "]";
-            else
+            } else {
                 signature += Variant::get_type_name(p_method.return_val.type);
-        }
-        else
+            }
+        } else {
             signature += "void";
+        }
 
         signature += " " + p_method.name + " (";
 
         int index = 0;
-        for (const PropertyInfo& property : p_method.arguments)
-        {
-            if (!signature.ends_with("("))
+        for (const PropertyInfo& property : p_method.arguments) {
+            if (!signature.ends_with("(")) {
                 signature += ", ";
-
-            if (property.name.is_empty())
+            }
+            if (property.name.is_empty()) {
                 signature += "p" + itos(index++);
-            else
+            } else {
                 signature += property.name;
-
+            }
             signature += ":" + PropertyUtils::get_property_type_name(property);
         }
 
-        if (p_method.flags & METHOD_FLAG_VARARG)
-        {
-            if (!p_method.arguments.empty())
+        if (p_method.flags & METHOD_FLAG_VARARG) {
+            if (!p_method.arguments.empty()) {
                 signature += ", ";
+            }
             signature += "...";
         }
 
         signature += ")";
 
-        if (p_method.flags & METHOD_FLAG_CONST)
+        if (p_method.flags & METHOD_FLAG_CONST) {
             signature += " const";
-        else if (p_method.flags & METHOD_FLAG_VIRTUAL)
+        } else if (p_method.flags & METHOD_FLAG_VIRTUAL) {
             signature += " virtual";
+        }
 
         #if DEBUG_ENABLED
         signature += "\n\n";
@@ -141,48 +136,48 @@ namespace MethodUtils
         return signature;
     }
 
-    size_t get_argument_count_without_defaults(const MethodInfo& p_method)
-    {
+    size_t get_argument_count_without_defaults(const MethodInfo& p_method) {
         return p_method.arguments.size() - p_method.default_arguments.size();
     }
 
-    bool has_same_signature(const MethodInfo& p_method_a, const MethodInfo& p_method_b)
-    {
-        if (p_method_a.arguments.size() != p_method_b.arguments.size())
+    bool has_same_signature(const MethodInfo& p_method_a, const MethodInfo& p_method_b) {
+        if (p_method_a.arguments.size() != p_method_b.arguments.size()) {
             return false;
-
-        if (p_method_a.default_arguments.size() != p_method_b.default_arguments.size())
+        }
+        if (p_method_a.default_arguments.size() != p_method_b.default_arguments.size()) {
             return false;
-
-        if (p_method_a.flags != p_method_b.flags)
+        }
+        if (p_method_a.flags != p_method_b.flags) {
             return false;
-
-        if (p_method_a.name != p_method_b.name)
+        }
+        if (p_method_a.name != p_method_b.name) {
             return false;
-
-        if (!PropertyUtils::are_equal(p_method_a.return_val, p_method_b.return_val))
+        }
+        if (!PropertyUtils::are_equal(p_method_a.return_val, p_method_b.return_val)) {
             return false;
+        }
 
-        for (size_t i = 0; i < p_method_a.arguments.size(); i++)
-        {
+        for (size_t i = 0; i < p_method_a.arguments.size(); i++) {
             const PropertyInfo& a = p_method_a.arguments[i];
             const PropertyInfo& b = p_method_b.arguments[i];
 
             // PropertyUtils::are_equal does not compare names
             // But here we want to compare names
-            if (a.name != b.name)
+            if (a.name != b.name) {
                 return false;
+            }
 
-            if (!PropertyUtils::are_equal(a, b))
+            if (!PropertyUtils::are_equal(a, b)) {
                 return false;
+            }
         }
 
-        for (size_t i = 0; i < p_method_b.default_arguments.size(); i++)
-        {
+        for (size_t i = 0; i < p_method_b.default_arguments.size(); i++) {
             const Variant& a = p_method_a.default_arguments[i];
             const Variant& b = p_method_b.default_arguments[i];
-            if (!VariantUtils::evaluate(Variant::OP_EQUAL, a, b))
+            if (!VariantUtils::evaluate(Variant::OP_EQUAL, a, b)) {
                 return false;
+            }
         }
 
         return true;
