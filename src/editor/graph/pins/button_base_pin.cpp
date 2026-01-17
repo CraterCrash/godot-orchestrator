@@ -19,6 +19,7 @@
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/h_box_container.hpp>
 
@@ -52,13 +53,13 @@ Control* OrchestratorEditorGraphPinButtonBase::_create_default_value_widget() {
     _selector_button = memnew(Button);
     _selector_button->set_focus_mode(FOCUS_NONE);
     _selector_button->set_custom_minimum_size(Vector2(28, 0));
-    _selector_button->connect("pressed", callable_mp_this(_selector_button_pressed));
+    _selector_button->connect(SceneStringName(pressed), callable_mp_this(_selector_button_pressed));
     container->add_child(_selector_button);
 
     _clear_button = memnew(Button);
     _clear_button->set_focus_mode(FOCUS_NONE);
     _clear_button->set_button_icon(SceneUtils::get_editor_icon("Reload"));
-    _clear_button->connect("pressed", callable_mp_this(_clear_button_pressed));
+    _clear_button->connect(SceneStringName(pressed), callable_mp_this(_clear_button_pressed));
     container->add_child(_clear_button);
 
     return container;

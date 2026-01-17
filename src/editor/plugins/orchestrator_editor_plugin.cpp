@@ -19,6 +19,7 @@
 #include "common/macros.h"
 #include "common/resource_utils.h"
 #include "common/version.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/export/orchestration_export_plugin.h"
 #include "editor/gui/window_wrapper.h"
@@ -34,8 +35,8 @@
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/theme.hpp>
+#include <godot_cpp/classes/viewport.hpp>
 
 OrchestratorPlugin* OrchestratorPlugin::_plugin = nullptr;
 
@@ -309,7 +310,7 @@ void OrchestratorPlugin::request_editor_restart() {
 
     request->add_child(container);
 
-    request->connect("confirmed", callable_mp(EI, &EditorInterface::restart_editor).bind(true));
+    request->connect(SceneStringName(confirmed), callable_mp(EI, &EditorInterface::restart_editor).bind(true));
     request->popup_centered();
 }
 

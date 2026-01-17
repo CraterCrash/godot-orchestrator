@@ -17,6 +17,7 @@
 #include "editor/gui/dialogs_helper.h"
 
 #include "common/macros.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
@@ -31,8 +32,8 @@ void OrchestratorEditorDialogs::accept(const String& p_message, const String& p_
     dialog->set_min_size(Vector2i(600, 0));
     dialog->reset_size();
 
-    dialog->connect("canceled", callable_mp_cast(dialog, Node, queue_free));
-    dialog->connect("confirmed", callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
 
     EI->popup_dialog_centered_clamped(dialog, Size2i(), 0.0);
 }
@@ -46,11 +47,11 @@ void OrchestratorEditorDialogs::confirm(const String& p_message, const Callable&
     dialog->get_label()->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 
     if (p_callback.is_valid()) {
-        dialog->connect("confirmed", p_callback);
+        dialog->connect(SceneStringName(confirmed), p_callback);
     }
 
-    dialog->connect("canceled", callable_mp_cast(dialog, Node, queue_free));
-    dialog->connect("confirmed", callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
 
     EI->popup_dialog_centered(dialog);
 }
@@ -61,8 +62,8 @@ void OrchestratorEditorDialogs::error(const String& p_message, const String& p_t
     dialog->set_title(p_title);
     dialog->set_exclusive(p_exclusive);
 
-    dialog->connect("canceled", callable_mp_cast(dialog, Node, queue_free));
-    dialog->connect("confirmed", callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
 
     EI->popup_dialog_centered(dialog);
 }

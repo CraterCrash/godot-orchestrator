@@ -22,6 +22,8 @@
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/editor_component_view.h"
 #include "editor/graph/graph_panel.h"
@@ -1008,8 +1010,8 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
 
         // Any existing variables should be connected to this function, to refresh the
         // view whenever any variable data changes.
-        if (!variable->is_connected("changed", callable_mp_this(_update_variables))) {
-            variable->connect("changed", callable_mp_this(_update_variables));
+        if (!variable->is_connected(CoreStringName(changed), callable_mp_this(_update_variables))) {
+            variable->connect(CoreStringName(changed), callable_mp_this(_update_variables));
         }
 
         TreeItem* parent = nullptr;
@@ -1235,8 +1237,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _graphs->set_tree_gui_handler(callable_mp_this(_component_item_gui_input));
     _graphs->connect("add_requested", callable_mp_this(_component_add_item).bind(EVENT_GRAPH));
     _graphs->connect("context_menu_requested", callable_mp_this(_component_show_context_menu));
-    _graphs->connect("item_selected", callable_mp_this(_component_item_selected));
-    _graphs->connect("item_activated", callable_mp_this(_component_item_activated));
+    _graphs->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
+    _graphs->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _graphs->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
     _graphs->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A graph allows you to place many types of nodes to create various behaviors. "
@@ -1250,7 +1252,7 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     add_function_override->set_focus_mode(FOCUS_NONE);
     add_function_override->set_button_icon(SceneUtils::get_editor_icon("Override"));
     add_function_override->set_tooltip_text("Override a Godot virtual function");
-    add_function_override->connect("pressed", callable_mp_signal_lambda("add_function_override_requested"));
+    add_function_override->connect(SceneStringName(pressed), callable_mp_signal_lambda("add_function_override_requested"));
 
     _functions = memnew(OrchestratorEditorComponentView);
     _functions->set_title("Functions");
@@ -1259,8 +1261,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _functions->add_button(add_function_override);
     _functions->connect("add_requested", callable_mp_this(_component_add_item).bind(SCRIPT_FUNCTION));
     _functions->connect("context_menu_requested", callable_mp_this(_component_show_context_menu));
-    _functions->connect("item_selected", callable_mp_this(_component_item_selected));
-    _functions->connect("item_activated", callable_mp_this(_component_item_activated));
+    _functions->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
+    _functions->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _functions->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
     _functions->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A function graph allows the encapsulation of functionality for re-use. Function graphs have "
@@ -1290,8 +1292,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _variables->set_tree_gui_handler(callable_mp_this(_component_item_gui_input));
     _variables->connect("add_requested", callable_mp_this(_component_add_item).bind(SCRIPT_VARIABLE));
     _variables->connect("context_menu_requested", callable_mp_this(_component_show_context_menu));
-    _variables->connect("item_selected", callable_mp_this(_component_item_selected));
-    _variables->connect("item_activated", callable_mp_this(_component_item_activated));
+    _variables->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
+    _variables->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _variables->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
     _variables->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A variable represents some data that will be stored and managed by the orchestration.\n\n"
@@ -1306,8 +1308,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _signals->set_tree_gui_handler(callable_mp_this(_component_item_gui_input));
     _signals->connect("add_requested", callable_mp_this(_component_add_item).bind(SCRIPT_SIGNAL));
     _signals->connect("context_menu_requested", callable_mp_this(_component_show_context_menu));
-    _signals->connect("item_selected", callable_mp_this(_component_item_selected));
-    _signals->connect("item_activated", callable_mp_this(_component_item_activated));
+    _signals->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
+    _signals->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _signals->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
     _signals->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A signal is used to send a notification synchronously to any number of observers that have "
@@ -1318,7 +1320,7 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
 
     OrchestratorEditor::get_singleton()->connect("scene_changed", callable_mp_this(_scene_changed));
     ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_project_settings_changed));
-    OrchestratorEditorConnectionsDock::get_singleton()->connect("changed", callable_mp_this(_update_slots));
+    OrchestratorEditorConnectionsDock::get_singleton()->connect(CoreStringName(changed), callable_mp_this(_update_slots));
 
     _project_settings_changed();
 }

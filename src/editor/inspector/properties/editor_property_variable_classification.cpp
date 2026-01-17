@@ -20,6 +20,7 @@
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 
 void OrchestratorEditorPropertyVariableClassification::_property_selected() {
     _dialog->popup_create(true, false, get_edited_object()->get(get_edited_property()), get_edited_property());
@@ -35,14 +36,14 @@ void OrchestratorEditorPropertyVariableClassification::_search_selected() {
         confirm->set_ok_button_text("Change Variable Type");
         add_child(confirm);
 
-        confirm->connect("confirmed", callable_mp_lambda(this, [confirm, this] {
+        confirm->connect(SceneStringName(confirmed), callable_mp_lambda(this, [confirm, this] {
             emit_changed(get_edited_property(), _selected_name);
             update_property();
             if (confirm)
                 confirm->queue_free();
         }));
 
-        confirm->connect("canceled", callable_mp_lambda(this, [confirm] {
+        confirm->connect(SceneStringName(canceled), callable_mp_lambda(this, [confirm] {
             if (confirm)
                 confirm->queue_free();
         }));
@@ -109,7 +110,7 @@ void OrchestratorEditorPropertyVariableClassification::_notification(int p_what)
             add_child(_dialog);
 
             _dialog->connect("selected", callable_mp_this(_search_selected));
-            _property->connect("pressed", callable_mp_this(_property_selected));
+            _property->connect(SceneStringName(pressed), callable_mp_this(_property_selected));
 
             break;
         }

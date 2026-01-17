@@ -22,6 +22,7 @@
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
@@ -182,11 +183,11 @@ void OrchestratorPropertySelector::set_type_filter(const Vector<Variant::Type>& 
 
 void OrchestratorPropertySelector::_notification(int p_what) {
     if (p_what == NOTIFICATION_READY) {
-        OCONNECT(_search_box, "text_changed", callable_mp_this(_text_changed));
-        OCONNECT(_search_box, "gui_input", callable_mp_this(_sbox_input));
-        OCONNECT(_search_options,  "item_activated", callable_mp_this(_confirmed));
+        OCONNECT(_search_box, SceneStringName(text_changed), callable_mp_this(_text_changed));
+        OCONNECT(_search_box, SceneStringName(gui_input), callable_mp_this(_sbox_input));
+        OCONNECT(_search_options,  SceneStringName(item_activated), callable_mp_this(_confirmed));
         OCONNECT(_search_options, "cell_selected", callable_mp_this(_item_selected));
-        OCONNECT(this, "confirmed", callable_mp_this(_confirmed));
+        OCONNECT(this, SceneStringName(confirmed), callable_mp_this(_confirmed));
     }
 }
 

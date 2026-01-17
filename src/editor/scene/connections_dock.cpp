@@ -18,6 +18,8 @@
 
 #include "common/macros.h"
 #include "common/scene_utils.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "script/script.h"
 
@@ -80,7 +82,7 @@ void OrchestratorEditorConnectionsDock::_go_to_method(TreeItem* p_item) {
 }
 
 void OrchestratorEditorConnectionsDock::_notify_connections_dock_changed() {
-    emit_signal("changed");
+    emit_signal(CoreStringName(changed));
 }
 
 bool OrchestratorEditorConnectionsDock::disconnect_slot(const Ref<Script>& p_script, const StringName& p_method) {
@@ -131,7 +133,7 @@ void OrchestratorEditorConnectionsDock::_notification(int p_what) {
                         // The second one is the ConfirmationDialog that is for handling whether the user
                         // really wants to process the "Disconnect All Connections" menu choice.
                         if (ConfirmationDialog* dialog = cast_to<ConfirmationDialog>(dialogs[1])) {
-                            dialog->connect("confirmed", callable_mp_this(_notify_connections_dock_changed));
+                            dialog->connect(SceneStringName(confirmed), callable_mp_this(_notify_connections_dock_changed));
                         }
                     }
 
@@ -140,7 +142,7 @@ void OrchestratorEditorConnectionsDock::_notification(int p_what) {
                     if (menus.size() >= 3) {
                         // The third PopupMenu is what we are interested in.
                         if (PopupMenu* menu = cast_to<PopupMenu>(menus[2])) {
-                            menu->connect("id_pressed", callable_mp_this(_slot_menu_option));
+                            menu->connect(SceneStringName(id_pressed), callable_mp_this(_slot_menu_option));
                         }
                     }
                 }
@@ -154,7 +156,7 @@ void OrchestratorEditorConnectionsDock::_notification(int p_what) {
 }
 
 void OrchestratorEditorConnectionsDock::_bind_methods() {
-    ADD_SIGNAL(MethodInfo("changed"));
+    ADD_SIGNAL(MethodInfo(CoreStringName(changed)));
 }
 
 OrchestratorEditorConnectionsDock::OrchestratorEditorConnectionsDock() {

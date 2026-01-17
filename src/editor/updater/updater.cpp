@@ -23,6 +23,7 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/version.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/center_container.hpp>
@@ -146,8 +147,8 @@ String OrchestratorVersion::to_string() const {
 
 void OrchestratorUpdaterReleaseNotesDialog::_notification(int p_what) {
     if (p_what == NOTIFICATION_READY) {
-        connect("canceled", callable_mp_lambda(this, [this] { queue_free(); }));
-        connect("confirmed", callable_mp_lambda(this, [this] { queue_free(); }));
+        connect(SceneStringName(canceled), callable_mp_lambda(this, [this] { queue_free(); }));
+        connect(SceneStringName(confirmed), callable_mp_lambda(this, [this] { queue_free(); }));
     }
 }
 
@@ -177,8 +178,8 @@ void OrchestratorUpdaterVersionPicker::_check_godot_compatibility() {
             notify->set_title("Godot version incompatible");
             notify->set_text("Your current version of Godot is incompatible. Please update your editor first.");
             add_child(notify);
-            notify->connect("canceled", callable_mp_lambda(this, [notify] { notify->queue_free(); }));
-            notify->connect("confirmed", callable_mp_lambda(this, [notify] { notify->queue_free(); }));
+            notify->connect(SceneStringName(canceled), callable_mp_lambda(this, [notify] { notify->queue_free(); }));
+            notify->connect(SceneStringName(confirmed), callable_mp_lambda(this, [notify] { notify->queue_free(); }));
             notify->popup_centered();
             return;
         }
@@ -272,7 +273,7 @@ void OrchestratorUpdaterVersionPicker::_install() {
     dialog->set_ok_button_text("Restart");
     add_child(dialog);
 
-    dialog->connect("confirmed", callable_mp_lambda(this, [this, dialog] {
+    dialog->connect(SceneStringName(confirmed), callable_mp_lambda(this, [this, dialog] {
         dialog->queue_free();
 
         Timer* timer = memnew(Timer);
@@ -388,14 +389,14 @@ void OrchestratorUpdaterVersionPicker::_notification(int p_what) {
         }
         case NOTIFICATION_READY: {
             _download->connect("request_completed", callable_mp_this(_download_completed));
-            _release_filter->connect("item_selected", callable_mp_this(_filter_changed));
-            _notify_any_release->connect("pressed", callable_mp_this(_update_notify_settings));
-            _tree->connect("item_activated", callable_mp_this(_check_godot_compatibility));
-            _tree->connect("item_selected", callable_mp_this(_set_button_enable_state).bind(true));
+            _release_filter->connect(SceneStringName(item_selected), callable_mp_this(_filter_changed));
+            _notify_any_release->connect(SceneStringName(pressed), callable_mp_this(_update_notify_settings));
+            _tree->connect(SceneStringName(item_activated), callable_mp_this(_check_godot_compatibility));
+            _tree->connect(SceneStringName(item_selected), callable_mp_this(_set_button_enable_state).bind(true));
 
             connect("custom_action", callable_mp_this(_handle_custom_action));
-            connect("confirmed", callable_mp_this(_check_godot_compatibility));
-            connect("canceled", callable_mp_this(_cancel_and_close));
+            connect(SceneStringName(confirmed), callable_mp_this(_check_godot_compatibility));
+            connect(SceneStringName(canceled), callable_mp_this(_cancel_and_close));
             break;
         }
         case NOTIFICATION_PROCESS: {
@@ -698,7 +699,7 @@ void OrchestratorUpdaterButton::_notification(int p_what) {
             _button = memnew(Button);
             _button->set_text("...");
             _button->set_tooltip_text("An update is available for Godot Orchestrator");
-            _button->add_theme_color_override("font_color", Color(0, 1, 0));
+            _button->add_theme_color_override(SceneStringName(font_color), Color(0, 1, 0));
             _button->add_theme_color_override("font_hover_color", Color(0, 1, 0));
             _button->set_vertical_icon_alignment(VERTICAL_ALIGNMENT_CENTER);
             _button->set_focus_mode(FOCUS_NONE);
@@ -711,7 +712,7 @@ void OrchestratorUpdaterButton::_notification(int p_what) {
             _check_for_updates();
 
             timer->connect("timeout", callable_mp_this(_check_for_updates));
-            _button->connect("pressed", callable_mp_this(_show_update_dialog));
+            _button->connect(SceneStringName(pressed), callable_mp_this(_show_update_dialog));
 
             ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_update_picker));
             break;

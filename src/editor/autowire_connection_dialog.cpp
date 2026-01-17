@@ -19,6 +19,7 @@
 #include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/graph/graph_pin.h"
 #include "script/nodes/math/operator_node.h"
 
@@ -44,7 +45,7 @@ void OrchestratorAutowireConnectionDialog::_item_selected() {
 }
 
 void OrchestratorAutowireConnectionDialog::_close() {
-    get_ok_button()->call_deferred("emit_signal", "pressed");
+    get_ok_button()->call_deferred("emit_signal", SceneStringName(pressed));
 }
 
 OrchestratorEditorGraphPin* OrchestratorAutowireConnectionDialog::get_autowire_choice() const {
@@ -96,9 +97,9 @@ OrchestratorAutowireConnectionDialog::OrchestratorAutowireConnectionDialog() {
     _tree->set_allow_rmb_select(true);
     vbox->add_child(_tree);
 
-    _tree->connect("item_activated", callable_mp_this(_item_activated));
-    _tree->connect("item_selected", callable_mp_this(_item_selected));
+    _tree->connect(SceneStringName(item_activated), callable_mp_this(_item_activated));
+    _tree->connect(SceneStringName(item_selected), callable_mp_this(_item_selected));
 
-    connect("confirmed", callable_mp_cast(this, Node, queue_free));
-    connect("canceled", callable_mp_cast(this, Node, queue_free));
+    connect(SceneStringName(confirmed), callable_mp_cast(this, Node, queue_free));
+    connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
 }

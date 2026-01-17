@@ -17,6 +17,7 @@
 #include "editor/inspector/properties/editor_property_class_name.h"
 
 #include "common/macros.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/gui/select_class_dialog.h"
 
 Variant OrchestratorEditorPropertyClassName::_get_edited_property_value() {
@@ -60,7 +61,7 @@ void OrchestratorEditorPropertyClassName::setup(const String& p_base_type, const
 void OrchestratorEditorPropertyClassName::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_READY: {
-            _property->connect("pressed", callable_mp_this(_property_selected));
+            _property->connect(SceneStringName(pressed), callable_mp_this(_property_selected));
             _dialog->connect("selected", callable_mp_this(_dialog_selected));
             break;
         }

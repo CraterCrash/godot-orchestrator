@@ -24,6 +24,7 @@
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -200,7 +201,7 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
             Slot new_slot;
             new_slot.name = memnew(LineEdit);
             new_slot.name->set_h_size_flags(SIZE_EXPAND_FILL);
-            new_slot.name->connect("text_changed", callable_mp_this(_rename_property).bind(index));
+            new_slot.name->connect(SceneStringName(text_changed), callable_mp_this(_rename_property).bind(index));
             new_slot.name->set_editable(!is_read_only());
             add_focusable(new_slot.name);
 
@@ -209,7 +210,7 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
             new_slot.type->set_custom_minimum_size(Vector2(100, 0));
             new_slot.type->set_tooltip_text(_args ? "Set argument type" : "Set return type");
             new_slot.type->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
-            new_slot.type->connect("pressed", callable_mp_this(_show_type_selection).bind(index, friendly_type_name));
+            new_slot.type->connect(SceneStringName(pressed), callable_mp_this(_show_type_selection).bind(index, friendly_type_name));
             new_slot.type->set_disabled(is_read_only());
             add_focusable(new_slot.type);
 
@@ -225,21 +226,21 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
             remove->set_button_icon(SceneUtils::get_editor_icon("Remove"));
             remove->set_tooltip_text(_args ? "Remove this argument" : "Remove this return value");
             remove->set_disabled(is_read_only());
-            remove->connect("pressed", callable_mp_this(_remove_property).bind(index));
+            remove->connect(SceneStringName(pressed), callable_mp_this(_remove_property).bind(index));
             new_slot.button_group->add_child(remove);
 
             Button* move_up = memnew(Button);
             move_up->set_button_icon(SceneUtils::get_editor_icon("ArrowUp"));
             move_up->set_tooltip_text(_args ? "Move this argument up" : "Move this return value up");
             move_up->set_disabled(true);
-            move_up->connect("pressed", callable_mp_this(_move_up).bind(index));
+            move_up->connect(SceneStringName(pressed), callable_mp_this(_move_up).bind(index));
             new_slot.button_group->add_child(move_up);
 
             Button* move_down = memnew(Button);
             move_down->set_button_icon(SceneUtils::get_editor_icon("ArrowDown"));
             move_down->set_tooltip_text(_args ? "Move this argument down" : "Move this return value down");
             move_down->set_disabled(true);
-            move_down->connect("pressed", callable_mp_this(_move_down).bind(index));
+            move_down->connect(SceneStringName(pressed), callable_mp_this(_move_down).bind(index));
             new_slot.button_group->add_child(move_down);
 
             _container->add_child(new_slot.name);
@@ -314,7 +315,7 @@ void OrchestratorEditorPropertyPinProperties::_notification(int p_what)
             _add_button->set_h_size_flags(SIZE_SHRINK_CENTER);
             _add_button->set_focus_mode(FOCUS_NONE);
             _add_button->set_disabled(is_read_only());
-            _add_button->connect("pressed", callable_mp_this(_add_property));
+            _add_button->connect(SceneStringName(pressed), callable_mp_this(_add_property));
             outer->add_child(_add_button);
 
             _margin->add_child(outer);

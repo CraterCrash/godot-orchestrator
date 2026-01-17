@@ -18,6 +18,7 @@
 
 #include "common/macros.h"
 #include "core/godot/object/enum_resolver.h"
+#include "core/godot/scene_string_names.h"
 #include "script/script_server.h"
 
 void OrchestratorEditorGraphPinEnum::_item_selected(int p_index) {
@@ -69,7 +70,7 @@ Variant OrchestratorEditorGraphPinEnum::_read_control_value() {
 
 Control* OrchestratorEditorGraphPinEnum::_create_default_value_widget() {
     _button = memnew(OptionButton);
-    _button->connect("item_selected", callable_mp_this(_item_selected));
+    _button->connect(SceneStringName(item_selected), callable_mp_this(_item_selected));
 
     return _button;
 }
