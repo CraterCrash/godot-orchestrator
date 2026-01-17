@@ -16,12 +16,10 @@
 //
 #include "variant_operators.h"
 
-namespace VariantOperators
-{
-    Variant::Operator to_engine(Code p_code)
-    {
+namespace VariantOperators {
+    Variant::Operator to_engine(Code p_code) {
         // VariantOperators::Code is already directly aligned with the engine enum
         // so a simple recast to the Variant::Operator should be sufficient.
-        return Variant::Operator(int(p_code));
+        return static_cast<Variant::Operator>(static_cast<int>(p_code));
     }
 }

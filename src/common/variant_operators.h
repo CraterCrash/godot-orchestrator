@@ -30,10 +30,9 @@ using namespace godot;
 ///
 /// Engine: https://github.com/godotengine/godot/blob/master/core/variant/variant.h#L511-L542
 /// CPP   : https://github.com/godotengine/godot-cpp/blob/master/include/godot_cpp/variant/variant.hpp#L109-L139
-namespace VariantOperators
-{
-    enum Code
-    {
+namespace VariantOperators {
+
+    enum Code {
         OP_EQUAL,
         OP_NOT_EQUAL,
         OP_LESS,

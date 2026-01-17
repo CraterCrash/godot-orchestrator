@@ -16,22 +16,18 @@
 //
 #include "guid.h"
 
-Ref<RandomNumberGenerator>& Guid::_get_random_number_generator()
-{
+Ref<RandomNumberGenerator>& Guid::_get_random_number_generator() {
     static Ref<RandomNumberGenerator> rng;
-    if (rng.is_null())
-    {
+    if (rng.is_null()) {
         rng.instantiate();
         rng->randomize();
     }
     return rng;
 }
 
-bool Guid::_parse(const String& p_guid_str, uint32_t& r_a, uint32_t& r_b, uint32_t& r_c, uint32_t& r_d)
-{
+bool Guid::_parse(const String& p_guid_str, uint32_t& r_a, uint32_t& r_b, uint32_t& r_c, uint32_t& r_d) {
     PackedStringArray bits = p_guid_str.split("-");
-    if (bits.size() != 5)
-    {
+    if (bits.size() != 5) {
         ERR_FAIL_V_MSG(false, "The GUID '" + p_guid_str + "' is an invalid format.");
     }
 
@@ -42,26 +38,22 @@ bool Guid::_parse(const String& p_guid_str, uint32_t& r_a, uint32_t& r_b, uint32
     return true;
 }
 
-void Guid::invalidate()
-{
+void Guid::invalidate() {
     _a = 0;
     _b = 0;
     _c = 0;
     _d = 0;
 }
 
-bool Guid::is_valid() const
-{
+bool Guid::is_valid() const {
     return _a != 0 && _b != 0 && _c != 0 && _d != 0;
 }
 
-String Guid::to_string() const
-{
+String Guid::to_string() const {
     return vformat("%08X-%04X-%04X-%04X-%04X%08X", _a, _b >> 16, _b & 0xFFFF, _c >> 16, _c & 0xFFFF, _d);
 }
 
-Guid Guid::create_guid()
-{
+Guid Guid::create_guid() {
     const Ref<RandomNumberGenerator>& rng = _get_random_number_generator();
 
     uint32_t a = rng->randi();
@@ -78,29 +70,24 @@ Guid Guid::create_guid()
     return { a, b, c, d };
 }
 
-void Guid::cleanup()
-{
+void Guid::cleanup() {
     Ref<RandomNumberGenerator>& rng = _get_random_number_generator();
     rng.unref();
 }
 
-bool Guid::operator==(const Guid& p_o) const
-{
+bool Guid::operator==(const Guid& p_o) const {
     return _a == p_o._a && _b == p_o._b && _c == p_o._c && _d == p_o._d;
 }
 
-bool Guid::operator!=(const Guid& p_o) const
-{
+bool Guid::operator!=(const Guid& p_o) const {
     return _a != p_o._a || _b != p_o._b || _c != p_o._c || _d != p_o._d;
 }
 
-Guid::Guid()
-{
+Guid::Guid() {
     invalidate();
 }
 
-Guid::Guid(const String& p_guid)
-{
+Guid::Guid(const String& p_guid) {
     _parse(p_guid, _a, _b, _c, _d);
 }
 
@@ -108,6 +95,5 @@ Guid::Guid(uint32_t p_a, uint32_t p_b, uint32_t p_c, uint32_t p_d)
     : _a(p_a)
     , _b(p_b)
     , _c(p_c)
-    , _d(p_d)
-{
+    , _d(p_d) {
 }

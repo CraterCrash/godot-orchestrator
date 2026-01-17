@@ -20,28 +20,26 @@
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
-namespace VariantUtils
-{
-    String get_type_name_article(Variant::Type p_type, bool p_nil_as_any)
-    {
-        switch (p_type)
-        {
+namespace VariantUtils {
+    String get_type_name_article(Variant::Type p_type, bool p_nil_as_any) {
+        switch (p_type) {
             case Variant::INT:
             case Variant::ARRAY:
             case Variant::OBJECT:
-            case Variant::AABB:
+            case Variant::AABB: {
                 return "an";
-            case Variant::NIL:
+            }
+            case Variant::NIL: {
                 return p_nil_as_any ? "an" : "a";
-            default:
+            }
+            default: {
                 return "a";
+            }
         }
     }
 
-    String get_friendly_type_name(Variant::Type p_type, bool p_nil_as_any)
-    {
-        switch (p_type)
-        {
+    String get_friendly_type_name(Variant::Type p_type, bool p_nil_as_any) {
+        switch (p_type) {
             case Variant::INT:
                 return "Integer";
             case Variant::BOOL:
@@ -88,224 +86,205 @@ namespace VariantUtils
                 return "Packed Vector3 Array";
             case Variant::PACKED_COLOR_ARRAY:
                 return "Packed Color Array";
-            default:
-            {
+            default: {
                 String name = Variant::get_type_name(p_type);
                 return p_nil_as_any && name.match("Nil") ? "Any" : name;
             }
         }
     }
 
-    String to_enum_list(bool p_include_any)
-    {
+    String to_enum_list(bool p_include_any) {
         String list = p_include_any ? "Any" : "";
-        for (int i = 1; i < Variant::VARIANT_MAX; i++)
-        {
-            if (!list.is_empty())
+        for (int i = 1; i < Variant::VARIANT_MAX; i++) {
+            if (!list.is_empty()) {
                 list += ",";
-
-            list += Variant::get_type_name(Variant::Type(i));
+            }
+            list += Variant::get_type_name(GDE::Variant::as_type(i));
         }
         return list;
     }
 
-    Variant::Type to_type(int p_type)
-    {
+    Variant::Type to_type(int p_type) {
         return GDE::Variant::as_type(p_type);
     }
 
-    Variant make_default(Variant::Type p_type)
-    {
+    Variant make_default(Variant::Type p_type) {
         // Explicitly avoid "<null>" strings
-        if (p_type == Variant::STRING)
+        if (p_type == Variant::STRING) {
             return String("");
-
+        }
         return UtilityFunctions::type_convert(Variant(), p_type);
     }
 
-    Variant convert(const Variant& p_value, Variant::Type p_target_type)
-    {
-        if (Variant::can_convert(p_value.get_type(), p_target_type))
+    Variant convert(const Variant& p_value, Variant::Type p_target_type) {
+        if (Variant::can_convert(p_value.get_type(), p_target_type)) {
             return UtilityFunctions::type_convert(p_value, p_target_type);
+        }
 
         const Variant::Type type = p_value.get_type();
 
-        if (p_target_type == Variant::BOOL)
-        {
-            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
+        if (p_target_type == Variant::BOOL) {
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I) {
                 return p_value.operator Vector2().x;
-
-            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
+            }
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I) {
                 return p_value.operator Vector3().x;
-
-            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
+            }
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I) {
                 return p_value.operator Vector4().x;
-
-            if (type == Variant::INT || type == Variant::FLOAT)
+            }
+            if (type == Variant::INT || type == Variant::FLOAT) {
                 return p_value.operator int64_t();
-
-            if (type == Variant::STRING || type == Variant::STRING_NAME)
-            {
+            }
+            if (type == Variant::STRING || type == Variant::STRING_NAME) {
                 const String value = p_value;
                 return value.to_lower().match("true") || value.strip_edges() == "1";
             }
         }
 
-        if (p_target_type == Variant::INT || p_target_type == Variant::FLOAT)
-        {
-            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
+        if (p_target_type == Variant::INT || p_target_type == Variant::FLOAT) {
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I) {
                 return p_value.operator Vector2().x;
-
-            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
+            }
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I) {
                 return p_value.operator Vector3().x;
-
-            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
+            }
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I) {
                 return p_value.operator Vector4().x;
-
-            if (type == Variant::STRING || type == Variant::STRING_NAME)
-            {
+            }
+            if (type == Variant::STRING || type == Variant::STRING_NAME) {
                 String value = p_value;
-                if (value.begins_with("(") && value.ends_with(")"))
-                {
+                if (value.begins_with("(") && value.ends_with(")")) {
                     value = value.substr(1, value.length() - 1);
                     convert(value.split(",")[0], p_target_type);
+                } else if (value.to_lower().match("true")) {
+                    return convert(true, p_target_type);
+                } else if (value.strip_edges().match("1")) {
+                    return convert(true, p_target_type);
                 }
-                else if (value.to_lower().match("true"))
-                    return convert(true, p_target_type);
-                else if (value.strip_edges().match("1"))
-                    return convert(true, p_target_type);
             }
         }
 
-        if (p_target_type == Variant::VECTOR2 || p_target_type == Variant::VECTOR2I)
-        {
-            if (type == Variant::BOOL || type == Variant::INT || type == Variant::FLOAT)
+        if (p_target_type == Variant::VECTOR2 || p_target_type == Variant::VECTOR2I) {
+            if (type == Variant::BOOL || type == Variant::INT || type == Variant::FLOAT) {
                 return Vector2(p_value, p_value);
+            }
 
-            if (type == Variant::STRING || type == Variant::STRING_NAME)
-            {
+            if (type == Variant::STRING || type == Variant::STRING_NAME) {
                 String value = p_value;
-                if (value.begins_with("(") && value.ends_with(")"))
-                {
+                if (value.begins_with("(") && value.ends_with(")")) {
                     value = value.substr(1, value.length() - 1);
 
                     Vector2 result;
                     const PackedStringArray parts = value.split(",");
-                    for (int i = 0; i < parts.size() && i < 2; i++)
+                    for (int i = 0; i < parts.size() && i < 2; i++) {
                         result[i] = parts[i].to_float();
+                    }
                     return result;
+                } else if (value.to_lower().match("true")) {
+                    return convert(true, p_target_type);
+                } else if (value.strip_edges().match("1")) {
+                    return convert(true, p_target_type);
                 }
-                else if (value.to_lower().match("true"))
-                    return convert(true, p_target_type);
-                else if (value.strip_edges().match("1"))
-                    return convert(true, p_target_type);
             }
 
-            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
-            {
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I) {
                 const Vector3 v3 = p_value;
                 return Vector2(v3.x, v3.y);
             }
 
-            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
-            {
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I) {
                 const Vector4 v4 = p_value;
                 return Vector2(v4.x, v4.y);
             }
         }
 
-        if (p_target_type == Variant::VECTOR3 || p_target_type == Variant::VECTOR3I)
-        {
-            if (type == Variant::INT || type == Variant::FLOAT || type == Variant::BOOL)
+        if (p_target_type == Variant::VECTOR3 || p_target_type == Variant::VECTOR3I) {
+            if (type == Variant::INT || type == Variant::FLOAT || type == Variant::BOOL) {
                 return Vector3(p_value, p_value, p_value);
+            }
 
-            if (type == Variant::STRING || type == Variant::STRING_NAME)
-            {
+            if (type == Variant::STRING || type == Variant::STRING_NAME) {
                 String value = p_value;
-                if (value.begins_with("(") && value.ends_with(")"))
-                {
+                if (value.begins_with("(") && value.ends_with(")")) {
                     value = value.substr(1, value.length() - 1);
 
                     Vector3 result;
                     const PackedStringArray parts = value.split(",");
-                    for (int i = 0; i < parts.size() && i < 3; i++)
+                    for (int i = 0; i < parts.size() && i < 3; i++) {
                         result[i] = parts[i].to_float();
+                    }
                     return result;
+                } else if (value.to_lower().match("true")) {
+                    return convert(true, p_target_type);
+                } else if (value.strip_edges().match("1")) {
+                    return convert(true, p_target_type);
                 }
-                else if (value.to_lower().match("true"))
-                    return convert(true, p_target_type);
-                else if (value.strip_edges().match("1"))
-                    return convert(true, p_target_type);
             }
 
-            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
-            {
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I) {
                 const Vector2 v2 = p_value;
                 return Vector3(v2.x, v2.y, 0);
             }
 
-            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I)
-            {
+            if (type == Variant::VECTOR4 || type == Variant::VECTOR4I) {
                 const Vector4 v4 = p_value;
                 return Vector3(v4.x, v4.y, v4.z);
             }
         }
 
-        if (p_target_type == Variant::VECTOR4 || p_target_type == Variant::VECTOR4I)
-        {
-            if (type == Variant::INT || type == Variant::FLOAT || type == Variant::BOOL)
+        if (p_target_type == Variant::VECTOR4 || p_target_type == Variant::VECTOR4I) {
+            if (type == Variant::INT || type == Variant::FLOAT || type == Variant::BOOL) {
                 return Vector4(p_value, p_value, p_value, p_value);
+            }
 
-            if (type == Variant::STRING || type == Variant::STRING_NAME)
-            {
+            if (type == Variant::STRING || type == Variant::STRING_NAME) {
                 String value = p_value;
-                if (value.begins_with("(") && value.ends_with(")"))
-                {
+                if (value.begins_with("(") && value.ends_with(")")) {
                     value = value.substr(1, value.length() - 1);
 
                     Vector4 result;
                     const PackedStringArray parts = value.split(",");
-                    for (int i = 0; i < parts.size() && i < 4; i++)
+                    for (int i = 0; i < parts.size() && i < 4; i++) {
                         result[i] = parts[i].to_float();
+                    }
                     return result;
+                } else if (value.to_lower().match("true")) {
+                    return convert(true, p_target_type);
+                } else if (value.strip_edges().match("1")) {
+                    return convert(true, p_target_type);
                 }
-                else if (value.to_lower().match("true"))
-                    return convert(true, p_target_type);
-                else if (value.strip_edges().match("1"))
-                    return convert(true, p_target_type);
             }
 
-            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I)
-            {
+            if (type == Variant::VECTOR2 || type == Variant::VECTOR2I) {
                 const Vector2 v2 = p_value;
                 return Vector4(v2.x, v2.y, 0, 0);
             }
 
-            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I)
-            {
+            if (type == Variant::VECTOR3 || type == Variant::VECTOR3I) {
                 const Vector3 v3 = p_value;
                 return Vector4(v3.x, v3.y, v3.z, 0);
             }
         }
 
-        if (p_target_type == Variant::STRING_NAME)
+        if (p_target_type == Variant::STRING_NAME) {
             return StringName(convert(p_value, Variant::STRING));
+        }
 
-        if (p_value.get_type() == Variant::STRING_NAME)
+        if (p_value.get_type() == Variant::STRING_NAME) {
             return convert(String(p_value), p_target_type);
+        }
 
         return make_default(p_target_type);
     }
 
-    bool evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right, Variant& r_value)
-    {
+    bool evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right, Variant& r_value) {
         bool valid = true;
         r_value = GDE::Variant::evaluate(p_operator, p_left,p_right, valid);
         return valid;
     }
 
-    Variant evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right)
-    {
+    Variant evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right) {
         return GDE::Variant::evaluate(p_operator, p_left, p_right);
     }
 }

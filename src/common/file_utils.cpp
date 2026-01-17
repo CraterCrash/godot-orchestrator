@@ -16,23 +16,20 @@
 //
 #include "common/file_utils.h"
 
+#include "common/macros.h"
+
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_paths.hpp>
 
-namespace FileUtils
-{
-    Ref<FileAccess> open_project_settings_file(const String& p_file_name, FileAccess::ModeFlags p_flags)
-    {
-        const EditorPaths* ep = EditorInterface::get_singleton()->get_editor_paths();
+namespace FileUtils {
+    Ref<FileAccess> open_project_settings_file(const String& p_file_name, FileAccess::ModeFlags p_flags) {
+        const EditorPaths* ep = EI->get_editor_paths();
         return FileAccess::open(ep->get_project_settings_dir().path_join(p_file_name), p_flags);
     }
 
-    void for_each_line(const Ref<FileAccess>& p_file, const std::function<void(const String&)>& p_callback)
-    {
-        if (p_file.is_valid() && p_file->is_open())
-        {
-            while (!p_file->eof_reached())
-            {
+    void for_each_line(const Ref<FileAccess>& p_file, const std::function<void(const String&)>& p_callback) {
+        if (p_file.is_valid() && p_file->is_open()) {
+            while (!p_file->eof_reached()) {
                 p_callback(p_file->get_line());
             }
         }
