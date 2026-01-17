@@ -30,8 +30,7 @@ class OrchestratorEditorGraphPanel;
 
 /// A container that includes all the various components that can exist in an <code>Orchestration</code> script.
 ///
-class OrchestratorScriptComponentsContainer : public ScrollContainer
-{
+class OrchestratorScriptComponentsContainer : public ScrollContainer {
     GDCLASS(OrchestratorScriptComponentsContainer, ScrollContainer);
 
     // Simple RAII handler to provide a deferred callback that fire when the current
@@ -47,10 +46,10 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer
 
         explicit ScopedDeferredCallable(Callable&& p_callable) : _callable(std::move(p_callable)) {}
 
-        ~ScopedDeferredCallable()
-        {
-            if (_callable.is_valid())
+        ~ScopedDeferredCallable() {
+            if (_callable.is_valid()) {
                 _callable.call_deferred();
+            }
         }
     };
 

@@ -18,8 +18,8 @@
 
 #include "common/macros.h"
 #include "common/string_utils.h"
-#include "editor/dialogs_helper.h"
 #include "editor/graph/graph_node.h"
+#include "editor/gui/dialogs_helper.h"
 #include "editor/property_selector.h"
 #include "editor/scene_node_selector.h"
 #include "script/nodes/functions/call_member_function.h"

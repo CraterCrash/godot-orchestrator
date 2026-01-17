@@ -17,42 +17,23 @@
 #ifndef ORCHESTRATOR_EDITOR_SELECT_CLASS_DIALOG_H
 #define ORCHESTRATOR_EDITOR_SELECT_CLASS_DIALOG_H
 
-#include "editor/search/search_dialog.h"
+#include "editor/gui/search_dialog.h"
 
 /// A specialization of Godot's <code>CreateDialog</code> specifically for displaying class types
 /// that can be selected by the user, typically paired with <code>OrchestratorEditorPropertyClassName</code>
-class OrchestratorSelectClassSearchDialog : public OrchestratorEditorSearchDialog
-{
+class OrchestratorSelectClassSearchDialog : public OrchestratorEditorSearchDialog {
     GDCLASS(OrchestratorSelectClassSearchDialog, OrchestratorEditorSearchDialog);
 
     /// Forward declaration
     struct SearchItemSortPath;
 
-protected:
-    bool _is_base_type_node{ false };
-    bool _allow_abstract_types{ false };
+    bool _is_base_type_node = false;
+    bool _allow_abstract_types = false;
     String _base_type;
-    String _fallback_icon{ "Object" };
+    String _fallback_icon = "Object";
     String _preferred_search_result_type;
     String _data_suffix;
     String _title;
-
-    //~ Begin Wrapped Interface
-    static void _bind_methods();
-    void _notification(int p_what);
-    //~ End Wrapped Interface
-
-    //~ Begin OrchestratorEditorSearchDialog Interface
-    bool _is_preferred(const String& p_item) const override;
-    bool _should_collapse_on_empty_search() const override;
-    bool _get_search_item_collapse_suggestion(TreeItem* p_item) const override;
-    void _update_help(const Ref<SearchItem>& p_item) override;
-    Vector<Ref<SearchItem>> _get_search_items() override;
-    Vector<Ref<SearchItem>> _get_recent_items() const override;
-    Vector<Ref<SearchItem>> _get_favorite_items() const override;
-    void _save_recent_items(const Vector<Ref<SearchItem>>& p_recents) override;
-    void _save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) override;
-    //~ End OrchestratorEditorSearchDialog Interface
 
     /// Creates the class hierarchy path, i.e. "Parent/Child/GrandChild"
     /// @param p_class the class name
@@ -70,6 +51,21 @@ protected:
     /// @param r_cache the seearch item cache
     /// @param p_root the root search item
     Vector<Ref<SearchItem>> _get_class_hierarchy_search_items(const String& p_class, HashMap<String, Ref<SearchItem>>& r_cache, const Ref<SearchItem>& p_root);
+
+protected:
+    static void _bind_methods() { }
+
+    //~ Begin OrchestratorEditorSearchDialog Interface
+    bool _is_preferred(const String& p_item) const override;
+    bool _should_collapse_on_empty_search() const override;
+    bool _get_search_item_collapse_suggestion(TreeItem* p_item) const override;
+    void _update_help(const Ref<SearchItem>& p_item) override;
+    Vector<Ref<SearchItem>> _get_search_items() override;
+    Vector<Ref<SearchItem>> _get_recent_items() const override;
+    Vector<Ref<SearchItem>> _get_favorite_items() const override;
+    void _save_recent_items(const Vector<Ref<SearchItem>>& p_recents) override;
+    void _save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) override;
+    //~ End OrchestratorEditorSearchDialog Interface
 
 public:
     //~ Begin OrchestratorEditorSearchDialog Interface
@@ -96,8 +92,6 @@ public:
     /// @param p_title the title to display
     void set_popup_title(const String& p_title);
 
-    /// Constructor
-    OrchestratorSelectClassSearchDialog();
 };
 
 #endif // ORCHESTRATOR_EDITOR_SELECT_CLASS_DIALOG_H

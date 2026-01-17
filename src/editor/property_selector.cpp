@@ -27,35 +27,30 @@
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
-void OrchestratorPropertySelector::_text_changed(const String& p_new_text)
-{
+void OrchestratorPropertySelector::_text_changed(const String& p_new_text) {
     _update_search();
 }
 
-void OrchestratorPropertySelector::_sbox_input(const Ref<InputEvent>& p_event)
-{
+void OrchestratorPropertySelector::_sbox_input(const Ref<InputEvent>& p_event) {
     const Ref<InputEventKey> key = p_event;
-    if (key.is_valid())
-    {
-        switch (key->get_keycode())
-        {
+    if (key.is_valid()) {
+        switch (key->get_keycode()) {
             case KEY_UP:
             case KEY_DOWN:
             case KEY_PAGEUP:
-            case KEY_PAGEDOWN:
-            {
+            case KEY_PAGEDOWN: {
                 _search_options->_gui_input(key);
                 _search_box->accept_event();
 
                 TreeItem* root = _search_options->get_root();
-                if (!root->get_first_child())
+                if (!root->get_first_child()) {
                     break;
+                }
 
                 TreeItem* current = _search_options->get_selected();
 
                 TreeItem* item = _search_options->get_next_selected(root);
-                while (item)
-                {
+                while (item) {
                     item->deselect(0);
                     item = _search_options->get_next_selected(item);
                 }
@@ -63,30 +58,29 @@ void OrchestratorPropertySelector::_sbox_input(const Ref<InputEvent>& p_event)
                 current->select(0);
                 break;
             }
-            default:
+            default: {
                 break;
+            }
         }
     }
 }
 
-void OrchestratorPropertySelector::_confirmed()
-{
+void OrchestratorPropertySelector::_confirmed() {
     TreeItem* item = _search_options->get_selected();
-    if (!item)
+    if (!item) {
         return;
+    }
 
     emit_signal("selected", item->get_metadata(0));
     hide();
 }
 
-void OrchestratorPropertySelector::_item_selected()
-{
+void OrchestratorPropertySelector::_item_selected() {
     // Nothing to do since we have no EditorHelpBit
     // Leaving for now in case EditorHelpBit gets exposed
 }
 
-bool OrchestratorPropertySelector::_contains_ignore_case(const String& p_text, const String& p_what) const
-{
+bool OrchestratorPropertySelector::_contains_ignore_case(const String& p_text, const String& p_what) const {
     #if GODOT_VERSION >= 0x040300
     return p_text.containsn(p_what);
     #else
@@ -94,8 +88,7 @@ bool OrchestratorPropertySelector::_contains_ignore_case(const String& p_text, c
     #endif
 }
 
-void OrchestratorPropertySelector::_update_search()
-{
+void OrchestratorPropertySelector::_update_search() {
     _search_options->clear();
 
     TreeItem* root = _search_options->create_item();
@@ -103,57 +96,57 @@ void OrchestratorPropertySelector::_update_search()
     const String search_text = _search_box->get_text().replace(" ", "_");
 
     List<PropertyInfo> props;
-    if (_instance)
-    {
+    if (_instance) {
         TypedArray<Dictionary> list = _instance->get_property_list();
-        for (int i = 0; i < list.size(); i++)
+        for (int i = 0; i < list.size(); i++) {
             props.push_back(DictionaryUtils::to_property(list[i]));
+        }
     }
 
     TreeItem* category = nullptr;
     bool found = false;
-    for (const PropertyInfo& E : props)
-    {
-        if (E.usage == PROPERTY_USAGE_CATEGORY)
-        {
-            if (category && category->get_first_child() == nullptr)
+    for (const PropertyInfo& E : props) {
+        if (E.usage == PROPERTY_USAGE_CATEGORY) {
+            if (category && category->get_first_child() == nullptr) {
                 memdelete(category);
+            }
 
             category = _search_options->create_item(root);
             category->set_text(0, E.name);
             category->set_selectable(0, false);
 
             Ref<Texture2D> icon;
-            if (E.name.match("Script Variables"))
+            if (E.name.match("Script Variables")) {
                 icon = SceneUtils::get_editor_icon("Script");
-            else
+            } else {
                 icon = SceneUtils::get_class_icon(E.name);
+            }
 
             category->set_icon(0, icon);
             continue;
         }
 
-        if (!(E.usage & PROPERTY_USAGE_EDITOR) && !(E.usage & PROPERTY_USAGE_SCRIPT_VARIABLE))
+        if (!(E.usage & PROPERTY_USAGE_EDITOR) && !(E.usage & PROPERTY_USAGE_SCRIPT_VARIABLE)) {
             continue;
+        }
 
-        if (!_search_box->get_text().is_empty() && !_contains_ignore_case(E.name, search_text))
+        if (!_search_box->get_text().is_empty() && !_contains_ignore_case(E.name, search_text)) {
             continue;
+        }
 
-        if (_type_filter.size() && !_type_filter.has(E.type))
+        if (_type_filter.size() && !_type_filter.has(E.type)) {
             continue;
+        }
 
         TreeItem* item = _search_options->create_item(category ? category : root);
         item->set_text(0, E.name);
         item->set_metadata(0, E.name);
         item->set_icon(0, SceneUtils::get_class_icon(PropertyUtils::get_variant_type_name(E)));
 
-        if (!found & !_search_box->get_text().is_empty() && _contains_ignore_case(E.name, search_text))
-        {
+        if (!found & !_search_box->get_text().is_empty() && _contains_ignore_case(E.name, search_text)) {
             item->select(0);
             found = true;
-        }
-        else if (!found && _search_box->get_text().is_empty() && _contains_ignore_case(E.name, _selected))
-        {
+        } else if (!found && _search_box->get_text().is_empty() && _contains_ignore_case(E.name, _selected)) {
             item->select(0);
             found = true;
         }
@@ -161,14 +154,14 @@ void OrchestratorPropertySelector::_update_search()
         item->set_selectable(0, true);
     }
 
-    if (category && category->get_first_child() == nullptr)
+    if (category && category->get_first_child() == nullptr) {
         memdelete(category);
+    }
 
     get_ok_button()->set_disabled(root->get_first_child() == nullptr);
 }
 
-void OrchestratorPropertySelector::select_property_from_instance(Object* p_instance, const String& p_current)
-{
+void OrchestratorPropertySelector::select_property_from_instance(Object* p_instance, const String& p_current) {
     _base_type = "";
     _selected = p_current;
     _type = Variant::NIL;
@@ -183,30 +176,25 @@ void OrchestratorPropertySelector::select_property_from_instance(Object* p_insta
     _update_search();
 }
 
-void OrchestratorPropertySelector::set_type_filter(const Vector<Variant::Type>& p_type_filter)
-{
+void OrchestratorPropertySelector::set_type_filter(const Vector<Variant::Type>& p_type_filter) {
     _type_filter = p_type_filter;
 }
 
-void OrchestratorPropertySelector::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_READY)
-    {
-        OCONNECT(_search_box, "text_changed", callable_mp(this, &OrchestratorPropertySelector::_text_changed));
-        OCONNECT(_search_box, "gui_input", callable_mp(this, &OrchestratorPropertySelector::_sbox_input));
-        OCONNECT(_search_options,  "item_activated", callable_mp(this, &OrchestratorPropertySelector::_confirmed));
-        OCONNECT(_search_options, "cell_selected", callable_mp(this, &OrchestratorPropertySelector::_item_selected));
-        OCONNECT(this, "confirmed", callable_mp(this, &OrchestratorPropertySelector::_confirmed));
+void OrchestratorPropertySelector::_notification(int p_what) {
+    if (p_what == NOTIFICATION_READY) {
+        OCONNECT(_search_box, "text_changed", callable_mp_this(_text_changed));
+        OCONNECT(_search_box, "gui_input", callable_mp_this(_sbox_input));
+        OCONNECT(_search_options,  "item_activated", callable_mp_this(_confirmed));
+        OCONNECT(_search_options, "cell_selected", callable_mp_this(_item_selected));
+        OCONNECT(this, "confirmed", callable_mp_this(_confirmed));
     }
 }
 
-void OrchestratorPropertySelector::_bind_methods()
-{
+void OrchestratorPropertySelector::_bind_methods() {
     ADD_SIGNAL(MethodInfo("selected", PropertyInfo(Variant::STRING, "name")));
 }
 
-OrchestratorPropertySelector::OrchestratorPropertySelector()
-{
+OrchestratorPropertySelector::OrchestratorPropertySelector() {
     VBoxContainer* vbox = memnew(VBoxContainer);
     add_child(vbox);
 

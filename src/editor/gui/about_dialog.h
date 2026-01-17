@@ -28,50 +28,36 @@
 using namespace godot;
 
 /// The plug-in about dialog window
-class OrchestratorAboutDialog : public AcceptDialog
-{
+class OrchestratorAboutDialog : public AcceptDialog {
     GDCLASS(OrchestratorAboutDialog, AcceptDialog);
 
-    LinkButton* _version_btn{ nullptr };
-    LinkButton* _patreon_btn{ nullptr };
-    RichTextLabel* _license_text{ nullptr };
-    TextureRect* _logo{ nullptr };
-    bool _theme_changing{ false };
+    LinkButton* _version_btn = nullptr;
+    LinkButton* _patreon_btn = nullptr;
+    RichTextLabel* _license_text = nullptr;
+    TextureRect* _logo = nullptr;
+    bool _theme_changing = false;
     Vector<ItemList*> _name_lists;
+
+    ScrollContainer* _populate_list(const String& p_name, const List<String>& p_sections, const char* const* const p_src[],
+        int p_flag_single_column = 0, bool p_donor = false, bool p_allow_website = false);
+
+    //~ Signal Handlers
+    void _theme_changed();
+    void _version_pressed();
+    void _patreon_pressed();
+    void _website_selected(int p_id, ItemList* p_list);
+    void _item_list_resized(ItemList* p_list);
+    //~ End Signal Handlers
 
 protected:
     static void _bind_methods();
 
-public:
-    /// Constructs the about dialog
-    OrchestratorAboutDialog();
-
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
+    //~ Begin Wrapped Interface
     void _notification(int p_what);
+    //~ End Wrapped Interface
 
-private:
-    ScrollContainer* _populate_list(const String& p_name, const List<String>& p_sections,
-                                    const char* const* const p_src[], int _p_flag_single_column = 0, bool p_donor = false,
-                                    const bool p_allow_website = false);
-
-    /// Dispatched when the version is clicked
-    void _on_version_pressed();
-
-    /// Dispatched when the theme is changed
-    void _on_theme_changed();
-
-    /// Dispatched when a user clicks the patreon button
-    void _on_patreon_button();
-
-    /// Dispatched when a website item is selected.
-    /// @param p_id the list item id
-    /// @param p_list the list
-    void _on_item_website_selected(int p_id, ItemList* p_list);
-
-    /// Dispatched when the item list is resized
-    /// @param p_list the list that was resized
-    void _on_item_list_resized(ItemList* p_list);
+public:
+    OrchestratorAboutDialog();
 };
 
 #endif  // ORCHESTRATOR_ABOUT_DIALOG_H

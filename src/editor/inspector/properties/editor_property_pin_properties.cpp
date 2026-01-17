@@ -16,6 +16,7 @@
 //
 #include "editor/inspector/properties/editor_property_pin_properties.h"
 
+#include "../../gui/select_type_dialog.h"
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
 #include "common/name_utils.h"
@@ -23,7 +24,6 @@
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
-#include "editor/select_type_dialog.h"
 
 #include <godot_cpp/classes/v_box_container.hpp>
 

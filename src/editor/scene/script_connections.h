@@ -21,38 +21,35 @@
 
 using namespace godot;
 
-/// Foward declarations
-namespace godot
-{
+/// Forward declarations
+namespace godot {
     class Tree;
 }
 
 /// A dialog that displays the script's active connections.
-class OrchestratorScriptConnectionsDialog : public AcceptDialog
-{
+class OrchestratorScriptConnectionsDialog : public AcceptDialog {
     GDCLASS(OrchestratorScriptConnectionsDialog, AcceptDialog);
 
-    static void _bind_methods() { }
-
-    Label* _method{ nullptr };
-    Tree* _tree{ nullptr };
+    Label* _method = nullptr;
+    Tree* _tree = nullptr;
 
 protected:
+    static void _bind_methods() { }
 
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
+    //~ Begin Wrapped Interface
     void _notification(int p_what);
+    //~ End Wrapped Interface
 
     /// Dispatched when the user confirmed the dialog
-    void _on_confirmed();
+    void _confirmed();
 
 public:
-    OrchestratorScriptConnectionsDialog() = default;
-
     /// Popup and open the dialog
     /// @param p_method the method name
     /// @param p_nodes the nodes associated with the script
     void popup_connections(const String& p_method, const Vector<Node*>& p_nodes);
+
+    OrchestratorScriptConnectionsDialog() = default;
 };
 
 #endif // ORCHESTRATOR_SCRIPT_CONNECTIONS_H

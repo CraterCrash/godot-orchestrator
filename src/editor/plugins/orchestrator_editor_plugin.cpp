@@ -21,12 +21,12 @@
 #include "common/version.h"
 #include "editor/editor.h"
 #include "editor/export/orchestration_export_plugin.h"
+#include "editor/gui/window_wrapper.h"
 #include "editor/inspector/function_inspector_plugin.h"
 #include "editor/inspector/signal_inspector_plugin.h"
 #include "editor/inspector/type_cast_inspector_plugin.h"
 #include "editor/inspector/variable_inspector_plugin.h"
 #include "editor/script_editor_view.h"
-#include "editor/window_wrapper.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/control.hpp>

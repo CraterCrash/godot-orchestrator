@@ -22,8 +22,7 @@
 using namespace godot;
 
 /// Virtual base class for all Orchestrator editor viewports
-class OrchestratorEditorView : public VBoxContainer
-{
+class OrchestratorEditorView : public VBoxContainer {
     GDCLASS(OrchestratorEditorView, VBoxContainer);
 
 protected:
@@ -75,7 +74,7 @@ public:
 
     virtual bool can_lose_focus_on_node_selection() const { return false; }
 
-    ~OrchestratorEditorView() override;
+    ~OrchestratorEditorView() override = default;
 };
 
 

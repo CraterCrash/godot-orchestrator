@@ -24,8 +24,7 @@
 using namespace godot;
 
 /// A utility node that acts as a mediator for the real Godot <code>ConnectionsDock</code> node.
-class OrchestratorEditorConnectionsDock : public Node
-{
+class OrchestratorEditorConnectionsDock : public Node {
     GDCLASS(OrchestratorEditorConnectionsDock, Node);
 
     // Taken from connections_dialog.h

@@ -24,32 +24,28 @@
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
-void OrchestratorGotoNodeDialog::_goto_node()
-{
-    if (_line_edit && _line_edit->get_text().is_valid_int())
+void OrchestratorGotoNodeDialog::_goto_node() {
+    if (_line_edit && _line_edit->get_text().is_valid_int()) {
         _editor_view->goto_node(_line_edit->get_text().to_int());
-
+    }
     queue_free();
 }
 
-void OrchestratorGotoNodeDialog::_visibility_changed()
-{
-    if (is_visible() && _line_edit)
+void OrchestratorGotoNodeDialog::_visibility_changed() {
+    if (is_visible() && _line_edit) {
         _line_edit->grab_focus();
+    }
 }
 
-void OrchestratorGotoNodeDialog::popup_find_node(OrchestratorScriptGraphEditorView* p_view)
-{
+void OrchestratorGotoNodeDialog::popup_find_node(OrchestratorScriptGraphEditorView* p_view) {
     _editor_view = p_view;
     EI->popup_dialog_centered(this);
 }
 
-void OrchestratorGotoNodeDialog::_bind_methods()
-{
+void OrchestratorGotoNodeDialog::_bind_methods() {
 }
 
-OrchestratorGotoNodeDialog::OrchestratorGotoNodeDialog()
-{
+OrchestratorGotoNodeDialog::OrchestratorGotoNodeDialog() {
     set_title("Go to Node");
 
     VBoxContainer* container = memnew(VBoxContainer);
