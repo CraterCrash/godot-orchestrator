@@ -52,7 +52,7 @@ void OScriptNodeVariable::post_initialize() {
     if (!_variable_name.is_empty()) {
         _variable = get_orchestration()->get_variable(_variable_name);
         if (_variable.is_valid() && _is_in_editor()) {
-            OCONNECT(_variable, "changed", callable_mp(this, &OScriptNodeVariable::_on_variable_changed));
+            OCONNECT(_variable, "changed", callable_mp_this(_on_variable_changed));
         }
     }
     super::post_initialize();
@@ -69,7 +69,7 @@ void OScriptNodeVariable::initialize(const OScriptNodeInitContext& p_context) {
     _variable = get_orchestration()->get_variable(_variable_name);
 
     if (_variable.is_valid() && _is_in_editor()) {
-        OCONNECT(_variable, "changed", callable_mp(this, &OScriptNodeVariable::_on_variable_changed));
+        OCONNECT(_variable, "changed", callable_mp_this(_on_variable_changed));
     }
 
     super::initialize(p_context);

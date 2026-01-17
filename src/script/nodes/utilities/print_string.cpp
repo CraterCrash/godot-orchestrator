@@ -16,6 +16,7 @@
 //
 #include "script/nodes/utilities/print_string.h"
 
+#include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/settings.h"
 #include "script/script.h"
@@ -121,7 +122,7 @@ void OScriptNodePrintStringOverlay::add_text(const String& p_text, const String&
 
     SceneTree* tree = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
     Ref<SceneTreeTimer> timer = tree->create_timer(p_duration_sec);
-    timer->connect("timeout", callable_mp(cast_to<Node>(label), &Node::queue_free));
+    timer->connect("timeout", callable_mp_cast(label, Node, queue_free));
 }
 
 OScriptNodePrintStringOverlay* OScriptNodePrintStringOverlay::get_or_create_overlay() {

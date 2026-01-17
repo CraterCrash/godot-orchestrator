@@ -627,7 +627,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
         }
         case NOTIFICATION_VISIBILITY_CHANGED: {
             if (is_visible()) {
-                callable_mp(cast_to<Control>(_search_box), &Control::grab_focus).call_deferred();
+                callable_mp_cast(_search_box, Control, grab_focus).call_deferred();
                 _search_box->select_all();
             }
             break;

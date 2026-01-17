@@ -16,6 +16,8 @@
 //
 #include "editor/debugger/script_debugger_plugin.h"
 
+#include "common/macros.h"
+
 #if GODOT_VERSION >= 0x040300
 OrchestratorEditorDebuggerPlugin* OrchestratorEditorDebuggerPlugin::_singleton = nullptr;
 
@@ -43,10 +45,10 @@ void OrchestratorEditorDebuggerPlugin::_setup_session(int32_t p_session_id) {
     if (session.is_valid()) {
         _current_session = session;
 
-        session->connect("started", callable_mp(this, &OrchestratorEditorDebuggerPlugin::_session_started).bind(p_session_id));
-        session->connect("stopped", callable_mp(this, &OrchestratorEditorDebuggerPlugin::_session_stopped).bind(p_session_id));
-        session->connect("breaked", callable_mp(this, &OrchestratorEditorDebuggerPlugin::_session_breaked).bind(p_session_id));
-        session->connect("continued", callable_mp(this, &OrchestratorEditorDebuggerPlugin::_session_continued).bind(p_session_id));
+        session->connect("started", callable_mp_this(_session_started).bind(p_session_id));
+        session->connect("stopped", callable_mp_this(_session_stopped).bind(p_session_id));
+        session->connect("breaked", callable_mp_this(_session_breaked).bind(p_session_id));
+        session->connect("continued", callable_mp_this(_session_continued).bind(p_session_id));
     }
 }
 

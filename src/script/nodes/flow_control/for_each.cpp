@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/property_utils.h"
 
 void OScriptNodeForEach::_get_property_list(List<PropertyInfo>* r_list) const {
@@ -121,10 +122,10 @@ bool OScriptNodeForEach::is_loop_port(int p_port) const {
 
 void OScriptNodeForEach::get_actions(List<Ref<OScriptAction>>& p_action_list) {
     if (_with_break) {
-        Callable callable = callable_mp(this, &OScriptNodeForEach::_set_with_break).bind(false);
+        Callable callable = callable_mp_this(_set_with_break).bind(false);
         p_action_list.push_back(memnew(OScriptAction("Remove break pin", "Remove", callable)));
     } else {
-        Callable callable = callable_mp(this, &OScriptNodeForEach::_set_with_break).bind(true);
+        Callable callable = callable_mp_this(_set_with_break).bind(true);
         p_action_list.push_back(memnew(OScriptAction("Add break pin", "Add", callable)));
     }
     super::get_actions(p_action_list);
