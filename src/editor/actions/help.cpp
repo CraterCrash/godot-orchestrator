@@ -114,7 +114,7 @@ OrchestratorEditorActionHelp::OrchestratorEditorActionHelp() {
     _title->set_theme_type_variation("EditorHelpBitTitle");
     _title->set_custom_minimum_size(Size2(640 * EDSCALE, 0));
     _title->set_fit_content(true);
-    _title->connect("meta_clicked", callable_mp(this, &OrchestratorEditorActionHelp::_meta_clicked));
+    _title->connect("meta_clicked", callable_mp_this(_meta_clicked));
     add_child(_title);
 
     _content_size = Size2(48 * EDSCALE, 360 * EDSCALE);
@@ -124,6 +124,6 @@ OrchestratorEditorActionHelp::OrchestratorEditorActionHelp() {
     _help->set_custom_minimum_size(Size2(640* EDSCALE, _content_size.x));
     _help->set_fit_content(true);
     _help->set_use_bbcode(true);
-    _help->connect("meta_clicked", callable_mp(this, &OrchestratorEditorActionHelp::_meta_clicked));
+    _help->connect("meta_clicked", callable_mp_this(_meta_clicked));
     add_child(_help);
 }

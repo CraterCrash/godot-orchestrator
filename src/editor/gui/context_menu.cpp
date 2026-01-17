@@ -16,6 +16,7 @@
 //
 #include "editor/gui/context_menu.h"
 
+#include "common/macros.h"
 #include "common/scene_utils.h"
 #include "core/godot/scene_string_names.h"
 
@@ -110,14 +111,14 @@ void OrchestratorEditorContextMenu::set_auto_destroy(bool p_auto_destroy) {
         _auto_destroy = true;
 
         // When the user does not select a choice
-        _menu->connect("close_requested", callable_mp(this, &OrchestratorEditorContextMenu::_cleanup_menu));
+        _menu->connect("close_requested", callable_mp_this(_cleanup_menu));
         // When the user makes a choice
-        _menu->connect("popup_hide", callable_mp(this, &OrchestratorEditorContextMenu::_cleanup_menu));
+        _menu->connect("popup_hide", callable_mp_this(_cleanup_menu));
     } else if (_auto_destroy) {
         // When the user does not select a choice
-        _menu->disconnect("close_requested", callable_mp(this, &OrchestratorEditorContextMenu::_cleanup_menu));
+        _menu->disconnect("close_requested", callable_mp_this(_cleanup_menu));
         // When the user makes a choice
-        _menu->disconnect("popup_hide", callable_mp(this, &OrchestratorEditorContextMenu::_cleanup_menu));
+        _menu->disconnect("popup_hide", callable_mp_this(_cleanup_menu));
     }
 }
 
@@ -129,7 +130,7 @@ OrchestratorEditorContextMenu::OrchestratorEditorContextMenu() : OrchestratorEdi
 
 OrchestratorEditorContextMenu::OrchestratorEditorContextMenu(bool p_parent) {
     _menu = memnew(PopupMenu);
-    _menu->connect(SceneStringName(id_pressed), callable_mp(this, &OrchestratorEditorContextMenu::_id_pressed));
+    _menu->connect(SceneStringName(id_pressed), callable_mp_this(_id_pressed));
 
     if (p_parent) {
         add_child(_menu);
