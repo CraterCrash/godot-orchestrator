@@ -32,6 +32,7 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
+#include <godot_cpp/classes/dpi_texture.hpp>
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -155,7 +156,11 @@ String OrchestratorPlugin::_get_plugin_name() const {
 }
 
 Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const {
-    return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_16x16.png");
+    Ref<FileAccess> file = FileAccess::open("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg", FileAccess::READ);
+    if (file.is_valid()) {
+        return DPITexture::create_from_string(file->get_as_text(), EDSCALE);
+    }
+    return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg");
 }
 
 void OrchestratorPlugin::_save_external_data() {
