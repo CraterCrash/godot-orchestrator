@@ -82,7 +82,7 @@ void OScriptNodeFunctionTerminator::post_initialize() {
 
     _function = get_orchestration()->find_function(_guid);
     if (_function.is_valid() && _is_in_editor()) {
-        OCONNECT(_function, "changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
+        OCONNECT(_function, "changed", callable_mp_this(_on_function_changed));
     }
 
     // Always reconstruct entry/exit nodes
@@ -93,7 +93,7 @@ void OScriptNodeFunctionTerminator::post_placed_new_node() {
     super::post_placed_new_node();
 
     if (_function.is_valid() && _is_in_editor()) {
-        OCONNECT(_function, "changed", callable_mp(this, &OScriptNodeFunctionTerminator::_on_function_changed));
+        OCONNECT(_function, "changed", callable_mp_this(_on_function_changed));
     }
 }
 

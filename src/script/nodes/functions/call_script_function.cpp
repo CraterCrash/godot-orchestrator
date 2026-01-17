@@ -16,6 +16,8 @@
 //
 #include "script/nodes/functions/call_script_function.h"
 
+#include "common/macros.h"
+
 void OScriptNodeCallScriptFunction::_on_function_changed() {
     if (_function.is_valid()) {
         _reference.method = _function->get_method_info();
@@ -38,7 +40,7 @@ void OScriptNodeCallScriptFunction::post_initialize() {
             _reference.method = _function->get_method_info();
             _function_flags.set_flag(FF_IS_SELF);
             if (_is_in_editor()) {
-                Callable callable = callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed);
+                Callable callable = callable_mp_this(_on_function_changed);
                 if (!_function->is_connected("changed", callable)) {
                     _function->connect("changed", callable);
                 }
@@ -51,7 +53,7 @@ void OScriptNodeCallScriptFunction::post_initialize() {
 void OScriptNodeCallScriptFunction::post_placed_new_node() {
     super::post_placed_new_node();
     if (_function.is_valid() && _is_in_editor()) {
-        Callable callable = callable_mp(this, &OScriptNodeCallScriptFunction::_on_function_changed);
+        Callable callable = callable_mp_this(_on_function_changed);
         if (!_function->is_connected("changed", callable)) {
             _function->connect("changed", callable);
         }
