@@ -592,7 +592,7 @@ Error OrchestrationBinaryParser::_read_header_block() {
         if (_flags & OrchestrationBinaryFormat::FORMAT_FLAG_UIDS) {
             _uid = static_cast<int64_t>(_file->get_64());
         }
-        if (_flags& OrchestrationBinaryFormat::FORMAT_FLAG_HAS_SCRIPT_CLASS) {
+        if (_flags & OrchestrationBinaryFormat::FORMAT_FLAG_HAS_SCRIPT_CLASS) {
             _script_class = _read_unicode_string();
         }
     }
