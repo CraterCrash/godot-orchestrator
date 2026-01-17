@@ -22,13 +22,11 @@
 using namespace godot;
 
 /// An iterator implementation for <code>Tree</code> that uses depth-first
-struct TreeIterator
-{
+struct TreeIterator {
 private:
     TreeItem* _current = nullptr;
 
 public:
-
     TreeIterator& operator++();
     TreeItem* operator*() const;
     bool operator!=(const TreeIterator& p_other) const;
@@ -37,8 +35,7 @@ public:
 };
 
 /// Provides a reusable iterable for-loop semantics for traversing a <code>Tree</code> using depth-first
-struct TreeIterable
-{
+struct TreeIterable {
 private:
     TreeItem* _root;
 
@@ -46,7 +43,7 @@ public:
     TreeIterator begin() const;
     TreeIterator end() const;
 
-    TreeIterable(TreeItem* p_root) : _root(p_root) { }
+    explicit TreeIterable(TreeItem* p_root) : _root(p_root) { }
 };
 
 #endif

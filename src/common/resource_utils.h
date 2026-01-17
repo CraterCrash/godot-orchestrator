@@ -21,8 +21,8 @@
 
 using namespace godot;
 
-namespace ResourceUtils
-{
+namespace ResourceUtils {
+
     /// Checks whether missing resources are used if the class cannot be created
     /// @return true if missing resources should be used, false otherwise
     bool is_creating_missing_resources_if_class_unavailable_enabled();

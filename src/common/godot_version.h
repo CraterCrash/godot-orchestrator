@@ -17,16 +17,21 @@
 #ifndef ORCHESTRATOR_GODOT_VERSION_H
 #define ORCHESTRATOR_GODOT_VERSION_H
 
+#include "common/version.h"
+
 #include <godot_cpp/godot.hpp>
 
 /// This class provides a way to cleanly query the Godot version at runtime. In addition, this also allows
 /// for centralizing version specific methods, such as "at_least" so that differences in Godot behavior
 /// can be handled dynamically rather than statically at build-time.
 ///
-struct GodotVersionInfo
-{
+struct GodotVersionInfo {
 private:
+    #if GODOT_VERSION >= 0x040500
+    GDExtensionGodotVersion2 _version;
+    #else
     GDExtensionGodotVersion _version;
+    #endif
 
 public:
     constexpr uint32_t major() const { return _version.major; }
@@ -35,22 +40,30 @@ public:
 
     constexpr const char* string() const { return _version.string; }
 
-    constexpr bool at_least(uint32_t maj, uint32_t min, uint32_t patch = 0) const
-    {
+    constexpr bool at_least(uint32_t maj, uint32_t min, uint32_t patch = 0) const {
         return (_version.major > maj) ||
                (_version.major == maj && _version.minor > min) ||
                (_version.major == maj && _version.minor == min && _version.patch >= patch);
     }
 
-    constexpr bool equals(uint32_t maj, uint32_t min, uint32_t patch = 0) const
-    {
+    constexpr bool equals(uint32_t maj, uint32_t min, uint32_t patch = 0) const {
         return _version.major == maj && _version.minor == min && _version.patch == patch;
     }
 
-    explicit GodotVersionInfo() { godot::internal::gdextension_interface_get_godot_version(&_version); }
+    explicit GodotVersionInfo() {
+        #if GODOT_VERSION >= 0x040500
+        godot::internal::gdextension_interface_get_godot_version2(&_version);
+        #else
+        godot::internal::gdextension_interface_get_godot_version(&_version);
+        #endif
+    }
 
     // Should only be used in tests, runtime code should use the no-arg constructor
+    #if GODOT_VERSION >= 0x040500
+    constexpr GodotVersionInfo(const GDExtensionGodotVersion2& v) : _version(v) {}
+    #else
     constexpr GodotVersionInfo(const GDExtensionGodotVersion& v) : _version(v) {}
+    #endif
 };
 
 #endif // ORCHESTRATOR_GODOT_VERSION_H

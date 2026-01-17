@@ -23,8 +23,8 @@
 
 using namespace godot;
 
-namespace DictionaryUtils
-{
+namespace DictionaryUtils {
+
     /// Convert a Dictionary to a PropertyInfo.
     ///
     /// @param p_dict the dictionary that represents a property

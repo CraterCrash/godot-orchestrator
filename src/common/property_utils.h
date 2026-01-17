@@ -19,8 +19,8 @@
 
 #include <godot_cpp/core/property_info.hpp>
 
-namespace PropertyUtils
-{
+namespace PropertyUtils {
+
     using namespace godot;
 
     /// Checks whether two property info structures are identical (Excluding name).
@@ -88,49 +88,57 @@ namespace PropertyUtils
     /// Checks whether the property type is <code>NIL</code>
     /// @param p_property the property to check
     /// @return true if the property is NIL, false otherwise
-    _FORCE_INLINE_ bool is_nil(const PropertyInfo& p_property) { return p_property.type == Variant::NIL; }
+    _FORCE_INLINE_ bool is_nil(const PropertyInfo& p_property) {
+        return p_property.type == Variant::NIL;
+    }
 
     /// Checks whether the property represents a variant.
     /// @param p_property the property to check
     /// @return true if the property is a variant, false otherwise
-    _FORCE_INLINE_ bool is_variant(const PropertyInfo& p_property) { return is_nil(p_property) && (p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT); }
+    _FORCE_INLINE_ bool is_variant(const PropertyInfo& p_property) {
+        return is_nil(p_property) && (p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
+    }
 
     /// Checks whether the property represents a class type.
     /// @param p_property the property to check
     /// @return true if the property is a class type, false otherwise
-    _FORCE_INLINE_ bool is_class(const PropertyInfo& p_property) { return p_property.type == Variant::OBJECT && !p_property.class_name.is_empty() && !p_property.class_name.contains("."); }
+    _FORCE_INLINE_ bool is_class(const PropertyInfo& p_property) {
+        return p_property.type == Variant::OBJECT && !p_property.class_name.is_empty() && !p_property.class_name.contains(".");
+    }
 
     /// Checks whether the property represents an enum.
     /// @param p_property the property to check
     /// @return true if the property is an enumeration, false otherwise
-    _FORCE_INLINE_ bool is_enum(const PropertyInfo& p_property)
-    {
-        if (p_property.type != Variant::INT)
+    _FORCE_INLINE_ bool is_enum(const PropertyInfo& p_property) {
+        if (p_property.type != Variant::INT) {
             return false;
-
+        }
         return p_property.hint == PROPERTY_HINT_ENUM || p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM;
     }
 
     /// Checks whether the property is a bitfield.
     /// @param p_property the property to check
     /// @return true if the property is a bitfield, false otherwise
-    _FORCE_INLINE_ bool is_bitfield(const PropertyInfo& p_property)
-    {
-        if (p_property.type != Variant::INT)
+    _FORCE_INLINE_ bool is_bitfield(const PropertyInfo& p_property) {
+        if (p_property.type != Variant::INT) {
             return false;
-
+        }
         return p_property.hint == PROPERTY_HINT_FLAGS || p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD;
     }
 
     /// Checks whether the property is a class enum.
     /// @param p_property the property to check
     /// @return true if the property usage has <code>PROPERTY_USAGE_CLASS_IS_ENUM</code>
-    _FORCE_INLINE_ bool is_class_enum(const PropertyInfo& p_property) { return p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM; }
+    _FORCE_INLINE_ bool is_class_enum(const PropertyInfo& p_property) {
+        return p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM;
+    }
 
     /// Checks whether the property is a class bitfield.
     /// @param p_property the property to check
     /// @return true if the property usage has <code>PROPERTY_USAGE_CLASS_IS_BITFIELD</code>
-    _FORCE_INLINE_ bool is_class_bitfield(const PropertyInfo& p_property) { return p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD; }
+    _FORCE_INLINE_ bool is_class_bitfield(const PropertyInfo& p_property) {
+        return p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD;
+    }
 
     /// Checks whether the property type is <code>NIL</code> but the variant flag is not set.
     /// @param p_property the property to check
