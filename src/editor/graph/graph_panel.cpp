@@ -168,6 +168,15 @@ void OrchestratorEditorGraphPanel::_node_deselected(Node* p_node) {
     EI->inspect_object(nullptr);
 }
 
+template <typename T>
+static TypedArray<T> set_to_typed_array(const HashSet<T*>& p_set) {
+    TypedArray<T> results;
+    for (T* entry : p_set) {
+        results.push_back(entry);
+    }
+    return results;
+}
+
 void OrchestratorEditorGraphPanel::_delete_nodes_request(const PackedStringArray& p_names) {
     // In Godot 4.2, there is a case where this method can be called with no values
     if (p_names.is_empty()) {
@@ -194,8 +203,8 @@ void OrchestratorEditorGraphPanel::_delete_nodes_request(const PackedStringArray
     const uint32_t knot_count = knot_set.size();
     const uint32_t node_count = node_set.size();
 
-    const TypedArray<OrchestratorEditorGraphNode> node_array = GodotUtils::set_to_typed_array(node_set);
-    const TypedArray<GraphElement> knot_array = GodotUtils::set_to_typed_array(knot_set);
+    const TypedArray<OrchestratorEditorGraphNode> node_array = set_to_typed_array(node_set);
+    const TypedArray<GraphElement> knot_array = set_to_typed_array(knot_set);
 
     if (knot_count > 0 && node_count > 0) {
         const String message = vformat("Do you want to delete %d node(s) and %d knot(s)?", node_count, knot_count);
