@@ -19,6 +19,7 @@
 #include "common/file_utils.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -540,7 +541,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             _favorites->set_allow_reselect(true);
             _favorites->set_focus_mode(Control::FOCUS_NONE);
             _favorites->connect("cell_selected", callable_mp_this(_favorite_selected));
-            _favorites->connect("item_activated", callable_mp_this(_favorite_activated));
+            _favorites->connect(SceneStringName(item_activated), callable_mp_this(_favorite_activated));
             _favorites->add_theme_constant_override("draw_guides", 1);
             SceneUtils::add_margin_child(fav_vbox, "Favorites:", _favorites, true);
 
@@ -553,8 +554,8 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             // set_auto_translate_mode
             _recent->set_allow_reselect(true);
             _recent->set_focus_mode(Control::FOCUS_NONE);
-            _recent->connect("item_selected", callable_mp_this(_history_selected));
-            _recent->connect("item_activated", callable_mp_this(_history_activated));
+            _recent->connect(SceneStringName(item_selected), callable_mp_this(_history_selected));
+            _recent->connect(SceneStringName(item_activated), callable_mp_this(_history_activated));
             _recent->add_theme_constant_override("draw_guides", 1);
             SceneUtils::add_margin_child(rec_vbox, "Recent:", _recent, true);
 
@@ -566,8 +567,8 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             _search_box = memnew(LineEdit);
             _search_box->set_clear_button_enabled(true);
             _search_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-            _search_box->connect("text_changed", callable_mp_this(_search_changed));
-            _search_box->connect("gui_input", callable_mp_this(_search_input));
+            _search_box->connect(SceneStringName(text_changed), callable_mp_this(_search_changed));
+            _search_box->connect(SceneStringName(gui_input), callable_mp_this(_search_input));
 
             HBoxContainer* search_hbox = memnew(HBoxContainer);
             search_hbox->add_child(_search_box);
@@ -576,7 +577,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             _favorite->set_toggle_mode(true);
             _favorite->set_tooltip_text("(Un)favorite selected item.");
             _favorite->set_focus_mode(Control::FOCUS_NONE);
-            _favorite->connect("pressed", callable_mp_this(_favorite_toggled));
+            _favorite->connect(SceneStringName(pressed), callable_mp_this(_favorite_toggled));
             search_hbox->add_child(_favorite);
 
             const Vector<FilterOption> filters = _get_filters();
@@ -587,14 +588,14 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
                 }
 
                 search_hbox->add_child(_filters);
-                _filters->connect("item_selected", callable_mp_this(_filter_selected));
+                _filters->connect(SceneStringName(item_selected), callable_mp_this(_filter_selected));
             }
 
             SceneUtils::add_margin_child(vbox, "Search:", search_hbox);
 
             _search_options = memnew(Tree);
             // set_auto_translate_mode
-            _search_options->connect("item_activated", callable_mp_this(_confirmed));
+            _search_options->connect(SceneStringName(item_activated), callable_mp_this(_confirmed));
             _search_options->connect("cell_selected", callable_mp_this(_item_selected));
             SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);
 
@@ -604,8 +605,8 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             register_text_enter(_search_box);
             set_hide_on_ok(false);
 
-            connect("confirmed", callable_mp_this(_confirmed));
-            connect("canceled", callable_mp_this(_canceled));
+            connect(SceneStringName(confirmed), callable_mp_this(_confirmed));
+            connect(SceneStringName(canceled), callable_mp_this(_canceled));
 
             _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
             _favorite->set_button_icon(SceneUtils::get_editor_icon("Favorites"));
@@ -614,8 +615,8 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             break;
         }
         case NOTIFICATION_EXIT_TREE: {
-            disconnect("confirmed", callable_mp_this(_confirmed));
-            disconnect("canceled", callable_mp_this(_canceled));
+            disconnect(SceneStringName(confirmed), callable_mp_this(_confirmed));
+            disconnect(SceneStringName(canceled), callable_mp_this(_canceled));
             break;
         }
         case NOTIFICATION_READY: {

@@ -19,6 +19,7 @@
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "core/godot/core_string_names.h"
 #include "editor/actions/definition.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -52,7 +53,7 @@ void OrchestratorEditorActionHelp::set_content_help_limits(float p_min, float p_
 
 void OrchestratorEditorActionHelp::update_content_height() {
     float content_height = _help->get_content_height();
-    const Ref<StyleBox> style = _help->get_theme_stylebox("normal");
+    const Ref<StyleBox> style = _help->get_theme_stylebox(CoreStringName(normal));
     if (style.is_valid()) {
         content_height += style->get_content_margin(SIDE_TOP) + style->get_content_margin(SIDE_BOTTOM);
     }

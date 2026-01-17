@@ -18,6 +18,7 @@
 
 #include "common/macros.h"
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/graph/graph_panel.h"
 #include "script/nodes/utilities/comment.h"
 
@@ -44,7 +45,7 @@ void OrchestratorEditorGraphNodeComment::_update_styles() {
     parent_type::_update_styles();
 
     if (!_theme_cache.panel.is_valid()) {
-        _theme_cache.panel = get_theme_stylebox("panel")->duplicate();
+        _theme_cache.panel = get_theme_stylebox(SceneStringName(panel))->duplicate();
         ERR_FAIL_COND(!_theme_cache.panel.is_valid());
     }
 
@@ -61,13 +62,13 @@ void OrchestratorEditorGraphNodeComment::_update_styles() {
         _theme_cache.panel_selected->set_bg_color(comment_node->get_background_color());
 
         begin_bulk_theme_override();
-        add_theme_stylebox_override("panel", _theme_cache.panel);
+        add_theme_stylebox_override(SceneStringName(panel), _theme_cache.panel);
         add_theme_stylebox_override("panel_selected", _theme_cache.panel_selected);
         end_bulk_theme_override();
 
-        _text->add_theme_font_size_override("font_size", font_size);
+        _text->add_theme_font_size_override(SceneStringName(font_size), font_size);
         _text->set_text(comment_node->get("comments"));
-        _text->add_theme_color_override("font_color", comment_node->get_text_color());
+        _text->add_theme_color_override(SceneStringName(font_color), comment_node->get_text_color());
 
         HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_LEFT;
         if (comment_node->is_title_center_aligned()) {
@@ -107,7 +108,7 @@ void OrchestratorEditorGraphNodeComment::_gui_input(const Ref<InputEvent>& p_eve
 }
 
 bool OrchestratorEditorGraphNodeComment::_has_point(const Vector2& p_point) const {
-    const Ref<StyleBox> panel_sbox = get_theme_stylebox("panel");
+    const Ref<StyleBox> panel_sbox = get_theme_stylebox(SceneStringName(panel));
     const Ref<StyleBox> titlebar_sbox = get_theme_stylebox("titlebar");
     const Ref<Texture2D> resizer = get_theme_icon("resizer");
 
@@ -158,5 +159,5 @@ OrchestratorEditorGraphNodeComment::OrchestratorEditorGraphNodeComment() {
     container->add_child(_text);
 
     connect("raise_request", callable_mp_this(_raise_request));
-    connect("ready", callable_mp_this(_raise_request));
+    connect(SceneStringName(ready), callable_mp_this(_raise_request));
 }

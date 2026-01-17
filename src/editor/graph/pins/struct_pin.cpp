@@ -19,8 +19,11 @@
 #include "api/extension_db.h"
 #include "common/callable_lambda.h"
 #include "common/variant_utils.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 
 #include <string>
+
 #include <godot_cpp/classes/grid_container.hpp>
 
 int OrchestratorEditorGraphPinStruct::_get_grid_columns_for_type(Variant::Type p_type) {
@@ -45,10 +48,10 @@ bool OrchestratorEditorGraphPinStruct::_is_property_excluded(Variant::Type p_typ
         case Variant::RECT2:
         case Variant::RECT2I:
         case Variant::AABB: {
-            return p_property.name.match("end");
+            return p_property.name.match(CoreStringName(end));
         }
         case Variant::PLANE: {
-            return p_property.name.match("normal");
+            return p_property.name.match(CoreStringName(normal));
         }
         default: {
             return false;
@@ -180,8 +183,8 @@ Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget() {
         line_edit->set_expand_to_text_length_enabled(true);
         line_edit->set_select_all_on_focus(true);
         line_edit->add_theme_constant_override("minimum_character_width", 0);
-        line_edit->connect("focus_exited", callable_mp_lambda(this, [&] { _default_value_changed(); }));
-        line_edit->connect("text_submitted", callable_mp_lambda(this, [&] { _default_value_changed(); }));
+        line_edit->connect(SceneStringName(focus_exited), callable_mp_lambda(this, [&] { _default_value_changed(); }));
+        line_edit->connect(SceneStringName(text_submitted), callable_mp_lambda(this, [&] { _default_value_changed(); }));
         container->add_child(line_edit);
 
         _controls.push_back(line_edit);

@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/macros.h"
+#include "core/godot/scene_string_names.h"
 
 void OrchestratorEditorGraphPinNumber::_update_control_value(const Variant& p_value) {
     // Used in case the value entered is invalid
@@ -63,8 +64,8 @@ Control* OrchestratorEditorGraphPinNumber::_create_default_value_widget() {
     _control->set_h_size_flags(SIZE_EXPAND);
     _control->add_theme_constant_override("minimum_character_width", 0);
     _control->set_select_all_on_focus(true);
-    _control->connect("text_submitted", callable_mp_lambda(this, [&] (const String&) { _control->release_focus(); }));
-    _control->connect("focus_exited", callable_mp_lambda(this, [&] { _default_value_changed(); }));
+    _control->connect(SceneStringName(text_submitted), callable_mp_lambda(this, [&] (const String&) { _control->release_focus(); }));
+    _control->connect(SceneStringName(focus_exited), callable_mp_lambda(this, [&] { _default_value_changed(); }));
 
     return _control;
 }

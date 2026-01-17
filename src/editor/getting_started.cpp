@@ -19,6 +19,7 @@
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/version.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -43,7 +44,7 @@ void OrchestratorGettingStarted::_notification(int p_what) {
             Label* plugin_version = memnew(Label);
             plugin_version->set_text(vformat("Godot %s - %s", VERSION_NAME, VERSION_FULL_BUILD));
             plugin_version->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
-            plugin_version->add_theme_font_size_override("font_size", 24);
+            plugin_version->add_theme_font_size_override(SceneStringName(font_size), 24);
             plugin_version->add_theme_color_override("font_shadow_color", Color(0, 0, 0, 1));
             plugin_version->add_theme_constant_override("shadow_outline_size", 3);
             add_child(plugin_version);
@@ -57,21 +58,21 @@ void OrchestratorGettingStarted::_notification(int p_what) {
             create_new->set_button_icon(SceneUtils::get_editor_icon("ScriptCreateDialog"));
             create_new->set_text("Create New Orchestration");
             create_new->set_focus_mode(FOCUS_NONE);
-            create_new->connect("pressed", callable_mp_this(_create_new));
+            create_new->connect(SceneStringName(pressed), callable_mp_this(_create_new));
             button_container->add_child(create_new);
 
             Button* open = memnew(Button);
             open->set_button_icon(SceneUtils::get_editor_icon("Script"));
             open->set_text("Open Orchestration");
             open->set_focus_mode(FOCUS_NONE);
-            open->connect("pressed", callable_mp_this(_open));
+            open->connect(SceneStringName(pressed), callable_mp_this(_open));
             button_container->add_child(open);
 
             Button* open_docs = memnew(Button);
             open_docs->set_button_icon(SceneUtils::get_editor_icon("ExternalLink"));
             open_docs->set_text("Get Help");
             open_docs->set_focus_mode(FOCUS_NONE);
-            open_docs->connect("pressed", callable_mp_this(_show_docs));
+            open_docs->connect(SceneStringName(pressed), callable_mp_this(_show_docs));
             button_container->add_child(open_docs);
             break;
         }

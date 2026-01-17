@@ -19,6 +19,7 @@
 #include "authors.gen.h"
 #include "common/macros.h"
 #include "common/version.h"
+#include "core/godot/scene_string_names.h"
 #include "donors.gen.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "license.gen.h"
@@ -69,9 +70,9 @@ ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, c
             if (p_allow_website) {
                 list->set_focus_mode(Control::FOCUS_CLICK);
                 list->set_mouse_filter(Control::MOUSE_FILTER_PASS);
-                list->connect("item_activated", callable_mp_this(_website_selected).bind(list));
-                list->connect("resized", callable_mp_this(_item_list_resized).bind(list));
-                list->connect("focus_exited", callable_mp(list, &ItemList::deselect_all));
+                list->connect(SceneStringName(item_activated), callable_mp_this(_website_selected).bind(list));
+                list->connect(SceneStringName(resized), callable_mp_this(_item_list_resized).bind(list));
+                list->connect(SceneStringName(focus_exited), callable_mp(list, &ItemList::deselect_all));
                 list->add_theme_stylebox_override("focus", empty_stylebox);
                 list->add_theme_stylebox_override("selected", empty_stylebox);
 
@@ -132,7 +133,7 @@ void OrchestratorAboutDialog::_theme_changed() {
     _license_text->begin_bulk_theme_override();
     _license_text->add_theme_font_override("normal_font", font);
     _license_text->add_theme_font_size_override("normal_font_size", font_size);
-    _license_text->add_theme_constant_override("line_separation", 4);
+    _license_text->add_theme_constant_override(SceneStringName(line_separation), 4);
     _license_text->end_bulk_theme_override();
 
     _logo->set_texture(OrchestratorPlugin::get_singleton()->get_plugin_icon_hires());
@@ -148,10 +149,10 @@ void OrchestratorAboutDialog::_theme_changed() {
 
     Ref<Theme> theme = EI->get_editor_theme();
     if (theme.is_valid()) {
-        Ref<StyleBox> sb = theme->get_stylebox("panel", "EditorAbout");
+        Ref<StyleBox> sb = theme->get_stylebox(SceneStringName(panel), "EditorAbout");
         if (sb.is_valid()) {
             Ref<StyleBox> sbd = sb->duplicate();
-            add_theme_stylebox_override("panel", sbd);
+            add_theme_stylebox_override(SceneStringName(panel), sbd);
         }
     }
 
@@ -254,8 +255,8 @@ void OrchestratorAboutDialog::_notification(int p_what) {
             _license_text->set_text(String::utf8(ORCHESTRATOR_LICENSE_TEXT));
             tc->add_child(_license_text);
 
-            _version_btn->connect("pressed", callable_mp_this(_version_pressed));
-            _patreon_btn->connect("pressed", callable_mp_this(_patreon_pressed));
+            _version_btn->connect(SceneStringName(pressed), callable_mp_this(_version_pressed));
+            _patreon_btn->connect(SceneStringName(pressed), callable_mp_this(_patreon_pressed));
             break;
         }
         case NOTIFICATION_THEME_CHANGED: {

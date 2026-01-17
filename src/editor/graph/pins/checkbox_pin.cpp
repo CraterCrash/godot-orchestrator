@@ -17,6 +17,7 @@
 #include "editor/graph/pins/checkbox_pin.h"
 
 #include "common/callable_lambda.h"
+#include "core/godot/scene_string_names.h"
 
 void OrchestratorEditorGraphPinCheckbox::_update_control_value(const Variant& p_value) {
     _control->set_pressed(p_value);
@@ -30,7 +31,7 @@ Control* OrchestratorEditorGraphPinCheckbox::_create_default_value_widget() {
     _control = memnew(CheckBox);
     _control->set_focus_mode(FOCUS_NONE);
     _control->set_h_size_flags(SIZE_EXPAND_FILL);
-    _control->connect("toggled", callable_mp_lambda(this, [&] (const bool&) { _default_value_changed(); }));
+    _control->connect(SceneStringName(toggled), callable_mp_lambda(this, [&] (const bool&) { _default_value_changed(); }));
 
     return _control;
 }

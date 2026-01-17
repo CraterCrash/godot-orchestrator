@@ -16,7 +16,6 @@
 //
 #include "editor/graph/graph_panel.h"
 
-#include "../gui/context_menu.h"
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
@@ -27,6 +26,8 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
@@ -39,6 +40,7 @@
 #include "editor/graph/knot_editor.h"
 #include "editor/graph/nodes/comment_graph_node.h"
 #include "editor/graph/nodes/knot_node.h"
+#include "editor/gui/context_menu.h"
 #include "editor/gui/dialogs_helper.h"
 #include "orchestration/orchestration.h"
 #include "script/graph.h"
@@ -1509,7 +1511,7 @@ void OrchestratorEditorGraphPanel::_connect_graph_node_signals(OrchestratorEdito
     // final size of a node. This helps to avoid issues with editor scale changes being problematic
     // by leaving nodes too large after scale up.
     #if GODOT_VERSION < 0x040300
-    p_node->connect("resized", callable_mp_this(_node_resized).bind(p_node));
+    p_node->connect(SceneStringName(resized), callable_mp_this(_node_resized).bind(p_node));
     #else
     p_node->connect("resize_end", callable_mp_this(_node_resize_end).bind(p_node));
     #endif
@@ -1530,7 +1532,7 @@ void OrchestratorEditorGraphPanel::_disconnect_graph_node_signals(OrchestratorEd
     // final size of a node. This helps to avoid issues with editor scale changes being problematic
     // by leaving nodes too large after scale up.
     #if GODOT_VERSION < 0x040300
-    p_node->disconnect("resized", callable_mp_this(_node_resized).bind(p_node));
+    p_node->disconnect(SceneStringName(resized), callable_mp_this(_node_resized).bind(p_node));
     #else
     p_node->disconnect("resize_end", callable_mp_this(_node_resize_end).bind(p_node));
     #endif
@@ -1580,7 +1582,7 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(true);
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
-    menu->connect("canceled", callable_mp_this(_action_menu_canceled));
+    menu->connect(SceneStringName(canceled), callable_mp_this(_action_menu_canceled));
 
     Ref<OrchestratorEditorActionFilterEngine> filter_engine;
     filter_engine.instantiate();
@@ -1641,7 +1643,7 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position) {
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(true);
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
-    menu->connect("canceled", callable_mp_this(_action_menu_canceled));
+    menu->connect(SceneStringName(canceled), callable_mp_this(_action_menu_canceled));
 
     menu->popup(
         p_position + get_screen_position(),
@@ -1896,7 +1898,7 @@ void OrchestratorEditorGraphPanel::_set_scroll_offset_and_zoom(const Vector2& p_
         tween->set_ease(Tween::EASE_IN_OUT);
 
         if (p_callback.is_valid()) {
-            tween->connect("finished", p_callback);
+            tween->connect(SceneStringName(finished), p_callback);
         }
 
         tween->play();
@@ -1948,7 +1950,7 @@ void OrchestratorEditorGraphPanel::_queue_autowire(OrchestratorEditorGraphNode* 
 
     OrchestratorAutowireConnectionDialog* autowire = memnew(OrchestratorAutowireConnectionDialog);
 
-    autowire->connect("confirmed", callable_mp_lambda(this, [autowire, p_origin_pin, this] {
+    autowire->connect(SceneStringName(confirmed), callable_mp_lambda(this, [autowire, p_origin_pin, this] {
         OrchestratorEditorGraphPin* selected = autowire->get_autowire_choice();
         if (selected)
             link(p_origin_pin, selected);
@@ -1973,7 +1975,7 @@ void OrchestratorEditorGraphPanel::_update_theme_item_cache() {
     ScopedThemeGuard guard(_in_theme_update);
 
     Control* parent_control = get_menu_control()->get_parent_control();
-    Ref<StyleBoxFlat> panel = parent_control->get_theme_stylebox("panel")->duplicate();
+    Ref<StyleBoxFlat> panel = parent_control->get_theme_stylebox(SceneStringName(panel))->duplicate();
     panel->set_shadow_size(1);
     panel->set_shadow_offset(Vector2(2.f, 2.f));
     panel->set_bg_color(panel->get_bg_color() + Color(0, 0, 0, .3));
@@ -1987,16 +1989,16 @@ void OrchestratorEditorGraphPanel::_update_theme_item_cache() {
 
     Ref<Theme> theme;
     theme.instantiate();
-    theme->set_font("font", "Label", _theme_cache.label_font);
-    theme->set_font("font", "GraphNodeTitleLabel", _theme_cache.label_bold_font);
-    theme->set_font("font", "LineEdit", _theme_cache.label_font);
-    theme->set_font("font", "Button", _theme_cache.label_font);
+    theme->set_font(SceneStringName(font), "Label", _theme_cache.label_font);
+    theme->set_font(SceneStringName(font), "GraphNodeTitleLabel", _theme_cache.label_bold_font);
+    theme->set_font(SceneStringName(font), "LineEdit", _theme_cache.label_font);
+    theme->set_font(SceneStringName(font), "Button", _theme_cache.label_font);
     set_theme(theme);
 }
 
 void OrchestratorEditorGraphPanel::_update_menu_theme() {
     Control* control = get_menu_control()->get_parent_control();
-    control->add_theme_stylebox_override("panel", _theme_cache.panel);
+    control->add_theme_stylebox_override(SceneStringName(panel), _theme_cache.panel);
 }
 
 void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
@@ -2776,11 +2778,11 @@ void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_gr
     // When nodes are spawned or removed, this triggers a panel rebuild based on the model
     _graph->connect("node_added", callable_mp_this(_node_added));
     _graph->connect("node_removed", callable_mp_this(_node_removed));
-    _graph->connect("changed", callable_mp_this(_graph_changed));
+    _graph->connect(CoreStringName(changed), callable_mp_this(_graph_changed));
     _graph->connect("connection_knots_removed", callable_mp(_knot_editor, &KnotHelper::remove_knots_for_connection));
     // Setup events with KnotEditor now that a graph has been set
     _knot_editor->connect("refresh_connections_requested", callable_mp_this(_refresh_panel_connections_with_model));
-    _knot_editor->connect("changed", callable_mp_this(_knots_changed));
+    _knot_editor->connect(CoreStringName(changed), callable_mp_this(_knots_changed));
 
     // When model triggers link/unlink, makes sure the UI updates
     // Great use case is when changing a variable type where a connection is no longer valid
@@ -2977,7 +2979,7 @@ void OrchestratorEditorGraphPanel::show_override_function_action_menu() {
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(false);
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
-    menu->connect("canceled", callable_mp_this(_action_menu_canceled));
+    menu->connect(SceneStringName(canceled), callable_mp_this(_action_menu_canceled));
 
     menu->popup_centered(
         OrchestratorEditorActionRegistry::get_singleton()->get_actions(_graph->get_orchestration()->as_script()),
@@ -3374,7 +3376,7 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     Label* label = memnew(Label);
     label->set_text("Use Right Mouse Button To Add New Nodes");
     label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
-    label->add_theme_font_size_override("font_size", 24);
+    label->add_theme_font_size_override(SceneStringName(font_size), 24);
 
     _center_status = memnew(CenterContainer);
     _center_status->set_anchors_preset(PRESET_FULL_RECT);
@@ -3417,7 +3419,7 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     _grid_pattern->set_item_metadata(0, GRID_PATTERN_LINES);
     _grid_pattern->add_item("Dots");
     _grid_pattern->set_item_metadata(1, GRID_PATTERN_DOTS);
-    _grid_pattern->connect("item_selected", callable_mp_this(_grid_pattern_changed));
+    _grid_pattern->connect(SceneStringName(item_selected), callable_mp_this(_grid_pattern_changed));
     _grid_pattern->select(selected);
     set_grid_pattern(CAST_INT_TO_ENUM(GridPattern, _grid_pattern->get_item_metadata(selected)));
 

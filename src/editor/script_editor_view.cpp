@@ -23,6 +23,8 @@
 #include "common/name_utils.h"
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/goto_node_dialog.h"
 #include "editor/graph/graph_panel.h"
@@ -207,7 +209,7 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
             button = memnew(Button);
             button->set_name(DETAILS_BUTTON_NAME);
             button->set_focus_mode(FOCUS_NONE);
-            button->connect("pressed", callable_mp_this(_change_script_type));
+            button->connect(SceneStringName(pressed), callable_mp_this(_change_script_type));
             tab_panel->get_menu_control()->add_child(memnew(VSeparator));
             tab_panel->get_menu_control()->add_child(button);
         }
@@ -230,7 +232,7 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
             button->set_focus_mode(FOCUS_NONE);
             button->set_toggle_mode(true);
             button->set_button_icon(SceneUtils::get_editor_icon("NodeWarning"));
-            button->connect("pressed", callable_mp_lambda(this, [&] { _show_warnings_panel(!_warnings_panel->is_visible()); }));
+            button->connect(SceneStringName(pressed), callable_mp_lambda(this, [&] { _show_warnings_panel(!_warnings_panel->is_visible()); }));
             button->set_tooltip_text("There are script warnings.");
             tab_panel->get_menu_control()->add_child(button);
         }
@@ -246,7 +248,7 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
             button->set_focus_mode(FOCUS_NONE);
             button->set_toggle_mode(true);
             button->set_button_icon(SceneUtils::get_editor_icon("StatusError"));
-            button->connect("pressed", callable_mp_lambda(this, [&] { _show_errors_panel(!_errors_panel->is_visible()); }));
+            button->connect(SceneStringName(pressed), callable_mp_lambda(this, [&] { _show_errors_panel(!_errors_panel->is_visible()); }));
             button->set_tooltip_text("There are script errors.");
             tab_panel->get_menu_control()->add_child(button);
         }
@@ -273,7 +275,7 @@ void OrchestratorScriptGraphEditorView::_change_script_type() {
             if (buttons.is_empty()) {
                 return;
             }
-            cast_to<Button>(buttons[0])->emit_signal("pressed");
+            cast_to<Button>(buttons[0])->emit_signal(SceneStringName(pressed));
         }
     }
 }
@@ -510,7 +512,7 @@ void OrchestratorScriptGraphEditorView::_prepare_edit_menu() {
 void OrchestratorScriptGraphEditorView::_enable_editor() {
     _edit_hb->add_child(_edit_menu);
     _edit_menu->connect("about_to_popup", callable_mp_this(_prepare_edit_menu));
-    _edit_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
+    _edit_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _edit_menu->get_popup()->add_item("Undo", EDIT_UNDO, OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_Z));
     _edit_menu->get_popup()->add_item("Redo", EDIT_REDO, OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT, KEY_Z));
 
@@ -525,7 +527,7 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
     _edit_menu->hide();
 
     _edit_hb->add_child(_search_menu);
-    _search_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
+    _search_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _search_menu->get_popup()->add_item("Find", SEARCH_FIND, OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_F));
     _search_menu->get_popup()->add_item("Find Next", SEARCH_FIND_NEXT, KEY_F3);
     _search_menu->get_popup()->add_item("Find Previous", SEARCH_FIND_PREVIOUS, OACCEL_KEY(KEY_MASK_SHIFT, KEY_F3));
@@ -533,7 +535,7 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
     _search_menu->hide();
 
     _edit_hb->add_child(_goto_menu);
-    _goto_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
+    _goto_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _goto_menu->get_popup()->add_item("Goto Node", SEARCH_LOCATE_NODE, OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_L));
 
     _goto_menu->get_popup()->add_separator();
@@ -555,7 +557,7 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
     #endif
 
     _edit_hb->add_child(_debug_menu);
-    _debug_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
+    _debug_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _debug_menu->get_popup()->add_item("Step Into", DEBUG_STEP_INTO, KEY_F11);
     _debug_menu->get_popup()->add_item("Step Over", DEBUG_STEP_OVER, KEY_F10);
     _debug_menu->get_popup()->add_separator();
@@ -686,7 +688,7 @@ void OrchestratorScriptGraphEditorView::set_edited_resource(const Ref<Resource>&
 
     // Makes sure that when Orchestration changes, any editor tab panels are updated
     // _script->get_orchestration()->connect("changed", callable_mp_this(_update_editor_script_buttons));
-    _script->connect("changed", callable_mp_this(_update_editor_script_buttons));
+    _script->connect(CoreStringName(changed), callable_mp_this(_update_editor_script_buttons));
 
     _event_graph = _create_graph_tab("EventGraph");
 

@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/macros.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/gui/file_dialog.h"
 
 void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
@@ -31,7 +32,7 @@ void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
     }
 
     _dialog->connect("file_selected", callable_mp_lambda(this, [&](const String& v) { _handle_selector_button_response(v); }));
-    _dialog->connect("canceled", callable_mp_cast(this, Node, queue_free));
+    _dialog->connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
 
     add_child(_dialog);
 

@@ -21,6 +21,8 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/graph_pin.h"
@@ -215,7 +217,7 @@ void OrchestratorEditorGraphNode::_create_add_button_widgets() {
         button->set_tooltip_text("Add a new pin");
         container->add_child(button);
 
-        button->connect("pressed", callable_mp_this(_add_pin_requested));
+        button->connect(SceneStringName(pressed), callable_mp_this(_add_pin_requested));
     }
 }
 
@@ -268,7 +270,7 @@ void OrchestratorEditorGraphNode::_update_styles() {
 
     const String type_name = vformat("GraphNode_%s", _node->get_node_title_color_name());
     begin_bulk_theme_override();
-    add_theme_stylebox_override("panel", cache->get_theme_stylebox("panel", "GraphNode"));
+    add_theme_stylebox_override(SceneStringName(panel), cache->get_theme_stylebox(SceneStringName(panel), "GraphNode"));
     add_theme_stylebox_override("panel_selected", cache->get_theme_stylebox("panel_selected", "GraphNode"));
     add_theme_stylebox_override("titlebar", cache->get_theme_stylebox("titlebar", type_name));
     add_theme_stylebox_override("titlebar_selected", cache->get_theme_stylebox("titlebar_selected", type_name));
@@ -350,7 +352,7 @@ void OrchestratorEditorGraphNode::set_node(const Ref<OrchestrationGraphNode>& p_
     ERR_FAIL_COND_MSG(!p_node.is_valid(), "Trying to create an OrchestratorEditorGraphNode with an invalid model");
 
     _node = p_node;
-    _node->connect("changed", callable_mp_this(update));
+    _node->connect(CoreStringName(changed), callable_mp_this(update));
 
     // Serves to handle toggling pin default value visibility when pins are connected/disconnected
     _node->connect("pin_connected", callable_mp_this(_pin_connection_status_changed).bind(true));

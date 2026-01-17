@@ -18,6 +18,7 @@
 
 #include "common/macros.h"
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/tree.hpp>
@@ -98,7 +99,7 @@ void OrchestratorScriptConnectionsDialog::_notification(int p_what) {
             _tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);
             _tree->set_allow_rmb_select(true);
 
-            connect("confirmed", callable_mp_this(_confirmed));
+            connect(SceneStringName(confirmed), callable_mp_this(_confirmed));
             break;
         }
         default: {

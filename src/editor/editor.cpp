@@ -22,6 +22,7 @@
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/actions/registry.h"
 #include "editor/editor_view.h"
 #include "editor/getting_started.h"
@@ -419,7 +420,7 @@ void OrchestratorEditor::_queue_close_tabs() {
         if (OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(index))) {
             if (view->is_unsaved()) {
                 _ask_close_current_unsaved_tab(view);
-                _erase_tab_confirm->connect("visibility_changed", callable_mp_this(_queue_close_tabs), CONNECT_ONE_SHOT);
+                _erase_tab_confirm->connect(SceneStringName(visibility_changed), callable_mp_this(_queue_close_tabs), CONNECT_ONE_SHOT);
                 break;
             }
         }
@@ -2322,7 +2323,7 @@ void OrchestratorEditor::_notification(int p_what) {
         case NOTIFICATION_TRANSLATION_CHANGED:
         case NOTIFICATION_LAYOUT_DIRECTION_CHANGED:
         case NOTIFICATION_THEME_CHANGED: {
-            _tab_container->add_theme_stylebox_override("panel", get_theme_stylebox("ScriptEditor", "EditorStyles"));
+            _tab_container->add_theme_stylebox_override(SceneStringName(panel), get_theme_stylebox("ScriptEditor", "EditorStyles"));
 
             _site_search->set_button_icon(SceneUtils::get_editor_icon("ExternalLink"));
             _filter_scripts->set_right_icon(SceneUtils::get_editor_icon("Search"));
@@ -2335,7 +2336,7 @@ void OrchestratorEditor::_notification(int p_what) {
             break;
         }
         case NOTIFICATION_READY: {
-            add_theme_stylebox_override("panel", get_theme_stylebox("ScriptEditorPanel", "EditorStyles"));
+            add_theme_stylebox_override(SceneStringName(panel), get_theme_stylebox("ScriptEditorPanel", "EditorStyles"));
 
             EditorNode->connect("script_add_function_request", callable_mp_this(_add_callback));
             EditorNode->connect("resource_saved", callable_mp_this(_resource_saved_callback));
@@ -2347,7 +2348,7 @@ void OrchestratorEditor::_notification(int p_what) {
 
             get_tree()->connect("tree_changed", callable_mp_this(_tree_changed));
 
-            _script_list->connect("item_selected", callable_mp_this(_script_selected));
+            _script_list->connect(SceneStringName(item_selected), callable_mp_this(_script_selected));
             _script_split->connect("dragged", callable_mp_this(_split_dragged));
             break;
         }
@@ -2415,7 +2416,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _filter_scripts = memnew(LineEdit);
     _filter_scripts->set_placeholder("Filter Orchestrations");
     _filter_scripts->set_clear_button_enabled(true);
-    _filter_scripts->connect("text_changed", callable_mp_this(_filter_scripts_text_changed));
+    _filter_scripts->connect(SceneStringName(text_changed), callable_mp_this(_filter_scripts_text_changed));
     _scripts_vbox->add_child(_filter_scripts);
 
     _script_list = memnew(ItemList);
@@ -2431,7 +2432,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     SET_DRAG_FORWARDING_GCD(_script_list, OrchestratorEditor)
 
     _context_menu = memnew(PopupMenu);
-    _context_menu->connect("id_pressed", callable_mp_this(_menu_option));
+    _context_menu->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     add_child(_context_menu);
 
     VBoxContainer* editor_container = memnew(VBoxContainer);
@@ -2462,7 +2463,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _menu_hb->add_child(_file_menu);
 
     _recent_history = memnew(PopupMenu);
-    _recent_history->connect("id_pressed", callable_mp_this(_open_recent_script));
+    _recent_history->connect(SceneStringName(id_pressed), callable_mp_this(_open_recent_script));
     _file_menu->get_popup()->add_child(_recent_history);
 
     _file_menu->get_popup()->add_item("New Orchestration...", FILE_NEW, OACCEL_KEY(KEY_MASK_CTRL, KEY_N));
@@ -2489,7 +2490,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _file_menu->get_popup()->add_separator();
     _file_menu->get_popup()->add_item("Toggle Orchestration List", FILE_TOGGLE_LEFT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_BACKSLASH));
     _file_menu->get_popup()->add_item("Toggle Component Panel", FILE_TOGGLE_RIGHT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_SLASH));
-    _file_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
+    _file_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _file_menu->get_popup()->connect("about_to_popup", callable_mp_this(_prepare_file_menu));
     _file_menu->get_popup()->connect("popup_hide", callable_mp_this(_file_menu_closed));
 
@@ -2518,7 +2519,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _help_menu->get_popup()->add_separator();
     _help_menu->get_popup()->add_item("About " VERSION_NAME, HELP_ABOUT);
     _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("Heart"), "Support " VERSION_NAME, HELP_SUPPORT);
-    _help_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
+    _help_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _menu_hb->add_child(_help_menu);
 
     _menu_hb->add_spacer(false);
@@ -2538,7 +2539,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _site_search->set_flat(true);
     _site_search->set_focus_mode(FOCUS_NONE);
     _site_search->set_text("Online Docs");
-    _site_search->connect("pressed", callable_mp_this(_menu_option).bind(HELP_ONLINE_DOCUMENTATION));
+    _site_search->connect(SceneStringName(pressed), callable_mp_this(_menu_option).bind(HELP_ONLINE_DOCUMENTATION));
     _menu_hb->add_child(_site_search);
 
     Button* help_search = memnew(Button);
@@ -2546,7 +2547,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     help_search->set_focus_mode(FOCUS_NONE);
     help_search->set_text("Search Help");
     help_search->set_button_icon(SceneUtils::get_editor_icon("HelpSearch"));
-    help_search->connect("pressed", callable_mp_this(_help_search).bind(""));
+    help_search->connect(SceneStringName(pressed), callable_mp_this(_help_search).bind(""));
     _menu_hb->add_child(help_search);
 
     _menu_hb->add_child(memnew(VSeparator));
@@ -2579,7 +2580,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _erase_tab_confirm = memnew(ConfirmationDialog);
     _erase_tab_confirm->set_ok_button_text("Save");
     _erase_tab_confirm->add_button("Discard", DisplayServer::get_singleton()->get_swap_cancel_ok(), "discard");
-    _erase_tab_confirm->connect("confirmed", callable_mp_this(_close_current_tab).bind(true, true));
+    _erase_tab_confirm->connect(SceneStringName(confirmed), callable_mp_this(_close_current_tab).bind(true, true));
     _erase_tab_confirm->connect("custom_action", callable_mp_this(_close_discard_current_tab));
     add_child(_erase_tab_confirm);
 
@@ -2621,12 +2622,12 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
 
     _disk_changed->set_ok_button_text("Reload from disk");
     _disk_changed->add_button("Ignore external changes", !DisplayServer::get_singleton()->get_swap_cancel_ok(), "resave");
-    _disk_changed->connect("confirmed", callable_mp_this(reload_scripts).bind(false));
+    _disk_changed->connect(SceneStringName(confirmed), callable_mp_this(reload_scripts).bind(false));
     _disk_changed->connect("custom_action", callable_mp_this(_resave_scripts));
 
     _autosave_timer = memnew(Timer);
     _autosave_timer->set_one_shot(false);
-    _autosave_timer->connect("tree_entered", callable_mp_this(_update_autosave_timer));
+    _autosave_timer->connect(SceneStringName(tree_entered), callable_mp_this(_update_autosave_timer));
     _autosave_timer->connect("timeout", callable_mp_this(_autosave_scripts));
     add_child(_autosave_timer);
 

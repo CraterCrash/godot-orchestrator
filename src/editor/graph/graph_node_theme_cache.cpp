@@ -19,6 +19,7 @@
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
@@ -36,9 +37,9 @@ void OrchestratorEditorGraphNodeThemeCache::_settings_changed() {
     const Color select = ORCHESTRATOR_GET("ui/nodes/border_selected_color", Color(0.68f, 0.44f, 0.09f));
     const Color bkgrnd = ORCHESTRATOR_GET("ui/nodes/background_color", Color::html("#191d23"));
 
-    Ref<StyleBoxFlat> panel = get_theme_stylebox("panel", "GraphNode");
+    Ref<StyleBoxFlat> panel = get_theme_stylebox(SceneStringName(panel), "GraphNode");
     if (!panel.is_valid()) {
-        Ref<StyleBoxFlat> new_panel = SceneUtils::get_editor_stylebox("panel", "GraphNode")->duplicate(true);
+        Ref<StyleBoxFlat> new_panel = SceneUtils::get_editor_stylebox(SceneStringName(panel), "GraphNode")->duplicate(true);
         if (new_panel.is_valid()) {
             new_panel->set_border_color(border);
             new_panel->set_border_width_all(bwidth);
@@ -49,7 +50,7 @@ void OrchestratorEditorGraphNodeThemeCache::_settings_changed() {
             new_panel->set_corner_radius(CORNER_TOP_LEFT, 0);
             new_panel->set_corner_radius(CORNER_TOP_RIGHT, 0);
             new_panel->set_bg_color(bkgrnd);
-            add_theme_stylebox("panel", "GraphNode", new_panel);
+            add_theme_stylebox(SceneStringName(panel), "GraphNode", new_panel);
 
             const Ref<StyleBoxFlat> panel_selected = new_panel->duplicate();
             if (panel_selected.is_valid()) {

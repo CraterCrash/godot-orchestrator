@@ -17,6 +17,7 @@
 #include "editor/gui/context_menu.h"
 
 #include "common/scene_utils.h"
+#include "core/godot/scene_string_names.h"
 
 void OrchestratorEditorContextMenu::_id_pressed(int p_id) {
     if (_callables.has(p_id)) {
@@ -128,7 +129,7 @@ OrchestratorEditorContextMenu::OrchestratorEditorContextMenu() : OrchestratorEdi
 
 OrchestratorEditorContextMenu::OrchestratorEditorContextMenu(bool p_parent) {
     _menu = memnew(PopupMenu);
-    _menu->connect("id_pressed", callable_mp(this, &OrchestratorEditorContextMenu::_id_pressed));
+    _menu->connect(SceneStringName(id_pressed), callable_mp(this, &OrchestratorEditorContextMenu::_id_pressed));
 
     if (p_parent) {
         add_child(_menu);
