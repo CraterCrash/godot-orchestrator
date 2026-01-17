@@ -21,6 +21,8 @@
 #include "common/macros.h"
 #include "common/string_utils.h"
 #include "core/godot/object/bitfield_resolver.h"
+#include "core/godot/scene_string_names.h"
+
 #include <godot_cpp/classes/grid_container.hpp>
 #include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/popup_panel.hpp>
@@ -93,7 +95,7 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
 
             check->set_text(StringUtils::join(" / ", names));
             check->set_meta("bitmask_value", item.value);
-            check->connect("toggled", callable_mp_this(_update_checkboxes).bind(check));
+            check->connect(SceneStringName(toggled), callable_mp_this(_update_checkboxes).bind(check));
 
             container->add_child(check);
         }
@@ -106,7 +108,7 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
             check->set_pressed((default_value & E.value.value) == E.value.value);
             check->set_text(E.value.friendly_name);
             check->set_meta("bitmask_value", E.value.value);
-            check->connect("toggled", callable_mp_this(_update_checkboxes).bind(check));
+            check->connect(SceneStringName(toggled), callable_mp_this(_update_checkboxes).bind(check));
 
             container->add_child(check);
         }

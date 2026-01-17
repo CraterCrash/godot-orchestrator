@@ -23,6 +23,7 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "core/godot/core_string_names.h"
 #include "editor/graph/graph_panel.h"
 #include "script/nodes/functions/call_function.h"
 
@@ -194,7 +195,7 @@ void OrchestratorEditorGraphPin::set_pin(const Ref<OrchestrationGraphPin>& p_pin
     _create_pin_layout();
     _update_control();
 
-    _pin->connect("changed", callable_mp_this(_update_control));
+    _pin->connect(CoreStringName(changed), callable_mp_this(_update_control));
 }
 
 String OrchestratorEditorGraphPin::get_pin_name() const {

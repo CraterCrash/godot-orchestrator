@@ -17,6 +17,7 @@
 #include "editor/graph/knot_editor.h"
 
 #include "common/macros.h"
+#include "core/godot/core_string_names.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/nodes/comment_graph_node.h"
 #include "editor/graph/nodes/knot_node.h"
@@ -187,7 +188,7 @@ void OrchestratorEditorGraphPanelKnotEditor::_create_knot(uint64_t p_connection_
 }
 
 void OrchestratorEditorGraphPanelKnotEditor::_notify_changed() {
-    emit_signal("changed");
+    emit_signal(CoreStringName(changed));
 }
 
 void OrchestratorEditorGraphPanelKnotEditor::_notify_knot_nodes_selection_color_changed() {
@@ -377,7 +378,7 @@ void OrchestratorEditorGraphPanelKnotEditor::_bind_methods() {
 
     // Notifies observers the KnotManager state has changed
     // Could this be the same as flush_knots but using a pull versus push for the data?
-    ADD_SIGNAL(MethodInfo("changed"));
+    ADD_SIGNAL(MethodInfo(CoreStringName(changed)));
 
     // Notifies nodes to self-delete themselves if they're associated with the connection
     ADD_SIGNAL(MethodInfo("remove_connection_knots_requested", PropertyInfo(Variant::INT, "connection_id")));

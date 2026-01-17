@@ -17,6 +17,7 @@
 #include "editor/goto_node_dialog.h"
 
 #include "common/macros.h"
+#include "core/godot/scene_string_names.h"
 #include "editor/script_editor_view.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -60,7 +61,7 @@ OrchestratorGotoNodeDialog::OrchestratorGotoNodeDialog() {
     container->add_child(_line_edit);
     register_text_enter(_line_edit);
 
-    connect("confirmed", callable_mp_this(_goto_node));
-    connect("canceled", callable_mp_cast(this, Node, queue_free));
-    connect("visibility_changed", callable_mp_this(_visibility_changed));
+    connect(SceneStringName(confirmed), callable_mp_this(_goto_node));
+    connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
+    connect(SceneStringName(visibility_changed), callable_mp_this(_visibility_changed));
 }

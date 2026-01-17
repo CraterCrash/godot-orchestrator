@@ -19,7 +19,7 @@
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
-#include "common/tree_utils.h"
+#include "core/godot/scene_string_names.h"
 #include "editor.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -77,7 +77,7 @@ void OrchestratorEditorComponentView::_tree_item_selected() {
         return;
     }
 
-    emit_signal("item_selected", this, selected);
+    emit_signal(SceneStringName(item_selected), this, selected);
 }
 
 void OrchestratorEditorComponentView::_tree_item_activated() {
@@ -86,7 +86,7 @@ void OrchestratorEditorComponentView::_tree_item_activated() {
         return;
     }
 
-    emit_signal("item_activated", this, selected);
+    emit_signal(SceneStringName(item_activated), this, selected);
 }
 
 void OrchestratorEditorComponentView::_tree_item_button_clicked(TreeItem* p_item, int p_column, int p_id, int p_button) {
@@ -240,7 +240,7 @@ void OrchestratorEditorComponentView::edit_tree_item(TreeItem* p_item, const Cal
                 p_success.call(p_item);
 
                 if (state->canceled != Callable()) {
-                    state->popup->disconnect("window_input", state->canceled);
+                    state->popup->disconnect(SceneStringName(window_input), state->canceled);
                 }
 
                 _tree->disconnect("item_edited", state->edited);
@@ -263,7 +263,7 @@ void OrchestratorEditorComponentView::edit_tree_item(TreeItem* p_item, const Cal
                         _tree->disconnect("item_edited", state->edited);
                     }
 
-                    state->popup->disconnect("window_input", state->canceled);
+                    state->popup->disconnect(SceneStringName(window_input), state->canceled);
                     memdelete(state);
 
                     _reset_tree_size();
@@ -272,7 +272,7 @@ void OrchestratorEditorComponentView::edit_tree_item(TreeItem* p_item, const Cal
                 }
             });
 
-            popup->connect("window_input", state->canceled);
+            popup->connect(SceneStringName(window_input), state->canceled);
         }
     }
 
@@ -372,12 +372,12 @@ void OrchestratorEditorComponentView::_notification(int p_what) {
         case NOTIFICATION_THEME_CHANGED: {
             Ref<Theme> theme = EI->get_editor_theme();
             if (theme.is_valid() && _panel) {
-                Ref<StyleBoxFlat> style_box = theme->get_stylebox("panel", "ItemList");
+                Ref<StyleBoxFlat> style_box = theme->get_stylebox(SceneStringName(panel), "ItemList");
                 if (style_box.is_valid()) {
                     style_box = style_box->duplicate();
                     style_box->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
                     style_box->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
-                    _panel->add_theme_stylebox_override("panel", style_box);
+                    _panel->add_theme_stylebox_override(SceneStringName(panel), style_box);
                 }
             }
             break;
@@ -419,7 +419,7 @@ OrchestratorEditorComponentView::OrchestratorEditorComponentView() {
     _add_button = memnew(Button);
     _add_button->set_focus_mode(FOCUS_NONE);
     _add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
-    _add_button->connect("pressed", callable_mp_this(_add_button_pressed));
+    _add_button->connect(SceneStringName(pressed), callable_mp_this(_add_button_pressed));
     _panel_hbox->add_child(_add_button);
 
     _panel = memnew(PanelContainer);
@@ -439,12 +439,12 @@ OrchestratorEditorComponentView::OrchestratorEditorComponentView() {
     _tree->set_hide_root(true);
     _tree->connect("item_collapsed", callable_mp_this(_tree_item_collapsed));
     _tree->connect("item_mouse_selected", callable_mp_this(_tree_item_mouse_selected));
-    _tree->connect("item_selected", callable_mp_this(_tree_item_selected));
-    _tree->connect("item_activated", callable_mp_this(_tree_item_activated));
+    _tree->connect(SceneStringName(item_selected), callable_mp_this(_tree_item_selected));
+    _tree->connect(SceneStringName(item_activated), callable_mp_this(_tree_item_activated));
     _tree->connect("button_clicked", callable_mp_this(_tree_item_button_clicked));
-    _tree->connect("gui_input", callable_mp_this(_tree_gui_input));
+    _tree->connect(SceneStringName(gui_input), callable_mp_this(_tree_gui_input));
     _tree->set_drag_forwarding(callable_mp_this(_tree_drag), Callable(), Callable());
     add_child(_tree);
 
-    _collapse_button->connect("pressed", callable_mp_this(toggle_collapse));
+    _collapse_button->connect(SceneStringName(pressed), callable_mp_this(toggle_collapse));
 }
