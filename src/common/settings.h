@@ -22,15 +22,13 @@
 
 using namespace godot;
 
-class OrchestratorSettings : public Object
-{
+class OrchestratorSettings : public Object {
     GDCLASS(OrchestratorSettings, Object);
 
     static void _bind_methods() {}
 
 public:
-    struct Setting
-    {
+    struct Setting {
         PropertyInfo info;
         Variant value;
 
@@ -41,12 +39,25 @@ private:
     static OrchestratorSettings* _singleton;
     std::vector<Setting> _removed;
     std::vector<Setting> _settings;
-    int _builtin_order{ 1000 };
+    int _builtin_order = 1000;
+
+    static String _make_key(const String& p_key);
+
+    /// Register deprecated settings
+    void _register_deprecated_settings();
+
+    /// Register current usable settings
+    void _register_settings();
+
+    /// Initializes the default settings
+    /// This is useful when starting the plugin for the first time to seed the project settings
+    void _initialize_settings();
+
+    /// Performs any update operations on the settings
+    /// This handles any migration of settings from an older version to the current version.
+    void _update_default_settings();
 
 public:
-    OrchestratorSettings();
-    ~OrchestratorSettings() override;
-
     static OrchestratorSettings* get_singleton() { return _singleton; }
 
     /// Check whether the specified setting exists
@@ -79,7 +90,7 @@ public:
 
     /// Return whether to notify about pre-releases
     /// @return true to notify about pre-releases, false otherwise
-    bool is_notify_about_prereleases() { return get_setting("settings/notify_about_pre-releases", true); }
+    bool is_notify_about_prereleases();
 
     /// Set whether to notify pre-release builds
     /// @param p_notify_prerelease_builds true to notify about pre-releases, false for only stable releases
@@ -87,32 +98,14 @@ public:
 
     const std::vector<Setting>& get_settings() const { return _settings; }
 
-private:
-
-    /// Get the base settings key
-    /// @return the base setting key
-    String _get_base_key() const { return "orchestrator"; }
-
-    /// Register deprecated settings
-    void _register_deprecated_settings();
-
-    /// Register current usable settings
-    void _register_settings();
-
-    /// Initializes the default settings
-    /// This is useful when starting the plugin for the first time to seed the project settings
-    void _initialize_settings();
-
-    /// Performs any update operations on the settings
-    /// This handles any migration of settings from an older version to the current version.
-    void _update_default_settings();
+    OrchestratorSettings();
+    ~OrchestratorSettings() override;
 };
 
 #define ORCHESTRATOR_GET(x, y) OrchestratorSettings::get_singleton()->get_setting(x, y)
 
 template <typename T>
-_FORCE_INLINE_ bool ORCHESTRATOR_GET_TRACK(T& r_field, const String& p_key, T p_default)
-{
+_FORCE_INLINE_ bool ORCHESTRATOR_GET_TRACK(T& r_field, const String& p_key, T p_default) {
     T new_value = ORCHESTRATOR_GET(p_key, p_default);
     if (new_value != r_field) {
         r_field = new_value;

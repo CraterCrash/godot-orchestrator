@@ -22,17 +22,16 @@
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/callable_custom.hpp>
 
-namespace callable_internal
-{
+namespace callable_internal {
+
     using namespace godot;
 
     template<typename T>
-    struct function_traits : public function_traits<decltype(&T::operator())>
-    {};
+    struct function_traits : public function_traits<decltype(&T::operator())> {
+    };
 
     template <typename ClassType, typename ReturnType, typename... Args>
-    struct function_traits<ReturnType(ClassType::*)(Args...) const>
-    {
+    struct function_traits<ReturnType(ClassType::*)(Args...) const> {
         using result_type = ReturnType;
         using arg_tuple = std::tuple<Args...>;
         static constexpr auto arity = sizeof...(Args);
@@ -72,8 +71,7 @@ namespace callable_internal
     };
 
     template<class Lambda>
-    class CallableCustomLambda : public CallableCustom
-    {
+    class CallableCustomLambda : public CallableCustom {
         Lambda _lambda;
         Object* _instance;
 
@@ -85,11 +83,10 @@ namespace callable_internal
         CompareLessFunc get_compare_less_func() const override { return [](const CallableCustom* a, const CallableCustom* b) { return a->hash() < b->hash(); }; }
         bool is_valid() const override { return _instance != nullptr; }
         ObjectID get_object() const override { return ObjectID(); }
-        void call(const Variant** p_args, int p_argcount, Variant& r_ret, GDExtensionCallError& r_error) const override
-        {
+        void call(const Variant** p_args, int p_arg_count, Variant& r_ret, GDExtensionCallError& r_error) const override {
             using traits = function_traits<Lambda>;
             using E = ExpandPack<typename traits::arg_tuple>;
-            E::call(_lambda, p_args, p_argcount, r_ret, r_error, BuildIndexSequence<traits::arity>{});
+            E::call(_lambda, p_args, p_arg_count, r_ret, r_error, BuildIndexSequence<traits::arity>{});
         }
         //~ End CallableCustom Interface
 
@@ -98,14 +95,13 @@ namespace callable_internal
         /// @param p_lambda the lambda function to call
         CallableCustomLambda(Object* p_instance, Lambda&& p_lambda)
             : _lambda(p_lambda)
-            , _instance(p_instance)
-        {};
+            , _instance(p_instance) {
+        }
     };
 }
 
 template<class Lambda>
-godot::Callable callable_mp_lambda(godot::Object* p_instance, Lambda&& p_lambda)
-{
+godot::Callable callable_mp_lambda(godot::Object* p_instance, Lambda&& p_lambda) {
     auto* ccl = memnew(callable_internal::CallableCustomLambda(p_instance, std::forward<Lambda>(p_lambda)));
     return godot::Callable(ccl);
 }

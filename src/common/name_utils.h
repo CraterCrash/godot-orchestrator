@@ -21,8 +21,7 @@
 
 using namespace godot;
 
-namespace NameUtils
-{
+namespace NameUtils {
     /// Create a unique name based on the prefix and not in the names array
     /// @param p_prefix the prefix
     /// @param p_names the existing names
