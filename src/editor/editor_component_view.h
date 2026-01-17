@@ -28,12 +28,10 @@
 using namespace godot;
 
 /// A collapsable widget that provides a title bar, button holder, and a tree to store specific state.
-class OrchestratorEditorComponentView : public VBoxContainer
-{
+class OrchestratorEditorComponentView : public VBoxContainer {
     GDCLASS(OrchestratorEditorComponentView, VBoxContainer);
 
-    struct TreeEditState
-    {
+    struct TreeEditState {
         Callable edited;
         Callable canceled;
         Popup* popup = nullptr;

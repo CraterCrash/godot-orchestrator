@@ -25,69 +25,64 @@
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
-void OrchestratorSceneNodeSelector::_close_requested()
-{
+void OrchestratorSceneNodeSelector::_close_requested() {
     hide();
 }
 
-void OrchestratorSceneNodeSelector::_confirmed()
-{
-    if (TreeItem* item = _tree->get_selected())
+void OrchestratorSceneNodeSelector::_confirmed() {
+    if (TreeItem* item = _tree->get_selected()) {
         emit_signal("node_selected", item->get_metadata(0));
-
+    }
     hide();
 }
 
-void OrchestratorSceneNodeSelector::_filter_changed(const String& p_text)
-{
+void OrchestratorSceneNodeSelector::_filter_changed(const String& p_text) {
     _update_tree(_tree->get_root());
 }
 
-void OrchestratorSceneNodeSelector::_item_activated()
-{
+void OrchestratorSceneNodeSelector::_item_activated() {
     _confirmed();
 }
 
-void OrchestratorSceneNodeSelector::_item_selected()
-{
+void OrchestratorSceneNodeSelector::_item_selected() {
     get_ok_button()->set_disabled(!_tree->get_selected());
 }
 
-Node* OrchestratorSceneNodeSelector::_get_scene_node() const
-{
+Node* OrchestratorSceneNodeSelector::_get_scene_node() const {
     ERR_FAIL_COND_V(!is_inside_tree(), nullptr);
     return get_tree()->get_edited_scene_root();
 }
 
-void OrchestratorSceneNodeSelector::_update_tree(bool p_scroll_to_selected)
-{
-    if (!is_inside_tree())
+void OrchestratorSceneNodeSelector::_update_tree(bool p_scroll_to_selected) {
+    if (!is_inside_tree()) {
         return;
+    }
 
     _tree->clear();
-    if (_get_scene_node())
+    if (_get_scene_node()) {
         _add_nodes(_get_scene_node(), nullptr);
+    }
 
-    if (!_filter->get_text().strip_edges().is_empty() || !_show_all_nodes)
+    if (!_filter->get_text().strip_edges().is_empty() || !_show_all_nodes) {
         _update_filter(nullptr, p_scroll_to_selected);
-    else if (_filter->get_text().is_empty())
+    } else if (_filter->get_text().is_empty()) {
         _update_filter(nullptr, p_scroll_to_selected);
+    }
 }
 
-void OrchestratorSceneNodeSelector::_add_nodes(Node* p_node, TreeItem* p_parent)
-{
-    if (!p_node)
+void OrchestratorSceneNodeSelector::_add_nodes(Node* p_node, TreeItem* p_parent) {
+    if (!p_node) {
         return;
+    }
 
     bool part_of_subscene = false;
-    if (p_node->get_owner() != _get_scene_node() && p_node != _get_scene_node())
-    {
-        if (p_node->get_owner() && _get_scene_node()->is_editable_instance(p_node->get_owner()))
+    if (p_node->get_owner() != _get_scene_node() && p_node != _get_scene_node()) {
+        if (p_node->get_owner() && _get_scene_node()->is_editable_instance(p_node->get_owner())) {
             part_of_subscene = true;
-        else
+        } else {
             return;
+        }
     }
 
     TreeItem *item = _tree->create_item(p_parent);
@@ -98,60 +93,57 @@ void OrchestratorSceneNodeSelector::_add_nodes(Node* p_node, TreeItem* p_parent)
     item->set_icon(0, icon);
     item->set_metadata(0, _get_scene_node()->get_path_to(p_node));
 
-    if (p_node != _get_scene_node() && !p_node->get_scene_file_path().is_empty())
+    if (p_node != _get_scene_node() && !p_node->get_scene_file_path().is_empty()) {
         item->add_button(0, SceneUtils::get_editor_icon("InstanceOptions"));
+    }
 
-    if (part_of_subscene)
-    {
+    if (part_of_subscene) {
         const Color color = SceneUtils::get_editor_color("warning_color");
         item->set_custom_color(0, color);
         item->set_meta("custom_color", color);
-    }
-    else if (!p_node->can_process())
-    {
+    } else if (!p_node->can_process()) {
         const Color color = SceneUtils::get_editor_color("font_disabled_color");
         item->set_custom_color(0, color);
         item->set_meta("custom_color", color);
     }
 
-    if (_selected == p_node)
+    if (_selected == p_node) {
         item->select(0);
+    }
 
     for (int i = 0; i < p_node->get_child_count(); i++) {
         _add_nodes(p_node->get_child(i), item);
     }
 }
 
-bool OrchestratorSceneNodeSelector::_item_matches_all_terms(TreeItem* p_item, const PackedStringArray& p_terms)
-{
-    if (p_terms.is_empty())
+bool OrchestratorSceneNodeSelector::_item_matches_all_terms(TreeItem* p_item, const PackedStringArray& p_terms) {
+    if (p_terms.is_empty()) {
         return true;
+    }
 
-    for (int i = 0; i < p_terms.size(); i++)
-    {
+    for (int i = 0; i < p_terms.size(); i++) {
         const String &term = p_terms[i];
 
-        if (!p_item->get_text(0).to_lower().contains(term))
+        if (!p_item->get_text(0).to_lower().contains(term)) {
             return false;
+        }
     }
 
     return true;
 }
 
-bool OrchestratorSceneNodeSelector::_update_filter(TreeItem* p_parent, bool p_scroll_to_selected)
-{
-    if (!p_parent)
+bool OrchestratorSceneNodeSelector::_update_filter(TreeItem* p_parent, bool p_scroll_to_selected) {
+    if (!p_parent) {
         p_parent = _tree->get_root();
+    }
 
-    if (!p_parent)
-    {
+    if (!p_parent) {
         // Tree is empty, nothing to do here.
         return false;
     }
 
     bool keep_for_children = false;
-    for (TreeItem *child = p_parent->get_first_child(); child; child = child->get_next())
-    {
+    for (TreeItem *child = p_parent->get_first_child(); child; child = child->get_next()) {
         // Always keep if at least one of the children are kept.
         keep_for_children = _update_filter(child, p_scroll_to_selected) || keep_for_children;
     }
@@ -162,28 +154,18 @@ bool OrchestratorSceneNodeSelector::_update_filter(TreeItem* p_parent, bool p_sc
 
     bool selectable = keep;
 
-    if (_show_all_nodes)
-    {
-        p_parent->set_visible(keep_for_children || keep);
-    }
-    else
-    {
-        // Show only selectable nodes, or parents of selectable.
-        p_parent->set_visible(keep_for_children || selectable);
-    }
+    // Show only selectable nodes, or parents of selectable if not showing all nodes
+    p_parent->set_visible(keep_for_children || (_show_all_nodes ? keep : selectable));
 
-    if (selectable)
-    {
+    if (selectable) {
         Color custom_color = p_parent->get_meta("custom_color", Color(0, 0, 0, 0));
-        if (custom_color == Color(0, 0, 0, 0))
+        if (custom_color == Color(0, 0, 0, 0)) {
             p_parent->clear_custom_color(0);
-        else
+        } else {
             p_parent->set_custom_color(0, custom_color);
-
+        }
         p_parent->set_selectable(0, true);
-    }
-    else if (keep_for_children)
-    {
+    } else if (keep_for_children) {
         p_parent->set_custom_color(0, SceneUtils::get_editor_color("font_disabled_color"));
         p_parent->set_selectable(0, false);
         p_parent->deselect(0);
@@ -192,27 +174,23 @@ bool OrchestratorSceneNodeSelector::_update_filter(TreeItem* p_parent, bool p_sc
     return p_parent->is_visible();
 }
 
-void OrchestratorSceneNodeSelector::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_READY)
-    {
-        OCONNECT(_filter, "text_changed", callable_mp(this, &OrchestratorSceneNodeSelector::_filter_changed));
-        OCONNECT(_tree, "item_activated", callable_mp(this, &OrchestratorSceneNodeSelector::_item_activated));
-        OCONNECT(_tree, "item_selected", callable_mp(this, &OrchestratorSceneNodeSelector::_item_selected));
-        OCONNECT(this, "confirmed", callable_mp(this, &OrchestratorSceneNodeSelector::_confirmed));
-        OCONNECT(this, "canceled", callable_mp(this, &OrchestratorSceneNodeSelector::_close_requested));
+void OrchestratorSceneNodeSelector::_notification(int p_what) {
+    if (p_what == NOTIFICATION_READY) {
+        OCONNECT(_filter, "text_changed", callable_mp_this(_filter_changed));
+        OCONNECT(_tree, "item_activated", callable_mp_this(_item_activated));
+        OCONNECT(_tree, "item_selected", callable_mp_this(_item_selected));
+        OCONNECT(this, "confirmed", callable_mp_this(_confirmed));
+        OCONNECT(this, "canceled", callable_mp_this(_close_requested));
 
-        callable_mp(this, &OrchestratorSceneNodeSelector::_update_tree).bind(false).call_deferred();
+        callable_mp_this(_update_tree).bind(false).call_deferred();
     }
 }
 
-void OrchestratorSceneNodeSelector::_bind_methods()
-{
+void OrchestratorSceneNodeSelector::_bind_methods() {
     ADD_SIGNAL(MethodInfo("node_selected", PropertyInfo(Variant::NODE_PATH, "node_path")));
 }
 
-OrchestratorSceneNodeSelector::OrchestratorSceneNodeSelector()
-{
+OrchestratorSceneNodeSelector::OrchestratorSceneNodeSelector() {
     VBoxContainer* vbox = memnew(VBoxContainer);
     add_child(vbox);
 

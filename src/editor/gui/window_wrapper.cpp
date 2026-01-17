@@ -14,8 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "window_wrapper.h"
+#include "editor/gui/window_wrapper.h"
 
+#include "common/macros.h"
 #include "common/scene_utils.h"
 #include "core/godot/scene_string_names.h"
 
@@ -29,84 +30,33 @@
 #include <godot_cpp/classes/popup.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
-OrchestratorWindowWrapper::OrchestratorWindowWrapper()
-{
-    _window = memnew(Window);
-    _window->set_wrap_controls(true);
-
-    add_child(_window);
-    _window->hide();
-
-    _window_background = memnew(Panel);
-    _window_background->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
-    _window->add_child(_window_background);
-}
-
-void OrchestratorWindowWrapper::_bind_methods()
-{
-    ADD_SIGNAL(MethodInfo("window_visibility_changed", PropertyInfo(Variant::BOOL, "visible")));
-    ADD_SIGNAL(MethodInfo("window_close_requested"));
-}
-
-void OrchestratorWindowWrapper::_notification(int p_what)
-{
-    if (!is_window_available())
-        return;
-
-    switch (p_what)
-    {
-        // Grab the focus when WindowWrapper::set_visible(true) is called and is shown.
-        case NOTIFICATION_VISIBILITY_CHANGED:
-            if (get_window_enabled() && is_visible())
-                _window->grab_focus();
-            break;
-
-        case NOTIFICATION_ENTER_TREE:
-            _window->connect("close_requested", callable_mp(this, &OrchestratorWindowWrapper::set_window_enabled).bind(false));
-            break;
-
-        case NOTIFICATION_READY:
-            break;
-
-        case NOTIFICATION_THEME_CHANGED:
-            _window_background->add_theme_stylebox_override("panel",
-                                                            get_theme_stylebox("PanelForeground", "EditorStyles"));
-            break;
-    }
-}
-
-Rect2 OrchestratorWindowWrapper::_get_default_window_rect() const
-{
+Rect2 OrchestratorWindowWrapper::_get_default_window_rect() const {
     // Assume that the control rect is the desired one for the window.
     Transform2D xform = _wrapped_control->get_screen_transform();
     return Rect2(xform.get_origin(), xform.get_scale() * get_size());
 }
 
-Node* OrchestratorWindowWrapper::_get_wrapped_control_parent() const
-{
-    if (_margin)
-        return _margin;
-    return _window;
+Node* OrchestratorWindowWrapper::_get_wrapped_control_parent() const {
+    return _margin ? cast_to<Node>(_margin) : cast_to<Node>(_window);
 }
 
-void OrchestratorWindowWrapper::_set_window_enabled_with_rect(bool p_visible, const Rect2 p_rect)
-{
+void OrchestratorWindowWrapper::_set_window_enabled_with_rect(bool p_visible, const Rect2& p_rect) {
     ERR_FAIL_NULL(_wrapped_control);
 
-    if (!is_window_available())
+    if (!is_window_available()) {
         return;
+    }
 
-    if (_window->is_visible() == p_visible)
-    {
-        if (p_visible)
+    if (_window->is_visible() == p_visible) {
+        if (p_visible) {
             _window->grab_focus();
+        }
         return;
     }
 
     Node* parent = _get_wrapped_control_parent();
 
-    if (_wrapped_control->get_parent() != parent)
-    {
+    if (_wrapped_control->get_parent() != parent) {
         // Move the control to the window
         _wrapped_control->reparent(parent, false);
         // todo: fixes bug on Godot 4.4.1
@@ -114,34 +64,32 @@ void OrchestratorWindowWrapper::_set_window_enabled_with_rect(bool p_visible, co
 
         _set_window_rect(p_rect);
         _wrapped_control->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
-    }
-    else if (!p_visible)
-    {
+    } else if (!p_visible) {
         // Remove control from window.
         _wrapped_control->reparent(this, false);
     }
 
     _window->set_visible(p_visible);
-    if (!p_visible)
+    if (!p_visible) {
         emit_signal("window_close_requested");
+    }
 
     emit_signal("window_visibility_changed", p_visible);
 }
 
-void OrchestratorWindowWrapper::_set_window_rect(const Rect2 p_rect)
-{
+void OrchestratorWindowWrapper::_set_window_rect(const Rect2& p_rect) {
     // Set the window rect even when the window is maximized to have a good default size
     // when the user leaves maximized mode.
     _window->set_position(p_rect.position);
     _window->set_size(p_rect.size);
 
     Ref<EditorSettings> es = EditorInterface::get_singleton()->get_editor_settings();
-    if (es.is_valid() && es->get_setting("interface/multi_window/maximize_window"))
+    if (es.is_valid() && es->get_setting("interface/multi_window/maximize_window")) {
         _window->set_mode(Window::MODE_MAXIMIZED);
+    }
 }
 
-void OrchestratorWindowWrapper::set_wrapped_control(Control* p_control)
-{
+void OrchestratorWindowWrapper::set_wrapped_control(Control* p_control) {
     ERR_FAIL_NULL(p_control);
     ERR_FAIL_COND(_wrapped_control);
 
@@ -149,16 +97,13 @@ void OrchestratorWindowWrapper::set_wrapped_control(Control* p_control)
     add_child(p_control);
 }
 
-Control* OrchestratorWindowWrapper::get_wrapped_control() const
-{
+Control* OrchestratorWindowWrapper::get_wrapped_control() const {
     return _wrapped_control;
 }
 
-Control* OrchestratorWindowWrapper::release_wrapped_control()
-{
+Control* OrchestratorWindowWrapper::release_wrapped_control() {
     set_window_enabled(false);
-    if (_wrapped_control)
-    {
+    if (_wrapped_control) {
         Control* old = _wrapped_control;
         _wrapped_control->get_parent()->remove_child(_wrapped_control);
         _wrapped_control = nullptr;
@@ -167,35 +112,29 @@ Control* OrchestratorWindowWrapper::release_wrapped_control()
     return nullptr;
 }
 
-bool OrchestratorWindowWrapper::is_window_available() const
-{
+bool OrchestratorWindowWrapper::is_window_available() const {
     return _window != nullptr;
 }
 
-bool OrchestratorWindowWrapper::get_window_enabled() const
-{
+bool OrchestratorWindowWrapper::get_window_enabled() const {
     return is_window_available() ? _window->is_visible() : false;
 }
 
-void OrchestratorWindowWrapper::set_window_enabled(bool p_enabled)
-{
+void OrchestratorWindowWrapper::set_window_enabled(bool p_enabled) {
     _set_window_enabled_with_rect(p_enabled, _get_default_window_rect());
 }
 
-Rect2i OrchestratorWindowWrapper::get_window_rect() const
-{
+Rect2i OrchestratorWindowWrapper::get_window_rect() const {
     ERR_FAIL_COND_V(!get_window_enabled(), Rect2i());
     return Rect2i(_window->get_position(), _window->get_size());
 }
 
-int OrchestratorWindowWrapper::get_window_screen() const
-{
+int OrchestratorWindowWrapper::get_window_screen() const {
     ERR_FAIL_COND_V(!get_window_enabled(), -1);
     return _window->get_current_screen();
 }
 
-void OrchestratorWindowWrapper::restore_window(const Rect2i& p_rect, int p_screen)
-{
+void OrchestratorWindowWrapper::restore_window(const Rect2i& p_rect, int p_screen) {
     ERR_FAIL_COND(!is_window_available());
     ERR_FAIL_INDEX(p_screen, DisplayServer::get_singleton()->get_screen_count());
 
@@ -203,8 +142,7 @@ void OrchestratorWindowWrapper::restore_window(const Rect2i& p_rect, int p_scree
     _window->set_current_screen(p_screen);
 }
 
-void OrchestratorWindowWrapper::restore_window_from_saved_position(const Rect2 p_window_rect, int p_screen, const Rect2 p_screen_rect)
-{
+void OrchestratorWindowWrapper::restore_window_from_saved_position(const Rect2& p_window_rect, int p_screen, const Rect2& p_screen_rect) {
     ERR_FAIL_COND(!is_window_available());
 
     Rect2 window_rect = p_window_rect;
@@ -212,28 +150,24 @@ void OrchestratorWindowWrapper::restore_window_from_saved_position(const Rect2 p
     Rect2 restored_screen_rect = p_screen_rect;
 
     // Wayland: Work around window scale ambiguity
-    if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SELF_FITTING_WINDOWS))
-    {
+    if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SELF_FITTING_WINDOWS)) {
         window_rect = Rect2i();
         restored_screen_rect = Rect2i();
     }
 
-    if (screen < 0 || screen >= DisplayServer::get_singleton()->get_screen_count())
-    {
+    if (screen < 0 || screen >= DisplayServer::get_singleton()->get_screen_count()) {
         // Fallback to the main window screen if the saved screen is not available.
         screen = get_window()->get_window_id();
     }
 
     Rect2i real_screen_rect = DisplayServer::get_singleton()->screen_get_usable_rect(screen);
 
-    if (Rect2i(restored_screen_rect) == Rect2i())
-    {
+    if (Rect2i(restored_screen_rect) == Rect2i()) {
         // Fallback to the target screen rect.
         restored_screen_rect = real_screen_rect;
     }
 
-    if (Rect2i(window_rect) == Rect2i())
-    {
+    if (Rect2i(window_rect) == Rect2i()) {
         // Fallback to a standard rect.
         window_rect = Rect2i(restored_screen_rect.position + restored_screen_rect.size / 4, restored_screen_rect.size / 2);
     }
@@ -247,27 +181,27 @@ void OrchestratorWindowWrapper::restore_window_from_saved_position(const Rect2 p
     window_rect.position += real_screen_rect.position;
 
     // Make sure to restore the window if the user minimized it the last time it was displayed.
-    if (_window->get_mode() == Window::MODE_MINIMIZED)
+    if (_window->get_mode() == Window::MODE_MINIMIZED) {
         _window->set_mode(Window::MODE_WINDOWED);
+    }
 
     // All good, restore the window.
     _window->set_current_screen(p_screen);
-    if (_window->is_visible())
+    if (_window->is_visible()) {
         _set_window_rect(window_rect);
-	else
+    } else {
         _set_window_enabled_with_rect(true, window_rect);
+    }
 }
 
-void OrchestratorWindowWrapper::enable_window_on_screen(int p_screen, bool p_auto_scale)
-{
-    int current_screen = Object::cast_to<Window>(get_viewport())->get_current_screen();
+void OrchestratorWindowWrapper::enable_window_on_screen(int p_screen, bool p_auto_scale) {
+    int current_screen = cast_to<Window>(get_viewport())->get_current_screen();
     int screen = p_screen < 0 ? current_screen : p_screen;
 
     Ref<EditorSettings> es = EditorInterface::get_singleton()->get_editor_settings();
     bool auto_scale = p_auto_scale && !es->get_setting("interface/multi_window/maximize_window");
 
-    if (auto_scale && current_screen != screen)
-    {
+    if (auto_scale && current_screen != screen) {
         Rect2 control_rect = _get_default_window_rect();
 
         Rect2i source_screen_rect = DisplayServer::get_singleton()->screen_get_usable_rect(current_screen);
@@ -282,34 +216,28 @@ void OrchestratorWindowWrapper::enable_window_on_screen(int p_screen, bool p_aut
         control_rect.position += dest_screen_rect.position;
 
         restore_window(control_rect, p_screen);
-    }
-    else
-    {
+    } else {
         _window->set_current_screen(p_screen);
         set_window_enabled(true);
     }
 }
 
-void OrchestratorWindowWrapper::set_window_title(const String& p_title)
-{
-    if (!is_window_available())
+void OrchestratorWindowWrapper::set_window_title(const String& p_title) {
+    if (!is_window_available()) {
         return;
-
+    }
     _window->set_title(p_title);
 }
 
-void OrchestratorWindowWrapper::set_margins_enabled(bool p_enabled)
-{
-    if (!is_window_available())
+void OrchestratorWindowWrapper::set_margins_enabled(bool p_enabled) {
+    if (!is_window_available()) {
         return;
+    }
 
-    if (!p_enabled && _margin)
-    {
+    if (!p_enabled && _margin) {
         _margin->queue_free();
         _margin = nullptr;
-    }
-    else if (p_enabled && !_margin)
-    {
+    } else if (p_enabled && !_margin) {
         Size2 borders = Size2(4, 4);
         _margin = memnew(MarginContainer);
         _margin->add_theme_constant_override("margin_right", borders.width);
@@ -322,17 +250,158 @@ void OrchestratorWindowWrapper::set_margins_enabled(bool p_enabled)
     }
 }
 
-void OrchestratorWindowWrapper::move_to_foreground()
-{
+void OrchestratorWindowWrapper::move_to_foreground() {
     _window->grab_focus();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void OrchestratorWindowWrapper::_notification(int p_what) {
+    if (!is_window_available()) {
+        return;
+    }
 
-OrchestratorScreenSelect::OrchestratorScreenSelect()
-{
+    switch (p_what) {
+        // Grab the focus when WindowWrapper::set_visible(true) is called and is shown.
+        case NOTIFICATION_VISIBILITY_CHANGED: {
+            if (get_window_enabled() && is_visible()) {
+                _window->grab_focus();
+            }
+            break;
+        }
+        case NOTIFICATION_ENTER_TREE: {
+            _window->connect("close_requested", callable_mp_this(set_window_enabled).bind(false));
+            break;
+        }
+        case NOTIFICATION_READY: {
+            break;
+        }
+        case NOTIFICATION_THEME_CHANGED: {
+            _window_background->add_theme_stylebox_override("panel", get_theme_stylebox("PanelForeground", "EditorStyles"));
+            break;
+        }
+    }
+}
+
+void OrchestratorWindowWrapper::_bind_methods() {
+    ADD_SIGNAL(MethodInfo("window_visibility_changed", PropertyInfo(Variant::BOOL, "visible")));
+    ADD_SIGNAL(MethodInfo("window_close_requested"));
+}
+
+OrchestratorWindowWrapper::OrchestratorWindowWrapper() {
+    _window = memnew(Window);
+    _window->set_wrap_controls(true);
+
+    add_child(_window);
+    _window->hide();
+
+    _window_background = memnew(Panel);
+    _window_background->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
+    _window->add_child(_window_background);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OrchestratorScreenSelect
+
+void OrchestratorScreenSelect::_build_advanced_menu() {
+    // Clear old screen list.
+    while (_screen_list->get_child_count(false) > 0) {
+        Node* child = _screen_list->get_child(0);
+        _screen_list->remove_child(child);
+        child->queue_free();
+    }
+
+    // Populate screen list
+    const real_t height = static_cast<real_t>(get_theme_font_size("font_size")) * 1.5; // NOLINT
+
+    int current_screen = get_window()->get_current_screen();
+    for (int i = 0; i < DisplayServer::get_singleton()->get_screen_count(); i++) {
+        Button* button = memnew(Button);
+
+        Size2 screen_size = Size2(DisplayServer::get_singleton()->screen_get_size(i));
+        Size2 button_size = Size2(height * (screen_size.x / screen_size.y), height);
+        button->set_custom_minimum_size(button_size);
+        _screen_list->add_child(button);
+
+        button->set_text(itos(i));
+        button->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+        button->set_tooltip_text(vformat("Make this panel floating in the screen %d.", i));
+
+        if (i == current_screen) {
+            Color accent_color = get_theme_color("accent_color", "Editor");
+            button->add_theme_color_override("font_color", accent_color);
+        }
+
+        button->connect("pressed", callable_mp_this(_emit_screen_signal).bind(i));
+        button->connect("pressed", callable_mp_cast(this, BaseButton, set_pressed).bind(false));
+        button->connect("pressed", callable_mp_cast(_popup, Window, hide));
+    }
+}
+
+void OrchestratorScreenSelect::_emit_screen_signal(int p_screen_index) {
+    emit_signal("request_open_in_screen", p_screen_index);
+}
+
+void OrchestratorScreenSelect::_handle_mouse_shortcut(const Ref<InputEvent>& p_event) {
+    const Ref<InputEventMouseButton> mb = p_event;
+    if (mb.is_valid()) {
+        if (mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_LEFT) {
+            _emit_screen_signal(get_window()->get_current_screen());
+            accept_event();
+        }
+    }
+}
+
+void OrchestratorScreenSelect::_show_popup() {
+    if (!get_viewport()) {
+        return;
+    }
+
+    Size2 size = get_size() * get_viewport()->get_canvas_transform().get_scale();
+    _popup->set_size(Size2(size.width, 0));
+
+    Point2 gp = get_screen_position();
+    gp.y += size.y;
+    if (is_layout_rtl()) {
+        gp.x += size.width - _popup->get_size().width;
+    }
+
+    _popup->set_position(gp);
+    _popup->popup();
+}
+
+void OrchestratorScreenSelect::_pressed() {
+    if (_popup->is_visible()) {
+        _popup->hide();
+        return;
+    }
+
+    _build_advanced_menu();
+    _show_popup();
+}
+
+void OrchestratorScreenSelect::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_READY: {
+            _popup->connect("popup_hide", callable_mp_cast(this, BaseButton, set_pressed).bind(false));
+            connect("gui_input", callable_mp_this(_handle_mouse_shortcut));
+            break;
+        }
+        case NOTIFICATION_THEME_CHANGED: {
+            set_button_icon(SceneUtils::get_editor_icon("MakeFloating"));
+
+            const real_t popup_height = static_cast<real_t>(get_theme_font_size("font_size")) * 2.0; // NOLINT
+            _popup->set_min_size(Size2(0, popup_height * 3));
+            break;
+        }
+    }
+}
+
+void OrchestratorScreenSelect::_bind_methods() {
+    ADD_SIGNAL(MethodInfo("request_open_in_screen", PropertyInfo(Variant::INT, "screen")));
+}
+
+OrchestratorScreenSelect::OrchestratorScreenSelect() {
     set_tooltip_text("Make this panel floating.");
-    set_button_mask(MouseButtonMask::MOUSE_BUTTON_MASK_RIGHT);
+    set_button_mask(MOUSE_BUTTON_MASK_RIGHT);
     set_theme_type_variation(SceneStringName(FlatButton));
     set_toggle_mode(true);
     set_focus_mode(FOCUS_NONE);
@@ -366,116 +435,3 @@ OrchestratorScreenSelect::OrchestratorScreenSelect()
 
     root->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
 }
-
-void OrchestratorScreenSelect::_bind_methods()
-{
-    ADD_SIGNAL(MethodInfo("request_open_in_screen", PropertyInfo(Variant::INT, "screen")));
-}
-
-void OrchestratorScreenSelect::_notification(int p_what)
-{
-    switch (p_what)
-    {
-        case NOTIFICATION_READY:
-            _popup->connect("popup_hide", callable_mp(static_cast<BaseButton*>(this), &OrchestratorScreenSelect::set_pressed).bind(false));
-            connect("gui_input", callable_mp(this, &OrchestratorScreenSelect::_handle_mouse_shortcut));
-            break;
-
-        case NOTIFICATION_THEME_CHANGED:
-        {
-            set_button_icon(SceneUtils::get_editor_icon("MakeFloating"));
-
-            const real_t popup_height = real_t(get_theme_font_size("font_size")) * 2.0;
-            _popup->set_min_size(Size2(0, popup_height * 3));
-            break;
-        }
-    }
-}
-
-void OrchestratorScreenSelect::_pressed()
-{
-    if (_popup->is_visible())
-    {
-        _popup->hide();
-        return;
-    }
-
-    _build_advanced_menu();
-    _show_popup();
-}
-
-void OrchestratorScreenSelect::_build_advanced_menu()
-{
-    // Clear old screen list.
-    while (_screen_list->get_child_count(false) > 0)
-    {
-        Node* child = _screen_list->get_child(0);
-        _screen_list->remove_child(child);
-        child->queue_free();
-    }
-
-    // Populate screen list
-    const real_t height = real_t(get_theme_font_size("font_size")) * 1.5;
-
-    int current_screen = get_window()->get_current_screen();
-    for (int i = 0; i < DisplayServer::get_singleton()->get_screen_count(); i++)
-    {
-        Button* button = memnew(Button);
-
-        Size2 screen_size = Size2(DisplayServer::get_singleton()->screen_get_size(i));
-        Size2 button_size = Size2(height * (screen_size.x / screen_size.y), height);
-        button->set_custom_minimum_size(button_size);
-        _screen_list->add_child(button);
-
-        button->set_text(itos(i));
-        button->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
-        button->set_tooltip_text(vformat("Make this panel floating in the screen %d.", i));
-
-        if (i == current_screen)
-        {
-            Color accent_color = get_theme_color("accent_color", "Editor");
-            button->add_theme_color_override("font_color", accent_color);
-        }
-
-        button->connect("pressed", callable_mp(this, &OrchestratorScreenSelect::_emit_screen_signal).bind(i));
-        button->connect("pressed", callable_mp(static_cast<BaseButton*>(this), &OrchestratorScreenSelect::set_pressed).bind(false));
-        button->connect("pressed", callable_mp(static_cast<Window*>(_popup), &Popup::hide));
-    }
-}
-
-void OrchestratorScreenSelect::_emit_screen_signal(int p_screen_index)
-{
-    emit_signal("request_open_in_screen", p_screen_index);
-}
-
-void OrchestratorScreenSelect::_handle_mouse_shortcut(const Ref<InputEvent>& p_event)
-{
-    const Ref<InputEventMouseButton> mb = p_event;
-    if (mb.is_valid())
-    {
-        if (mb->is_pressed() && mb->get_button_index() == MouseButton::MOUSE_BUTTON_LEFT)
-        {
-            _emit_screen_signal(get_window()->get_current_screen());
-            accept_event();
-        }
-    }
-}
-
-void OrchestratorScreenSelect::_show_popup()
-{
-    if (!get_viewport())
-        return;
-
-    Size2 size = get_size() * get_viewport()->get_canvas_transform().get_scale();
-
-    _popup->set_size(Size2(size.width, 0));
-
-    Point2 gp = get_screen_position();
-    gp.y += size.y;
-    if (is_layout_rtl())
-        gp.x += size.width - _popup->get_size().width;
-
-    _popup->set_position(gp);
-    _popup->popup();
-}
-

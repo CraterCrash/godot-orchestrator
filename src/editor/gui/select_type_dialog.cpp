@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/select_type_dialog.h"
+#include "editor/gui/select_type_dialog.h"
 
 #include "api/extension_db.h"
 #include "common/file_utils.h"
@@ -27,33 +27,25 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/templates/rb_set.hpp>
 
-struct OrchestratorSelectTypeSearchDialog::SearchItemSortPath
-{
-    _FORCE_INLINE_ bool operator()(const Ref<SearchItem>& a, const Ref<SearchItem>& b) const
-    {
+struct OrchestratorSelectTypeSearchDialog::SearchItemSortPath {
+    _FORCE_INLINE_ bool operator()(const Ref<SearchItem>& a, const Ref<SearchItem>& b) const {
         return a->path.to_lower() < b->path.to_lower();
     }
 };
 
-String OrchestratorSelectTypeSearchDialog::_create_class_hierarchy_path(const String& p_class)
-{
+String OrchestratorSelectTypeSearchDialog::_create_class_hierarchy_path(const String& p_class) {
     return StringUtils::join("/", _get_class_hierarchy(p_class));
 }
 
-PackedStringArray OrchestratorSelectTypeSearchDialog::_get_class_hierarchy(const String& p_class)
-{
+PackedStringArray OrchestratorSelectTypeSearchDialog::_get_class_hierarchy(const String& p_class) {
     PackedStringArray hierarchy;
-    if (ScriptServer::is_global_class(p_class))
-    {
+    if (ScriptServer::is_global_class(p_class)) {
         hierarchy = ScriptServer::get_class_hierarchy(p_class, true);
-    }
-    else
-    {
+    } else {
         hierarchy.push_back(p_class);
 
         String clazz = ClassDB::get_parent_class(p_class);
-        while (!clazz.is_empty())
-        {
+        while (!clazz.is_empty()) {
             hierarchy.push_back(clazz);
             clazz = ClassDB::get_parent_class(clazz);
         }
@@ -62,37 +54,110 @@ PackedStringArray OrchestratorSelectTypeSearchDialog::_get_class_hierarchy(const
     return hierarchy;
 }
 
-void OrchestratorSelectTypeSearchDialog::_update_help(const Ref<SearchItem>& p_item)
-{
-    _help_bit->set_text(vformat("No description available for [b]%s[/b].", p_item->text));
-    _help_bit->set_disabled(true);
+Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_class_hierarchy_search_items(
+    const String& p_class, HashMap<String, Ref<SearchItem>>& r_cache, const Ref<SearchItem>& p_root) {
+
+    Vector<Ref<SearchItem>> items;
+
+    // Generate class hierarchy
+    const PackedStringArray hierarchy = _get_class_hierarchy(p_class);
+
+    // Resolve most immediate known parent
+    int class_index = 0;
+    Ref<SearchItem> parent;
+    for (; class_index < hierarchy.size() - 1; class_index++) {
+        const String& clazz = hierarchy[class_index];
+        if (r_cache.has(clazz)) {
+            parent = r_cache[clazz];
+        } else {
+            break;
+        }
+    }
+
+    if (!parent.is_valid()) {
+        parent = p_root;
+    }
+
+    for (; class_index < hierarchy.size(); class_index++) {
+        const String& clazz_name = hierarchy[class_index];
+
+        Ref<SearchItem> item(memnew(SearchItem));
+        item->path = vformat("Types/%s", StringUtils::join("/", hierarchy.slice(0, class_index + 1)));
+        item->name = vformat("class:%s", clazz_name);
+        item->text = clazz_name;
+        item->icon = SceneUtils::get_class_icon(clazz_name);
+        item->parent = parent;
+
+        if (!_allow_abstract_types) {
+            if (!ClassDB::can_instantiate(clazz_name)) {
+                item->selectable = false;
+                item->disabled = true;
+            } else if (Engine::get_singleton()->get_singleton_list().has(clazz_name)) {
+                item->selectable = false;
+                item->disabled = true;
+            }
+        } else {
+            item->selectable = true;
+            item->disabled = false;
+        }
+
+        if (ScriptServer::is_global_class(clazz_name)) {
+            ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(clazz_name);
+            item->script_filename = global_class.path.get_file();
+
+            const Dictionary constants_map = global_class.get_constants_list();
+            if (!constants_map.is_empty()) {
+                const Array& keys = constants_map.keys();
+                for (int i = 0; i < keys.size(); i++) {
+                    const Variant& value = constants_map[keys[i]];
+                    if (value.get_type() == Variant::DICTIONARY) {
+                        Ref<SearchItem> sub_item(memnew(SearchItem));
+                        sub_item->path = vformat("Types/%s/%s", _create_class_hierarchy_path(clazz_name), keys[i]);
+                        sub_item->name = vformat("%s:%s.%s", "class_enum", clazz_name, keys[i]);
+                        sub_item->text = keys[i];
+                        sub_item->icon = SceneUtils::get_editor_icon("Enum");
+                        sub_item->parent = item;
+
+                        items.push_back(sub_item);
+                    }
+                }
+            }
+        }
+
+        items.push_back(item);
+
+        r_cache[clazz_name] = item;
+        parent = item;
+    }
+
+    return items;
 }
 
-bool OrchestratorSelectTypeSearchDialog::_is_preferred(const String& p_type) const
-{
-    if (ClassDB::class_exists(p_type))
+bool OrchestratorSelectTypeSearchDialog::_is_preferred(const String& p_type) const {
+    if (ClassDB::class_exists(p_type)) {
         return ClassDB::is_parent_class(p_type, _preferred_search_result_type);
-
+    }
     return OrchestratorEditorSearchDialog::_is_preferred(p_type);
 }
 
-bool OrchestratorSelectTypeSearchDialog::_should_collapse_on_empty_search() const
-{
+bool OrchestratorSelectTypeSearchDialog::_should_collapse_on_empty_search() const {
     return _filters->get_selected_id() == FT_ALL_TYPES;
 }
 
-bool OrchestratorSelectTypeSearchDialog::_get_search_item_collapse_suggestion(TreeItem* p_item) const
-{
-    if (p_item->get_parent())
-    {
+bool OrchestratorSelectTypeSearchDialog::_get_search_item_collapse_suggestion(TreeItem* p_item) const {
+    if (p_item->get_parent()) {
         const bool can_instantiate = p_item->get_meta("__instantiable", false);
         return p_item->get_text(0) != _base_type && (p_item->get_parent()->get_text(0) != _base_type || can_instantiate);
     }
     return false;
 }
 
-Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_search_items()
-{
+void OrchestratorSelectTypeSearchDialog::_update_help(const Ref<SearchItem>& p_item) {
+    _help_bit->set_text(vformat("No description available for [b]%s[/b].", p_item->text));
+    _help_bit->set_disabled(true);
+}
+
+Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_search_items() {
     Vector<Ref<SearchItem>> items;
 
     Ref<SearchItem> root(memnew(SearchItem));
@@ -127,30 +192,33 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     items.push_back(global_bitfields);
 
     // Basic Types
-    for (int i = 0; i < Variant::VARIANT_MAX; i++)
-    {
+    for (int i = 0; i < Variant::VARIANT_MAX; i++) {
         const Variant::Type type = VariantUtils::to_type(i);
         const String variant_type = Variant::get_type_name(type);
         _variant_type_names.push_back(variant_type);
 
-        if (_exclusions.has(variant_type))
+        if (_exclusions.has(variant_type)) {
             continue;
+        }
 
         String friendly_name;
-        switch (type)
-        {
-            case Variant::INT:
+        switch (type) {
+            case Variant::INT: {
                 friendly_name = "Integer";
                 break;
-            case Variant::BOOL:
+            }
+            case Variant::BOOL: {
                 friendly_name = "Boolean";
                 break;
-            case Variant::FLOAT:
+            }
+            case Variant::FLOAT: {
                 friendly_name = "Float";
                 break;
-            default:
+            }
+            default: {
                 friendly_name = variant_type;
                 break;
+            }
         };
 
         Ref<SearchItem> item(memnew(SearchItem));
@@ -182,14 +250,15 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     // items.push_back(custom_bitfield);
 
     // Global Enumerations
-    for (const String& enum_name : ExtensionDB::get_global_enum_names())
-    {
-        if (_exclusions.has(enum_name))
+    for (const String& enum_name : ExtensionDB::get_global_enum_names()) {
+        if (_exclusions.has(enum_name)) {
             continue;
+        }
 
         // Automatically exclude Variant.Type and Variant.Operator
-        if (enum_name.begins_with("Variant."))
+        if (enum_name.begins_with("Variant.")) {
             continue;
+        }
 
         const EnumInfo& ei = ExtensionDB::get_global_enum(enum_name);
 
@@ -206,42 +275,43 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     HashMap<String, Ref<SearchItem>> hierarchy_lookup;
 
     // Classes
-    for (const String& class_name : ClassDB::get_class_list())
-    {
+    for (const String& class_name : ClassDB::get_class_list()) {
         // Exclude Orchestrator types
-        if (class_name.begins_with("OScript") || class_name.begins_with("Orchestrator"))
+        if (class_name.begins_with("OScript") || class_name.begins_with("Orchestrator")) {
             continue;
+        }
 
-        if (_is_base_type_node && class_name.begins_with("Editor"))
+        if (_is_base_type_node && class_name.begins_with("Editor")) {
             continue;
+        }
 
         // An internal class for the editor
-        if (class_name.match("MissingNode") || class_name.match("MissingResource"))
+        if (class_name.match("MissingNode") || class_name.match("MissingResource")) {
             continue;
+        }
 
         bool excluded = false;
-        for (const StringName& excluded_name : _exclusions)
-        {
-            if (ClassDB::is_parent_class(class_name, excluded_name))
-            {
+        for (const StringName& excluded_name : _exclusions) {
+            if (ClassDB::is_parent_class(class_name, excluded_name)) {
                 excluded = true;
                 break;
             }
         }
-        if (excluded)
+
+        if (excluded) {
             continue;
+        }
 
         items.append_array(_get_class_hierarchy_search_items(class_name, hierarchy_lookup, root));
     }
 
     // Class/Type-based enumerations
-    for (const String& class_name : ClassDB::get_class_list())
-    {
-        for (const String& enum_name : ClassDB::class_get_enum_list(class_name, true))
-        {
+    for (const String& class_name : ClassDB::get_class_list()) {
+        for (const String& enum_name : ClassDB::class_get_enum_list(class_name, true)) {
             const String enum_full_name = vformat("%s.%s", class_name, enum_name);
-            if (_exclusions.has(enum_full_name))
+            if (_exclusions.has(enum_full_name)) {
                 continue;
+            }
 
             const bool bitfield = ExtensionDB::is_class_enum_bitfield(class_name, enum_name);
 
@@ -259,11 +329,10 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     }
 
     // Global Class Types
-    for (const String& class_name : ScriptServer::get_global_class_list())
-    {
-        if (_exclusions.has(class_name))
+    for (const String& class_name : ScriptServer::get_global_class_list()) {
+        if (_exclusions.has(class_name)) {
             continue;
-
+        }
         // Create hierarchy if it doesn't exist.
         items.append_array(_get_class_hierarchy_search_items(class_name, hierarchy_lookup, root));
     }
@@ -273,164 +342,72 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     return items;
 }
 
-Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_class_hierarchy_search_items(const String& p_class, HashMap<String, Ref<SearchItem>>& r_cache, const Ref<SearchItem>& p_root)
-{
-    Vector<Ref<SearchItem>> items;
-
-    // Generate class hierarchy
-    const PackedStringArray hierarchy = _get_class_hierarchy(p_class);
-
-    // Resolve most immediate known parent
-    int class_index = 0;
-    Ref<SearchItem> parent;
-    for (; class_index < hierarchy.size() - 1; class_index++)
-    {
-        const String& clazz = hierarchy[class_index];
-        if (r_cache.has(clazz))
-            parent = r_cache[clazz];
-        else
-            break;
-    }
-
-    if (!parent.is_valid())
-        parent = p_root;
-
-    for (; class_index < hierarchy.size(); class_index++)
-    {
-        const String& clazz_name = hierarchy[class_index];
-
-        Ref<SearchItem> item(memnew(SearchItem));
-        item->path = vformat("Types/%s", StringUtils::join("/", hierarchy.slice(0, class_index + 1)));
-        item->name = vformat("class:%s", clazz_name);
-        item->text = clazz_name;
-        item->icon = SceneUtils::get_class_icon(clazz_name);
-        item->parent = parent;
-
-        if (!_allow_abstract_types)
-        {
-            if (!ClassDB::can_instantiate(clazz_name))
-            {
-                item->selectable = false;
-                item->disabled = true;
-            }
-            else if (Engine::get_singleton()->get_singleton_list().has(clazz_name))
-            {
-                item->selectable = false;
-                item->disabled = true;
-            }
-        }
-        else
-        {
-            item->selectable = true;
-            item->disabled = false;
-        }
-
-        if (ScriptServer::is_global_class(clazz_name))
-        {
-            ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(clazz_name);
-            item->script_filename = global_class.path.get_file();
-
-            const Dictionary constants_map = global_class.get_constants_list();
-            if (!constants_map.is_empty())
-            {
-                const Array& keys = constants_map.keys();
-                for (int i = 0; i < keys.size(); i++)
-                {
-                    const Variant& value = constants_map[keys[i]];
-                    if (value.get_type() == Variant::DICTIONARY)
-                    {
-                        Ref<SearchItem> sub_item(memnew(SearchItem));
-                        sub_item->path = vformat("Types/%s/%s", _create_class_hierarchy_path(clazz_name), keys[i]);
-                        sub_item->name = vformat("%s:%s.%s", "class_enum", clazz_name, keys[i]);
-                        sub_item->text = keys[i];
-                        sub_item->icon = SceneUtils::get_editor_icon("Enum");
-                        sub_item->parent = item;
-
-                        items.push_back(sub_item);
-                    }
-                }
-            }
-        }
-
-        items.push_back(item);
-
-        r_cache[clazz_name] = item;
-        parent = item;
-    }
-
-    return items;
-}
-
-Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_recent_items() const
-{
+Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_recent_items() const {
     Vector<Ref<SearchItem>> items;
 
     RBSet<String> recent_items;
     const Ref<FileAccess> recents = FileUtils::open_project_settings_file(vformat("orchestrator_recent_history.%s", _data_suffix), FileAccess::READ);
     FileUtils::for_each_line(recents, [&](const String& line) {
-        if (const String trimmed = line.strip_edges(); !trimmed.is_empty())
-        {
-            if (recent_items.has(trimmed))
+        if (const String trimmed = line.strip_edges(); !trimmed.is_empty()) {
+            if (recent_items.has(trimmed)) {
                 return;
+            }
 
             recent_items.insert(trimmed);
 
             const Ref<SearchItem> search_item = _get_search_item_by_name(trimmed);
-            if (search_item.is_valid())
+            if (search_item.is_valid()) {
                 items.push_back(search_item);
+            }
         }
     });
 
     return items;
 }
 
-Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_favorite_items() const
-{
+Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_favorite_items() const {
     Vector<Ref<SearchItem>> items;
 
     const Ref<FileAccess> recents = FileUtils::open_project_settings_file(vformat("orchestrator_favorites.%s", _data_suffix), FileAccess::READ);
     FileUtils::for_each_line(recents, [&](const String& line) {
-        if (const String trimmed = line.strip_edges(); !trimmed.is_empty())
-        {
+        if (const String trimmed = line.strip_edges(); !trimmed.is_empty()) {
             // const TypeEntry entry = _get_entry_from_name(trimmed);
             // if (_is_recognized(entry))
             const Ref<SearchItem> search_item = _get_search_item_by_name(trimmed);
-            if (search_item.is_valid())
+            if (search_item.is_valid()) {
                 items.push_back(search_item);
+            }
         }
     });
 
     return items;
 }
 
-void OrchestratorSelectTypeSearchDialog::_save_recent_items(const Vector<Ref<SearchItem>>& p_recents)
-{
+void OrchestratorSelectTypeSearchDialog::_save_recent_items(const Vector<Ref<SearchItem>>& p_recents) {
     RBSet<String> recent_items;
     Ref<FileAccess> file = FileUtils::open_project_settings_file(vformat("orchestrator_recent_history.%s", _data_suffix), FileAccess::WRITE);
-    for (const Ref<SearchItem>& item : p_recents)
-    {
+    for (const Ref<SearchItem>& item : p_recents) {
         const String name = String(item->name).strip_edges();
-        if (recent_items.has(name))
+        if (recent_items.has(name)) {
             continue;
-
-        if (!name.is_empty())
+        }
+        if (!name.is_empty()) {
             file->store_line(name);
+        }
     }
 }
 
-void OrchestratorSelectTypeSearchDialog::_save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites)
-{
+void OrchestratorSelectTypeSearchDialog::_save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) {
     Ref<FileAccess> file = FileUtils::open_project_settings_file(vformat("orchestrator_favorites.%s", _data_suffix), FileAccess::WRITE);
-    for (const Ref<SearchItem>& item : p_favorites)
-    {
+    for (const Ref<SearchItem>& item : p_favorites) {
         const String name = String(item->name).strip_edges();
-        if (!name.is_empty())
+        if (!name.is_empty()) {
             file->store_line(name);
+        }
     }
 }
 
-Vector<OrchestratorEditorSearchDialog::FilterOption> OrchestratorSelectTypeSearchDialog::_get_filters() const
-{
+Vector<OrchestratorEditorSearchDialog::FilterOption> OrchestratorSelectTypeSearchDialog::_get_filters() const {
     Vector<FilterOption> options;
     options.push_back({ FT_ALL_TYPES, "All Types" });
     options.push_back({ FT_BASIC_TYPES, "Basic Types" });
@@ -442,88 +419,85 @@ Vector<OrchestratorEditorSearchDialog::FilterOption> OrchestratorSelectTypeSearc
     return options;
 }
 
-bool OrchestratorSelectTypeSearchDialog::_is_filtered(const Ref<SearchItem>& p_item, const String& p_text) const
-{
-    if (!_filters)
+bool OrchestratorSelectTypeSearchDialog::_is_filtered(const Ref<SearchItem>& p_item, const String& p_text) const {
+    if (!_filters) {
         return false;
+    }
 
-    switch (_filters->get_selected_id())
-    {
-        case FT_ALL_TYPES:
+    switch (_filters->get_selected_id()) {
+        case FT_ALL_TYPES: {
             return false;
-        case FT_BASIC_TYPES:
-        {
-            if (p_item->name.begins_with("type:"))
+        }
+        case FT_BASIC_TYPES: {
+            if (p_item->name.begins_with("type:")) {
                 return false;
+            }
             break;
         }
-        case FT_BITFIELDS:
-        {
-            if (p_item->name.begins_with("bitfield:") || p_item->name.begins_with("class_bitfield:"))
+        case FT_BITFIELDS: {
+            if (p_item->name.begins_with("bitfield:") || p_item->name.begins_with("class_bitfield:")) {
                 return false;
+            }
             break;
         }
-        case FT_ENUMERATIONS:
-        {
-            if (p_item->name.begins_with("enum:") || p_item->name.begins_with("class_enum:"))
+        case FT_ENUMERATIONS: {
+            if (p_item->name.begins_with("enum:") || p_item->name.begins_with("class_enum:")) {
                 return false;
+            }
             break;
         }
-        case FT_NODES:
-        {
-            if (p_item->name.begins_with("class:") && p_item->path.begins_with("Types/Object/Node"))
+        case FT_NODES: {
+            if (p_item->name.begins_with("class:") && p_item->path.begins_with("Types/Object/Node")) {
                 return false;
+            }
             break;
         }
-        case FT_OBJECTS:
-        {
-            if (p_item->name.begins_with("class:") && p_item->path.begins_with("Types/Object"))
+        case FT_OBJECTS: {
+            if (p_item->name.begins_with("class:") && p_item->path.begins_with("Types/Object")) {
                 return false;
+            }
             break;
         }
-        case FT_RESOURCES:
-        {
-            if (p_item->name.begins_with("class:") && p_item->path.begins_with("Types/Object/RefCounted/Resource/"))
+        case FT_RESOURCES: {
+            if (p_item->name.begins_with("class:") && p_item->path.begins_with("Types/Object/RefCounted/Resource/")) {
                 return false;
+            }
             break;
         }
-        default:
+        default: {
             break;
+        }
     }
     return true;
 }
 
-int OrchestratorSelectTypeSearchDialog::_get_default_filter() const
-{
+int OrchestratorSelectTypeSearchDialog::_get_default_filter() const {
     Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
     return metadata->get_value("variable_type_search", "filter", 0);
 }
 
-void OrchestratorSelectTypeSearchDialog::_filter_type_changed(int p_index)
-{
+void OrchestratorSelectTypeSearchDialog::_filter_type_changed(int p_index) {
     Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
     metadata->set_value("variable_type_search", "filter", p_index);
     OrchestratorPlugin::get_singleton()->save_metadata(metadata);
 }
 
-String OrchestratorSelectTypeSearchDialog::get_selected_type() const
-{
+String OrchestratorSelectTypeSearchDialog::get_selected_type() const {
     TreeItem* selected = _search_options->get_selected();
-    if (!selected)
+    if (!selected) {
         return {};
+    }
 
     Ref<SearchItem> item = selected->get_meta("__item", {});
     return item.is_valid() ? item->name : String();
 }
 
-void OrchestratorSelectTypeSearchDialog::set_base_type(const String& p_base_type)
-{
+void OrchestratorSelectTypeSearchDialog::set_base_type(const String& p_base_type) {
     _base_type = p_base_type;
     _is_base_type_node = ClassDB::is_parent_class(p_base_type, "Node");
 }
 
-void OrchestratorSelectTypeSearchDialog::popup_create(bool p_dont_clear, bool p_replace_mode, const String& p_current_type, const String& p_current_name)
-{
+void OrchestratorSelectTypeSearchDialog::popup_create(bool p_dont_clear, bool p_replace_mode, const String& p_current_type, const String& p_current_name) {
     _fallback_icon = SceneUtils::has_editor_icon(_base_type) ? _base_type : "Object";
 
     set_title(_title);

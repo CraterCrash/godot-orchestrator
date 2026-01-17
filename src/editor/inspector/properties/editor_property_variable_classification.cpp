@@ -16,10 +16,10 @@
 //
 #include "editor/inspector/properties/editor_property_variable_classification.h"
 
+#include "../../gui/select_type_dialog.h"
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
-#include "editor/select_type_dialog.h"
 
 void OrchestratorEditorPropertyVariableClassification::_property_selected() {
     _dialog->popup_create(true, false, get_edited_object()->get(get_edited_property()), get_edited_property());

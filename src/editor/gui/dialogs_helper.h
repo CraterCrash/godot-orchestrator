@@ -22,8 +22,7 @@
 using namespace godot;
 
 /// Utility class for some common dialogs
-class OrchestratorEditorDialogs
-{
+class OrchestratorEditorDialogs {
 public:
     static void accept(const String& p_message, const String& p_button = "OK");
     static void confirm(const String& p_message, const Callable& p_callback, const String& p_yes_label = "Yes", const String& p_no_label = "No");
@@ -31,7 +30,13 @@ public:
 };
 
 #define ORCHESTRATOR_ACCEPT(message) { OrchestratorEditorDialogs::accept(message); return; }
+#define ORCHESTRATOR_ACCEPT_V(message, retval) { OrchestratorEditorDialogs::accept(message); return retval; }
+
 #define ORCHESTRATOR_CONFIRM(message, callable) { OrchestratorEditorDialogs::confirm(message, callable); return; }
+#define ORCHESTRATOR_CONFIRM_V(message, callable, retval) { OrchestratorEditorDialogs::confirm(message, callable); return retval; }
+
 #define ORCHESTRATOR_ERROR(message) { OrchestratorEditorDialogs::error(message); return; }
+#define ORCHESTRATOR_ERROR_TITLE(message, title) { OrchestratorEditorDialogs::error(message, title); return; }
+#define ORCHESTRATOR_ERROR_V(message, retval) { OrchestratorEditorDialogs::error(message); return retval; }
 
 #endif // ORCHESTRATOR_EDITOR_DIALOGS_HELPER_H

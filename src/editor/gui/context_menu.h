@@ -46,8 +46,7 @@ using namespace godot;
 /// the user picks something or not. This keeps the scene node tree clean and allows an instance of this
 /// class to be allocated in-flight when the context menu is to be shown.
 ///
-class OrchestratorEditorContextMenu : public Control
-{
+class OrchestratorEditorContextMenu : public Control {
     GDCLASS(OrchestratorEditorContextMenu, Control);
 
     PopupMenu* _menu;
@@ -65,7 +64,6 @@ protected:
     explicit OrchestratorEditorContextMenu(bool p_parent);
 
 public:
-
     int add_separator(const String& p_label = String());
     int add_item(const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);
     int add_icon_item(const String& p_icon_name, const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);

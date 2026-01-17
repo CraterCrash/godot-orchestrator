@@ -14,10 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/updater.h"
+#include "editor/updater/updater.h"
 
 #include "common/callable_lambda.h"
 #include "common/godot_version.h"
+#include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
@@ -33,92 +34,93 @@
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/os.hpp>
-#include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/zip_reader.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
-OrchestratorVersion::Build OrchestratorVersion::Build::parse(const String& p_build)
-{
+OrchestratorVersion::Build OrchestratorVersion::Build::parse(const String& p_build) {
     int pos = 0;
-    while (pos < p_build.length() && !String::chr(p_build[pos]).is_valid_int())
+    while (pos < p_build.length() && !String::chr(p_build[pos]).is_valid_int()) {
         pos++;
-
+    }
     Build build;
     build.name = p_build.substr(0, pos);
     build.version = p_build.substr(pos).to_int();
     return build;
 }
 
-String OrchestratorVersion::Build::to_string() const
-{
-    if (version == 0)
-        return name;
-
-    return vformat("%s%d", name, version);
+String OrchestratorVersion::Build::to_string() const {
+    return version == 0 ? name : vformat("%s%d", name, version);
 }
 
-OrchestratorVersion OrchestratorVersion::parse(const String& p_tag_version)
-{
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OrchestratorVersion
+
+OrchestratorVersion OrchestratorVersion::parse(const String& p_tag_version) {
     OrchestratorVersion version;
 
     const PackedStringArray parts = (p_tag_version.begins_with("v")
         ? p_tag_version.substr(1).split(".")
         : p_tag_version.split("."));
 
-    if (parts.size() >= 1 && parts[0].is_valid_int())
+    if (parts.size() >= 1 && parts[0].is_valid_int()) {
         version.major = parts[0].to_int();
+    }
 
-    if (parts.size() >= 2 && parts[1].is_valid_int())
+    if (parts.size() >= 2 && parts[1].is_valid_int()) {
         version.minor = parts[1].to_int();
+    }
 
-    if (parts.size() >= 3 && parts[2].is_valid_int())
+    if (parts.size() >= 3 && parts[2].is_valid_int()) {
         version.patch = parts[2].to_int();
-    else if (parts.size() >= 3)
+    } else if (parts.size() >= 3) {
         version.build = Build::parse(parts[2]);
+    }
 
-    if (parts.size() >= 4)
+    if (parts.size() >= 4) {
         version.build = Build::parse(parts[3]);
+    }
 
     return version;
 }
 
-bool OrchestratorVersion::is_after(const OrchestratorVersion& p_other) const
-{
+bool OrchestratorVersion::is_after(const OrchestratorVersion& p_other) const {
     // List of builds that are in "release" order, i.e. stable comes first, development last, etc.
     static PackedStringArray builds = Array::make("stable", "rc", "dev");
 
     // This major version is after the other
-    if (major > p_other.major)
+    if (major > p_other.major) {
         return true;
+    }
 
     // This minor version is after the other
-    if (major == p_other.major && minor > p_other.minor)
+    if (major == p_other.major && minor > p_other.minor) {
         return true;
+    }
 
     // This patch version is after the other
-    if (major == p_other.major && minor == p_other.minor && patch > p_other.patch)
+    if (major == p_other.major && minor == p_other.minor && patch > p_other.patch) {
         return true;
+    }
 
-    if (major == p_other.major && minor == p_other.minor && patch == p_other.patch)
-    {
+    if (major == p_other.major && minor == p_other.minor && patch == p_other.patch) {
         const int64_t build_name_index = builds.find(build.name);
         const int64_t other_build_name_index = builds.find(p_other.build.name);
-        if (build_name_index < other_build_name_index)
+        if (build_name_index < other_build_name_index) {
             return true;
+        }
 
-        if (build_name_index == other_build_name_index && build.version > p_other.build.version)
+        if (build_name_index == other_build_name_index && build.version > p_other.build.version) {
             return true;
+        }
     }
 
     return false;
 }
 
-bool OrchestratorVersion::is_equal(const OrchestratorVersion& p_other) const
-{
+bool OrchestratorVersion::is_equal(const OrchestratorVersion& p_other) const {
     return major == p_other.major
         && minor == p_other.minor
         && patch == p_other.patch
@@ -126,33 +128,30 @@ bool OrchestratorVersion::is_equal(const OrchestratorVersion& p_other) const
         && build.version == p_other.build.version;
 }
 
-bool OrchestratorVersion::is_compatible(const OrchestratorVersion& p_other) const
-{
+bool OrchestratorVersion::is_compatible(const OrchestratorVersion& p_other) const {
     // Currently used by passing Compat and checking against Godot Version argument
-    if (p_other.major >= major && p_other.minor >= minor && p_other.patch >= patch)
+    if (p_other.major >= major && p_other.minor >= minor && p_other.patch >= patch) {
         return true;
+    }
 
     return false;
 }
 
-String OrchestratorVersion::to_string() const
-{
+String OrchestratorVersion::to_string() const {
     return vformat("%d.%d.%d.%s", major, minor, patch, build.to_string());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OrchestratorUpdaterReleaseNotesDialog
 
-void OrchestratorUpdaterReleaseNotesDialog::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_READY)
-    {
+void OrchestratorUpdaterReleaseNotesDialog::_notification(int p_what) {
+    if (p_what == NOTIFICATION_READY) {
         connect("canceled", callable_mp_lambda(this, [this] { queue_free(); }));
         connect("confirmed", callable_mp_lambda(this, [this] { queue_free(); }));
     }
 }
 
-OrchestratorUpdaterReleaseNotesDialog::OrchestratorUpdaterReleaseNotesDialog()
-{
+OrchestratorUpdaterReleaseNotesDialog::OrchestratorUpdaterReleaseNotesDialog() {
     set_title("Release Notes");
 
     _text = memnew(RichTextLabel);
@@ -163,20 +162,17 @@ OrchestratorUpdaterReleaseNotesDialog::OrchestratorUpdaterReleaseNotesDialog()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OrchestratorUpdaterVersionPicker
 
-void OrchestratorUpdaterVersionPicker::_set_button_enable_state(bool p_enabled)
-{
+void OrchestratorUpdaterVersionPicker::_set_button_enable_state(bool p_enabled) {
     get_ok_button()->set_disabled(!p_enabled);
     _show_release_notes->set_disabled(!p_enabled);
 }
 
-void OrchestratorUpdaterVersionPicker::_check_godot_compatibility()
-{
+void OrchestratorUpdaterVersionPicker::_check_godot_compatibility() {
     TreeItem* selected = _tree->get_selected();
-    if (selected)
-    {
-        if (!selected->get_meta("compatible", false))
-        {
+    if (selected) {
+        if (!selected->get_meta("compatible", false)) {
             AcceptDialog* notify = memnew(AcceptDialog);
             notify->set_title("Godot version incompatible");
             notify->set_text("Your current version of Godot is incompatible. Please update your editor first.");
@@ -191,18 +187,15 @@ void OrchestratorUpdaterVersionPicker::_check_godot_compatibility()
     }
 }
 
-void OrchestratorUpdaterVersionPicker::_request_download()
-{
+void OrchestratorUpdaterVersionPicker::_request_download() {
     TreeItem* selected = _tree->get_selected();
-    if (selected)
-    {
+    if (selected) {
         get_ok_button()->release_focus();
         _set_button_enable_state(false);
         _tree->deselect_all();
 
         const String download_url = selected->get_meta("download_url");
-        if (_download->request(download_url) == OK)
-        {
+        if (_download->request(download_url) == OK) {
             #if GODOT_VERSION >= 0x040300
             _progress->set_indeterminate(true);
             #endif
@@ -211,10 +204,8 @@ void OrchestratorUpdaterVersionPicker::_request_download()
     }
 }
 
-void OrchestratorUpdaterVersionPicker::_handle_custom_action(const StringName& p_action)
-{
-    if (p_action.match("show_release_notes"))
-    {
+void OrchestratorUpdaterVersionPicker::_handle_custom_action(const StringName& p_action) {
+    if (p_action.match("show_release_notes")) {
         OS::get_singleton()->shell_open(_tree->get_selected()->get_meta("release_url"));
         // OrchestratorUpdaterReleaseNotesDialog* dialog = memnew(OrchestratorUpdaterReleaseNotesDialog);
         // dialog->set_text(_tree->get_selected()->get_meta("release_notes"));
@@ -224,8 +215,7 @@ void OrchestratorUpdaterVersionPicker::_handle_custom_action(const StringName& p
     }
 }
 
-void OrchestratorUpdaterVersionPicker::_download_completed(int p_status, int p_code, const PackedStringArray& p_headers, const PackedByteArray& p_data)
-{
+void OrchestratorUpdaterVersionPicker::_download_completed(int p_status, int p_code, const PackedStringArray& p_headers, const PackedByteArray& p_data) {
     _progress->set_visible(false);
     #if GODOT_VERSION >= 0x040300
     _progress->set_indeterminate(false);
@@ -233,8 +223,7 @@ void OrchestratorUpdaterVersionPicker::_download_completed(int p_status, int p_c
 
     set_process(false);
 
-    if (p_code != 200)
-    {
+    if (p_code != 200) {
         _status->set_text(vformat("Failed: %d", p_code));
         return;
     }
@@ -242,20 +231,17 @@ void OrchestratorUpdaterVersionPicker::_download_completed(int p_status, int p_c
     _install();
 }
 
-void OrchestratorUpdaterVersionPicker::_restart_editor()
-{
-    EditorInterface::get_singleton()->restart_editor(true);
+void OrchestratorUpdaterVersionPicker::_restart_editor() {
+    EI->restart_editor(true);
 }
 
-void OrchestratorUpdaterVersionPicker::_install()
-{
+void OrchestratorUpdaterVersionPicker::_install() {
     _status->set_text("Installing, please wait...");
     const String file_name = _download->get_download_file();
 
     // Open downloaded zip file
     Ref<ZIPReader> reader = memnew(ZIPReader);
-    if (reader->open(file_name) != OK)
-    {
+    if (reader->open(file_name) != OK) {
         _status->set_visible(false);
         get_ok_button()->set_disabled(false);
 
@@ -266,15 +252,15 @@ void OrchestratorUpdaterVersionPicker::_install()
     // The addon does not remove any existing files, it only overrides files in "addons\orchestrator".
     // If users want a fresh installation, they should re-install the addon.
     const PackedStringArray files = reader->get_files();
-    for (const String& file : files)
-    {
+    for (const String& file : files) {
         // Make sure the directory exists
         const String base_dir = file.get_base_dir();
         DirAccess::make_dir_recursive_absolute("res://" + base_dir);
 
         Ref<FileAccess> file_access = FileAccess::open("res://" + file, FileAccess::WRITE);
-        if (file_access.is_valid() && file_access->is_open())
+        if (file_access.is_valid() && file_access->is_open()) {
             file_access->store_buffer(reader->read_file(file));
+        }
     }
     reader->close();
 
@@ -293,20 +279,17 @@ void OrchestratorUpdaterVersionPicker::_install()
         timer->set_one_shot(true);
         timer->set_wait_time(0.5f);
         timer->set_autostart(true);
-        timer->connect("timeout", callable_mp(this, &OrchestratorUpdaterVersionPicker::_restart_editor));
+        timer->connect("timeout", callable_mp_this(_restart_editor));
         add_child(timer);
     }));
 
     dialog->popup_centered();
 }
 
-void OrchestratorUpdaterVersionPicker::_cancel_and_close()
-{
-    if (_download)
-    {
+void OrchestratorUpdaterVersionPicker::_cancel_and_close() {
+    if (_download) {
         const int status = _download->get_http_client_status();
-        if (status == HTTPClient::STATUS_BODY)
-        {
+        if (status == HTTPClient::STATUS_BODY) {
             set_process(false);
 
             _download->cancel_request();
@@ -323,22 +306,19 @@ void OrchestratorUpdaterVersionPicker::_cancel_and_close()
     hide();
 }
 
-void OrchestratorUpdaterVersionPicker::_filter_changed(int p_index)
-{
+void OrchestratorUpdaterVersionPicker::_filter_changed(int p_index) {
     _update_tree(p_index == 1);
 }
 
-void OrchestratorUpdaterVersionPicker::_update_tree(bool p_stable_only)
-{
+void OrchestratorUpdaterVersionPicker::_update_tree(bool p_stable_only) {
     _tree->clear();
     _tree->create_item();
-    for (const ReleaseItem& release_item : _releases)
-    {
-        if (p_stable_only)
-        {
+    for (const ReleaseItem& release_item : _releases) {
+        if (p_stable_only) {
             OrchestratorVersion tag_version = OrchestratorVersion::parse(release_item.release.tag);
-            if (!tag_version.build.name.match("stable"))
+            if (!tag_version.build.is_stable()) {
                 continue;
+            }
         }
 
         int64_t unix_time = Time::get_singleton()->get_unix_time_from_datetime_string(release_item.release.published);
@@ -356,38 +336,31 @@ void OrchestratorUpdaterVersionPicker::_update_tree(bool p_stable_only)
         item->set_meta("release_url", release_url);
 
         const OrchestratorVersion compat_version = OrchestratorVersion::parse(release_item.godot_compatibility);
-        if (!compat_version.is_compatible(_godot_version))
-        {
+        if (!compat_version.is_compatible(_godot_version)) {
             item->add_button(0, SceneUtils::get_editor_icon("KeyXScale"), -1, true, "Your Godot version is not compatible");
             item->set_meta("compatible", false);
-        }
-        else
-        {
+        } else {
             item->add_button(0, SceneUtils::get_editor_icon("KeyCall"));
             item->set_meta("compatible", true);
         }
     }
 }
 
-void OrchestratorUpdaterVersionPicker::_update_notify_settings()
-{
+void OrchestratorUpdaterVersionPicker::_update_notify_settings() {
     OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
     settings->set_notify_prerelease_builds(_notify_any_release->is_pressed());
 }
 
-void OrchestratorUpdaterVersionPicker::update_tree()
-{
+void OrchestratorUpdaterVersionPicker::update_tree() {
     _update_tree(_release_filter->get_selected() == 1);
 }
 
-void OrchestratorUpdaterVersionPicker::clear_releases()
-{
+void OrchestratorUpdaterVersionPicker::clear_releases() {
     _set_button_enable_state(false);
     _releases.clear();
 }
 
-void OrchestratorUpdaterVersionPicker::add_release(const OrchestratorRelease& p_release, const String& p_godot_compatibility, const String& p_blog_url)
-{
+void OrchestratorUpdaterVersionPicker::add_release(const OrchestratorRelease& p_release, const String& p_godot_compatibility, const String& p_blog_url) {
     ReleaseItem item;
     item.release = p_release;
     item.godot_compatibility = p_godot_compatibility;
@@ -395,80 +368,73 @@ void OrchestratorUpdaterVersionPicker::add_release(const OrchestratorRelease& p_
     _releases.push_back(item);
 }
 
-void OrchestratorUpdaterVersionPicker::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_VISIBILITY_CHANGED)
-    {
-        if (is_visible())
-        {
-            OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
-            _notify_any_release->set_pressed_no_signal(settings->is_notify_about_prereleases());
+void OrchestratorUpdaterVersionPicker::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_VISIBILITY_CHANGED: {
+            if (is_visible()) {
+                OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
+                _notify_any_release->set_pressed_no_signal(settings->is_notify_about_prereleases());
 
-            _update_tree();
+                _update_tree();
 
-            _tree->deselect_all();
+                _tree->deselect_all();
 
-            get_ok_button()->release_focus();
-            _set_button_enable_state(false);
+                get_ok_button()->release_focus();
+                _set_button_enable_state(false);
 
-            _progress->set_value_no_signal(0);
-        }
-    }
-    else if (p_what == NOTIFICATION_READY)
-    {
-        _download->connect("request_completed", callable_mp(this, &OrchestratorUpdaterVersionPicker::_download_completed));
-        _release_filter->connect("item_selected", callable_mp(this, &OrchestratorUpdaterVersionPicker::_filter_changed));
-        _notify_any_release->connect("pressed", callable_mp(this, &OrchestratorUpdaterVersionPicker::_update_notify_settings));
-        _tree->connect("item_activated", callable_mp(this, &OrchestratorUpdaterVersionPicker::_check_godot_compatibility));
-        _tree->connect("item_selected", callable_mp(this, &OrchestratorUpdaterVersionPicker::_set_button_enable_state).bind(true));
-
-        connect("custom_action", callable_mp(this, &OrchestratorUpdaterVersionPicker::_handle_custom_action));
-        connect("confirmed", callable_mp(this, &OrchestratorUpdaterVersionPicker::_check_godot_compatibility));
-        connect("canceled", callable_mp(this, &OrchestratorUpdaterVersionPicker::_cancel_and_close));
-    }
-    else if (p_what == NOTIFICATION_PROCESS)
-    {
-        // Make the progress bar visible again when retrying the download.
-        _progress->set_visible(true);
-        _status->set_visible(true);
-
-        if (_download->get_downloaded_bytes() > 0)
-        {
-            _progress->set_max(_download->get_body_size());
-            _progress->set_value(_download->get_downloaded_bytes());
-        }
-
-        int client_status = _download->get_http_client_status();
-        if (client_status == HTTPClient::STATUS_BODY)
-        {
-            if (_download->get_body_size() > 0)
-            {
-                #if GODOT_VERSION >= 0x040300
-                _progress->set_indeterminate(false);
-                #endif
-                _status->set_text(vformat("Downloading (%s / %s)...",
-                    String::humanize_size(_download->get_downloaded_bytes()),
-                    String::humanize_size(_download->get_body_size())));
+                _progress->set_value_no_signal(0);
             }
-            else
-            {
-                #if GODOT_VERSION >= 0x040300
-                _progress->set_indeterminate(true);
-                #endif
-                _status->set_text(vformat("Downloading... (%s)",
-                    String::humanize_size(_download->get_downloaded_bytes())));
+            break;
+        }
+        case NOTIFICATION_READY: {
+            _download->connect("request_completed", callable_mp_this(_download_completed));
+            _release_filter->connect("item_selected", callable_mp_this(_filter_changed));
+            _notify_any_release->connect("pressed", callable_mp_this(_update_notify_settings));
+            _tree->connect("item_activated", callable_mp_this(_check_godot_compatibility));
+            _tree->connect("item_selected", callable_mp_this(_set_button_enable_state).bind(true));
+
+            connect("custom_action", callable_mp_this(_handle_custom_action));
+            connect("confirmed", callable_mp_this(_check_godot_compatibility));
+            connect("canceled", callable_mp_this(_cancel_and_close));
+            break;
+        }
+        case NOTIFICATION_PROCESS: {
+            // Make the progress bar visible again when retrying the download.
+            _progress->set_visible(true);
+            _status->set_visible(true);
+
+            if (_download->get_downloaded_bytes() > 0) {
+                _progress->set_max(_download->get_body_size());
+                _progress->set_value(_download->get_downloaded_bytes());
             }
+
+            int client_status = _download->get_http_client_status();
+            if (client_status == HTTPClient::STATUS_BODY) {
+                if (_download->get_body_size() > 0) {
+                    #if GODOT_VERSION >= 0x040300
+                    _progress->set_indeterminate(false);
+                    #endif
+                    _status->set_text(vformat("Downloading (%s / %s)...",
+                        String::humanize_size(_download->get_downloaded_bytes()),
+                        String::humanize_size(_download->get_body_size())));
+                } else {
+                    #if GODOT_VERSION >= 0x040300
+                    _progress->set_indeterminate(true);
+                    #endif
+                    _status->set_text(vformat("Downloading... (%s)",
+                        String::humanize_size(_download->get_downloaded_bytes())));
+                }
+            }
+            break;
         }
     }
 }
 
-void OrchestratorUpdaterVersionPicker::_bind_methods()
-{
+void OrchestratorUpdaterVersionPicker::_bind_methods() {
     ADD_SIGNAL(MethodInfo("install_completed"));
 }
 
-OrchestratorUpdaterVersionPicker::OrchestratorUpdaterVersionPicker()
-{
+OrchestratorUpdaterVersionPicker::OrchestratorUpdaterVersionPicker() {
     GodotVersionInfo gd_version;
 
     // Generate the editor's current version
@@ -532,15 +498,15 @@ OrchestratorUpdaterVersionPicker::OrchestratorUpdaterVersionPicker()
     vbox->add_child(_status);
 
     _download = memnew(HTTPRequest);
-    const String cache_dir = EditorInterface::get_singleton()->get_editor_paths()->get_cache_dir();
+    const String cache_dir = EI->get_editor_paths()->get_cache_dir();
     _download->set_download_file(cache_dir.path_join("tmp_orchestrator_update.zip"));
     add_child(_download);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OrchestratorUpdaterButton
 
-Error OrchestratorUpdaterButton::_send_http_request(const String& p_url, const String& p_filename, const Callable& p_callback)
-{
+Error OrchestratorUpdaterButton::_send_http_request(const String& p_url, const String& p_filename, const Callable& p_callback) {
     // Windows: /users/<user>/AppData/Local/Godot/<filename>
 
     // Creates HTTP request and adds to the scene
@@ -552,68 +518,69 @@ Error OrchestratorUpdaterButton::_send_http_request(const String& p_url, const S
     request->connect(
         "request_completed",
         callable_mp_lambda(this, [=] (int p_result, int p_code, const PackedStringArray& p_headers, const PackedByteArray& p_data) {
-            if (p_result == HTTPRequest::RESULT_SUCCESS && p_code == 200)
+            if (p_result == HTTPRequest::RESULT_SUCCESS && p_code == 200) {
                 p_callback.call();
-
+            }
             // Queue HTTPRequest to remove from scene
             request->queue_free();
         }),
         CONNECT_ONE_SHOT);
 
     const Error error = request->request(p_url);
-    if (error != OK)
+    if (error != OK) {
         request->queue_free();
+    }
 
     return error;
 }
 
-void OrchestratorUpdaterButton::_process_release_manifests()
-{
+void OrchestratorUpdaterButton::_process_release_manifests() {
     _manifests.clear();
 
-    const String cache_dir = EditorInterface::get_singleton()->get_editor_paths()->get_cache_dir();
+    const String cache_dir = EI->get_editor_paths()->get_cache_dir();
     const PackedByteArray bytes = FileAccess::get_file_as_bytes(cache_dir.path_join("tmp_orchestrator_release_manifests.json"));
     const Array data = JSON::parse_string(bytes.get_string_from_utf8());
 
-    if (data.size() == 0)
+    if (data.size() == 0) {
         return;
+    }
 
-    for (int index = 0; index < data.size(); ++index)
-    {
+    for (int index = 0; index < data.size(); ++index) {
         const Dictionary& release = data[index];
-        if (release.has("version") && release.has("godot_compatibility"))
-        {
+        if (release.has("version") && release.has("godot_compatibility")) {
             OrchestratorReleaseManifest manifest;
             manifest.name = release["version"];
             manifest.godot_compatibility = release["godot_compatibility"];
 
-            if (release.has("blog_url"))
+            if (release.has("blog_url")) {
                 manifest.blog_url = release["blog_url"];
+            }
 
-            if (manifest.name.is_empty() || manifest.godot_compatibility.is_empty())
+            if (manifest.name.is_empty() || manifest.godot_compatibility.is_empty()) {
                 continue;
+            }
 
             _manifests[manifest.name] = manifest;
         }
     }
 
-    if (!_manifests.is_empty() && !_releases.is_empty())
+    if (!_manifests.is_empty() && !_releases.is_empty()) {
         _update_picker();
+    }
 }
 
-void OrchestratorUpdaterButton::_process_releases()
-{
+void OrchestratorUpdaterButton::_process_releases() {
     _releases.clear();
 
-    const String cache_dir = EditorInterface::get_singleton()->get_editor_paths()->get_cache_dir();
+    const String cache_dir = EI->get_editor_paths()->get_cache_dir();
     const PackedByteArray bytes = FileAccess::get_file_as_bytes(cache_dir.path_join("tmp_orchestrator_releases.json"));
     const Array data = JSON::parse_string(bytes.get_string_from_utf8());
 
-    if (data.size() == 0)
+    if (data.size() == 0) {
         return;
+    }
 
-    for (int index = 0; index < data.size(); ++index)
-    {
+    for (int index = 0; index < data.size(); ++index) {
         const Dictionary& published_release = data[index];
 
         OrchestratorRelease release;
@@ -625,14 +592,11 @@ void OrchestratorUpdaterButton::_process_releases()
         release.published = published_release["published_at"];
 
         const Array assets = published_release["assets"];
-        if (!assets.is_empty())
-        {
-            for (int asset_index = 0; asset_index < assets.size(); ++asset_index)
-            {
+        if (!assets.is_empty()) {
+            for (int asset_index = 0; asset_index < assets.size(); ++asset_index) {
                 const Dictionary& asset_release = assets[asset_index];
                 if (asset_release.has("browser_download_url")
-                    && String(asset_release["browser_download_url"]).ends_with("-plugin.zip"))
-                {
+                    && String(asset_release["browser_download_url"]).ends_with("-plugin.zip")) {
                     release.plugin_asset_url = asset_release["browser_download_url"];
                     release.asset_size = asset_release["size"];
                     break;
@@ -641,23 +605,26 @@ void OrchestratorUpdaterButton::_process_releases()
         }
 
         // If it has no download artifact, skip it
-        if (release.plugin_asset_url.is_empty())
+        if (release.plugin_asset_url.is_empty()) {
             continue;
+        }
 
-        if (!OrchestratorVersion::parse(release.tag).is_after(_plugin_version))
+        if (!OrchestratorVersion::parse(release.tag).is_after(_plugin_version)) {
             continue;
+        }
 
         _releases.push_back(release);
     }
 
-    if (!_manifests.is_empty() && !_releases.is_empty())
+    if (!_manifests.is_empty() && !_releases.is_empty()) {
         _update_picker();
+    }
 }
 
-void OrchestratorUpdaterButton::_update_picker()
-{
-    if (_releases.is_empty() || _manifests.is_empty())
+void OrchestratorUpdaterButton::_update_picker() {
+    if (_releases.is_empty() || _manifests.is_empty()) {
         return;
+    }
 
     OrchestratorSettings* settings=  OrchestratorSettings::get_singleton();
     const bool notify_pre_releases = settings->is_notify_about_prereleases();
@@ -665,20 +632,22 @@ void OrchestratorUpdaterButton::_update_picker()
     _picker->clear_releases();
 
     bool releases_added = false;
-    for (const OrchestratorRelease& release : _releases)
-    {
+    for (const OrchestratorRelease& release : _releases) {
         // If the release is marked as Draft or Prerelease+NoNotify from GitHub, skip.
-        if (release.draft || (release.prerelease && !notify_pre_releases))
+        if (release.draft || (release.prerelease && !notify_pre_releases)) {
             continue;
+        }
 
         // In case a dev/rc build is not marked pre-release but the user wants only stable releases,
         // check the build name and filter as a last resort.
         OrchestratorVersion version = OrchestratorVersion::parse(release.tag);
-        if(!version.build.name.match("stable") && !notify_pre_releases)
+        if(!version.build.is_stable() && !notify_pre_releases) {
             continue;
+        }
 
-        if (!_manifests.has(release.tag))
+        if (!_manifests.has(release.tag)) {
             continue;
+        }
 
         OrchestratorReleaseManifest manifest = _manifests.get(release.tag);
         _picker->add_release(release, manifest.godot_compatibility, manifest.blog_url);
@@ -688,90 +657,81 @@ void OrchestratorUpdaterButton::_update_picker()
 
     set_visible(releases_added);
 
-    if (releases_added)
+    if (releases_added) {
         _button->set_text("An update is available!");
+    }
 
-    if (_picker->is_visible())
+    if (_picker->is_visible()) {
         _picker->update_tree();
+    }
 }
 
-void OrchestratorUpdaterButton::_show_update_dialog()
-{
+void OrchestratorUpdaterButton::_show_update_dialog() {
     _picker->popup_centered_ratio(0.4);
 }
 
-void OrchestratorUpdaterButton::_check_for_updates()
-{
-    const String cache_dir = EditorInterface::get_singleton()->get_editor_paths()->get_cache_dir();
+void OrchestratorUpdaterButton::_check_for_updates() {
+    const String cache_dir = EI->get_editor_paths()->get_cache_dir();
 
-    _send_http_request(
-        VERSION_RELEASES_URL,
-        cache_dir.path_join("tmp_orchestrator_releases.json"),
-        callable_mp(this, &OrchestratorUpdaterButton::_process_releases));
+    const String releases_path = cache_dir.path_join("tmp_orchestrator_releases.json");
+    _send_http_request(VERSION_RELEASES_URL, releases_path, callable_mp_this(_process_releases));
 
-    _send_http_request(
-        VERSION_MANIFESTS_URL,
-        cache_dir.path_join("tmp_orchestrator_release_manifests.json"),
-        callable_mp(this, &OrchestratorUpdaterButton::_process_release_manifests));
+    const String manifests_path = cache_dir.path_join("tmp_orchestrator_release_manifests.json");
+    _send_http_request(VERSION_MANIFESTS_URL, manifests_path, callable_mp_this(_process_release_manifests));
 }
 
-void OrchestratorUpdaterButton::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_ENTER_TREE)
-    {
-        set_visible(false);
+void OrchestratorUpdaterButton::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_ENTER_TREE: {
+            set_visible(false);
 
-        Timer* timer = memnew(Timer);
-        timer->set_wait_time(60 * 60); // every hour
-        timer->set_autostart(true);
-        add_child(timer);
+            Timer* timer = memnew(Timer);
+            timer->set_wait_time(60 * 60); // every hour
+            timer->set_autostart(true);
+            add_child(timer);
 
-        MarginContainer* margin = memnew(MarginContainer);
-        margin->add_theme_constant_override("margin_left", 4);
-        margin->add_theme_constant_override("margin_right", 4);
-        add_child(margin);
+            MarginContainer* margin = memnew(MarginContainer);
+            margin->add_theme_constant_override("margin_left", 4);
+            margin->add_theme_constant_override("margin_right", 4);
+            add_child(margin);
 
-        _button = memnew(Button);
-        _button->set_text("...");
-        _button->set_tooltip_text("An update is available for Godot Orchestrator");
-        _button->add_theme_color_override("font_color", Color(0, 1, 0));
-        _button->add_theme_color_override("font_hover_color", Color(0, 1, 0));
-        _button->set_vertical_icon_alignment(VERTICAL_ALIGNMENT_CENTER);
-        _button->set_focus_mode(FOCUS_NONE);
-        _button->set_v_size_flags(SIZE_SHRINK_CENTER);
-        margin->add_child(_button);
+            _button = memnew(Button);
+            _button->set_text("...");
+            _button->set_tooltip_text("An update is available for Godot Orchestrator");
+            _button->add_theme_color_override("font_color", Color(0, 1, 0));
+            _button->add_theme_color_override("font_hover_color", Color(0, 1, 0));
+            _button->set_vertical_icon_alignment(VERTICAL_ALIGNMENT_CENTER);
+            _button->set_focus_mode(FOCUS_NONE);
+            _button->set_v_size_flags(SIZE_SHRINK_CENTER);
+            margin->add_child(_button);
 
-        _picker = memnew(OrchestratorUpdaterVersionPicker);
-        add_child(_picker);
+            _picker = memnew(OrchestratorUpdaterVersionPicker);
+            add_child(_picker);
 
-        _check_for_updates();
+            _check_for_updates();
 
-        timer->connect("timeout", callable_mp(this, &OrchestratorUpdaterButton::_check_for_updates));
-        _button->connect("pressed", callable_mp(this, &OrchestratorUpdaterButton::_show_update_dialog));
+            timer->connect("timeout", callable_mp_this(_check_for_updates));
+            _button->connect("pressed", callable_mp_this(_show_update_dialog));
 
-        ProjectSettings* settings = ProjectSettings::get_singleton();
-        settings->connect("settings_changed", callable_mp(this, &OrchestratorUpdaterButton::_update_picker));
-    }
-    else if (p_what == NOTIFICATION_EXIT_TREE)
-    {
-        ProjectSettings* settings = ProjectSettings::get_singleton();
-        settings->disconnect("settings_changed", callable_mp(this, &OrchestratorUpdaterButton::_update_picker));
+            ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_update_picker));
+            break;
+        }
+        case NOTIFICATION_EXIT_TREE: {
+            ProjectSettings::get_singleton()->disconnect("settings_changed", callable_mp_this(_update_picker));
+            set_visible(false);
 
-        set_visible(false);
-
-        while (get_child_count() > 0)
-        {
-            if (Node* child = get_child(0))
-            {
-                remove_child(child);
-                memdelete(child);
+            while (get_child_count() > 0) {
+                if (Node* child = get_child(0)) {
+                    remove_child(child);
+                    memdelete(child);
+                }
             }
+            break;
         }
     }
 }
 
-OrchestratorUpdaterButton::OrchestratorUpdaterButton()
-{
+OrchestratorUpdaterButton::OrchestratorUpdaterButton() {
     // Generate current plugin version
     // Used in resolving what patches exist
     _plugin_version = OrchestratorVersion::parse(vformat(

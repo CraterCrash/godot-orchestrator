@@ -17,7 +17,7 @@
 #include "editor/inspector/properties/editor_property_class_name.h"
 
 #include "common/macros.h"
-#include "editor/select_class_dialog.h"
+#include "editor/gui/select_class_dialog.h"
 
 Variant OrchestratorEditorPropertyClassName::_get_edited_property_value() {
     ERR_FAIL_NULL_V(get_edited_object(), Variant());

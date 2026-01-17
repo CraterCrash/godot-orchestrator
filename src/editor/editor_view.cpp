@@ -19,8 +19,7 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/theme.hpp>
 
-void OrchestratorEditorView::_bind_methods()
-{
+void OrchestratorEditorView::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_editor"), &OrchestratorEditorView::get_editor);
 
     ADD_SIGNAL(MethodInfo("name_changed"));
@@ -32,8 +31,4 @@ void OrchestratorEditorView::_bind_methods()
     ADD_SIGNAL(MethodInfo("go_to_help", PropertyInfo(Variant::STRING, "what")));
     ADD_SIGNAL(MethodInfo("go_to_method", PropertyInfo(Variant::OBJECT, "script"), PropertyInfo(Variant::STRING, "method")));
     ADD_SIGNAL(MethodInfo("view_layout_restored"));
-}
-
-OrchestratorEditorView::~OrchestratorEditorView()
-{
 }

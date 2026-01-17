@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/dialogs_helper.h"
+#include "editor/gui/dialogs_helper.h"
 
 #include "common/macros.h"
 
@@ -23,8 +23,7 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/label.hpp>
 
-void OrchestratorEditorDialogs::accept(const String& p_message, const String& p_button)
-{
+void OrchestratorEditorDialogs::accept(const String& p_message, const String& p_button) {
     AcceptDialog* dialog = memnew(AcceptDialog);
     dialog->set_ok_button_text(p_button);
     dialog->set_text(p_message);
@@ -38,8 +37,7 @@ void OrchestratorEditorDialogs::accept(const String& p_message, const String& p_
     EI->popup_dialog_centered_clamped(dialog, Size2i(), 0.0);
 }
 
-void OrchestratorEditorDialogs::confirm(const String& p_message, const Callable& p_callback, const String& p_yes_label, const String& p_no_label)
-{
+void OrchestratorEditorDialogs::confirm(const String& p_message, const Callable& p_callback, const String& p_yes_label, const String& p_no_label) {
     ConfirmationDialog* dialog = memnew(ConfirmationDialog);
     dialog->set_cancel_button_text(p_no_label);
     dialog->set_ok_button_text(p_yes_label);
@@ -47,8 +45,9 @@ void OrchestratorEditorDialogs::confirm(const String& p_message, const Callable&
     dialog->set_title("Please confirm...");
     dialog->get_label()->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 
-    if (p_callback.is_valid())
+    if (p_callback.is_valid()) {
         dialog->connect("confirmed", p_callback);
+    }
 
     dialog->connect("canceled", callable_mp_cast(dialog, Node, queue_free));
     dialog->connect("confirmed", callable_mp_cast(dialog, Node, queue_free));
@@ -56,8 +55,7 @@ void OrchestratorEditorDialogs::confirm(const String& p_message, const Callable&
     EI->popup_dialog_centered(dialog);
 }
 
-void OrchestratorEditorDialogs::error(const String& p_message, const String& p_title, bool p_exclusive)
-{
+void OrchestratorEditorDialogs::error(const String& p_message, const String& p_title, bool p_exclusive) {
     AcceptDialog* dialog = memnew(AcceptDialog);
     dialog->set_text(p_message);
     dialog->set_title(p_title);
