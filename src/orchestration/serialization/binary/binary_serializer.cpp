@@ -608,7 +608,7 @@ Error OrchestrationBinarySerializer::set_uid(const String& p_path, int64_t p_uid
 
     if (flags & OrchestrationBinaryFormat::FORMAT_FLAG_UIDS) {
         [[maybe_unused]] int64_t old_uid = file->get_64(); // Skip existing UID
-        fw->store_32(p_uid);
+        fw->store_64(p_uid);
     }
 
     if (flags & OrchestrationBinaryFormat::FORMAT_FLAG_HAS_SCRIPT_CLASS) {
