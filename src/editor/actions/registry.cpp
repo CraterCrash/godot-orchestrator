@@ -17,7 +17,6 @@
 #include "editor/actions/registry.h"
 
 #include "common/callable_lambda.h"
-#include "common/godot_utils.h"
 #include "common/macros.h"
 #include "editor/actions/introspector.h"
 #include "script/nodes/data/arrays.h"
@@ -31,6 +30,21 @@
 
 OrchestratorEditorActionRegistry* OrchestratorEditorActionRegistry::_singleton = nullptr;
 
+template <typename T, typename C = Comparator<T>>
+Vector<T> deduplicate(const Vector<T>& p_vector) {
+    RBSet<T, C> set;
+    for (const T& item : p_vector) {
+        set.insert(item);
+    }
+
+    Vector<T> result;
+    for (const T& item : set) {
+        result.push_back(item);
+    }
+
+    return result;
+}
+
 void OrchestratorEditorActionRegistry::_build_actions() {
     // Immutable actions are ones that will never be overwritten
     Vector<Ref<Action>> actions;
@@ -43,7 +57,7 @@ void OrchestratorEditorActionRegistry::_build_actions() {
     actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_static_script_methods());
 
     // Deduplicate the actions
-    _actions = GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
+    _actions = deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
 void OrchestratorEditorActionRegistry::_global_script_classes_updated() {
@@ -82,7 +96,7 @@ Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRe
     actions.append_array(_global_classes);
     actions.append_array(_autoloads);
 
-    return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
+    return deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
 Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(Object* p_target) {
@@ -96,7 +110,7 @@ Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRe
     actions.append_array(_global_classes);
     actions.append_array(_autoloads);
 
-    return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
+    return deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
 Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(const StringName& p_class_name) {
@@ -106,7 +120,7 @@ Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRe
     actions.append_array(_global_classes);
     actions.append_array(_autoloads);
 
-    return GodotUtils::deduplicate<Ref<Action>, ActionComparator>(actions);
+    return deduplicate<Ref<Action>, ActionComparator>(actions);
 }
 
 void OrchestratorEditorActionRegistry::_bind_methods() {
