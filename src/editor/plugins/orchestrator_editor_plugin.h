@@ -20,7 +20,6 @@
 #include "editor/debugger/script_debugger_plugin.h"
 
 #include <godot_cpp/classes/config_file.hpp>
-#include <godot_cpp/classes/editor_export_plugin.hpp>
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
@@ -33,29 +32,46 @@ class OrchestratorEditor;
 class OrchestratorWindowWrapper;
 
 /// The Orchestrator editor plug-in.
-class OrchestratorPlugin : public EditorPlugin
-{
+class OrchestratorPlugin : public EditorPlugin {
     GDCLASS(OrchestratorPlugin, EditorPlugin);
 
     static OrchestratorPlugin* _plugin;
 
     String _last_editor;                                      //! Last editor
-    OrchestratorEditor* _editor_panel{ nullptr };             //! Plugin's editor panel
-    OrchestratorWindowWrapper* _window_wrapper{ nullptr };    //! Window wrapper
+    OrchestratorEditor* _editor_panel = nullptr;              //! Plugin's editor panel
+    OrchestratorWindowWrapper* _window_wrapper = nullptr;     //! Window wrapper
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
-    Vector<Ref<EditorExportPlugin>> _export_plugins;
-    #if GODOT_VERSION >= 0x040300
-    Ref<OrchestratorEditorDebuggerPlugin> _debugger_plugin;   //! Debugger plugin
-    #endif
+
+    static String _get_orchestrator_metedata_path();
 
     void _focus_another_editor();
     bool _is_exiting() const;
 
-    void _register_inspector_plugins();
-    void _register_export_plugins();
-    void _register_debugger_plugins();
+    void _register_plugins();
 
     void _add_plugin_icon_to_editor_theme();
+
+    template <typename T>
+    void _register_inspector_plugin() {
+        Ref<T> plugin;
+        plugin.instantiate();
+        _inspector_plugins.push_back(plugin);
+        add_inspector_plugin(plugin);
+    }
+
+    template <typename T>
+    void _register_export_plugin() {
+        Ref<T> plugin;
+        plugin.instantiate();
+        add_export_plugin(plugin);
+    }
+
+    template <typename T>
+    void _register_debugger_plugin() {
+        Ref<T> plugin;
+        plugin.instantiate();
+        add_debugger_plugin(plugin);
+    }
 
     //~ Begin Signals
     void _main_screen_changed(const String& p_name);
@@ -71,7 +87,7 @@ public:
     //~ End Wrapped Interface
 
     //~ Begin EditorPlugin interface
-    String get_plugin_version() const;
+    String get_plugin_version() const; // NOLINT
     void _edit(Object* p_object) override;
     bool _handles(Object* p_object) const override;
     bool _has_main_screen() const override;
@@ -89,8 +105,6 @@ public:
     PackedStringArray _get_breakpoints() const override;
     //~ End EditorPlugin interface
 
-    /// Get the plugin instance, only valid within the Godot Editor.
-    /// @return the plugin instance
     static OrchestratorPlugin* get_singleton() { return _plugin; }
 
     static String get_github_issues_url();
@@ -98,37 +112,22 @@ public:
     static String get_community_url();
     static String get_plugin_online_documentation_url();
 
-    /// Returns whether windows are restored on load
-    /// @return true if windows are to be restored, false otherwise
     bool restore_windows_on_load();
-
-    /// Requests to restart the editor
     void request_editor_restart();
 
-    /// Get the plugin's high-resolution logo / icon
-    /// @return high-res texture
     Ref<Texture2D> get_plugin_icon_hires() const;
 
-    /// Get the plugin's editor metadata configuration
-    /// @return the metadata configuration file
     Ref<ConfigFile> get_metadata();
-
-    /// Saves the metadata
-    /// @param p_metadata the metadata to save
     void save_metadata(const Ref<ConfigFile>& p_metadata);
 
-    /// Makes this plugin's view active, if it isn't already.
     void make_active();
 
-    /// Get the editor inspector plugin by type
-    /// @return the editor inspector plugin reference or an invalid reference if not found
     template<typename T>
-    Ref<T> get_editor_inspector_plugin()
-    {
-        for (Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
-        {
-            if (T* result = cast_to<T>(plugin.ptr()))
+    Ref<T> get_editor_inspector_plugin() {
+        for (Ref<EditorInspectorPlugin>& plugin : _inspector_plugins) {
+            if (T* result = cast_to<T>(plugin.ptr())) {
                 return result;
+            }
         }
         return {};
     }
