@@ -26,18 +26,16 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
-void OrchestratorAutowireConnectionDialog::_item_activated()
-{
+void OrchestratorAutowireConnectionDialog::_item_activated() {
     TreeItem* item = _tree->get_selected();
-    if (item)
+    if (item) {
         _close();
+    }
 }
 
-void OrchestratorAutowireConnectionDialog::_item_selected()
-{
+void OrchestratorAutowireConnectionDialog::_item_selected() {
     TreeItem* item = _tree->get_selected();
-    if (item)
-    {
+    if (item) {
         OrchestratorEditorGraphPin* pin = cast_to<OrchestratorEditorGraphPin>(item->get_meta("__pin"));
         _choice = pin;
 
@@ -45,25 +43,21 @@ void OrchestratorAutowireConnectionDialog::_item_selected()
     }
 }
 
-void OrchestratorAutowireConnectionDialog::_close()
-{
+void OrchestratorAutowireConnectionDialog::_close() {
     get_ok_button()->call_deferred("emit_signal", "pressed");
 }
 
-OrchestratorEditorGraphPin* OrchestratorAutowireConnectionDialog::get_autowire_choice() const
-{
+OrchestratorEditorGraphPin* OrchestratorAutowireConnectionDialog::get_autowire_choice() const {
     return _choice;
 }
 
-void OrchestratorAutowireConnectionDialog::popup_autowire(const Vector<OrchestratorEditorGraphPin*>& p_choices)
-{
+void OrchestratorAutowireConnectionDialog::popup_autowire(const Vector<OrchestratorEditorGraphPin*>& p_choices) {
     // At this point, no automatic choice was made, so populate the tree/dialog
     get_ok_button()->set_disabled(true);
     _tree->clear();
 
     TreeItem* root = _tree->create_item();
-    for (OrchestratorEditorGraphPin* choice : p_choices)
-    {
+    for (OrchestratorEditorGraphPin* choice : p_choices) {
         const String pin_type_name = PropertyUtils::get_property_type_name(choice->get_property_info());
 
         TreeItem* item = _tree->create_item(root);
@@ -77,12 +71,10 @@ void OrchestratorAutowireConnectionDialog::popup_autowire(const Vector<Orchestra
     EI->popup_dialog_centered_ratio(this, 0.4);
 }
 
-void OrchestratorAutowireConnectionDialog::_bind_methods()
-{
+void OrchestratorAutowireConnectionDialog::_bind_methods() {
 }
 
-OrchestratorAutowireConnectionDialog::OrchestratorAutowireConnectionDialog()
-{
+OrchestratorAutowireConnectionDialog::OrchestratorAutowireConnectionDialog() {
     set_title("Possible autowire pins:");
     set_ok_button_text("Autowire");
     set_cancel_button_text("Skip");
@@ -104,9 +96,9 @@ OrchestratorAutowireConnectionDialog::OrchestratorAutowireConnectionDialog()
     _tree->set_allow_rmb_select(true);
     vbox->add_child(_tree);
 
-    _tree->connect("item_activated", callable_mp(this, &OrchestratorAutowireConnectionDialog::_item_activated));
-    _tree->connect("item_selected", callable_mp(this, &OrchestratorAutowireConnectionDialog::_item_selected));
+    _tree->connect("item_activated", callable_mp_this(_item_activated));
+    _tree->connect("item_selected", callable_mp_this(_item_selected));
 
-    connect("confirmed", callable_mp(static_cast<Node*>(this), &Node::queue_free));
-    connect("canceled", callable_mp(static_cast<Node*>(this), &Node::queue_free));
+    connect("confirmed", callable_mp_cast(this, Node, queue_free));
+    connect("canceled", callable_mp_cast(this, Node, queue_free));
 }

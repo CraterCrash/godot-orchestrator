@@ -34,19 +34,18 @@
 
 using namespace godot;
 
-struct OrchestratorVersion
-{
-    struct Build
-    {
+struct OrchestratorVersion {
+    struct Build {
         String name;
         int64_t version{ 0 };
 
         static Build parse(const String& p_build);
 
+        _FORCE_INLINE_ bool is_stable() const { return name.match("stable"); }
+
         String to_string() const;
     };
 
-public:
     int64_t major{ 0 };
     int64_t minor{ 0 };
     int64_t patch{ 0 };
@@ -75,16 +74,14 @@ public:
 };
 
 /// A manifest record for outlining Godot and Orchestrator compatibility
-struct OrchestratorReleaseManifest
-{
+struct OrchestratorReleaseManifest {
     String name;                //! Orchestrator release names
     String godot_compatibility; //! Godot's compatibility expectations
     String blog_url;            //! An optional blog url
 };
 
 /// Represents a release that is available for download
-struct OrchestratorRelease
-{
+struct OrchestratorRelease {
     String tag;                 //! The release tag
     String release_url;         //! Link to the HTML releases page on GitHub
     String plugin_asset_url;    //! The plugin asset download URL
@@ -96,13 +93,13 @@ struct OrchestratorRelease
 };
 
 /// Update release notes dialog
-class OrchestratorUpdaterReleaseNotesDialog : public AcceptDialog
-{
+class OrchestratorUpdaterReleaseNotesDialog : public AcceptDialog {
     GDCLASS(OrchestratorUpdaterReleaseNotesDialog, AcceptDialog);
-    static void _bind_methods() { }
+
+    RichTextLabel* _text = nullptr;
 
 protected:
-    RichTextLabel* _text{ nullptr };
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _notification(int p_what);
@@ -117,28 +114,27 @@ public:
 };
 
 /// Update dialog picker
-class OrchestratorUpdaterVersionPicker : public ConfirmationDialog
-{
+class OrchestratorUpdaterVersionPicker : public ConfirmationDialog {
     GDCLASS(OrchestratorUpdaterVersionPicker, ConfirmationDialog);
-    static void _bind_methods();
 
-    struct ReleaseItem
-    {
+    struct ReleaseItem {
         OrchestratorRelease release;
         String godot_compatibility;
         String blog_url;
     };
 
-protected:
     Vector<ReleaseItem> _releases;
     OrchestratorVersion _godot_version;
-    Tree* _tree{ nullptr };
-    Button* _show_release_notes{ nullptr };
-    ProgressBar* _progress{ nullptr };
-    Label* _status{ nullptr };
-    HTTPRequest* _download{ nullptr };
-    OptionButton* _release_filter{ nullptr };
-    CheckBox* _notify_any_release{ nullptr };
+    Tree* _tree = nullptr;
+    Button* _show_release_notes = nullptr;
+    ProgressBar* _progress = nullptr;
+    Label* _status = nullptr;
+    HTTPRequest* _download = nullptr;
+    OptionButton* _release_filter = nullptr;
+    CheckBox* _notify_any_release = nullptr;
+
+protected:
+    static void _bind_methods();
 
     //~ Begin Wrapped Interface
     void _notification(int p_what);
@@ -173,21 +169,20 @@ public:
 };
 
 /// Displays an update button in the main view toolbar
-class OrchestratorUpdaterButton : public HBoxContainer
-{
+class OrchestratorUpdaterButton : public HBoxContainer {
     GDCLASS(OrchestratorUpdaterButton, HBoxContainer);
-
-    static void _bind_methods() { }
 
     OrchestratorVersion _plugin_version;
     Vector<OrchestratorRelease> _releases;                      //! Collection of releases
-    HashMap<String, OrchestratorReleaseManifest> _manifests;    // Map of manifests
-    OrchestratorUpdaterVersionPicker* _picker{ nullptr };   //! Version picker
+    HashMap<String, OrchestratorReleaseManifest> _manifests;    //! Map of manifests
+    OrchestratorUpdaterVersionPicker* _picker = nullptr;        //! Version picker
     Variant _releases_data;
     Variant _manifest_data;
-    Button* _button{ nullptr };                             //! The update button widget
+    Button* _button = nullptr;                                  //! The update button widget
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin Wrapped Interface
     void _notification(int p_what);
     //~ End Wrapped Interface

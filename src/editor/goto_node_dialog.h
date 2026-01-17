@@ -26,8 +26,7 @@ using namespace godot;
 class OrchestratorScriptGraphEditorView;
 
 /// A simple confirmation dialog that allows the user to specify which node to jump to.
-class OrchestratorGotoNodeDialog : public ConfirmationDialog
-{
+class OrchestratorGotoNodeDialog : public ConfirmationDialog {
     GDCLASS(OrchestratorGotoNodeDialog, ConfirmationDialog);
 
     LineEdit* _line_edit = nullptr;
@@ -40,7 +39,6 @@ protected:
     static void _bind_methods();
 
 public:
-
     void popup_find_node(OrchestratorScriptGraphEditorView* p_view);
 
     OrchestratorGotoNodeDialog();

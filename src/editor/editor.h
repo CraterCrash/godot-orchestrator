@@ -53,8 +53,7 @@ class OrchestratorWindowWrapper;
 typedef OrchestratorEditorView* (*OrchestratorEditorViewFunc)(const Ref<Resource>& p_resource);
 
 /// Main editor screen that handles all the editor coordination for Orchestrator
-class OrchestratorEditor : public PanelContainer
-{
+class OrchestratorEditor : public PanelContainer {
     GDCLASS(OrchestratorEditor, PanelContainer);
 
 public:
@@ -68,8 +67,7 @@ public:
     };
 
 private:
-    enum
-    {
+    enum {
         FILE_NEW,
         FILE_OPEN,
         FILE_OPEN_RECENT,
@@ -93,15 +91,13 @@ private:
         HELP_SUPPORT
     };
 
-    enum ScriptSortBy
-    {
+    enum ScriptSortBy {
         SORT_BY_NAME,
         SORT_BY_PATH,
         SORT_BY_NONE
     };
 
-    enum ScriptListName
-    {
+    enum ScriptListName {
         DISPLAY_NAME,
         DISPLAY_DIR_AND_NAME,
         DISPLAY_FULL_PATH
@@ -109,8 +105,7 @@ private:
 
     const Size2 ABOUT_DIALOG_SIZE{ 780, 500 };
 
-    enum
-    {
+    enum {
         ORCHESTRATOR_VIEW_FUNC_MAX = 32
     };
 
@@ -167,8 +162,6 @@ private:
     Vector<InputAction> _input_action_cache;
     HashMap<String, Variant> _extra_layout_values;
     Vector<OrchestratorEditorView*> _restore_queue;
-
-    void _create_ui();
 
 protected:
     static void _bind_methods();
@@ -355,7 +348,7 @@ public:
     void set_extra_layout_value(const String& p_key, const Variant& p_value);
 
     explicit OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapper);
-    ~OrchestratorEditor() override;
+    ~OrchestratorEditor() override = default;
 };
 
 #endif // ORCHESTRATOR_EDITOR_H

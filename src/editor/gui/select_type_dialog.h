@@ -17,19 +17,16 @@
 #ifndef ORCHESTRATOR_EDITOR_SELECT_TYPE_DIALOG_H
 #define ORCHESTRATOR_EDITOR_SELECT_TYPE_DIALOG_H
 
-#include "editor/search/search_dialog.h"
+#include "editor/gui/search_dialog.h"
 
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 
 /// Specialization of the OrchestratorEditorSearchDialog specifically for type selection
-class OrchestratorSelectTypeSearchDialog : public OrchestratorEditorSearchDialog
-{
+class OrchestratorSelectTypeSearchDialog : public OrchestratorEditorSearchDialog {
     GDCLASS(OrchestratorSelectTypeSearchDialog, OrchestratorEditorSearchDialog);
-    void static _bind_methods() { }
 
-    enum FilterType
-    {
+    enum FilterType {
         FT_ALL_TYPES = 1,
         FT_BASIC_TYPES = 2,
         FT_BITFIELDS = 3,
@@ -44,30 +41,13 @@ class OrchestratorSelectTypeSearchDialog : public OrchestratorEditorSearchDialog
 
     HashSet<StringName> _exclusions;                  //! Set of types to be excluded
     Vector<String> _variant_type_names;               //! All valid variant type names
-    bool _is_base_type_node{ false };                 //! Specifies if base type is a Node
-    bool _allow_abstract_types{ false };              //! Allow selecting abstract types
+    bool _is_base_type_node = false;                  //! Specifies if base type is a Node
+    bool _allow_abstract_types = false;               //! Allow selecting abstract types
     String _base_type;                                //! The base type
-    String _fallback_icon{ "Object" };                //! The fallback icon
+    String _fallback_icon = "Object";                 //! The fallback icon
     String _preferred_search_result_type;             //! The preferred search result type
     String _data_suffix;                              //! Specifies the data suffix for history/favorite tracking
     String _title;                                    //! The desired title
-
-protected:
-    //~ Begin OrchestratorEditorSearchDialog Interface
-    bool _is_preferred(const String& p_type) const override;
-    bool _should_collapse_on_empty_search() const override;
-    bool _get_search_item_collapse_suggestion(TreeItem* p_item) const override;
-    void _update_help(const Ref<SearchItem>& p_item) override;
-    Vector<Ref<SearchItem>> _get_search_items() override;
-    Vector<Ref<SearchItem>> _get_recent_items() const override;
-    Vector<Ref<SearchItem>> _get_favorite_items() const override;
-    void _save_recent_items(const Vector<Ref<SearchItem>>& p_recents) override;
-    void _save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) override;
-    Vector<FilterOption> _get_filters() const override;
-    bool _is_filtered(const Ref<SearchItem>& p_item, const String& p_text) const override;
-    int _get_default_filter() const override;
-    void _filter_type_changed(int p_index) override;
-    //~ End OrchestratorEditorSearchDialog Interface
 
     /// Creates the class hierarchy path, i.e. "Parent/Child/GrandChild"
     /// @param p_class the class
@@ -85,6 +65,25 @@ protected:
     /// @param r_cache the search item cache
     /// @param p_root the root search item
     Vector<Ref<SearchItem>> _get_class_hierarchy_search_items(const String& p_class, HashMap<String, Ref<SearchItem>>& r_cache, const Ref<SearchItem>& p_root);
+
+protected:
+    void static _bind_methods() { }
+
+    //~ Begin OrchestratorEditorSearchDialog Interface
+    bool _is_preferred(const String& p_type) const override;
+    bool _should_collapse_on_empty_search() const override;
+    bool _get_search_item_collapse_suggestion(TreeItem* p_item) const override;
+    void _update_help(const Ref<SearchItem>& p_item) override;
+    Vector<Ref<SearchItem>> _get_search_items() override;
+    Vector<Ref<SearchItem>> _get_recent_items() const override;
+    Vector<Ref<SearchItem>> _get_favorite_items() const override;
+    void _save_recent_items(const Vector<Ref<SearchItem>>& p_recents) override;
+    void _save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) override;
+    Vector<FilterOption> _get_filters() const override;
+    bool _is_filtered(const Ref<SearchItem>& p_item, const String& p_text) const override;
+    int _get_default_filter() const override;
+    void _filter_type_changed(int p_index) override;
+    //~ End OrchestratorEditorSearchDialog Interface
 
 public:
     //~ Begin OrchestratorEditorSearchDialog Interface

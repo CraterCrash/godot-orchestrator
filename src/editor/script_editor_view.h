@@ -35,8 +35,7 @@ class OrchestratorScriptComponentsContainer;
 class OScript;
 
 /// Main editor view for Orchestration scripts
-class OrchestratorScriptGraphEditorView : public OrchestratorEditorView
-{
+class OrchestratorScriptGraphEditorView : public OrchestratorEditorView {
     GDCLASS(OrchestratorScriptGraphEditorView, OrchestratorEditorView);
 
     enum {

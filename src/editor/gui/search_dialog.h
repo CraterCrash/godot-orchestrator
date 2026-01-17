@@ -31,38 +31,32 @@
 using namespace godot;
 
 /// Simple implementation of a RichTextLabel widget that can display help about selected items
-class OrchestratorEditorSearchHelpBit : public MarginContainer
-{
+class OrchestratorEditorSearchHelpBit : public MarginContainer {
     GDCLASS(OrchestratorEditorSearchHelpBit, MarginContainer);
+
+    RichTextLabel* _help_bit = nullptr;
+    String _text;
+
+    void _add_text(const String& p_bbcode);
+    void _meta_clicked();
+
+protected:
     static void _bind_methods() { }
 
-    RichTextLabel* _help_bit{ nullptr };  //! Richtext label that displays the help text
-    String _text;                         //! The text
-
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
-    void _notification(int p_what);
-
-    /// Adds text to the rich text label
-    /// @param p_bbcode the bbcode text to add
-    void _add_text(const String& p_bbcode);
-
-    /// Dispatched when the <code>meta_clicked</code> signal is emitted.
-    void _on_meta_clicked();
-
 public:
-    /// Specifies whether the help bit appears disabled
-    void set_disabled(bool p_disabled);
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
-    /// Sets the help text to be shown.
-    /// @param p_text the text to be shown, can include <code>bbcode</code>.
+    void set_disabled(bool p_disabled);
     void set_text(const String& p_text);
 };
 
 /// Represents an item in the search dialog, which can be extended
-class OrchestratorEditorSearchDialogItem : public RefCounted
-{
+class OrchestratorEditorSearchDialogItem : public RefCounted {
     GDCLASS(OrchestratorEditorSearchDialogItem, RefCounted);
+
+protected:
     void static _bind_methods() { }
 
 public:
@@ -71,44 +65,57 @@ public:
     String text;                                     //! Text shown for the item
     String script_filename;                          //! Name of the script that contributes type
     Ref<Texture2D> icon;                             //! The icon to be shown, if applicable
-    bool selectable{ true };                         //! Whether the item can be selected
-    bool disabled{ false };                          //! Whether the item is shaded as disabled
-    bool collapsed{ true };                          //! Whether the item should initially be collapsed
+    bool selectable = true;                          //! Whether the item can be selected
+    bool disabled = false;                           //! Whether the item is shaded as disabled
+    bool collapsed = true;                           //! Whether the item should initially be collapsed
     Ref<OrchestratorEditorSearchDialogItem> parent;  //! The parent item, if applicable
 };
 
 /// Base class for Orchestrator's search dialogs
-class OrchestratorEditorSearchDialog : public ConfirmationDialog
-{
+class OrchestratorEditorSearchDialog : public ConfirmationDialog {
     GDCLASS(OrchestratorEditorSearchDialog, ConfirmationDialog);
-    void static _bind_methods();
+
+    //~ Begin Signal Handlers
+    void _favorite_selected();
+    void _favorite_activated();
+    void _favorite_toggled();
+    void _history_selected(int p_index);
+    void _history_activated(int p_index);
+    void _search_changed(const String& p_text);
+    void _search_input(const Ref<InputEvent>& p_event);
+    void _confirmed();
+    void _canceled();
+    void _item_selected();
+    void _filter_selected(int p_index);
+    //~ End Signal Handlers
 
 protected:
+    void static _bind_methods();
+
     typedef OrchestratorEditorSearchDialogItem SearchItem;
 
-    struct FilterOption
-    {
-        int32_t id{ -1 };
+    struct FilterOption {
+        int32_t id = -1;
         String text;
     };
 
-    LineEdit* _search_box{ nullptr };                       //! The user search box
-    ItemList* _recent{ nullptr };                           //! List of recently used items
-    Tree* _favorites{ nullptr };                            //! List of favorite items
-    Tree* _search_options{ nullptr };                       //! List of search results
-    Button* _favorite{ nullptr };                           //! Favorite toggle button
-    OptionButton* _filters{ nullptr };                      //! Filters
+    LineEdit* _search_box = nullptr;                        //! The user search box
+    ItemList* _recent = nullptr;                            //! List of recently used items
+    Tree* _favorites = nullptr;                             //! List of favorite items
+    Tree* _search_options = nullptr;                        //! List of search results
+    Button* _favorite = nullptr;                            //! Favorite toggle button
+    OptionButton* _filters = nullptr;                       //! Filters
     Vector<Ref<SearchItem>> _favorite_list;                 //! List of favorite items
     Vector<Ref<SearchItem>> _search_items;                  //! List of searchable items
     Vector<FilterOption> _filter;                           //! List of filter options
     HashMap<String, TreeItem*> _search_options_hierarchy;   //! Hierarchy of created search items
-    OrchestratorEditorSearchHelpBit* _help_bit{ nullptr };  //! Reference to the help bit
+    OrchestratorEditorSearchHelpBit* _help_bit = nullptr;   //! Reference to the help bit
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
     void _update_themes();
-
-    /// Godot callback that handles notifications
-    /// @param p_what the notification to be handled
-    void _notification(int p_what);
 
     /// Checks whether any favorite item has a matching meta descriptor.
     /// @param p_item the meta descriptor to check
@@ -231,46 +238,7 @@ public:
     /// @param p_replace_mode whether the dialog should replace the current type
     /// @param p_current_type the current type
     /// @param p_current_name the current name
-    virtual void popup_create(bool p_dont_clear, bool p_replace_mode = false, const String& p_current_type = "",
-                              const String& p_current_name = "");
-
-private:
-    /// Dispatched when a favorite item is selected.
-    void _on_favorite_selected();
-
-    /// Dispatched when a favorite item is activated.
-    void _on_favorite_activated();
-
-    /// Dispatched when a recent history item is selected.
-    /// @parma p_index the list index
-    void _on_history_selected(int p_index);
-
-    /// Dispatched when a recent history item is activated.
-    /// @param p_index the list index
-    void _on_history_activated(int p_index);
-
-    /// Dispatched when the search box text changes.
-    /// @param p_text the new text
-    void _on_search_changed(const String& p_text);
-
-    /// Dispatched on input events
-    /// @param p_event the input event
-    void _on_search_input(const Ref<InputEvent>& p_event);
-
-    /// Dispatched when the favorite button is clicked.
-    void _on_favorite_toggled();
-
-    /// Dispatched when the change button is clicked.
-    void _on_confirmed();
-
-    /// Dispatched when the window is closed or cancel is clicked.
-    void _on_canceled();
-
-    /// Dispatched when the user selects a search result item.
-    void _on_item_selected();
-
-    /// Dispatched when the user activates a specific filter criteria.
-    void _on_filter_selected(int p_index);
+    virtual void popup_create(bool p_dont_clear, bool p_replace_mode = false, const String& p_current_type = "", const String& p_current_name = "");
 };
 
 #endif  // ORCHESTRATOR_EDITOR_SEARCH_DIALOG_H

@@ -14,20 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/file_dialog.h"
+#include "editor/gui/file_dialog.h"
+
+#include "common/macros.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
 
-void OrchestratorFileDialog::_focus_file_text()
-{
-    if (Node* node = find_child("LineEdit", true, false))
-    {
-        if (LineEdit* file = Object::cast_to<LineEdit>(node))
-        {
+void OrchestratorFileDialog::_focus_file_text() {
+    if (Node* node = find_child("LineEdit", true, false)) {
+        if (LineEdit* file = cast_to<LineEdit>(node)) {
             int lp = file->get_text().rfind(".");
-            if (lp != -1)
-            {
+            if (lp != -1) {
                 file->select(0, lp);
                 file->grab_focus();
             }
@@ -35,12 +33,10 @@ void OrchestratorFileDialog::_focus_file_text()
     }
 }
 
-void OrchestratorFileDialog::popup_file_dialog()
-{
-    popup_centered_clamped(Size2(1050, 700) * EditorInterface::get_singleton()->get_editor_scale(), 0.8);
+void OrchestratorFileDialog::popup_file_dialog() {
+    popup_centered_clamped(Size2(1050, 700) * EDSCALE, 0.8);
     _focus_file_text();
 }
 
-void OrchestratorFileDialog::_bind_methods()
-{
+void OrchestratorFileDialog::_bind_methods() {
 }
