@@ -16,13 +16,13 @@
 //
 #include "editor/graph/graph_pin.h"
 
+#include "../gui/context_menu.h"
 #include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
-#include "editor/context_menu.h"
 #include "editor/graph/graph_panel.h"
 #include "script/nodes/functions/call_function.h"
 

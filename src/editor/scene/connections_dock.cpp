@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/connections_dock.h"
+#include "editor/scene/connections_dock.h"
 
 #include "common/macros.h"
 #include "common/scene_utils.h"
@@ -30,28 +30,26 @@
 
 OrchestratorEditorConnectionsDock* OrchestratorEditorConnectionsDock::_singleton = nullptr;
 
-void OrchestratorEditorConnectionsDock::_slot_menu_option(int p_option)
-{
-    switch (p_option)
-    {
-        case SLOT_MENU_GO_TO_METHOD:
-        {
+void OrchestratorEditorConnectionsDock::_slot_menu_option(int p_option) {
+    switch (p_option) {
+        case SLOT_MENU_GO_TO_METHOD: {
             TreeItem* selected = _connections_tree->get_selected();
-            if (selected)
+            if (selected) {
                 _go_to_method(selected);
-
+            }
             break;
         }
-        case SLOT_MENU_DISCONNECT:
-        {
+        case SLOT_MENU_DISCONNECT: {
             _notify_connections_dock_changed();
+            break;
+        }
+        default: {
             break;
         }
     }
 }
 
-void OrchestratorEditorConnectionsDock::_go_to_method(TreeItem* p_item)
-{
+void OrchestratorEditorConnectionsDock::_go_to_method(TreeItem* p_item) {
     ERR_FAIL_NULL(p_item);
 
     const Dictionary connection = p_item->get_metadata(0);
@@ -59,16 +57,19 @@ void OrchestratorEditorConnectionsDock::_go_to_method(TreeItem* p_item)
     const Callable& callable = connection["callable"];
 
     Node* object = cast_to<Node>(ObjectDB::get_instance(signal.get_object_id()));
-    if (!object)
+    if (!object) {
         return;
+    }
 
     const Ref<OScript> script = object->get_script();
-    if (!script.is_valid() || !object->has_method(callable.get_method()))
+    if (!script.is_valid() || !object->has_method(callable.get_method())) {
         return;
+    }
 
     const Ref<OScriptFunction> function = script->get_orchestration()->find_function(callable.get_method());
-    if (!function.is_valid())
+    if (!function.is_valid()) {
         return;
+    }
 
     OrchestratorEditor::get_singleton()->edit(script, function->get_owning_node_id());
 
@@ -78,28 +79,24 @@ void OrchestratorEditorConnectionsDock::_go_to_method(TreeItem* p_item)
     EI->inspect_object(object);
 }
 
-void OrchestratorEditorConnectionsDock::_notify_connections_dock_changed()
-{
+void OrchestratorEditorConnectionsDock::_notify_connections_dock_changed() {
     emit_signal("changed");
 }
 
-bool OrchestratorEditorConnectionsDock::disconnect_slot(const Ref<Script>& p_script, const StringName& p_method)
-{
+bool OrchestratorEditorConnectionsDock::disconnect_slot(const Ref<Script>& p_script, const StringName& p_method) {
     bool result = false;
 
-    for (Node* node : SceneUtils::find_all_nodes_for_script_in_edited_scene(p_script))
-    {
-        for (const Variant& value : node->get_incoming_connections())
-        {
+    for (Node* node : SceneUtils::find_all_nodes_for_script_in_edited_scene(p_script)) {
+        for (const Variant& value : node->get_incoming_connections()) {
             const Dictionary& connection = value;
 
             const Callable& callable = connection["callable"];
-            if (callable.get_method() != p_method)
+            if (callable.get_method() != p_method) {
                 continue;
+            }
 
             const Signal& signal = connection["signal"];
-            if (Node* source = cast_to<Node>(ObjectDB::get_instance(signal.get_object_id())))
-            {
+            if (Node* source = cast_to<Node>(ObjectDB::get_instance(signal.get_object_id()))) {
                 source->disconnect(signal.get_name(), callable);
 
                 _connections_dock->call("update_tree");
@@ -114,60 +111,56 @@ bool OrchestratorEditorConnectionsDock::disconnect_slot(const Ref<Script>& p_scr
     return result;
 }
 
-void OrchestratorEditorConnectionsDock::_notification(int p_what)
-{
-    switch (p_what)
-    {
-        case NOTIFICATION_READY:
-        {
-            if (Node* editor_node = EditorNode)
-            {
+void OrchestratorEditorConnectionsDock::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_READY: {
+            if (Node* editor_node = EditorNode) {
                 _scene_tree_editor = editor_node->find_child("*SceneTreeEditor*", true, false);
 
                 _connections_dock = editor_node->find_child("Signals", true, false);
-                if (_connections_dock)
-                {
+                if (_connections_dock) {
                     const TypedArray<Node> tree = _connections_dock->find_children(
                         "*", Tree::get_class_static(), false, false);
-                    if (tree.size() == 1)
+                    if (tree.size() == 1) {
                         _connections_tree = cast_to<Tree>(tree[0]);
+                    }
 
                     const TypedArray<Node> dialogs = _connections_dock->find_children(
                         "*", ConfirmationDialog::get_class_static(), false, false);
-                    if (dialogs.size() >= 2)
-                    {
+                    if (dialogs.size() >= 2) {
                         // The second one is the ConfirmationDialog that is for handling whether the user
                         // really wants to process the "Disconnect All Connections" menu choice.
-                        if (ConfirmationDialog* dialog = cast_to<ConfirmationDialog>(dialogs[1]))
+                        if (ConfirmationDialog* dialog = cast_to<ConfirmationDialog>(dialogs[1])) {
                             dialog->connect("confirmed", callable_mp_this(_notify_connections_dock_changed));
+                        }
                     }
 
                     const TypedArray<Node> menus = _connections_dock->find_children(
                         "*", PopupMenu::get_class_static(), false, false);
-                    if (menus.size() >= 3)
-                    {
+                    if (menus.size() >= 3) {
                         // The third PopupMenu is what we are interested in.
-                        if (PopupMenu* menu = cast_to<PopupMenu>(menus[2]))
+                        if (PopupMenu* menu = cast_to<PopupMenu>(menus[2])) {
                             menu->connect("id_pressed", callable_mp_this(_slot_menu_option));
+                        }
                     }
                 }
             }
             break;
         }
+        default: {
+            break;
+        }
     }
 }
 
-void OrchestratorEditorConnectionsDock::_bind_methods()
-{
+void OrchestratorEditorConnectionsDock::_bind_methods() {
     ADD_SIGNAL(MethodInfo("changed"));
 }
 
-OrchestratorEditorConnectionsDock::OrchestratorEditorConnectionsDock()
-{
+OrchestratorEditorConnectionsDock::OrchestratorEditorConnectionsDock() {
     _singleton = this;
 }
 
-OrchestratorEditorConnectionsDock::~OrchestratorEditorConnectionsDock()
-{
+OrchestratorEditorConnectionsDock::~OrchestratorEditorConnectionsDock() {
     _singleton = nullptr;
 }

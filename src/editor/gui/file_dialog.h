@@ -22,12 +22,12 @@
 using namespace godot;
 
 /// A custom, centralized version of FileDialog to complement Godot's EditorFileDialog
-class OrchestratorFileDialog : public FileDialog
-{
+class OrchestratorFileDialog : public FileDialog {
     GDCLASS(OrchestratorFileDialog, FileDialog);
-    static void _bind_methods();
 
 protected:
+    static void _bind_methods();
+
     /// Sets the focus and selection for the file filename widget
     void _focus_file_text();
 

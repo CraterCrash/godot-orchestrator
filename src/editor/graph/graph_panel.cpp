@@ -16,6 +16,7 @@
 //
 #include "editor/graph/graph_panel.h"
 
+#include "../gui/context_menu.h"
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
@@ -30,9 +31,7 @@
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
 #include "editor/autowire_connection_dialog.h"
-#include "editor/context_menu.h"
 #include "editor/debugger/script_debugger_plugin.h"
-#include "editor/dialogs_helper.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_node_factory.h"
 #include "editor/graph/graph_panel_styler.h"
@@ -40,6 +39,7 @@
 #include "editor/graph/knot_editor.h"
 #include "editor/graph/nodes/comment_graph_node.h"
 #include "editor/graph/nodes/knot_node.h"
+#include "editor/gui/dialogs_helper.h"
 #include "orchestration/orchestration.h"
 #include "script/graph.h"
 #include "script/nodes/data/compose.h"
@@ -349,21 +349,18 @@ void OrchestratorEditorGraphPanel::_paste_nodes_request() {
         const Ref<OScriptFunction> source_function = _copy_buffer.orchestration->find_function(function_name);
         if (!source_function.is_valid()) {
             const String message = vformat("Cannot paste because source function '%s' no longer exists", function_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
 
         const Ref<OScriptFunction> function = _graph->get_orchestration()->find_function(function_name);
         if (!function.is_valid()) {
             const String message = vformat("Cannot paste because function '%s' does not exist", function_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
 
         if (!MethodUtils::has_same_signature(source_function->get_method_info(), function->get_method_info())) {
             const String message = vformat("Function '%s' exists but with a different definition", function_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
     }
 
@@ -372,15 +369,13 @@ void OrchestratorEditorGraphPanel::_paste_nodes_request() {
         const Ref<OScriptVariable> source_variable = _copy_buffer.orchestration->get_variable(variable_name);
         if (!source_variable.is_valid()) {
             const String message = vformat("Variable '%s' no longer exists in the source orchestration", variable_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
 
         const Ref<OScriptVariable> variable = _graph->get_orchestration()->get_variable(variable_name);
         if (variable.is_valid() && !PropertyUtils::are_equal(source_variable->get_info(), variable->get_info())) {
             const String message = vformat("Variable '%s' exists but with a different definition", variable_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
     }
 
@@ -389,21 +384,18 @@ void OrchestratorEditorGraphPanel::_paste_nodes_request() {
         const Ref<OScriptSignal> source_signal = _copy_buffer.orchestration->find_custom_signal(signal_name);
         if (!source_signal.is_valid()) {
             const String message = vformat("Cannot paste because source signal '%s' no longer exists", signal_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
 
         const Ref<OScriptSignal> signal = _graph->get_orchestration()->find_custom_signal(signal_name);
         if (!signal.is_valid()) {
             const String message = vformat("Cannot paste because signal '%s' does not exist", signal_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
 
         if (!MethodUtils::has_same_signature(source_signal->get_method_info(), signal->get_method_info())) {
             const String message = vformat("Signal '%s' exists but with a different definition", signal_name);
-            OrchestratorEditorDialogs::error(message, "Clipboard error");
-            return;
+            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
         }
     }
 
@@ -847,16 +839,12 @@ void OrchestratorEditorGraphPanel::_add_node_pin(OrchestratorEditorGraphNode* p_
 void OrchestratorEditorGraphPanel::_expand_node(OrchestratorEditorGraphNode* p_node) {
     const Ref<OScriptNodeCallScriptFunction> call_script_function = p_node->_node;
     if (!call_script_function.is_valid()) {
-        const String message = vformat("Node '%s' is not a call script function node and can't be expanded", p_node->get_title());
-        OrchestratorEditorDialogs::error(message);
-        return;
+        ORCHESTRATOR_ERROR(vformat("Node '%s' is not a call script function node and can't be expanded", p_node->get_title()));
     }
 
     const Ref<OScriptFunction> function = call_script_function->get_function();
     if (!function.is_valid()) {
-        const String message = vformat("Function the node references cannot be found.");
-        OrchestratorEditorDialogs::error(message);
-        return;
+        ORCHESTRATOR_ERROR(vformat("Function the node references cannot be found."));
     }
 
     Rect2 nodes_area;
@@ -958,9 +946,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
 
     const StringName function_name = NameUtils::create_unique_name("NewFunction", _graph->get_orchestration()->get_function_names());
     if (!_create_new_function(function_name, !output_connections.is_empty())) {
-        const String message = "Failed to create new function for collapse";
-        OrchestratorEditorDialogs::error(message);
-        return;
+        ORCHESTRATOR_ERROR("Failed to create new function for collapse");
     }
 
     const Ref<OScriptFunction> function = _graph->get_orchestration()->find_function(function_name);

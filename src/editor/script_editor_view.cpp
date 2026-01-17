@@ -23,15 +23,15 @@
 #include "common/name_utils.h"
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
-#include "editor/dialogs_helper.h"
 #include "editor/editor.h"
+#include "editor/goto_node_dialog.h"
 #include "editor/graph/graph_panel.h"
+#include "editor/gui/dialogs_helper.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
+#include "editor/scene/script_connections.h"
 #include "editor/script_components_container.h"
-#include "goto_node_dialog.h"
-#include "plugins/orchestrator_editor_plugin.h"
 #include "script/nodes/functions/event.h"
 #include "script/script.h"
-#include "script_connections.h"
 
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -42,13 +42,13 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 
-OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_create_graph_tab(const String& p_name)
-{
+OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_create_graph_tab(const String& p_name) {
     ERR_FAIL_COND_V_MSG(!_script.is_valid(), nullptr, "OScript is not valid");
 
     const Ref<OScriptGraph> script_graph = _script->get_orchestration()->find_graph(p_name);
-    if (!script_graph.is_valid())
+    if (!script_graph.is_valid()) {
         return nullptr;
+    }
 
     const Ref<Texture2D> tab_icon = script_graph->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION)
         ? SceneUtils::get_editor_icon("MemberMethod")
@@ -73,71 +73,63 @@ OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_create_graph_t
     return tab_panel;
 }
 
-OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_get_graph_tab(const String& p_name)
-{
-    for (int i = 0; i < _tab_container->get_child_count(); i++)
-    {
+OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_get_graph_tab(const String& p_name) {
+    for (int i = 0; i < _tab_container->get_child_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
-        if (tab_panel && tab_panel->get_name() == p_name)
+        if (tab_panel && tab_panel->get_name() == p_name) {
             return tab_panel;
+        }
     }
     return nullptr;
 }
 
-OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_get_graph_tab(int p_index)
-{
+OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_get_graph_tab(int p_index) {
     ERR_FAIL_COND_V_MSG(p_index < 0 && p_index >= _tab_container->get_tab_count(), nullptr, "Invalid tab index " + itos(p_index));
     return cast_to<OrchestratorEditorGraphPanel>(_tab_container->get_tab_control(p_index));
 }
 
-OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_get_active_graph_tab()
-{
+OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_get_active_graph_tab() {
     return _get_graph_tab(_tab_container->get_current_tab());
 }
 
-OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_open_graph_tab(const String& p_name)
-{
+OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_open_graph_tab(const String& p_name) {
     OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(p_name);
-    if (!tab_panel)
-    {
+    if (!tab_panel) {
         tab_panel = _create_graph_tab(p_name);
 
         // Restore state
         const Dictionary graph_states = _editor_state.get("graphs", Dictionary());
-        if (graph_states.has(p_name))
-        {
+        if (graph_states.has(p_name)) {
             const Dictionary graph_state = graph_states[p_name];
-            if (!graph_state.is_empty())
+            if (!graph_state.is_empty()) {
                 tab_panel->set_edit_state(graph_state, Callable());
+            }
         }
     }
 
-    if (tab_panel)
+    if (tab_panel) {
         _focus_graph_tab(tab_panel);
+    }
 
     return tab_panel;
 }
 
-void OrchestratorScriptGraphEditorView::_close_graph_editor(const String& p_name)
-{
+void OrchestratorScriptGraphEditorView::_close_graph_editor(const String& p_name) {
     OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(p_name);
-    if (tab_panel && tab_panel != _event_graph)
-    {
+    if (tab_panel && tab_panel != _event_graph) {
         _store_graph_tab_state(tab_panel->get_name(), _get_graph_tab_state(tab_panel, false));
         tab_panel->queue_free();
     }
 }
 
-void OrchestratorScriptGraphEditorView::_focus_graph_tab(OrchestratorEditorGraphPanel* p_tab_panel)
-{
+void OrchestratorScriptGraphEditorView::_focus_graph_tab(OrchestratorEditorGraphPanel* p_tab_panel) {
     const int32_t tab_index = _tab_container->get_tab_idx_from_control(p_tab_panel);
     ERR_FAIL_COND(tab_index < 0);
 
     _go_to_graph_tab(tab_index);
 }
 
-Dictionary OrchestratorScriptGraphEditorView::_get_graph_tab_state(OrchestratorEditorGraphPanel* p_tab_panel, bool p_open)
-{
+Dictionary OrchestratorScriptGraphEditorView::_get_graph_tab_state(OrchestratorEditorGraphPanel* p_tab_panel, bool p_open) {
     Dictionary panel_state = p_tab_panel->get_edit_state();
     panel_state["open"] = p_open;
     panel_state["active"] = _get_active_graph_tab() == p_tab_panel && p_open;
@@ -145,46 +137,42 @@ Dictionary OrchestratorScriptGraphEditorView::_get_graph_tab_state(OrchestratorE
     return panel_state;
 }
 
-void OrchestratorScriptGraphEditorView::_store_graph_tab_state(const String& p_name, const Dictionary& p_state)
-{
-    if (!_editor_state.has("graphs"))
+void OrchestratorScriptGraphEditorView::_store_graph_tab_state(const String& p_name, const Dictionary& p_state) {
+    if (!_editor_state.has("graphs")) {
         _editor_state["graphs"] = Dictionary();
-
+    }
     _editor_state["graphs"].operator Dictionary()[p_name] = p_state;
 }
 
-void OrchestratorScriptGraphEditorView::_go_to_graph_tab(int p_index)
-{
+void OrchestratorScriptGraphEditorView::_go_to_graph_tab(int p_index) {
     ERR_FAIL_INDEX(p_index, _tab_container->get_tab_count());
 
-    if (_tab_container->get_current_tab() != p_index)
+    if (_tab_container->get_current_tab() != p_index) {
         _tab_container->set_current_tab(p_index);
+    }
 
     OrchestratorEditorGraphPanel* current_tab_panel =
         cast_to<OrchestratorEditorGraphPanel>(_tab_container->get_current_tab_control());
 
-    if (current_tab_panel)
+    if (current_tab_panel) {
         current_tab_panel->validate();
+    }
 }
 
-void OrchestratorScriptGraphEditorView::_close_graph_tab(int p_index)
-{
+void OrchestratorScriptGraphEditorView::_close_graph_tab(int p_index) {
     OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(p_index);
-    if (tab_panel)
-    {
+    if (tab_panel) {
         // The event graph cannot be closed
-        if (tab_panel == _event_graph)
+        if (tab_panel == _event_graph) {
             return;
-
+        }
         _close_graph_editor(tab_panel->get_name());
     }
 }
 
-void OrchestratorScriptGraphEditorView::_restore_next_tab()
-{
+void OrchestratorScriptGraphEditorView::_restore_next_tab() {
     // This handles multi-frame restoration of open tabs.
-    if (_restore_tab_list.is_empty())
-    {
+    if (_restore_tab_list.is_empty()) {
         emit_signal("view_layout_restored");
         return;
     }
@@ -194,10 +182,8 @@ void OrchestratorScriptGraphEditorView::_restore_next_tab()
 
     const Dictionary graph_states = _editor_state.get("graphs", Dictionary());
     const Dictionary graph_state = graph_states[graph_name];
-    if (graph_state.get("open", false))
-    {
-        if (OrchestratorEditorGraphPanel* tab_panel = _open_graph_tab(graph_name))
-        {
+    if (graph_state.get("open", false)) {
+        if (OrchestratorEditorGraphPanel* tab_panel = _open_graph_tab(graph_name)) {
             tab_panel->set_edit_state(graph_state, callable_mp_this(_restore_next_tab));
             return;
         }
@@ -207,20 +193,17 @@ void OrchestratorScriptGraphEditorView::_restore_next_tab()
     _restore_next_tab();
 }
 
-void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
-{
+void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
     static String DETAILS_BUTTON_NAME = "ScriptDetailsButton";
     static String WARN_ERROR_SEP = "ScriptWarnErrorSep";
     static String WARNING_BUTTON_NAME = "ScriptWarningButton";
     static String ERROR_BUTTON_NAME   = "ScriptErrorButton";
 
-    for (int i = 0; i < _tab_container->get_child_count(); i++)
-    {
+    for (int i = 0; i < _tab_container->get_child_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
 
         Button* button = cast_to<Button>(tab_panel->get_menu_control()->find_child(DETAILS_BUTTON_NAME, false, false));
-        if (!button)
-        {
+        if (!button) {
             button = memnew(Button);
             button->set_name(DETAILS_BUTTON_NAME);
             button->set_focus_mode(FOCUS_NONE);
@@ -234,16 +217,14 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
         button->set_button_icon(SceneUtils::get_class_icon(script_type));
 
         VSeparator* sep = cast_to<VSeparator>(tab_panel->get_menu_control()->find_child(WARN_ERROR_SEP, false, false));
-        if (!sep)
-        {
+        if (!sep) {
             sep = memnew(VSeparator);
             sep->set_name(WARN_ERROR_SEP);
             tab_panel->get_menu_control()->add_child(sep);
         }
 
         button = cast_to<Button>(tab_panel->get_menu_control()->find_child(WARNING_BUTTON_NAME, false, false));
-        if (!button)
-        {
+        if (!button) {
             button = memnew(Button);
             button->set_name(WARNING_BUTTON_NAME);
             button->set_focus_mode(FOCUS_NONE);
@@ -259,8 +240,7 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
         button->set_text(vformat("%d", _warnings.size()));
 
         button = cast_to<Button>(tab_panel->get_menu_control()->find_child(ERROR_BUTTON_NAME, false, false));
-        if (!button)
-        {
+        if (!button) {
             button = memnew(Button);
             button->set_name(ERROR_BUTTON_NAME);
             button->set_focus_mode(FOCUS_NONE);
@@ -279,123 +259,107 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons()
     }
 }
 
-void OrchestratorScriptGraphEditorView::_change_script_type()
-{
+void OrchestratorScriptGraphEditorView::_change_script_type() {
     OrchestratorEditor::get_singleton()->make_inspector_visible();
     EI->inspect_object(_script->get_orchestration().ptr());
 
     // todo: remove this when we introduce class support
     // Finds the ClassName editor property in the Inspector and toggles it as though the user clicked it.
     // This allows the user to immediately change the script's base type without Inspector interactions.
-    if (EditorInspector* inspector = EI->get_inspector())
-    {
+    if (EditorInspector* inspector = EI->get_inspector()) {
         TypedArray<Node> fields = inspector->find_children("*", "EditorPropertyClassName", true, false);
-        for (int i = 0; i < fields.size(); i++)
-        {
+        for (int i = 0; i < fields.size(); i++) {
             TypedArray<Button> buttons = cast_to<Node>(fields[i])->find_children("*", "Button", true, false);
-            if (buttons.is_empty())
+            if (buttons.is_empty()) {
                 return;
-
+            }
             cast_to<Button>(buttons[0])->emit_signal("pressed");
         }
     }
 }
 
-void OrchestratorScriptGraphEditorView::_component_panel_resized()
-{
+void OrchestratorScriptGraphEditorView::_component_panel_resized() {
     const int32_t offset = _graph_split->get_split_offset();
 
     Array views = get_tree()->get_nodes_in_group("_orchestrator_script_graph_views");
-    for (int i = 0; i < views.size(); i++)
-    {
+    for (int i = 0; i < views.size(); i++) {
         OrchestratorScriptGraphEditorView* view = cast_to<OrchestratorScriptGraphEditorView>(views[i]);
-        if (view != this)
+        if (view != this) {
             view->_graph_split->set_split_offset(offset);
+        }
     }
 
     PROJECT_SET("Orchestrator", "component_panel_width", offset);
 }
 
-void OrchestratorScriptGraphEditorView::_show_override_function_menu()
-{
-    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
+void OrchestratorScriptGraphEditorView::_show_override_function_menu() {
+    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
         active_panel->show_override_function_action_menu();
-
+    }
 }
 
-void OrchestratorScriptGraphEditorView::_scroll_to_graph_center()
-{
+void OrchestratorScriptGraphEditorView::_scroll_to_graph_center() {
     OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab();
-    if (active_panel)
-    {
+    if (active_panel) {
         const Rect2 bounds = active_panel->get_bounds_for_nodes(false);
         active_panel->scroll_to_position(bounds.get_center());
     }
 }
 
-void OrchestratorScriptGraphEditorView::_scroll_to_graph_node(int p_node_id)
-{
+void OrchestratorScriptGraphEditorView::_scroll_to_graph_node(int p_node_id) {
     OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab();
-    if (active_panel)
+    if (active_panel) {
         active_panel->center_node_id(p_node_id);
+    }
 }
 
-void OrchestratorScriptGraphEditorView::_focus_object(Object* p_object)
-{
+void OrchestratorScriptGraphEditorView::_focus_object(Object* p_object) {
     const Ref<OScriptFunction> function = cast_to<OScriptFunction>(p_object);
-    if (function.is_valid())
-    {
-        if (_open_graph_tab(function->get_function_name()))
+    if (function.is_valid()) {
+        if (_open_graph_tab(function->get_function_name())) {
             callable_mp_this(_scroll_to_graph_node).bind(function->get_owning_node_id()).call_deferred();
+        }
     }
 }
 
-void OrchestratorScriptGraphEditorView::_toggle_bookmark_for_selected_nodes()
-{
-    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
-    {
-        for (OrchestratorEditorGraphNode* node : active_panel->get_selected<OrchestratorEditorGraphNode>())
+void OrchestratorScriptGraphEditorView::_toggle_bookmark_for_selected_nodes() {
+    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
+        for (OrchestratorEditorGraphNode* node : active_panel->get_selected<OrchestratorEditorGraphNode>()) {
             active_panel->set_bookmarked(node, !node->is_bookmarked());
+        }
     }
 }
 
-void OrchestratorScriptGraphEditorView::_remove_all_bookmarks()
-{
-    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
-    {
-        for (OrchestratorEditorGraphNode* node : active_panel->get_all<OrchestratorEditorGraphNode>(false))
-        {
-            if (node->is_bookmarked())
+void OrchestratorScriptGraphEditorView::_remove_all_bookmarks() {
+    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
+        for (OrchestratorEditorGraphNode* node : active_panel->get_all<OrchestratorEditorGraphNode>(false)) {
+            if (node->is_bookmarked()) {
                 active_panel->set_bookmarked(node, false);
+            }
         }
     }
 }
 
-void OrchestratorScriptGraphEditorView::_toggle_breakpoint_for_selected_nodes()
-{
-    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
-    {
-        for (OrchestratorEditorGraphNode* node : active_panel->get_selected<OrchestratorEditorGraphNode>())
+void OrchestratorScriptGraphEditorView::_toggle_breakpoint_for_selected_nodes() {
+    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
+        for (OrchestratorEditorGraphNode* node : active_panel->get_selected<OrchestratorEditorGraphNode>()) {
             active_panel->set_breakpoint(node, !node->is_breakpoint());
-    }
-}
-
-void OrchestratorScriptGraphEditorView::_remove_all_breakpoints()
-{
-    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
-    {
-        for (OrchestratorEditorGraphNode* node : active_panel->get_all<OrchestratorEditorGraphNode>(false))
-        {
-            if (node->is_breakpoint())
-                active_panel->set_breakpoint(node, false);
         }
     }
 }
 
-void OrchestratorScriptGraphEditorView::_breakpoints_menu_option(int p_index)
-{
-    if (p_index < 4)
-    {
+void OrchestratorScriptGraphEditorView::_remove_all_breakpoints() {
+    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
+        for (OrchestratorEditorGraphNode* node : active_panel->get_all<OrchestratorEditorGraphNode>(false)) {
+            if (node->is_breakpoint()) {
+                active_panel->set_breakpoint(node, false);
+            }
+        }
+    }
+}
+
+void OrchestratorScriptGraphEditorView::_breakpoints_menu_option(int p_index) {
+    if (p_index < 4) {
         // Any item before the separator chosen.
         _menu_option(_breakpoints_menu->get_item_id(p_index));
         return;
@@ -406,10 +370,8 @@ void OrchestratorScriptGraphEditorView::_breakpoints_menu_option(int p_index)
     _get_active_graph_tab()->center_node(node);
 }
 
-void OrchestratorScriptGraphEditorView::_bookmarks_menu_option(int p_index)
-{
-    if (p_index < 4)
-    {
+void OrchestratorScriptGraphEditorView::_bookmarks_menu_option(int p_index) {
+    if (p_index < 4) {
         // Any item before the separator chosen.
         _menu_option(_bookmarks_menu->get_item_id(p_index));
         return;
@@ -420,8 +382,7 @@ void OrchestratorScriptGraphEditorView::_bookmarks_menu_option(int p_index)
     _get_active_graph_tab()->center_node(node);
 }
 
-void OrchestratorScriptGraphEditorView::_update_bookmarks_list()
-{
+void OrchestratorScriptGraphEditorView::_update_bookmarks_list() {
     _bookmarks_menu->clear();
     _bookmarks_menu->set_min_size(Vector2());
     _bookmarks_menu->reset_size();
@@ -431,16 +392,13 @@ void OrchestratorScriptGraphEditorView::_update_bookmarks_list()
     _bookmarks_menu->add_item("Goto Next Bookmark", GOTO_NEXT_BOOKMARK);
     _bookmarks_menu->add_item("Goto Previous Bookmark", GOTO_PREV_BOOKMARK);
 
-    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
-    {
+    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
         const Vector<OrchestratorEditorGraphNode*> nodes = active_panel->predicate_find<OrchestratorEditorGraphNode>(
             [](OrchestratorEditorGraphNode* node) { return node->is_bookmarked(); });
 
-        if (!nodes.is_empty())
-        {
+        if (!nodes.is_empty()) {
             _bookmarks_menu->add_separator();
-            for (OrchestratorEditorGraphNode* node : nodes)
-            {
+            for (OrchestratorEditorGraphNode* node : nodes) {
                 _bookmarks_menu->add_item(vformat("%d - %s", node->get_id(), node->get_title()));
                 _bookmarks_menu->set_item_metadata(-1, node->get_id());
             }
@@ -448,8 +406,7 @@ void OrchestratorScriptGraphEditorView::_update_bookmarks_list()
     }
 }
 
-void OrchestratorScriptGraphEditorView::_update_breakpoints_list()
-{
+void OrchestratorScriptGraphEditorView::_update_breakpoints_list() {
     _breakpoints_menu->clear();
     _breakpoints_menu->set_min_size(Vector2());
     _breakpoints_menu->reset_size();
@@ -459,16 +416,13 @@ void OrchestratorScriptGraphEditorView::_update_breakpoints_list()
     _breakpoints_menu->add_item("Goto Next Breakpoint", GOTO_NEXT_BREAKPOINT);
     _breakpoints_menu->add_item("Goto Previous Breakpoint", GOTO_PREV_BREAKPOINT);
 
-    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab())
-    {
+    if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
         const Vector<OrchestratorEditorGraphNode*> nodes = active_panel->predicate_find<OrchestratorEditorGraphNode>(
             [](OrchestratorEditorGraphNode* node) { return node->is_breakpoint(); });
 
-        if (!nodes.is_empty())
-        {
+        if (!nodes.is_empty()) {
             _breakpoints_menu->add_separator();
-            for (OrchestratorEditorGraphNode* node : nodes)
-            {
+            for (OrchestratorEditorGraphNode* node : nodes) {
                 _breakpoints_menu->add_item(vformat("%d - %s", node->get_id(), node->get_title()));
                 _breakpoints_menu->set_item_metadata(-1, node->get_id());
             }
@@ -476,10 +430,8 @@ void OrchestratorScriptGraphEditorView::_update_breakpoints_list()
     }
 }
 
-void OrchestratorScriptGraphEditorView::_update_debug_menu()
-{
-    if (_debug_menu)
-    {
+void OrchestratorScriptGraphEditorView::_update_debug_menu() {
+    if (_debug_menu) {
         const bool debugger_active = OrchestratorEditorDebuggerPlugin::get_singleton()->is_active();
 
         PopupMenu* popup = _debug_menu->get_popup();
@@ -490,72 +442,57 @@ void OrchestratorScriptGraphEditorView::_update_debug_menu()
     }
 }
 
-void OrchestratorScriptGraphEditorView::_menu_option(int p_index)
-{
-    switch (p_index)
-    {
-        case SEARCH_LOCATE_NODE:
-        {
+void OrchestratorScriptGraphEditorView::_menu_option(int p_index) {
+    switch (p_index) {
+        case SEARCH_LOCATE_NODE: {
             memnew(OrchestratorGotoNodeDialog)->popup_find_node(this);
             break;
         }
-        case TOGGLE_BOOKMARK:
-        {
+        case TOGGLE_BOOKMARK: {
             _toggle_bookmark_for_selected_nodes();
             break;
         }
-        case REMOVE_BOOKMARKS:
-        {
+        case REMOVE_BOOKMARKS: {
             _remove_all_bookmarks();
             break;
         }
-        case GOTO_NEXT_BOOKMARK:
-        {
+        case GOTO_NEXT_BOOKMARK: {
             _get_active_graph_tab()->goto_next_bookmark();
             break;
         }
-        case GOTO_PREV_BOOKMARK:
-        {
+        case GOTO_PREV_BOOKMARK: {
             _get_active_graph_tab()->goto_previous_bookmark();
             break;
         }
-        case TOGGLE_BREAKPOINT:
-        {
+        case TOGGLE_BREAKPOINT: {
             _toggle_breakpoint_for_selected_nodes();
             break;
         }
-        case REMOVE_BREAKPOINTS:
-        {
+        case REMOVE_BREAKPOINTS: {
             _remove_all_breakpoints();
             break;
         }
-        case GOTO_NEXT_BREAKPOINT:
-        {
+        case GOTO_NEXT_BREAKPOINT: {
             _get_active_graph_tab()->goto_next_breakpoint();
             break;
         }
-        case GOTO_PREV_BREAKPOINT:
-        {
+        case GOTO_PREV_BREAKPOINT: {
             _get_active_graph_tab()->goto_previous_breakpoint();
             break;
         }
-        case DEBUG_BREAK:
-        {
+        case DEBUG_BREAK: {
             OrchestratorEditorDebuggerPlugin::get_singleton()->debug_break();
             break;
         }
-        case DEBUG_STEP_INTO:
-        {
+        case DEBUG_STEP_INTO: {
             OrchestratorEditorDebuggerPlugin::get_singleton()->debug_step_into();
             break;
         }
-        case DEBUG_STEP_OVER:
-        {
+        case DEBUG_STEP_OVER: {
             OrchestratorEditorDebuggerPlugin::get_singleton()->debug_step_over();
             break;
         }
-        case DEBUG_CONTINUE:
-        {
+        case DEBUG_CONTINUE: {
             OrchestratorEditorDebuggerPlugin::get_singleton()->debug_continue();
             break;
         }
@@ -564,15 +501,13 @@ void OrchestratorScriptGraphEditorView::_menu_option(int p_index)
     }
 }
 
-void OrchestratorScriptGraphEditorView::_prepare_edit_menu()
-{
+void OrchestratorScriptGraphEditorView::_prepare_edit_menu() {
     PopupMenu* popup = _edit_menu->get_popup();
     popup->set_item_disabled(popup->get_item_index(EDIT_UNDO), true);
     popup->set_item_disabled(popup->get_item_index(EDIT_REDO), true);
 }
 
-void OrchestratorScriptGraphEditorView::_enable_editor()
-{
+void OrchestratorScriptGraphEditorView::_enable_editor() {
     _edit_hb->add_child(_edit_menu);
     _edit_menu->connect("about_to_popup", callable_mp_this(_prepare_edit_menu));
     _edit_menu->get_popup()->connect("id_pressed", callable_mp_this(_menu_option));
@@ -629,14 +564,15 @@ void OrchestratorScriptGraphEditorView::_enable_editor()
     _debug_menu->connect("about_to_popup", callable_mp_this(_update_debug_menu));
 }
 
-void OrchestratorScriptGraphEditorView::_validate_script()
-{
-    if (!_script.is_valid())
+void OrchestratorScriptGraphEditorView::_validate_script() {
+    if (!_script.is_valid()) {
         return;
+    }
 
     OScriptLanguage* language = cast_to<OScriptLanguage>(_script->get_language());
-    if (!language)
+    if (!language) {
         return;
+    }
 
     List<String> functions;
     _warnings.clear();
@@ -651,36 +587,32 @@ void OrchestratorScriptGraphEditorView::_validate_script()
     emit_signal("edited_script_changed");
 }
 
-void OrchestratorScriptGraphEditorView::_show_warnings_panel(bool p_show)
-{
+void OrchestratorScriptGraphEditorView::_show_warnings_panel(bool p_show) {
     _warnings_panel->set_visible(p_show);
 }
 
-void OrchestratorScriptGraphEditorView::_warning_clicked(const Variant& p_node)
-{
-    if (p_node.get_type() == Variant::INT)
+void OrchestratorScriptGraphEditorView::_warning_clicked(const Variant& p_node) {
+    if (p_node.get_type() == Variant::INT) {
         goto_node(p_node);
+    }
 }
 
-void OrchestratorScriptGraphEditorView::_show_errors_panel(bool p_show)
-{
+void OrchestratorScriptGraphEditorView::_show_errors_panel(bool p_show) {
     _errors_panel->set_visible(p_show);
 }
 
-void OrchestratorScriptGraphEditorView::_error_clicked(const Variant p_node)
-{
-    if (p_node.get_type() == Variant::INT)
+void OrchestratorScriptGraphEditorView::_error_clicked(const Variant p_node) {
+    if (p_node.get_type() == Variant::INT) {
         goto_node(p_node);
+    }
 }
 
-void OrchestratorScriptGraphEditorView::_update_warnings()
-{
+void OrchestratorScriptGraphEditorView::_update_warnings() {
     _warnings_panel->clear();
     _warnings_panel->push_table(2);
 
     const Color warning_color = SceneUtils::get_editor_color("warning_color");
-    for (const OScriptLanguage::Warning& warning : _warnings)
-    {
+    for (const OScriptLanguage::Warning& warning : _warnings) {
         _warnings_panel->push_cell();
         _warnings_panel->push_meta(warning.node);
         _warnings_panel->push_color(warning_color);
@@ -695,20 +627,19 @@ void OrchestratorScriptGraphEditorView::_update_warnings()
     }
     _warnings_panel->pop();
 
-    if (_warnings_panel->is_visible() && _warnings.size() == 0)
+    if (_warnings_panel->is_visible() && _warnings.size() == 0) {
         _warnings_panel->hide();
+    }
 
     _update_editor_script_buttons();
 }
 
-void OrchestratorScriptGraphEditorView::_update_errors()
-{
+void OrchestratorScriptGraphEditorView::_update_errors() {
     _errors_panel->clear();
     _errors_panel->push_table(2);
 
     const Color error_color = _errors_panel->get_theme_color("error_color", "Editor");
-    for (const OScriptLanguage::ScriptError& script_error : _errors)
-    {
+    for (const OScriptLanguage::ScriptError& script_error : _errors) {
         Dictionary ignore_meta;
         ignore_meta["node"] = script_error.node;
 
@@ -726,32 +657,29 @@ void OrchestratorScriptGraphEditorView::_update_errors()
     }
     _errors_panel->pop();
 
-    if (_errors_panel->is_visible() && _errors.size() == 0)
+    if (_errors_panel->is_visible() && _errors.size() == 0) {
         _errors_panel->hide();
+    }
 
     _update_editor_script_buttons();
 }
 
-Ref<Resource> OrchestratorScriptGraphEditorView::get_edited_resource() const
-{
+Ref<Resource> OrchestratorScriptGraphEditorView::get_edited_resource() const {
     return _script;
 }
 
-void OrchestratorScriptGraphEditorView::set_edited_resource(const Ref<Resource>& p_resource)
-{
+void OrchestratorScriptGraphEditorView::set_edited_resource(const Ref<Resource>& p_resource) {
     ERR_FAIL_COND(_script.is_valid());
     ERR_FAIL_COND(p_resource.is_null());
 
     _script = p_resource;
-    if (!_script.is_valid())
-    {
+    if (!_script.is_valid()) {
         _script.unref();
         ORCHESTRATOR_ACCEPT("Script or orchestration is invalid and cannot be edited");
     }
 
     const Ref<OScriptGraph>& graph = _script->get_orchestration()->get_graph("EventGraph");
-    if (!graph.is_valid())
-    {
+    if (!graph.is_valid()) {
         _script.unref();
         ORCHESTRATOR_ACCEPT("Orchestration has no event graph and cannot be opened.");
     }
@@ -768,18 +696,15 @@ void OrchestratorScriptGraphEditorView::set_edited_resource(const Ref<Resource>&
     emit_signal("name_changed");
 }
 
-Control* OrchestratorScriptGraphEditorView::get_editor() const
-{
+Control* OrchestratorScriptGraphEditorView::get_editor() const {
     // HACKY but it works
     return const_cast<OrchestratorScriptGraphEditorView*>(this)->_get_active_graph_tab();
 }
 
-Variant OrchestratorScriptGraphEditorView::get_edit_state()
-{
+Variant OrchestratorScriptGraphEditorView::get_edit_state() {
     // Update any graph tabs that remain open
     // Any tabs that are not open will be left as they were in the cached state
-    for (int i = 0; i < _tab_container->get_tab_count(); i++)
-    {
+    for (int i = 0; i < _tab_container->get_tab_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
         _store_graph_tab_state(tab_panel->get_name(), _get_graph_tab_state(tab_panel, true));
     }
@@ -789,8 +714,7 @@ Variant OrchestratorScriptGraphEditorView::get_edit_state()
     return _editor_state;
 }
 
-void OrchestratorScriptGraphEditorView::set_edit_state(const Variant& p_state)
-{
+void OrchestratorScriptGraphEditorView::set_edit_state(const Variant& p_state) {
     _editor_state = p_state;
 
     // During restoration of tab details, we need to do this in a way where we allow the scroll/zoom
@@ -801,23 +725,19 @@ void OrchestratorScriptGraphEditorView::set_edit_state(const Variant& p_state)
     String active_tab_name;
     const Dictionary graph_states = _editor_state.get("graphs", Dictionary());
     const Array graph_keys = graph_states.keys();
-    for (int i = 0; i < graph_keys.size(); i++)
-    {
+    for (int i = 0; i < graph_keys.size(); i++) {
         const String graph_name = graph_keys[i];
 
         const Ref<OScriptGraph> graph = _script->get_orchestration()->find_graph(graph_name);
-        if (!graph.is_valid())
-        {
+        if (!graph.is_valid()) {
             // Graph must have been removed or failed to save properly, remove it
             Dictionary(_editor_state["graphs"]).erase(graph_name);
             continue;
         }
 
         const Dictionary graph_state = graph_states[graph_name];
-        if (graph_state.get("open", false))
-        {
-            if (graph_state.get("active", false))
-            {
+        if (graph_state.get("open", false)) {
+            if (graph_state.get("active", false)) {
                 active_tab_name = graph_name;
                 continue;
             }
@@ -826,8 +746,9 @@ void OrchestratorScriptGraphEditorView::set_edit_state(const Variant& p_state)
         }
     }
 
-    if (!active_tab_name.is_empty())
+    if (!active_tab_name.is_empty()) {
         _restore_tab_list.push_back(active_tab_name);
+    }
 
     // Panels
     _components->set_edit_state(p_state);
@@ -835,118 +756,109 @@ void OrchestratorScriptGraphEditorView::set_edit_state(const Variant& p_state)
     _restore_next_tab();
 }
 
-void OrchestratorScriptGraphEditorView::store_previous_state()
-{
+void OrchestratorScriptGraphEditorView::store_previous_state() {
 }
 
-void OrchestratorScriptGraphEditorView::apply_code()
-{
-    if (_script.is_null())
+void OrchestratorScriptGraphEditorView::apply_code() {
+    if (_script.is_null()) {
         return;
-
+    }
     _script->_update_exports();
 }
 
-void OrchestratorScriptGraphEditorView::enable_editor(Control* p_shortcut_context)
-{
-    if (_editor_enabled)
+void OrchestratorScriptGraphEditorView::enable_editor(Control* p_shortcut_context) {
+    if (_editor_enabled) {
         return;
+    }
 
     _editor_enabled = true;
 
     _enable_editor();
     _validate_script();
 
-    if (p_shortcut_context)
-    {
-        for (int i = 0; i < _edit_hb->get_child_count(); i++)
-        {
-            if (Control* child = cast_to<Control>(_edit_hb->get_child(i)))
+    if (p_shortcut_context) {
+        for (int i = 0; i < _edit_hb->get_child_count(); i++) {
+            if (Control* child = cast_to<Control>(_edit_hb->get_child(i))) {
                 child->set_shortcut_context(p_shortcut_context);
+            }
         }
     }
 }
 
-void OrchestratorScriptGraphEditorView::reload_text()
-{
+void OrchestratorScriptGraphEditorView::reload_text() {
     ERR_FAIL_COND(_script.is_null());
 
-    for (int i = 0; i < _tab_container->get_tab_count(); i++)
-    {
-        if (OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i))
+    for (int i = 0; i < _tab_container->get_tab_count(); i++) {
+        if (OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i)) {
             tab_panel->reloaded_from_file();
+        }
     }
 
-    if (_editor_enabled)
+    if (_editor_enabled) {
         _validate_script();
+    }
 }
 
-String OrchestratorScriptGraphEditorView::get_name()
-{
-    if (!_script.is_valid())
+String OrchestratorScriptGraphEditorView::get_name() {
+    if (!_script.is_valid()) {
         return {};
+    }
 
     String name = _script->get_path().get_file();
-    if (name.is_empty())
-    {
+    if (name.is_empty()) {
         name = "[unsaved]";
-    }
-    else if (ResourceUtils::is_builtin(_script))
-    {
+    } else if (ResourceUtils::is_builtin(_script)) {
         const String& script_name = _script->get_name();
-        if (!script_name.is_empty())
+        if (!script_name.is_empty()) {
             name = vformat("%s (%s)", script_name, name.get_slice("::", 0));
+        }
     }
 
-    if (is_unsaved())
+    if (is_unsaved()) {
         name += "(*)";
+    }
 
     return name;
 }
 
-Ref<Texture2D> OrchestratorScriptGraphEditorView::get_theme_icon()
-{
-    if (get_parent_control() && _script.is_valid())
-    {
+Ref<Texture2D> OrchestratorScriptGraphEditorView::get_theme_icon() {
+    if (get_parent_control() && _script.is_valid()) {
         String icon_name = _script->get_class();
-        if (ResourceUtils::is_builtin(_script))
+        if (ResourceUtils::is_builtin(_script)) {
             icon_name += "Internal";
-
-        if (get_parent_control()->has_theme_icon(icon_name, "EditorIcons"))
+        }
+        if (get_parent_control()->has_theme_icon(icon_name, "EditorIcons")) {
             return get_parent_control()->get_theme_icon(icon_name, "EditorIcons");
-
-        if (get_parent_control()->has_theme_icon(_script->get_class(), "EditorIcons"))
+        }
+        if (get_parent_control()->has_theme_icon(_script->get_class(), "EditorIcons")) {
             return get_parent_control()->get_theme_icon(_script->get_class(), "EditorIcons");
+        }
     }
 
     return SceneUtils::get_editor_icon("GDScript");
 }
 
-Ref<Texture2D> OrchestratorScriptGraphEditorView::get_indicator_icon()
-{
-    if (get_parent_control())
-    {
-        if (!_errors.is_empty())
+Ref<Texture2D> OrchestratorScriptGraphEditorView::get_indicator_icon() {
+    if (get_parent_control()) {
+        if (!_errors.is_empty()) {
             return SceneUtils::get_editor_icon("StatusError");
-
-        if (!_warnings.is_empty())
+        }
+        if (!_warnings.is_empty()) {
             return SceneUtils::get_editor_icon("NodeWarning");
+        }
     }
 
     return {};
 }
 
-bool OrchestratorScriptGraphEditorView::is_unsaved()
-{
+bool OrchestratorScriptGraphEditorView::is_unsaved() {
     ERR_FAIL_COND_V(!_script.is_valid(), false);
     ERR_FAIL_COND_V(!_script->get_orchestration().is_valid(), false);
     return _script->get_orchestration()->is_edited();
 }
 
-void OrchestratorScriptGraphEditorView::add_callback(const String& p_function, const PackedStringArray& p_args)
-{
-    if (_script->get_orchestration()->has_function(p_function))
-    {
+void OrchestratorScriptGraphEditorView::add_callback(const String& p_function, const PackedStringArray& p_args) {
+    if (_script->get_orchestration()->has_function(p_function)) {
         // This could be the user relinking an existing function to a signal.
         // In this case, we simply toggle a component view update only.
         _components->update();
@@ -959,39 +871,32 @@ void OrchestratorScriptGraphEditorView::add_callback(const String& p_function, c
     method.name = p_function;
     method.return_val.type = Variant::NIL;
 
-    for (const String& argument : p_args)
-    {
+    for (const String& argument : p_args) {
         PackedStringArray bits = argument.split(":");
-        for (String& bit : bits)
+        for (String& bit : bits) {
             bit = bit.strip_edges();
+        }
 
-        if (ClassDB::get_class_list().has(bits[1]))
-        {
+        if (ClassDB::get_class_list().has(bits[1])) {
             // Type represents a registered class.
             PropertyInfo property;
             property.name = bits[0];
             property.class_name = bits[1];
             property.type = Variant::OBJECT;
             method.arguments.push_back(property);
-        }
-        else if (ExtensionDB::is_builtin_type(bits[1]))
-        {
+        } else if (ExtensionDB::is_builtin_type(bits[1])) {
             // Built-in Type
             PropertyInfo property;
             property.name = bits[0];
             property.type = ExtensionDB::get_builtin_type(bits[1]).type;
             method.arguments.push_back(property);
-        }
-        else
-        {
-            OrchestratorEditorDialogs::error("Failed to create argument from \"" + argument + "\"");
-            return;
+        } else {
+            ORCHESTRATOR_ERROR("Failed to create argument from \"" + argument + "\"");
         }
     }
 
     OrchestratorEditorGraphPanel* editor = _get_active_graph_tab();
-    if (editor)
-    {
+    if (editor) {
         NodeSpawnOptions options;
         options.context.method = method;
         options.position = editor->get_scroll_offset() + (editor->get_size() / 2.0);
@@ -1001,143 +906,125 @@ void OrchestratorScriptGraphEditorView::add_callback(const String& p_function, c
     }
 }
 
-PackedInt32Array OrchestratorScriptGraphEditorView::get_breakpoints()
-{
+PackedInt32Array OrchestratorScriptGraphEditorView::get_breakpoints() {
     PackedInt32Array breakpoints;
-    for (int i = 0; i < _tab_container->get_tab_count(); i++)
-    {
+    for (int i = 0; i < _tab_container->get_tab_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
-        if (!tab_panel)
+        if (!tab_panel) {
             continue;
+        }
 
-        for (int32_t breakpoint : tab_panel->get_breakpoints())
-        {
-            if (!breakpoints.has(breakpoint))
+        for (int32_t breakpoint : tab_panel->get_breakpoints()) {
+            if (!breakpoints.has(breakpoint)) {
                 breakpoints.push_back(breakpoint);
+            }
         }
     }
     return breakpoints;
 }
 
-void OrchestratorScriptGraphEditorView::set_breakpoint(int p_node, bool p_enabled)
-{
+void OrchestratorScriptGraphEditorView::set_breakpoint(int p_node, bool p_enabled) {
     const Ref<OrchestrationGraphNode> node = _script->get_orchestration()->get_node(p_node);
-    if (node.is_valid())
-    {
+    if (node.is_valid()) {
         const String graph_name = node->get_owning_graph()->get_graph_name();
-        if (OrchestratorEditorGraphPanel* tab_panel = _open_graph_tab(graph_name))
+        if (OrchestratorEditorGraphPanel* tab_panel = _open_graph_tab(graph_name)) {
             tab_panel->set_breakpoint(tab_panel->find_node(p_node), p_enabled);
+        }
     }
 }
 
-void OrchestratorScriptGraphEditorView::clear_breakpoints()
-{
-    for (int i = 0; i < _tab_container->get_tab_count(); i++)
-    {
+void OrchestratorScriptGraphEditorView::clear_breakpoints() {
+    for (int i = 0; i < _tab_container->get_tab_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
-        if (tab_panel)
+        if (tab_panel) {
             tab_panel->clear_breakpoints();
+        }
     }
 }
 
-void OrchestratorScriptGraphEditorView::set_debugger_active(bool p_active)
-{
+void OrchestratorScriptGraphEditorView::set_debugger_active(bool p_active) {
 }
 
-Control* OrchestratorScriptGraphEditorView::get_edit_menu()
-{
+Control* OrchestratorScriptGraphEditorView::get_edit_menu() {
     return _edit_hb;
 }
 
-void OrchestratorScriptGraphEditorView::clear_edit_menu()
-{
-    if (_editor_enabled)
+void OrchestratorScriptGraphEditorView::clear_edit_menu() {
+    if (_editor_enabled) {
         memdelete(_edit_hb);
+    }
 }
 
-void OrchestratorScriptGraphEditorView::tag_saved_version()
-{
+void OrchestratorScriptGraphEditorView::tag_saved_version() {
     // code_editor->get_text_editor()->tag_saved_version()
     edited_file_data.last_modified_time = FileAccess::get_modified_time(edited_file_data.path);
 }
 
-void OrchestratorScriptGraphEditorView::validate()
-{
+void OrchestratorScriptGraphEditorView::validate() {
     _validate_script();
 }
 
-void OrchestratorScriptGraphEditorView::update_settings()
-{
+void OrchestratorScriptGraphEditorView::update_settings() {
     // This is called when the editor settings are changed by default.
     // We currently don't actively use this hook yet.
 }
 
-void OrchestratorScriptGraphEditorView::ensure_focus()
-{
-    if (OrchestratorEditorGraphPanel* tab_panel = _get_active_graph_tab())
+void OrchestratorScriptGraphEditorView::ensure_focus() {
+    if (OrchestratorEditorGraphPanel* tab_panel = _get_active_graph_tab()) {
         tab_panel->grab_focus();
+    }
 }
 
-void OrchestratorScriptGraphEditorView::goto_node(int p_node)
-{
-    for (const Ref<OScriptGraph>& graph : _script->get_orchestration()->get_graphs())
-    {
-        if (graph->has_node(p_node))
-        {
-            if (_open_graph_tab(graph->get_graph_name()))
+void OrchestratorScriptGraphEditorView::goto_node(int p_node) {
+    for (const Ref<OScriptGraph>& graph : _script->get_orchestration()->get_graphs()) {
+        if (graph->has_node(p_node)) {
+            if (_open_graph_tab(graph->get_graph_name())) {
                 _get_active_graph_tab()->center_node_id(p_node);
+            }
             return;
         }
     }
 
-    if (p_node >= 0)
-        OrchestratorEditorDialogs::error(vformat("Node %d not found in script", p_node));
+    if (p_node >= 0) {
+        ORCHESTRATOR_ERROR(vformat("Node %d not found in script", p_node));
+    }
 }
 
-bool OrchestratorScriptGraphEditorView::can_lose_focus_on_node_selection() const
-{
+bool OrchestratorScriptGraphEditorView::can_lose_focus_on_node_selection() const {
     return true;
 }
 
-static OrchestratorEditorView* create_editor(const Ref<Resource>& p_resource)
-{
-    if (Object::cast_to<OScript>(*p_resource))
+static OrchestratorEditorView* create_editor(const Ref<Resource>& p_resource) {
+    if (Object::cast_to<OScript>(*p_resource)) {
         return memnew(OrchestratorScriptGraphEditorView);
-
+    }
     return nullptr;
 }
 
-void OrchestratorScriptGraphEditorView::register_editor()
-{
+void OrchestratorScriptGraphEditorView::register_editor() {
     OrchestratorEditor::register_create_view_function(create_editor);
 }
 
-void OrchestratorScriptGraphEditorView::_notification(int p_what)
-{
+void OrchestratorScriptGraphEditorView::_notification(int p_what) {
     GDE_NOTIFICATION(OrchestratorEditorView, p_what);
 
     // We maintain a private group of objects under the "_orchestrator_script_graph_views" group, which
     // is used by the plugin to identify all script graph views. This group is used to coordinate when
     // the component panel visibility and width changes across the views.
-    switch (p_what)
-    {
-        case NOTIFICATION_ENTER_TREE:
-        {
+    switch (p_what) {
+        case NOTIFICATION_ENTER_TREE: {
             add_to_group("_orchestrator_script_graph_views");
             break;
         }
-        case NOTIFICATION_EXIT_TREE:
-        {
+        case NOTIFICATION_EXIT_TREE: {
             remove_from_group("_orchestrator_script_graph_views");
             break;
         }
-        case NOTIFICATION_THEME_CHANGED:
-        {
-            if (!_editor_enabled)
+        case NOTIFICATION_THEME_CHANGED: {
+            if (!_editor_enabled) {
                 return;
-
-            if (is_visible_in_tree())
-            {
+            }
+            if (is_visible_in_tree()) {
                 _update_warnings();
                 _update_errors();
             }
@@ -1146,12 +1033,10 @@ void OrchestratorScriptGraphEditorView::_notification(int p_what)
     }
 }
 
-void OrchestratorScriptGraphEditorView::_bind_methods()
-{
+void OrchestratorScriptGraphEditorView::_bind_methods() {
 }
 
-OrchestratorScriptGraphEditorView::OrchestratorScriptGraphEditorView()
-{
+OrchestratorScriptGraphEditorView::OrchestratorScriptGraphEditorView() {
     VBoxContainer* container = memnew(VBoxContainer);
     container->set_v_size_flags(SIZE_EXPAND_FILL);
     add_child(container);
@@ -1236,10 +1121,8 @@ OrchestratorScriptGraphEditorView::OrchestratorScriptGraphEditorView()
     _breakpoints_menu = memnew(PopupMenu);
 }
 
-OrchestratorScriptGraphEditorView::~OrchestratorScriptGraphEditorView()
-{
-    if (!_editor_enabled)
-    {
+OrchestratorScriptGraphEditorView::~OrchestratorScriptGraphEditorView() {
+    if (!_editor_enabled) {
         memdelete(_edit_hb);
         memdelete(_edit_menu);
         memdelete(_search_menu);

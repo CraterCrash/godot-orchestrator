@@ -18,7 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/macros.h"
-#include "editor/file_dialog.h"
+#include "editor/gui/file_dialog.h"
 
 void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
     _dialog = memnew(OrchestratorFileDialog);

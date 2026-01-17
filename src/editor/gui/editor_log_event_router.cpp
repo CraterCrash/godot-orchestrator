@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/editor_log_event_router.h"
+#include "editor/gui/editor_log_event_router.h"
 
 #include "common/macros.h"
 #include "editor/editor.h"
@@ -86,6 +86,9 @@ void OrchestratorEditorLogEventRouter::_notification(int p_what) {
             if (label && label->is_connected("meta_clicked", callable_mp_this(_meta_clicked))) {
                 label->disconnect("meta_clicked", callable_mp_this(_meta_clicked));
             }
+            break;
+        }
+        default: {
             break;
         }
     }

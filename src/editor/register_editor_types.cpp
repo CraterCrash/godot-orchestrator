@@ -16,18 +16,13 @@
 //
 #include "editor/register_editor_types.h"
 
-#include "editor/about_dialog.h"
 #include "editor/actions/definition.h"
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
 #include "editor/autowire_connection_dialog.h"
-#include "editor/connections_dock.h"
-#include "editor/context_menu.h"
 #include "editor/editor.h"
-#include "editor/editor_log_event_router.h"
 #include "editor/export/orchestration_export_plugin.h"
-#include "editor/file_dialog.h"
 #include "editor/getting_started.h"
 #include "editor/goto_node_dialog.h"
 #include "editor/graph/graph_node.h"
@@ -36,27 +31,31 @@
 #include "editor/graph/nodes/comment_graph_node.h"
 #include "editor/graph/nodes/knot_node.h"
 #include "editor/graph/pins/pins.h"
+#include "editor/gui/about_dialog.h"
+#include "editor/gui/context_menu.h"
+#include "editor/gui/editor_log_event_router.h"
+#include "editor/gui/file_dialog.h"
+#include "editor/gui/search_dialog.h"
+#include "editor/gui/select_class_dialog.h"
+#include "editor/gui/select_type_dialog.h"
+#include "editor/gui/window_wrapper.h"
 #include "editor/inspector/function_inspector_plugin.h"
-#include "editor/inspector/signal_inspector_plugin.h"
-#include "editor/inspector/type_cast_inspector_plugin.h"
-#include "editor/inspector/variable_inspector_plugin.h"
 #include "editor/inspector/properties/editor_property_class_name.h"
 #include "editor/inspector/properties/editor_property_pin_properties.h"
 #include "editor/inspector/properties/editor_property_variable_classification.h"
+#include "editor/inspector/signal_inspector_plugin.h"
+#include "editor/inspector/type_cast_inspector_plugin.h"
+#include "editor/inspector/variable_inspector_plugin.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/property_selector.h"
+#include "editor/scene/connections_dock.h"
+#include "editor/scene/script_connections.h"
 #include "editor/scene_node_selector.h"
 #include "editor/script_components_container.h"
-#include "editor/script_connections.h"
 #include "editor/script_editor_view.h"
-#include "editor/search/search_dialog.h"
-#include "editor/select_class_dialog.h"
-#include "editor/select_type_dialog.h"
-#include "editor/updater.h"
-#include "editor/window_wrapper.h"
+#include "editor/updater/updater.h"
 
-void register_editor_types()
-{
+void register_editor_types() {
     // Plugin bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorPlugin)
     #if GODOT_VERSION >= 0x040300
@@ -149,8 +148,7 @@ void register_editor_types()
     EditorPlugins::add_by_type<OrchestratorPlugin>();
 }
 
-void unregister_editor_types()
-{
+void unregister_editor_types() {
     // Remove plugin from the editor
     EditorPlugins::remove_by_type<OrchestratorPlugin>();
 }
