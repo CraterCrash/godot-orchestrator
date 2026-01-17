@@ -24,9 +24,12 @@ using namespace godot;
 
 /// An export plugin that is responsible for converting text-based orchestrations to binary
 /// so that exported games use the fasting load times possible.
-class OrchestratorEditorExportPlugin : public EditorExportPlugin
-{
+class OrchestratorEditorExportPlugin : public EditorExportPlugin {
     GDCLASS(OrchestratorEditorExportPlugin, EditorExportPlugin);
+
+    bool _convert_to_binary = false;
+
+protected:
     static void _bind_methods();
 
 public:
@@ -38,4 +41,4 @@ public:
     //~ End EditorExportPlugin Interface
 };
 
-#endif // ORCHESTRATOR_ORCHESTRATION_EDITOR_EXPORT_PLUGIN_H
+#endif // ORCHESTRATOR_EDITOR_EXPORT_PLUGIN_H
