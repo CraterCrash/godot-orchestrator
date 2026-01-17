@@ -17,7 +17,6 @@
 #ifndef ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
 #define ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
 
-#include "common/godot_utils.h"
 #include "common/godot_version.h"
 #include "core/godot/object/weak_ref.h"
 #include "editor/graph/graph_node.h"
