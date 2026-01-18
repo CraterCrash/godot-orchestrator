@@ -34,6 +34,7 @@
 #endif
 
 #include "core/godot/error_macros.h"
+#include "core/godot/gdextension_compat.h"
 #include "editor/debugger/script_debugger_plugin.h"
 #include "orchestration/serialization/binary/binary_parser.h"
 
@@ -171,7 +172,7 @@ void OScript::_static_default_init() {
             Variant default_value;
             GDExtensionCallError error;
             GDExtensionVariantType vtype = static_cast<GDExtensionVariantType>(type.builtin_type);
-            internal::gdextension_interface_variant_construct(vtype, &default_value, nullptr, 0, &error);
+            GDE_INTERFACE(variant_construct)(vtype, &default_value, nullptr, 0, &error);
             static_variables.write[E.value.index] = default_value;
         }
     }
@@ -192,7 +193,7 @@ Variant OScript::callp(const StringName& p_method, const Variant** p_args, int p
 
     Variant result;
     Script* parent_this = this;
-    internal::gdextension_interface_variant_call(
+    GDE_INTERFACE(variant_call)(
         parent_this,
         &p_method,
         reinterpret_cast<GDExtensionConstVariantPtr*>(p_args),

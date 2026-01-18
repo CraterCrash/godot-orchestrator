@@ -18,6 +18,7 @@
 #define ORCHESTRATOR_GODOT_VERSION_H
 
 #include "common/version.h"
+#include "core/godot/gdextension_compat.h"
 
 #include <godot_cpp/godot.hpp>
 
@@ -52,9 +53,9 @@ public:
 
     explicit GodotVersionInfo() {
         #if GODOT_VERSION >= 0x040500
-        godot::internal::gdextension_interface_get_godot_version2(&_version);
+        GDE_INTERFACE(get_godot_version2)(&_version);
         #else
-        godot::internal::gdextension_interface_get_godot_version(&_version);
+        GDE_INTERFACE(get_godot_version)(&_version);
         #endif
     }
 
