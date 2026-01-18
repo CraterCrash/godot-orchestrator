@@ -24,40 +24,17 @@ using namespace godot;
 
 /// Utility class that provides access to a variety of C++ pure functions that are accessible in
 /// an Orchestration, much like how certain functions like <code>load</code> are accessible in GDScript.
-class OScriptUtilityFunctions
-{
+class OScriptUtilityFunctions {
 public:
     typedef void (*FunctionPtr)(Variant* r_ret, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error);
 
-    /**
-     * Get the function pointer
-     *
-     * @param p_function_name the function name
-     * @return the function pointer
-     */
-    static OScriptUtilityFunctions::FunctionPtr get_function(const StringName& p_function_name);
-
-    /**
-     * Check whether a language-specific utility function exists
-     *
-     * @param p_function_name the function name
-     * @return true if the function exists, false otherwise
-     */
+    static FunctionPtr get_function(const StringName& p_function_name);
     static bool function_exists(const StringName& p_function_name);
-
-    /**
-     * Get a list of all registered utility functions
-     * @return list of function names
-     */
     static List<StringName> get_function_list();
-
-    /**
-     * Get the method information about a function.
-     *
-     * @param p_function_name the function name
-     * @return the function's method information structure
-     */
     static MethodInfo get_function_info(const StringName& p_function_name);
+    static int get_function_argument_count(const StringName& p_function_name);
+    static bool is_function_constant(const StringName& p_function_name);
+    static bool is_function_internal(const StringName& p_function_name);
 
     static void register_functions();
     static void unregister_functions();

@@ -20,9 +20,10 @@
 #include "property.h"
 
 /// A script node that supports getting properties from a target
-class OScriptNodePropertyGet : public OScriptNodeProperty
-{
+class OScriptNodePropertyGet : public OScriptNodeProperty {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePropertyGet, OScriptNodeProperty);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -31,8 +32,8 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 };
 

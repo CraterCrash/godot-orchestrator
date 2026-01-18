@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="@OScript" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+    <brief_description>
+        Built-in OScript constants, functions, and annotations.
+    </brief_description>
+    <methods>
+        <method name="get_stack">
+            <return type="Array" />
+            <description>
+                Returns an array of dictionaries representing the current call stack.
+            </description>
+        </method>
+        <method name="len">
+            <return type="int" />
+            <param index="0" name="var" type="Variant" />
+            <description>
+                Returns the length of the given Variant [param var]. The length can be the character count of a [String] or [StringName], the element count of any array type, or the size of a [Dictionary]. For every other Variant type, a run-time error is generated and execution is stopped.
+            </description>
+        </method>
+        <method name="load">
+            <return type="Resource" />
+            <param index="0" name="path" type="String" />
+            <description>
+                Returns a [Resource] from the filesystem located at the absolute [param path]. Unless it's already referenced elsewhere (such as in another script or in the scene), the resource is loaded from disk on function call, which might cause a slight delay, especially when loading large scenes. To avoid unnecessary delays when loading something multiple times, either store the resource in a variable or use [method preload]. This method is equivalent of using [method ResourceLoader.load] with [constant ResourceLoader.CACHE_MODE_REUSE].
+                [b]Note:[/b] Resource paths can be obtained by right-clicking on a resource in the FileSystem dock and choosing "Copy Path", or by dragging the file from the FileSystem dock into the current script.
+                [b]Important:[/b] Relative paths are [i]not[/i] relative to the script calling this method, instead it is prefixed with [code]"res://"[/code]. Loading from relative paths might not work as expected.
+                This function is a simplified version of [method ResourceLoader.load], which can be used for more advanced scenarios.
+                [b]Note:[/b] Files have to be imported into the engine first to load them using this function. If you want to load [Image]s at run-time, you may use [method Image.load]. If you want to import audio files, you can use the snippet described in [member AudioStreamMP3.data].
+                [b]Note:[/b] If [member ProjectSettings.editor/export/convert_text_resources_to_binary] is [code]true[/code], [method @OScript.load] will not be able to read converted files in an exported project. If you rely on run-time loading of files present within the PCK, set [member ProjectSettings.editor/export/convert_text_resources_to_binary] to [code]false[/code].
+            </description>
+        </method>
+        <method name="print_debug" qualifiers="vararg">
+            <return type="void" />
+            <description>
+                Like [method @GlobalScope.print], but includes the current stack frame when running with the debugger turned on.
+                See also [method print_stack], [method get_stack], and [method Engine.capture_script_backtraces].
+                [b]Note:[/b] By default, backtraces are only available in editor builds and debug builds. To enable them for release builds as well, you need to enable [member ProjectSettings.debug/settings/gdscript/always_track_call_stacks].
+            </description>
+        </method>
+        <method name="print_stack">
+            <return type="void" />
+            <description>
+                Prints a stack trace at the current code location.
+                See also [method print_debug], [method get_stack], and [method Engine.capture_script_backtraces].
+                [b]Note:[/b] By default, backtraces are only available in editor builds and debug builds. To enable them for release builds as well, you need to enable [member ProjectSettings.debug/settings/gdscript/always_track_call_stacks].
+            </description>
+        </method>
+        <method name="type_exists">
+            <return type="bool" />
+            <param index="0" name="type" type="StringName" />
+            <description>
+                Returns [code]true[/code] if the given [Object]-derived class exists in [ClassDB]. Note that [Variant] data types are not registered in [ClassDB].
+            </description>
+        </method>
+    </methods>
+    <constants>
+        <constant name="One" value="1">
+            Constan that represents the numeric value of [code]1[/code].
+        </constant>
+        <constant name="PI" value="3.14159265358979">
+            Constant that represents how many times the diameter of a circle fits around its perimeter. This is equivalent to [code]TAU / 2[/code], or 180 degrees in rotations.
+        </constant>
+        <constant name="PI/2" value="1.570796327">
+            Constant that represents half of [member PI].
+        </constant>
+        <constant name="TAU" value="6.28318530717959">
+            The circle constant, the circumference of the unit circle in radians. This is equivalent to [code]PI * 2[/code], or 360 degrees in rotations.
+        </constant>
+        <constant name="INF" value="inf">
+            Positive floating-point infinity. This is the result of floating-point division when the divisor is [code]0.0[/code]. For negative infinity, use [code]-INF[/code]. Dividing by [code]-0.0[/code] will result in negative infinity if the numerator is positive, so dividing by [code]0.0[/code] is not the same as dividing by [code]-0.0[/code] (despite [code]0.0 == -0.0[/code] returning [code]true[/code]).
+            [b]Warning:[/b] Numeric infinity is only a concept with floating-point numbers, and has no equivalent for integers. Dividing an integer number by [code]0[/code] will not result in [constant INF] and will result in a run-time error instead.
+        </constant>
+        <constant name="NAN" value="nan">
+            "Not a Number", an invalid floating-point value. It is returned by some invalid operations, such as dividing floating-point [code]0.0[/code] by [code]0.0[/code].
+            [constant NAN] has special properties, including that [code]!=[/code] always returns [code]true[/code], while other comparison operators always return [code]false[/code]. This is true even when comparing with itself ([code]NAN == NAN[/code] returns [code]false[/code] and [code]NAN != NAN[/code] returns [code]true[/code]). Due to this, you must use [method @GlobalScope.is_nan] to check whether a number is equal to [constant NAN].
+            [b]Warning:[/b] "Not a Number" is only a concept with floating-point numbers, and has no equivalent for integers. Dividing an integer [code]0[/code] by [code]0[/code] will not result in [constant NAN] and will result in a run-time error instead.
+        </constant>
+    </constants>
+</class>

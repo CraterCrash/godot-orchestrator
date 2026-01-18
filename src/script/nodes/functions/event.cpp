@@ -14,62 +14,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "event.h"
+#include "script/nodes/functions/event.h"
 
 #include "common/method_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
 #include "script/script.h"
 
-String OScriptNodeEvent::get_tooltip_text() const
-{
-    if (_function.is_valid())
+String OScriptNodeEvent::get_tooltip_text() const {
+    if (_function.is_valid()) {
         return vformat("Executes when Godot calls the '%s' function.", _function->get_function_name());
+    }
 
     return super::get_tooltip_text();
 }
 
-String OScriptNodeEvent::get_node_title() const
-{
-    if (_function.is_valid())
+String OScriptNodeEvent::get_node_title() const {
+    if (_function.is_valid()) {
         return vformat("%s Event", _function->get_function_name().capitalize());
-
+    }
     return super::get_node_title();
 }
 
-String OScriptNodeEvent::get_help_topic() const
-{
+String OScriptNodeEvent::get_help_topic() const {
     #if GODOT_VERSION >= 0x040300
-    if (_function.is_valid())
-    {
+    if (_function.is_valid()) {
         String class_name = MethodUtils::get_method_class(_orchestration->get_base_type(), _function->get_function_name());
-        if (!class_name.is_empty())
+        if (!class_name.is_empty()) {
             return vformat("class_method:%s:%s", class_name, _function->get_function_name());
+        }
     }
     #endif
     return super::get_help_topic();
 }
 
-StringName OScriptNodeEvent::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const
-{
-    if (_function.is_valid())
-    {
+StringName OScriptNodeEvent::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const {
+    if (_function.is_valid()) {
         const int32_t pin_index = p_pin->get_pin_index() - 1;
-        if (pin_index >= 0 && pin_index < int(_function->get_argument_count()))
-        {
+        if (pin_index >= 0 && pin_index < int(_function->get_argument_count())) {
             // Return the specialized "InputEventKey" in this use case.
-            if (_function->get_method_info().name.match("_unhandled_key_input"))
+            if (_function->get_method_info().name.match("_unhandled_key_input")) {
                 return "InputEventKey";
-
+            }
             return _function->get_method_info().arguments[pin_index].class_name;
         }
     }
     return super::resolve_type_class(p_pin);
 }
 
-bool OScriptNodeEvent::is_event_method(const MethodInfo& p_method)
-{
-    static PackedStringArray method_names = []() {
+bool OScriptNodeEvent::is_event_method(const MethodInfo& p_method) {
+    static PackedStringArray method_names = [] {
         PackedStringArray array;
         array.push_back("_enter_tree");
         array.push_back("_exit_tree");

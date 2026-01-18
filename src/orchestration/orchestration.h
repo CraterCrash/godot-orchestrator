@@ -17,12 +17,10 @@
 #ifndef ORCHESTRATOR_ORCHESTRATION_H
 #define ORCHESTRATOR_ORCHESTRATION_H
 
-#include "orchestration/build_log.h"
 #include "script/connection.h"
 #include "script/function.h"
 #include "script/graph.h"
 #include "script/node.h"
-#include "script/serialization/instance.h"
 #include "script/signals.h"
 #include "script/variable.h"
 
@@ -31,8 +29,7 @@
 using namespace godot;
 
 /// Defines different types of orchestrations
-enum OrchestrationType
-{
+enum OrchestrationType {
     OT_Script  //! An orchestration that acts as a Godot script
 };
 
@@ -40,6 +37,7 @@ VARIANT_ENUM_CAST(OrchestrationType);
 
 /// Forward declarations
 class OScriptBinaryResourceLoader;
+class OScriptCache;
 class OScriptTextResourceLoader;
 
 /// The common contract for different types of Orchestration resources.
@@ -52,13 +50,15 @@ class OScriptTextResourceLoader;
 ///
 /// todo: rename OSciptXxX sub-resources to OrchestrationXXX sub-resources
 ///
-class Orchestration
-{
+class Orchestration : public Resource {
+    GDCLASS(Orchestration, Resource);
+
     friend class OScriptGraph;
     friend class OScriptBinaryResourceLoader;
     friend class OScriptTextResourceLoader;
+    friend class OScriptCache;
+    friend class OScriptLanguage;
 
-protected:
     OrchestrationType _type;                               //! The orchestration type
     bool _initialized{ false };                            //! Whether the orchestration is initialized
     bool _edited{ false };                                 //! Tracks whether the orchestration has been edited
@@ -71,6 +71,9 @@ protected:
     HashMap<StringName, Ref<OScriptGraph>> _graphs;        //! Map of all defined graphs
     Resource* _self;                                       //! Reference to the outer resource type
     uint32_t _version{ 0 };                                //! Orchestration version
+
+protected:
+    static void _bind_methods();
 
     //~ Begin Serialization Interface
     TypedArray<OScriptNode> _get_nodes_internal() const;
@@ -95,9 +98,6 @@ protected:
     /// @return true if there are existing instances, false otherwise
     virtual bool _has_instances() const { return false; }
 
-    /// Update the placeholders
-    virtual void _update_placeholders() { }
-
     //~ Begin Internal Connection API
     void _connect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port);
     void _disconnect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port);
@@ -107,8 +107,7 @@ protected:
     /// @tparam T the node type
     /// @return a list of node unique IDs
     template <typename T>
-    List<int> _get_node_type_node_ids()
-    {
+    List<int> _get_node_type_node_ids() {
         List<int> ids;
         for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
         {
@@ -122,6 +121,10 @@ public:
     /// Get the orchestration type
     /// @return the orchestration type
     OrchestrationType get_type() const { return _type; }
+
+    /// Get the path to the orchestration resource
+    /// @return the file path
+    String get_orchestration_path() const;
 
     /// Get the base type of the orchestration
     /// @return base class type of the orchestration
@@ -142,10 +145,20 @@ public:
     /// Get a pointer to the underlying owning resource of the orchestration
     /// @return the owning resource, use with caution
     virtual Ref<Resource> get_self() const { return _self; }
+    Ref<OScript> as_script();
+
+    // Helper method
+    void mark_dirty();
+
+    void set_self(Resource* p_self);
 
     /// Get a pointer to this orchestration
     /// @return the orchestration
     virtual Orchestration* get_orchestration() { return this; }
+
+    /// Get the global class name associated with the orchestration
+    /// @return the global class name or an empty string
+    String get_global_name() const;
 
     /// Get the next available node unique ID
     /// @return the next node unique ID
@@ -161,10 +174,6 @@ public:
 
     /// Performs post initialization/load steps
     virtual void post_initialize();
-
-    /// Validtes and the builds the orchestration
-    /// @param p_log the build log
-    virtual void validate_and_build(BuildLog& p_log);
 
     //~ Begin Node Interface
     void add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScriptNode>& p_node);
@@ -189,9 +198,10 @@ public:
     void remove_graph(const StringName& p_name);
     Ref<OScriptGraph> get_graph(const StringName& p_name) const;
     Ref<OScriptGraph> find_graph(const StringName& p_name) const;
-    Ref<OScriptGraph> find_graph(const Ref<OScriptNode>& p_node);
+    Ref<OScriptGraph> find_graph(const Ref<OScriptNode>& p_node) const;
     bool rename_graph(const StringName& p_old_name, const StringName& p_new_name);
     Vector<Ref<OScriptGraph>> get_graphs() const;
+    PackedStringArray get_graph_names() const;
     //~ End Graph Interface
 
     //~ Begin Function API
@@ -229,16 +239,12 @@ public:
     bool rename_custom_user_signal(const StringName& p_old_name, const StringName& p_new_name);
     Vector<Ref<OScriptSignal>> get_custom_signals() const;
     PackedStringArray get_custom_signal_names() const;
-    bool can_remove_custom_signal(const StringName& p_name) const;
     //~ End Signals Interface
 
-    /// Constructs the orchestration for the specified object
-    /// @param p_self the owner object
-    /// @param p_type the orchestration type
-    explicit Orchestration(Resource* p_self, OrchestrationType p_type);
+    void copy_state(const Ref<Orchestration>& p_other);
 
-    /// Destructor
-    virtual ~Orchestration() = default;
+    Orchestration();
+    ~Orchestration() override = default;
 };
 
 #endif  // ORCHESTRATOR_ORCHESTRATION_H

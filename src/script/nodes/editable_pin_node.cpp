@@ -16,13 +16,11 @@
 //
 #include "script/nodes/editable_pin_node.h"
 
-void OScriptEditablePinNode::_adjust_connections(int p_start_offset, int p_adjustment, EPinDirection p_direction)
-{
+void OScriptEditablePinNode::_adjust_connections(int p_start_offset, int p_adjustment, EPinDirection p_direction) {
     get_orchestration()->adjust_connections(this, p_start_offset, p_adjustment, p_direction);
 }
 
-String OScriptEditablePinNode::_get_pin_name_given_index(int p_index) const
-{
+String OScriptEditablePinNode::_get_pin_name_given_index(int p_index) const {
     const String prefix = get_pin_prefix();
     return vformat("%s_%d", prefix, p_index);
 }

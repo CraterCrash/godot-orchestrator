@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Orchestration" inherits="Resource"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        The main container for Orchestrator's visual script.
+    </brief_description>
+    <signals>
+        <signal name="base_type_changed">
+            <description>
+                Emitted when the type that the orchestration extends changes.
+            </description>
+        </signal>
+    </signals>
+</class>
