@@ -21,6 +21,7 @@ SET(GDEXTENSION_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/project/addons/orchestrato
 
 # Configurable options
 OPTION(AUTOFORMAT_SRC_ON_CONFIGURE "If enabled, clang-format will be used to format all sources in /src during configuration" OFF)
+OPTION(USE_CCACHE "Use ccache as compiler launcher if available" ON)
 
 # Set basic CMAKE properties
 SET(CMAKE_CXX_STANDARD 20)
@@ -51,6 +52,17 @@ ELSE ()
 ENDIF ()
 
 FIND_PACKAGE( Python3 REQUIRED COMPONENTS Interpreter )
+
+FIND_PROGRAM(CCACHE_PROGRAM ccache)
+IF (USE_CCACHE AND CCACHE_PROGRAM)
+    SET(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    SET(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    MESSAGE(STATUS "CCACHE found and enabled: ${CCACHE_PROGRAM}")
+ELSEIF (USE_CCACHE)
+    MESSAGE(STATUS "USE_CCACHE enabled but cache was not found")
+ELSE ()
+    MESSAGE(STATUS "CCACHE not found")
+ENDIF()
 
 # Setup the CMAKE_MODULE_PATH
 LIST(APPEND CMAKE_MODULE_PATH
