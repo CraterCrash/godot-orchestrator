@@ -35,9 +35,7 @@
       "inherits": "default",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
@@ -57,8 +55,6 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_C_COMPILER": "cl",
         "CMAKE_CXX_COMPILER": "cl"
       }
@@ -102,9 +98,7 @@
         "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
         "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
         "ANDROID_PLATFORM": "android-22",
-        "ANDROID_TOOLCHAIN": "clang",
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+        "ANDROID_TOOLCHAIN": "clang"
       }
     },
     {
@@ -151,8 +145,6 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "ORCH_GODOTCPP_TARGET": "godot-cpp.template_release",
         "ORCH_GODOTCPP_NAMESPACE": "godot-cpp::template_release",
         "CMAKE_SHARED_LINKER_FLAGS": "-s SIDE_MODULE=1"
