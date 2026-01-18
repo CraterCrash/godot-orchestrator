@@ -16,6 +16,8 @@
 //
 #include "core/godot/config/project_settings.h"
 
+#include "core/godot/io/resource_uid.h"
+
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 
@@ -39,7 +41,7 @@ HashMap<StringName, GDE::ProjectSettings::AutoloadInfo> GDE::ProjectSettings::ge
             ai.path = ai.is_singleton ? path.substr(1) : path;
             if (ai.path.begins_with("uid://")) {
                 ai.uid = ai.path;
-                ai.path = ResourceUID::get_singleton()->uid_to_path(ai.path);
+                ai.path = GDE::ResourceUID::uid_to_path(ai.path);
             }
             results[ai.name] = ai;
         }
