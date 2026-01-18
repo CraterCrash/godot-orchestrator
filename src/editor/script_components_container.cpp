@@ -894,7 +894,11 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
 
     // Always guarantee that "EventGraph" is at the top
     if (graph_names.has("EventGraph")) {
+        #if GODOT_VERSION >= 0x040500
         graph_names.erase("EventGraph");
+        #else
+        graph_names.remove_at(graph_names.find("EventGraph"));
+        #endif
         graph_names.insert(0, "EventGraph");
     }
 

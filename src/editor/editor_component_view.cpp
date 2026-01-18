@@ -30,8 +30,9 @@
 #include <godot_cpp/classes/theme.hpp>
 
 Popup* OrchestratorEditorComponentView::_get_tree_editor_popup() {
-    for (const Variant& value : find_children("*", "Popup", true, false)) {
-        Popup* popup = cast_to<Popup>(value);
+    const TypedArray<Node> children = find_children("*", "Popup", true, false);
+    for (uint32_t i = 0; i < children.size(); i++) {
+        Popup* popup = cast_to<Popup>(children[i]);
         if (Popup::get_class_static() == popup->get_class()) {
             return popup;
         }
