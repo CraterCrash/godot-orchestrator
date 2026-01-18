@@ -89,8 +89,9 @@ bool OrchestratorEditorConnectionsDock::disconnect_slot(const Ref<Script>& p_scr
     bool result = false;
 
     for (Node* node : SceneUtils::find_all_nodes_for_script_in_edited_scene(p_script)) {
-        for (const Variant& value : node->get_incoming_connections()) {
-            const Dictionary& connection = value;
+        const TypedArray<Dictionary> incoming_connections = node->get_incoming_connections();
+        for (uint32_t i = 0; i < incoming_connections.size(); i++) {
+            const Dictionary& connection = incoming_connections[i];
 
             const Callable& callable = connection["callable"];
             if (callable.get_method() != p_method) {

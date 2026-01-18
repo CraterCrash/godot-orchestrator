@@ -156,10 +156,12 @@ String OrchestratorPlugin::_get_plugin_name() const {
 }
 
 Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const {
+    #if GODOT_VERSION >= 0x040500
     Ref<FileAccess> file = FileAccess::open("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg", FileAccess::READ);
     if (file.is_valid()) {
         return DPITexture::create_from_string(file->get_as_text(), EDSCALE);
     }
+    #endif
     return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg");
 }
 
