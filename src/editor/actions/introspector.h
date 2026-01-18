@@ -54,6 +54,8 @@ class OrchestratorEditorIntrospector {
     static String _get_builtin_function_category_from_godot_category(const FunctionInfo& p_function_info);
     static Vector<Ref<Action>> _get_actions_for_class(const String& p_class_name, const String& p_category_name, const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals);
 
+    static void _apply_method_overrides(const String& p_class_name, MethodInfo& r_method);
+
 public:
 
     // registrar.filter->target_object->get_target()
