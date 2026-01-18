@@ -16,6 +16,8 @@
 //
 #include "dictionary_utils.h"
 
+#include "core/godot/gdextension_compat.h"
+
 namespace DictionaryUtils {
 
     bool is_property_equal(const PropertyInfo& p_left, const PropertyInfo& p_right) {
@@ -134,7 +136,7 @@ namespace DictionaryUtils {
             dict["flags"] = p_method.flags;
         }
 
-        if (!p_use_minimal || !p_method.default_arguments.empty()) {
+        if (!p_use_minimal || !is_vector_empty(p_method.default_arguments)) {
             Array default_args;
             for (const Variant& default_argument : p_method.default_arguments) {
                 default_args.push_back(default_argument);
@@ -142,7 +144,7 @@ namespace DictionaryUtils {
             dict["default_args"] = default_args;
         }
 
-        if (!p_use_minimal || !p_method.arguments.empty()) {
+        if (!p_use_minimal || !is_vector_empty(p_method.arguments)) {
             Array args;
             for (const PropertyInfo& argument : p_method.arguments) {
                 args.push_back(from_property(argument, p_use_minimal));

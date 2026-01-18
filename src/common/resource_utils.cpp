@@ -37,7 +37,7 @@ namespace ResourceUtils {
 
     void set_edited(const Ref<Resource>& p_resource, bool p_edited) {
         #ifdef TOOLS_ENABLED
-        #if GODOT_VERSION >= 0x040600
+        #if GODOT_VERSION >= 0x040700
         p_resource->set_edited(p_edited);
         #endif
         #endif

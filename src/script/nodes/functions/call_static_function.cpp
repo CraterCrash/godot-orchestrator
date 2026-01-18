@@ -21,6 +21,7 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "common/version.h"
+#include "core/godot/gdextension_compat.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -86,7 +87,7 @@ void OScriptNodeCallStaticFunction::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
 
-    const size_t default_start_index = _method.arguments.empty()
+    const size_t default_start_index = is_vector_empty(_method.arguments)
         ? 0
         : _method.arguments.size() - _method.default_arguments.size();
 
