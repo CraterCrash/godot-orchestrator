@@ -27,6 +27,7 @@ namespace GDE {
 
         static String ensure_path(const String& p_path);
         static String uid_to_path(const String& p_uid);
+        static String path_to_uid(const String& p_path);
     };
 }
 

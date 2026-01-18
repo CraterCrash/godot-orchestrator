@@ -18,6 +18,7 @@
 
 #include "common/version.h"
 
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 
 namespace GDE {
@@ -38,6 +39,18 @@ namespace GDE {
         #else
         const int64_t id = godot::ResourceUID::get_singleton()->text_to_id(p_uid);
         return godot::ResourceUID::get_singleton()->get_id_path(id);
+        #endif
+    }
+
+    String ResourceUID::path_to_uid(const String& p_path) {
+        #if GODOT_VERSION >= 0x040500
+        return godot::ResourceUID::path_to_uid(p_path);
+        #else
+        const int64_t id = ResourceLoader::get_singleton()->get_resource_uid(p_path);
+        if (id == godot::ResourceUID::INVALID_ID) {
+            return p_path;
+        }
+        return godot::ResourceUID::get_singleton()->id_to_text(id);
         #endif
     }
 }
