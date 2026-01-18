@@ -17,8 +17,7 @@
 #include "script/nodes/utilities/comment.h"
 
 #include "common/string_utils.h"
-
-#include <godot_cpp/classes/resource_uid.hpp>
+#include "core/godot/io/resource_uid.h"
 
 void OScriptNodeComment::_get_property_list(List<PropertyInfo>* r_list) const {
     const String movement_modes = "Group Movement,Comment";
@@ -107,7 +106,7 @@ String OScriptNodeComment::get_node_title() const {
 
 String OScriptNodeComment::get_icon() const {
     if (!_icon.is_empty() && _icon.begins_with("uid://")) {
-        return ResourceUID::uid_to_path(_icon);
+        return GDE::ResourceUID::uid_to_path(_icon);
     }
     return StringUtils::default_if_empty(_icon, "VisualShaderNodeComment");
 }

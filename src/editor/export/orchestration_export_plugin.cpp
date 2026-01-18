@@ -17,6 +17,7 @@
 #include "editor/export/orchestration_export_plugin.h"
 
 #include "common/macros.h"
+#include "core/godot/io/resource_uid.h"
 #include "orchestration/orchestration.h"
 #include "orchestration/serialization/binary/binary_serializer.h"
 #include "orchestration/serialization/text/text_parser.h"
@@ -62,7 +63,7 @@ void OrchestratorEditorExportPlugin::_export_file(const String& p_path, const St
         return;
     }
 
-    const String uid_text = ResourceUID::path_to_uid(p_path);
+    const String uid_text = GDE::ResourceUID::path_to_uid(p_path);
     const int64_t uid = ResourceUID::get_singleton()->text_to_id(uid_text);
 
     const String export_base_path = EI->get_editor_paths()->get_project_settings_dir().path_join("../exported/orchestrator");
