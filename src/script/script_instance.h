@@ -31,10 +31,10 @@ using namespace godot;
 
 #if GODOT_VERSION >= 0x040300
 typedef GDExtensionScriptInstanceInfo3 OScriptInstanceInfo;
-#define GDEXTENSION_SCRIPT_INSTANCE_CREATE internal::gdextension_interface_script_instance_create3
+#define GDEXTENSION_SCRIPT_INSTANCE_CREATE GDE_INTERFACE(script_instance_create3)
 #else
 typedef GDExtensionScriptInstanceInfo2 OScriptInstanceInfo;
-#define GDEXTENSION_SCRIPT_INSTANCE_CREATE internal::gdextension_interface_script_instance_create2
+#define GDEXTENSION_SCRIPT_INSTANCE_CREATE GDE_INTERFACE(script_instance_create2)
 #endif
 
 /// Abstract base class for all OScript-based script instance objects.

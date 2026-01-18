@@ -545,10 +545,12 @@ static void _register_function(const StringName& p_name, const MethodInfo& p_met
         MethodInfo info = m_args;                                                                               \
         info.name = name;                                                                                       \
         info.return_val = m_return;                                                                             \
-        info.default_arguments = m_default_args;                                                                \
-        if (m_is_vararg)                                                                                        \
+        for (uint32_t i = 0; i < m_default_args.size(); i++) {                                                  \
+            info.default_arguments.push_back(m_default_args[i]);                                                \
+        }                                                                                                       \
+        if (m_is_vararg) {                                                                                      \
             info.flags |= METHOD_FLAG_VARARG;                                                                   \
-                                                                                                                \
+        }                                                                                                       \
         _register_function(name, info, OScriptUtilityFunctionsDefinitions::m_func, m_is_const, m_is_internal);  \
     }
 

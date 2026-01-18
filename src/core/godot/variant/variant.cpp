@@ -21,6 +21,7 @@
 #include "common/method_utils.h"
 #include "common/resource_utils.h"
 #include "common/string_utils.h"
+#include "core/godot/gdextension_compat.h"
 #include "orchestration/serialization/text/variant_parser.h"
 
 #include <godot_cpp/classes/expression.hpp>
@@ -286,7 +287,7 @@ GDExtensionPtrOperatorEvaluator GDE::Variant::get_validated_operator_evaluator(g
             ERR_FAIL_V_MSG(nullptr, "Failed to map Variant operator: " + itos(p_operator));
     }
 
-    return internal::gdextension_interface_variant_get_ptr_operator_evaluator(
+    return GDE_INTERFACE(variant_get_ptr_operator_evaluator)(
         op,
         static_cast<GDExtensionVariantType>(p_left),
         static_cast<GDExtensionVariantType>(p_right));
@@ -294,7 +295,7 @@ GDExtensionPtrOperatorEvaluator GDE::Variant::get_validated_operator_evaluator(g
 
 GDExtensionCallError GDE::Variant::construct(Type p_type, godot::Variant& r_value, ConstVariantPtrs p_args, int p_arg_count) {
     GDExtensionCallError error;
-    internal::gdextension_interface_variant_construct(
+    GDE_INTERFACE(variant_construct)(
         static_cast<GDExtensionVariantType>(p_type),
         &r_value,
         reinterpret_cast<const GDExtensionConstVariantPtr*>(p_args),
@@ -380,27 +381,27 @@ GDE::Variant::Type GDE::Variant::get_member_type(Type p_type, const StringName& 
 }
 
 GDExtensionPtrSetter GDE::Variant::get_member_validated_setter(Type p_type, const StringName& p_name) {
-    return internal::gdextension_interface_variant_get_ptr_setter(static_cast<GDExtensionVariantType>(p_type), &p_name);
+    return GDE_INTERFACE(variant_get_ptr_setter)(static_cast<GDExtensionVariantType>(p_type), &p_name);
 }
 
 GDExtensionPtrGetter GDE::Variant::get_member_validated_getter(Type p_type, const StringName& p_name) {
-    return internal::gdextension_interface_variant_get_ptr_getter(static_cast<GDExtensionVariantType>(p_type), &p_name);
+    return GDE_INTERFACE(variant_get_ptr_getter)(static_cast<GDExtensionVariantType>(p_type), &p_name);
 }
 
 GDExtensionPtrIndexedSetter GDE::Variant::get_member_validated_indexed_setter(Type p_type) {
-    return internal::gdextension_interface_variant_get_ptr_indexed_setter(static_cast<GDExtensionVariantType>(p_type));
+    return GDE_INTERFACE(variant_get_ptr_indexed_setter)(static_cast<GDExtensionVariantType>(p_type));
 }
 
 GDExtensionPtrIndexedGetter GDE::Variant::get_member_validated_indexed_getter(Type p_type) {
-    return internal::gdextension_interface_variant_get_ptr_indexed_getter(static_cast<GDExtensionVariantType>(p_type));
+    return GDE_INTERFACE(variant_get_ptr_indexed_getter)(static_cast<GDExtensionVariantType>(p_type));
 }
 
 GDExtensionPtrKeyedSetter GDE::Variant::get_member_validated_keyed_setter(Type p_type) {
-    return internal::gdextension_interface_variant_get_ptr_keyed_setter(static_cast<GDExtensionVariantType>(p_type));
+    return GDE_INTERFACE(variant_get_ptr_keyed_setter)(static_cast<GDExtensionVariantType>(p_type));
 }
 
 GDExtensionPtrKeyedGetter GDE::Variant::get_member_validated_keyed_getter(Type p_type) {
-    return internal::gdextension_interface_variant_get_ptr_keyed_getter(static_cast<GDExtensionVariantType>(p_type));
+    return GDE_INTERFACE(variant_get_ptr_keyed_getter)(static_cast<GDExtensionVariantType>(p_type));
 }
 
 bool GDE::Variant::has_constant(Type p_type, const StringName& p_value) {
