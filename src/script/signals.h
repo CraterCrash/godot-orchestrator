@@ -18,7 +18,6 @@
 #define ORCHESTRATOR_SCRIPT_SIGNALS_H
 
 #include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
@@ -31,18 +30,18 @@ class Orchestration;
 /// able to easily allow the user to edit it within the Editor InspectorDock but to also
 /// serialize the data to and from disk.
 ///
-class OScriptSignal : public Resource
-{
+class OScriptSignal : public Resource {
     friend class Orchestration;
 
     GDCLASS(OScriptSignal, Resource);
-    static void _bind_methods() { }
 
-    Orchestration* _orchestration{ nullptr };  //! Owning Orchestration
+    Orchestration* _orchestration = nullptr;   //! Owning Orchestration
     MethodInfo _method;                        //! The signal definition
     String _description;                       //! Optional signal description
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value);

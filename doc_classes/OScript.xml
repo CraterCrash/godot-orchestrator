@@ -6,4 +6,19 @@
     <description>
         An [OScript] represents an orchestration, a graph-based, visual script language that works similarly to [GDScript]. Orchestrations are saved with the [code].torch[/code] extension. An orchestration extends the functionality of all objects that instantiate it.
     </description>
+    <methods>
+        <method name="new" qualifiers="vararg">
+            <return type="Variant" />
+            <description>
+                Returns a new instance of the script.
+                In GDScript, this could be done using:
+                [codeblock]
+                var MyClass = load("myclass.torch")
+                var instance = MyClass.new()
+                print(instance.get_script() == MyClass) # Prints true
+                [/codeblock]
+                In OScript, this would be done using the [OScriptNodeNew] new object node.
+            </description>
+        </method>
+    </methods>
 </class>

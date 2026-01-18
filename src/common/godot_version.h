@@ -25,8 +25,7 @@
 /// for centralizing version specific methods, such as "at_least" so that differences in Godot behavior
 /// can be handled dynamically rather than statically at build-time.
 ///
-struct GodotVersionInfo
-{
+struct GodotVersionInfo {
 private:
     #if GODOT_VERSION >= 0x040500
     GDExtensionGodotVersion2 _version;
@@ -41,20 +40,17 @@ public:
 
     constexpr const char* string() const { return _version.string; }
 
-    constexpr bool at_least(uint32_t maj, uint32_t min, uint32_t patch = 0) const
-    {
+    constexpr bool at_least(uint32_t maj, uint32_t min, uint32_t patch = 0) const {
         return (_version.major > maj) ||
                (_version.major == maj && _version.minor > min) ||
                (_version.major == maj && _version.minor == min && _version.patch >= patch);
     }
 
-    constexpr bool equals(uint32_t maj, uint32_t min, uint32_t patch = 0) const
-    {
+    constexpr bool equals(uint32_t maj, uint32_t min, uint32_t patch = 0) const {
         return _version.major == maj && _version.minor == min && _version.patch == patch;
     }
 
-    explicit GodotVersionInfo()
-    {
+    explicit GodotVersionInfo() {
         #if GODOT_VERSION >= 0x040500
         godot::internal::gdextension_interface_get_godot_version2(&_version);
         #else

@@ -5,6 +5,7 @@ guid = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
 method = {
 "name": &"_on_body_entered",
 "args": [{
+"type": 24,
 "name": &"body",
 "class_name": &"Node3D",
 "usage": 131078
@@ -32,6 +33,7 @@ guid = "76F0B89F-94D2-400F-919B-B9F4DD04AAA1"
 method = {
 "name": &"_on_body_exited",
 "args": [{
+"type": 24,
 "name": &"body",
 "class_name": &"Node3D",
 "usage": 131078

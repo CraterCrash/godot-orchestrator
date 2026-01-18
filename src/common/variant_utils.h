@@ -21,8 +21,8 @@
 
 using namespace godot;
 
-namespace VariantUtils
-{
+namespace VariantUtils {
+
     /// Get the appropriate article to be used based on variant type.
     /// @param p_type the variant type
     /// @param p_nil_to_any whether to treat "Nil" as "Any"

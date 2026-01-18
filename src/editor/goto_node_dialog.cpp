@@ -16,55 +16,37 @@
 //
 #include "editor/goto_node_dialog.h"
 
+#include "common/macros.h"
+#include "core/godot/scene_string_names.h"
+#include "editor/script_editor_view.h"
+
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
-void OrchestratorGotoNodeDialog::_confirmed()
-{
-    if (_line_edit && _line_edit->get_text().is_valid_int())
-        emit_signal("goto_node", _line_edit->get_text().to_int());
-
-    _line_edit->clear();
+void OrchestratorGotoNodeDialog::_goto_node() {
+    if (_line_edit && _line_edit->get_text().is_valid_int()) {
+        _editor_view->goto_node(_line_edit->get_text().to_int());
+    }
+    queue_free();
 }
 
-void OrchestratorGotoNodeDialog::_cancelled()
-{
-    _line_edit->clear();
-}
-
-void OrchestratorGotoNodeDialog::_notification(int p_what)
-{
-    switch (p_what)
-    {
-        case NOTIFICATION_VISIBILITY_CHANGED:
-        {
-            if (is_visible())
-                _line_edit->grab_focus();
-            break;
-        }
-        case NOTIFICATION_ENTER_TREE:
-        {
-            connect("confirmed", callable_mp(this, &OrchestratorGotoNodeDialog::_confirmed));
-            connect("canceled", callable_mp(this, &OrchestratorGotoNodeDialog::_cancelled));
-            break;
-        }
-        case NOTIFICATION_EXIT_TREE:
-        {
-            disconnect("confirmed", callable_mp(this, &OrchestratorGotoNodeDialog::_confirmed));
-            disconnect("canceled", callable_mp(this, &OrchestratorGotoNodeDialog::_cancelled));
-            break;
-        }
+void OrchestratorGotoNodeDialog::_visibility_changed() {
+    if (is_visible() && _line_edit) {
+        _line_edit->grab_focus();
     }
 }
 
-void OrchestratorGotoNodeDialog::_bind_methods()
-{
-    ADD_SIGNAL(MethodInfo("goto_node", PropertyInfo(Variant::INT, "node_id")));
+void OrchestratorGotoNodeDialog::popup_find_node(OrchestratorScriptGraphEditorView* p_view) {
+    _editor_view = p_view;
+    EI->popup_dialog_centered(this);
 }
 
-OrchestratorGotoNodeDialog::OrchestratorGotoNodeDialog()
-{
+void OrchestratorGotoNodeDialog::_bind_methods() {
+}
+
+OrchestratorGotoNodeDialog::OrchestratorGotoNodeDialog() {
     set_title("Go to Node");
 
     VBoxContainer* container = memnew(VBoxContainer);
@@ -78,4 +60,8 @@ OrchestratorGotoNodeDialog::OrchestratorGotoNodeDialog()
     _line_edit->set_select_all_on_focus(true);
     container->add_child(_line_edit);
     register_text_enter(_line_edit);
+
+    connect(SceneStringName(confirmed), callable_mp_this(_goto_node));
+    connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
+    connect(SceneStringName(visibility_changed), callable_mp_this(_visibility_changed));
 }
