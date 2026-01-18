@@ -22,6 +22,7 @@
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "core/godot/gdextension_compat.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/registry.h"
 #include "editor/editor_view.h"
@@ -2026,7 +2027,7 @@ void OrchestratorEditor::find_scene_scripts(Node* p_base, Node* p_current, HashS
 
     #if GODOT_VERSION >= 0x040500
     // Was introduced in Godot 4.5
-    if (internal::gdextension_interface_object_get_script_instance(p_current, nullptr))
+    if (GDE_INTERFACE(object_get_script_instance)(p_current, nullptr))
     #endif
     {
         Ref<Script> script = p_current->get_script();

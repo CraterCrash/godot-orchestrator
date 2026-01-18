@@ -21,6 +21,7 @@
 #include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "core/godot/gdextension_compat.h"
 
 #include <godot_cpp/classes/expression.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -131,7 +132,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
     _chainable = false;
     Ref<OScriptNodePin> target = _create_target_pin();
 
-    const size_t default_start_index = p_method.arguments.empty()
+    const size_t default_start_index = is_vector_empty(p_method.arguments)
         ? 0
         : p_method.arguments.size() - p_method.default_arguments.size();
 
@@ -184,7 +185,7 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
 }
 
 bool OScriptNodeCallFunction::_has_execution_pins(const MethodInfo& p_method) const {
-    if (MethodUtils::has_return_value(p_method) && p_method.arguments.empty()) {
+    if (MethodUtils::has_return_value(p_method) && is_vector_empty(p_method.arguments)) {
         const String method_name = p_method.name.capitalize();
         if (method_name.begins_with("Is ") || method_name.begins_with("Get ")) {
             return false;

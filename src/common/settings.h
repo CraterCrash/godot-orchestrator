@@ -17,8 +17,9 @@
 #ifndef ORCHESTRATOR_SETTINGS_H
 #define ORCHESTRATOR_SETTINGS_H
 
+#include <vector>
+
 #include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 

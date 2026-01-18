@@ -16,11 +16,12 @@
 //
 #include "common/method_utils.h"
 
-#include "dictionary_utils.h"
-#include "property_utils.h"
+#include "common/dictionary_utils.h"
+#include "common/property_utils.h"
+#include "common/variant_operators.h"
+#include "common/variant_utils.h"
+#include "core/godot/gdextension_compat.h"
 #include "script/script_server.h"
-#include "variant_operators.h"
-#include "variant_utils.h"
 
 #include <godot_cpp/core/class_db.hpp>
 
@@ -114,7 +115,7 @@ namespace MethodUtils {
         }
 
         if (p_method.flags & METHOD_FLAG_VARARG) {
-            if (!p_method.arguments.empty()) {
+            if (!is_vector_empty(p_method.arguments)) {
                 signature += ", ";
             }
             signature += "...";

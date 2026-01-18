@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/method_utils.h"
+#include "core/godot/gdextension_compat.h"
 #include "core/godot/method_bind.h"
 #include "core/godot/variant/variant.h"
 #include "script/language.h"
@@ -1647,7 +1648,7 @@ void OScriptBytecodeGenerator::write_call_utility(const Address& p_target, const
             append(p_arguments[i]);
         }
 
-        GDExtensionPtrUtilityFunction func = internal::gdextension_interface_variant_get_ptr_utility_function(p_function._native_ptr(), fi.hash);
+        GDExtensionPtrUtilityFunction func = GDE_INTERFACE(variant_get_ptr_utility_function)(p_function._native_ptr(), fi.hash);
 
         append(ct.target);
         append(p_arguments.size());
@@ -1747,7 +1748,7 @@ void OScriptBytecodeGenerator::write_call_builtin_type(const Address& p_target, 
     append(p_arguments.size());
 
     GDExtensionVariantType type = static_cast<GDExtensionVariantType>(p_type);
-    GDExtensionPtrBuiltInMethod ptr = internal::gdextension_interface_variant_get_ptr_builtin_method(type, p_method._native_ptr(), hash);
+    GDExtensionPtrBuiltInMethod ptr = GDE_INTERFACE(variant_get_ptr_builtin_method)(type, p_method._native_ptr(), hash);
     append(ptr);
     ct.cleanup();
 

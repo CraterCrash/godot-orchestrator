@@ -17,14 +17,15 @@
 #include "script/script_instance.h"
 
 #include "common/dictionary_utils.h"
+#include "core/godot/gdextension_compat.h"
 #include "core/godot/scene_string_names.h"
 #include "core/godot/variant/variant.h"
 #include "script/script.h"
 #include "script/script_rpc_callable.h"
 
 #include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 
 namespace MemoryUtils {
@@ -304,7 +305,7 @@ const OScriptInstanceInfo OScriptInstance::INSTANCE_INFO = [] {
 
 #if GODOT_VERSION >= 0x040500
 bool OScriptInstanceBase::_is_same_script_instance() const {
-    return _owner && internal::gdextension_interface_object_get_script_instance(_owner->_owner, OScriptLanguage::get_singleton()) == this;
+    return _owner && GDE_INTERFACE(object_get_script_instance)(_owner->_owner, OScriptLanguage::get_singleton()) == this;
 }
 #endif
 

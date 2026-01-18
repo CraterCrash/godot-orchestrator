@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_CORE_GODOT_VARIANT_H
 #define ORCHESTRATOR_CORE_GODOT_VARIANT_H
 
+#include <vector>
+
 #include <godot_cpp/core/object.hpp>
 
 using namespace godot;

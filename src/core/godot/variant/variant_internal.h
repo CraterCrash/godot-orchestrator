@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_CORE_GODOT_VARIANT_VARIANT_INTERNAL_H
 #define ORCHESTRATOR_CORE_GODOT_VARIANT_VARIANT_INTERNAL_H
 
+#include "core/godot/gdextension_compat.h"
+
 #include <godot_cpp/variant/variant.hpp>
 
 namespace GDE {
@@ -26,7 +28,7 @@ namespace GDE {
         /// Constructs a <code>Variant</code> in-place based on the supplied <code>Variant::Type</code>
         _FORCE_INLINE_ static void initialize(godot::Variant* p_value, godot::Variant::Type p_type) {
             GDExtensionCallError error;
-            internal::gdextension_interface_variant_construct(
+            GDE_INTERFACE(variant_construct)(
                 static_cast<GDExtensionVariantType>(p_type),
                 p_value,
                 nullptr,

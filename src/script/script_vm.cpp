@@ -2116,7 +2116,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 const Variant **argptrs = const_cast<const Variant **>(instruction_args);
 
                 GDExtensionCallError err;
-                internal::gdextension_interface_variant_call_static(
+                GDE_INTERFACE(variant_call_static)(
                     static_cast<GDExtensionVariantType>(builtin_type),
                     methodname,
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs),
@@ -2160,7 +2160,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 // The MethodBind needs to be used via the GDE interface, not via "method->call".
                 GDExtensionCallError err;
-                internal::gdextension_interface_object_method_bind_call(
+                GDE_INTERFACE(object_method_bind_call)(
                     method, nullptr, reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs), argc, ret, &err);
                 //*ret = method->call(nullptr, reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs), argc, err);
 
@@ -3353,7 +3353,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 GDExtensionCallError err;
                 Variant has_next;
-                internal::gdextension_interface_variant_call(
+                GDE_INTERFACE(variant_call)(
                     obj,
                     CoreStringName(_iter_init)._native_ptr(),
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(args),
@@ -3376,7 +3376,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     *counter = ref[0];
 
                     GET_VARIANT_PTR(iterator, 2);
-                    internal::gdextension_interface_variant_call(
+                    GDE_INTERFACE(variant_call)(
                         obj,
                         CoreStringName(_iter_get)._native_ptr(),
                         reinterpret_cast<const GDExtensionConstVariantPtr*>(&counter),
@@ -3743,7 +3743,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 GDExtensionCallError ce;
 
                 Variant has_next;
-                internal::gdextension_interface_variant_call(
+                GDE_INTERFACE(variant_call)(
                     obj,
                     CoreStringName(_iter_next)._native_ptr(),
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(&args),
@@ -3767,7 +3767,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                     GET_VARIANT_PTR(iterator, 2);
 
-                    internal::gdextension_interface_variant_call(
+                    GDE_INTERFACE(variant_call)(
                         obj,
                         CoreStringName(_iter_get)._native_ptr(),
                         reinterpret_cast<const GDExtensionConstVariantPtr*>(&counter),

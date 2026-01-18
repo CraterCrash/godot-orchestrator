@@ -2271,7 +2271,7 @@ void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_funct
 }
 
 void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
-    static const std::unordered_map<StringName, Vector2> direction_map = {
+    static const HashMap<StringName, Vector2> direction_map = {
         {StringName("ui_left"),  Vector2(-1,  0)},
         {StringName("ui_right"), Vector2( 1,  0)},
         {StringName("ui_up"),    Vector2( 0, -1)},
@@ -2341,10 +2341,10 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
             accept_event();
         }
 
-        for (const std::pair<const StringName, Vector2>& E : direction_map) {
-            if (key->is_action(E.first, true)) {
+        for (const KeyValue<StringName, Vector2>& E : direction_map) {
+            if (key->is_action(E.key, true)) {
                 const float distance = is_snapping_enabled() ? get_snapping_distance() : 1;
-                const Vector2 amount = E.second * distance;
+                const Vector2 amount = E.value * distance;
 
                 for_each<GraphElement>([&] (GraphElement* element) {
                     if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(element)) {
