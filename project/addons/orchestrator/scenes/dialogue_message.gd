@@ -39,6 +39,7 @@ var selection : int
 
 var _current_tween : Tween
 var _current_choices : Dictionary
+var _mouse_mode : Input.MouseMode
 
 @onready var speaker 	  = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/Speaker
 @onready var speaker_text = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/SpeakerText
@@ -50,13 +51,18 @@ func _ready() -> void:
 	next_button.visible = false
 	visible = false
 	
+	## If the mouse is currently hidden, make it visible until the
+	## player makes a selection in the dialog scene
+	_mouse_mode = Input.mouse_mode
+	if _mouse_mode == Input.MOUSE_MODE_HIDDEN:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE		
+	
 	## Setup what to do if there are no options and the next button
 	## is shown, which is "Continue". In this case the selection is
 	## set as -1 and the signal gets emitted.
 	var button_handler := func():
 		selection = -1
-		show_message_finished.emit()
-		queue_free()
+		_dialogue_finished()		
 	next_button.pressed.connect(button_handler)
 	
 	## Grab data from Orchestrator dictionary to present the UI
@@ -103,8 +109,7 @@ func _on_tween_finished(choices: Dictionary) -> void:
 			speaker_text.get_parent().add_child(button)
 			var button_handler := func():
 				selection = key
-				show_message_finished.emit()
-				queue_free()
+				_dialogue_finished()
 			button.pressed.connect(button_handler)
 	else:
 		next_button.show()
@@ -120,3 +125,11 @@ func _disable_player_movement() -> void:
 	var actions = InputMap.get_actions()
 	for action in actions:
 		Input.action_release(action)
+
+func _dialogue_finished():
+	## If the mouse was previously hidden, restore state
+	if _mouse_mode == Input.MOUSE_MODE_HIDDEN:
+		Input.mouse_mode = _mouse_mode
+	show_message_finished.emit()	
+	queue_free()
+	
