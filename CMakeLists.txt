@@ -106,6 +106,10 @@ SET(compiler_is_clang "$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clan
 SET(compiler_is_gnu "$<CXX_COMPILER_ID:GNU>")
 SET(compiler_is_msvc "$<CXX_COMPILER_ID:MSVC>")
 
+IF (compiler_is_msvc)
+    SET(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+ENDIF ()
+
 # Configure godot-cpp - a statically linked library to this project.
 INCLUDE(godot-dev-configuration)
 
@@ -130,11 +134,7 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
             /utf-8
             /Zc:preprocessor
             /wd5054 # operator '|' deprecated between enumerations of different types
-            $<$<CONFIG:Debug>:
-                /MDd
-            >
             $<$<CONFIG:Release>:
-                /MT
                 /O2
             >
         >
