@@ -16,11 +16,11 @@
 //
 #include "core/godot/io/resource_loader.h"
 
+#include "core/godot/io/resource_uid.h"
 #include "orchestration/serialization/text/variant_parser.h"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/resource_uid.hpp>
 
 String GDE::ResourceLoader::get_resource_type(const String& p_path) {
     const Ref<Resource> res = godot::ResourceLoader::get_singleton()->load(p_path, "", godot::ResourceLoader::CACHE_MODE_IGNORE);
@@ -31,7 +31,7 @@ String GDE::ResourceLoader::get_resource_type(const String& p_path) {
 }
 
 String GDE::ResourceLoader::path_remap(const String& p_path) {
-    String new_path = ResourceUID::ensure_path(p_path);
+    String new_path = GDE::ResourceUID::ensure_path(p_path);
     if (FileAccess::file_exists(new_path + ".remap")) {
         const Ref<FileAccess> file = FileAccess::open(new_path + ".remap", FileAccess::READ);
         if (file.is_valid()) {
