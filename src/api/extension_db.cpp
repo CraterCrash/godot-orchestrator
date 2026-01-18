@@ -16,6 +16,8 @@
 //
 #include "api/extension_db.h"
 
+#include "core/godot/gdextension_compat.h"
+
 #include <godot_cpp/classes/json.hpp>
 
 #define REGISTER_MATH_CONSTANT(m_name, m_type, m_value) {           \
@@ -642,7 +644,7 @@ MethodBind* ExtensionDB::get_method(const StringName& p_class_name, const String
         const ClassMethodInfo* method = clazz->methods.getptr(p_method_name);
         if (method) {
             return const_cast<MethodBind*>(static_cast<const MethodBind*>(
-                internal::gdextension_interface_classdb_get_method_bind(
+                GDE_INTERFACE(classdb_get_method_bind)(
                     p_class_name._native_ptr(), p_method_name._native_ptr(), method->hash)));
         }
         clazz = clazz->parent;
