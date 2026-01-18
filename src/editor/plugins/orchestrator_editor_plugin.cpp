@@ -32,7 +32,9 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
+#if GODOT_VERSION >= 0x040500
 #include <godot_cpp/classes/dpi_texture.hpp>
+#endif
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
