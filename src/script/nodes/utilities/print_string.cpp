@@ -146,6 +146,7 @@ OScriptNodePrintStringOverlay* OScriptNodePrintStringOverlay::get_or_create_over
     overlay->connect("tree_entered", callable_mp(overlay, &OScriptNodePrintStringOverlay::_tree_entered));
     overlay->connect("tree_exiting", callable_mp(overlay, &OScriptNodePrintStringOverlay::_tree_exiting));
 
+    _overlays[root] = overlay;
     root->call_deferred("add_child", overlay);
 
     return overlay;
