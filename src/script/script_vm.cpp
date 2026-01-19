@@ -65,7 +65,7 @@ static String _get_var_type(const Variant* p_var) {
 
     if (p_var->get_type() == Variant::OBJECT) {
         bool was_freed;
-        Object* base_obj = GDE::Variant::get_validated_object_with_check(p_var, was_freed);
+        Object* base_obj = GDE::Variant::get_validated_object_with_check(*p_var, was_freed);
         if (!base_obj) {
             if (was_freed) {
                 base_str = "previously freed";
