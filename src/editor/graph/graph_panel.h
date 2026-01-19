@@ -67,7 +67,7 @@ private:
         ALIGN_LEFT,
         ALIGN_CENTER,
         ALIGN_RIGHT,
-        ALIGN_MAX = ALIGN_RIGHT
+        ALIGN_MAX
     };
 
     struct ScopedThemeGuard {
