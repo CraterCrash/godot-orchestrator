@@ -176,7 +176,7 @@ void OrchestratorEditorActionMenu::_visibility_changed() {
     } else {
         _load_user_data();
 
-        callable_mp_cast(_search_box, Control, grab_focus).call_deferred();
+        callable_mp_cast(_search_box, Control, grab_focus).call_deferred(false);
         _search_box->select_all();
     }
 }
