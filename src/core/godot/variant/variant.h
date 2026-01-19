@@ -73,7 +73,7 @@ namespace GDE {
         static bool is_type_shared(Type p_type);
 
         static godot::Variant evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right, bool& r_valid);
-        static bool evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right);
+        static godot::Variant evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right);
         static StringName get_operator_name(godot::Variant::Operator p_operator);
         static Type get_operator_return_type(godot::Variant::Operator p_operator, Type p_left, Type p_right);
         static GDExtensionPtrOperatorEvaluator get_validated_operator_evaluator(godot::Variant::Operator p_operator, Type p_left, Type p_right);

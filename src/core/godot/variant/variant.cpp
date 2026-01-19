@@ -149,10 +149,9 @@ Variant GDE::Variant::evaluate(godot::Variant::Operator p_operator, const godot:
     return result;
 }
 
-bool GDE::Variant::evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right) {
+Variant GDE::Variant::evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right) {
     bool r_valid = false;
-    evaluate(p_operator, p_left, p_right, r_valid);
-    return r_valid;
+    return evaluate(p_operator, p_left, p_right, r_valid);
 }
 
 StringName GDE::Variant::get_operator_name(godot::Variant::Operator p_operator) {
