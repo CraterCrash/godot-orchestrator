@@ -184,7 +184,7 @@ Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget() {
         line_edit->set_select_all_on_focus(true);
         line_edit->add_theme_constant_override("minimum_character_width", 0);
         line_edit->connect(SceneStringName(focus_exited), callable_mp_lambda(this, [&] { _default_value_changed(); }));
-        line_edit->connect(SceneStringName(text_submitted), callable_mp_lambda(this, [&] { _default_value_changed(); }));
+        line_edit->connect(SceneStringName(text_submitted), callable_mp_lambda(this, [&] (const String& value) { _default_value_changed(); }));
         container->add_child(line_edit);
 
         _controls.push_back(line_edit);
