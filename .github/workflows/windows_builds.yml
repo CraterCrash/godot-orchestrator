@@ -28,7 +28,7 @@ jobs:
           submodules: recursive
 
       - name: Install CMake (Windows)
-        uses: lukka/get-cmake@v4.2.1
+        uses: lukka/get-cmake@v4.2.2
 
       - name: Install Ninja (Windows)
         shell: powershell
