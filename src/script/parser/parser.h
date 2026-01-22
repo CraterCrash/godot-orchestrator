@@ -264,6 +264,8 @@ private:
     IfNode* create_if(ExpressionNode* p_condition, const Ref<OScriptNodePin>& p_true_pin, const Ref<OScriptNodePin>& p_false_pin);
     BinaryOpNode* create_binary_op(VariantOperators::Code p_operator, ExpressionNode* p_lhs, ExpressionNode* p_rhs);
 
+    void bind_call_func_args(CallNode* p_call_node, const Ref<OScriptNode>& p_node, int p_arg_offset = 0);
+
     // Adds the statement to the existing suite
     void add_statement(Node* p_statement, SuiteNode* p_override_suite = nullptr);
 
