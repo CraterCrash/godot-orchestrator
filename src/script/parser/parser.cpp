@@ -531,6 +531,29 @@ OScriptParser::BinaryOpNode* OScriptParser::create_binary_op(VariantOperators::C
     return binary_op_node;
 }
 
+void OScriptParser::bind_call_func_args(CallNode* p_call_node, const Ref<OScriptNode>& p_node, int p_arg_offset) {
+    // todo: use MethodInfo flags
+    //
+    // In an ideal world, we would use MethodInfo here to check for METHOD_FLAG_VARARG to indicate whether
+    // we would trigger the use of the variadic argument logic; however, older nodes may not have had
+    // this flag, so relying on it for older scripts will fail.
+    //
+    // For now, we'll base the variadic nature of the arguments on the pins themselves for all methods. It
+    // should be overwhelmingly safe to do.
+    //
+    // In the future, we can consider adding a new warning pass to the parser that would compare the MethodInfo
+    // with Godot's current MethodInfo, and have a way to update the MethodInfo.
+    //
+    const Vector<Ref<OScriptNodePin>> inputs = p_node->find_pins(PD_Input);
+    for (size_t i = p_arg_offset; i < inputs.size(); i++) {
+        const Ref<OScriptNodePin>& input = inputs[i];
+        ERR_CONTINUE(input.is_null());
+        if (!input->is_execution()) {
+            p_call_node->arguments.push_back(resolve_input(input));
+        }
+    }
+}
+
 void OScriptParser::add_statement(Node* p_statement, SuiteNode* p_override_suite) {
     SuiteNode* suite = p_override_suite ? p_override_suite : current_suite;
 
@@ -1227,9 +1250,8 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
 
         call_node->function_name = method.name;
 
-        for (size_t i = 0; i < method.arguments.size(); i++) {
-            call_node->arguments.push_back(build_expression(member_func->find_pin(argument_offset + i, PD_Input)));
-        }
+        // Call member functions always have first argument as target object
+        bind_call_func_args(call_node, member_func, 1);
 
     } else if (const Ref<OScriptNodeCallBuiltinFunction>& builtin_func = p_node; builtin_func.is_valid()) {
         const MethodInfo& method = builtin_func->get_method_info();
@@ -1237,9 +1259,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
         call_node->callee = build_identifier(method.name);
         call_node->function_name = method.name;
 
-        for (size_t i = 0; i < method.arguments.size(); i++) {
-            call_node->arguments.push_back(build_expression(builtin_func->find_pin(i, PD_Input)));
-        }
+        bind_call_func_args(call_node, builtin_func);
 
     } else if (const Ref<OScriptNodeCallScriptFunction>& script_func = p_node; script_func.is_valid()) {
         const Ref<OScriptFunction> function = script_func->get_function();
@@ -1248,9 +1268,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
         call_node->callee = build_identifier(function->get_function_name());
         call_node->function_name = function->get_function_name();
 
-        for (size_t i = 0; i < method.arguments.size(); i++) {
-            call_node->arguments.push_back(build_expression(script_func->find_pin(i, PD_Input)));
-        }
+        bind_call_func_args(call_node, script_func);
     }
 
     return call_node;
@@ -1742,15 +1760,7 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
         }
     }
 
-    // todo: Avoid creating expressions for defaults if possible
-    for (size_t i = 0; i < method.arguments.size(); i++) {
-        const Ref<OScriptNodePin> input = p_script_node->find_pin(argument_offset + i, PD_Input);
-        ERR_CONTINUE(input.is_null());
-
-        ExpressionNode* value = resolve_input(input);
-        call_node->arguments.push_back(value);
-    }
-
+    bind_call_func_args(call_node, p_script_node, argument_offset);
     call_node->script_node_id = p_script_node->get_id();
 
     if (has_return_value && result_pin.is_valid() && result_pin->has_any_connections()) {
@@ -1768,12 +1778,7 @@ OScriptParser::StatementResult OScriptParser::build_call_builtin_function(const 
 
     CallNode* call_node = create_func_call(method.name);
     call_node->script_node_id = p_script_node->get_id();
-    for (const Ref<OScriptNodePin>& input : p_script_node->find_pins(PD_Input)) {
-        if (!input->is_execution()) {
-            // Only apply data input pins
-            call_node->arguments.push_back(resolve_input(input));
-        }
-    }
+    bind_call_func_args(call_node, p_script_node);
 
     Node* statement = call_node;
     if (MethodUtils::has_return_value(method)) {
@@ -1802,13 +1807,7 @@ OScriptParser::StatementResult OScriptParser::build_call_script_function(const R
         pin_offset = 1;
     }
 
-    int index = 0;
-    for (const Ref<OScriptNodePin>& input : p_script_node->find_pins(PD_Input)) {
-        if (index >= pin_offset) {
-            call_node->arguments.push_back(resolve_input(input));
-        }
-        index++;
-    }
+    bind_call_func_args(call_node, p_script_node, pin_offset);
 
     Node* statement = call_node;
     if (MethodUtils::has_return_value(function->get_method_info())) {
@@ -1837,13 +1836,7 @@ OScriptParser::StatementResult OScriptParser::build_call_static_function(const R
         pin_offset = 1;
     }
 
-    int index = 0;
-    for (const Ref<OScriptNodePin>& input : p_script_node->find_pins(PD_Input)) {
-        if (index >= pin_offset) {
-            call_node->arguments.push_back(resolve_input(input));
-        }
-        index++;
-    }
+    bind_call_func_args(call_node, p_script_node, pin_offset);
 
     Node* statement = call_node;
     if (MethodUtils::has_return_value(method)) {
