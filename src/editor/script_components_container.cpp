@@ -950,6 +950,8 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
         } else if (script_graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
             int function_id = _get_orchestration()->get_function_node_id(script_graph->get_graph_name());
 
+            const Ref<OScriptFunction> function = _get_orchestration()->find_function(script_graph->get_graph_name());
+
             String name = script_graph->get_graph_name();
             if (_use_function_friendly_names) {
                 name = name.capitalize();
@@ -958,6 +960,7 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
             TreeItem* item = _functions->add_tree_fancy_item(name, script_graph->get_graph_name(), function_icon);
             item->set_meta("__component_type", SCRIPT_FUNCTION);
             item->set_meta("__node_id", function_id);
+            item->set_meta("__override", !function->is_user_defined());
         }
     }
 
@@ -1125,6 +1128,10 @@ void OrchestratorScriptComponentsContainer::_update_slot_item(TreeItem* p_item) 
             } else if (p_item->get_button_count(0) > 0) {
                 p_item->erase_button(0, 0);
                 p_item->remove_meta("__slot");
+            }
+            bool virtual_override = p_item->get_meta("__override", false);
+            if (virtual_override) {
+                p_item->add_button(0, SceneUtils::get_editor_icon("Override"), -1, true);
             }
             break;
         }

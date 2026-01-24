@@ -139,6 +139,7 @@ private:
     bool _moving_selection = false;
     bool _pending_nodes_changed_event = false;
     bool _edited = false;
+    bool _treat_call_member_as_override = false;
 
     bool _box_selection;
     Vector2 _box_selection_from;
@@ -219,6 +220,7 @@ protected:
     void _expand_node(OrchestratorEditorGraphNode* p_node);
     void _collapse_selected_nodes_to_function();
     bool _create_new_function(const String& p_name, bool p_has_return = false);
+    bool _create_new_function_override(const MethodInfo& p_method);
     void _align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment);
     void _toggle_node_bookmark(OrchestratorEditorGraphNode* p_node);
     bool _has_breakpoint_support() const;
