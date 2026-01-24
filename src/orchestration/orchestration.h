@@ -62,6 +62,7 @@ class Orchestration : public Resource {
     OrchestrationType _type;                               //! The orchestration type
     bool _initialized{ false };                            //! Whether the orchestration is initialized
     bool _edited{ false };                                 //! Tracks whether the orchestration has been edited
+    bool _tool{ false };
     StringName _base_type;                                 //! The base type of the orchestration
     StringName _global_name;                               //! Global class name for script, e.g. `class_name`
     String _icon_path;                                     //! Path to script's custom icon, e.g. `@icon`
@@ -141,11 +142,11 @@ public:
 
     /// Get whether the orchestration runs in tool-mode
     /// @return true if the orchestration runs in tool-mode in the editor, false otherwise
-    virtual bool get_tool() const { return false; }
+    virtual bool get_tool() const;
 
     /// Set whether the orchestration runs in tool-mode
     /// @param p_tool true to run in the editor in tool-mode, false to run only at run-time
-    virtual void set_tool(bool p_tool) { }
+    virtual void set_tool(bool p_tool);
 
     /// Get the global class name assigned to the orchestration
     /// @return the global class name
