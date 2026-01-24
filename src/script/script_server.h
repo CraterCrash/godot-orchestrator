@@ -125,6 +125,11 @@ public:
     /// @return the global class info structure, or an empty structure if not found
     static GlobalClass get_global_class(const StringName& p_class_name);
 
+    /// Returns the global class entry for a specified script path
+    /// @param p_path the script file path
+    /// @return the global class info structure, or an empty structure if not found
+    static GlobalClass get_global_class_by_path(const String& p_path);
+
     /// Returns the global class script path
     /// @param p_class_name the global class name to check
     /// @return the script path if found, an empty string otherwise

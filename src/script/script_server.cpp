@@ -219,6 +219,17 @@ ScriptServer::GlobalClass ScriptServer::get_global_class(const StringName& p_cla
     return {};
 }
 
+ScriptServer::GlobalClass ScriptServer::get_global_class_by_path(const String& p_path) {
+    const TypedArray<Dictionary> classes = _get_global_class_list();
+    for (uint32_t i = 0; i < classes.size(); i++) {
+        const Dictionary& data = classes[i];
+        if (data.get("path", "") == p_path) {
+            return GlobalClass(data);
+        }
+    }
+    return {};
+}
+
 String ScriptServer::get_global_class_path(const StringName& p_class_name) {
     if (!is_global_class(p_class_name)) {
         return "";
