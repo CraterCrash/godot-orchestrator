@@ -1159,6 +1159,42 @@ bool OrchestratorEditorGraphPanel::_create_new_function(const String& p_name, bo
     return true;
 }
 
+bool OrchestratorEditorGraphPanel::_create_new_function_override(const MethodInfo& p_method) {
+    ERR_FAIL_COND_V_MSG(_graph->get_orchestration()->has_function(p_method.name), false, "A function already exists with that name");
+
+    const int flags = OrchestrationGraph::GF_FUNCTION | OrchestrationGraph::GF_DEFAULT;
+    const Ref<OrchestrationGraph> function_graph = _graph->get_orchestration()->create_graph(p_method.name, flags);
+    ERR_FAIL_COND_V_MSG(!function_graph.is_valid(), false, "Failed to create function graph");
+
+    NodeSpawnOptions options;
+    options.node_class = OScriptNodeFunctionEntry::get_class_static();
+    options.context.method = p_method;
+    options.context.user_data = DictionaryUtils::of({ { "user_defined", false } });
+
+    const Ref<OScriptNodeFunctionEntry> entry = function_graph->create_node<OScriptNodeFunctionEntry>(options.context);
+    if (!entry.is_valid()) {
+        _graph->get_orchestration()->remove_graph(function_graph->get_graph_name());
+        ERR_FAIL_V_MSG(false, "Failed to create function entry node in the function graph");
+    }
+
+    _set_edited(true);
+
+    if (MethodUtils::has_return_value(p_method)) {
+        const Vector2 position = entry->get_position() + Vector2(300, 0);
+
+        const Ref<OScriptNodeFunctionResult> result = function_graph->create_node<OScriptNodeFunctionResult>(options.context, position);
+        if (!result.is_valid()) {
+            _graph->get_orchestration()->remove_graph(function_graph->get_graph_name());
+            ERR_FAIL_V_MSG(false, "Failed to create function " + p_method.name);
+        }
+
+        entry->find_pin(0, PD_Output)->link(result->find_pin(0, PD_Input));
+    }
+
+    call_deferred("emit_signal", "focus_requested", entry->get_function());
+    return true;
+}
+
 void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment) {
     ERR_FAIL_NULL_MSG(p_anchor, "Cannot perform node alignment with an invalid anchor node reference");
     ERR_FAIL_INDEX(p_alignment, GraphNodeAlignment::ALIGN_MAX);
@@ -1699,6 +1735,12 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
         }
         case OrchestratorEditorActionDefinition::ACTION_CALL_MEMBER_FUNCTION: {
             ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Call member function has no method");
+            if (_treat_call_member_as_override) {
+                _create_new_function_override(p_action->method.value());
+                _treat_call_member_as_override = false;
+                emit_signal("nodes_changed");
+                return;
+            }
 
             NodeSpawnOptions options;
             options.node_class = OScriptNodeCallMemberFunction::get_class_static();
@@ -1795,6 +1837,7 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
 
 void OrchestratorEditorGraphPanel::_action_menu_canceled() {
     _drag_from_pin.reset();
+    _treat_call_member_as_override = false;
 }
 
 void OrchestratorEditorGraphPanel::_idle_timeout() {
@@ -2957,6 +3000,7 @@ void OrchestratorEditorGraphPanel::clear_breakpoints() {
 
 void OrchestratorEditorGraphPanel::show_override_function_action_menu() {
     _menu_position = _get_center();
+    _treat_call_member_as_override = true;
 
     Ref<OrchestratorEditorActionGraphTypeRule> graph_type_rule;
     graph_type_rule.instantiate();

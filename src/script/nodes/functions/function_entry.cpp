@@ -64,8 +64,13 @@ bool OScriptNodeFunctionEntry::can_create_user_defined_pin(EPinDirection p_direc
 void OScriptNodeFunctionEntry::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.method, "Failed to initialize node without a MethodInfo");
 
+    bool user_defined = _is_user_defined();
+    if (p_context.user_data.has_value()) {
+        user_defined = p_context.user_data.value().get("user_defined", true);
+    }
+
     const MethodInfo& mi = p_context.method.value();
-    _function = get_orchestration()->create_function(mi, get_id(), _is_user_defined());
+    _function = get_orchestration()->create_function(mi, get_id(), user_defined);
     _guid = _function->get_guid();
 
     super::initialize(p_context);
