@@ -23,6 +23,7 @@
 #include "common/string_utils.h"
 #include "core/godot/core_constants.h"
 #include "core/godot/variant/variant.h"
+#include "core/typedefs.h"
 #include "orchestration/serialization/text/variant_parser.h"
 #include "script/compiler/analyzer.h"
 #include "script/nodes/utilities/print_string.h"
