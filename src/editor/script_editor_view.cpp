@@ -195,6 +195,19 @@ void OrchestratorScriptGraphEditorView::_restore_next_tab() {
     _restore_next_tab();
 }
 
+void OrchestratorScriptGraphEditorView::_update_editor_post_reload() {
+    for (uint32_t i = 0; i < _tab_container->get_tab_count(); i++) {
+        const String tab_name = _tab_container->get_tab_control(i)->get_name();
+        const Ref<OScriptGraph> graph = _script->get_orchestration()->get_graph(tab_name);
+        ERR_CONTINUE(!graph.is_valid());
+
+        OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
+        if (tab_panel) {
+            tab_panel->set_graph(graph);
+        }
+    }
+}
+
 void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
     static String DETAILS_BUTTON_NAME = "ScriptDetailsButton";
     static String WARN_ERROR_SEP = "ScriptWarnErrorSep";
@@ -688,6 +701,7 @@ void OrchestratorScriptGraphEditorView::set_edited_resource(const Ref<Resource>&
 
     // Makes sure that when Orchestration changes, any editor tab panels are updated
     // _script->get_orchestration()->connect("changed", callable_mp_this(_update_editor_script_buttons));
+    _script->get_orchestration()->connect("reloaded", callable_mp_this(_update_editor_post_reload));
     _script->connect(CoreStringName(changed), callable_mp_this(_update_editor_script_buttons));
 
     _event_graph = _create_graph_tab("EventGraph");
