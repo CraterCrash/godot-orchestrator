@@ -113,7 +113,6 @@ void OrchestratorEditorDebuggerPlugin::debug_break() {
     ERR_FAIL_COND(!_current_session.is_valid());
     ERR_FAIL_COND(!is_active());
 
-    UtilityFunctions::print("Triggering debug_break");
     _current_session->send_message("break");
 }
 
