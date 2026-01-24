@@ -20,6 +20,7 @@
 #include "common/version.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
+#include "script/nodes/functions/call_parent_function.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script.h"
 #include "script/script_cache.h"
@@ -196,6 +197,8 @@ void register_script_node_types() {
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEvent)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitchString)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitchInteger)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallParentMemberFunction)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallParentScriptFunction)
 
     //~ Input
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeInputAction)

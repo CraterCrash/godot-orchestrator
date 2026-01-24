@@ -46,6 +46,7 @@ public:
         FF_OBJECT_CORE  = 1 << 7,   //! Function is a core Object virtual method, i.e. _notification
         FF_EDITOR       = 1 << 8,   //! Function is an editor method
         FF_TARGET       = 1 << 9,   //! Function has a target object
+        FF_SUPER        = 1 << 10,  //! Function call is the super implementation
     };
     // clang-format on
 
@@ -129,6 +130,10 @@ public:
     /// Get the Godot method object.
     /// @return the available Godot MethodInfo
     virtual MethodInfo get_method_info() { return _reference.method; }
+
+    /// Check whether this call function overrides a parent function
+    /// @return true if this is an overridden function, false otherwise
+    virtual bool is_override() const { return false; }
 
     OScriptNodeCallFunction() { _flags = NONE; }
 };
