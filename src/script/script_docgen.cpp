@@ -305,7 +305,7 @@ void OScriptDocGen::_generate_docs(OScript* p_script, const Parser::ClassNode* p
 	} else {
 		// This is an inner or global outer class.
 		doc.name = p_script->local_name;
-		if (p_script->_owner) {
+		if (p_script->subclass_owner) {
 			doc.name = p_script->subclass_owner->doc.name + "." + doc.name;
 		}
 	}
