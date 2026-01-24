@@ -35,6 +35,8 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    StringName _get_resource_class_name() const;
+
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
@@ -44,6 +46,7 @@ public:
     String get_node_title_color_name() const override { return "resources"; }
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
+    Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface

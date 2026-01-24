@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_PROPERTY_UTILS_H
 #define ORCHESTRATOR_PROPERTY_UTILS_H
 
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/core/property_info.hpp>
 
 namespace PropertyUtils {
@@ -164,6 +166,11 @@ namespace PropertyUtils {
     /// @param p_usage the property usage flags bitfield value
     /// @return comma-separated string of property usage flags
     String usage_to_string(uint32_t p_usage);
+
+    /// Return the custom script for an object
+    /// @p_object the object to read the custom script associated with
+    /// @return the custom script, if applicable, or an invalid reference if applicable
+    Ref<Script> get_custom_type_script(const Object* p_object);
 }
 
 #endif // ORCHESTRATOR_PROPERTY_UTILS_H
