@@ -20,6 +20,8 @@
 #include "orchestration/serialization/parser.h"
 #include "orchestration/serialization/text/variant_parser.h"
 
+#include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_format_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 
@@ -63,6 +65,7 @@ class OrchestrationTextParser : public OrchestrationParser {
     String _type;
     String _resource_type;
     String _script_class;
+    String _icon_path;
     int64_t _uid = ResourceUID::INVALID_ID;
 
     String _error_text;

@@ -30,6 +30,7 @@
 #include "script/serialization/resource_cache.h"
 
 #include <godot_cpp/classes/dir_access.hpp>
+#include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 
 String OrchestrationTextSerializer::_write_resources(void* p_userdata, const Ref<Resource>& p_resource) {
@@ -74,8 +75,8 @@ String OrchestrationTextSerializer::_write_internal_resource_ref(const Ref<Resou
     return vformat(R"(SubResource("%s"))", _internal_resources[p_resource]);
 }
 
-String OrchestrationTextSerializer::_create_start_tag(const String& p_class, const String& p_script_class, uint32_t p_steps, uint32_t p_version, int64_t p_uid) { // NOLINT
-    return OrchestrationTextFormat::create_start_tag(p_class, p_script_class, p_steps, p_version, p_uid);
+String OrchestrationTextSerializer::_create_start_tag(const String& p_class, const String& p_script_class, const String& p_icon_path, uint32_t p_steps, uint32_t p_version, int64_t p_uid) { // NOLINT
+    return OrchestrationTextFormat::create_start_tag(p_class, p_script_class, p_icon_path, p_steps, p_version, p_uid);
 }
 
 String OrchestrationTextSerializer::_create_ext_resource_tag(const String& p_type, const String& p_path, const String& p_id, bool p_newline) {
@@ -157,10 +158,12 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
     _find_resources(p_resource, true);
 
     const String global_name = orchestration->get_global_name();
+    const String icon_path = orchestration->get_icon_path();
 
     file->store_line(_create_start_tag(
         OScript::get_class_static(),
         global_name,
+        icon_path,
         _saved_resources.size() + _external_resources.size(),
         OrchestrationFormat::FORMAT_VERSION,
         _get_resource_id_for_path(_path, true)));

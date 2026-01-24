@@ -33,15 +33,20 @@
 #include "script/script_docgen.h"
 #endif
 
+#include "common/macros.h"
 #include "core/godot/error_macros.h"
 #include "core/godot/gdextension_compat.h"
 #include "editor/debugger/script_debugger_plugin.h"
 #include "orchestration/serialization/binary/binary_parser.h"
 
+#include <godot_cpp/classes/dir_access.hpp>
+#include <godot_cpp/classes/editor_file_system.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 
 OScript::UpdatableFuncPtr::UpdatableFuncPtr(OScriptCompiledFunction* p_function) {
@@ -481,12 +486,12 @@ TypedArray<Dictionary> OScript::_get_script_properties(bool p_include_base) cons
         msort.sort();
         msort.reverse();
 
-        for (const OScriptMemberSort& item :msort) {
+        for (const OScriptMemberSort& item : msort) {
             properties.push_front(sptr->member_indices[item.name].property_info);
         }
 
         #ifdef TOOLS_ENABLED
-        properties.push_back(sptr->get_class_category());
+        results.push_back(DictionaryUtils::from_property(sptr->get_class_category()));
         #endif
 
         for (const PropertyInfo& E : properties) {
@@ -600,7 +605,7 @@ void OScript::_collect_dependencies(RBSet<OScript*>& p_dependencies, const OScri
 }
 
 bool OScript::_editor_can_reload_from_file() {
-    return false;
+    return true;
 }
 
 void OScript::_placeholder_erased(void* p_placeholder) {
@@ -721,8 +726,16 @@ String OScript::_get_source_code() const {
 }
 
 void OScript::_set_source_code(const String& p_code) {
-    // Not used, use `set_source(const OScriptSource&)` instead
-    ERR_FAIL_MSG("OScript does not support 'set_source_code', use 'set_source' instead.");
+    // See https://github.com/godotengine/godot/pull/115157
+    //
+    // When a script language supports documentation, and a script should be reloaded, the EditorFileSystem
+    // will call the Script::reload_from_file. This method reloads the script off disk and then calls
+    // set_source_code(reloaded_script->get_source_code()).
+    //
+    // To address this difference with OScript, in which the source may not be represented as a "String"
+    // but could be a PackedByteArray for binary resources, the virtual "Resource::reload_from_file()"
+    // method should be overridable for custom resources.
+    //
 }
 
 Error OScript::_reload(bool p_keep_state) {
@@ -1221,17 +1234,19 @@ Variant OScript::_new(const Variant** p_args, GDExtensionInt p_arg_count, GDExte
         ref = Ref<RefCounted>(r);
     }
 
-    OScriptInstance *instance = _create_instance(p_args, p_arg_count, owner, r_error);
-    if (!instance) {
-        if (ref.is_null()) {
-            memdelete(owner); //no owner, sorry
-        }
-        return {};
-    }
-
+    //
+    // We need to use `set_script` here. This forces `Object` to call `script->instance_create` which
+    // delegates to `_instance_create` in the script extension, calling `_create_instance`. This is a
+    // fast way to make sure the script instance is set on the object.
+    //
+    // We tried creating the script instance with `_create_instance` and then using the GDE_INTERFACE
+    // `object_set_script_instance` API, but it was unreliable and crashed, but using `set_script`
+    // always seemed to work as expected.
     if (ref.is_valid()) {
+        ref->set_script(this);
         return ref;
     } else {
+        owner->set_script(this);
         return owner;
     }
 }
@@ -1557,50 +1572,100 @@ Error OScript::load_source_code(const String& p_path) {
 #ifdef DEV_TOOLS
 String OScript::dump_compiled_state() {
     String result;
-    
-    result += vformat("Static Variables: %d\n", static_variables.size());
-    for (const KeyValue<StringName, MemberInfo>& E : static_variables_indices) {
-        result += vformat("  - Index   : %d\n", E.value.index);
-        result += vformat("    Getter  : %s\n", E.value.getter);
-        result += vformat("    Setter  : %s\n", E.value.setter);
-        result += vformat("    Type    : %s\n", E.value.data_type.builtin_type);
-        result += vformat("    Property: %s\n", DictionaryUtils::from_property(E.value.property_info));
-        result += vformat("    Value   : %s\n", static_variables[E.value.index]);
+
+    result += "========================= Compilation Report===========================\n";
+    result += vformat("Script File Path : %s\n", path);
+    result += vformat("Script File Size : %s bytes\n", FileAccess::get_size(path));
+    result += vformat("Script File Time : %s\n", Time::get_singleton()->get_datetime_string_from_unix_time(FileAccess::get_modified_time(path)));
+    result += vformat("OScript Version  : %s\n", VERSION_FULL_BUILD);
+    result += vformat("Compiled At      : %s\n", Time::get_singleton()->get_datetime_string_from_system());
+    result += vformat("Godot Version    : %d.%d.%d.%s\n", GODOT_VERSION_MAJOR, GODOT_VERSION_MINOR, GODOT_VERSION_PATCH, GODOT_VERSION_STATUS);
+    result += "=======================================================================\n";
+    result += "\n";
+
+    if (!static_variables.is_empty()) {
+        result += vformat("Static Variables: %d\n", static_variables.size());
+        for (const KeyValue<StringName, MemberInfo>& E : static_variables_indices) {
+            result += vformat("  - Index   : %d\n", E.value.index);
+            result += vformat("    Getter  : %s\n", E.value.getter);
+            result += vformat("    Setter  : %s\n", E.value.setter);
+            result += vformat("    Type    : %s\n", E.value.data_type.builtin_type);
+            result += vformat("    Property: %s\n", DictionaryUtils::from_property(E.value.property_info));
+            result += vformat("    Value   : %s\n", static_variables[E.value.index]);
+        }
+        result += "\n";
     }
-    result += vformat(static_variables.size() > 0 ? "\n" : "");
 
-    result += vformat("Signals Count   : %d\n", signals.size());
-    for (const KeyValue<StringName, MethodInfo>& E : signals) {
-        result += vformat("  - Name    : %s\n", E.key);
-        result += vformat("    Method  : %s\n", DictionaryUtils::from_method(E.value));
+    if (!signals.is_empty()) {
+        result += vformat("Signals Count   : %d\n", signals.size());
+        for (const KeyValue<StringName, MethodInfo>& E : signals) {
+            result += vformat("  - Name    : %s\n", E.key);
+            result += vformat("    Method  : %s\n", DictionaryUtils::from_method(E.value));
+        }
+        result += "\n";
     }
-    result += vformat(signals.size() > 0 ? "\n" : "");
 
-    result += vformat("Member Count    : %d\n", members.size());
-    for (const KeyValue<StringName, MemberInfo>& E : member_indices) {
-        result += vformat("  - Index   : %d\n", E.value.index);
-        result += vformat("    Getter  : %s\n", E.value.getter);
-        result += vformat("    Setter  : %s\n", E.value.setter);
-        result += vformat("    Type    : %s\n", E.value.data_type.builtin_type);
-        result += vformat("    Property: %s\n", DictionaryUtils::from_property(E.value.property_info));
+    if (!members.is_empty()) {
+        result += vformat("Member Count    : %d\n", members.size());
+        for (const KeyValue<StringName, MemberInfo>& E : member_indices) {
+            result += vformat("  - Index   : %d\n", E.value.index);
+            result += vformat("    Getter  : %s\n", E.value.getter);
+            result += vformat("    Setter  : %s\n", E.value.setter);
+            result += vformat("    Type    : %s\n", E.value.data_type.builtin_type);
+            result += vformat("    Property: %s\n", DictionaryUtils::from_property(E.value.property_info));
+        }
+        result += "\n";
     }
-    result += vformat(members.size() > 0 ? "\n" : "");
 
-    result += vformat("Constants Count : %d\n", constants.size());
-    for (const KeyValue<StringName, Variant>& E : constants) {
-        result += vformat("  - Name    : %s\n", E.key);
-        result += vformat("    Value   : %s\n", E.value);
+    if (!constants.is_empty()) {
+        result += vformat("Constants Count : %d\n", constants.size());
+        for (const KeyValue<StringName, Variant>& E : constants) {
+            result += vformat("  - Name    : %s\n", E.key);
+            result += vformat("    Value   : %s\n", E.value);
+        }
+        result += "\n";
     }
-    result += vformat(constants.size() > 0 ? "\n" : "");
 
-    result += vformat("RPC             : %s\n", rpc_config);
-    result += vformat("\n");
+    if (!rpc_config.is_empty()) {
+        result += vformat("RPC             : %s\n", rpc_config);
+        result += vformat("\n");
+    }
 
-    result += vformat("Functions:\n");
-    result += String("-").repeat(32) + "\n";
-    for (const KeyValue<StringName, OScriptCompiledFunction*>& E : member_functions) {
-        result += vformat("Name        : %s\n", E.key);
-        result += vformat("%s\n", E.value->to_string());
+    if (!member_functions.is_empty()) {
+        for (const KeyValue<StringName, OScriptCompiledFunction*>& E : member_functions) {
+            result += vformat("Function Name   : %s\n", E.key);
+            result += vformat("Logical Name    : %s.%s\n", E.value->source, E.value->name);
+            result += vformat("Is Static       : %s\n", E.value->_static ? "Yes" : "No");
+            result += vformat("MethodInfo      : %s\n", DictionaryUtils::from_method(E.value->method_info));
+            result += vformat("RPC             : %s\n", E.value->rpc_config);
+            result += vformat("Arg. Count      : %d\n", E.value->argument_count);
+            result += vformat("Is VarArg       : %s\n", E.value->is_vararg() ? "Yes" : "No");
+            result += vformat("VarArg Index    : %d\n", E.value->vararg_index);
+            result += vformat("Stack Size      : %d\n", E.value->stack_size);
+            result += vformat("Instr Arg Size  : %d\n", E.value->instruction_arg_size);
+
+            result += vformat("Temporary Slots : %d\n", E.value->temporary_slots.size());
+            for (const KeyValue<int, Variant::Type>& T : E.value->temporary_slots) {
+                result += vformat("\t[%d]: %s\n", T.key, Variant::get_type_name(T.value));
+            }
+
+            result += vformat("Code Size       : %d\n\n", E.value->code_size);
+            result += vformat("Code:\n-----------------------------------------------------\n");
+            for (int i = 0; i < E.value->code_size; i++) {
+                result += vformat("%d ", E.value->code[i]);
+            }
+            result += "\n\n";
+
+            #ifdef DEBUG_ENABLED
+            Vector<String> lines;
+            result += vformat("Disassembly:\n-----------------------------------------------------\n");
+            E.value->disassemble(Vector<String>(), lines);
+            for (const String& line : lines) {
+                result += vformat("%s\n", line);
+            }
+            result += "\n";
+            #endif
+        }
     }
 
     return result;

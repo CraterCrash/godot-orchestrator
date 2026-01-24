@@ -29,7 +29,8 @@ struct OrchestrationBinaryFormat {
         FORMAT_FLAG_UNUSED_1            = 1,
         FORMAT_FLAG_UIDS                = 2,
         FORMAT_FLAG_REAL_T_IS_DOUBLE    = 4,
-        FORMAT_FLAG_HAS_SCRIPT_CLASS    = 8
+        FORMAT_FLAG_HAS_SCRIPT_CLASS    = 8,
+        FORMAT_FLAG_HAS_ICON_PATH       = 16,
     };
 
     enum PropertyType : uint32_t {

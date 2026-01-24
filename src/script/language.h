@@ -136,9 +136,10 @@ public:
     Dictionary _validate(const String& p_script, const String& p_path, bool p_validate_functions, bool p_validate_errors, bool p_validate_warnings, bool p_validate_safe_lines) const override;
     String _validate_path(const String &p_path) const override { return {}; }
     Object* _create_script() const override;
-    bool _has_named_classes() const override { return false; }
+    // This method is deprecated and not called by the engine
+    bool _has_named_classes() const override { return true; }
     bool _supports_builtin_mode() const override { return true; }
-    bool _supports_documentation() const override { return false; }
+    bool _supports_documentation() const override { return true; }
     bool _can_inherit_from_file() const override { return true; }
     int32_t _find_function(const String& p_function_name, const String& p_code) const override;
     String _make_function(const String& p_class_name, const String& p_function_name, const PackedStringArray& p_function_args) const override;

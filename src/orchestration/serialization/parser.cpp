@@ -18,8 +18,8 @@
 
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
+#include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/core/class_db.hpp>
-
 
 void OrchestrationParser::_set_resource_property(Ref<Resource>& r_resource, const MissingResource* p_missing_resource, const StringName& p_name, const Variant& p_value, Dictionary& r_missing_properties) {
     Variant value = p_value;
