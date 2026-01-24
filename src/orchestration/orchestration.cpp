@@ -1193,7 +1193,7 @@ void Orchestration::_bind_methods() {
 
     ClassDB::bind_method(D_METHOD("set_icon_path", "p_path"), &Orchestration::set_icon_path);
     ClassDB::bind_method(D_METHOD("get_icon_path"), &Orchestration::get_icon_path);
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "icon_path", PROPERTY_HINT_FILE_PATH), "set_icon_path", "get_icon_path");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "icon_path", PROPERTY_HINT_FILE), "set_icon_path", "get_icon_path");
 
     // Purposely hidden until tested
     ClassDB::bind_method(D_METHOD("set_tool", "p_tool"), &Orchestration::set_tool);
