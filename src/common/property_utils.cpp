@@ -16,8 +16,12 @@
 //
 #include "common/property_utils.h"
 
-#include "godot_cpp/templates/hash_map.hpp"
-#include "string_utils.h"
+#include "common/string_utils.h"
+#include "core/godot/scene_string_names.h"
+
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/resource_uid.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 
 namespace PropertyUtils {
 
@@ -148,5 +152,16 @@ namespace PropertyUtils {
         }
 
         return StringUtils::join(", ", values);
+    }
+
+    Ref<Script> get_custom_type_script(const Object* p_object) {
+        Variant custom_script = p_object->get_meta(SceneStringName(_custom_type_script));
+        int64_t id = ResourceUID::get_singleton()->text_to_id(custom_script);
+        if (unlikely(id == ResourceUID::INVALID_ID || !ResourceUID::get_singleton()->has_id(id))) {
+            return Ref<Script>();
+        }
+
+        custom_script = ResourceUID::get_singleton()->get_id_path(id);
+        return ResourceLoader::get_singleton()->load(custom_script);
     }
 }

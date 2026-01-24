@@ -18,6 +18,7 @@
 
 #include "common/property_utils.h"
 #include "common/string_utils.h"
+#include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
@@ -60,6 +61,36 @@ bool OScriptNodePreload::_set(const StringName &p_name, const Variant& p_value) 
     return false;
 }
 
+StringName OScriptNodePreload::_get_resource_class_name() const {
+    // If resource is invalid, attempt to load it
+    Ref<Resource> resource = _resource;
+    if (!resource.is_valid()) {
+        resource = ResourceLoader::get_singleton()->load(_resource_path);
+    }
+
+    // If resource is valid, if scene, get root node type; otherwise resource type
+    if (resource.is_valid()) {
+        const Ref<PackedScene> scene = resource;
+        if (scene.is_valid() && scene->can_instantiate()) {
+            return scene->instantiate()->get_class();
+        }
+
+        if (resource->has_meta(SceneStringName(_custom_type_script))) {
+            const Ref<Script> custom_script = PropertyUtils::get_custom_type_script(resource.ptr());
+            if (custom_script.is_valid()) {
+                const String global_name = custom_script->get_global_name();
+                if (!global_name.is_empty()) {
+                    return global_name;
+                }
+            }
+        }
+
+        return resource->get_class();
+    }
+
+    return Resource::get_class_static();
+}
+
 void OScriptNodePreload::post_initialize() {
     // Fixup resource pin attributes
     if (!_resource.is_valid() && !_resource_path.is_empty()) {
@@ -70,7 +101,7 @@ void OScriptNodePreload::post_initialize() {
 }
 
 void OScriptNodePreload::allocate_default_pins() {
-    const String class_name = !_resource.is_valid() ? "Resource" : _resource->get_class();
+    const String class_name = _get_resource_class_name();
     const String path = StringUtils::default_if_empty(_resource_path, "No Resource");
     create_pin(PD_Output, PT_Data, PropertyUtils::make_object("path", class_name), _resource_path)->set_label(path, false);
 
@@ -91,6 +122,13 @@ String OScriptNodePreload::get_icon() const {
 
 StringName OScriptNodePreload::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const {
     if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution()) {
+        return _get_resource_class_name();
+    }
+    return super::resolve_type_class(p_pin);
+}
+
+Ref<OScriptTargetObject> OScriptNodePreload::resolve_target(const Ref<OScriptNodePin>& p_pin) const {
+    if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution()) {
         // If resource is invalid, attempt to load it
         Ref<Resource> resource = _resource;
         if (!resource.is_valid()) {
@@ -101,12 +139,13 @@ StringName OScriptNodePreload::resolve_type_class(const Ref<OScriptNodePin>& p_p
         if (resource.is_valid()) {
             const Ref<PackedScene> scene = resource;
             if (scene.is_valid() && scene->can_instantiate()) {
-                return scene->instantiate()->get_class();
+                return memnew(OScriptTargetObject(scene->instantiate(), true));
             }
-            return resource->get_class();
+            return memnew(OScriptTargetObject(resource.ptr(), false));
         }
     }
-    return super::resolve_type_class(p_pin);
+
+    return super::resolve_target(p_pin);
 }
 
 void OScriptNodePreload::initialize(const OScriptNodeInitContext& p_context) {

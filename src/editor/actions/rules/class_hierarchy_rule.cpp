@@ -50,7 +50,11 @@ void OrchestratorEditorActionClassHierarchyScopeRule::set_script_classes(const R
 
         while (!class_name.is_empty()) {
             _script_hierarchy_classes.push_back(class_name);
-            class_name = ClassDB::get_parent_class(class_name);
+            if (ScriptServer::is_global_class(class_name)) {
+                class_name = ScriptServer::get_global_class(class_name).base_type;
+            } else {
+                class_name = ClassDB::get_parent_class(class_name);
+            }
         }
     }
 }
