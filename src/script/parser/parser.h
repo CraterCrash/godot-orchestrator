@@ -191,6 +191,8 @@ private:
         };;
     }
 
+    void bind_handlers();
+
 #ifdef DEBUG_ENABLED
 public:
     struct WarningDirectoryRule {
