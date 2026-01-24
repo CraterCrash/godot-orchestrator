@@ -63,6 +63,7 @@ class OrchestrationBinaryParser : public OrchestrationParser {
     String _type;
     String _resource_type;
     String _script_class;
+    String _icon_path;
     int64_t _uid = ResourceUID::INVALID_ID;
 
     String _error_text;

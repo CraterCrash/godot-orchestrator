@@ -1344,7 +1344,6 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
 
     } else if (const Ref<OScriptNodeCallScriptFunction>& script_func = p_node; script_func.is_valid()) {
         const Ref<OScriptFunction> function = script_func->get_function();
-        const MethodInfo& method = function->get_method_info();
 
         call_node->callee = build_identifier(function->get_function_name());
         call_node->function_name = function->get_function_name();
@@ -2811,6 +2810,22 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
     clazz->extends.push_back(base);
     clazz->extends_used = true;
 
+    if (!p_orchestration->get_global_name().is_empty()) {
+         clazz->identifier = build_identifier(p_orchestration->get_global_name());
+         clazz->fqcn = clazz->identifier->name;
+    }
+
+    if (!p_orchestration->get_icon_path().is_empty()) {
+        clazz->icon_path = p_orchestration->get_icon_path();
+        if (clazz->icon_path.is_empty() || clazz->icon_path.is_absolute_path()) {
+            clazz->simplified_icon_path = clazz->icon_path.simplify_path();
+        } else if (clazz->icon_path.is_relative_path()) {
+            clazz->simplified_icon_path = script_path.get_base_dir().path_join(clazz->icon_path).simplify_path();
+        } else {
+            clazz->simplified_icon_path = clazz->icon_path;
+        }
+    }
+
     for (const Ref<OScriptVariable>& variable : p_orchestration->get_variables()) {
         VariableNode* node = build_variable(variable);
         clazz->add_member(node);
@@ -2839,6 +2854,15 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
             }
         }
     }
+
+    #ifdef TOOLS_ENABLED
+    if (!p_orchestration->get_brief_description().is_empty()) {
+        clazz->doc_data.brief = p_orchestration->get_brief_description();
+    }
+    if (!p_orchestration->get_description().is_empty()) {
+        clazz->doc_data.description = p_orchestration->get_description();
+    }
+    #endif
 
     return clazz;
 }
@@ -2877,6 +2901,12 @@ OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVari
         node->assignments++;
     }
 
+    #ifdef TOOLS_ENABLED
+    if (!p_variable->get_description().is_empty()) {
+        node->doc_data.description = p_variable->get_description();
+    }
+    #endif
+
     return node;
 }
 
@@ -2908,6 +2938,10 @@ OScriptParser::SignalNode* OScriptParser::build_signal(const Ref<OScriptSignal>&
         }
     }
 
+    #ifdef TOOLS_ENABLED
+    signal->doc_data.description = p_signal->get_description();
+    #endif
+
     return signal;
 }
 
@@ -2937,6 +2971,10 @@ OScriptParser::FunctionNode* OScriptParser::build_function(const Ref<OScriptFunc
     }
 
     function_node->return_type = build_type(p_function->get_method_info().return_val);
+
+    #ifdef TOOLS_ENABLED
+    function_node->doc_data.description = p_function->get_description();
+    #endif
 
     // Perform function graph pre-pass analysis
     OScriptFunctionAnalyzer analyzer;

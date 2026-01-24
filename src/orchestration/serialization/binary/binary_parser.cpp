@@ -595,6 +595,9 @@ Error OrchestrationBinaryParser::_read_header_block() {
         if (_flags & OrchestrationBinaryFormat::FORMAT_FLAG_HAS_SCRIPT_CLASS) {
             _script_class = _read_unicode_string();
         }
+        if (_flags & OrchestrationBinaryFormat::FORMAT_FLAG_HAS_ICON_PATH) {
+            _icon_path = _read_unicode_string();
+        }
     }
 
     for (uint32_t i = 0; i < OrchestrationBinaryFormat::RESERVED_FIELDS; i++) {
@@ -948,6 +951,9 @@ Error OrchestrationBinaryParser::rename_dependencies(const String& p_path, const
     if (flags & OrchestrationBinaryFormat::FORMAT_FLAG_HAS_SCRIPT_CLASS) {
         OrchestrationBinaryFormat::save_unicode_string(fw, OrchestrationBinaryFormat::read_unicode_string(file));
     }
+    if (flags & OrchestrationBinaryFormat::FORMAT_FLAG_HAS_ICON_PATH) {
+        OrchestrationBinaryFormat::save_unicode_string(fw, OrchestrationBinaryFormat::read_unicode_string(file));
+    }
 
     // Reserved files
     for (uint32_t i = 0; i < OrchestrationBinaryFormat::RESERVED_FIELDS; i++) {
@@ -1068,6 +1074,7 @@ Variant OrchestrationBinaryParser::load(const String& p_path) {
 
     Ref<Orchestration> orchestration = _resource;
     if (orchestration.is_valid()) {
+        orchestration->_script_path = p_path;
         orchestration->post_initialize();
     }
 

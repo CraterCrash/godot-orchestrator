@@ -34,11 +34,15 @@ int64_t OrchestrationTextFormat::get_resource_id_for_path(const String& p_path, 
     return ResourceUID::INVALID_ID;
 }
 
-String OrchestrationTextFormat::create_start_tag(const String& p_class, const String& p_script_class, uint32_t p_steps, uint32_t p_version, int64_t p_uid) {
+String OrchestrationTextFormat::create_start_tag(const String& p_class, const String& p_script_class, const String& p_icon_path, uint32_t p_steps, uint32_t p_version, int64_t p_uid) {
     String tag = vformat(R"([orchestration type="%s" )", p_class);
 
     if (!p_script_class.is_empty()) {
         tag += vformat(R"(script_class="%s" )", p_script_class);
+    }
+
+    if (!p_icon_path.is_empty()) {
+        tag += vformat(R"(icon="%s" )", p_icon_path);
     }
 
     if (p_steps > 1) {

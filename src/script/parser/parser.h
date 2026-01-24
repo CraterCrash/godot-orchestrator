@@ -188,7 +188,7 @@ private:
                 return (this->*handler)(casted, pin);
             }
             ERR_FAIL_V_MSG(nullptr, "Failed to find expression handler for node " + T::get_class_static()); // NOLINT
-        };;
+        };
     }
 
     void bind_handlers();

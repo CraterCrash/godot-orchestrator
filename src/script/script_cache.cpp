@@ -67,7 +67,8 @@ Error OScriptParserRef::raise_status(Status p_new_status) {
                 get_parser()->clear();
                 _status = PARSED;
 
-                const OScriptSource source = OScriptCache::get_source_code(_path);
+                String remapped_path = GDE::ResourceLoader::path_remap(_path);
+                const OScriptSource source = OScriptCache::get_source_code(remapped_path);
                 _source_hash = source.hash();
 
                 _result = get_parser()->parse(source, _path);
@@ -204,7 +205,7 @@ Ref<OScriptParserRef> OScriptCache::get_parser(const String& p_path, OScriptPars
     MutexLock lock(get_cache_mutex());
 
     Ref<OScriptParserRef> ref;
-    if (!p_owner.is_empty()) {
+    if (!p_owner.is_empty() && p_path != p_owner) {
         _singleton->_dependencies[p_owner].insert(p_path);
         _singleton->_parser_inverse_dependencies[p_path].insert(p_owner);
     }
@@ -216,9 +217,14 @@ Ref<OScriptParserRef> OScriptCache::get_parser(const String& p_path, OScriptPars
             return ref;
         }
     } else {
-        // no remaps
-        r_error = ERR_FILE_NOT_FOUND;
-        return ref;
+        String remapped_path = GDE::ResourceLoader::path_remap(p_path);
+        if (!FileAccess::file_exists(remapped_path)) {
+            r_error = ERR_FILE_NOT_FOUND;
+            return ref;
+        }
+        ref.instantiate();
+        ref->_path = p_path;
+        _singleton->_parser_map[p_path] = ref.ptr();
     }
 
     r_error = ref->raise_status(p_status);

@@ -178,7 +178,7 @@ void Orchestration::_fix_orphans() {
             continue;
         }
 
-        const String path = _self ? _self->get_path() : "<n/a>";
+        const String path = _self ? _self->get_path() : _script_path;
         WARN_PRINT(vformat("Removed orphan node %d (%s) from script %s.", E.key, E.value->get_class(), path));
         _nodes.erase(E.key);
     }
@@ -263,6 +263,50 @@ void Orchestration::set_base_type(const StringName& p_base_type) {
     }
 }
 
+StringName Orchestration::get_global_name() const {
+    return _global_name;
+}
+
+void Orchestration::set_global_name(const StringName& p_global_name) {
+    if (_global_name != p_global_name) {
+        _global_name = p_global_name;
+        emit_changed();
+    }
+}
+
+String Orchestration::get_icon_path() const {
+    return _icon_path;
+}
+
+void Orchestration::set_icon_path(const String& p_path) {
+    if (_icon_path != p_path) {
+        _icon_path = p_path;
+        emit_changed();
+    }
+}
+
+String Orchestration::get_brief_description() const {
+    return _brief_description;
+}
+
+void Orchestration::set_brief_description(const String& p_brief_description) {
+    if (_brief_description != p_brief_description) {
+        _brief_description = p_brief_description;
+        emit_changed();
+    }
+}
+
+String Orchestration::get_description() const {
+    return _description;
+}
+
+void Orchestration::set_description(const String& p_description) {
+    if (_description != p_description) {
+        _description = p_description;
+        emit_changed();
+    }
+}
+
 void Orchestration::set_self(Resource* p_self) {
     _self = p_self;
 }
@@ -273,14 +317,6 @@ Ref<OScript> Orchestration::as_script() {
 
 void Orchestration::mark_dirty() {
     as_script()->emit_changed();
-}
-
-String Orchestration::get_global_name() const {
-    const Ref<Script> script = Ref<Script>(_self);
-    if (script.is_valid()) {
-        return ScriptServer::get_global_name(script);
-    }
-    return {};
 }
 
 int Orchestration::get_available_id() const {
@@ -1115,8 +1151,11 @@ PackedStringArray Orchestration::get_custom_signal_names() const {
 }
 
 void Orchestration::copy_state(const Ref<Orchestration>& p_other) {
-
     set_block_signals(true);
+    set_global_name(p_other->get_global_name());
+    set_icon_path(p_other->get_icon_path());
+    set_description(p_other->get_description());
+    set_brief_description(p_other->get_brief_description());
     set_base_type(p_other->get_base_type());
     _set_nodes_internal(p_other->_get_nodes_internal());
     _set_connections_internal(p_other->_get_connections_internal());
@@ -1146,12 +1185,28 @@ void Orchestration::copy_state(const Ref<Orchestration>& p_other) {
 void Orchestration::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_set_base_type", "p_base_type"), &Orchestration::set_base_type);
     ClassDB::bind_method(D_METHOD("_get_base_type"), &Orchestration::get_base_type);
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "base_type", PROPERTY_HINT_TYPE_STRING, "Node"), "_set_base_type", "_get_base_type");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "base_type", PROPERTY_HINT_TYPE_STRING, "Object"), "_set_base_type", "_get_base_type");
+
+    ClassDB::bind_method(D_METHOD("set_global_name", "p_class_name"), &Orchestration::set_global_name);
+    ClassDB::bind_method(D_METHOD("get_global_name"), &Orchestration::get_global_name);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "class_name"), "set_global_name", "get_global_name");
+
+    ClassDB::bind_method(D_METHOD("set_icon_path", "p_path"), &Orchestration::set_icon_path);
+    ClassDB::bind_method(D_METHOD("get_icon_path"), &Orchestration::get_icon_path);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "icon_path", PROPERTY_HINT_FILE_PATH), "set_icon_path", "get_icon_path");
 
     // Purposely hidden until tested
     ClassDB::bind_method(D_METHOD("set_tool", "p_tool"), &Orchestration::set_tool);
     ClassDB::bind_method(D_METHOD("get_tool"), &Orchestration::get_tool);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "tool", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_tool", "get_tool");
+
+    ClassDB::bind_method(D_METHOD("set_brief_description", "brief_description"), &Orchestration::set_brief_description);
+    ClassDB::bind_method(D_METHOD("get_brief_description"), &Orchestration::get_brief_description);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "brief_description"), "set_brief_description", "get_brief_description");
+
+    ClassDB::bind_method(D_METHOD("set_description", "description"), &Orchestration::set_description);
+    ClassDB::bind_method(D_METHOD("get_description"), &Orchestration::get_description);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT), "set_description", "get_description");
 
     ClassDB::bind_method(D_METHOD("_set_variables", "variables"), &Orchestration::_set_variables_internal);
     ClassDB::bind_method(D_METHOD("_get_variables"), &Orchestration::_get_variables_internal);

@@ -36,9 +36,9 @@ enum OrchestrationType {
 VARIANT_ENUM_CAST(OrchestrationType);
 
 /// Forward declarations
-class OScriptBinaryResourceLoader;
+class OrchestrationBinaryParser;
+class OrchestrationTextParser;
 class OScriptCache;
-class OScriptTextResourceLoader;
 
 /// The common contract for different types of Orchestration resources.
 ///
@@ -54,8 +54,8 @@ class Orchestration : public Resource {
     GDCLASS(Orchestration, Resource);
 
     friend class OScriptGraph;
-    friend class OScriptBinaryResourceLoader;
-    friend class OScriptTextResourceLoader;
+    friend class OrchestrationBinaryParser;
+    friend class OrchestrationTextParser;
     friend class OScriptCache;
     friend class OScriptLanguage;
 
@@ -63,6 +63,8 @@ class Orchestration : public Resource {
     bool _initialized{ false };                            //! Whether the orchestration is initialized
     bool _edited{ false };                                 //! Tracks whether the orchestration has been edited
     StringName _base_type;                                 //! The base type of the orchestration
+    StringName _global_name;                               //! Global class name for script, e.g. `class_name`
+    String _icon_path;                                     //! Path to script's custom icon, e.g. `@icon`
     RBSet<OScriptConnection> _connections;                 //! The connections between nodes in the orchestration
     HashMap<int, Ref<OScriptNode>> _nodes;                 //! Map of all nodes within this orchestration
     HashMap<StringName, Ref<OScriptFunction>> _functions;  //! Map of all orchestration functions
@@ -71,6 +73,9 @@ class Orchestration : public Resource {
     HashMap<StringName, Ref<OScriptGraph>> _graphs;        //! Map of all defined graphs
     Resource* _self;                                       //! Reference to the outer resource type
     uint32_t _version{ 0 };                                //! Orchestration version
+    String _brief_description;                             //! Brief description
+    String _description;                                   //! Full description
+    String _script_path;
 
 protected:
     static void _bind_methods();
@@ -142,6 +147,38 @@ public:
     /// @param p_tool true to run in the editor in tool-mode, false to run only at run-time
     virtual void set_tool(bool p_tool) { }
 
+    /// Get the global class name assigned to the orchestration
+    /// @return the global class name
+    StringName get_global_name() const;
+
+    /// Sets the global class name assigned to the orchestration
+    /// @param p_global_name the script global class name
+    void set_global_name(const StringName& p_global_name);
+
+    /// Get the icon associated with the script class
+    /// @return the icon path
+    String get_icon_path() const;
+
+    /// Get the icon associated with the script class
+    /// @param p_path the script class icon
+    void set_icon_path(const String& p_path);
+
+    /// Get the script's brief description
+    /// @return the brief description
+    String get_brief_description() const;
+
+    /// Set the script's brief description
+    /// @param p_brief_description the brief description
+    void set_brief_description(const String& p_brief_description);
+
+    /// Get the script's full description
+    /// @return the full description
+    String get_description() const;
+
+    /// Sets the script full description
+    /// @param p_description the full description
+    void set_description(const String& p_description);
+
     /// Get a pointer to the underlying owning resource of the orchestration
     /// @return the owning resource, use with caution
     virtual Ref<Resource> get_self() const { return _self; }
@@ -155,10 +192,6 @@ public:
     /// Get a pointer to this orchestration
     /// @return the orchestration
     virtual Orchestration* get_orchestration() { return this; }
-
-    /// Get the global class name associated with the orchestration
-    /// @return the global class name or an empty string
-    String get_global_name() const;
 
     /// Get the next available node unique ID
     /// @return the next node unique ID
