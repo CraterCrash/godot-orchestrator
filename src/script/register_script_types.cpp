@@ -83,6 +83,7 @@ void register_script_types() {
     GDREGISTER_CLASS(Orchestration) // todo: make private?
     GDREGISTER_INTERNAL_CLASS(OScriptNativeClass)
     GDREGISTER_INTERNAL_CLASS(OScriptFunctionState)
+    GDREGISTER_INTERNAL_CLASS(OScriptParserRef)
 
     CoreStringNames::create();
     SceneStringNames::create();
