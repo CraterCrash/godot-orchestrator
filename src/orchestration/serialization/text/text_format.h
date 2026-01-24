@@ -24,7 +24,7 @@ using namespace godot;
 struct OrchestrationTextFormat {
     // Helper methods used by Parser and Serializer
     static int64_t get_resource_id_for_path(const String& p_path, bool p_generate);
-    static String create_start_tag(const String& p_class, const String& p_script_class, uint32_t p_steps, uint32_t p_version, int64_t p_uid);
+    static String create_start_tag(const String& p_class, const String& p_script_class, const String& p_icon_path, uint32_t p_steps, uint32_t p_version, int64_t p_uid);
     static String create_ext_resource_tag(const String& p_type, const String& p_path, const String& p_id, bool p_newline = true);
 };
 

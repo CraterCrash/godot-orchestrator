@@ -458,6 +458,9 @@ String OScriptInstanceBase::to_string() {
             prefix = vformat("%s:", node->get_name());
         }
     }
+    if (Resource* res = Object::cast_to<Resource>(_owner)) {
+        prefix = (res->get_name().is_empty() ? "" : String(res->get_name()) + " ") + "(" + res->get_path() + "):";
+    }
     return vformat("%s<%s#%d>", prefix, _owner->get_class(), _owner->get_instance_id());
 }
 
