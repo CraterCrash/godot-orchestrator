@@ -3020,6 +3020,11 @@ OScriptParser::TypeNode* OScriptParser::build_type(const PropertyInfo& p_propert
         type->type_chain.push_back(type_element);
     }
 
+    if (type_name.is_empty() && p_property.type == Variant::NIL && p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT) {
+        IdentifierNode* type_element = build_identifier("Variant");
+        type->type_chain.push_back(type_element);
+    }
+
     return type;
 }
 
