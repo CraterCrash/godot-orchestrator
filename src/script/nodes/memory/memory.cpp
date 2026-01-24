@@ -18,6 +18,7 @@
 
 #include "common/property_utils.h"
 #include "common/version.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -39,10 +40,18 @@ bool OScriptNodeNew::_get(const StringName& p_name, Variant& r_value) const {
 bool OScriptNodeNew::_set(const StringName& p_name, const Variant& p_value) {
     if (p_name.match("class_name")) {
         if (_class_name != p_value) {
-            const bool is_singleton = Engine::get_singleton()->get_singleton_list().has(p_value);
-            ERR_FAIL_COND_V_MSG(is_singleton, false, vformat("Cannot create an instance of '%s', a singleton.", p_value));
+            // Script types will supply the script path
+            String value = p_value;
+            if (value.begins_with("res://")) {
+                ScriptServer::GlobalClass global_class = ScriptServer::get_global_class_by_path(value);
+                if (!global_class.name.is_empty()) {
+                    value = global_class.name;
+                }
+            }
+            const bool is_singleton = Engine::get_singleton()->get_singleton_list().has(value);
+            ERR_FAIL_COND_V_MSG(is_singleton, false, vformat("Cannot create an instance of '%s', a singleton.", value));
 
-            _class_name = p_value;
+            _class_name = value;
             _notify_pins_changed();
             return true;
         }
