@@ -49,7 +49,7 @@ class OrchestrationTextSerializer : public OrchestrationSerializer {
     String _write_external_resource_ref(const Ref<Resource>& p_resource);
     String _write_internal_resource_ref(const Ref<Resource>& p_resource);
 
-    String _create_start_tag(const String& p_class, const String& p_script_class, uint32_t p_steps, uint32_t p_version, int64_t p_uid);
+    String _create_start_tag(const String& p_class, const String& p_script_class, const String& p_icon_path, uint32_t p_steps, uint32_t p_version, int64_t p_uid);
     String _create_ext_resource_tag(const String& p_type, const String& p_path, const String& p_id, bool p_newline = true);
     String _create_obj_tag(const Ref<Resource>& p_resource, const String& p_uid);
     String _create_resource_tag();

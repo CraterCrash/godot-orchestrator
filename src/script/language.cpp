@@ -20,7 +20,6 @@
 #include "common/dictionary_utils.h"
 #include "common/resource_utils.h"
 #include "common/settings.h"
-#include "common/resource_utils.h"
 #include "common/string_utils.h"
 #include "core/godot/core_constants.h"
 #include "core/godot/variant/variant.h"
@@ -35,6 +34,7 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/expression.hpp>
+#include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -642,6 +642,8 @@ void OScriptLanguage::_reload_scripts(const Array& p_scripts, bool p_soft_reload
             script->load_source_code(script->get_path());
         }
 
+        script->_reload(p_soft_reload);
+
         // Restore state if saved
         for (KeyValue<ObjectID, List<Pair<StringName, Variant>>>& F : E.value) {
             List<Pair<StringName, Variant>>& saved_state = F.value;
@@ -854,9 +856,136 @@ bool OScriptLanguage::_handles_global_class_type(const String& p_type) const {
     return p_type == _get_type();
 }
 
+static String _get_global_class_name_static(const String& p_path, String* r_base_type, String* r_icon_path, bool* r_abstract,
+    bool* r_tool, LocalVector<String>& r_visited) {
+
+    if (r_visited.has(p_path)) {
+        return {};
+    }
+
+    r_visited.push_back(p_path);
+
+    const OScriptSource source = OScriptSource::load(p_path);
+    if (source.get_load_error() != OK) {
+        return {};
+    }
+
+    OScriptParser parser;
+    Error err = parser.parse(source, p_path);
+
+    const OScriptParser::ClassNode* c = parser.get_tree();
+    if (err != OK || !c) {
+        return {};
+    }
+
+    // This function is written to with the goal to be extremely error tolerant, as such the following
+    // requirements must be adhered to at all times:
+    //
+    // - It must not rely on the analyzer (in fact it isn't used here), because at the time global
+    //   classes are parsed, the dependencies may nto be present yet, hence the function will fail.
+    // - It must not fail even if the parsing fails, because even if the file is broken, it should
+    //   attempt its best to retrieve inheritance metadata.
+    if (r_base_type) {
+        const OScriptParser::ClassNode* subclass = parser.get_tree();
+        String path = p_path;
+        OScriptParser subparser;
+        while (subclass) {
+            if (subclass->extends_used) {
+                if (!subclass->extends_path.is_empty()) {
+                    if (subclass->extends.is_empty()) {
+                        // Only care about referenced class_name
+                        _ALLOW_DISCARD_ _get_global_class_name_static(subclass->extends_path, r_base_type, nullptr, nullptr, nullptr, r_visited);
+                        subclass = nullptr;
+                        break;
+                    } else {
+                        Vector<OScriptParser::IdentifierNode*> extended_classes = subclass->extends;
+
+                        const OScriptSource subsource = OScriptSource::load(subclass->extends_path);
+                        if (subsource.get_load_error() != OK) {
+                            break;
+                        }
+
+                        String subpath = subclass->extends_path;
+                        if (subpath.is_relative_path()) {
+                            subpath = path.get_base_dir().path_join(subpath).simplify_path();
+                        }
+
+                        if (subparser.parse(subsource, subpath) != OK) {
+                            break;
+                        }
+
+                        path = subpath;
+                        subclass = subparser.get_tree();
+
+                        while (extended_classes.size() > 0) {
+                            bool found = false;
+                            for (int i = 0; i < subclass->members.size(); i++) {
+                                if (subclass->members[i].type != OScriptParser::ClassNode::Member::CLASS) {
+                                    continue;
+                                }
+                                const OScriptParser::ClassNode* inner_class = subclass->members[i].m_class;
+                                if (inner_class->identifier->name == extended_classes[0]->name) {
+                                    extended_classes.remove_at(0);
+                                    found = true;
+                                    subclass = inner_class;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                subclass = nullptr;
+                                break;
+                            }
+                        }
+                    }
+                } else if (subclass->extends.size() == 1) {
+                    *r_base_type = subclass->extends[0]->name;
+                    subclass = nullptr;
+                } else {
+                    break;
+                }
+            } else {
+                *r_base_type = "RefCounted";
+                subclass = nullptr;
+            }
+        }
+    }
+
+    if (r_icon_path) {
+        *r_icon_path = c->simplified_icon_path;
+    }
+    if (r_abstract) {
+        *r_abstract = c->is_abstract;
+    }
+    if (r_tool) {
+        *r_tool = c->tool;
+    }
+
+    return c->identifier != nullptr ? String(c->identifier->name) : String();
+}
+
 Dictionary OScriptLanguage::_get_global_class_name(const String& p_path) const {
-    // OrchestratorScripts do not have global class names
-    return {};
+    LocalVector<String> visited;
+    String base_type;
+    String icon_path;
+    bool is_abstract = false;
+    bool is_tool = false;
+
+    const String global_name = _get_global_class_name_static(p_path, &base_type, &icon_path, &is_abstract, &is_tool, visited);
+
+    Dictionary data;
+    if (!global_name.is_empty()) {
+        data["name"] = global_name;
+    }
+    if (!base_type.is_empty()) {
+        data["base_type"] = base_type;
+    }
+    if (!icon_path.is_empty()) {
+        data["icon_path"] = icon_path;
+    }
+    data["is_abstract"] = is_abstract;
+    data["is_tool"] = is_tool;
+
+    return data;
 }
 
 void OScriptLanguage::add_orphan_subclass(const String& p_qualified_name, const ObjectID& p_subclass) {

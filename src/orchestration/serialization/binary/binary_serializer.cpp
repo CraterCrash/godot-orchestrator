@@ -696,6 +696,11 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
         flags |= OrchestrationBinaryFormat::FORMAT_FLAG_HAS_SCRIPT_CLASS;
     }
 
+    String icon_path = orchestration->get_icon_path();
+    if (!icon_path.is_empty()) {
+        flags |= OrchestrationBinaryFormat::FORMAT_FLAG_HAS_ICON_PATH;
+    }
+
     _file->store_32(flags);
 
     if (flags & OrchestrationBinaryFormat::FORMAT_FLAG_UIDS) {
@@ -704,6 +709,9 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
     }
     if (!global_name.is_empty()) {
         _save_unicode_string(global_name);
+    }
+    if (!icon_path.is_empty()) {
+        _save_unicode_string(icon_path);
     }
 
     // Leaving some buffer here for future expansion if we need additional values.

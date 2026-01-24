@@ -228,8 +228,16 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
         }
 
         const String script_type = _script->get_orchestration()->get_base_type();
-        button->set_text(vformat("Extends %s", script_type));
-        button->set_button_icon(SceneUtils::get_class_icon(script_type));
+        const String global_name = _script->get_orchestration()->get_global_name();
+        if (!global_name.is_empty()) {
+            button->set_text(vformat("%s Extends %s", global_name, script_type));
+            button->set_button_icon(SceneUtils::get_class_icon(global_name));
+        } else {
+            button->set_text(vformat("Extends %s", script_type));
+            button->set_button_icon(SceneUtils::get_class_icon(script_type));
+        }
+
+        button->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
 
         VSeparator* sep = cast_to<VSeparator>(tab_panel->get_menu_control()->find_child(WARN_ERROR_SEP, false, false));
         if (!sep) {
@@ -277,20 +285,6 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
 void OrchestratorScriptGraphEditorView::_change_script_type() {
     OrchestratorEditor::get_singleton()->make_inspector_visible();
     EI->inspect_object(_script->get_orchestration().ptr());
-
-    // todo: remove this when we introduce class support
-    // Finds the ClassName editor property in the Inspector and toggles it as though the user clicked it.
-    // This allows the user to immediately change the script's base type without Inspector interactions.
-    if (EditorInspector* inspector = EI->get_inspector()) {
-        TypedArray<Node> fields = inspector->find_children("*", "EditorPropertyClassName", true, false);
-        for (int i = 0; i < fields.size(); i++) {
-            TypedArray<Button> buttons = cast_to<Node>(fields[i])->find_children("*", "Button", true, false);
-            if (buttons.is_empty()) {
-                return;
-            }
-            cast_to<Button>(buttons[0])->emit_signal(SceneStringName(pressed));
-        }
-    }
 }
 
 void OrchestratorScriptGraphEditorView::_component_panel_resized() {
@@ -700,7 +694,7 @@ void OrchestratorScriptGraphEditorView::set_edited_resource(const Ref<Resource>&
     }
 
     // Makes sure that when Orchestration changes, any editor tab panels are updated
-    // _script->get_orchestration()->connect("changed", callable_mp_this(_update_editor_script_buttons));
+    _script->get_orchestration()->connect(CoreStringName(changed), callable_mp_this(_update_editor_script_buttons));
     _script->get_orchestration()->connect("reloaded", callable_mp_this(_update_editor_post_reload));
     _script->connect(CoreStringName(changed), callable_mp_this(_update_editor_script_buttons));
 

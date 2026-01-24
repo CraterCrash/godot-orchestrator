@@ -226,6 +226,10 @@ Error OrchestrationTextParser::_open(const Ref<FileAccess>& p_file, bool p_skip_
             _script_class = tag.fields["script_class"];
         }
 
+        if (tag.fields.has("icon")) {
+            _icon_path = tag.fields["icon"];
+        }
+
         _type = tag.fields["type"];
     } else {
         _error_text = "Unrecognized file type: " + tag.name;
@@ -746,6 +750,7 @@ Error OrchestrationTextParser::rename_dependencies(const String& p_path, const D
                 String tag = OrchestrationTextFormat::create_start_tag(
                     _resource_type,
                     _script_class,
+                    _icon_path,
                     _resources_total,
                     OrchestrationFormat::FORMAT_VERSION,
                     _uid);
@@ -910,6 +915,7 @@ Variant OrchestrationTextParser::load(const String& p_path) {
 
     Ref<Orchestration> orchestration = _resource;
     if (orchestration.is_valid()) {
+        orchestration->_script_path = p_path;
         orchestration->post_initialize();
     }
 
@@ -931,6 +937,7 @@ Error OrchestrationTextParser::set_uid(const String& p_path, int64_t p_uid) {
     fw->store_string(OrchestrationTextFormat::create_start_tag(
         OScript::get_class_static(),
         _script_class,
+        _icon_path,
         _resources_total,
         OrchestrationFormat::FORMAT_VERSION,
         p_uid));
