@@ -320,7 +320,7 @@ public:
     PackedInt32Array get_breakpoints() const;
     void clear_breakpoints();
 
-    void show_override_function_action_menu();
+    void show_override_function_action_menu(const Callable& p_callback = Callable());
 
     bool are_pins_compatible(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target) const;
 

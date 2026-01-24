@@ -303,7 +303,20 @@ void OrchestratorScriptGraphEditorView::_component_panel_resized() {
 
 void OrchestratorScriptGraphEditorView::_show_override_function_menu() {
     if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
-        active_panel->show_override_function_action_menu();
+        String graph_name = active_panel->get_name();
+
+        const Ref<OScriptGraph> graph = _script->get_orchestration()->find_graph(graph_name);
+        ERR_FAIL_COND(graph.is_null());
+
+        if (!graph->get_flags().has_flag(OScriptGraph::GF_EVENT)) {
+            active_panel = _get_graph_tab("EventGraph");
+            active_panel->show_override_function_action_menu(
+                callable_mp_lambda(this, [this, active_panel] (const Variant& value) {
+                    _focus_graph_tab(active_panel);
+                }));
+        } else {
+            active_panel->show_override_function_action_menu();
+        }
     }
 }
 

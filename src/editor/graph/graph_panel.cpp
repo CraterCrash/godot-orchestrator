@@ -1852,6 +1852,9 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
             options.position = spawn_position;
             options.drag_pin = _drag_from_pin;
 
+            // For override functions, this is helpful to center where the event node spawns
+            options.center_on_spawn = true;
+
             spawn_node(options);
             break;
         }
@@ -3076,7 +3079,7 @@ void OrchestratorEditorGraphPanel::clear_breakpoints() {
     _refresh_panel_with_model();
 }
 
-void OrchestratorEditorGraphPanel::show_override_function_action_menu() {
+void OrchestratorEditorGraphPanel::show_override_function_action_menu(const Callable& p_callback) {
     _menu_position = _get_center();
     _treat_call_member_as_override = true;
 
@@ -3105,6 +3108,10 @@ void OrchestratorEditorGraphPanel::show_override_function_action_menu() {
     menu->set_close_on_focus_lost(ORCHESTRATOR_GET("ui/actions_menu/close_on_focus_lost", false));
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(false);
+    if (p_callback.is_valid()) {
+        // Callback should be attached first as a pre-handler
+        menu->connect("action_selected", p_callback);
+    }
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
     menu->connect(SceneStringName(canceled), callable_mp_this(_action_menu_canceled));
 
