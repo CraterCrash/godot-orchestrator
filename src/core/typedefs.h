@@ -17,7 +17,14 @@
 #ifndef ORCHESTRATOR_CORE_TYPE_DEFS_H
 #define ORCHESTRATOR_CORE_TYPE_DEFS_H
 
-#include <cstddef>
+#include <godot_cpp/core/defs.hpp>
+
+// In some cases [[nodiscard]] will get false positives,
+// we can prevent the warning in specific cases by preceding the call with a cast.
+// Note: This is mainly required for compatibility with Godot 4.4 and earlier.
+#ifndef _ALLOW_DISCARD_
+#define _ALLOW_DISCARD_ (void)
+#endif
 
 template <typename T, size_t SIZE>
 constexpr size_t std_size(const T(&)[SIZE]) {
