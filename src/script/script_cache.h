@@ -38,6 +38,9 @@ public:
         FULLY_SOLVED
     };
 
+protected:
+    static void _bind_methods() {}
+
 private:
     OScriptParser* _parser = nullptr;
     OScriptAnalyzer* _analyzer = nullptr;
