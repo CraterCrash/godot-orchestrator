@@ -355,6 +355,7 @@ private:
     StatementResult build_call_builtin_function(const Ref<OScriptNodeCallBuiltinFunction>& p_script_node); // vars validated
     StatementResult build_call_script_function(const Ref<OScriptNodeCallScriptFunction>& p_script_node); // vars_validated
     StatementResult build_call_static_function(const Ref<OScriptNodeCallStaticFunction>& p_script_node); // vars_validated
+    StatementResult build_call_super(const Ref<OScriptNodeCallFunction>& p_script_node); // vars_validated
     StatementResult build_sequence(const Ref<OScriptNodeSequence>& p_script_node); // vars validated
     StatementResult build_while(const Ref<OScriptNodeWhile>& p_script_node); // vars validated
     StatementResult build_array_set(const Ref<OScriptNodeArraySet>& p_script_node);

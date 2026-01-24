@@ -112,3 +112,19 @@ MethodInfo OScriptNodeCallScriptFunction::get_method_info() {
     ERR_PRINT(vformat("Script function node has an invalid function %s", _reference.guid));
     return {};
 }
+
+bool OScriptNodeCallScriptFunction::is_override() const {
+    if (get_orchestration()) {
+        Ref<OScript> script = get_orchestration()->as_script();
+        if (script.is_valid()) {
+            script = script->get_base();
+            while (script.is_valid()) {
+                if (script->_has_method(_reference.method.name)) {
+                    return true;
+                }
+                script = script->get_base();
+            }
+        }
+    }
+    return false;
+}

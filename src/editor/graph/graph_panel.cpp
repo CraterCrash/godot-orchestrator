@@ -48,6 +48,7 @@
 #include "script/nodes/data/dictionary.h"
 #include "script/nodes/editable_pin_node.h"
 #include "script/nodes/functions/call_member_function.h"
+#include "script/nodes/functions/call_parent_function.h"
 #include "script/nodes/functions/call_script_function.h"
 #include "script/nodes/functions/event.h"
 #include "script/nodes/functions/function_result.h"
@@ -587,6 +588,13 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     bool has_connections = !get_connected_nodes(p_node).is_empty();
     menu->add_icon_item("Loop", "Refresh Nodes", callable_mp_this(_refresh_selected_nodes));
     menu->add_icon_item("Unlinked", "Break Node Link(s)", callable_mp_this(unlink_node_all).bind(p_node), !has_connections);
+
+    const Ref<OScriptNodeCallFunction> call_function = script_node;
+    const Ref<OScriptNodeEvent> event = script_node;
+    const Ref<OScriptNodeFunctionEntry> entry = script_node;
+    if (event.is_valid() || (call_function.is_valid() && call_function->is_override()) || (entry.is_valid() && entry->is_override())) {
+        menu->add_icon_item("Override", "Add Call to Parent Function", callable_mp_this(_create_call_to_parent_function).bind(p_node));
+    }
 
     if (!are_multiple_selections) {
         menu->add_icon_item("Anchor", "Toggle Bookmark", callable_mp_this(_toggle_node_bookmark).bind(p_node));
@@ -1193,6 +1201,76 @@ bool OrchestratorEditorGraphPanel::_create_new_function_override(const MethodInf
 
     call_deferred("emit_signal", "focus_requested", entry->get_function());
     return true;
+}
+
+void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorEditorGraphNode* p_node) {
+    const Ref<OrchestrationGraphNode> graph_node = p_node->get_graph_node();
+    ERR_FAIL_COND(graph_node.is_null());
+
+    if (const Ref<OScriptNodeCallScriptFunction>& node = graph_node; node.is_valid()) {
+        NodeSpawnOptions options;
+        options.node_class = OScriptNodeCallParentScriptFunction::get_class_static();
+        options.context.method = node->get_method_info();
+        options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
+
+        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
+        if (call_parent) {
+            _set_edited(true);
+        }
+    }
+
+    if (const Ref<OScriptNodeFunctionEntry>& node = graph_node; node.is_valid()) {
+        NodeSpawnOptions options;
+        options.node_class = OScriptNodeCallParentScriptFunction::get_class_static();
+        options.context.method = node->get_function()->get_method_info();
+        options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
+
+        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
+        if (call_parent) {
+            _set_edited(true);
+        }
+    }
+
+    if (const Ref<OScriptNodeCallMemberFunction>& node = graph_node; node.is_valid()) {
+        StringName parent_class_name;
+        if (ScriptServer::is_global_class(node->get_target_class())) {
+            parent_class_name = ScriptServer::get_global_class(node->get_target_class()).base_type;
+        } else {
+            parent_class_name = ClassDB::get_parent_class(_graph->get_orchestration()->get_base_type());
+        }
+
+        NodeSpawnOptions options;
+        options.node_class = OScriptNodeCallParentMemberFunction::get_class_static();
+        options.context.method = node->get_method_info();
+        options.context.class_name = parent_class_name;
+        options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
+
+        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
+        if (call_parent) {
+            _set_edited(true);
+        }
+    }
+
+    if (const Ref<OScriptNodeEvent>& node = graph_node; node.is_valid()) {
+        StringName parent_class_name;
+        StringName global_name = _graph->get_orchestration()->get_global_name();
+        if (ScriptServer::is_global_class(global_name)) {
+            parent_class_name = ScriptServer::get_global_class(global_name).base_type;
+        } else {
+            parent_class_name = ClassDB::get_parent_class(_graph->get_orchestration()->get_base_type());
+        }
+
+        NodeSpawnOptions options;
+        options.node_class = OScriptNodeCallParentScriptFunction::get_class_static();
+        options.context.method = node->get_function()->get_method_info();
+        options.context.class_name = parent_class_name;
+        options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
+
+        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
+        if (call_parent) {
+            _set_edited(true);
+        }
+    }
 }
 
 void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment) {
