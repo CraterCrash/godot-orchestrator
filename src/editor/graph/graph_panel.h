@@ -221,6 +221,7 @@ protected:
     void _collapse_selected_nodes_to_function();
     bool _create_new_function(const String& p_name, bool p_has_return = false);
     bool _create_new_function_override(const MethodInfo& p_method);
+    void _create_call_to_parent_function(OrchestratorEditorGraphNode* p_node);
     void _align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment);
     void _toggle_node_bookmark(OrchestratorEditorGraphNode* p_node);
     bool _has_breakpoint_support() const;

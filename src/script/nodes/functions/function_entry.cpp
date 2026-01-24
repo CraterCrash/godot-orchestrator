@@ -80,6 +80,22 @@ Ref<OScriptNodePin> OScriptNodeFunctionEntry::get_execution_pin() const {
     return find_pin("ExecOut", PD_Output);
 }
 
+bool OScriptNodeFunctionEntry::is_override() const {
+    if (get_orchestration() && _function.is_valid()) {
+        Ref<OScript> script = get_orchestration()->as_script();
+        if (script.is_valid()) {
+            script = script->get_base();
+            while (script.is_valid()) {
+                if (script->_has_method(_function->get_method_info().name)) {
+                    return true;
+                }
+                script = script->get_base();
+            }
+        }
+    }
+    return false;
+}
+
 OScriptNodeFunctionEntry::OScriptNodeFunctionEntry() {
     _flags =NONE;
 }

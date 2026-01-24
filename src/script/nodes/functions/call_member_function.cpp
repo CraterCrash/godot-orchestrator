@@ -72,6 +72,29 @@ void OScriptNodeCallMemberFunction::_upgrade(uint32_t p_version, uint32_t p_curr
     super::_upgrade(p_version, p_current_version);
 }
 
+StringName OScriptNodeCallMemberFunction::_get_method_class_hierarchy_owner(const String& p_class_name, const String& p_method_name) {
+    String class_name = p_class_name;
+    while (!class_name.is_empty()) {
+        TypedArray<Dictionary> methods;
+        if (ScriptServer::is_global_class(class_name)) {
+            methods = ScriptServer::get_global_class(class_name).get_method_list();
+        }
+        else {
+            methods = ClassDB::class_get_method_list(class_name, true);
+        }
+
+        for (uint32_t i = 0; i < methods.size(); i++) {
+            const Dictionary& dict = methods[i];
+            if (dict.has("name") && p_method_name.match(dict["name"]))
+                return class_name;
+        }
+
+        class_name = ClassDB::get_parent_class(class_name);
+    }
+
+    return "";
+}
+
 Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin() {
     PropertyInfo property;
     property.type = _reference.target_type;
@@ -112,29 +135,6 @@ Ref<OScriptNodePin> OScriptNodeCallMemberFunction::_create_target_pin() {
     }
 
     return target;
-}
-
-StringName OScriptNodeCallMemberFunction::_get_method_class_hierarchy_owner(const String& p_class_name, const String& p_method_name) {
-    String class_name = p_class_name;
-    while (!class_name.is_empty()) {
-        TypedArray<Dictionary> methods;
-        if (ScriptServer::is_global_class(class_name)) {
-            methods = ScriptServer::get_global_class(class_name).get_method_list();
-        }
-        else {
-            methods = ClassDB::class_get_method_list(class_name, true);
-        }
-
-        for (uint32_t i = 0; i < methods.size(); i++) {
-            const Dictionary& dict = methods[i];
-            if (dict.has("name") && p_method_name.match(dict["name"]))
-                return class_name;
-        }
-
-        class_name = ClassDB::get_parent_class(class_name);
-    }
-
-    return "";
 }
 
 String OScriptNodeCallMemberFunction::get_tooltip_text() const {
@@ -227,6 +227,15 @@ PackedStringArray OScriptNodeCallMemberFunction::get_suggestions(const Ref<OScri
     }
 
     return super::get_suggestions(p_pin);
+}
+
+bool OScriptNodeCallMemberFunction::is_override() const {
+    if (!_reference.target_class_name.is_empty()) {
+        if (_reference.method.flags & METHOD_FLAG_VIRTUAL) {
+            return true;
+        }
+    }
+    return false;
 }
 
 OScriptNodeCallMemberFunction::OScriptNodeCallMemberFunction() {

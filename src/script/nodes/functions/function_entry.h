@@ -49,6 +49,8 @@ public:
     /// @return the execution pin
     Ref<OScriptNodePin> get_execution_pin() const;
 
+    bool is_override() const;
+
     OScriptNodeFunctionEntry();
 };
 

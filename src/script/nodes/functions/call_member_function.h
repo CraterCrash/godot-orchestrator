@@ -28,11 +28,6 @@ class OScriptNodeCallMemberFunction : public OScriptNodeCallFunction {
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
 
-    //~ Begin OScripNodeCallFunction Interface
-    Ref<OScriptNodePin> _create_target_pin() override;
-    int get_argument_offset() const override { return 1; }
-    //~ End OScriptNodeCallFunction Interface
-
     /// Gets the class in the hierarchy that owns the method
     /// @param p_class_name eldest class in hierarchy to search
     /// @param p_method_name the method name to look for
@@ -41,6 +36,11 @@ class OScriptNodeCallMemberFunction : public OScriptNodeCallFunction {
 
 protected:
     static void _bind_methods() {}
+
+    //~ Begin OScripNodeCallFunction Interface
+    Ref<OScriptNodePin> _create_target_pin() override;
+    int get_argument_offset() const override { return 1; }
+    //~ End OScriptNodeCallFunction Interface
 
 public:
     //~ Begin OScriptNode Interface
@@ -51,6 +51,10 @@ public:
     void initialize(const OScriptNodeInitContext& p_context) override;
     PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
+
+    //~ Begin OScriptNodeCallFunction Interface
+    bool is_override() const override;
+    //~ End OScriptNodeCallFunction Interface
 
     /// Get the target function class
     /// @return the target function class
