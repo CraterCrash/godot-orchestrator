@@ -222,6 +222,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     actions.append_array(_create_categories_from_path(signals_category, p_class_name));
 
     PackedStringArray property_methods;
+    PackedStringArray internal_method_names;
 
     ScriptServer::GlobalClass global_class;
     if (ScriptServer::is_global_class(p_class_name)) {
@@ -232,7 +233,29 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         for (int i = 0; i < p_properties.size(); i++) {
             const PropertyInfo property = DictionaryUtils::to_property(p_properties[i]);
 
+            String getter_name = vformat("get_%s", property.name);
+            String setter_name = vformat("set_%s", property.name);
+
+            if (!global_class.name.is_empty()) {
+                if (ScriptServer::get_global_class(global_class.base_type).has_property(property.name)) {
+                    continue;
+                }
+            }
+
             if (property.usage & PROPERTY_USAGE_INTERNAL) {
+                #if GODOT_VERSION >= 0x040400
+                String getter = StringUtils::default_if_empty(ClassDB::class_get_property_getter(p_class_name, property.name), getter_name);
+                String setter = StringUtils::default_if_empty(ClassDB::class_get_property_setter(p_class_name, property.name), setter_name);
+                #else
+                String getter = getter_name;
+                String setter = setter_name;
+                #endif
+                if (!getter.is_empty()) {
+                    internal_method_names.push_back(getter);
+                }
+                if (!setter.is_empty()) {
+                    internal_method_names.push_back(setter);
+                }
                 continue;
             }
 
@@ -240,88 +263,36 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 continue;
             }
 
-            // if (property.name.begins_with("_"))
-            //     continue;
+            property_methods.push_back(getter_name);
+            actions.append(
+                ActionBuilder(properties_category, getter_name)
+                .type(ActionType::ACTION_GET_PROPERTY)
+                .icon(Variant::get_type_name(property.type))
+                .type_icon("MemberProperty")
+                .tooltip(vformat("Returns the value of property '%s'", property.name))
+                .keywords(Array::make("get", p_class_name, property.name))
+                .target_class(p_class_name)
+                .selectable(true)
+                .property(property)
+                .class_name(p_class_name)
+                .target_classes(Array::make(p_class_name))
+                .build());
 
-            // For script variables, check whether it's defined in the parent or child type. When it
-            // is defined in the parent script types, it should be skipped.
-            if (property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE && !global_class.name.is_empty()) {
-                if (ScriptServer::get_global_class(global_class.base_type).has_property(property.name)) {
-                    continue;
-                }
-            }
-
-            #if GODOT_VERSION >= 0x040400
-            String getter_name = ClassDB::class_get_property_getter(p_class_name, property.name);
-            if (getter_name.is_empty() && property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE) {
-                getter_name = "get_" + property.name;
-            }
-
-            String setter_name = ClassDB::class_get_property_setter(p_class_name, property.name);
-            if (setter_name.is_empty() && property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE) {
-                setter_name = "set_" + property.name;
-            }
-            #else
-            String getter_name = vformat("get_%s", property.name);
-            String setter_name = vformat("set_%s", property.name);
-
-            bool has_getter = false;
-            if ((global_class.name.is_empty() && ClassDB::class_has_method(p_class_name, getter_name))
-                || (!global_class.name.is_empty() && global_class.has_method(getter_name))) {
-                has_getter = true;
-            }
-
-            if (!has_getter) {
-                getter_name = "";
-            }
-
-            bool has_setter = false;
-            if ((global_class.name.is_empty() && ClassDB::class_has_method(p_class_name, setter_name))
-                || (!global_class.name.is_empty() && global_class.has_method(setter_name))) {
-                has_setter = true;
-            }
-
-            if (!has_setter) {
-                setter_name = "";
-            }
-            #endif
-
-            if (!getter_name.is_empty()) {
-                property_methods.push_back(getter_name);
-
-                actions.append(
-                    ActionBuilder(properties_category, getter_name)
-                    .type(ActionType::ACTION_GET_PROPERTY)
-                    .icon(Variant::get_type_name(property.type))
-                    .type_icon("MemberProperty")
-                    .tooltip(vformat("Returns the value of property '%s'", property.name))
-                    .keywords(Array::make("get", p_class_name, property.name))
-                    .target_class(p_class_name)
-                    .selectable(true)
-                    .property(property)
-                    .class_name(p_class_name)
-                    .target_classes(Array::make(p_class_name))
-                    .build());
-            }
-
-            if (!setter_name.is_empty()) {
-                property_methods.push_back(setter_name);
-
-                actions.append(
-                    ActionBuilder(properties_category, setter_name)
-                    .type(ActionType::ACTION_SET_PROPERTY)
-                    .icon(Variant::get_type_name(property.type))
-                    .type_icon("MemberProperty")
-                    .tooltip(vformat("Set the value of property '%s'", property.name))
-                    .keywords(Array::make("set", p_class_name, property.name))
-                    .target_class(p_class_name)
-                    .selectable(true)
-                    .property(property)
-                    .class_name(p_class_name)
-                    .target_classes(Array::make(p_class_name))
-                    .executions(true)
-                    .build());
-            }
+            property_methods.push_back(setter_name);
+            actions.append(
+                ActionBuilder(properties_category, setter_name)
+                .type(ActionType::ACTION_SET_PROPERTY)
+                .icon(Variant::get_type_name(property.type))
+                .type_icon("MemberProperty")
+                .tooltip(vformat("Set the value of property '%s'", property.name))
+                .keywords(Array::make("set", p_class_name, property.name))
+                .target_class(p_class_name)
+                .selectable(true)
+                .property(property)
+                .class_name(p_class_name)
+                .target_classes(Array::make(p_class_name))
+                .executions(true)
+                .build());
         }
     }
 
@@ -352,15 +323,9 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         for (int i = 0; i < p_methods.size(); i++) {
             MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
 
-            // Skip private methods
-            // if (method.name.begins_with("_") && !(method.flags & METHOD_FLAG_VIRTUAL)) {
-            //     continue;
-            // }
-
-            // // Skip internal methods
-            // if (method.name.begins_with("@")) {
-            //     continue;
-            // }
+            if (internal_method_names.has(method.name)) {
+                continue;
+            }
 
             if (prefer_properties_over_methods && property_methods.has(method.name)) {
                 continue;
