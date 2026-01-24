@@ -2771,6 +2771,8 @@ Dictionary OrchestratorEditorGraphPanel::get_closest_connection_at_point(const V
 void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_graph) {
     ERR_FAIL_COND_MSG(!p_graph.is_valid(), "The provided graph panel model is invalid");
 
+    const bool reload = _graph.is_valid();
+
     _graph = p_graph;
 
     set_name(_graph->get_graph_name());
@@ -2780,13 +2782,16 @@ void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_gr
     _graph->connect("node_removed", callable_mp_this(_node_removed));
     _graph->connect(CoreStringName(changed), callable_mp_this(_graph_changed));
     _graph->connect("connection_knots_removed", callable_mp(_knot_editor, &KnotHelper::remove_knots_for_connection));
-    // Setup events with KnotEditor now that a graph has been set
-    _knot_editor->connect("refresh_connections_requested", callable_mp_this(_refresh_panel_connections_with_model));
-    _knot_editor->connect(CoreStringName(changed), callable_mp_this(_knots_changed));
 
-    // When model triggers link/unlink, makes sure the UI updates
-    // Great use case is when changing a variable type where a connection is no longer valid
-    _graph->get_orchestration()->connect("connections_changed", callable_mp_this(_refresh_panel_connections_with_model));
+    if (!reload) {
+        // Setup events with KnotEditor now that a graph has been set
+        _knot_editor->connect("refresh_connections_requested", callable_mp_this(_refresh_panel_connections_with_model));
+        _knot_editor->connect(CoreStringName(changed), callable_mp_this(_knots_changed));
+
+        // When model triggers link/unlink, makes sure the UI updates
+        // Great use case is when changing a variable type where a connection is no longer valid
+        _graph->get_orchestration()->connect("connections_changed", callable_mp_this(_refresh_panel_connections_with_model));
+    }
 
     callable_mp_this(_refresh_panel_with_model).call_deferred();
 }

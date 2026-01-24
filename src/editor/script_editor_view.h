@@ -115,6 +115,7 @@ protected:
     void _close_graph_tab(int p_index);
     void _restore_next_tab();
 
+    void _update_editor_post_reload();
     void _update_editor_script_buttons();
     void _change_script_type();
 
