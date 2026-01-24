@@ -275,9 +275,6 @@ public:
 
     void clear(ClearData* p_clear_data = nullptr);
 
-    [[deprecated]] bool get_tool() const { return _is_tool(); }
-    [[deprecated]] void set_tool(bool p_tool) { _tool = p_tool; }
-
     // Cancels all functions of the script that are waiting to be resumed after using await.
     void cancel_pending_functions(bool p_warn);
 

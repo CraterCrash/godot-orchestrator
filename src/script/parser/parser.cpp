@@ -2853,6 +2853,8 @@ OScriptParser::StatementResult OScriptParser::build_free_object(const Ref<OScrip
 }
 
 OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestration) {
+    _is_tool = p_orchestration->get_tool();
+
     ClassNode* clazz = alloc_node<ClassNode>();
     clazz->fqcn = OScript::canonicalize_path(script_path);
     current_class = clazz;
