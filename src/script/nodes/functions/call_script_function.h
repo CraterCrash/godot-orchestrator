@@ -54,6 +54,7 @@ public:
 
     //~ Begin OScriptNodeCallFunction Interface
     MethodInfo get_method_info() override;
+    bool is_override() const override;
     //~ End OScriptNodeCallFunction Interface
 
     /// Get the function reference

@@ -23,6 +23,7 @@
 #include "orchestration/serialization/binary/binary_parser.h"
 #include "orchestration/serialization/text/text_parser.h"
 #include "script/nodes/flow_control/branch.h"
+#include "script/nodes/functions/call_parent_function.h"
 #include "script/nodes/functions/event.h"
 #include "script/parser/function_analyzer.h"
 #include "script/script.h"
@@ -166,43 +167,45 @@ static String _get_annotation_error_string(const StringName& p_annotation_name, 
 void OScriptParser::bind_handlers() {
     // Register all statement handlers
     // clang-format off
-    register_statement_handler<OScriptNodeBranch,               &OScriptParser::build_if>();
-    register_statement_handler<OScriptNodeTypeCast,             &OScriptParser::build_type_cast>();
-    register_statement_handler<OScriptNodeFunctionResult,       &OScriptParser::build_return>();
-    register_statement_handler<OScriptNodeVariableGet,          &OScriptParser::build_variable_get_validated>();
-    register_statement_handler<OScriptNodeVariableSet,          &OScriptParser::build_variable_set>();
-    register_statement_handler<OScriptNodePropertySet,          &OScriptParser::build_property_set>();
-    register_statement_handler<OScriptNodeAssignLocalVariable,  &OScriptParser::build_assign_local_variable>();
-    register_statement_handler<OScriptNodeCallMemberFunction,   &OScriptParser::build_call_member_function>();
-    register_statement_handler<OScriptNodeCallBuiltinFunction,  &OScriptParser::build_call_builtin_function>();
-    register_statement_handler<OScriptNodeCallScriptFunction,   &OScriptParser::build_call_script_function>();
-    register_statement_handler<OScriptNodeCallStaticFunction,   &OScriptParser::build_call_static_function>();
-    register_statement_handler<OScriptNodeSequence,             &OScriptParser::build_sequence>();
-    register_statement_handler<OScriptNodeWhile,                &OScriptParser::build_while>();
-    register_statement_handler<OScriptNodeArraySet,             &OScriptParser::build_array_set>();
-    register_statement_handler<OScriptNodeArrayClear,           &OScriptParser::build_array_clear>();
-    register_statement_handler<OScriptNodeArrayAppend,          &OScriptParser::build_array_append>();
-    register_statement_handler<OScriptNodeArrayAddElement,      &OScriptParser::build_array_add_element>();
-    register_statement_handler<OScriptNodeArrayRemoveElement,   &OScriptParser::build_array_remove_element>();
-    register_statement_handler<OScriptNodeArrayRemoveIndex,     &OScriptParser::build_array_remove_index>();
-    register_statement_handler<OScriptNodeDictionarySet,        &OScriptParser::build_dictionary_set_item>();
-    register_statement_handler<OScriptNodeChance,               &OScriptParser::build_chance>();
-    register_statement_handler<OScriptNodeDelay,                &OScriptParser::build_delay>();
-    register_statement_handler<OScriptNodeForLoop,              &OScriptParser::build_for_loop>();
-    register_statement_handler<OScriptNodeForEach,              &OScriptParser::build_for_each>();
-    register_statement_handler<OScriptNodeSwitch,               &OScriptParser::build_switch>();
-    register_statement_handler<OScriptNodeSwitchString,         &OScriptParser::build_switch_on_string>();
-    register_statement_handler<OScriptNodeSwitchInteger,        &OScriptParser::build_switch_on_integer>();
-    register_statement_handler<OScriptNodeSwitchEnum,           &OScriptParser::build_switch_on_enum>();
-    register_statement_handler<OScriptNodeRandom,               &OScriptParser::build_random>();
-    register_statement_handler<OScriptNodeInstantiateScene,     &OScriptParser::build_instantiate_scene>();
-    register_statement_handler<OScriptNodeAwaitSignal,          &OScriptParser::build_await_signal>();
-    register_statement_handler<OScriptNodeEmitMemberSignal,     &OScriptParser::build_emit_member_signal>();
-    register_statement_handler<OScriptNodeEmitSignal,           &OScriptParser::build_emit_signal>();
-    register_statement_handler<OScriptNodePrintString,          &OScriptParser::build_print_string>();
-    register_statement_handler<OScriptNodeDialogueMessage,      &OScriptParser::build_message_dialogue>();
-    register_statement_handler<OScriptNodeNew,                  &OScriptParser::build_new_object>();
-    register_statement_handler<OScriptNodeFree,                 &OScriptParser::build_free_object>();
+    register_statement_handler<OScriptNodeBranch,                   &OScriptParser::build_if>();
+    register_statement_handler<OScriptNodeTypeCast,                 &OScriptParser::build_type_cast>();
+    register_statement_handler<OScriptNodeFunctionResult,           &OScriptParser::build_return>();
+    register_statement_handler<OScriptNodeVariableGet,              &OScriptParser::build_variable_get_validated>();
+    register_statement_handler<OScriptNodeVariableSet,              &OScriptParser::build_variable_set>();
+    register_statement_handler<OScriptNodePropertySet,              &OScriptParser::build_property_set>();
+    register_statement_handler<OScriptNodeAssignLocalVariable,      &OScriptParser::build_assign_local_variable>();
+    register_statement_handler<OScriptNodeCallMemberFunction,       &OScriptParser::build_call_member_function>();
+    register_statement_handler<OScriptNodeCallBuiltinFunction,      &OScriptParser::build_call_builtin_function>();
+    register_statement_handler<OScriptNodeCallScriptFunction,       &OScriptParser::build_call_script_function>();
+    register_statement_handler<OScriptNodeCallStaticFunction,       &OScriptParser::build_call_static_function>();
+    register_statement_handler<OScriptNodeSequence,                 &OScriptParser::build_sequence>();
+    register_statement_handler<OScriptNodeWhile,                    &OScriptParser::build_while>();
+    register_statement_handler<OScriptNodeArraySet,                 &OScriptParser::build_array_set>();
+    register_statement_handler<OScriptNodeArrayClear,               &OScriptParser::build_array_clear>();
+    register_statement_handler<OScriptNodeArrayAppend,              &OScriptParser::build_array_append>();
+    register_statement_handler<OScriptNodeArrayAddElement,          &OScriptParser::build_array_add_element>();
+    register_statement_handler<OScriptNodeArrayRemoveElement,       &OScriptParser::build_array_remove_element>();
+    register_statement_handler<OScriptNodeArrayRemoveIndex,         &OScriptParser::build_array_remove_index>();
+    register_statement_handler<OScriptNodeDictionarySet,            &OScriptParser::build_dictionary_set_item>();
+    register_statement_handler<OScriptNodeChance,                   &OScriptParser::build_chance>();
+    register_statement_handler<OScriptNodeDelay,                    &OScriptParser::build_delay>();
+    register_statement_handler<OScriptNodeForLoop,                  &OScriptParser::build_for_loop>();
+    register_statement_handler<OScriptNodeForEach,                  &OScriptParser::build_for_each>();
+    register_statement_handler<OScriptNodeSwitch,                   &OScriptParser::build_switch>();
+    register_statement_handler<OScriptNodeSwitchString,             &OScriptParser::build_switch_on_string>();
+    register_statement_handler<OScriptNodeSwitchInteger,            &OScriptParser::build_switch_on_integer>();
+    register_statement_handler<OScriptNodeSwitchEnum,               &OScriptParser::build_switch_on_enum>();
+    register_statement_handler<OScriptNodeRandom,                   &OScriptParser::build_random>();
+    register_statement_handler<OScriptNodeInstantiateScene,         &OScriptParser::build_instantiate_scene>();
+    register_statement_handler<OScriptNodeAwaitSignal,              &OScriptParser::build_await_signal>();
+    register_statement_handler<OScriptNodeEmitMemberSignal,         &OScriptParser::build_emit_member_signal>();
+    register_statement_handler<OScriptNodeEmitSignal,               &OScriptParser::build_emit_signal>();
+    register_statement_handler<OScriptNodePrintString,              &OScriptParser::build_print_string>();
+    register_statement_handler<OScriptNodeDialogueMessage,          &OScriptParser::build_message_dialogue>();
+    register_statement_handler<OScriptNodeNew,                      &OScriptParser::build_new_object>();
+    register_statement_handler<OScriptNodeFree,                     &OScriptParser::build_free_object>();
+    register_statement_handler<OScriptNodeCallParentScriptFunction, &OScriptParser::build_call_super>();
+    register_statement_handler<OScriptNodeCallParentMemberFunction, &OScriptParser::build_call_super>();
     // clang-format on
 
     // Register all expression handlers
@@ -1930,6 +1933,55 @@ OScriptParser::StatementResult OScriptParser::build_call_static_function(const R
 
     add_statement(statement);
     return create_statement_result(p_script_node, 0);
+}
+
+OScriptParser::StatementResult OScriptParser::build_call_super(const Ref<OScriptNodeCallFunction>& p_script_node) {
+    if (const Ref<OScriptNodeCallParentMemberFunction>& node = p_script_node; node.is_valid()) {
+        const MethodInfo method = node->get_method_info();
+        CallNode* call_node = create_func_call(node->get_target_class(), method.name);
+        call_node->is_super = true;
+        call_node->script_node_id = p_script_node->get_id();
+
+        bind_call_func_args(call_node, p_script_node);
+
+        Node* statement = call_node;
+        if (MethodUtils::has_return_value(method)) {
+            for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
+                if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
+                    statement = create_local(create_unique_name(output), call_node);
+                    break;
+                }
+            }
+        }
+
+        add_statement(statement);
+        return create_statement_result(p_script_node, 0);
+    }
+
+    const Ref<OScriptNodeCallParentScriptFunction> node = p_script_node;
+    if (node.is_valid()) {
+        const MethodInfo method = node->get_method_info();
+        CallNode* call_node = create_func_call(method.name);
+        call_node->is_super = true;
+        call_node->script_node_id = p_script_node->get_id();
+
+        bind_call_func_args(call_node, p_script_node);
+
+        Node* statement = call_node;
+        if (MethodUtils::has_return_value(method)) {
+            for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
+                if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
+                    statement = create_local(create_unique_name(output), call_node);
+                    break;
+                }
+            }
+        }
+
+        add_statement(statement);
+        return create_statement_result(p_script_node, 0);
+    }
+
+    return create_stop_result();
 }
 
 OScriptParser::StatementResult OScriptParser::build_sequence(const Ref<OScriptNodeSequence>& p_script_node) {
