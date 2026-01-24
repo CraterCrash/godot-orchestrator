@@ -263,6 +263,17 @@ void Orchestration::set_base_type(const StringName& p_base_type) {
     }
 }
 
+bool Orchestration::get_tool() const {
+    return _tool;
+}
+
+void Orchestration::set_tool(bool p_tool) {
+    if (_tool != p_tool) {
+        _tool = p_tool;
+        emit_changed();
+    }
+}
+
 StringName Orchestration::get_global_name() const {
     return _global_name;
 }
@@ -1195,10 +1206,9 @@ void Orchestration::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_icon_path"), &Orchestration::get_icon_path);
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "icon_path", PROPERTY_HINT_FILE), "set_icon_path", "get_icon_path");
 
-    // Purposely hidden until tested
     ClassDB::bind_method(D_METHOD("set_tool", "p_tool"), &Orchestration::set_tool);
     ClassDB::bind_method(D_METHOD("get_tool"), &Orchestration::get_tool);
-    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "tool", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_tool", "get_tool");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "tool"), "set_tool", "get_tool");
 
     ClassDB::bind_method(D_METHOD("set_brief_description", "brief_description"), &Orchestration::set_brief_description);
     ClassDB::bind_method(D_METHOD("get_brief_description"), &Orchestration::get_brief_description);

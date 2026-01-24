@@ -624,7 +624,7 @@ bool OScript::_can_instantiate() const {
     // return false to this method because recovery mode prevents it; however, because OScript is defined in
     // the context of GDExtension, extensions are not loaded in recovery, so we can ignore that requirement
     // as the OScript language won't be enabled.
-    return _valid && (_tool || ScriptServer::is_scripting_enabled());
+    return _valid && (_is_tool() || ScriptServer::is_scripting_enabled());
     #else
     return _valid;
     #endif
