@@ -75,6 +75,7 @@ private:
         FILE_SAVE,
         FILE_SAVE_AS,
         FILE_SAVE_ALL,
+        FILE_SOFT_RELOAD_TOOL_SCRIPT,
         FILE_COPY_PATH,
         FILE_COPY_UID,
         FILE_SHOW_IN_FILESYSTEM,
