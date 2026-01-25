@@ -2754,6 +2754,7 @@ OScriptParser::StatementResult OScriptParser::build_print_string(const Ref<OScri
     // PrintString only is compiled when not in an exported game.
     CallNode* call_node = create_func_call("_oscript_internal_print_string");
     call_node->script_node_id = p_script_node->get_id();
+    call_node->arguments.push_back(create_literal(is_tool()));
     for (const Ref<OScriptNodePin>& input : p_script_node->find_pins(PD_Input)) {
         if (input->is_execution()) {
             continue;

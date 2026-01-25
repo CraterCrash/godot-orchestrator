@@ -43,8 +43,9 @@ void OScriptNodePrintString::allocate_default_pins() {
 }
 
 String OScriptNodePrintString::get_tooltip_text() const {
-    return vformat("%s\n%s", "Prints a string to the log, and optionally to the screen.",
-                   "If Print To Log is true, it will be shown in the output window.");
+    return vformat("%s\n%s\n%s", "Prints a string to the log, and optionally to the screen.",
+                   "If Print To Log is true, it will be shown in the output window.",
+                   "For tool-based scripts, this node only writes to the log if enabled.");
 }
 
 void OScriptNodePrintString::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) {

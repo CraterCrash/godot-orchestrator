@@ -409,23 +409,25 @@ struct OScriptUtilityFunctionsDefinitions
     /// A call used by the <code>OScriptNodePrintString</code> class to not only write text to the console output, but
     /// to also print the text as part of the debug UI.
     static void _oscript_internal_print_string(Variant* r_ret, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error) {
-        DEBUG_VALIDATE_ARG_COUNT(5, 5);
-        DEBUG_VALIDATE_ARG_TYPE(0, Variant::NIL);
-        DEBUG_VALIDATE_ARG_TYPE(1, Variant::BOOL);
+        DEBUG_VALIDATE_ARG_COUNT(6, 6);
+        DEBUG_VALIDATE_ARG_TYPE(0, Variant::BOOL);
+        DEBUG_VALIDATE_ARG_TYPE(1, Variant::NIL);
         DEBUG_VALIDATE_ARG_TYPE(2, Variant::BOOL);
-        DEBUG_VALIDATE_ARG_TYPE(3, Variant::COLOR);
-        DEBUG_VALIDATE_ARG_TYPE(4, Variant::FLOAT);
+        DEBUG_VALIDATE_ARG_TYPE(3, Variant::BOOL);
+        DEBUG_VALIDATE_ARG_TYPE(4, Variant::COLOR);
+        DEBUG_VALIDATE_ARG_TYPE(5, Variant::FLOAT);
 
-        if (*p_args[1]) {
+        if (!*p_args[0] && *p_args[2]) {
+            // Overlays are only applicable when print screen is enabled and not in tool scripts.
             OScriptNodePrintStringOverlay* overlay = OScriptLanguage::get_singleton()->get_or_create_overlay();
             if (overlay) {
-                overlay->add_text(*p_args[0], "None", *p_args[4], *p_args[3]);
+                overlay->add_text(*p_args[1], "None", *p_args[5], *p_args[4]);
             }
         }
 
-        if (*p_args[2]) {
+        if (*p_args[3]) {
             // Write to the log
-            UtilityFunctions::print(*p_args[0]);
+            UtilityFunctions::print(*p_args[1]);
         }
 
         *r_ret = nullptr;
@@ -581,7 +583,7 @@ void OScriptUtilityFunctions::register_functions() {
     // users should never expect these functions to exist indefinitely.
     REGISTER_FUNC(_oscript_internal_range, false, RET(ARRAY), NOARGS, true, varray(), true);
     REGISTER_FUNC(_oscript_internal_instantiate_scene, false, PropertyInfo(Variant::OBJECT, "", PROPERTY_HINT_NODE_TYPE, "Node", PROPERTY_USAGE_DEFAULT, "Node"), ARGS( ARG("path", STRING) ), false, varray(), true);
-    REGISTER_FUNC(_oscript_internal_print_string, false, RET(NIL), ARGS( ARGVAR("text"), ARG("print_to_screen", BOOL), ARG("print_to_log", BOOL), ARG("text_color", COLOR), ARG("duration", FLOAT)), false, varray(), true);
+    REGISTER_FUNC(_oscript_internal_print_string, false, RET(NIL), ARGS( ARG("is_tool", BOOL), ARGVAR("text"), ARG("print_to_screen", BOOL), ARG("print_to_log", BOOL), ARG("text_color", COLOR), ARG("duration", FLOAT)), false, varray(), true);
     REGISTER_FUNC(_oscript_internal_show_dialogue, false, RETCLS("Node"), ARGS( ARGVAR("parent"), ARG("scene_path", STRING), ARGVAR("options") ), false, varray(), true);
 }
 
