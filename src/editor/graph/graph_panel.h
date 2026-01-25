@@ -185,6 +185,7 @@ protected:
     void _begin_node_move();
     void _end_node_move();
     void _scroll_offset_changed(const Vector2& p_scroll_offset);
+    void _update_panel_hint();
     //~ End GraphEdit Signals
 
     //~ Begin OrchestratorEditorGraphNode Signals
