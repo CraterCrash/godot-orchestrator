@@ -506,6 +506,44 @@ void OrchestratorEditorGraphPanel::_end_node_move() {
 void OrchestratorEditorGraphPanel::_scroll_offset_changed(const Vector2& p_scroll_offset) {
 }
 
+void OrchestratorEditorGraphPanel::_update_panel_hint() {
+    if (!is_inside_tree()) {
+        return;
+    }
+
+    if (!_graph.is_valid() || !_graph->get_orchestration()) {
+        return;
+    }
+
+    if (_graph->get_orchestration()->get_tool()) {
+        Ref<StyleBox> sb = SceneUtils::get_editor_stylebox("panel", "GraphEdit");
+        if (sb.is_valid()) {
+            Ref<StyleBoxFlat> sbf = sb;
+            if (sbf.is_valid()) {
+                sbf = sbf->duplicate(true);
+                sbf->set_bg_color(ORCHESTRATOR_GET("ui/graph/tool_script_background_color", Color(1,1,0,.1)));
+                add_theme_stylebox_override("panel", sbf);
+            }
+        }
+        if (!find_child("ToolScriptWarning", false, false)) {
+            Label* label = memnew(Label);
+            label->set_name("ToolScriptWarning");
+            label->set_anchor_and_offset(SIDE_TOP, ANCHOR_END, 0);
+            label->set_anchor_and_offset(SIDE_BOTTOM, ANCHOR_END, -25);
+            label->set_anchor_and_offset(SIDE_RIGHT, ANCHOR_END, 0);
+            label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+            label->set_vertical_alignment(VERTICAL_ALIGNMENT_BOTTOM);
+            label->set_text("Godot tool scripts permanently modify your scenes, so be careful how and what you save.");
+            add_child(label);
+        }
+    } else {
+        remove_theme_stylebox_override("panel");
+        if (Node* node = find_child("ToolScriptWarning", false, false)) {
+            node->queue_free();
+        }
+    }
+}
+
 void OrchestratorEditorGraphPanel::_connect_graph_node_pin_signals(OrchestratorEditorGraphNode* p_node) {
     GUARD_NULL(p_node);
 
@@ -1944,6 +1982,8 @@ void OrchestratorEditorGraphPanel::_settings_changed() {
         _theme_update_timer->start();
     }
 
+    _update_panel_hint();
+
     set_minimap_enabled(ORCHESTRATOR_GET("ui/graph/show_minimap", false));
     set_show_arrange_button(ORCHESTRATOR_GET("ui/graph/show_arrange_button", false));
 
@@ -2915,8 +2955,10 @@ void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_gr
         // When model triggers link/unlink, makes sure the UI updates
         // Great use case is when changing a variable type where a connection is no longer valid
         _graph->get_orchestration()->connect("connections_changed", callable_mp_this(_refresh_panel_connections_with_model));
+        _graph->get_orchestration()->connect(CoreStringName(changed), callable_mp_this(_update_panel_hint));
     }
 
+    callable_mp_this(_update_panel_hint).call_deferred();
     callable_mp_this(_refresh_panel_with_model).call_deferred();
 }
 

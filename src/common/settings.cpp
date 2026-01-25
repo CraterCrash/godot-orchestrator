@@ -24,6 +24,7 @@
 
 // Helper setting layouts
 #define BOOL_SETTING(n,v) PropertyInfo(Variant::BOOL, n), v
+#define COLOR_SETTING(n,v) PropertyInfo(Variant::COLOR, n), v
 #define COLOR_NO_ALPHA_SETTING(n,v) PropertyInfo(Variant::COLOR, n, PROPERTY_HINT_COLOR_NO_ALPHA), v
 #define FILE_SETTING(n,f,v) PropertyInfo(Variant::STRING, n, PROPERTY_HINT_FILE, f), v
 #define INT_SETTING(n,v) PropertyInfo(Variant::INT, n), v
@@ -97,6 +98,7 @@ void OrchestratorSettings::_register_settings() {
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_arrange_button", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_overlay_action_tooltips", true));
+    _settings.emplace_back(COLOR_SETTING("ui/graph/tool_script_background_color", Color(1.0f, 1.0f, 0.f, 0.10f)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f)));
 
     _settings.emplace_back(SENUM_SETTING("ui/nodes/connection_hotzone_scale", "100%,150%,200%", "100%"));
