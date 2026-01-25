@@ -158,5 +158,9 @@
   {
     "version": "v2.4.dev1",
     "godot_compatibility": "4.6"
+  },
+  {
+    "version": "v2.4.dev2",
+    "godot_compatibility": "4.6"
   }
 ]
