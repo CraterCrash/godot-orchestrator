@@ -88,7 +88,10 @@ void OrchestratorEditor::_prepare_file_menu() {
     OrchestratorEditorView* editor = _get_current_editor();
     const Ref<Resource> res = editor ? editor->get_edited_resource() : Ref<Resource>();
 
+    const bool current_script_tool = _get_current_script()->is_tool();
+
     menu->set_item_disabled(menu->get_item_index(FILE_REOPEN_CLOSED), _previous_scripts.is_empty());
+    menu->set_item_disabled(menu->get_item_index(FILE_SOFT_RELOAD_TOOL_SCRIPT), !current_script_tool);
     menu->set_item_disabled(menu->get_item_index(FILE_SAVE), res.is_null());
     menu->set_item_disabled(menu->get_item_index(FILE_SAVE_AS), res.is_null());
     menu->set_item_disabled(menu->get_item_index(FILE_SAVE_ALL), res.is_null());
@@ -276,6 +279,19 @@ void OrchestratorEditor::_menu_option(int p_option) {
             }
             case FILE_CLOSE_ALL: {
                 _close_all_tabs();
+                break;
+            }
+            case FILE_SOFT_RELOAD_TOOL_SCRIPT: {
+                const Ref<Script> script = current->get_edited_resource();
+                if (script.is_null()) {
+                    ORCHESTRATOR_ERROR("Can't obtain script for reloading.");
+                } else {
+                    if (!script->is_tool()) {
+                        ORCHESTRATOR_ERROR("Reloading only takes effect on tool orchestrations.");
+                    } else {
+                        script->reload(true);
+                    }
+                }
                 break;
             }
             case FILE_COPY_PATH: {
@@ -2487,6 +2503,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _file_menu->get_popup()->add_item("Save As...", FILE_SAVE_AS);
     _file_menu->get_popup()->add_item("Save All", FILE_SAVE_ALL, OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S));
     _file_menu->get_popup()->add_separator();
+    _file_menu->get_popup()->add_item("Soft Reload Tool Script", FILE_SOFT_RELOAD_TOOL_SCRIPT, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_R));
     _file_menu->get_popup()->add_item("Copy Orchestration Path", FILE_COPY_PATH);
     _file_menu->get_popup()->add_item("Copy Orchestration UID", FILE_COPY_UID);
     _file_menu->get_popup()->add_item("Show in Filesystem", FILE_SHOW_IN_FILESYSTEM);
