@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## [2.4.dev2](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.dev2) - 2026-01-24
+
+- [4be2229](http://github.com/CraterCrash/godot-orchestrator/commit/4be22291d1e76d1d11e818b89c05c9219891b894) - GH-1205 Support tool orchestrations
+- [16ed854](http://github.com/CraterCrash/godot-orchestrator/commit/16ed85438ee7a545b506ab6b343c6a3c7644cea1) - GH-1201 Always place event nodes in event graphs
+- [485006b](http://github.com/CraterCrash/godot-orchestrator/commit/485006b854f0a9728b901a1862a2506cb985214e) - GH-261 Fix missing include
+- [05c796e](http://github.com/CraterCrash/godot-orchestrator/commit/05c796ef5b3494e0146d009b15f2762b5783bede) - GH-261 Fix Godot 4.4 compatibility
+- [01c1790](http://github.com/CraterCrash/godot-orchestrator/commit/01c1790e505534daf7a13e5c885f66caeca401da) - GH-261 Use PROPERTY_HINT_FILE for icon path
+- [d90d151](http://github.com/CraterCrash/godot-orchestrator/commit/d90d151bf5612076502b4fa84fc0a757bed56388) - GH-261 Support calling parent/super methods
+- [9c866ff](http://github.com/CraterCrash/godot-orchestrator/commit/9c866ffb81caa5460a67acb32aaef67212cefabf) - GH-261 Support orchestration script classes
+- [ef9fbbc](http://github.com/CraterCrash/godot-orchestrator/commit/ef9fbbc796086c870646c137d31af4b4c624373c) - GH-932 Fix overriding parent functions
+- [3d4d86f](http://github.com/CraterCrash/godot-orchestrator/commit/3d4d86f127ab6b5737ef2793939f74b67effb6b0) - GH-1202 Fix parser error when functions return variants
+- [5220855](http://github.com/CraterCrash/godot-orchestrator/commit/52208557a219ed0141781e8c6356c748310112f9) - GH-1198 Fix New Object to work with script classes
+- [7c9f239](http://github.com/CraterCrash/godot-orchestrator/commit/7c9f239fc04b0a2459864d64259baccb1fc4e4d7) - GH-1196 Remove superfluous console output
+- [b97b27c](http://github.com/CraterCrash/godot-orchestrator/commit/b97b27c6fc5d2e32bb6498ff757ddd13701dc6d4) - GH-1194 Update graph panel on orchestration reloads
+- [0733456](http://github.com/CraterCrash/godot-orchestrator/commit/07334560b0378239a9f93fc321e5511bd730f9f2) - GH-1192 Fix preload to work with script global classes
+- [ae5625e](http://github.com/CraterCrash/godot-orchestrator/commit/ae5625e56cdf4f671f632609d8fdd6de100474c7) - GH-1190 Rebind parser bindings after clear
+- [27806f9](http://github.com/CraterCrash/godot-orchestrator/commit/27806f9d0e447b5a8da04d992b1f798b31e5872d) - GH-1188 Register class as internal Godot class
+- [f371b4b](http://github.com/CraterCrash/godot-orchestrator/commit/f371b4b4ab9e905cd2c7643f95022696e361abc4) - GH-1188 Add static `_bind_methods` handler
+- [31f2938](http://github.com/CraterCrash/godot-orchestrator/commit/31f2938b2703e57733c514b382ce3509bcb64caf) - GH-1186 Correctly evaluate owner, avoiding null dereference
+- [952a983](http://github.com/CraterCrash/godot-orchestrator/commit/952a9839e13e3ccf3d37151fe599bf4c69b06239) - GH-1172 Fix OScriptParser handling variadic function args
+- [a9e568c](http://github.com/CraterCrash/godot-orchestrator/commit/a9e568cefb61bfdc85536d503b945dbef88437f5) - GH-1182 Correctly bind struct pin `text_submitted` signal
+- [cb15365](http://github.com/CraterCrash/godot-orchestrator/commit/cb15365a04bca280db832aff7dde80561d120112) - GH-1171 Correctly enqueue print string text overlay
+- [613b918](http://github.com/CraterCrash/godot-orchestrator/commit/613b9189923f65b0843697e1ca62e09dc940f555) - GH-1169 Fix search box grab focus when opened
+- [25fc493](http://github.com/CraterCrash/godot-orchestrator/commit/25fc4931ab12be9d02303574c9d300dc4b4dc017) - GH-1173 Fix `GDE::Variant::evaluate` to return result
+- [464f86c](http://github.com/CraterCrash/godot-orchestrator/commit/464f86cecc218417394c138db3609e7be4e99b82) - GH-1175 Fix GraphNodeAlignment error
+- [a9810bd](http://github.com/CraterCrash/godot-orchestrator/commit/a9810bd8b88956ee38db2c2df854074c710c9645) - GH-1176 Fix script error message instance resolution
+- [7086290](http://github.com/CraterCrash/godot-orchestrator/commit/708629032d6f93807b1661c076233f47508a56b9) - GH-1168 Make mouse visible when dialogues are shown
+
 ## [2.4.dev1](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.dev1) - 2026-01-18
 
 - [fcda111](http://github.com/CraterCrash/godot-orchestrator/commit/fcda111b639576c5ec114e0341a4d70280a60ecd) - GH-967 Make scaled Orchestrator Logo crisper
