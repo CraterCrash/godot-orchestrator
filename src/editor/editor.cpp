@@ -1474,9 +1474,11 @@ void OrchestratorEditor::_update_input_actions_cache() {
 
     const Ref<ConfigFile> project(memnew(ConfigFile));
     if (project->load("res://project.godot") == OK) {
-        const PackedStringArray keys = project->get_section_keys("input");
-        for (const String& key : keys) {
-            cache.push_back({ key, true });
+        if (project->has_section("input")) {
+            const PackedStringArray keys = project->get_section_keys("input");
+            for (const String& key : keys) {
+                cache.push_back({ key, true });
+            }
         }
     }
 
