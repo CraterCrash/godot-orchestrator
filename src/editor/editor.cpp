@@ -1420,12 +1420,13 @@ void OrchestratorEditor::_view_layout_restored(OrchestratorEditorView* p_view) {
     for (int i = 0; i < _restore_queue.size(); i++) {
         if (_restore_queue[i] == p_view) {
             _restore_queue.remove_at(i);
-
-            if (_restore_queue.is_empty()) {
-                _restoring_layout = false;
-                OrchestratorPlugin::get_singleton()->queue_save_layout();
-            }
+            break;
         }
+    }
+
+    if (_restore_queue.is_empty()) {
+        _restoring_layout = false;
+        OrchestratorPlugin::get_singleton()->queue_save_layout();
     }
 }
 
@@ -1769,6 +1770,9 @@ bool OrchestratorEditor::edit(const Ref<Resource>& p_resource, int p_node, bool 
 
         view->set_edit_state(_editor_cache->get_value(p_resource->get_path(), "state"));
         view->store_previous_state();
+    } else {
+        // If there is no saved state, directly call this
+        _view_layout_restored(view);
     }
 
     _sort_list_on_update = true;
