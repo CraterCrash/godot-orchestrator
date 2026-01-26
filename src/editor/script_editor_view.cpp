@@ -280,6 +280,8 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
 
         sep->set_visible(_errors.size() > 0 || _warnings.size() > 0);
     }
+
+    _components->update();
 }
 
 void OrchestratorScriptGraphEditorView::_change_script_type() {
