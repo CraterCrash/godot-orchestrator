@@ -17,6 +17,8 @@
 #ifndef ORCHESTRATOR_MACROS_H
 #define ORCHESTRATOR_MACROS_H
 
+#include "common/version.h"
+
 #define OACCEL_KEY(mask,key) (Key(static_cast<int>(mask) | static_cast<int>(key)))
 
 #define OCONNECT(obj, signal, method)               \
@@ -29,7 +31,27 @@
             obj->disconnect(signal, method);        \
         }
 
-#define GUARD_NULL(x) if (!(x)) return;
+#if GODOT_VERSION < 0x040202
+#define GDE_NOTIFICATION(p, x) p::_notification(x);
+#else
+#define GDE_NOTIFICATION(p, x)
+#endif
+
+#define BEGIN_NOTIFICATION_HANDLER(x)               \
+    switch(x) {
+
+#define NOTIFICATION_HANDLER(code, method)          \
+    case code: method(); break;
+
+#define END_NOTIFICATION_HANDLER                    \
+    default: break;                                 \
+    }
+
+#define BEGIN_NOTIFICATION_HANDLER_WITH_PARENT(x)   \
+    GDE_NOTIFICATION(x)                             \
+    BEGIN_NOTIFICATION_HANDLER
+
+#define CAST_INT_TO_ENUM(t, x) static_cast<t>(static_cast<int>(x))
 
 #define EI godot::EditorInterface::get_singleton()
 #define EDSCALE EI->get_editor_scale()
@@ -37,6 +59,24 @@
 #define EDITOR_GET(x) EI->get_editor_settings()->get(x)
 #define PROJECT_GET(x,y,z) EI->get_editor_settings()->get_project_metadata(x,y,z)
 #define PROJECT_SET(x,y,z) EI->get_editor_settings()->set_project_metadata(x,y,z)
+#define EDITOR_GET_ENUM(t, x) static_cast<t>(static_cast<int>(EDITOR_GET(x)))
+
+// Taken from control.h
+#define SET_DRAG_FORWARDING_GCD(from, to)                                           \
+    from->set_drag_forwarding(callable_mp(this, &to::get_drag_data_fw).bind(from),  \
+    callable_mp(this, &to::can_drop_data_fw).bind(from),                            \
+    callable_mp(this, &to::drop_data_fw).bind(from));
+
+#define GUARD_NULL(x) if (!(x)) return;
+
+#define SAFE_MEMDELETE(obj) { memdelete(obj); obj = nullptr; }
+
+#define SAFE_REMOVE_CHILDREN(obj)                                       \
+    for (int i = obj->get_child_count() - 1; i >= 0; i--) {             \
+        Node* child = obj->get_child(i);                                \
+        obj->remove_child(child);                                       \
+        child->queue_free();                                            \
+    }
 
 #define callable_mp_parent(method) callable_mp(static_cast<parent_type*>(this), &parent_type::method)
 #define callable_mp_this(method) callable_mp(this, &self_type::method)

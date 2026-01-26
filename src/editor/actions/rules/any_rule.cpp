@@ -16,12 +16,11 @@
 //
 #include "editor/actions/rules/any_rule.h"
 
-bool OrchestratorEditorActionAnyFilterRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
-{
-    for (const Ref<OrchestratorEditorActionFilterRule>& rule : _rules)
-    {
-        if (rule->matches(p_action, p_context))
+bool OrchestratorEditorActionAnyFilterRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
+    for (const Ref<OrchestratorEditorActionFilterRule>& rule : _rules) {
+        if (rule->matches(p_action, p_context)) {
             return true;
+        }
     }
     return false;
 }

@@ -18,11 +18,13 @@
 
 #include "common/dictionary_utils.h"
 #include "common/version.h"
+#include "script/script_warning.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
 
 // Helper setting layouts
 #define BOOL_SETTING(n,v) PropertyInfo(Variant::BOOL, n), v
+#define COLOR_SETTING(n,v) PropertyInfo(Variant::COLOR, n), v
 #define COLOR_NO_ALPHA_SETTING(n,v) PropertyInfo(Variant::COLOR, n, PROPERTY_HINT_COLOR_NO_ALPHA), v
 #define FILE_SETTING(n,f,v) PropertyInfo(Variant::STRING, n, PROPERTY_HINT_FILE, f), v
 #define INT_SETTING(n,v) PropertyInfo(Variant::INT, n), v
@@ -32,112 +34,14 @@
 
 OrchestratorSettings* OrchestratorSettings::_singleton = nullptr;
 
-OrchestratorSettings::OrchestratorSettings()
-{
-    _singleton = this;
-
-    _initialize_settings();
-    _update_default_settings();
-}
-
-OrchestratorSettings::~OrchestratorSettings()
-{
-    _singleton = nullptr;
-}
-
-bool OrchestratorSettings::has_setting(const String& key) const
-{
-    String path = key;
-    if (!path.begins_with("orchestrator/"))
-        path = vformat("orchestrator/%s", key);
-
-    bool result = ProjectSettings::get_singleton()->has_setting(path);
-    if (!result)
-        UtilityFunctions::print("Failed to find key ", path);
-
-    return result;
-}
-
-Variant OrchestratorSettings::get_setting(const String& key, const Variant& p_default_value)
-{
-    String path = key;
-    if (!path.begins_with("orchestrator/"))
-        path = vformat("orchestrator/%s", key);
-
-    ProjectSettings* ps = ProjectSettings::get_singleton();
-    return ps->get_setting(path, p_default_value);
-}
-
-void OrchestratorSettings::set_setting(const String& p_key, const Variant& p_value)
-{
-    String path = p_key;
-    if (!path.begins_with("orchestrator/"))
-        path = vformat("orchestrator/%s", p_key);
-
-    ProjectSettings* ps = ProjectSettings::get_singleton();
-    ps->set_setting(path, p_value);
-}
-
-PackedStringArray OrchestratorSettings::get_action_favorites()
-{
-    return ProjectSettings::get_singleton()->get_setting(
-        "orchestrator/settings/action_favorites", PackedStringArray());
-}
-
-void OrchestratorSettings::add_action_favorite(const String& p_action_name)
-{
-    ProjectSettings* ps = ProjectSettings::get_singleton();
-
-    const String key = "orchestrator/settings/action_favorites";
-    const PropertyInfo pi = PropertyInfo(Variant::PACKED_STRING_ARRAY, key);
-    if (!ps->has_setting(key))
-    {
-        ps->set_setting(key, PackedStringArray());
-        ps->set_initial_value(key, PackedStringArray());
-        ps->add_property_info(DictionaryUtils::from_property(pi, true));
-        ps->set_as_basic(key, false);
+String OrchestratorSettings::_make_key(const String& p_key) {
+    if (p_key.begins_with("orchestrator/")) {
+        return p_key;
     }
-
-    PackedStringArray actions = get_action_favorites();
-    if (!actions.has(p_action_name))
-    {
-        actions.push_back(p_action_name);
-        ps->set_setting(key, actions);
-        ps->save();
-    }
+    return vformat("orchestrator/%s", p_key);
 }
 
-void OrchestratorSettings::remove_action_favorite(const String& p_action_name)
-{
-    ProjectSettings* ps = ProjectSettings::get_singleton();
-
-    const String key = "orchestrator/settings/action_favorites";
-    if (!ps->has_setting(key))
-        return;
-
-    PackedStringArray actions = get_action_favorites();
-    if (actions.has(p_action_name))
-    {
-        actions.remove_at(actions.find(p_action_name));
-        ps->set_setting(key, actions);
-        ps->save();
-    }
-}
-
-void OrchestratorSettings::set_notify_prerelease_builds(bool p_notify_about_prereleases)
-{
-    ProjectSettings* ps = ProjectSettings::get_singleton();
-
-    const String key = "orchestrator/settings/notify_about_pre-releases";
-    if (!ps->has_setting(key))
-        return;
-
-    ps->set_setting(key, p_notify_about_prereleases);
-    ps->save();
-}
-
-void OrchestratorSettings::_register_deprecated_settings()
-{
+void OrchestratorSettings::_register_deprecated_settings() {
     // Default settings (Orchestrator v1)
     _removed.emplace_back(FILE_SETTING("run/test_scene", "*.tscn,*.scn", "res://addons/test/test.tscn"));
     _removed.emplace_back(COLOR_NO_ALPHA_SETTING("nodes/colors/background", Color(0.12, 0.15, 0.19)));
@@ -154,8 +58,7 @@ void OrchestratorSettings::_register_deprecated_settings()
     _removed.emplace_back(BOOL_SETTING("settings/runtime/tickable", true));
 }
 
-void OrchestratorSettings::_register_settings()
-{
+void OrchestratorSettings::_register_settings() {
     // Orchestrator v2
     _settings.emplace_back(RESOURCE_SETTING("settings/default_type", "Object", "Node"));
     _settings.emplace_back(SENUM_SETTING("settings/storage_format", "Text,Binary", "Text"));
@@ -166,8 +69,19 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
     _settings.emplace_back(SENUM_SETTING("settings/runtime/print_string_scale", "75%,100%,125%,150%,175%,200%,225%,250%,275%,300%,325%,350%,375%,400%", "100%"));
 
+    // Debugging
+    #ifdef DEBUG_ENABLED
+    _settings.emplace_back(BOOL_SETTING("debug/warnings/enable", true));
+    for (int i = 0; i < static_cast<int>(OScriptWarning::WARNING_MAX); i++) {
+        const OScriptWarning::Code code = static_cast<OScriptWarning::Code>(i);
+        const Variant default_value = OScriptWarning::get_default_value(code);
+        _settings.emplace_back(OScriptWarning::get_property_info(code), default_value);
+    }
+    #endif
+
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/center_on_mouse", true));
     _settings.emplace_back(BOOL_SETTING("ui/actions_menu/close_on_focus_lost", false));
+    _settings.emplace_back(BOOL_SETTING("ui/actions_menu/prefer_properties_over_methods", false));
 
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_graph_friendly_names", true));
     _settings.emplace_back(BOOL_SETTING("ui/components_panel/show_function_friendly_names", true));
@@ -179,14 +93,18 @@ void OrchestratorSettings::_register_settings()
     #if GODOT_VERSION >= 0x040300
     _settings.emplace_back(SENUM_SETTING("ui/graph/grid_pattern", "Dots,Lines", "Lines"));
     #endif
+    _settings.emplace_back(BOOL_SETTING("ui/graph/show_advanced_tooltips", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_autowire_selection_dialog", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_arrange_button", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_overlay_action_tooltips", true));
+    _settings.emplace_back(COLOR_SETTING("ui/graph/tool_script_background_color", Color(1.0f, 1.0f, 0.f, 0.10f)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f)));
 
+    _settings.emplace_back(SENUM_SETTING("ui/nodes/connection_hotzone_scale", "100%,150%,200%", "100%"));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/resizable_by_default", false));
+    _settings.emplace_back(BOOL_SETTING("ui/nodes/resize_to_content", false));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/highlight_selected_connections", false));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/background_color", Color::html("#191d23")));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/nodes/border_color", Color(0.059f, 0.067f, 0.082f)));
@@ -259,25 +177,24 @@ void OrchestratorSettings::_register_settings()
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed color array", Color(0.62, 1.00, 0.44)));
 }
 
-void OrchestratorSettings::_initialize_settings()
-{
+void OrchestratorSettings::_initialize_settings() {
     _register_deprecated_settings();
     _register_settings();
 
     // ProjectSettings only writes values that have a value different from its default.
     // So any values that remain set as their default will always be re-added here.
     ProjectSettings* ps = ProjectSettings::get_singleton();
-    for (const Setting& setting : _settings)
-    {
-        const String key = vformat("%s/%s", _get_base_key(), setting.info.name);
+    for (const Setting& setting : _settings) {
+        const String key = _make_key(setting.info.name);
 
         // Adjust the property information name with the qualified key
         PropertyInfo pi = setting.info;
         pi.name = key;
 
         // If the property does not exist, add it.
-        if (!ps->has_setting(key))
+        if (!ps->has_setting(key)) {
             ps->set_setting(key, setting.value);
+        }
 
         // Set these to handle reversion should a user restart the editor and revert a custom
         // setting back to its defaults, since the editor does not persist these details.
@@ -288,15 +205,98 @@ void OrchestratorSettings::_initialize_settings()
     }
 }
 
-void OrchestratorSettings::_update_default_settings()
-{
+void OrchestratorSettings::_update_default_settings() {
     ProjectSettings* ps = ProjectSettings::get_singleton();
 
     // Remove settings that have been deprecated and no longer used.
-    for (const Setting& setting : _removed)
-    {
-        const String key = vformat("%s/%s", _get_base_key(), setting.info.name);
-        if (ps->has_setting(key))
+    for (const Setting& setting : _removed) {
+        const String key = _make_key(setting.info.name);
+        if (ps->has_setting(key)) {
             ps->clear(key);
+        }
     }
+}
+
+bool OrchestratorSettings::has_setting(const String& p_key) const {
+    const String path = _make_key(p_key);
+    const bool result = ProjectSettings::get_singleton()->has_setting(path);
+    if (!result) {
+        UtilityFunctions::print("Failed to find key ", path);
+    }
+    return result;
+}
+
+Variant OrchestratorSettings::get_setting(const String& p_key, const Variant& p_default_value) {
+    return ProjectSettings::get_singleton()->get_setting(_make_key(p_key), p_default_value);
+}
+
+void OrchestratorSettings::set_setting(const String& p_key, const Variant& p_value) {
+    ProjectSettings::get_singleton()->set_setting(_make_key(p_key), p_value);
+}
+
+PackedStringArray OrchestratorSettings::get_action_favorites() {
+    return ProjectSettings::get_singleton()->get_setting(_make_key("settings/action_favorites"), PackedStringArray());
+}
+
+void OrchestratorSettings::add_action_favorite(const String& p_action_name) {
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+
+    const String key = _make_key("orchestrator/settings/action_favorites");
+    const PropertyInfo pi = PropertyInfo(Variant::PACKED_STRING_ARRAY, key);
+    if (!ps->has_setting(key)) {
+        ps->set_setting(key, PackedStringArray());
+        ps->set_initial_value(key, PackedStringArray());
+        ps->add_property_info(DictionaryUtils::from_property(pi, true));
+        ps->set_as_basic(key, false);
+    }
+
+    PackedStringArray actions = get_action_favorites();
+    if (!actions.has(p_action_name)) {
+        actions.push_back(p_action_name);
+        ps->set_setting(key, actions);
+        ps->save();
+    }
+}
+
+void OrchestratorSettings::remove_action_favorite(const String& p_action_name) {
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+
+    const String key = _make_key("orchestrator/settings/action_favorites");
+    if (!ps->has_setting(key)) {
+        return;
+    }
+
+    PackedStringArray actions = get_action_favorites();
+    if (actions.has(p_action_name)) {
+        actions.remove_at(actions.find(p_action_name));
+        ps->set_setting(key, actions);
+        ps->save();
+    }
+}
+
+bool OrchestratorSettings::is_notify_about_prereleases() {
+    return get_setting("settings/notify_about_pre-releases", true);
+}
+
+void OrchestratorSettings::set_notify_prerelease_builds(bool p_notify_about_prereleases) {
+    ProjectSettings* ps = ProjectSettings::get_singleton();
+
+    const String key = _make_key("orchestrator/settings/notify_about_pre-releases");
+    if (!ps->has_setting(key)) {
+        return;
+    }
+
+    ps->set_setting(key, p_notify_about_prereleases);
+    ps->save();
+}
+
+OrchestratorSettings::OrchestratorSettings() {
+    _singleton = this;
+
+    _initialize_settings();
+    _update_default_settings();
+}
+
+OrchestratorSettings::~OrchestratorSettings() {
+    _singleton = nullptr;
 }

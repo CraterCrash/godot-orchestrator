@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTARTOR_AUTOWIRE_CONNECTION_DIALOG_H
-#define ORCHESTARTOR_AUTOWIRE_CONNECTION_DIALOG_H
+#ifndef ORCHESTRATOR_AUTOWIRE_CONNECTION_DIALOG_H
+#define ORCHESTRATOR_AUTOWIRE_CONNECTION_DIALOG_H
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/tree.hpp>
@@ -23,14 +23,13 @@
 using namespace godot;
 
 /// Forward declarations
-class OrchestratorGraphNodePin;
+class OrchestratorEditorGraphPin;
 
 /// Displays a dialog of details about a signal connection
-class OrchestratorAutowireConnectionDialog : public ConfirmationDialog
-{
+class OrchestratorAutowireConnectionDialog : public ConfirmationDialog {
     GDCLASS(OrchestratorAutowireConnectionDialog, ConfirmationDialog);
 
-    OrchestratorGraphNodePin* _choice = nullptr;
+    OrchestratorEditorGraphPin* _choice = nullptr;
     Tree* _tree = nullptr;
 
 protected:
@@ -42,9 +41,9 @@ protected:
 
 public:
 
-    OrchestratorGraphNodePin* get_autowire_choice() const;
+    OrchestratorEditorGraphPin* get_autowire_choice() const;
 
-    void popup_autowire(const Vector<OrchestratorGraphNodePin*>& p_choices);
+    void popup_autowire(const Vector<OrchestratorEditorGraphPin*>& p_choices);
 
     OrchestratorAutowireConnectionDialog();
 };

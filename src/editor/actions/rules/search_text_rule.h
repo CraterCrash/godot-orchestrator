@@ -24,8 +24,7 @@ using namespace godot;
 /// This rule uses the dialog window's menu context's search terms to identify what rules match.
 /// By default, if the search term is empty, this rule matches all actions.
 ///
-class OrchestratorEditorActionSearchTextRule : public OrchestratorEditorActionFilterRule
-{
+class OrchestratorEditorActionSearchTextRule : public OrchestratorEditorActionFilterRule {
     GDCLASS(OrchestratorEditorActionSearchTextRule, OrchestratorEditorActionFilterRule);
 
 protected:

@@ -14,78 +14,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "delay.h"
+#include "script/nodes/flow_control/delay.h"
 
 #include "common/property_utils.h"
-#include "script/vm/script_state.h"
 
 #include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/classes/main_loop.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
-#include <godot_cpp/classes/scene_tree_timer.hpp>
 
-class OScriptNodeDelayInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDelay);
-public:
-    int get_working_memory_size() const override { return 1; }
-
-    int step(OScriptExecutionContext& p_context) override
-    {
-        // Resume mode means that the delay has concluded, it's safe to proceed.
-        if (p_context.get_step_mode() == STEP_MODE_RESUME)
-            return 0;
-
-        SceneTree *tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
-        if (!tree)
-        {
-            p_context.set_error("Main loop is not a scene tree.");
-            return -1;
-        }
-
-        float duration = p_context.get_input(0);
-
-        // Construct node state
-        Ref<OScriptState> state;
-        state.instantiate();
-
-        // Associate it with a scene tree timer for the delay
-        state->connect_to_signal(tree->create_timer(duration).ptr(), "timeout", Array());
-
-        // Stash the state and return yield request
-        p_context.set_working_memory(0, state);
-        return STEP_FLAG_YIELD;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void OScriptNodeDelay::post_initialize()
-{
+void OScriptNodeDelay::post_initialize() {
     const Ref<OScriptNodePin> duration  = find_pin("duration", PD_Input);
-    if (duration.is_valid())
+    if (duration.is_valid()) {
         _duration = duration->get_effective_default_value();
-
+    }
     super::post_initialize();
 }
 
-void OScriptNodeDelay::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins)
-{
+void OScriptNodeDelay::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) {
     super::reallocate_pins_during_reconstruction(p_old_pins);
 
-    for (const Ref<OScriptNodePin>& pin : p_old_pins)
-    {
-        if (pin->is_input() && !pin->is_execution())
-        {
+    for (const Ref<OScriptNodePin>& pin : p_old_pins) {
+        if (pin->is_input() && !pin->is_execution()) {
             const Ref<OScriptNodePin> new_input = find_pin(pin->get_pin_name(), PD_Input);
-            if (new_input.is_valid())
+            if (new_input.is_valid()) {
                 new_input->set_default_value(pin->get_default_value());
+            }
         }
     }
 }
 
-void OScriptNodeDelay::allocate_default_pins()
-{
+void OScriptNodeDelay::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("duration", Variant::FLOAT), _duration);
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
@@ -93,24 +50,14 @@ void OScriptNodeDelay::allocate_default_pins()
     super::allocate_default_pins();
 }
 
-String OScriptNodeDelay::get_tooltip_text() const
-{
+String OScriptNodeDelay::get_tooltip_text() const {
     return "Causes the orchestration flow to pause processing for the specified number of seconds.";
 }
 
-String OScriptNodeDelay::get_node_title() const
-{
+String OScriptNodeDelay::get_node_title() const {
     return "Delay";
 }
 
-String OScriptNodeDelay::get_icon() const
-{
+String OScriptNodeDelay::get_icon() const {
     return "Timer";
-}
-
-OScriptNodeInstance* OScriptNodeDelay::instantiate()
-{
-    OScriptNodeDelayInstance *i = memnew(OScriptNodeDelayInstance);
-    i->_node = this;
-    return i;
 }

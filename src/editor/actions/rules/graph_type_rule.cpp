@@ -16,13 +16,13 @@
 //
 #include "editor/actions/rules/graph_type_rule.h"
 
-bool OrchestratorEditorActionGraphTypeRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
-{
+bool OrchestratorEditorActionGraphTypeRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
     ERR_FAIL_COND_V(!p_action.is_valid(), false);
 
     // Always accept all
-    if (p_action->graph_type == Action::GRAPH_ALL)
+    if (p_action->graph_type == Action::GRAPH_ALL) {
         return true;
+    }
 
     return p_action->graph_type == _graph_type;
 }
