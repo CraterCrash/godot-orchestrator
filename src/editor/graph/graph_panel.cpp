@@ -76,6 +76,7 @@
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
@@ -2280,6 +2281,43 @@ void OrchestratorEditorGraphPanel::_drop_data_files(const String& p_node_type, c
     }
 }
 
+void OrchestratorEditorGraphPanel::_drop_data_files_as_exported_variables(const Array& p_files) {
+    for (int i = 0; i < p_files.size(); i++) {
+        PackedStringArray existing_names;
+        existing_names.append_array(_graph->get_orchestration()->get_function_names());
+        existing_names.append_array(_graph->get_orchestration()->get_custom_signal_names());
+        existing_names.append_array(_graph->get_orchestration()->get_variable_names());
+
+        const String file_name = String(p_files[i]).get_basename().get_file();
+        const String resolved_file_name = NameUtils::create_unique_name(file_name, existing_names);
+
+        Error err = ResourceLoader::get_singleton()->load_threaded_request(p_files[i], "", ResourceLoader::CACHE_MODE_IGNORE);
+        if (err != OK) {
+            ORCHESTRATOR_ERROR(vformat("Failed to enqueue resource load: %s", p_files[i]));
+        }
+
+        const Ref<Resource> res = ResourceLoader::get_singleton()->load_threaded_get(p_files[i]);
+        if (res.is_null()) {
+            ERR_PRINT_ED(vformat("Could not load %s, it was not a recognized resource", p_files[i]));
+            continue;
+        }
+
+        PropertyInfo property;
+        property.type = Variant::OBJECT;
+        property.class_name = res->get_class();
+        property.usage = PROPERTY_USAGE_DEFAULT;
+
+        const Ref<OScriptVariable> variable = _graph->get_orchestration()->create_variable(resolved_file_name);
+        if (variable.is_null()) {
+            ORCHESTRATOR_ERROR(vformat("Failed to create variable for resource: %s", p_files[i]));
+        }
+
+        variable->set_exported(true);
+        variable->set_info(property);
+        variable->set_classification("class:" + res->get_class());
+    }
+}
+
 void OrchestratorEditorGraphPanel::_drop_data_property(const Dictionary& p_property, const Vector2& p_at_position, const String& p_path, bool p_setter) {
     const String node_class_type = p_setter
         ? OScriptNodePropertySet::get_class_static()
@@ -2627,6 +2665,7 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
         menu->add_separator(files.size() == 1 ? vformat("File %s", files[0]) : vformat("%d Files", files.size()));
         menu->add_item("Get Path", callable_mp_this(_drop_data_files).bind(OScriptNodeResourcePath::get_class_static(), files, spawn_position));
         menu->add_item("Preload", callable_mp_this(_drop_data_files).bind(OScriptNodePreload::get_class_static(), files, spawn_position));
+        menu->add_item("Export Variable", callable_mp_this(_drop_data_files_as_exported_variables).bind(files));
 
         menu->set_position(popup_position);
         menu->popup();

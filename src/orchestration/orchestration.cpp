@@ -958,6 +958,7 @@ Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Va
     _variables[p_name] = variable;
 
     emit_signal("variables_changed");
+    emit_changed();
 
     return variable;
 }

@@ -270,6 +270,7 @@ protected:
     void _update_box_selection_state(const Ref<InputEvent>& p_event);
 
     void _drop_data_files(const String& p_node_type, const Array& p_files, const Vector2& p_at_position);
+    void _drop_data_files_as_exported_variables(const Array& p_files);
     void _drop_data_property(const Dictionary& p_property, const Vector2& p_at_position, const String& p_path, bool p_setter);
     void _drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable);
     void _drop_data_variable(const String& p_name, const Vector2& p_at_position, bool p_validated, bool p_setter);
