@@ -15,6 +15,7 @@
 ## limitations under the License.
 ##
 extends CanvasLayer
+class_name OrchestratorDialogue
 
 ## A required signal that should be emitted when the Dialogue UI completes
 ## all its user interactions. This informs Orchestrator that it is then
@@ -41,10 +42,10 @@ var _current_tween : Tween
 var _current_choices : Dictionary
 var _mouse_mode : Input.MouseMode
 
-@onready var speaker 	  = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/Speaker
-@onready var speaker_text = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/SpeakerText
-@onready var response_tpl = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/ResponseTemplate
-@onready var next_button  = $MarginContainer/PanelContainer/MarginContainer/VBoxContainer/NextButton
+@onready var speaker 	  = %Speaker
+@onready var speaker_text = %SpeakerText
+@onready var response_tpl = %ResponseTemplate
+@onready var next_button  = %NextButton
 
 func _ready() -> void:
 	response_tpl.visible = false
