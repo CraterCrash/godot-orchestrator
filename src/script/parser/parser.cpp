@@ -2926,7 +2926,7 @@ OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVari
     IdentifierNode* identifier = build_identifier(p_variable->get_variable_name());
 
     IdentifierNode* type_name = alloc_node<IdentifierNode>();
-    type_name->name = Variant::get_type_name(p_variable->get_variable_type());
+    type_name->name = p_variable->get_variable_type_name();
 
     TypeNode* type = alloc_node<TypeNode>();
     type->type_chain.push_back(type_name);
@@ -2935,7 +2935,6 @@ OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVari
     node->identifier = identifier;
     node->export_info = p_variable->get_info();
     node->export_info.usage &= ~PROPERTY_USAGE_SCRIPT_VARIABLE;
-    node->export_info.type = Variant::NIL;
     node->datatype_specifier = type;
 
     if (p_variable->is_exported()) {
