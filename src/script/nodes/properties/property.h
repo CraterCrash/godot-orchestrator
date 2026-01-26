@@ -32,10 +32,8 @@ using namespace godot;
 /// In these cases a new input pin is created to set the incoming node path or the object
 /// instance that should be used as the source for setting or getting the property from.
 ///
-class OScriptNodeProperty : public OScriptNode
-{
+class OScriptNodeProperty : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeProperty, OScriptNode);
-    static void _bind_methods();
 
 public:
     enum CallMode : uint32_t
@@ -46,11 +44,13 @@ public:
     };
 
 protected:
-    CallMode _call_mode{ CALL_SELF };
+    static void _bind_methods();
+
+    CallMode _call_mode = CALL_SELF;
     StringName _base_type;
     NodePath _node_path;
     PropertyInfo _property;
-    bool _has_property{ false };
+    bool _has_property = false;
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -75,21 +75,30 @@ protected:
     /// @return true if found, false otherwise
     bool _get_class_property(const String& p_class_name, const String& p_name, PropertyInfo& r_property);
 
+    /// Check whether the specified target class is the same or the parent of the orchestration
+    /// @param p_target_class the class to check
+    /// @return true if its the same or a parent type
+    bool _is_same_or_parent(const String& p_target_class) const;
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
 
 public:
-    OScriptNodeProperty();
-
     //~ Begin OScriptNode Interface
     void post_initialize() override;
     String get_icon() const override;
     String get_node_title_color_name() const override { return "properties"; }
     String get_help_topic() const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
+
+    CallMode get_call_mode() const { return _call_mode; }
+    StringName get_base_type() const { return _base_type; }
+    NodePath get_node_path() const { return _node_path; }
+    PropertyInfo get_property() const { return _property; }
+
+    OScriptNodeProperty();
 };
 
 VARIANT_ENUM_CAST(OScriptNodeProperty::CallMode)

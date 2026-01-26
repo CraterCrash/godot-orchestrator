@@ -21,57 +21,35 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
-#include "script/nodes/constants/constants.h"
-#include "script/nodes/data/arrays.h"
-#include "script/nodes/data/compose.h"
-#include "script/nodes/data/decompose.h"
-#include "script/nodes/data/dictionary.h"
-#include "script/nodes/data/type_cast.h"
-#include "script/nodes/dialogue/dialogue_choice.h"
-#include "script/nodes/dialogue/dialogue_message.h"
-#include "script/nodes/flow_control/branch.h"
-#include "script/nodes/flow_control/chance.h"
-#include "script/nodes/flow_control/delay.h"
-#include "script/nodes/flow_control/for.h"
-#include "script/nodes/flow_control/for_each.h"
-#include "script/nodes/flow_control/random.h"
-#include "script/nodes/flow_control/select.h"
-#include "script/nodes/flow_control/sequence.h"
-#include "script/nodes/flow_control/switch.h"
-#include "script/nodes/flow_control/while.h"
-#include "script/nodes/functions/call_builtin_function.h"
-#include "script/nodes/functions/call_member_function.h"
-#include "script/nodes/functions/call_static_function.h"
-#include "script/nodes/functions/event.h"
-#include "script/nodes/functions/function_result.h"
-#include "script/nodes/input/input_action.h"
-#include "script/nodes/math/operator_node.h"
-#include "script/nodes/memory/memory.h"
-#include "script/nodes/resources/preload.h"
-#include "script/nodes/resources/resource_path.h"
-#include "script/nodes/scene/instantiate_scene.h"
-#include "script/nodes/scene/scene_node.h"
-#include "script/nodes/scene/scene_tree.h"
-#include "script/nodes/signals/await_signal.h"
-#include "script/nodes/signals/emit_signal.h"
-#include "script/nodes/utilities/autoload.h"
-#include "script/nodes/utilities/comment.h"
-#include "script/nodes/utilities/engine_singleton.h"
-#include "script/nodes/utilities/print_string.h"
-#include "script/nodes/utilities/self.h"
-#include "script/nodes/variables/local_variable.h"
+#include "core/godot/config/project_settings.h"
+#include "core/godot/core_string_names.h"
+#include "script/nodes/script_nodes.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
 
 HashMap<String, Ref<OScriptNode>> OrchestratorEditorIntrospector::_script_node_cache;
 
+void OrchestratorEditorIntrospector::_apply_method_overrides(const String& p_class_name, MethodInfo& r_method) {
+    // For Object.connect, override the flags attribute to disable a list of connect flag enum values
+    if (p_class_name == Object::get_class_static() && r_method.name == CoreStringName(_connect)) {
+        for (uint32_t j = 0; j < r_method.arguments.size(); j++) {
+            if (r_method.arguments[j].name == StringName("flags")) {
+                r_method.arguments[j].hint_string = "Object.ConnectFlags";
+                r_method.arguments[j].usage |= PROPERTY_USAGE_CLASS_IS_ENUM;
+                break;
+            }
+        }
+    }
+}
+
 OrchestratorEditorIntrospector::ActionBuilder OrchestratorEditorIntrospector::_script_node_builder(
-    const String& p_node_type, const String& p_category, const String& p_name, const Dictionary& p_data)
-{
+    const String& p_node_type, const String& p_category, const String& p_name, const Dictionary& p_data) {
+
     const Ref<OScriptNode> node_template = _get_or_create_node_template(p_node_type);
     const bool experimental = node_template->get_flags().has_flag(OScriptNode::EXPERIMENTAL);
 
@@ -91,13 +69,10 @@ OrchestratorEditorIntrospector::ActionBuilder OrchestratorEditorIntrospector::_s
         .data(p_data);
 }
 
-Ref<OScriptNode> OrchestratorEditorIntrospector::_get_or_create_node_template(const String& p_node_type, bool p_ignore_not_catalogable)
-{
-    if (!_script_node_cache.has(p_node_type))
-    {
+Ref<OScriptNode> OrchestratorEditorIntrospector::_get_or_create_node_template(const String& p_node_type, bool p_ignore_not_catalogable) {
+    if (!_script_node_cache.has(p_node_type)) {
         const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(p_node_type, nullptr);
-        if (!node.is_valid())
-        {
+        if (!node.is_valid()) {
             WARN_PRINT("Failed to create template node with name " + p_node_type);
             return Ref<OScriptNode>();
         }
@@ -106,8 +81,7 @@ Ref<OScriptNode> OrchestratorEditorIntrospector::_get_or_create_node_template(co
     }
 
     const Ref<OScriptNode> node = _script_node_cache[p_node_type];
-    if (!node->get_flags().has_flag(OScriptNode::CATALOGABLE) && !p_ignore_not_catalogable)
-    {
+    if (!node->get_flags().has_flag(OScriptNode::CATALOGABLE) && !p_ignore_not_catalogable) {
         WARN_PRINT("Node " + p_node_type + " is not catalogable");
         return Ref<OScriptNode>();
     }
@@ -116,24 +90,24 @@ Ref<OScriptNode> OrchestratorEditorIntrospector::_get_or_create_node_template(co
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::_create_categories_from_path(
-    const String& p_category_path, const String& p_icon)
-{
+    const String& p_category_path, const String& p_icon) {
+
     const PackedStringArray category_parts = p_category_path.split("/");
 
     Vector<String> categories;
     String cumulative;
-    for (int i = 0; i < category_parts.size(); i++)
-    {
-        if (i > 0)
+    for (int i = 0; i < category_parts.size(); i++) {
+        if (i > 0) {
             cumulative += "/";
-
+        }
         cumulative += category_parts[i];
         categories.push_back(cumulative);
     }
 
     Vector<Ref<Action>> category_actions;
-    for (const String& category : categories)
+    for (const String& category : categories) {
         category_actions.push_back(ActionBuilder(category).build());
+    }
 
     // Set icon on the leaf descendant
     category_actions[category_actions.size() - 1]->icon = p_icon;
@@ -141,13 +115,11 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     return category_actions;
 }
 
-PackedStringArray OrchestratorEditorIntrospector::_get_native_class_hierarchy(const String& p_class_name)
-{
+PackedStringArray OrchestratorEditorIntrospector::_get_native_class_hierarchy(const String& p_class_name) {
     PackedStringArray hierarchy;
 
     StringName class_name = p_class_name;
-    while (!class_name.is_empty() && ClassDB::class_exists(class_name))
-    {
+    while (!class_name.is_empty() && ClassDB::class_exists(class_name)) {
         hierarchy.push_back(class_name);
         class_name = ClassDB::get_parent_class(class_name);
     }
@@ -156,85 +128,86 @@ PackedStringArray OrchestratorEditorIntrospector::_get_native_class_hierarchy(co
     return hierarchy;
 }
 
-String OrchestratorEditorIntrospector::_get_type_icon(Variant::Type p_type)
-{
-    if (p_type == Variant::NIL)
+String OrchestratorEditorIntrospector::_get_type_icon(Variant::Type p_type) {
+    if (p_type == Variant::NIL) {
         return "Variant";
-
+    }
     return Variant::get_type_name(p_type);
 }
 
-String OrchestratorEditorIntrospector::_get_type_name(Variant::Type p_type)
-{
-    switch (p_type)
-    {
-        case Variant::NIL:
+String OrchestratorEditorIntrospector::_get_type_name(Variant::Type p_type) {
+    switch (p_type) {
+        case Variant::NIL: {
             return "Any";
-        case Variant::BOOL:
+        }
+        case Variant::BOOL: {
             return "Boolean";
-            break;
-        case Variant::INT:
+        }
+        case Variant::INT: {
             return "Integer";
-        case Variant::FLOAT:
+        }
+        case Variant::FLOAT: {
             return "Float";
-        default:
+        }
+        default: {
             return Variant::get_type_name(p_type).replace(" ", "");
+        }
     }
 }
 
-String OrchestratorEditorIntrospector::_get_method_icon_name(const MethodInfo& p_method)
-{
-    if (!OScriptNodeEvent::is_event_method(p_method))
-    {
-        if (MethodUtils::has_return_value(p_method))
-        {
+String OrchestratorEditorIntrospector::_get_method_icon_name(const MethodInfo& p_method) {
+    if (!OScriptNodeEvent::is_event_method(p_method)) {
+        if (MethodUtils::has_return_value(p_method)) {
             const String return_type = PropertyUtils::get_property_type_name(p_method.return_val);
-            if (!return_type.is_empty())
+            if (!return_type.is_empty()) {
                 return return_type;
-        }
-        else if (p_method.name.capitalize().begins_with("Set ") && p_method.arguments.size() == 1)
-        {
+            }
+        } else if (p_method.name.capitalize().begins_with("Set ") && p_method.arguments.size() == 1) {
             // Treat it was a setter
             String argument_type = PropertyUtils::get_property_type_name(p_method.arguments[0]);
-            if (!argument_type.is_empty())
+            if (!argument_type.is_empty()) {
                 return argument_type;
+            }
         }
     }
     return "MemberMethod";
 }
 
-String OrchestratorEditorIntrospector::_get_method_type_icon_name(const MethodInfo& p_method)
-{
+String OrchestratorEditorIntrospector::_get_method_type_icon_name(const MethodInfo& p_method) {
     const bool event_method = OScriptNodeEvent::is_event_method(p_method);
-    if (!event_method && p_method.flags & METHOD_FLAG_VIRTUAL)
+    if (!event_method && p_method.flags & METHOD_FLAG_VIRTUAL) {
         return "MethodOverride";
+    }
 
-    if (event_method)
+    if (event_method) {
         return "MemberSignal";
+    }
 
     return "MemberMethod";
 }
 
-String OrchestratorEditorIntrospector::_get_builtin_function_category_from_godot_category(const FunctionInfo& p_function_info)
-{
-    if (p_function_info.category.match("general"))
+String OrchestratorEditorIntrospector::_get_builtin_function_category_from_godot_category(const FunctionInfo& p_function_info) {
+    if (p_function_info.category.match("general")) {
         return "Utilities";
+    }
 
-    if (p_function_info.category.match("random"))
+    if (p_function_info.category.match("random")) {
         return "Random Numbers";
+    }
 
     return p_function_info.category.capitalize();
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::_get_actions_for_class(
     const String& p_class_name, const String& p_category_name,
-    const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals)
-{
+    const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals) {
+
     Vector<Ref<Action>> actions;
 
     // Exclude classes that are prefixed with Editor, Orchestrator, and OScript.
-    if (p_class_name.begins_with("Editor") || p_class_name.begins_with("Orchestrator") || p_class_name.begins_with("OScript"))
+    if (p_class_name.begins_with("Editor") || p_class_name.begins_with("Orchestrator") || p_class_name.begins_with("OScript")) {
         return actions;
+    }
 
     const String properties_category = vformat("Properties/%s", p_category_name);
     actions.append_array(_create_categories_from_path(properties_category, p_class_name));
@@ -249,107 +222,81 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     actions.append_array(_create_categories_from_path(signals_category, p_class_name));
 
     PackedStringArray property_methods;
+    PackedStringArray internal_method_names;
 
     ScriptServer::GlobalClass global_class;
-    if (ScriptServer::is_global_class(p_class_name))
+    if (ScriptServer::is_global_class(p_class_name)) {
         global_class = ScriptServer::get_global_class(p_class_name);
+    }
 
-    if (!p_properties.is_empty())
-    {
-        for (int i = 0; i < p_properties.size(); i++)
-        {
+    if (!p_properties.is_empty()) {
+        for (int i = 0; i < p_properties.size(); i++) {
             const PropertyInfo property = DictionaryUtils::to_property(p_properties[i]);
 
-            if (property.usage & PROPERTY_USAGE_INTERNAL)
-                continue;
-
-            if (property.usage & PROPERTY_USAGE_CATEGORY || property.usage & PROPERTY_USAGE_GROUP)
-                continue;
-
-            // if (property.name.begins_with("_"))
-            //     continue;
-
-            // For script variables, check whether it's defined in the parent or child type. When it
-            // is defined in the parent script types, it should be skipped.
-            if (property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE && !global_class.name.is_empty())
-            {
-                if (ScriptServer::get_global_class(global_class.base_type).has_property(property.name))
-                    continue;
-            }
-
-            #if GODOT_VERSION >= 0x040400
-            String getter_name = ClassDB::class_get_property_getter(p_class_name, property.name);
-            if (getter_name.is_empty() && property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE)
-                getter_name = "get_" + property.name;
-
-            String setter_name = ClassDB::class_get_property_setter(p_class_name, property.name);
-            if (setter_name.is_empty() && property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE)
-                setter_name = "set_" + property.name;
-            #else
             String getter_name = vformat("get_%s", property.name);
             String setter_name = vformat("set_%s", property.name);
 
-            bool has_getter = false;
-            if ((global_class.name.is_empty() && ClassDB::class_has_method(p_class_name, getter_name))
-                || (!global_class.name.is_empty() && global_class.has_method(getter_name)))
-                has_getter = true;
-
-            if (!has_getter)
-                getter_name = "";
-
-            bool has_setter = false;
-            if ((global_class.name.is_empty() && ClassDB::class_has_method(p_class_name, setter_name))
-                || (!global_class.name.is_empty() && global_class.has_method(setter_name)))
-                has_setter = true;
-
-            if (!has_setter)
-                setter_name = "";
-
-            #endif
-
-            if (!getter_name.is_empty())
-            {
-                property_methods.push_back(getter_name);
-
-                actions.append(
-                    ActionBuilder(properties_category, getter_name)
-                    .type(ActionType::ACTION_GET_PROPERTY)
-                    .icon(Variant::get_type_name(property.type))
-                    .type_icon("MemberProperty")
-                    .tooltip(vformat("Returns the value of property '%s'", property.name))
-                    .keywords(Array::make("get", p_class_name, property.name))
-                    .target_class(p_class_name)
-                    .selectable(true)
-                    .property(property)
-                    .class_name(p_class_name)
-                    .target_classes(Array::make(p_class_name))
-                    .build());
+            if (!global_class.name.is_empty()) {
+                if (ScriptServer::get_global_class(global_class.base_type).has_property(property.name)) {
+                    continue;
+                }
             }
 
-            if (!setter_name.is_empty())
-            {
-                property_methods.push_back(setter_name);
-
-                actions.append(
-                    ActionBuilder(properties_category, setter_name)
-                    .type(ActionType::ACTION_SET_PROPERTY)
-                    .icon(Variant::get_type_name(property.type))
-                    .type_icon("MemberProperty")
-                    .tooltip(vformat("Set the value of property '%s'", property.name))
-                    .keywords(Array::make("set", p_class_name, property.name))
-                    .target_class(p_class_name)
-                    .selectable(true)
-                    .property(property)
-                    .class_name(p_class_name)
-                    .target_classes(Array::make(p_class_name))
-                    .executions(true)
-                    .build());
+            if (property.usage & PROPERTY_USAGE_INTERNAL) {
+                #if GODOT_VERSION >= 0x040400
+                String getter = StringUtils::default_if_empty(ClassDB::class_get_property_getter(p_class_name, property.name), getter_name);
+                String setter = StringUtils::default_if_empty(ClassDB::class_get_property_setter(p_class_name, property.name), setter_name);
+                #else
+                String getter = getter_name;
+                String setter = setter_name;
+                #endif
+                if (!getter.is_empty()) {
+                    internal_method_names.push_back(getter);
+                }
+                if (!setter.is_empty()) {
+                    internal_method_names.push_back(setter);
+                }
+                continue;
             }
+
+            if (property.usage & PROPERTY_USAGE_CATEGORY || property.usage & PROPERTY_USAGE_GROUP) {
+                continue;
+            }
+
+            property_methods.push_back(getter_name);
+            actions.append(
+                ActionBuilder(properties_category, getter_name)
+                .type(ActionType::ACTION_GET_PROPERTY)
+                .icon(Variant::get_type_name(property.type))
+                .type_icon("MemberProperty")
+                .tooltip(vformat("Returns the value of property '%s'", property.name))
+                .keywords(Array::make("get", p_class_name, property.name))
+                .target_class(p_class_name)
+                .selectable(true)
+                .property(property)
+                .class_name(p_class_name)
+                .target_classes(Array::make(p_class_name))
+                .build());
+
+            property_methods.push_back(setter_name);
+            actions.append(
+                ActionBuilder(properties_category, setter_name)
+                .type(ActionType::ACTION_SET_PROPERTY)
+                .icon(Variant::get_type_name(property.type))
+                .type_icon("MemberProperty")
+                .tooltip(vformat("Set the value of property '%s'", property.name))
+                .keywords(Array::make("set", p_class_name, property.name))
+                .target_class(p_class_name)
+                .selectable(true)
+                .property(property)
+                .class_name(p_class_name)
+                .target_classes(Array::make(p_class_name))
+                .executions(true)
+                .build());
         }
     }
 
-    if (ClassDB::can_instantiate(p_class_name) || ScriptServer::is_global_class(p_class_name))
-    {
+    if (ClassDB::can_instantiate(p_class_name) || ScriptServer::is_global_class(p_class_name)) {
         actions.push_back(
             _script_node_builder<OScriptNodeNew>(
                 methods_category,
@@ -367,33 +314,29 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             .build());
     }
 
-    if (!p_methods.is_empty())
-    {
+    if (!p_methods.is_empty()) {
         const Ref<OScriptNodeEvent> event_node = _get_or_create_node_template<OScriptNodeEvent>(true);
         const Ref<OScriptNodeCallMemberFunction> func_node = _get_or_create_node_template<OScriptNodeCallMemberFunction>();
 
-        for (int i = 0; i < p_methods.size(); i++)
-        {
-            const MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
+        const bool prefer_properties_over_methods = ORCHESTRATOR_GET("ui/actions_menu/prefer_properties_over_methods", false);
 
-            // Skip private methods
-            // if (method.name.begins_with("_") && !(method.flags & METHOD_FLAG_VIRTUAL))
-            //     continue;
+        for (int i = 0; i < p_methods.size(); i++) {
+            MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
 
-            // // Skip internal methods
-            // if (method.name.begins_with("@"))
-            //     continue;
-
-            if (property_methods.has(method.name))
+            if (internal_method_names.has(method.name)) {
                 continue;
+            }
+
+            if (prefer_properties_over_methods && property_methods.has(method.name)) {
+                continue;
+            }
 
             PackedStringArray keywords = method.name.capitalize().to_lower().split(" ", false);
             keywords.push_back(method.name);
             keywords.push_back(p_class_name);
 
             const bool event_method = OScriptNodeEvent::is_event_method(method);
-            if (event_method)
-            {
+            if (event_method) {
                 actions.push_back(
                     ActionBuilder(methods_category, method.name)
                     .type(ActionType::ACTION_EVENT)
@@ -406,9 +349,11 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                     .method(method)
                     .class_name(p_class_name)
                     .build());
-            }
-            else
-            {
+            } else {
+
+                // Hook to override method details as needed
+                _apply_method_overrides(p_class_name, method);
+
                 actions.push_back(
                     ActionBuilder(methods_category, method.name)
                     .type(ActionType::ACTION_CALL_MEMBER_FUNCTION)
@@ -426,11 +371,9 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         }
     }
 
-    if (!p_signals.is_empty())
-    {
+    if (!p_signals.is_empty()) {
         const Ref<OScriptNodeEmitSignal> node = _get_or_create_node_template<OScriptNodeEmitSignal>();
-        for (int i = 0; i < p_signals.size(); i++)
-        {
+        for (int i = 0; i < p_signals.size(); i++) {
             const MethodInfo signal = DictionaryUtils::to_method(p_signals[i]);
 
             PackedStringArray keywords = node->get_keywords();
@@ -457,13 +400,11 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         }
     }
 
-    const PackedStringArray static_functions = ExtensionDB::get_static_function_names(p_class_name);
-    if (!static_functions.is_empty())
-    {
+    const PackedStringArray static_functions = ExtensionDB::get_class_static_function_names(p_class_name);
+    if (!static_functions.is_empty()) {
         const Ref<OScriptNodeCallStaticFunction> node = _get_or_create_node_template<OScriptNodeCallStaticFunction>();
 
-        for (const String& function_name : static_functions)
-        {
+        for (const String& function_name : static_functions) {
             PackedStringArray keywords = node->get_keywords();
             keywords.append_array(function_name.capitalize().to_lower().split(" ", false));
             keywords.append(p_class_name);
@@ -487,8 +428,8 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_object(
-    Object* p_object)
-{
+    Object* p_object) {
+
     Vector<Ref<Action>> actions;
     ERR_FAIL_NULL_V_MSG(p_object, actions, "Cannot generate actions for a null object");
 
@@ -498,32 +439,28 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     const Ref<Script> script = p_object->get_script();
 
     String global_name;
-    if (script.is_valid())
+    if (script.is_valid()) {
         global_name = ScriptServer::get_global_name(script);
+    }
 
     String autoload_name = "";
-    for (const String& constant_name : OScriptLanguage::get_singleton()->get_global_named_constant_names())
-    {
+    for (const String& constant_name : OScriptLanguage::get_singleton()->get_global_named_constant_names()) {
         Variant value = OScriptLanguage::get_singleton()->get_any_global_constant(constant_name);
-        if (value.get_type() == Variant::OBJECT)
-        {
+        if (value.get_type() == Variant::OBJECT) {
             Object* other = Object::cast_to<Object>(value);
-            if (other == p_object)
-            {
+            if (other == p_object) {
                 autoload_name = constant_name;
                 break;
             }
         }
     }
 
-    if (!global_name.is_empty())
-    {
+    if (!global_name.is_empty()) {
         // The object has a named script attached
         // The script methods, properties, and signals must be registered using the script's class_name
         // rather than adding these as part of the base script type.
         const PackedStringArray class_hierarchy = ScriptServer::get_class_hierarchy(global_name);
-        for (const String& class_name : class_hierarchy)
-        {
+        for (const String& class_name : class_hierarchy) {
             const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(class_name);
             actions.append_array(
                 _get_actions_for_class(
@@ -533,9 +470,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                     global_class.get_property_list(),
                     global_class.get_signal_list()));
         }
-    }
-    else if (script.is_valid())
-    {
+    } else if (script.is_valid()) {
         actions.append_array(
             _get_actions_for_class(
                 p_object->get_class(),
@@ -546,8 +481,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     }
 
     const PackedStringArray native_hierarchy = _get_native_class_hierarchy(p_object->get_class());
-    for (const String& native_class : native_hierarchy)
-    {
+    for (const String& native_class : native_hierarchy) {
         actions.append_array(
             _get_actions_for_class(
                 native_class,
@@ -561,26 +495,23 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_classes(
-    const PackedStringArray& p_class_names)
-{
+    const PackedStringArray& p_class_names) {
+
     Vector<Ref<Action>> actions;
 
     PackedStringArray classes_added;
-    for (const String& provided_class_name : p_class_names)
-    {
+    for (const String& provided_class_name : p_class_names) {
         PackedStringArray class_names;
-        if (ScriptServer::is_global_class(provided_class_name))
+        if (ScriptServer::is_global_class(provided_class_name)) {
             class_names = ScriptServer::get_class_hierarchy(provided_class_name, true);
-        else
+        } else {
             class_names = _get_native_class_hierarchy(provided_class_name);
+        }
 
-        for (const String& class_name : class_names)
-        {
-            if (!classes_added.has(class_name))
-            {
+        for (const String& class_name : class_names) {
+            if (!classes_added.has(class_name)) {
                 classes_added.append(class_name);
-                if (ScriptServer::is_global_class(class_name))
-                {
+                if (ScriptServer::is_global_class(class_name)) {
                     const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(class_name);
                     actions.append_array(
                         _get_actions_for_class(
@@ -589,9 +520,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                             global_class.get_method_list(),
                             global_class.get_property_list(),
                             global_class.get_signal_list()));
-                }
-                else
-                {
+                } else {
                     actions.append_array(
                         _get_actions_for_class(
                             class_name,
@@ -608,12 +537,11 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_class(
-    const StringName& p_class_name)
-{
+    const StringName& p_class_name) {
+
     Vector<Ref<Action>> actions;
 
-    if (ScriptServer::is_global_class(p_class_name))
-    {
+    if (ScriptServer::is_global_class(p_class_name)) {
         const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(p_class_name);
         actions.append_array(
             _get_actions_for_class(
@@ -622,9 +550,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 global_class.get_method_list(),
                 global_class.get_property_list(),
                 global_class.get_signal_list()));
-    }
-    else
-    {
+    } else {
         actions.append_array(
             _get_actions_for_class(
                 p_class_name,
@@ -638,30 +564,33 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_script(
-    const Ref<Script>& p_script)
-{
+    const Ref<Script>& p_script) {
+
     Vector<Ref<Action>> actions;
 
     const Ref<OScript> oscript = p_script;
-    if (oscript.is_valid())
-    {
-        const String base_type = oscript->get_instance_base_type();
-        for (const Ref<OScriptFunction>& function : oscript->get_orchestration()->get_functions())
-        {
-            if (!function.is_valid() || !function->is_user_defined())
+    if (oscript.is_valid()) {
+
+        const String base_type = oscript->get_orchestration()->get_base_type(); // oscript->get_instance_base_type();
+        for (const Ref<OScriptFunction>& function : oscript->get_orchestration()->get_functions()) {
+
+            if (!function.is_valid() || !function->is_user_defined()) {
                 continue;
+            }
 
             const MethodInfo& method = function->get_method_info();
 
             // // Skip private methods
             // //
             // // We previously omitted method names that began with an `_` but this does not align with
-            // if (method.name.begins_with("_") && !(method.flags & METHOD_FLAG_VIRTUAL))
+            // if (method.name.begins_with("_") && !(method.flags & METHOD_FLAG_VIRTUAL)) {
             //     continue;
+            // }
             //
             // // Skip internal methods
-            // if (method.name.begins_with("@"))
+            // if (method.name.begins_with("@")) {
             //     continue;
+            // }
 
             PackedStringArray keywords = method.name.capitalize().to_lower().split(" ", false);
             keywords.append(method.name);
@@ -681,10 +610,10 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 .build());
         }
 
-        for (const Ref<OScriptSignal>& signal : oscript->get_orchestration()->get_custom_signals())
-        {
-            if (!signal.is_valid())
+        for (const Ref<OScriptSignal>& signal : oscript->get_orchestration()->get_custom_signals()) {
+            if (!signal.is_valid()) {
                 continue;
+            }
 
             const MethodInfo& method = signal->get_method_info();
 
@@ -706,20 +635,22 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 .build());
         }
 
-        for (const Ref<OScriptVariable>& variable : oscript->get_orchestration()->get_variables())
-        {
-            if (!variable.is_valid())
+        for (const Ref<OScriptVariable>& variable : oscript->get_orchestration()->get_variables()) {
+            if (!variable.is_valid()) {
                 continue;
+            }
 
             const PropertyInfo& property = variable->get_info();
 
             String get_desc = vformat("Get the value of the variable '%s' in the orchestration.", variable->get_variable_name());
-            if (!variable->get_description().is_empty())
+            if (!variable->get_description().is_empty()) {
                 get_desc += "\n\n" + variable->get_description();
+            }
 
             String set_desc = vformat("Sets the value of the variable '%s' in the orchestration.", variable->get_variable_name());
-            if (!variable->get_description().is_empty())
+            if (!variable->get_description().is_empty()) {
                 set_desc += "\n\n" + variable->get_description();
+            }
 
             PackedStringArray keywords = property.name.capitalize().to_lower().split(" ", false);
             keywords.append(property.name);
@@ -738,8 +669,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 .class_name(base_type)
                 .build());
 
-            if (!variable->is_constant())
-            {
+            if (!variable->is_constant()) {
                 actions.push_back(
                     ActionBuilder("Variables", vformat("Set %s", property.name))
                     .type(ActionType::ACTION_VARIABLE_SET)
@@ -759,8 +689,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     return actions;
 }
 
-Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_script_nodes()
-{
+Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_script_nodes() {
     // todo:
     //  we need a way to describe the pin types on nodes
     //  this is so that dragging from a port can match a script node
@@ -815,8 +744,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 
     // Switch on Enums
     // todo: this isn't sorting properly
-    for (const String& enum_name : ExtensionDB::get_global_enum_names())
-    {
+    for (const String& enum_name : ExtensionDB::get_global_enum_names()) {
         const EnumInfo& info = ExtensionDB::get_global_enum(enum_name);
         actions.push_back(
             _script_node_builder<OScriptNodeSwitchEnum>(
@@ -868,34 +796,34 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     actions.push_back(_script_node_builder<OScriptNodeLocalVariable>("Utilities/Macros", "Local Object", local_object).graph_type(GraphType::GRAPH_MACRO).build());
 
     // List each engine singleton directly
-    for (const String& name : Engine::get_singleton()->get_singleton_list())
-    {
+    for (const String& name : Engine::get_singleton()->get_singleton_list()) {
         const Dictionary data = DictionaryUtils::of({ { "singleton_name", name } });
         actions.push_back(_script_node_builder<OScriptNodeEngineSingleton>("Singleton", name, data).build());
     }
 
     // Orchestrator Script Language Functions
     const TypedArray<Dictionary> language_functions = OScriptLanguage::get_singleton()->_get_public_functions();
-    for (int i = 0; i < language_functions.size(); i++)
-    {
+    for (int i = 0; i < language_functions.size(); i++) {
         const MethodInfo& mi = DictionaryUtils::to_method(language_functions[i]);
+        // Exclude any internal methods that are prefixed with `_`.
+        if (mi.name.begins_with("_")) {
+            continue;
+        }
+
         actions.push_back(_script_node_builder<OScriptNodeCallBuiltinFunction>("@OScript", mi.name, language_functions[i]).build());
     }
 
     return actions;
 }
 
-Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_variant_types()
-{
+Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_variant_types() {
     Vector<Ref<Action>> actions;
 
-    for (const String& builtin_type_name : ExtensionDB::get_builtin_type_names())
-    {
-        const BuiltInType type = ExtensionDB::get_builtin_type(builtin_type_name);
-
+    for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
         // Nothing to show for NIL/Any
-        if (type.type == Variant::NIL)
+        if (type.type == Variant::NIL) {
             continue;
+        }
 
         const String type_icon = _get_type_icon(type.type);
         const String type_name = _get_type_name(type.type);
@@ -912,13 +840,11 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             _script_node_builder<OScriptNodeLocalVariable>(
                 category,
                 vformat("Local %s Variable", type_name), type_dict)
-            .graph_type(GraphType::GRAPH_MACRO)
+            //.graph_type(GraphType::GRAPH_MACRO)
             .build());
 
-        if (!type.properties.is_empty())
-        {
-            if (OScriptNodeCompose::is_supported(type.type))
-            {
+        if (!type.properties.is_empty()) {
+            if (OScriptNodeCompose::is_supported(type.type)) {
                 actions.push_back(
                     _script_node_builder<OScriptNodeCompose>(
                         category,
@@ -935,25 +861,22 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 .build());
         }
 
-        if (!type.constructors.is_empty())
-        {
-            for (const ConstructorInfo& info : type.constructors)
-            {
-                if (!info.arguments.is_empty())
-                {
-                    if (!OScriptNodeComposeFrom::is_supported(type.type, info.arguments))
+        if (!type.constructors.is_empty()) {
+            for (const ConstructorInfo& info : type.constructors) {
+                if (!info.arguments.is_empty()) {
+                    if (!OScriptNodeComposeFrom::is_supported(type.type, info.arguments)) {
                         continue;
+                    }
 
                     Vector<String> argument_types;
                     Array arguments;
-                    for (const PropertyInfo& argument : info.arguments)
-                    {
+                    for (const PropertyInfo& argument : info.arguments) {
                         String argument_name;
-                        if (argument.name.to_lower().match("from"))
+                        if (argument.name.to_lower().match("from")) {
                             argument_name = VariantUtils::get_friendly_type_name(argument.type);
-                        else
+                        } else {
                             argument_name = argument.name.capitalize();
-
+                        }
                         argument_types.push_back(argument_name);
                         arguments.push_back(DictionaryUtils::from_property(argument));
                     }
@@ -972,8 +895,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             }
         }
 
-        for (const MethodInfo& method : type.methods)
-        {
+        for (const MethodInfo& method : type.get_method_list()) {
             const Dictionary method_dict = DictionaryUtils::from_method(method);
 
             actions.push_back(
@@ -987,24 +909,25 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 .build());
         }
 
-        if (OScriptNodeOperator::is_supported(type.type))
-        {
+        if (OScriptNodeOperator::is_supported(type.type)) {
             const String operator_category = vformat("%s/Operators", category);
             actions.append_array(_create_categories_from_path(operator_category));
 
-            for (const OperatorInfo& info : type.operators)
-            {
-                if (!OScriptNodeOperator::is_operator_supported(info))
+            for (const OperatorInfo& info : type.operators) {
+                if (!OScriptNodeOperator::is_operator_supported(info)) {
                     continue;
+                }
 
                 String operator_name;
-                if (!info.name.match("Not"))
+                if (!info.name.match("Not")) {
                     operator_name = vformat("%s %s", type_name, info.name);
-                else
+                } else {
                     operator_name = info.name;
+                }
 
-                if (!info.right_type_name.is_empty())
+                if (!info.right_type_name.is_empty()) {
                     operator_name += vformat(" %s", _get_type_name(info.right_type));
+                }
 
                 const Dictionary data = DictionaryUtils::of({ { "op", info.op },
                                                               { "code", info.code },
@@ -1016,15 +939,22 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                                                               { "right_type_name", info.right_type_name },
                                                               { "return_type", info.return_type } });
 
+                PackedStringArray keywords = Array::make(info.name, info.code, info.left_type_name, info.right_type_name);
+                if (info.op == VariantOperators::OP_MODULE) {
+                    keywords.push_back("mod");
+                    keywords.push_back("modulus");
+                }
+
                 actions.push_back(_script_node_builder<OScriptNodeOperator>(operator_category, operator_name, data)
                     .inputs(Vector({ info.left_type, info.right_type }))
                     .outputs(Vector({ info.return_type }))
+                    .keywords(keywords)
+                    .no_capitalize(true)
                     .build());
             }
         }
 
-        if (type.index_returning_type != Variant::NIL && type.type >= Variant::ARRAY)
-        {
+        if (type.index_returning_type != Variant::NIL && type.type >= Variant::ARRAY) {
             const String operator_category = vformat("%s/Operators", category);
             const Dictionary data = DictionaryUtils::of({ { "collection_type", type.type }, { "index_type", type.index_returning_type } });
 
@@ -1036,24 +966,11 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     return actions;
 }
 
-Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_builtin_functions()
-{
+Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_builtin_functions() {
     Vector<Ref<Action>> actions;
 
-    for (const String& function_name : ExtensionDB::get_function_names())
-    {
-        const FunctionInfo& info = ExtensionDB::get_function(function_name);
-
-        MethodInfo method;
-        method.name = info.name;
-        method.return_val = info.return_val;
-        method.flags = METHOD_FLAGS_DEFAULT;
-
-        if (info.is_vararg)
-            method.flags |= METHOD_FLAG_VARARG;
-
-        for (const PropertyInfo& argument : info.arguments)
-            method.arguments.push_back(argument);
+    for (const FunctionInfo& info : ExtensionDB::get_utility_functions()) {
+        const MethodInfo& method = info.method;
 
         // Godot exports utility functions under "math", "random", and "general"
         // We remap "general" to "utilities" and "random" to "random numbers"
@@ -1063,7 +980,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         actions.push_back(
             _script_node_builder<OScriptNodeCallBuiltinFunction>(
                 category,
-                info.name,
+                method.name,
                 DictionaryUtils::from_method(method))
             .method(method)
             .tooltip(vformat("Calls the specified built-in Godot function '%s'.", method.name))
@@ -1073,18 +990,16 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     return actions;
 }
 
-Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_autoloads()
-{
+Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_autoloads() {
     Vector<Ref<Action>> actions;
 
-    for (const String& global_constant_name : OScriptLanguage::get_singleton()->get_global_constant_names())
-    {
+    for (const KeyValue<StringName, GDE::ProjectSettings::AutoloadInfo>& E : GDE::ProjectSettings::get_autoload_list()) {
         actions.push_back(
             _script_node_builder<OScriptNodeAutoload>(
                 vformat("Project/Autoloads"),
-                vformat("Get %s", global_constant_name),
-                DictionaryUtils::of({ { "class_name", global_constant_name } }))
-            .tooltip(vformat("Get a reference to the project autoload %s.", global_constant_name))
+                vformat("Get %s", E.key),
+                DictionaryUtils::of({ { "class_name", E.key } }))
+            .tooltip(vformat("Get a reference to the project autoload %s.", E.key))
             .no_capitalize(true)
             .build());
     }
@@ -1092,27 +1007,24 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     return actions;
 }
 
-Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_native_classes()
-{
+Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_native_classes() {
     Vector<Ref<Action>> actions;
 
-    for (const String& class_name : ClassDB::get_class_list())
+    for (const String& class_name : ClassDB::get_class_list()) {
         actions.append_array(generate_actions_from_class(class_name));
+    }
 
     return actions;
 }
 
-Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_static_script_methods()
-{
+Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_static_script_methods() {
     Vector<Ref<Action>> actions;
 
-    for (const String& global_class : ScriptServer::get_global_class_list())
-    {
+    for (const String& global_class : ScriptServer::get_global_class_list()) {
         const String category = vformat("Static/%s", global_class);
 
         const TypedArray<Dictionary> static_methods = ScriptServer::get_global_class(global_class).get_static_method_list();
-        for (int i = 0; i < static_methods.size(); i++)
-        {
+        for (int i = 0; i < static_methods.size(); i++) {
             const MethodInfo static_method = DictionaryUtils::to_method(static_methods[i]);
             actions.push_back(
                 _script_node_builder<OScriptNodeCallStaticFunction>(
@@ -1127,18 +1039,15 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     return actions;
 }
 
-Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_script_global_classes()
-{
+Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_script_global_classes() {
     Vector<Ref<Action>> actions;
 
-    for (const String& global_name : ScriptServer::get_global_class_list())
-    {
+    for (const String& global_name : ScriptServer::get_global_class_list()) {
         // The object has a named script attached
         // The script methods, properties, and signals must be registered using the script's class_name
         // rather than adding these as part of the base script type.
         const PackedStringArray class_hierarchy = ScriptServer::get_class_hierarchy(global_name, false);
-        for (const String& class_name : class_hierarchy)
-        {
+        for (const String& class_name : class_hierarchy) {
             const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(class_name);
             actions.append_array(
                 _get_actions_for_class(
@@ -1152,8 +1061,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         const String static_category_name = vformat("Static/%s", global_name);
 
         const TypedArray<Dictionary> static_methods = ScriptServer::get_global_class(global_name).get_static_method_list();
-        for (int i = 0; i < static_methods.size(); i++)
-        {
+        for (int i = 0; i < static_methods.size(); i++) {
             const MethodInfo static_method = DictionaryUtils::to_method(static_methods[i]);
             actions.push_back(
                 _script_node_builder<OScriptNodeCallStaticFunction>(
@@ -1169,12 +1077,10 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 }
 
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_category(
-    const String& p_category, const String& p_icon)
-{
+    const String& p_category, const String& p_icon) {
     return _create_categories_from_path(p_category, p_icon);
 }
 
-void OrchestratorEditorIntrospector::free_resources()
-{
+void OrchestratorEditorIntrospector::free_resources() {
     _script_node_cache.clear();
 }

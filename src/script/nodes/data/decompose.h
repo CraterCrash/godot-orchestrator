@@ -30,18 +30,16 @@
 /// For other types, such as Rect2, it is split into its responsible size and position and
 /// a follow-up decompose node can be used to split those variant types as needed.
 ///
-class OScriptNodeDecompose : public OScriptNode
-{
-    // todo: this node needs to have its rendering fixed
-
+class OScriptNodeDecompose : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDecompose, OScriptNode);
-    static void _bind_methods();
 
     using TypeMap = HashMap<Variant::Type, Array>;
 
+    static TypeMap _type_components;        //! Various types and respective components
+    Variant::Type _type = Variant::NIL;     //! Transient type to pass from creation metadata
+
 protected:
-    Variant::Type _type;              //! Transient type to pass from creation metadata
-    static TypeMap _type_components;  //! Various types and respective components
+    static void _bind_methods();
 
 public:
     //~ Begin OScriptNode Interface
@@ -53,9 +51,11 @@ public:
     String get_icon() const override;
     String get_help_topic() const override;
     PackedStringArray get_keywords() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
+
+    Variant::Type get_source_type() const { return _type; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_DECOMPOSE_H

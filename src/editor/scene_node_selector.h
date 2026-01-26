@@ -25,20 +25,13 @@
 using namespace godot;
 
 /// Displays a dialog of the current edited scene, allowing the user to select a specific node.
-class OrchestratorSceneNodeSelector : public ConfirmationDialog
-{
+class OrchestratorSceneNodeSelector : public ConfirmationDialog {
     GDCLASS(OrchestratorSceneNodeSelector, ConfirmationDialog);
-    static void _bind_methods();
 
-protected:
-    LineEdit* _filter{ nullptr };   //! Filter text input box
-    Tree* _tree{ nullptr };         //! Tree of scene nodes
-    Node* _selected{ nullptr };     //! The selected node
-    bool _show_all_nodes{ false };  //! Whether to show all nodes
-
-    //~ Begin Wrapped Interface
-    void _notification(int p_what);
-    //~ End Wrapped Interface
+    LineEdit* _filter = nullptr;    //! Filter text input box
+    Tree* _tree = nullptr;          //! Tree of scene nodes
+    Node* _selected = nullptr;      //! The selected node
+    bool _show_all_nodes = false;   //! Whether to show all nodes
 
     //~ Begin Signal Handlers
     void _close_requested();
@@ -72,6 +65,13 @@ protected:
     /// @param p_scroll_to_selected whether to scroll to the selected node
     /// @return true if successful, false otherwise
     bool _update_filter(TreeItem* p_parent, bool p_scroll_to_selected);
+
+protected:
+    static void _bind_methods();
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
 public:
     /// Set the selected node
