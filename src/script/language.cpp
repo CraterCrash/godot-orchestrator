@@ -24,12 +24,14 @@
 #include "core/godot/core_constants.h"
 #include "core/godot/variant/variant.h"
 #include "core/typedefs.h"
+#include "orchestration/serialization/text/text_parser.h"
 #include "orchestration/serialization/text/variant_parser.h"
 #include "script/compiler/analyzer.h"
 #include "script/nodes/utilities/print_string.h"
 #include "script/parser/parser.h"
 #include "script/script.h"
 #include "script/script_cache.h"
+#include "script/script_template_registry.h"
 #include "script/utility_functions.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -37,6 +39,7 @@
 #include <godot_cpp/classes/expression.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
+#include <godot_cpp/classes/reg_ex.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 
@@ -118,6 +121,8 @@ String OScriptLanguage::_get_name() const {
 }
 
 void OScriptLanguage::_init() {
+    _template_registry = memnew(OScriptTemplateRegistry);
+
     _debug_max_call_stack = ORCHESTRATOR_GET("settings/runtime/max_call_stack", 1024);
     track_call_stack = ORCHESTRATOR_GET("settings/runtime/always_track_call_stacks", false);
     track_locals = ORCHESTRATOR_GET("settings/runtime/always_track_local_variables", false);
@@ -211,6 +216,9 @@ void OScriptLanguage::_finish() {
     }
     #endif
 
+    memdelete(_template_registry);
+    _template_registry = nullptr;
+
     finishing = false;
 }
 
@@ -225,28 +233,75 @@ Ref<Script> OScriptLanguage::_make_template(const String& p_template, const Stri
     Ref<OScript> script;
     script.instantiate();
 
-    Ref<Orchestration> orchestration;
-    orchestration.instantiate();
-    orchestration->set_base_type(p_base_class_name);
-    orchestration->create_graph("EventGraph", OScriptGraph::GF_EVENT);
-    orchestration->_self = script.ptr();
-    script->orchestration = orchestration;
+    String source = "";
+    if (!p_template.is_empty()) {
+        // Pass 1 - replace static values
+        source = p_template.replace("_BASE_", p_base_class_name)
+            .replace("_CLASS_SNAKE_CASE_", p_class_name.to_snake_case())
+            .replace("_CLASS_", p_class_name.to_pascal_case());
 
-    orchestration->post_initialize();
+        // Locate how many guids we need to replace
+        int guids = 0;
+        while (true) {
+            if (source.find("_GUID" + itos(guids + 1) + "_") == -1) {
+                break;
+            }
+            guids++;
+        }
+
+        // Replace each instance
+        for (int i = 1; i <= guids; i++) {
+            source = source.replace("_GUID" + itos(i) + "_", Guid::create_guid().to_string());
+        }
+    }
+
+    if (!source.is_empty()) {
+        const Ref<FileAccess> temp = FileAccess::create_temp(FileAccess::WRITE_READ, "", "torch");
+        temp->store_string(source);
+        temp->seek(0);
+        temp->flush();
+        temp->close();
+
+        OrchestrationTextParser parser;
+        Ref<Orchestration> orchestration = parser.load(temp->get_path());
+        if (orchestration.is_valid()) {
+            orchestration->_self = script.ptr();
+            orchestration->_script_path = "";
+            script->orchestration = orchestration;
+        }
+
+    } else {
+        Ref<Orchestration> orchestration;
+        orchestration.instantiate();
+        orchestration->set_base_type(p_base_class_name);
+        orchestration->create_graph("EventGraph", OScriptGraph::GF_EVENT);
+        orchestration->_self = script.ptr();
+        script->orchestration = orchestration;
+
+        orchestration->post_initialize();
+    }
 
     return script;
 }
 
 TypedArray<Dictionary> OScriptLanguage::_get_built_in_templates(const StringName& p_object) const {
-    Dictionary data;
-    data["inherit"] = p_object;
-    data["name"] = "Orchestration";
-    data["description"] = "Basic Orchestration";
-    data["content"] = "";
-    data["id"] = 0;
-    data["origin"] = 0; //built-in
+    TypedArray<Dictionary> builtin_templates;
 
-    return Array::make(data);
+    if (_template_registry) {
+        const List<OScriptTemplateRegistry::Template> templates = _template_registry->get_templates(p_object);
+        for (const OScriptTemplateRegistry::Template& E: templates) {
+            Dictionary data;
+            data["inherit"] = p_object;
+            data["name"] = E.name;
+            data["description"] = E.description;
+            data["content"] = E.script_template;
+            data["id"] = 0;
+            data["origin"] = 0; // built-in
+            builtin_templates.push_back(data);
+        }
+    }
+
+    return builtin_templates;
 }
 
 Dictionary OScriptLanguage::_validate(const String& p_script, const String& p_path, bool p_validate_functions, bool p_validate_errors, bool p_validate_warnings, bool p_validate_safe_lines) const {
