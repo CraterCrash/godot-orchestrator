@@ -88,7 +88,8 @@ void OrchestratorEditor::_prepare_file_menu() {
     OrchestratorEditorView* editor = _get_current_editor();
     const Ref<Resource> res = editor ? editor->get_edited_resource() : Ref<Resource>();
 
-    const bool current_script_tool = _get_current_script()->is_tool();
+    const Ref<Script> current_script = _get_current_script();
+    const bool current_script_tool = current_script.is_valid() ? current_script->is_tool() : false;
 
     menu->set_item_disabled(menu->get_item_index(FILE_REOPEN_CLOSED), _previous_scripts.is_empty());
     menu->set_item_disabled(menu->get_item_index(FILE_SOFT_RELOAD_TOOL_SCRIPT), !current_script_tool);
