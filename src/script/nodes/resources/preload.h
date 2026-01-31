@@ -23,7 +23,6 @@
 class OScriptNodePreload : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePreload, OScriptNode);
 
-    Ref<Resource> _resource;  //! The loaded resource
     String _resource_path;    //! The resource path
 
 protected:

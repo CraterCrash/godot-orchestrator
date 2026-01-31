@@ -16,17 +16,50 @@
 //
 #include "script/target_object.h"
 
-OScriptTargetObject::OScriptTargetObject(Object* p_object, bool p_owned)
-    : _wrapped(p_object)
-    , _owned(p_owned) {
+Variant OScriptTargetObject::get_target() const {
+    return _reference;
+}
+
+StringName OScriptTargetObject::get_target_class() const {
+    switch (_reference.get_type()) {
+        case Variant::OBJECT:
+            return cast_to<Object>(_reference)->get_class();
+        default:
+            return Variant::get_type_name(_reference.get_type());
+    }
+}
+
+TypedArray<Dictionary> OScriptTargetObject::get_target_property_list() const {
+    if (_reference.get_type() == Variant::OBJECT) {
+        return cast_to<Object>(_reference)->get_property_list();
+    }
+    return {};
+}
+
+TypedArray<Dictionary> OScriptTargetObject::get_target_method_list() const {
+    if (_reference.get_type() == Variant::OBJECT) {
+        return cast_to<Object>(_reference)->get_method_list();
+    }
+    return {};
+}
+
+TypedArray<Dictionary> OScriptTargetObject::get_target_signal_list() const {
+    if (_reference.get_type() == Variant::OBJECT) {
+        return cast_to<Object>(_reference)->get_signal_list();
+    }
+    return {};
+}
+
+OScriptTargetObject::OScriptTargetObject(const Variant& p_reference, bool p_owned) {
+    _reference = p_reference;
+    _owned = p_owned;
 }
 
 OScriptTargetObject::~OScriptTargetObject() {
-    if (_owned) {
-        const RefCounted* referenced = cast_to<RefCounted>(_wrapped);
+    if (_owned && _reference.get_type() == Variant::OBJECT) {
+        RefCounted* referenced = cast_to<RefCounted>(_reference);
         if (!referenced) {
-            memdelete(_wrapped);
-            _wrapped = nullptr;
+            memdelete(cast_to<Object>(_reference));
         }
     }
 }

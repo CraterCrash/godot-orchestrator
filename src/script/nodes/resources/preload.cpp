@@ -25,15 +25,11 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 
 void OScriptNodePreload::_get_property_list(List<PropertyInfo> *r_list) const {
-    r_list->push_back(PropertyInfo(Variant::OBJECT, "resource", PROPERTY_HINT_RESOURCE_TYPE, "Resource", PROPERTY_USAGE_EDITOR));
     r_list->push_back(PropertyInfo(Variant::STRING, "path", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
 bool OScriptNodePreload::_get(const StringName &p_name, Variant &r_value) const {
-    if (p_name.match("resource")) {
-        r_value = _resource;
-        return true;
-    } else if (p_name.match("path")) {
+    if (p_name.match("path")) {
         r_value = _resource_path;
         return true;
     }
@@ -41,19 +37,8 @@ bool OScriptNodePreload::_get(const StringName &p_name, Variant &r_value) const 
 }
 
 bool OScriptNodePreload::_set(const StringName &p_name, const Variant& p_value) {
-    if (p_name.match("resource")) {
-        _resource = p_value;
-        if (_resource.is_valid()) {
-            _resource_path = _resource->get_path();
-        } else {
-            _resource_path = "";
-        }
-        notify_property_list_changed();
-        _notify_pins_changed();
-        return true;
-    } else if (p_name.match("path")) {
+    if (p_name.match("path")) {
         _resource_path = p_value;
-        _resource = ResourceLoader::get_singleton()->load(_resource_path);
         notify_property_list_changed();
         _notify_pins_changed();
         return true;
@@ -62,17 +47,14 @@ bool OScriptNodePreload::_set(const StringName &p_name, const Variant& p_value) 
 }
 
 StringName OScriptNodePreload::_get_resource_class_name() const {
-    // If resource is invalid, attempt to load it
-    Ref<Resource> resource = _resource;
-    if (!resource.is_valid()) {
-        resource = ResourceLoader::get_singleton()->load(_resource_path);
-    }
-
-    // If resource is valid, if scene, get root node type; otherwise resource type
+    Ref<Resource> resource = ResourceLoader::get_singleton()->load(_resource_path);
     if (resource.is_valid()) {
         const Ref<PackedScene> scene = resource;
         if (scene.is_valid() && scene->can_instantiate()) {
-            return scene->instantiate()->get_class();
+            Node* node = scene->instantiate();
+            StringName class_name = node->get_class();
+            memdelete(node);
+            return class_name;
         }
 
         if (resource->has_meta(SceneStringName(_custom_type_script))) {
@@ -92,10 +74,6 @@ StringName OScriptNodePreload::_get_resource_class_name() const {
 }
 
 void OScriptNodePreload::post_initialize() {
-    // Fixup resource pin attributes
-    if (!_resource.is_valid() && !_resource_path.is_empty()) {
-        _resource = ResourceLoader::get_singleton()->load(_resource_path);
-    }
     reconstruct_node();
     super::post_initialize();
 }
@@ -129,29 +107,24 @@ StringName OScriptNodePreload::resolve_type_class(const Ref<OScriptNodePin>& p_p
 
 Ref<OScriptTargetObject> OScriptNodePreload::resolve_target(const Ref<OScriptNodePin>& p_pin) const {
     if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution()) {
-        // If resource is invalid, attempt to load it
-        Ref<Resource> resource = _resource;
-        if (!resource.is_valid()) {
-            resource = ResourceLoader::get_singleton()->load(_resource_path);
-        }
-
+        const Ref<Resource> resource = ResourceLoader::get_singleton()->load(_resource_path);
         // If resource is valid, if scene, get root node type; otherwise resource type
         if (resource.is_valid()) {
             const Ref<PackedScene> scene = resource;
             if (scene.is_valid() && scene->can_instantiate()) {
                 return memnew(OScriptTargetObject(scene->instantiate(), true));
             }
-            return memnew(OScriptTargetObject(resource.ptr(), false));
+            else if (!scene.is_valid()) {
+                return memnew(OScriptTargetObject(resource, false));
+            }
         }
     }
-
     return super::resolve_target(p_pin);
 }
 
 void OScriptNodePreload::initialize(const OScriptNodeInitContext& p_context) {
     if (p_context.resource_path) {
         _resource_path = p_context.resource_path.value();
-        _resource = ResourceLoader::get_singleton()->load(_resource_path);
     }
     super::initialize(p_context);
 }

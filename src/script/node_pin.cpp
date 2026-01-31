@@ -701,7 +701,7 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback) con
             const Ref<OScriptNodePin> connection = get_connections()[0];
             const Ref<OScriptTargetObject> target = connection->resolve_target();
             if (target.is_valid() && target->has_target()) {
-                const TypedArray<Dictionary> signal_list = target->get_target()->get_signal_list();
+                const TypedArray<Dictionary> signal_list = target->get_target_signal_list();
                 for (uint32_t i = 0; i < signal_list.size(); i++) {
                     const Dictionary& dict = signal_list[i];
                     signal_names.push_back(dict["name"]);
