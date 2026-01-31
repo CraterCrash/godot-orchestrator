@@ -1,0 +1,209 @@
+[orchestration type="OScript" script_class="RichText_CLASS_" load_steps=13 format=3]
+
+[obj type="OScriptFunction" id="OScriptFunction_k01ul"]
+guid = "_GUID1_"
+method = {
+"name": &"_process_custom_fx",
+"return": {
+"type": 1
+},
+"flags": 12,
+"args": [{
+"name": &"char_fx",
+"type": 24,
+"class_name": &"CharFXTransform",
+"hint": 17,
+"hint_string": "CharFXTransform"
+}]
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([6, 7])
+
+[obj type="OScriptGraph" id="OScriptGraph_t06rs"]
+graph_name = &"_process_custom_fx"
+flags = 22
+nodes = Array[int]([0, 1, 2, 3, 4, 5])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_wjgkx"]
+function_id = "_GUID1_"
+id = 0
+position = Vector2(-280, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"char_fx",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "CharFXTransform",
+"hint": 17,
+"hint_string": "CharFXTransform"
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_21jif"]
+function_id = "_GUID1_"
+id = 1
+position = Vector2(260, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"return_out",
+"type": 1,
+"dir": 1,
+"flags": 34
+}])
+
+[obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_o5lix"]
+mode = 1
+target_class = &"CharFXTransform"
+property_name = &"env"
+property = {
+"name": &"env",
+"type": 27,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 6
+}
+id = 2
+position = Vector2(-331, 120)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "CharFXTransform",
+"target_class": "CharFXTransform"
+}, {
+"pin_name": &"env",
+"type": 27,
+"dir": 1,
+"flags": 2,
+"dv": {}
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_a810x"]
+function_name = &"get"
+target_type = 27
+flags = 522
+method = {
+"name": &"get",
+"return": {
+"usage": 131078
+},
+"flags": 5,
+"args": [{
+"name": &"key",
+"usage": 131078
+}, {
+"name": &"default",
+"usage": 131078
+}]
+}
+chain = false
+id = 3
+position = Vector2(20, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 27,
+"flags": 2058,
+"label": "Dictionary"
+}, {
+"pin_name": &"key",
+"flags": 2,
+"usage": 131078
+}, {
+"pin_name": &"default",
+"flags": 2,
+"usage": 131078
+}, {
+"pin_name": &"return_value",
+"dir": 1,
+"flags": 1026,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeComposeFrom" id="OScriptNodeComposeFrom_eparb"]
+id = 4
+position = Vector2(-331, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"from",
+"type": 4,
+"flags": 2,
+"dv": "param"
+}, {
+"pin_name": &"value",
+"type": 4,
+"dir": 1,
+"flags": 2,
+"dv": ""
+}])
+
+[obj type="OScriptNodeComposeFrom" id="OScriptNodeComposeFrom_pu6tx"]
+id = 5
+position = Vector2(-299, 280)
+pin_data = Array[Dictionary]([{
+"pin_name": &"from",
+"type": 3,
+"flags": 2,
+"dv": 1.0
+}, {
+"pin_name": &"value",
+"type": 3,
+"dir": 1,
+"flags": 2,
+"dv": 0.0
+}])
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_lko1y"]
+comments = "Having a class name is handy for picking the effect in the Inspector.
+To change the class name, click the \"Extends RichTextEffect\" button above."
+id = 6
+position = Vector2(300, 60)
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_ufah6"]
+title = "Instructions"
+font_size = 22
+comments = "To use this effect:
+  - Enable BBCode on a RichTextLabel.
+  - Register this effect on the label.
+  - Use [_CLASS_SNAKE_CASE_ param=2.0]hello[/_CLASS_SNAKE_CASE_] in the text in the bbcode variable."
+id = 7
+position = Vector2(340, 240)
+
+[obj type="OScriptVariable" id="OScriptVariable_xg5wk"]
+name = "bbcode"
+category = "Default"
+classification = "type:String"
+type = 4
+default_value = "_CLASS_SNAKE_CASE_"
+
+[resource]
+base_type = &"RichTextEffect"
+class_name = &"RichText_CLASS_"
+tool = true
+brief_description = "Base template for rich text effects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_xg5wk")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_k01ul")])
+connections = Array[int]([3, 0, 1, 0, 0, 1, 2, 0, 0, 0, 3, 0, 2, 0, 3, 1, 4, 0, 3, 2, 5, 0, 3, 3])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_wjgkx"), SubResource("OScriptNodeFunctionResult_21jif"), SubResource("OScriptNodePropertyGet_o5lix"), SubResource("OScriptNodeCallMemberFunction_a810x"), SubResource("OScriptNodeComposeFrom_eparb"), SubResource("OScriptNodeComposeFrom_pu6tx"), SubResource("OScriptNodeComment_lko1y"), SubResource("OScriptNodeComment_ufah6")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp"), SubResource("OScriptGraph_t06rs")])
