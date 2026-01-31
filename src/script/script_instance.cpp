@@ -300,6 +300,7 @@ const OScriptInstanceInfo OScriptInstance::INSTANCE_INFO = [] {
     result.get_fallback_func = OScriptInstanceCallbacksImpl::property_get_fallback_func;
     result.get_language_func = OScriptInstanceCallbacksImpl::get_language_func;
     result.free_func = OScriptInstanceCallbacksImpl::free_func;
+    result.refcount_decremented_func = OScriptInstanceCallbacksImpl::refcount_decremented_func;
     return result;
 }();
 
@@ -1000,6 +1001,7 @@ const OScriptInstanceInfo OScriptPlaceHolderInstance::INSTANCE_INFO = [] {
     result.get_fallback_func = OScriptPlaceHolderInstanceCallbacks::property_get_fallback_func;
     result.get_language_func = OScriptPlaceHolderInstanceCallbacks::get_language_func;
     result.free_func = OScriptPlaceHolderInstanceCallbacks::free_func;
+    result.refcount_decremented_func = OScriptPlaceHolderInstanceCallbacks::refcount_decremented_func;
     return result;
 }();
 

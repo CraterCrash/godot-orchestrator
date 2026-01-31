@@ -299,7 +299,7 @@ uint32_t OScriptCache::get_source_code_hash(const String& p_path) {
 Ref<OScript> OScriptCache::get_shallow_script(const String& p_path, Error& r_error, const String& p_owner) {
     MutexLock lock(get_cache_mutex());
 
-    if (!p_owner.is_empty()) {
+    if (!p_owner.is_empty() && p_path != p_owner) {
         _singleton->_dependencies[p_owner].insert(p_path);
     }
     if (_singleton->_full_cache.has(p_path)) {
@@ -332,7 +332,7 @@ Ref<OScript> OScriptCache::get_shallow_script(const String& p_path, Error& r_err
 Ref<OScript> OScriptCache::get_full_script(const String& p_path, Error& r_error, const String& p_owner, bool p_update_from_disk) {
     MutexLock lock(get_cache_mutex());
 
-    if (!p_owner.is_empty()) {
+    if (!p_owner.is_empty() && p_owner != p_path) {
         _singleton->_dependencies[p_owner].insert(p_path);
     }
 
@@ -358,7 +358,7 @@ Ref<OScript> OScriptCache::get_full_script(const String& p_path, Error& r_error,
     if (p_update_from_disk) {
         r_error = script->load_source_code(remapped_path);
         if (r_error) {
-            return script;
+            goto finish;
         }
     }
 
@@ -375,10 +375,7 @@ Ref<OScript> OScriptCache::get_full_script(const String& p_path, Error& r_error,
     r_error = script->reload(true);
     #endif
 
-    if (r_error) {
-        return script;
-    }
-
+finish:
     _singleton->_full_cache[p_path] = script;
     _singleton->_shallow_cache.erase(p_path);
 
