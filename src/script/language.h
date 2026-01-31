@@ -42,6 +42,7 @@ class OScriptFunctionState;
 class OScriptInstance;
 class OScriptNode;
 class OScriptNodePrintStringOverlay;
+class OScriptTemplateRegistry;
 class OScriptVirtualMachine;
 
 /// Defines an extension for Godot where we define the language for Orchestrations.
@@ -56,6 +57,8 @@ class OScriptLanguage : public ScriptLanguageExtension {
 
     static OScriptLanguage* _singleton;
     bool finishing = false;
+
+    OScriptTemplateRegistry* _template_registry = nullptr;
 
     Variant* _global_array = nullptr;
     Vector<Variant> global_array;
