@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [2.4.rc1](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.rc1) - 2026-02-01
+
+- [5c0917a](http://github.com/CraterCrash/godot-orchestrator/commit/5c0917af393e4fc931b00c7e2951213f2873842e) - GH-1236 Sync with upstream godot-cpp commit 58d1de720b8ffe9f8ffcdfe3a85148582cfd2e74
+- [bed603e](http://github.com/CraterCrash/godot-orchestrator/commit/bed603ed6bfff257200ba2ceb841dc247ba48829) - GH-1062 Add Godot class-specific script templates
+- [d3b100a](http://github.com/CraterCrash/godot-orchestrator/commit/d3b100ad9e2e91dca6dd901942665709c5bbaa9e) - GH-1232 Fix crash opening file menu
+- [e6a170f](http://github.com/CraterCrash/godot-orchestrator/commit/e6a170f9be83fb6aeb175d541665c3bc52568fe2) - GH-1229 Fix leaked resources due to preload
+- [12d7858](http://github.com/CraterCrash/godot-orchestrator/commit/12d7858a3322f41b3dd726b8fcc5009d04f1a94d) - GH-1224 Support dragging resources as exported variables
+- [ea08065](http://github.com/CraterCrash/godot-orchestrator/commit/ea08065f818c0ae5b79ae4eafac7dbaa5dd5b90e) - GH-1226 Fix parser to set variable export info correctly
+- [820bc03](http://github.com/CraterCrash/godot-orchestrator/commit/820bc0390d50d84e34b766f4d6478906eda4cf1b) - GH-1219 Add tool script hint and background color tint
+- [7621847](http://github.com/CraterCrash/godot-orchestrator/commit/7621847c835583c08f1219f5b84807aa0e15b06e) - GH-1215 Add soft reload tool script file menu option
+- [271b10a](http://github.com/CraterCrash/godot-orchestrator/commit/271b10a03bac2d48c519d2f8829472460b2371c4) - GH-1216 Fix populating script list on startup
+- [2eae04a](http://github.com/CraterCrash/godot-orchestrator/commit/2eae04a2781ef42010db3aa395cebec0f9256139) - GH-1213 Fix freezes with print string node in tool scripts
+- [c1610cd](http://github.com/CraterCrash/godot-orchestrator/commit/c1610cd41afb96d41922151d32c647409d5a2814) - GH-1211 Guard non-existent input section in project settings
+
 ## [2.4.dev2](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.dev2) - 2026-01-24
 
 - [4be2229](http://github.com/CraterCrash/godot-orchestrator/commit/4be22291d1e76d1d11e818b89c05c9219891b894) - GH-1205 Support tool orchestrations
