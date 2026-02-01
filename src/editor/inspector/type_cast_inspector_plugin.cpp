@@ -20,7 +20,7 @@
 #include "script/nodes/data/type_cast.h"
 
 bool OrchestratorEditorInspectorPluginTypeCast::_can_handle(Object* p_object) const {
-    return p_object->get_class() == OScriptNodeTypeCast::get_class_static();
+    return p_object && p_object->get_class() == OScriptNodeTypeCast::get_class_static();
 }
 
 bool OrchestratorEditorInspectorPluginTypeCast::_parse_property(Object* p_object, Variant::Type p_type, const String& p_name,
