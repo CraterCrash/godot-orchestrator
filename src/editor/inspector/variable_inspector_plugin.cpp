@@ -23,7 +23,7 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 
 bool OrchestratorEditorInspectorPluginVariable::_can_handle(Object* p_object) const {
-    return p_object->get_class() == OScriptVariable::get_class_static();
+    return p_object && p_object->get_class() == OScriptVariable::get_class_static();
 }
 
 bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object, Variant::Type p_type, const String& p_name,
