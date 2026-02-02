@@ -56,6 +56,7 @@ class OScriptLanguage : public ScriptLanguageExtension {
     friend class OScriptInstance;
 
     static OScriptLanguage* _singleton;
+    bool initialized = false;
     bool finishing = false;
 
     OScriptTemplateRegistry* _template_registry = nullptr;

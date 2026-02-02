@@ -38,6 +38,8 @@
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 
@@ -77,6 +79,20 @@ void OrchestratorPlugin::_register_plugins() {
     #if GODOT_VERSION >= 0x040300
     _register_debugger_plugin<OrchestratorEditorDebuggerPlugin>();
     #endif
+}
+
+bool OrchestratorPlugin::_is_plugin_just_installed() const {
+    if (FileAccess::file_exists(_get_orchestrator_metedata_path())) {
+        return false;
+    }
+
+    Ref<FileAccess> file = FileAccess::open(_get_orchestrator_metedata_path(), FileAccess::WRITE);
+    if (file.is_valid()) {
+        file->close();
+        return true;
+    }
+
+    return false;
 }
 
 void OrchestratorPlugin::_add_plugin_icon_to_editor_theme() {
@@ -309,18 +325,19 @@ bool OrchestratorPlugin::restore_windows_on_load() {
 void OrchestratorPlugin::request_editor_restart() {
     AcceptDialog* request = memnew(AcceptDialog);
     request->set_title("Restart editor");
-    _editor_panel->add_child(request);
+    request->reset_size();
 
     VBoxContainer* container = memnew(VBoxContainer);
     Label* label = memnew(Label);
     label->set_text("The editor requires a restart.");
     label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
     container->add_child(label);
-
     request->add_child(container);
 
     request->connect(SceneStringName(confirmed), callable_mp(EI, &EditorInterface::restart_editor).bind(true));
-    request->popup_centered();
+    request->connect(SceneStringName(canceled), callable_mp(EI, &EditorInterface::restart_editor).bind(true));
+
+    get_tree()->create_timer(1)->connect("timeout", callable_mp(EI, &EditorInterface::popup_dialog_centered).bind(request, Vector2()));
 }
 
 Ref<Texture2D> OrchestratorPlugin::get_plugin_icon_hires() const {
@@ -352,8 +369,6 @@ void OrchestratorPlugin::_notification(int p_what) {
 
             _register_plugins();
 
-            _add_plugin_icon_to_editor_theme();
-
             _window_wrapper = memnew(OrchestratorWindowWrapper);
             _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));
             _window_wrapper->set_margins_enabled(true);
@@ -376,6 +391,21 @@ void OrchestratorPlugin::_notification(int p_what) {
 
             SAFE_MEMDELETE(_editor_panel);
             _plugin = nullptr;
+            break;
+        }
+        case NOTIFICATION_READY: {
+            if (_is_plugin_just_installed()) {
+                // When a GDExtension is first installed or loaded, there is a known bug that causes
+                // an issue with initialization of the ScriptLanguage, see
+                // https://github.com/godotengine/godot/pull/114131
+                //
+                // We currently force and init in the extension_interface.cpp in the EDITOR level,
+                // however, this only initializes the language but does not update the create script
+                // dialog due to the order of operations.
+                callable_mp_this(request_editor_restart).call_deferred();
+            } else {
+                _add_plugin_icon_to_editor_theme();
+            }
             break;
         }
         default: {
