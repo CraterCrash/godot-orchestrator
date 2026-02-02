@@ -293,6 +293,10 @@ GDExtensionPtrOperatorEvaluator GDE::Variant::get_validated_operator_evaluator(g
 }
 
 GDExtensionCallError GDE::Variant::construct(Type p_type, godot::Variant& r_value, ConstVariantPtrs p_args, int p_arg_count) {
+    // The `variant_construct` API expects an uninitialized value
+    // To adhere to that requirement, this resets the variant to uninitialized before the call.
+    r_value.clear();
+
     GDExtensionCallError error;
     GDE_INTERFACE(variant_construct)(
         static_cast<GDExtensionVariantType>(p_type),
