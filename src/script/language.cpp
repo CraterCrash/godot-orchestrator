@@ -121,6 +121,15 @@ String OScriptLanguage::_get_name() const {
 }
 
 void OScriptLanguage::_init() {
+    // See https://github.com/godotengine/godot/pull/114131
+    // The issue is that when a GDExtension is added to a project, it is loaded after Godot's
+    // ScriptServer::init_languages method has been called. To work around this issue, the
+    // language's initialization is called directly. This variable prevents the main init call
+    // from the engine from double initializing the language.
+    if (initialized) {
+        return;
+    }
+
     _template_registry = memnew(OScriptTemplateRegistry);
 
     _debug_max_call_stack = ORCHESTRATOR_GET("settings/runtime/max_call_stack", 1024);
@@ -165,6 +174,8 @@ void OScriptLanguage::_init() {
     for (const String& singleton_class : Engine::get_singleton()->get_singleton_list()) {
         _add_global(singleton_class, Engine::get_singleton()->get_singleton(singleton_class));
     }
+
+    initialized = true;
 }
 
 String OScriptLanguage::_get_type() const {
@@ -216,8 +227,10 @@ void OScriptLanguage::_finish() {
     }
     #endif
 
-    memdelete(_template_registry);
-    _template_registry = nullptr;
+    if (_template_registry) {
+        memdelete(_template_registry);
+        _template_registry = nullptr;
+    }
 
     finishing = false;
 }
