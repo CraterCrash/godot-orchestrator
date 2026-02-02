@@ -1908,12 +1908,14 @@ void OrchestratorEditor::get_window_layout(const Ref<ConfigFile>& r_layout) {
 void OrchestratorEditor::set_window_layout(const Ref<ConfigFile>& p_layout) {
     _restoring_layout = true;
 
-    for (const String& key : p_layout->get_section_keys("Orchestrator")) {
-        if (key == "open_files" || key == "file_list_visibility" || key == "left_list_width"
-            || key == "open_files" || key == "open_files_selected") {
-            continue;
+    if (p_layout->has_section("Orchestrator")) {
+        for (const String& key : p_layout->get_section_keys("Orchestrator")) {
+            if (key == "open_files" || key == "file_list_visibility" || key == "left_list_width"
+                || key == "open_files" || key == "open_files_selected") {
+                continue;
+                }
+            _extra_layout_values[key] = p_layout->get_value("Orchestrator", key);
         }
-        _extra_layout_values[key] = p_layout->get_value("Orchestrator", key);
     }
 
     const bool restore_windows = OrchestratorPlugin::get_singleton()->restore_windows_on_load();
