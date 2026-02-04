@@ -3092,29 +3092,35 @@ OScriptParser::ParameterNode* OScriptParser::build_parameter(const PropertyInfo&
 OScriptParser::TypeNode* OScriptParser::build_type(const PropertyInfo& p_property) {
     TypeNode* type = alloc_node<TypeNode>();
 
-    // todo: add support for other things
-    // todo: handle container types
-    // todo: support initializers
-    StringName type_name;
-    if (p_property.type == Variant::OBJECT) {
-        type_name = p_property.class_name;
-    } else if (p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM) {
-        type_name = p_property.class_name;
-    }
-    // todo: check others
-
-    if (type_name.is_empty() && p_property.type != Variant::NIL) {
-        type_name = Variant::get_type_name(p_property.type);
-    }
-
-    if (!type_name.is_empty()) {
-        IdentifierNode* type_element = build_identifier(type_name);
-        type->type_chain.push_back(type_element);
-    }
-
-    if (type_name.is_empty() && p_property.type == Variant::NIL && p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT) {
-        IdentifierNode* type_element = build_identifier("Variant");
-        type->type_chain.push_back(type_element);
+    if (p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM || p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD) {
+        if (p_property.class_name.contains(".")) {
+            const PackedStringArray parts = p_property.class_name.split(".", false);
+            for (const String& part : parts) {
+                IdentifierNode* element = build_identifier(part);
+                type->type_chain.push_back(element);
+            }
+        }
+    } else if (p_property.type == Variant::ARRAY && p_property.hint == PROPERTY_HINT_ARRAY_TYPE) {
+        // Typed Array
+        TypeNode* element = alloc_node<TypeNode>();
+        element->type_chain.push_back(build_identifier(p_property.hint_string));
+        type->container_types.push_back(element);
+    } else if (p_property.type == Variant::DICTIONARY && p_property.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
+        // Typed Dictionary
+        const PackedStringArray parts = p_property.hint_string.split(";", false);
+        for (const String& part : parts) {
+            TypeNode* container_type = alloc_node<TypeNode>();
+            container_type->type_chain.push_back(build_identifier(part));
+            type->container_types.push_back(container_type);
+        }
+    } else if (p_property.type == Variant::OBJECT && !p_property.class_name.is_empty()) {
+        type->type_chain.push_back(build_identifier(p_property.class_name));
+    } else if (p_property.type == Variant::NIL) {
+        if (p_property.usage & PROPERTY_USAGE_NIL_IS_VARIANT) {
+            type->type_chain.push_back(build_identifier("Variant"));
+        }
+    } else {
+        type->type_chain.push_back(build_identifier(Variant::get_type_name(p_property.type)));
     }
 
     return type;
