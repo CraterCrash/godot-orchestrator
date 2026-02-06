@@ -59,6 +59,16 @@ void OScriptNodeCallStaticFunction::_resolve_method_info() {
     if (ScriptServer::is_global_class(_class_name)) {
         methods = ScriptServer::get_global_class(_class_name).get_method_list();
     }
+    else if (ExtensionDB::is_builtin_type(_class_name)) {
+        BuiltInType type = ExtensionDB::get_builtin_type(_class_name);
+        for (const MethodInfo& method : type.get_method_list()) {
+            if (method.name.match(_method_name)) {
+                _method = method;
+                break;
+            }
+        }
+        return;
+    }
     else {
         methods = ClassDB::class_get_method_list(_class_name, true);
     }
