@@ -323,7 +323,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         for (int i = 0; i < p_methods.size(); i++) {
             MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
 
-            if (internal_method_names.has(method.name)) {
+            if (internal_method_names.has(method.name) || (method.flags & METHOD_FLAG_STATIC)) {
                 continue;
             }
 
@@ -418,6 +418,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 .keywords(keywords)
                 .selectable(true)
                 .node_class(node->get_class())
+                .class_name(p_class_name)
                 .data(DictionaryUtils::of({ { "class_name", p_class_name }, { "method_name", function_name } }))
                 .executions(true)
                 .build());
@@ -898,15 +899,25 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         for (const MethodInfo& method : type.get_method_list()) {
             const Dictionary method_dict = DictionaryUtils::from_method(method);
 
-            actions.push_back(
-                _script_node_builder<OScriptNodeCallMemberFunction>(
-                    category,
-                    method.name,
-                    DictionaryUtils::of({ { "target_type", type.type }, { "method", method_dict } }))
-                .method(method)
-                .target_class(Variant::get_type_name(type.type))
-                .executions(true)
-                .build());
+            if (method.flags & METHOD_FLAG_STATIC) {
+                actions.push_back(
+                    _script_node_builder<OScriptNodeCallStaticFunction>(
+                        category,
+                        method.name,
+                        DictionaryUtils::of({ { "class_name", type.name }, { "method_name", method.name } }))
+                    .executions(true)
+                    .build());
+            } else {
+                actions.push_back(
+                    _script_node_builder<OScriptNodeCallMemberFunction>(
+                        category,
+                        method.name,
+                        DictionaryUtils::of({ { "target_type", type.type }, { "method", method_dict } }))
+                    .method(method)
+                    .target_class(Variant::get_type_name(type.type))
+                    .executions(true)
+                    .build());
+            }
         }
 
         if (OScriptNodeOperator::is_supported(type.type)) {
