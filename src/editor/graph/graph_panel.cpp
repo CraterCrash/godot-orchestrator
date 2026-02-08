@@ -2080,29 +2080,11 @@ void OrchestratorEditorGraphPanel::_queue_autowire(OrchestratorEditorGraphNode* 
         return;
     }
 
-    if (choices.size() == 1) {
-        // When there is only one choice, there is no need for the autowire dialog.
-        link(p_origin_pin, choices[0]);
-        return;
-    }
-
-    // Compute exact matches for class types
-    Vector<OrchestratorEditorGraphPin*> exact_matches;
-    for (OrchestratorEditorGraphPin* choice : choices) {
-        if (choice->get_property_info().class_name.match(p_origin_pin->get_property_info().class_name)) {
-            exact_matches.push_back(choice);
-        }
-    }
-
-    // Handle cases where class matches rank higher and have precedence
-    if (exact_matches.size() == 1) {
-        link(p_origin_pin, exact_matches[0]);
-        return;
-    }
-
-    // For operator nodes, always auto-wire the first eligible pin.
-    if (cast_to<OScriptNodeOperator>(p_spawned_node->_node.ptr())) {
-        link(p_origin_pin, choices[0]);
+    OrchestratorEditorGraphPin* pin = _get_autowire_pin(p_spawned_node, p_origin_pin, choices);
+    if (pin) {
+        // Pin was selected by logic, handle.
+        link(p_origin_pin, pin);
+        pin->get_graph_node()->_resize_to_content();
         return;
     }
 
@@ -2116,11 +2098,41 @@ void OrchestratorEditorGraphPanel::_queue_autowire(OrchestratorEditorGraphNode* 
 
     autowire->connect(SceneStringName(confirmed), callable_mp_lambda(this, [autowire, p_origin_pin, this] {
         OrchestratorEditorGraphPin* selected = autowire->get_autowire_choice();
-        if (selected)
+        if (selected) {
             link(p_origin_pin, selected);
+            selected->get_graph_node()->_resize_to_content();
+        }
     }));
 
     autowire->popup_autowire(choices);
+}
+
+OrchestratorEditorGraphPin* OrchestratorEditorGraphPanel::_get_autowire_pin(OrchestratorEditorGraphNode* p_spawned_node,
+    OrchestratorEditorGraphPin* p_origin_pin, const Vector<OrchestratorEditorGraphPin*>& p_choices) {
+
+    if (p_choices.size() == 1) {
+        return p_choices[0];
+    }
+
+    // Compute exact matches for class types
+    Vector<OrchestratorEditorGraphPin*> exact_matches;
+    for (OrchestratorEditorGraphPin* choice : p_choices) {
+        if (choice->get_property_info().class_name.match(p_origin_pin->get_property_info().class_name)) {
+            exact_matches.push_back(choice);
+        }
+    }
+
+    // Handle cases where class matches rank higher and have precedence
+    if (exact_matches.size() == 1) {
+        return exact_matches[0];
+    }
+
+    // For operator nodes, always auto-wire the first eligible pin.
+    if (cast_to<OScriptNodeOperator>(p_spawned_node->_node.ptr())) {
+        return p_choices[0];
+    }
+
+    return nullptr;
 }
 
 Vector2 OrchestratorEditorGraphPanel::_get_center() const {
