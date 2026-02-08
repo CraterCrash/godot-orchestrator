@@ -2113,7 +2113,7 @@ void OrchestratorEditor::save_resource_in_path(const Ref<Resource>& p_resource, 
     }
 
     p_resource->set_path(p_path);
-    EI->get_resource_filesystem()->update_file(p_path);
+    // EI->get_resource_filesystem()->update_file(p_path);
 
     EditorNode->emit_signal("resource_saved", p_resource);
 }
