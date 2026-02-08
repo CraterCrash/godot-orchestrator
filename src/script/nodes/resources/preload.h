@@ -20,20 +20,21 @@
 #include "script/script.h"
 
 /// Preloads a resource
-class OScriptNodePreload : public OScriptNode
-{
+class OScriptNodePreload : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodePreload, OScriptNode);
-    static void _bind_methods() { }
+
+    String _resource_path;    //! The resource path
 
 protected:
-    Ref<Resource> _resource;  //! The loaded resource
-    String _resource_path;    //! The resource path
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
+
+    StringName _get_resource_class_name() const;
 
 public:
     //~ Begin OScriptNode Interface
@@ -44,10 +45,12 @@ public:
     String get_node_title_color_name() const override { return "resources"; }
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
-    OScriptNodeInstance* instantiate() override;
+    Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
+
+    String get_resource_path() const { return _resource_path; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_PRELOAD_H

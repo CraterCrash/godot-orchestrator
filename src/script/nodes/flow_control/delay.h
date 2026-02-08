@@ -25,13 +25,13 @@
 /// in a future build as introducing hard-coded delays are generally not something that
 /// is ideal or should be implemented.
 ///
-class OScriptNodeDelay : public OScriptNode
-{
+class OScriptNodeDelay : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDelay, OScriptNode);
-    static void _bind_methods() { }
+
+    float _duration = 1;  //! Delay duration
 
 protected:
-    float _duration{ 1 };  //! Delay duration
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -42,8 +42,9 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
+
+    float get_duration() const { return _duration; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_DELAY_H

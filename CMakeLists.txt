@@ -21,6 +21,7 @@ SET(GDEXTENSION_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/project/addons/orchestrato
 
 # Configurable options
 OPTION(AUTOFORMAT_SRC_ON_CONFIGURE "If enabled, clang-format will be used to format all sources in /src during configuration" OFF)
+OPTION(USE_CCACHE "Use ccache as compiler launcher if available" ON)
 
 # Set basic CMAKE properties
 SET(CMAKE_CXX_STANDARD 20)
@@ -52,6 +53,17 @@ ENDIF ()
 
 FIND_PACKAGE( Python3 REQUIRED COMPONENTS Interpreter )
 
+FIND_PROGRAM(CCACHE_PROGRAM ccache)
+IF (USE_CCACHE AND CCACHE_PROGRAM)
+    SET(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    SET(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    MESSAGE(STATUS "CCACHE found and enabled: ${CCACHE_PROGRAM}")
+ELSEIF (USE_CCACHE)
+    MESSAGE(STATUS "USE_CCACHE enabled but cache was not found")
+ELSE ()
+    MESSAGE(STATUS "CCACHE not found")
+ENDIF()
+
 # Setup the CMAKE_MODULE_PATH
 LIST(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -61,6 +73,7 @@ INCLUDE(generate-authors)
 INCLUDE(generate-license)
 INCLUDE(generate-version)
 INCLUDE(generate-donors)
+INCLUDE(generate-script-templates)
 INCLUDE(godot-extension-db-generator)
 INCLUDE(godot-docs-generator)
 
@@ -69,6 +82,7 @@ GENERATE_AUTHORS()
 GENERATE_LICENSE()
 GENERATE_VERSION()
 GENERATE_DONORS()
+GENERATE_SCRIPT_TEMPLATES()
 GENERATE_GODOT_EXTENSION_DB()
 GENERATE_GODOT_DOCUMENTATION()
 
@@ -131,10 +145,12 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
             $<${compiler_is_gnu}:
                 -Wno-attributes
                 -Wno-attributes=r1::
+                -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
             >
             $<${compiler_is_clang}:
                 -Wno-ignored-attributes
                 -Wno-unknown-attributes
+                -ffile-prefix-map=${CMAKE_SOURCE_DIR}/=
             >
             $<$<CONFIG:Debug>:
                 -g

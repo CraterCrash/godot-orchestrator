@@ -20,8 +20,7 @@
 #include "common/variant_utils.h"
 #include "script/script.h"
 
-void OScriptSignal::_get_property_list(List<PropertyInfo>* r_list) const
-{
+void OScriptSignal::_get_property_list(List<PropertyInfo>* r_list) const {
     static String types = VariantUtils::to_enum_list();
 
     // Properties that are serialized (not visible in Editor)
@@ -32,115 +31,94 @@ void OScriptSignal::_get_property_list(List<PropertyInfo>* r_list) const
     r_list->push_back(PropertyInfo(Variant::DICTIONARY, "inputs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR));
 }
 
-bool OScriptSignal::_get(const StringName &p_name, Variant &r_value)
-{
-    if (p_name.match("method"))
-    {
+bool OScriptSignal::_get(const StringName &p_name, Variant &r_value) {
+    if (p_name.match("method")) {
         r_value = DictionaryUtils::from_method(_method, true);
         return true;
-    }
-    else if (p_name.match("signal_name"))
-    {
+    } else if (p_name.match("signal_name")) {
         r_value = _method.name;
         return true;
-    }
-    else if (p_name.match("description"))
-    {
+    } else if (p_name.match("description")) {
         r_value = _description;
         return true;
-    }
-    else if (p_name.match("inputs"))
-    {
+    } else if (p_name.match("inputs")) {
         TypedArray<Dictionary> properties;
-        for (const PropertyInfo& property : _method.arguments)
+        for (const PropertyInfo& property : _method.arguments) {
             properties.push_back(DictionaryUtils::from_property(property));
-
+        }
         r_value = properties;
         return true;
     }
     return false;
 }
 
-bool OScriptSignal::_set(const StringName &p_name, const Variant &p_value)
-{
-    if (p_name.match("method"))
-    {
+bool OScriptSignal::_set(const StringName &p_name, const Variant &p_value) {
+    if (p_name.match("method")) {
         _method = DictionaryUtils::to_method(p_value);
         emit_changed();
         return true;
-    }
-    else if (p_name.match("signal_name"))
-    {
+    } else if (p_name.match("signal_name")) {
         _method.name = p_value;
         emit_changed();
         return true;
-    }
-    else if (p_name.match("description"))
-    {
+    } else if (p_name.match("description")) {
         _description = p_value;
         emit_changed();
         return true;
-    }
-    else if (p_name.match("inputs"))
-    {
+    } else if (p_name.match("inputs")) {
         TypedArray<Dictionary> properties = p_value;
-        const bool refresh_required = _method.arguments.size() != size_t(properties.size());
+        const bool refresh_required = _method.arguments.size() != static_cast<size_t>(properties.size());
 
         _method.arguments.resize(properties.size());
-        for (int index = 0; index < properties.size(); ++index)
+        for (int index = 0; index < properties.size(); ++index) {
             _method.arguments[index] = DictionaryUtils::to_property(properties[index]);
+        }
 
         emit_changed();
 
-        if (refresh_required)
+        if (refresh_required) {
             notify_property_list_changed();
+        }
 
         return true;
     }
     return false;
 }
 
-Orchestration* OScriptSignal::get_orchestration() const
-{
+Orchestration* OScriptSignal::get_orchestration() const {
     return _orchestration;
 }
 
-const StringName& OScriptSignal::get_signal_name() const
-{
+const StringName& OScriptSignal::get_signal_name() const {
     return _method.name;
 }
 
-void OScriptSignal::rename(const StringName &p_new_name)
-{
-    if (_method.name != p_new_name)
-    {
+void OScriptSignal::rename(const StringName& p_new_name) {
+    if (_method.name != p_new_name) {
         _method.name = p_new_name;
         emit_changed();
     }
 }
 
-const MethodInfo& OScriptSignal::get_method_info() const
-{
+const MethodInfo& OScriptSignal::get_method_info() const {
     return _method;
 }
 
-size_t OScriptSignal::get_argument_count() const
-{
+size_t OScriptSignal::get_argument_count() const {
     return _method.arguments.size();
 }
 
-void OScriptSignal::copy_persistent_state(const Ref<OScriptSignal>& p_other)
-{
-    _method = p_other->_method;
+void OScriptSignal::copy_persistent_state(const Ref<OScriptSignal>& p_other) {
+    if (p_other.is_valid()) {
+        _method = p_other->_method;
 
-    notify_property_list_changed();
-    emit_changed();
+        notify_property_list_changed();
+        emit_changed();
+    }
 }
 
-void OScriptSignal::set_description(const String& p_description)
-{
-    if (_description != p_description)
-    {
+void OScriptSignal::set_description(const String& p_description) {
+    if (_description != p_description) {
         _description = p_description;
         emit_changed();
     }

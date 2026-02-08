@@ -20,9 +20,10 @@
 #include "script/script.h"
 
 /// Represents a simple boolean if/then/else branch.
-class OScriptNodeBranch : public OScriptNode
-{
+class OScriptNodeBranch : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeBranch, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -34,7 +35,6 @@ public:
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
     PackedStringArray get_keywords() const override { return Array::make("condition", "if", "else", "branch"); }
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 
 };

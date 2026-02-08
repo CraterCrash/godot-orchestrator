@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "decompose.h"
+#include "script/nodes/data/decompose.h"
 
 #include "api/extension_db.h"
 #include "common/property_utils.h"
@@ -24,103 +24,88 @@
 
 OScriptNodeDecompose::TypeMap OScriptNodeDecompose::_type_components;
 
-class OScriptNodeDecomposeInstance : public OScriptNodeInstance
-{
-    DECLARE_SCRIPT_NODE_INSTANCE(OScriptNodeDecompose);
-    Array _components;
+PackedStringArray OScriptNodeDecompose::_get_components() const {
+    PackedStringArray results;
 
-public:
-    int step(OScriptExecutionContext& p_context) override
-    {
-        Variant& value = p_context.get_input(0);
-        for (int i = 0; i < _components.size(); i++)
-        {
-            Variant component_value = value.get(_components[i]);
-            p_context.set_output(i, component_value);
-        }
-        return 0;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void OScriptNodeDecompose::_bind_methods()
-{
-    // Populate the type components
-    for (const String& type_name : ExtensionDB::get_builtin_type_names())
-    {
-        const BuiltInType type = ExtensionDB::get_builtin_type(type_name);
-        if (!type.properties.is_empty())
-        {
-            Array properties;
-            for (const PropertyInfo& pi : type.properties)
-                properties.push_back(pi.name);
-
-            // Color exposes a variety of additional properties, we only concern ourselves
-            // with the R,G,B,A properties and not R8,G8,B8,A8 nor H, S, or V.
-            if (type.type == Variant::COLOR)
-                properties.resize(4);
-
-            // Plane exposes not only the X,Y,Z and distance but also the normal.
-            // We want to express planes only via X, Y, Z, and distance.
-            else if (type.type == Variant::PLANE)
-                properties.resize(4);
-
-            // AABB exposes position, size, and end.
-            // We only want to express AABB via position and size only.
-            else if (type.type == Variant::AABB)
-                properties.resize(2);
-
-            _type_components[type.type] = properties;
+    const Array &components = _type_components[_type];
+    int64_t index_start = 0;
+    int64_t index_end = components.size();
+    if (_type == Variant::COLOR) {
+        switch (_sub_type) {
+            case ST_NONE:
+            case ST_COLOR_RGBA: {
+                index_start = 0;
+                index_end = 4;
+                break;
+            }
+            case ST_COLOR_RGBA8: {
+                index_start = 4;
+                index_end = 8;
+                break;
+            }
+            case ST_COLOR_HSV: {
+                index_start = 8;
+                index_end = 11;
+                break;
+            }
+            case ST_COLOR_OK_HSL: {
+                index_start = 11;
+                index_end = components.size();
+                break;
+            }
+            default: {
+                // no-op
+                break;
+            }
         }
     }
+
+    for (int64_t i = index_start; i < index_end; i++) {
+        results.push_back(components[i]);
+    }
+
+    return results;
 }
 
-void OScriptNodeDecompose::post_initialize()
-{
+void OScriptNodeDecompose::post_initialize() {
     // Clone this from the input pin
     _type = find_pin("value", PD_Input)->get_type();
-
     super::post_initialize();
 }
 
-void OScriptNodeDecompose::allocate_default_pins()
-{
+void OScriptNodeDecompose::allocate_default_pins() {
     // Set the pin with value that will be broken
     create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("value", _type))->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
 
     Variant value = VariantUtils::make_default(_type);
-    const Array &components = _type_components[_type];
-    for (int i = 0; i < components.size(); i++)
-    {
-        const Variant bit = value.get(components[i]);
-        create_pin(PD_Output, PT_Data, PropertyUtils::make_typed(components[i], bit.get_type()));
+
+    for (const String& component : _get_components()) {
+        const Variant bit = value.get(component);
+        const Ref<OScriptNodePin> pin = create_pin(PD_Output, PT_Data, PropertyUtils::make_typed(component, bit.get_type()));
+        if (_type == Variant::COLOR) {
+            pin->set_flag(OScriptNodePin::NO_CAPITALIZE);
+        }
     }
 }
 
-String OScriptNodeDecompose::get_tooltip_text() const
-{
-    if (_type != Variant::NIL)
-    {
+String OScriptNodeDecompose::get_tooltip_text() const {
+    if (_type != Variant::NIL) {
         const String type_name = VariantUtils::get_friendly_type_name(_type);
-        const String components = StringUtils::join(", ", _type_components[_type]);
+        const String components = StringUtils::join(", ", _get_components());
         return vformat("Break a %s into %s", type_name, components);
     }
     return "Breaks a complex structure into its components";
 }
 
-String OScriptNodeDecompose::get_node_title() const
-{
+String OScriptNodeDecompose::get_node_title() const {
     return "Break " + VariantUtils::get_friendly_type_name(_type);
 }
 
-String OScriptNodeDecompose::get_icon() const
-{
+String OScriptNodeDecompose::get_icon() const {
     return SceneUtils::get_icon_path("Decompose");
 }
 
-String OScriptNodeDecompose::get_help_topic() const
-{
+String OScriptNodeDecompose::get_help_topic() const {
     #if GODOT_VERSION >= 0x040300
     return vformat("class:%s", Variant::get_type_name(_type));
     #else
@@ -128,26 +113,35 @@ String OScriptNodeDecompose::get_help_topic() const
     #endif
 }
 
-PackedStringArray OScriptNodeDecompose::get_keywords() const
-{
+PackedStringArray OScriptNodeDecompose::get_keywords() const {
     return Array::make("break", "split", "separate", "decompose", Variant::get_type_name(_type));
 }
 
-OScriptNodeInstance* OScriptNodeDecompose::instantiate()
-{
-    OScriptNodeDecomposeInstance* i = memnew(OScriptNodeDecomposeInstance);
-    i->_node = this;
-    i->_components = _type_components[_type];
-    return i;
-}
-
-void OScriptNodeDecompose::initialize(const OScriptNodeInitContext& p_context)
-{
+void OScriptNodeDecompose::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "A Decompose node requires custom data");
 
     const Dictionary& data = p_context.user_data.value();
     ERR_FAIL_COND_MSG(!data.has("type"), "Cannot properly initialize decompose node, no type specified.");
 
     _type = VariantUtils::to_type(data["type"]);
+    _sub_type = static_cast<SubType>(static_cast<int32_t>(data.get("sub_type", ST_NONE)));
+
     super::initialize(p_context);
+}
+
+void OScriptNodeDecompose::_bind_methods() {
+    // Populate the type components
+    for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
+        if (!type.properties.is_empty()) {
+            Array properties;
+            for (const PropertyInfo& pi : type.properties) {
+                properties.push_back(pi.name);
+            }
+            _type_components[type.type] = properties;
+        }
+    }
+
+    ClassDB::bind_method(D_METHOD("_set_sub_type", "type"), &OScriptNodeDecompose::_set_sub_type);
+    ClassDB::bind_method(D_METHOD("_get_sub_type"), &OScriptNodeDecompose::_get_sub_type);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "sub_type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_sub_type", "_get_sub_type");
 }

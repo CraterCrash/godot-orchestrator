@@ -30,17 +30,16 @@
 /// For other types, such as Rect2, it is split into its respectable size and position and
 /// a preceding compose node can be used to create those struct types.
 ///
-class OScriptNodeCompose : public OScriptNode
-{
-    // todo: it seems this class is no longer used?
+class OScriptNodeCompose : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCompose, OScriptNode);
-    static void _bind_methods();
 
     using TypeMap = HashMap<Variant::Type, Array>;
 
+    static TypeMap _type_components;        //! Variant types and the respective components
+    Variant::Type _type = Variant::NIL;     //! Transient type to pass from creation metadata
+
 protected:
-    Variant::Type _type;              //! Transient type to pass from creation metadata
-    static TypeMap _type_components;  //! Variant types and the respective components
+    static void _bind_methods();
 
 public:
     //~ Begin OScriptNode Interface
@@ -50,25 +49,28 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "pure_function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
     /// Returns whether the type is supported.
     /// @param p_type the type
     /// @return true whether a type is supported by this node, false if it is not.
     static bool is_supported(Variant::Type p_type);
+
+    Variant::Type get_type() const { return _type; }
 };
 
 /// Composes a variant using its constructor signatures
 class OScriptNodeComposeFrom : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeComposeFrom, OScriptNode);
-    static void _bind_methods();
+
+    Variant::Type _type = Variant::NIL;          //! Transient type to pass from creation metadata
+    Vector<PropertyInfo> _constructor_args;      //! Transient constructor arguments
 
 protected:
-    Variant::Type _type;                         //! Transient type to pass from creation metadata
-    Vector<PropertyInfo> _constructor_args;      //! Transient constructor arguments
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface
@@ -80,8 +82,8 @@ public:
     String get_icon() const override;
     String get_help_topic() const override;
     PackedStringArray get_keywords() const override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
     /// Returns whether the type is supported.
@@ -89,6 +91,8 @@ public:
     /// @param p_arguments the constructor argument list
     /// @return true whether a type is supported by this node, false if it is not.
     static bool is_supported(Variant::Type p_type, const Vector<PropertyInfo>& p_arguments);
+
+    Variant::Type get_target_type() const { return _type; }
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_COMPOSE_H
