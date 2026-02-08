@@ -33,10 +33,27 @@
 class OScriptNodeDecompose : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDecompose, OScriptNode);
 
+public:
+    enum SubType : int32_t {
+        ST_NONE,
+        ST_COLOR_RGBA,
+        ST_COLOR_HSV,
+        ST_COLOR_RGBA8,
+        ST_COLOR_OK_HSL,
+        ST_MAX
+    };
+
+private:
     using TypeMap = HashMap<Variant::Type, Array>;
 
     static TypeMap _type_components;        //! Various types and respective components
     Variant::Type _type = Variant::NIL;     //! Transient type to pass from creation metadata
+    SubType _sub_type = ST_NONE;
+
+    int _get_sub_type() const { return _sub_type; }
+    void _set_sub_type(int p_sub_type) { _sub_type = static_cast<SubType>(p_sub_type); }
+
+    PackedStringArray _get_components() const;
 
 protected:
     static void _bind_methods();
