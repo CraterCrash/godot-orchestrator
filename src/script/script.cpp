@@ -605,7 +605,7 @@ void OScript::_collect_dependencies(RBSet<OScript*>& p_dependencies, const OScri
 }
 
 bool OScript::_editor_can_reload_from_file() {
-    return true;
+    return false;
 }
 
 void OScript::_placeholder_erased(void* p_placeholder) {
@@ -805,30 +805,41 @@ Error OScript::_reload(bool p_keep_state) {
 
     _valid = false;
 
+    const int64_t modified_time = FileAccess::get_modified_time(path);
     switch (source.get_type()) {
         case OScriptSource::BINARY: {
-            OrchestrationBinaryParser binary_parser;
-            Ref<Orchestration> o = binary_parser.load(path);
-            if (o.is_valid()) {
-                if (orchestration.is_valid()) {
-                    orchestration->copy_state(o);
-                } else {
-                    orchestration = o;
-                    orchestration->set_self(this);
+            if (!orchestration.is_valid()) {
+                OrchestrationBinaryParser binary_parser;
+                orchestration = binary_parser.load(path);
+                orchestration->set_self(this);
+                #if TOOLS_ENABLED
+                source_last_modified_time = modified_time;
+            } else if (modified_time != source_last_modified_time) {
+                OrchestrationBinaryParser binary_parser;
+                Ref<Orchestration> temp = binary_parser.load(path);
+                if (temp.is_valid()) {
+                    orchestration->copy_state(temp);
                 }
+                source_last_modified_time = modified_time;
+                #endif
             }
             break;
         }
         default: {
-            OrchestrationTextParser text_parser;
-            Ref<Orchestration> o = text_parser.load(path);
-            if (o.is_valid()) {
-                if (orchestration.is_valid()) {
-                    orchestration->copy_state(o);
-                } else {
-                    orchestration = o;
-                    orchestration->set_self(this);
+            if (!orchestration.is_valid()) {
+                OrchestrationTextParser text_parser;
+                orchestration = text_parser.load(path);
+                orchestration->set_self(this);
+                #if TOOLS_ENABLED
+                source_last_modified_time = modified_time;
+            } else if (modified_time != source_last_modified_time) {
+                OrchestrationTextParser text_parser;
+                Ref<Orchestration> temp = text_parser.load(path);
+                if (temp.is_valid()) {
+                    orchestration->copy_state(temp);
                 }
+                source_last_modified_time = modified_time;
+                #endif
             }
             break;
         }
@@ -1124,22 +1135,8 @@ void OScript::reload_from_file() {
 
     // This logic was taken directly from Script::reload_from_file
     #ifdef TOOLS_ENABLED
-    Ref<OScript> reload = ResourceLoader::get_singleton()->load(script_path, get_class(), CACHE_MODE_IGNORE);
-    if (!reload.is_valid()) {
-        return;
-    }
-
-    set_block_signals(true);
-    orchestration->copy_state(reload->orchestration);
-
-    reload.unref();
-    _postinitialize();
-
-    set_edited(false);
-    set_block_signals(false);
-
-    orchestration->emit_changed();
-    emit_changed();
+    // Setting this to 0 forces a reload off disk when _reload is called
+    source_last_modified_time = 0;
 
     // Only reload scripts that have no compilation errors
     if (_is_valid()) {
