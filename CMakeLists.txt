@@ -142,6 +142,7 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
         >
         $<$<NOT:${compiler_is_msvc}>:
             -Wno-unused-value
+            -Wno-ordered-compare-function-pointers
             $<${compiler_is_gnu}:
                 -Wno-attributes
                 -Wno-attributes=r1::
