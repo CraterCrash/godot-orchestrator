@@ -854,12 +854,43 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                     .build());
             }
 
-            actions.push_back(
+            if (type.type == Variant::COLOR) {
+                actions.push_back(
+                _script_node_builder<OScriptNodeDecompose>(
+                    category,
+                    vformat("Break %s into RGBA", type_name),
+                    DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_RGBA } }))
+                .no_capitalize(true)
+                .build());
+                actions.push_back(
+                    _script_node_builder<OScriptNodeDecompose>(
+                        category,
+                        vformat("Break %s into RGBA8", type_name),
+                        DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_RGBA8 } }))
+                    .no_capitalize(true)
+                    .build());
+                actions.push_back(
+                    _script_node_builder<OScriptNodeDecompose>(
+                        category,
+                        vformat("Break %s into HSV", type_name),
+                        DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_HSV } }))
+                    .no_capitalize(true)
+                    .build());
+                actions.push_back(
+                    _script_node_builder<OScriptNodeDecompose>(
+                        category,
+                        vformat("Break %s into OK HSL", type_name),
+                        DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_OK_HSL } }))
+                    .no_capitalize(true)
+                    .build());
+            } else {
+                actions.push_back(
                 _script_node_builder<OScriptNodeDecompose>(
                     category,
                     vformat("Break %s", type_name),
                     type_dict)
                 .build());
+            }
         }
 
         if (!type.constructors.is_empty()) {
