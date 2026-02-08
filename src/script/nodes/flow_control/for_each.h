@@ -24,10 +24,11 @@
 class OScriptNodeForEach : public OScriptNode
 {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeForEach, OScriptNode);
-    static void _bind_methods() { }
+
+    bool _with_break = false; // Whether break is enabled
 
 protected:
-    bool _with_break{ false };  //! Whether break is enabled
+    static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -50,7 +51,6 @@ public:
     PackedStringArray get_keywords() const override { return Array::make("for", "each", "loop"); }
     bool is_loop_port(int p_port) const override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };

@@ -20,13 +20,13 @@
 #include "variable.h"
 
 /// A variable implementation that gets the value of a variable.
-class OScriptNodeVariableGet : public OScriptNodeVariable
-{
+class OScriptNodeVariableGet : public OScriptNodeVariable {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeVariableGet, OScriptNodeVariable);
-    static void _bind_methods() { }
+
+    bool _validated = false;    //! Whether to represent get as validated get
 
 protected:
-    bool _validated{ false };  //! Whether to represent get as validated get
+    static void _bind_methods() { }
 
     // //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -50,8 +50,8 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     bool should_draw_as_bead() const override { return true; }
-    OScriptNodeInstance* instantiate() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
     /// Return whether the node can be validated

@@ -23,8 +23,7 @@ struct FilterContext;
 
 /// This class provides the basis for all <code>OrchestratorEditorFilterEngine</code> rules.
 ///
-class OrchestratorEditorActionFilterRule : public RefCounted
-{
+class OrchestratorEditorActionFilterRule : public RefCounted {
     GDCLASS(OrchestratorEditorActionFilterRule, RefCounted);
 
 protected:

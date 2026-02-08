@@ -31,8 +31,7 @@ using namespace godot;
 
 /// Displays the action dialog window that provides plug-in users the ability to search
 /// and select actions to be performed by a listener.
-class OrchestratorEditorActionMenu : public ConfirmationDialog
-{
+class OrchestratorEditorActionMenu : public ConfirmationDialog {
     GDCLASS(OrchestratorEditorActionMenu, ConfirmationDialog);
 
     Rect2 _default_rect = Rect2(0, 0, 900, 700);
@@ -55,7 +54,6 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog
     HashMap<String, Ref<Texture2D>> _icon_cache;
     Vector<Ref<OrchestratorEditorActionDefinition>> _actions;
     Ref<OrchestratorEditorActionFilterEngine> _filter_engine;
-    GraphEditorFilterContext _graph_contex;
 
     bool _is_favorite(const Variant& p_value, int& r_index);
     void _favorite_selected(int p_index);
@@ -102,10 +100,10 @@ public:
     void set_start_collapsed(bool p_start_collapsed);
 
     void popup(const Vector2& p_position, const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
-               const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine, const GraphEditorFilterContext& p_graph_context);
+               const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine);
 
     void popup_centered(const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
-               const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine, const GraphEditorFilterContext& p_graph_context);
+               const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine);
 
     OrchestratorEditorActionMenu();
 };

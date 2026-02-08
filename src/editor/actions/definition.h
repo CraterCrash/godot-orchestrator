@@ -24,8 +24,7 @@
 
 using namespace godot;
 
-class OrchestratorEditorActionDefinition : public RefCounted
-{
+class OrchestratorEditorActionDefinition : public RefCounted {
     GDCLASS(OrchestratorEditorActionDefinition, RefCounted);
 
 protected:
@@ -33,8 +32,7 @@ protected:
 
 public:
     // Defines different action types
-    enum ActionType
-    {
+    enum ActionType {
         ACTION_NONE,
         ACTION_SPAWN_NODE,
         ACTION_GET_PROPERTY,
@@ -48,16 +46,14 @@ public:
         ACTION_VARIABLE_SET
     };
 
-    enum GraphType
-    {
+    enum GraphType {
         GRAPH_ALL,
         GRAPH_EVENT,
         GRAPH_FUNCTION,
         GRAPH_MACRO
     };
 
-    enum ActionFlags
-    {
+    enum ActionFlags {
         FLAG_NONE,
         FLAG_EXPERIMENTAL
     };
@@ -88,10 +84,8 @@ public:
     bool executions = false;                            //! Whether the action has execution pins
 };
 
-struct OrchestratorEditorActionDefinitionComparator
-{
-    bool operator()(const Ref<OrchestratorEditorActionDefinition>& a, const Ref<OrchestratorEditorActionDefinition>& b) const
-    {
+struct OrchestratorEditorActionDefinitionComparator {
+    bool operator()(const Ref<OrchestratorEditorActionDefinition>& a, const Ref<OrchestratorEditorActionDefinition>& b) const {
         const bool a_valid = a.is_valid();
         const bool b_valid = b.is_valid();
 
@@ -111,8 +105,7 @@ struct OrchestratorEditorActionDefinitionComparator
 };
 
 /// Helper class for creating <code>OrchestratorEditorActionDefinition</code> objects
-class OrchestratorEditorActionBuilder
-{
+class OrchestratorEditorActionBuilder {
     Ref<OrchestratorEditorActionDefinition> _action;
 
 public:

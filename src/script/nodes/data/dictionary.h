@@ -21,13 +21,13 @@
 #include "script/nodes/editable_pin_node.h"
 
 /// Creates a new dictionary
-class OScriptNodeMakeDictionary : public OScriptEditablePinNode
-{
+class OScriptNodeMakeDictionary : public OScriptEditablePinNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeMakeDictionary, OScriptEditablePinNode);
-    static void _bind_methods() { }
+
+    int _element_count = 0;
 
 protected:
-    int _element_count{ 0 };
+    static void _bind_methods() { }
 
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
@@ -41,7 +41,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "constants_and_literals"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
@@ -50,13 +50,13 @@ public:
     void remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) override;
     String get_pin_prefix() const override { return "Element"; }
     //~ End OScriptEditablePinNode Interface
-
 };
 
 /// A node that compliments the Dictionary "Get" method to set a value in the dictionary.
-class OScriptNodeDictionarySet : public OScriptNode
-{
+class OScriptNodeDictionarySet : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeDictionarySet, OScriptNode);
+
+protected:
     static void _bind_methods() { }
 
 public:
@@ -67,7 +67,6 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "function_call"; }
     String get_icon() const override;
-    OScriptNodeInstance* instantiate() override;
     //~ End OScriptNode Interface
 };
 

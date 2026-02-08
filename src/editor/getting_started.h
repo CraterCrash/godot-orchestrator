@@ -22,10 +22,8 @@
 using namespace godot;
 
 /// Simple landing page that is shown when the user has no open orchestrations
-class OrchestratorGettingStarted : public VBoxContainer
-{
+class OrchestratorGettingStarted : public VBoxContainer {
     GDCLASS(OrchestratorGettingStarted, VBoxContainer);
-    static void _bind_methods();
 
     //~ Begin Signal Handlers
     void _create_new() { emit_signal("create_requested"); }
@@ -33,7 +31,9 @@ class OrchestratorGettingStarted : public VBoxContainer
     void _show_docs() { emit_signal("documentation_requested"); }
     //~ End Signal Handlers
 
-public:
+protected:
+    static void _bind_methods();
+
     //~ Begin Wrapped Interface
     void _notification(int p_what);
     //~ End Wrapped Interface

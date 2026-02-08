@@ -1,0 +1,10 @@
+[orchestration type="OScript" load_steps=2 format=3]
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[resource]
+base_type = &"_BASE_"
+brief_description = "Empty template suitable for all Objects"
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

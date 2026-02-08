@@ -7,6 +7,7 @@
         The [OScriptNodePrintString] node is a utility node for writing string output optionally to the screen and/or the console.
         The [param text] input pin is the text that will be added to the screen and/or the console. When the [param print_to_screen] input pin is set to [code]true[/code], the text is rendered to the screen. When the [param print_to_log] is set to [code]true[/code], the text is appended to the console output.
         When the [param text] is rendered to the screen, the [param text_color] defines the color that the text will be rendered using. Additionally, the [param duration] specifies the length of time the text will be displayed before disappearing.
+        [b]Note:[/b] When the [Orchestration] is marked as a [code]@tool[/code] script, this node will not write to the screen, even when toggled to do so. This is because the script is executing within the context of the editor, and the node should not mutate the editor's user interface in this way.
         The [OScriptNodePrintString] node is useful for debugging because the node will be omitted from export builds, so that no data is printed to the screen nor the console. In other words, this node only works inside the editor and is skipped when exporting games for distribution.
     </description>
 </class>

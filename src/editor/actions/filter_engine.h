@@ -22,31 +22,12 @@
 
 #include <godot_cpp/classes/script.hpp>
 
-/// An immutable context provided by the <code>OrchestratorGraphEditor</code>
-/// @deprecated this information should be set on rules
-struct GraphEditorFilterContext
-{
-    Ref<Script> script;
-    PropertyInfo port_type;
-    bool output;
-    PackedStringArray class_hierarchy;
-};
-
-/// A mutable context provided by the <OrchestratorEditorActionMenu</code>
-struct ActionMenuFilterContext
+/// Parameter object for passing filter context to rules
+struct FilterContext
 {
     String query;
     bool context_sensitive;
     int _filter_action_type;
-};
-
-/// Parameter object for passing filter context to rules
-struct FilterContext
-{
-    /// @deprecated this should be set on rules directly
-    [[deprecated]]
-    GraphEditorFilterContext graph_context;
-    ActionMenuFilterContext menu_context;
 };
 
 /// Wrapper that provides scoring aspects for filtered actions
@@ -76,8 +57,7 @@ public:
 
     Vector<ScoredAction> filter_actions(
         const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
-        const GraphEditorFilterContext& p_graph_context,
-        const ActionMenuFilterContext& p_menu_context);
+        const FilterContext& p_context);
 };
 
 #endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_ENGINE_H
