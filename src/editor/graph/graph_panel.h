@@ -258,6 +258,7 @@ protected:
     void _set_scroll_offset_and_zoom(const Vector2& p_scroll_offset, float p_zoom = 1.f, const Callable& p_callback = Callable());
 
     void _queue_autowire(OrchestratorEditorGraphNode* p_spawned_node, OrchestratorEditorGraphPin* p_origin_pin);
+    OrchestratorEditorGraphPin* _get_autowire_pin(OrchestratorEditorGraphNode* p_spawned_node, OrchestratorEditorGraphPin* p_origin_pin, const Vector<OrchestratorEditorGraphPin*>& p_choices);
 
     Vector2 _get_center() const;
 
