@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create/Update Discourse Topic
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -23,7 +26,7 @@ jobs:
             const labels = issue.labels.map(l => l.name).join(', ');
             const assignees = issue.assignees.map(a => a.login).join(', ');
             
-            let body = `${issue.body || 'No description provided.'}\n\n`;
+            let body = `${ISSUE_BODY || 'No description provided.'}\n\n`;
             body += `---\n\n`;
             body += `**Labels:** ${labels || 'None'}\n`;
             body += `**Assignees:** ${assignees || 'None'}\n`;
@@ -31,7 +34,7 @@ jobs:
             body += `[View on GitHub](${issue.html_url}) | [Issue #${issue.number}](${issue.html_url})`;
             
             // Format title
-            const title = `[GitHub Issue #${issue.number}] ${issue.title}`;
+            const title = `[GitHub Issue #${issue.number}] ${ISSUE_TITLE}`;
             
             // Get tags from labels (Discourse tags)
             const tags = issue.labels.map(label => label.name).filter(tag => tag.length <= 20); // Discourse tag limit
