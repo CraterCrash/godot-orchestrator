@@ -1,0 +1,68 @@
+name: Sync Issues to Discourse
+on:
+  issues:
+    types: [opened, closed, reopened, edited]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create/Update Discourse Topic
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const action = context.payload.action;
+            
+            const discourseUrl = 'https://forum.cratercrash.space';
+            const apiKey = '${{ secrets.DISCOURSE_API_KEY }}';
+            const apiUsername = '${{ secrets.DISCOURSE_API_USERNAME }}';
+            const categoryId = parseInt('${{ secrets.DISCOURSE_CATEGORY_ID }}');
+            
+            // Format issue body
+            const labels = issue.labels.map(l => l.name).join(', ');
+            const assignees = issue.assignees.map(a => a.login).join(', ');
+            
+            let body = `${issue.body || 'No description provided.'}\n\n`;
+            body += `---\n\n`;
+            body += `**Labels:** ${labels || 'None'}\n`;
+            body += `**Assignees:** ${assignees || 'None'}\n`;
+            body += `**Status:** ${issue.state}\n\n`;
+            body += `[View on GitHub](${issue.html_url}) | [Issue #${issue.number}](${issue.html_url})`;
+            
+            // Format title
+            const title = `[GitHub Issue #${issue.number}] ${issue.title}`;
+            
+            // Get tags from labels (Discourse tags)
+            const tags = issue.labels.map(label => label.name).filter(tag => tag.length <= 20); // Discourse tag limit
+            
+            const topicData = {
+              title: title,
+              raw: body,
+              category: categoryId
+            };
+            
+            // Add tags if any
+            if (tags.length > 0) {
+              topicData.tags = tags;
+            }
+            
+            // Create topic via Discourse API
+            const response = await fetch(`${discourseUrl}/posts.json`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Api-Key': apiKey,
+                'Api-Username': apiUsername
+              },
+              body: JSON.stringify(topicData)
+            });
+            
+            if (!response.ok) {
+              const error = await response.text();
+              console.error('Discourse API error:', error);
+              throw new Error(`Failed to create topic: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('Topic created successfully:', result.topic_id);
