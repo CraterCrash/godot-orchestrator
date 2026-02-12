@@ -41,9 +41,6 @@ namespace orchestrator {
         if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
             register_script_scene_types();
             register_editor_types();
-
-            // See https://github.com/godotengine/godot/pull/114131
-            initialize_script_extension();
         }
     }
 
