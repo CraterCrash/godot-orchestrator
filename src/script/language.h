@@ -205,6 +205,8 @@ public:
     _FORCE_INLINE_ const HashMap<StringName, int>& get_global_map() const { return globals; }
     _FORCE_INLINE_ const HashMap<StringName, Variant>& get_named_globals_map() const { return named_globals; }
 
+    bool is_initialized() const { return initialized; }
+
     void add_orphan_subclass(const String& p_qualified_name, const ObjectID& p_subclass);
     Ref<OScript> get_orphan_subclass(const String& p_qualified_name);
 
