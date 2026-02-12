@@ -11,7 +11,7 @@ jobs:
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const issue = context.payload.issue;
