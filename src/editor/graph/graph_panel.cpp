@@ -1853,20 +1853,18 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
             ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Call member function has no method");
             if (_treat_call_member_as_override) {
                 _create_new_function_override(p_action->method.value());
-                _treat_call_member_as_override = false;
                 emit_signal("nodes_changed");
-                return;
+            } else {
+                NodeSpawnOptions options;
+                options.node_class = OScriptNodeCallMemberFunction::get_class_static();
+                options.context.user_data = p_action->data;
+                options.context.method = p_action->method;
+                options.context.class_name = p_action->class_name;
+                options.position = spawn_position;
+                options.drag_pin = _drag_from_pin;
+
+                spawn_node(options);
             }
-
-            NodeSpawnOptions options;
-            options.node_class = OScriptNodeCallMemberFunction::get_class_static();
-            options.context.user_data = p_action->data;
-            options.context.method = p_action->method;
-            options.context.class_name = p_action->class_name;
-            options.position = spawn_position;
-            options.drag_pin = _drag_from_pin;
-
-            spawn_node(options);
             break;
         }
         case OrchestratorEditorActionDefinition::ACTION_CALL_SCRIPT_FUNCTION: {
@@ -1952,6 +1950,8 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
             break;
         }
     }
+
+    _treat_call_member_as_override = false;
 }
 
 void OrchestratorEditorGraphPanel::_action_menu_canceled() {
