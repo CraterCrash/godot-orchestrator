@@ -134,10 +134,6 @@ void unregister_script_extension() {
     }
 }
 
-void initialize_script_extension() {
-    OScriptLanguage::get_singleton()->_init();
-}
-
 void register_script_node_types() {
     // Script Nodes (Abstracts first)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptEditablePinNode)
