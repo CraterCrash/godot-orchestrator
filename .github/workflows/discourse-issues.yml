@@ -26,7 +26,7 @@ jobs:
             const labels = issue.labels.map(l => l.name).join(', ');
             const assignees = issue.assignees.map(a => a.login).join(', ');
             
-            let body = `${ISSUE_BODY || 'No description provided.'}\n\n`;
+            let body = `${process.env.ISSUE_BODY || 'No description provided.'}\n\n`;
             body += `---\n\n`;
             body += `**Labels:** ${labels || 'None'}\n`;
             body += `**Assignees:** ${assignees || 'None'}\n`;
@@ -34,7 +34,7 @@ jobs:
             body += `[View on GitHub](${issue.html_url}) | [Issue #${issue.number}](${issue.html_url})`;
             
             // Format title
-            const title = `[GitHub Issue #${issue.number}] ${ISSUE_TITLE}`;
+            const title = `[GitHub Issue #${issue.number}] ${process.env.ISSUE_TITLE}`;
             
             // Get tags from labels (Discourse tags)
             const tags = issue.labels.map(label => label.name).filter(tag => tag.length <= 20); // Discourse tag limit
