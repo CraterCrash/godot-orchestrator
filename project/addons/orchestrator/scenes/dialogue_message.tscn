@@ -44,6 +44,7 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 
 [node name="Speaker" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Speaker Name"
 horizontal_alignment = 1
@@ -52,6 +53,7 @@ horizontal_alignment = 1
 layout_mode = 2
 
 [node name="SpeakerText" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(700, 0)
 layout_mode = 2
 text = "Speaker Text that will be shown."
@@ -62,12 +64,14 @@ autowrap_mode = 2
 layout_mode = 2
 
 [node name="ResponseTemplate" type="Button" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "Some Response (If choices are provided)"
 alignment = 0
 
 [node name="NextButton" type="Button" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 8
