@@ -31,8 +31,6 @@
 #include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-// s#define ENABLE_CONVERGENCE
-
 using namespace godot;
 
 // todo: aligned with changes as of godot-engine 7ed0b61676
@@ -98,6 +96,8 @@ public:
     static HashMap<StringName, AnnotationInfo> valid_annotations;
 
 private:
+
+    bool use_node_convergence = true;
 
     ClassNode* head = nullptr;
     ClassNode* current_class = nullptr;
