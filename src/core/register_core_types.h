@@ -20,4 +20,7 @@
 void register_core_singletons();
 void unregister_core_singletons();
 
+void create_core_singletons();
+void destroy_core_singletons();
+
 #endif // ORCHESTRATOR_CORE_REGISTER_CORE_TYPES_H
