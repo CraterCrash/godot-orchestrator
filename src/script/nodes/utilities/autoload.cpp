@@ -18,20 +18,12 @@
 
 #include "common/property_utils.h"
 #include "common/string_utils.h"
-#include "core/godot/config/project_settings.h"
+#include "core/godot/config/project_settings_cache.h"
 
 #include <godot_cpp/classes/node.hpp>
 
-static PackedStringArray get_autoload_names() {
-    PackedStringArray autoloads;
-    for (const KeyValue<StringName, GDE::ProjectSettings::AutoloadInfo>& E : GDE::ProjectSettings::get_autoload_list()) {
-        autoloads.push_back(E.key);
-    }
-    return autoloads;
-}
-
 void OScriptNodeAutoload::_get_property_list(List<PropertyInfo>* r_list) const {
-    const String autoload_names = StringUtils::join(",", get_autoload_names());
+    const String autoload_names = StringUtils::join(",", OrchestratorProjectSettingsCache::get_singleton()->get_autoload_names());
     r_list->push_back(PropertyInfo(Variant::STRING, "autoload", PROPERTY_HINT_ENUM, autoload_names));
 }
 
@@ -84,7 +76,7 @@ String OScriptNodeAutoload::_get_autoload_base_type() const {
 void OScriptNodeAutoload::allocate_default_pins() {
     // Always default to first registered autoload
     if (_autoload.is_empty()) {
-        const PackedStringArray values = get_autoload_names();
+        const PackedStringArray values = OrchestratorProjectSettingsCache::get_singleton()->get_autoload_names();
         if (!values.is_empty()) {
             _autoload = values[0];
         }

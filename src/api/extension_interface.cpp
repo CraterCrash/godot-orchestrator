@@ -16,6 +16,7 @@
 //
 #include "extension_interface.h"
 
+#include "core/register_core_types.h"
 #include "editor/register_editor_types.h"
 #include "script/register_script_types.h"
 
@@ -29,6 +30,7 @@ namespace orchestrator {
     void initialize_extension_module(ModuleInitializationLevel p_level) {
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
             register_extension_db();
+            register_core_singletons();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
             register_script_types();
@@ -58,6 +60,7 @@ namespace orchestrator {
             unregister_script_types();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
+            unregister_core_singletons();
             unregister_extension_db();
         }
     }

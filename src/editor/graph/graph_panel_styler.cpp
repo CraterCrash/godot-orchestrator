@@ -18,10 +18,9 @@
 
 #include "common/macros.h"
 #include "common/settings.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/graph_pin.h"
-
-#include <godot_cpp/classes/project_settings.hpp>
 
 void OrchestratorEditorGraphPanelStyler::_settings_changed() {
     _highlight_selected_connections = ORCHESTRATOR_GET("ui/nodes/highlight_selected_connections", false);
@@ -192,6 +191,6 @@ void OrchestratorEditorGraphPanelStyler::_bind_methods() {
 
 OrchestratorEditorGraphPanelStyler::OrchestratorEditorGraphPanelStyler() {
     // Updates internal configuration state when project settings change
-    ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_settings_changed));
+    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_settings_changed));
     _settings_changed();
 }

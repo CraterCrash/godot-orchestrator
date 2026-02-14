@@ -17,7 +17,7 @@
 #include "script/script_docgen.h"
 
 #include "common/string_utils.h"
-#include "core/godot/config/project_settings.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "core/godot/doc_data.h"
 #include "core/godot/variant/variant.h"
 #include "orchestration/serialization/text/variant_parser.h"
@@ -563,8 +563,8 @@ void OScriptDocGen::_generate_docs(OScript* p_script, const Parser::ClassNode* p
 }
 
 void OScriptDocGen::generate_docs(OScript* p_script, const Parser::ClassNode* p_class) {
-    for (const KeyValue<StringName, GDE::ProjectSettings::AutoloadInfo>& E : GDE::ProjectSettings::get_autoload_list()) {
-        if (E.value.is_singleton) {
+    for (const OrchestratorProjectSettingsCache::Entry& E : OrchestratorProjectSettingsCache::get_singleton()->get_autoloads()) {
+        if (E.value.singleton) {
             _singletons[E.value.path] = E.key;
         }
     }
@@ -574,8 +574,8 @@ void OScriptDocGen::generate_docs(OScript* p_script, const Parser::ClassNode* p_
 
 // This method is needed for the editor, since during autocompletion the script is not compiled, only analyzed.
 void OScriptDocGen::doc_type_from_script_type(const Type& p_script_type, String& r_type, String& r_enum, bool p_is_return) {
-    for (const KeyValue<StringName, GDE::ProjectSettings::AutoloadInfo>& E : GDE::ProjectSettings::get_autoload_list()) {
-        if (E.value.is_singleton) {
+    for (const OrchestratorProjectSettingsCache::Entry& E : OrchestratorProjectSettingsCache::get_singleton()->get_autoloads()) {
+        if (E.value.singleton) {
             _singletons[E.value.path] = E.key;
         }
     }
