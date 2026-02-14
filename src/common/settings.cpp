@@ -68,6 +68,7 @@ void OrchestratorSettings::_register_settings() {
     _settings.emplace_back(RANGE_SETTING("settings/runtime/max_call_stack", "256,1024,256", 1024));
     _settings.emplace_back(INT_SETTING("settings/runtime/max_loop_iterations", 1000000));
     _settings.emplace_back(SENUM_SETTING("settings/runtime/print_string_scale", "75%,100%,125%,150%,175%,200%,225%,250%,275%,300%,325%,350%,375%,400%", "100%"));
+    _settings.emplace_back(BOOL_SETTING("settings/runtime/use_node_convergence", true));
 
     // Debugging
     #ifdef DEBUG_ENABLED

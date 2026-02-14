@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/settings.h"
 #include "common/string_utils.h"
 #include "core/godot/object/class_db.h"
 #include "orchestration/serialization/binary/binary_parser.h"
@@ -265,13 +266,13 @@ bool OScriptParser::is_break_pin(const Ref<OScriptNodePin>& p_pin) {
 }
 
 bool OScriptParser::is_convergence_point_ahead(int p_target_node_id) {
-    #ifdef ENABLE_CONVERGENCE
-    for (const KeyValue<NodeId, NodeId>& E: function_info.divergence_to_merge_point) {
-        if (E.value == p_target_node_id) {
-            return true;
+    if (use_node_convergence) {
+        for (const KeyValue<NodeId, NodeId>& E: function_info.divergence_to_merge_point) {
+            if (E.value == p_target_node_id) {
+                return true;
+            }
         }
     }
-    #endif
     return false;
 }
 
@@ -282,8 +283,7 @@ OScriptParser::StatementResult OScriptParser::create_stop_result() {
 }
 
 OScriptParser::StatementResult OScriptParser::create_divergence_result(const Ref<OScriptNode>& p_node) {
-    #ifdef ENABLE_CONVERGENCE
-    if (p_node.is_valid()) {
+    if (use_node_convergence && p_node.is_valid()) {
         int script_node_id = p_node->get_id();
         if (function_info.divergence_to_merge_point.has(script_node_id)) {
             const OScriptNodePinId merge_pin_id = function_info.divergence_to_merge_pins[script_node_id];
@@ -302,7 +302,6 @@ OScriptParser::StatementResult OScriptParser::create_divergence_result(const Ref
             }
         }
     }
-    #endif
 
     return create_stop_result();
 }
@@ -1493,15 +1492,13 @@ void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, co
 
         const OScriptNodePinId target_id = { target_node->get_id(), target_pin->get_pin_index() };
 
-        #ifdef ENABLE_CONVERGENCE
-        if (!convergence_stack.is_empty()) {
+        if (use_node_convergence && !convergence_stack.is_empty()) {
             const OScriptNodePinId& converge_id = convergence_stack.back()->get();
             if (converge_id == target_id) {
                 // Reached converging node, don't process this
                 return;
             }
         }
-        #endif
 
         if (is_break_pin(target_pin)) {
             // This is a traversal from a pin that links into a loop's break pin.
@@ -1509,21 +1506,17 @@ void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, co
             return;
         }
 
-        #ifdef ENABLE_CONVERGENCE
         OScriptNodePinId convergence_pin = { -1, -1 };
-        if (function_info.divergence_to_merge_point.has(target_id.node)) {
+        if (use_node_convergence && function_info.divergence_to_merge_point.has(target_id.node)) {
             convergence_pin = function_info.divergence_to_merge_pins[target_id.node];
             convergence_stack.push_back(convergence_pin);
         }
-        #endif
 
         const StatementResult result = build_statement(target_node);
 
-        #ifdef ENABLE_CONVERGENCE
-        if (convergence_pin.node >= 0) {
+        if (use_node_convergence && convergence_pin.node >= 0) {
             convergence_stack.pop_back();
         }
-        #endif
 
         switch (result.control_flow) {
             case StatementResult::CONTINUE: {
@@ -1542,32 +1535,33 @@ void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, co
                 // Handler requested stop, likely hitting converging nodes
                 return;
             }
-            #ifdef ENABLE_CONVERGENCE
             case StatementResult::JUMP_TO_NODE: {
-                // Handler suggests we jump
-                if (result.jump_target.is_valid() && result.jump_target_pin.is_valid()) {
-                    target_pin = result.jump_target_pin;
-                } else {
-                    return;
+                if (use_node_convergence) {
+                    // Handler suggests we jump
+                    if (result.jump_target.is_valid() && result.jump_target_pin.is_valid()) {
+                        target_pin = result.jump_target_pin;
+                    } else {
+                        return;
+                    }
                 }
                 break;
             }
             case StatementResult::DIVERGENCE_HANDLED: {
-                // Handler built a divergence and all paths converge
-                if (result.convergence_info.has_value()) {
-                    const StatementResult::ConvergenceInfo& ci = result.convergence_info.value();
-                    target_pin = ci.convergence_node_pin;
-                } else {
-                    return;
+                if (use_node_convergence) {
+                    // Handler built a divergence and all paths converge
+                    if (result.convergence_info.has_value()) {
+                        const StatementResult::ConvergenceInfo& ci = result.convergence_info.value();
+                        target_pin = ci.convergence_node_pin;
+                    } else {
+                        return;
+                    }
                 }
                 break;
             }
-            #else
             default: {
                 // Do nothing
                 break;
             }
-            #endif
         }
     }
 }
@@ -3616,6 +3610,8 @@ Variant::Type OScriptParser::get_builtin_type(const StringName &p_type) {
 }
 
 OScriptParser::OScriptParser() {
+    use_node_convergence = ORCHESTRATOR_GET("settings/runtime/use_node_convergence", true);
+
     bind_handlers();
 
     if (unlikely(valid_annotations.is_empty())) {
