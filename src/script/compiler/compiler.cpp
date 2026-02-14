@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/error_list.h"
 #include "core/godot/config/project_settings_cache.h"
+#include "core/godot/core_string_names.h"
 #include "core/godot/object/class_db.h"
 #include "core/godot/variant/variant.h"
 #include "script/compiler/analyzer.h"
@@ -1249,7 +1250,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			                scr = scr->base.ptr();
 			            }
 
-			            if (nc && (identifier == StringName("free")
+			            if (nc && (identifier == CoreStringName(free_)
                             || ClassDB::class_has_signal(nc->get_name(), identifier)
                             || ClassDB::class_has_method(nc->get_name(), identifier))) {
 			                // Get like it was a property.
