@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/macros.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "editor/actions/introspector.h"
 #include "script/nodes/data/arrays.h"
 #include "script/script_server.h"
@@ -158,7 +159,7 @@ OrchestratorEditorActionRegistry::OrchestratorEditorActionRegistry()
         _global_script_class_update_timer->start();
     }));
 
-    ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_lambda(this, [&] {
+    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_lambda(this, [&] {
         _project_settings_update_timer->start();
     }));
 

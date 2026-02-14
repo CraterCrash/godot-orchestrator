@@ -20,7 +20,7 @@
 #include "common/error_list.h"
 #include "common/resource_utils.h"
 #include "common/variant_utils.h"
-#include "core/godot/config/project_settings.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_constants.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/io/resource_loader.h"
@@ -507,8 +507,8 @@ OScriptParser::DataType OScriptAnalyzer::resolve_datatype(OScriptParser::TypeNod
 				}
 			}
 
-		} else if (GDE::ProjectSettings::has_singleton_autoload(first)) {
-		    const String autoload_path = GDE::ProjectSettings::get_autoload(first).path;
+		} else if (OrchestratorProjectSettingsCache::get_singleton()->has_singleton_autoload(first)) {
+		    const String autoload_path = OrchestratorProjectSettingsCache::get_singleton()->get_autoload(first).path;
             String script_path;
 			if (GDE::ResourceLoader::get_resource_type(autoload_path) == "PackedScene") {
 				// Try to get script from scene if possible.
@@ -1324,7 +1324,7 @@ Error OScriptAnalyzer::resolve_class_inheritance(OScriptParser::ClassNode* p_cla
             push_error(vformat(R"(Class "%s" hides a native type.)", class_name), p_class->identifier);
         } else if (ScriptServer::is_global_class(class_name) && (!OScript::is_canonically_equal_paths(ScriptServer::get_global_class_path(class_name), parser->script_path) || p_class != parser->head)) {
             push_error(vformat(R"(Class "%s" hides a global script class.)", class_name), p_class->identifier);
-        } else if (GDE::ProjectSettings::has_singleton_autoload(class_name)) {
+        } else if (OrchestratorProjectSettingsCache::get_singleton()->has_singleton_autoload(class_name)) {
             push_error(vformat(R"(Class "%s" hides an autoload singleton.)", class_name), p_class->identifier);
         }
     }
@@ -1414,8 +1414,8 @@ Error OScriptAnalyzer::resolve_class_inheritance(OScriptParser::ClassNode* p_cla
 
 					base = base_parser->get_parser()->head->get_datatype();
 				}
-			} else if (GDE::ProjectSettings::has_singleton_autoload(name)) {
-			    const String script_path = GDE::ProjectSettings::get_autoload(name).path;
+			} else if (OrchestratorProjectSettingsCache::get_singleton()->has_singleton_autoload(name)) {
+			    const String script_path = OrchestratorProjectSettingsCache::get_singleton()->get_autoload(name).path;
 			    if (!OScriptLanguage::get_singleton()->_get_recognized_extensions().has(script_path.get_extension())) {
 					push_error(vformat(R"(Singleton %s is not an OScript.)", name), id);
 					return ERR_PARSE_ERROR;
@@ -4676,8 +4676,8 @@ void OScriptAnalyzer::reduce_identifier(OScriptParser::IdentifierNode* p_identif
 
 	// Try singletons.
 	// Do this before globals because this might be a singleton loading another one before it's compiled.
-    if (GDE::ProjectSettings::has_singleton_autoload(name)) {
-        const String autoload_path = GDE::ProjectSettings::get_autoload(name).path;
+    if (OrchestratorProjectSettingsCache::get_singleton()->has_singleton_autoload(name)) {
+        const String autoload_path = OrchestratorProjectSettingsCache::get_singleton()->get_autoload(name).path;
 		// Singleton exists, so it's at least a Node.
 		OScriptParser::DataType result;
 		result.type_source = OScriptParser::DataType::ANNOTATED_EXPLICIT;
