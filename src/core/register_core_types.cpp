@@ -22,10 +22,16 @@
 
 void register_core_singletons() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorProjectSettingsCache);
-
-    OrchestratorProjectSettingsCache::create();
 }
 
 void unregister_core_singletons() {
+
+}
+
+void create_core_singletons() {
+    OrchestratorProjectSettingsCache::create();
+}
+
+void destroy_core_singletons() {
     OrchestratorProjectSettingsCache::destroy();
 }
