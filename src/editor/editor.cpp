@@ -22,6 +22,7 @@
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "core/godot/gdextension_compat.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/registry.h"
@@ -2663,9 +2664,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
 
     _update_recent_scripts();
 
-    ProjectSettings* ps = ProjectSettings::get_singleton();
-    ps->connect("settings_changed", callable_mp_this(_project_settings_changed));
-
+    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_project_settings_changed));
     OrchestratorPlugin::get_singleton()->connect("scene_changed", callable_mp_this(notify_scene_changed));
 
     _log_router = memnew(OrchestratorEditorLogEventRouter);

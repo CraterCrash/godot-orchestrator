@@ -22,6 +22,7 @@
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
@@ -41,7 +42,6 @@
 #include <godot_cpp/classes/image.hpp>
 #include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
-#include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
@@ -1330,7 +1330,7 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     components->add_child(_signals);
 
     OrchestratorEditor::get_singleton()->connect("scene_changed", callable_mp_this(_scene_changed));
-    ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_project_settings_changed));
+    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_project_settings_changed));
     OrchestratorEditorConnectionsDock::get_singleton()->connect(CoreStringName(changed), callable_mp_this(_update_slots));
 
     _project_settings_changed();

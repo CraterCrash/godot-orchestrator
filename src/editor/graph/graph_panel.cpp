@@ -26,6 +26,7 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/filter_engine.h"
@@ -3690,7 +3691,7 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     set_right_disconnects(true);
     set_show_zoom_label(true);
 
-    ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(_settings_changed));
+    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_settings_changed));
     EI->get_editor_settings()->connect("settings_changed", callable_mp_this(_settings_changed));
 
     _settings_changed();
