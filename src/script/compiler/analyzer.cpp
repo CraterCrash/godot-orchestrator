@@ -194,6 +194,16 @@ static bool enum_has_value(const OScriptParser::DataType p_type, int64_t p_value
 }
 #endif // DEBUG_ENABLED
 
+bool OScriptAnalyzer::is_packed_scene(const String& p_path) {
+    static Array extensions = Array::make("tscn", "scn");
+    return extensions.has(p_path.get_extension());
+}
+
+bool OScriptAnalyzer::is_oscript(const String& p_path) {
+    static Array extensions = Array::make("os", "torch");
+    return extensions.has(p_path.get_extension());
+}
+
 void OScriptAnalyzer::get_class_node_current_scope_classes(OScriptParser::ClassNode* p_class, List<OScriptParser::ClassNode*>* p_list, OScriptParser::Node* p_source) {
     ERR_FAIL_NULL(p_class);
     ERR_FAIL_NULL(p_list);
@@ -510,7 +520,7 @@ OScriptParser::DataType OScriptAnalyzer::resolve_datatype(OScriptParser::TypeNod
 		} else if (GDE::ProjectSettings::has_singleton_autoload(first)) {
 		    const String autoload_path = GDE::ProjectSettings::get_autoload(first).path;
             String script_path;
-			if (GDE::ResourceLoader::get_resource_type(autoload_path) == "PackedScene") {
+			if (is_packed_scene(autoload_path)) {
 				// Try to get script from scene if possible.
 				if (OScriptLanguage::get_singleton()->has_any_global_constant(first)) {
 					Variant constant = OScriptLanguage::get_singleton()->get_any_global_constant(first);
@@ -522,7 +532,7 @@ OScriptParser::DataType OScriptAnalyzer::resolve_datatype(OScriptParser::TypeNod
 						}
 					}
 				}
-			} else if (GDE::ResourceLoader::get_resource_type(first) == "OScript") {
+			} else if (is_oscript(first)) {
 				script_path = autoload_path;
 			}
 
@@ -4685,7 +4695,7 @@ void OScriptAnalyzer::reduce_identifier(OScriptParser::IdentifierNode* p_identif
 		result.builtin_type = Variant::OBJECT;
 		result.native_type = StringName("Node");
 
-		if (GDE::ResourceLoader::get_resource_type(autoload_path) == "OScript") {
+		if (is_oscript(autoload_path)) {
 			Ref<OScriptParserRef> single_parser = parser->get_depended_parser_for(autoload_path);
 			if (single_parser.is_valid()) {
 				Error err = single_parser->raise_status(OScriptParserRef::INHERITANCE_SOLVED);
@@ -4693,7 +4703,7 @@ void OScriptAnalyzer::reduce_identifier(OScriptParser::IdentifierNode* p_identif
 					result = type_from_metatype(single_parser->get_parser()->head->get_datatype());
 				}
 			}
-		} else if (GDE::ResourceLoader::get_resource_type(autoload_path) == "PackedScene") {
+		} else if (is_packed_scene(autoload_path)) {
 			if (OScriptLanguage::get_singleton()->has_any_global_constant(name)) {
 				Variant constant = OScriptLanguage::get_singleton()->get_any_global_constant(name);
 				Node *node = Object::cast_to<Node>(constant);
