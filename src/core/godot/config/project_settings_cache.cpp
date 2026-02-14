@@ -101,4 +101,7 @@ void OrchestratorProjectSettingsCache::_bind_methods() {
 OrchestratorProjectSettingsCache::OrchestratorProjectSettingsCache() {
     ProjectSettings* ps = ProjectSettings::get_singleton();
     ps->connect("settings_changed", callable_mp_this(_settings_changed));
+
+    // initialize cache for the first time
+    _settings_changed();
 }
