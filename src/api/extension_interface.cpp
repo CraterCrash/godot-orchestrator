@@ -39,6 +39,8 @@ namespace orchestrator {
             register_script_extension();
             register_script_resource_formats();
             register_script_node_types();
+
+            create_core_singletons();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
             register_script_scene_types();
@@ -58,6 +60,7 @@ namespace orchestrator {
         if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
             unregister_script_resource_formats();
             unregister_script_types();
+            destroy_core_singletons();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
             unregister_core_singletons();
