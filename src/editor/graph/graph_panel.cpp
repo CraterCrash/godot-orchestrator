@@ -828,19 +828,20 @@ void OrchestratorEditorGraphPanel::_pin_default_value_changed(OrchestratorEditor
 }
 
 void OrchestratorEditorGraphPanel::_node_added(int p_node_id) {
-    _refresh_panel_with_model();
+    if (_graph->has_node(p_node_id)) {
+        const Ref<OrchestrationGraphNode> node = _graph->get_node(p_node_id);
+        if (node.is_valid()) {
+            _add_node_to_panel(node);
+            _update_center_status();
 
-    if (_center_status->is_visible()) {
-        _center_status->hide();
+            emit_signal("validate_script");
+        }
     }
 }
 
 void OrchestratorEditorGraphPanel::_node_removed(int p_node_id) {
-    _refresh_panel_with_model();
-
-    if (_graph->get_nodes().is_empty() && !_center_status->is_visible()) {
-        _center_status->show();
-    }
+    _update_center_status();
+    emit_signal("validate_script");
 }
 
 void OrchestratorEditorGraphPanel::_graph_changed() {
@@ -1959,15 +1960,6 @@ void OrchestratorEditorGraphPanel::_action_menu_canceled() {
     _treat_call_member_as_override = false;
 }
 
-void OrchestratorEditorGraphPanel::_idle_timeout() {
-    if (_knot_editor) {
-        _knot_editor->flush_knot_cache(_graph);
-    }
-
-    // Notify view container to execute validation
-    emit_signal("validate_script");
-}
-
 void OrchestratorEditorGraphPanel::_grid_pattern_changed(int p_index) {
     #if GODOT_VERSION >= 0x040300
     set_grid_pattern(CAST_INT_TO_ENUM(GridPattern, _grid_pattern->get_item_metadata(p_index)));
@@ -1989,9 +1981,6 @@ void OrchestratorEditorGraphPanel::_settings_changed() {
 
     const Color knot_selected_color = ORCHESTRATOR_GET("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f));
     _knot_editor->set_selected_color(knot_selected_color);
-
-    _idle_time = EDITOR_GET("text_editor/completion/idle_parse_delay");
-    _idle_time_with_errors = EDITOR_GET("text_editor/completion/idle_parse_delay_with_errors_found");
 
     _show_overlay_action_tooltips = ORCHESTRATOR_GET("ui/graph/show_overlay_action_tooltips", true);
     _disconnect_control_flow_when_dragged = ORCHESTRATOR_GET("ui/graph/disconnect_control_flow_when_dragged", true);
@@ -2177,6 +2166,38 @@ void OrchestratorEditorGraphPanel::_update_menu_theme() {
     control->add_theme_stylebox_override(SceneStringName(panel), _theme_cache.panel);
 }
 
+void OrchestratorEditorGraphPanel::_update_center_status() {
+    if (_graph->get_nodes().is_empty()) {
+        if (!_center_status->is_visible()) {
+            _center_status->show();
+        }
+    } else {
+        if (_center_status->is_visible()) {
+            _center_status->hide();
+        }
+    }
+}
+
+void OrchestratorEditorGraphPanel::_add_node_to_panel(const Ref<OrchestrationGraphNode>& p_node) {
+    OrchestratorEditorGraphNode* graph_node = OrchestratorEditorGraphNodeFactory::create_node(p_node);
+    ERR_FAIL_COND_MSG(!graph_node, "Failed to create graph node for node id " + itos(p_node->get_id()));
+
+    // Must come first so when pin widget sizes are computed in set_node, they have non-zero values
+    graph_node->set_name(itos(p_node->get_id()));
+    add_child(graph_node);
+
+    graph_node->set_node(p_node);
+    graph_node->set_resizable(_resizable_by_default);
+    graph_node->set_show_type_icons(_show_type_icons);
+    graph_node->set_show_advanced_tooltips(_show_advanced_tooltips);
+    graph_node->set_position_offset(p_node->get_position());
+    graph_node->set_size(p_node->get_size());
+}
+
+void OrchestratorEditorGraphPanel::_remove_node_from_panel(const Ref<OrchestrationGraphNode>& p_node) {
+
+}
+
 void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
     clear_connections();
 
@@ -2189,19 +2210,7 @@ void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
     }
 
     for (const Ref<OrchestrationGraphNode>& node : _graph->get_nodes()) {
-        OrchestratorEditorGraphNode* graph_node = OrchestratorEditorGraphNodeFactory::create_node(node);
-        ERR_CONTINUE_MSG(!graph_node, "Failed to create graph node for node id " + itos(node->get_id()));
-
-        // Must come first so when pin widget sizes are computed in set_node, they have non-zero values
-        graph_node->set_name(itos(node->get_id()));
-        add_child(graph_node);
-
-        graph_node->set_node(node);
-        graph_node->set_resizable(_resizable_by_default);
-        graph_node->set_show_type_icons(_show_type_icons);
-        graph_node->set_show_advanced_tooltips(_show_advanced_tooltips);
-        graph_node->set_position_offset(node->get_position());
-        graph_node->set_size(node->get_size());
+        _add_node_to_panel(node);
     }
 
     for (const Connection& E : _graph->get_connections()) {
@@ -2213,8 +2222,11 @@ void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
     _knot_editor->update(_graph->get_knots(), true);
 
     // Queue up a revalidation sequence
-    if (_idle_timer->is_stopped())
-        _idle_timer->start();
+    emit_signal("validate_script");
+
+    _update_center_status();
+
+    _panel_refresh_pending = false;
 }
 
 void OrchestratorEditorGraphPanel::_refresh_panel_connections_with_model() {
@@ -2226,9 +2238,25 @@ void OrchestratorEditorGraphPanel::_refresh_panel_connections_with_model() {
     }
 
     emit_signal("connections_changed");
+    emit_signal("validate_script");
 
-    if (_idle_timer->is_stopped()) {
-        _idle_timer->start();
+    _panel_connections_refresh_pending = false;
+}
+
+void OrchestratorEditorGraphPanel::_queue_panel_refresh() {
+    if (!_panel_refresh_pending) {
+        _panel_refresh_pending = true;
+        callable_mp_this(_refresh_panel_with_model).call_deferred();
+    }
+}
+
+void OrchestratorEditorGraphPanel::_queue_panel_connections_refresh() {
+    // The panel refreshes connections, so no need to refresh connections separately.
+    if (!_panel_refresh_pending) {
+        if (!_panel_connections_refresh_pending) {
+            _panel_connections_refresh_pending = true;
+            callable_mp_this(_refresh_panel_connections_with_model).call_deferred();
+        }
     }
 }
 
@@ -2346,7 +2374,7 @@ void OrchestratorEditorGraphPanel::_set_edited(bool p_edited) {
     _graph->get_orchestration()->as_script()->set_edited(p_edited);
 
     // Request revalidation post change
-    _idle_timer->start();
+    emit_signal("validate_script");
 }
 
 void OrchestratorEditorGraphPanel::_get_graph_node_and_port(const Vector2& p_position, int& r_id, int& r_port_index) const {
@@ -2971,11 +2999,17 @@ void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_gr
     }
 
     callable_mp_this(_update_panel_hint).call_deferred();
-    callable_mp_this(_refresh_panel_with_model).call_deferred();
+    _queue_panel_refresh();
 }
 
 void OrchestratorEditorGraphPanel::reloaded_from_file() {
-    _refresh_panel_with_model();
+    _queue_panel_refresh();
+}
+
+void OrchestratorEditorGraphPanel::idle_timeout() {
+    if (_knot_editor) {
+        _knot_editor->flush_knot_cache(_graph);
+    }
 }
 
 Control* OrchestratorEditorGraphPanel::get_menu_control() const {
@@ -3130,7 +3164,7 @@ void OrchestratorEditorGraphPanel::clear_breakpoints() {
         _breakpoint_state.erase(node_id);
     }
 
-    _refresh_panel_with_model();
+    _queue_panel_refresh();
 }
 
 void OrchestratorEditorGraphPanel::show_override_function_action_menu(const Callable& p_callback) {
@@ -3425,10 +3459,6 @@ OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_node(const Node
     return spawned_graph_node;
 }
 
-void OrchestratorEditorGraphPanel::validate() {
-    _idle_timer->start();
-}
-
 Variant OrchestratorEditorGraphPanel::get_edit_state() const {
     PackedStringArray selections;
     for (int i = 0; i < get_child_count(); i++) {
@@ -3591,11 +3621,6 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     _theme_update_timer->set_wait_time(0.5f);
     _theme_update_timer->set_one_shot(true);
     add_child(_theme_update_timer);
-
-    _idle_timer = memnew(Timer);
-    _idle_timer->set_one_shot(true);
-    _idle_timer->connect("timeout", callable_mp_this(_idle_timeout));
-    add_child(_idle_timer);
 
     // New dots-based grid style was introduced in Godot 4.3.
     // Introduces a new drop-down option for selecting the specific grid pattern

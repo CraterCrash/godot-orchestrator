@@ -27,6 +27,7 @@
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
+#include <godot_cpp/classes/timer.hpp>
 
 using namespace godot;
 
@@ -77,6 +78,7 @@ class OrchestratorScriptGraphEditorView : public OrchestratorEditorView {
     Vector<String> _restore_tab_list;
 
     bool _editor_enabled = false;
+    bool _validation_pending = false;
 
     HBoxContainer* _edit_hb = nullptr;
     MenuButton* _edit_menu = nullptr;
@@ -90,6 +92,12 @@ class OrchestratorScriptGraphEditorView : public OrchestratorEditorView {
     TabContainer* _tab_container = nullptr;
     RichTextLabel* _warnings_panel = nullptr;
     RichTextLabel* _errors_panel = nullptr;
+
+    Timer* _idle_timer = nullptr;
+    float _idle_time = 0.f;
+    float _idle_time_with_errors = 0.f;
+
+    void _idle_timeout();
 
     OrchestratorEditorGraphPanel* _event_graph = nullptr;
     OrchestratorScriptComponentsContainer* _components = nullptr;
@@ -143,6 +151,8 @@ protected:
 
     void _prepare_edit_menu();
     void _enable_editor();
+
+    void _queue_validate_script();
     void _validate_script();
 
     void _show_warnings_panel(bool p_show);
