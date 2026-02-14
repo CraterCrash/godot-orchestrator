@@ -126,7 +126,6 @@ private:
     Label* _drag_hint = nullptr;
     Timer* _drag_hint_timer = nullptr;
     Timer* _theme_update_timer = nullptr;
-    Timer* _idle_timer = nullptr;
     OptionButton* _grid_pattern = nullptr;
     Dictionary _hovered_connection;
 
@@ -140,12 +139,11 @@ private:
     bool _pending_nodes_changed_event = false;
     bool _edited = false;
     bool _treat_call_member_as_override = false;
+    bool _panel_refresh_pending = false;
+    bool _panel_connections_refresh_pending = false;
 
     bool _box_selection;
     Vector2 _box_selection_from;
-
-    float _idle_time = 0.f;
-    float _idle_time_with_errors = 0.f;
 
     Vector2 _menu_position;
 
@@ -249,7 +247,6 @@ protected:
     void _action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action);
     void _action_menu_canceled();
 
-    void _idle_timeout();
     void _grid_pattern_changed(int p_index);
     void _settings_changed();
     void _show_drag_hint(const String& p_hint_text) const;
@@ -264,9 +261,15 @@ protected:
 
     virtual void _update_theme_item_cache();
     virtual void _update_menu_theme();
+    virtual void _update_center_status();
 
+    virtual void _add_node_to_panel(const Ref<OrchestrationGraphNode>& p_node);
+    virtual void _remove_node_from_panel(const Ref<OrchestrationGraphNode>& p_node);
     virtual void _refresh_panel_with_model();
     virtual void _refresh_panel_connections_with_model();
+
+    virtual void _queue_panel_refresh();
+    virtual void _queue_panel_connections_refresh();
 
     void _update_box_selection_state(const Ref<InputEvent>& p_event);
 
@@ -306,6 +309,8 @@ public:
 
     void set_graph(const Ref<OrchestrationGraph>& p_graph);
     void reloaded_from_file();
+
+    void idle_timeout();
 
     Control* get_menu_control() const;
     Node* get_connection_layer_node() const;
@@ -361,8 +366,6 @@ public:
 
     template <typename NodeType> OrchestratorEditorGraphNode* spawn_node(NodeSpawnOptions& p_options);
     OrchestratorEditorGraphNode* spawn_node(const NodeSpawnOptions& p_options);
-
-    void validate();
 
     // Editor State API
     Variant get_edit_state() const;

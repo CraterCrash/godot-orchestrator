@@ -44,6 +44,17 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 
+void OrchestratorScriptGraphEditorView::_idle_timeout() {
+    for (int i = 0; i < _tab_container->get_child_count(); i++) {
+        OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
+        if (tab_panel) {
+            tab_panel->idle_timeout();
+        }
+    }
+
+    _validate_script();
+}
+
 OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_create_graph_tab(const String& p_name) {
     ERR_FAIL_COND_V_MSG(!_script.is_valid(), nullptr, "OScript is not valid");
 
@@ -64,7 +75,7 @@ OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_create_graph_t
 
     tab_panel->set_graph(script_graph);
 
-    tab_panel->connect("validate_script", callable_mp_this(_validate_script));
+    tab_panel->connect("validate_script", callable_mp_this(_queue_validate_script));
     tab_panel->connect("focus_requested", callable_mp_this(_focus_object));
 
     // Wire up component callbacks
@@ -157,7 +168,7 @@ void OrchestratorScriptGraphEditorView::_go_to_graph_tab(int p_index) {
         cast_to<OrchestratorEditorGraphPanel>(_tab_container->get_current_tab_control());
 
     if (current_tab_panel) {
-        current_tab_panel->validate();
+        validate();
     }
 }
 
@@ -588,7 +599,13 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
     _debug_menu->connect("about_to_popup", callable_mp_this(_update_debug_menu));
 }
 
+void OrchestratorScriptGraphEditorView::_queue_validate_script() {
+    _idle_timer->start();
+}
+
 void OrchestratorScriptGraphEditorView::_validate_script() {
+    _validation_pending = false;
+
     if (!_script.is_valid()) {
         return;
     }
@@ -986,12 +1003,12 @@ void OrchestratorScriptGraphEditorView::tag_saved_version() {
 }
 
 void OrchestratorScriptGraphEditorView::validate() {
-    _validate_script();
+    _queue_validate_script();
 }
 
 void OrchestratorScriptGraphEditorView::update_settings() {
-    // This is called when the editor settings are changed by default.
-    // We currently don't actively use this hook yet.
+    _idle_time = EDITOR_GET("text_editor/completion/idle_parse_delay");
+    _idle_time_with_errors = EDITOR_GET("text_editor/completion/idle_parse_delay_with_errors_found");
 }
 
 void OrchestratorScriptGraphEditorView::ensure_focus() {
@@ -1062,6 +1079,11 @@ void OrchestratorScriptGraphEditorView::_bind_methods() {
 }
 
 OrchestratorScriptGraphEditorView::OrchestratorScriptGraphEditorView() {
+    _idle_timer = memnew(Timer);
+    _idle_timer->set_one_shot(true);
+    _idle_timer->connect("timeout", callable_mp_this(_idle_timeout));
+    add_child(_idle_timer);
+
     VBoxContainer* container = memnew(VBoxContainer);
     container->set_v_size_flags(SIZE_EXPAND_FILL);
     add_child(container);
