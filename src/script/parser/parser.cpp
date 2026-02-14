@@ -2840,9 +2840,21 @@ OScriptParser::StatementResult OScriptParser::build_new_object(const Ref<OScript
 OScriptParser::StatementResult OScriptParser::build_free_object(const Ref<OScriptNodeFree>& p_script_node) {
     const Ref<OScriptNodePin> object_pin = p_script_node->find_pin(1, PD_Input);
 
-    CallNode* free_object = create_func_call(resolve_input(object_pin), "free");
-    free_object->script_node_id = p_script_node->get_id();
-    add_statement(free_object);
+    if (object_pin->has_any_connections()) {
+        const StringName class_name = object_pin->get_connection()->get_property_info().class_name;
+
+        bool is_node = false;
+        if (ScriptServer::is_global_class(class_name)) {
+            const StringName native_base = ScriptServer::get_global_class_native_base(class_name);
+            is_node = ClassDB::is_parent_class(native_base, "Node");
+        } else {
+            is_node = ClassDB::is_parent_class(class_name, "Node");
+        }
+
+        CallNode* free_object = create_func_call(resolve_input(object_pin), is_node ? "queue_free" : "free");
+        free_object->script_node_id = p_script_node->get_id();
+        add_statement(free_object);
+    }
 
     return create_statement_result(p_script_node, 0);
 }
