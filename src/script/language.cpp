@@ -768,7 +768,12 @@ TypedArray<Dictionary> OScriptLanguage::_get_public_functions() const {
 }
 
 Dictionary OScriptLanguage::_get_public_constants() const {
-    return {};
+    Dictionary results;
+    for (const String& name : ExtensionDB::get_math_constant_names()) {
+        const ConstantInfo& constant = ExtensionDB::get_math_constant(name);
+        results[constant.name] = constant.value;
+    }
+    return results;
 }
 
 void OScriptLanguage::_profiling_start() {
