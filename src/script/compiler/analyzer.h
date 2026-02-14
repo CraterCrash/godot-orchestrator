@@ -37,6 +37,9 @@ class OScriptAnalyzer {
     HashMap<const OScriptParser::ClassNode*, Ref<OScriptParserRef>> external_class_parser_cache;
     bool static_context = false;
 
+    static bool is_packed_scene(const String& p_path);
+    static bool is_oscript(const String& p_path);
+
     void get_class_node_current_scope_classes(OScriptParser::ClassNode* p_class, List<OScriptParser::ClassNode*>* p_list, OScriptParser::Node* p_source);
     void decide_suite_type(OScriptParser::Node* p_suite, OScriptParser::Node* p_statement);
 
