@@ -25,7 +25,7 @@
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "common/version.h"
-#include "core/godot/config/project_settings.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script_server.h"
@@ -1035,13 +1035,14 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospector::generate_actions_from_autoloads() {
     Vector<Ref<Action>> actions;
 
-    for (const KeyValue<StringName, GDE::ProjectSettings::AutoloadInfo>& E : GDE::ProjectSettings::get_autoload_list()) {
+    OrchestratorProjectSettingsCache* cache = OrchestratorProjectSettingsCache::get_singleton();
+    for (const String& name : cache->get_autoload_names()) {
         actions.push_back(
             _script_node_builder<OScriptNodeAutoload>(
                 vformat("Project/Autoloads"),
-                vformat("Get %s", E.key),
-                DictionaryUtils::of({ { "class_name", E.key } }))
-            .tooltip(vformat("Get a reference to the project autoload %s.", E.key))
+                vformat("Get %s", name),
+                DictionaryUtils::of({ { "class_name", name } }))
+            .tooltip(vformat("Get a reference to the project autoload %s.", name))
             .no_capitalize(true)
             .build());
     }

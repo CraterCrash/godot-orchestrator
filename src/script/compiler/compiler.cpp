@@ -18,7 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/error_list.h"
-#include "core/godot/config/project_settings.h"
+#include "core/godot/config/project_settings_cache.h"
 #include "core/godot/object/class_db.h"
 #include "core/godot/variant/variant.h"
 #include "script/compiler/analyzer.h"
@@ -1323,7 +1323,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			    case OScriptParser::IdentifierNode::UNDEFINED_SOURCE: {
 			        // Try globals.
 			        if (OScriptLanguage::get_singleton()->get_global_map().has(identifier)) {
-			            if (GDE::ProjectSettings::has_singleton_autoload(identifier)) {
+			            if (OrchestratorProjectSettingsCache::get_singleton()->has_singleton_autoload(identifier)) {
 			                OScriptBytecodeGenerator::Address global = p_context.add_temporary(resolve_type(in->get_datatype(), p_context.script));
 			                int idx = OScriptLanguage::get_singleton()->get_global_map()[identifier];
 			                generator->write_store_global(global, idx);
