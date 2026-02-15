@@ -25,24 +25,17 @@
 using namespace godot;
 
 /// Displays a list of properties for a given criteria.
-class OrchestratorPropertySelector : public ConfirmationDialog
-{
+class OrchestratorPropertySelector : public ConfirmationDialog {
     GDCLASS(OrchestratorPropertySelector, ConfirmationDialog);
-    static void _bind_methods();
 
-protected:
-    LineEdit* _search_box{ nullptr };    //! The filter/search box
-    Tree* _search_options{ nullptr };    //! The list of search options
+    LineEdit* _search_box = nullptr;     //! The filter/search box
+    Tree* _search_options = nullptr;     //! The list of search options
     String _selected;                    //! The selected property name
     Variant::Type _type;                 //! The property type to limit
     String _base_type;                   //! The base type
     ObjectID _script;                    //! The script's object identifier
-    Object* _instance{ nullptr };        //! The object to base the list on
+    Object* _instance = nullptr;         //! The object to base the list on
     Vector<Variant::Type> _type_filter;  //! The type filter
-
-    //~ Begin Wrapped Interface
-    void _notification(int p_what);
-    //~ End Wrapped Interface
 
     //~ Begin Signal Handlers
     void _text_changed(const String& p_new_text);
@@ -58,6 +51,13 @@ protected:
 
     /// Updates the search options based on the filter
     void _update_search();
+
+protected:
+    static void _bind_methods();
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
 public:
     /// Set property from an object instance

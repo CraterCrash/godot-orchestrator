@@ -20,12 +20,12 @@
 #include "script/script.h"
 
 /// Acquire a reference to the scene tree.
-class OScriptNodeSceneTree : public OScriptNode
-{
+class OScriptNodeSceneTree : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeSceneTree, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     //~ Begin OScriptNode Interface
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
@@ -38,7 +38,7 @@ public:
     String get_node_title_color_name() const override { return "scene"; }
     String get_icon() const override;
     String get_help_topic() const override;
-    OScriptNodeInstance* instantiate() override;
+    bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 };
 

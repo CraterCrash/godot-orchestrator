@@ -22,8 +22,7 @@
 
 using namespace godot;
 
-namespace FileUtils
-{
+namespace FileUtils {
     /// Opens a file in the Godot project's <code>.godot</code> directory.
     /// @param p_file_name the name of the file
     /// @param p_flags the mode flags to use when opening the file

@@ -20,12 +20,12 @@
 #include "script/script.h"
 
 /// An abstract script node for all variable operations.
-class OScriptNodeVariable : public OScriptNode
-{
+class OScriptNodeVariable : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeVariable, OScriptNode);
-    static void _bind_methods() { }
 
 protected:
+    static void _bind_methods() { }
+
     StringName _variable_name;       //! Variable name reference
     Ref<OScriptVariable> _variable;  //! Variable reference
 
@@ -42,18 +42,17 @@ protected:
     virtual void _variable_changed() { }
 
 public:
-    OScriptNodeVariable();
-
     //~ Begin OScriptNode Interface
     void post_initialize() override;
     String get_icon() const override;
     String get_node_title_color_name() const override { return "variable"; }
     Ref<Resource> get_inspect_object() override { return _variable; }
     void initialize(const OScriptNodeInitContext& p_context) override;
-    void validate_node_during_build(BuildLog& p_log) const override;
     //~ End OScriptNode Interface
 
     Ref<OScriptVariable> get_variable() { return _variable; }
+
+    OScriptNodeVariable();
 };
 
 #endif  // ORCHESTRATOR_SCRIPT_NODE_VARIABLE_H

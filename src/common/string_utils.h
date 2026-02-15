@@ -21,21 +21,20 @@
 
 using namespace godot;
 
-namespace StringUtils
-{
+namespace StringUtils {
+
     /// Join the array elements with the delimiter
     /// @tparam T the array type
     /// @param p_delimiter the delimiter
     /// @param p_array the array
     /// @return the string result joined by the delimiter
-    template<typename T> String join(const String& p_delimiter, const T& p_array)
-    {
+    template<typename T> String join(const String& p_delimiter, const T& p_array) {
         String result;
-        if (!p_array.is_empty())
-        {
+        if (!p_array.is_empty()) {
             result = p_array[0];
-            for (int i = 1; i < p_array.size(); i++)
+            for (int i = 1; i < p_array.size(); i++) {
                 result += (p_delimiter + String(p_array[i]));
+            }
         }
         return result;
     }
@@ -59,6 +58,7 @@ namespace StringUtils
     String path_to(const String &p_local, const String &p_path);
     String property_name_encode(const String& p_name);
     String c_escape_multiline(const String& p_name);
+    String quote(const String& p_base, const String& quotechar = "\"");
     //~ End "taken from ustring.h"
 }
 

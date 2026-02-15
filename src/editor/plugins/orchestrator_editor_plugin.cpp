@@ -16,362 +16,409 @@
 //
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
-#include "common/callable_lambda.h"
+#include "common/macros.h"
+#include "common/resource_utils.h"
 #include "common/version.h"
-#include "editor/editor_panel.h"
-#include "editor/graph/graph_edit.h"
-#include "editor/plugins/inspector_plugins.h"
-#include "editor/plugins/orchestration_editor_export_plugin.h"
-#include "editor/window_wrapper.h"
+#include "core/godot/scene_string_names.h"
+#include "editor/editor.h"
+#include "editor/export/orchestration_export_plugin.h"
+#include "editor/gui/window_wrapper.h"
+#include "editor/inspector/function_inspector_plugin.h"
+#include "editor/inspector/signal_inspector_plugin.h"
+#include "editor/inspector/type_cast_inspector_plugin.h"
+#include "editor/inspector/variable_inspector_plugin.h"
+#include "editor/script_editor_view.h"
 #include "script/script.h"
-#include "script/serialization/text_loader_instance.h"
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
-#include <godot_cpp/classes/editor_interface.hpp>
+#if GODOT_VERSION >= 0x040500
+#include <godot_cpp/classes/dpi_texture.hpp>
+#endif
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
-#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/theme.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
-#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/classes/viewport.hpp>
 
 OrchestratorPlugin* OrchestratorPlugin::_plugin = nullptr;
 
-OrchestratorPlugin::OrchestratorPlugin()
-{
+String OrchestratorPlugin::_get_orchestrator_metedata_path() {
+    return EI->get_editor_paths()->get_project_settings_dir().path_join("orchestrator_metadata.cfg");
 }
 
-void OrchestratorPlugin::_bind_methods()
-{
+void OrchestratorPlugin::_focus_another_editor() {
+    GUARD_NULL(_window_wrapper);
+    if (_window_wrapper->get_window_enabled()) {
+        ERR_FAIL_COND(_last_editor.is_empty());
+
+        EI->get_base_control()->get_viewport()->gui_release_focus();
+        EI->set_main_screen_editor(_last_editor);
+    }
 }
 
-void OrchestratorPlugin::_notification(int p_what)
-{
-    if (p_what == NOTIFICATION_ENTER_TREE)
-    {
-        OrchestratorGraphEdit::initialize_clipboard();
+bool OrchestratorPlugin::_is_exiting() const {
+    // todo: would be nice to have a better way to know the editor is exiting
+    //  see https://github.com/godotengine/godot/pull/107861
+    return EI->get_base_control()->get_modulate() != Color(1, 1, 1, 1);
+}
 
-        // Plugins only enter the tree once and this happens before the main view.
-        // It's safe then to cache the plugin reference here.
-        _plugin = this;
+void OrchestratorPlugin::_register_plugins() {
+    // Inspector plugins
+    _register_inspector_plugin<OrchestratorEditorInspectorPluginFunction>();
+    _register_inspector_plugin<OrchestratorEditorInspectorPluginSignal>();
+    _register_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
+    _register_inspector_plugin<OrchestratorEditorInspectorPluginTypeCast>();
 
-        _build_panel = memnew(OrchestratorBuildOutputPanel);
-        Button* button = add_control_to_bottom_panel(_build_panel, "Orchestration Build");
-        _build_panel->set_tool_button(button);
+    // Export Plugins
+    _register_export_plugin<OrchestratorEditorExportPlugin>();
 
-        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginFunction));
-        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginSignal));
-        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginVariable));
-        _inspector_plugins.push_back(memnew(OrchestratorEditorInspectorPluginTypeCast));
-        for (const Ref<EditorInspectorPlugin>& plugin : _inspector_plugins)
-            add_inspector_plugin(plugin);
+    // Debugger Plugins
+    #if GODOT_VERSION >= 0x040300
+    _register_debugger_plugin<OrchestratorEditorDebuggerPlugin>();
+    #endif
+}
 
-        _export_plugins.push_back(memnew(OrchestratorEditorExportPlugin));
-        for (const Ref<EditorExportPlugin>& plugin : _export_plugins)
-            add_export_plugin(plugin);
+bool OrchestratorPlugin::_is_plugin_just_installed() const {
+    if (FileAccess::file_exists(_get_orchestrator_metedata_path())) {
+        return false;
+    }
 
-        #if GODOT_VERSION >= 0x040300
-        _debugger_plugin.instantiate();
-        add_debugger_plugin(_debugger_plugin);
-        #endif
+    Ref<FileAccess> file = FileAccess::open(_get_orchestrator_metedata_path(), FileAccess::WRITE);
+    if (file.is_valid()) {
+        file->close();
+        return true;
+    }
 
-        // Register the plugin's icon for CreateScript Dialog
-        Ref<Theme> theme = get_editor_interface()->get_editor_theme();
-        if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons"))
-            theme->set_icon(_get_plugin_name(), "EditorIcons", _get_plugin_icon());
+    return false;
+}
 
-        _editor_cache.instantiate();
-        _editor_cache->load();
+void OrchestratorPlugin::_add_plugin_icon_to_editor_theme() {
+    // Register the plugin's icon for CreateScript Dialog
+    Ref<Theme> theme = EI->get_editor_theme();
+    if (theme.is_valid() && !theme->has_icon(_get_plugin_name(), "EditorIcons")) {
+        theme->set_icon(_get_plugin_name(), "EditorIcons", _get_plugin_icon());
+        theme->set_icon(OScriptLanguage::get_singleton()->_get_type(), "EditorIcons", _get_plugin_icon());
+    }
+}
 
-        _window_wrapper = memnew(OrchestratorWindowWrapper);
-        _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));
-        _window_wrapper->set_margins_enabled(true);
+void OrchestratorPlugin::_window_visibility_changed(bool p_visible) {
+    if (p_visible) {
+        _focus_another_editor();
+    } else {
+        EI->set_main_screen_editor(_get_plugin_name());
+    }
+}
 
-        _editor_panel = memnew(OrchestratorEditorPanel(_window_wrapper));
+void OrchestratorPlugin::_main_screen_changed(const String& p_name) {
+    if (p_name != _get_plugin_name()) {
+        _last_editor = p_name;
+    }
+}
 
-        get_editor_interface()->get_editor_main_screen()->add_child(_window_wrapper);
-        _window_wrapper->set_wrapped_control(_editor_panel);
-        _window_wrapper->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+String OrchestratorPlugin::get_plugin_version() const {
+    return VERSION_NUMBER;
+}
+
+void OrchestratorPlugin::_edit(Object* p_object) {
+    GUARD_NULL(_editor_panel);
+    GUARD_NULL(_window_wrapper);
+
+    if (!p_object || !_handles(p_object)) {
+        return;
+    }
+
+    Ref<Resource> resource = cast_to<Resource>(p_object);
+    if (!resource.is_valid()) {
+        return;
+    }
+
+    if (resource->get_path().is_empty()) {
+        return;
+    }
+
+    make_active();
+
+    _editor_panel->edit(resource);
+    _window_wrapper->move_to_foreground();
+}
+
+bool OrchestratorPlugin::_handles(Object* p_object) const {
+    return p_object != nullptr && p_object->get_class() == "OScript";
+}
+
+bool OrchestratorPlugin::_has_main_screen() const {
+    return true;
+}
+
+void OrchestratorPlugin::_make_visible(bool p_visible) {
+    GUARD_NULL(_window_wrapper);
+    if (p_visible) {
+        if (_window_wrapper->get_window_enabled()) {
+            // EditorPlugin::selected_notify is not exposed to GDExtension, but this method
+            // is called just before "selected_notify" as a way to address this until the
+            // method can be exposed.
+            _focus_another_editor();
+        }
+        _window_wrapper->show();
+    }
+    else {
         _window_wrapper->hide();
-        _window_wrapper->connect("window_visibility_changed", callable_mp(this, &OrchestratorPlugin::_on_window_visibility_changed));
-
-        _theme_cache.instantiate();
-
-        _make_visible(false);
-
-        connect("main_screen_changed", callable_mp(this, &OrchestratorPlugin::_on_main_screen_changed));
-    }
-    else if (p_what == NOTIFICATION_EXIT_TREE)
-    {
-        disconnect("main_screen_changed", callable_mp(this, &OrchestratorPlugin::_on_main_screen_changed));
-
-        OrchestratorGraphEdit::free_clipboard();
-
-        remove_control_from_bottom_panel(_build_panel);
-        memdelete(_build_panel);
-        _build_panel = nullptr;
-
-        memdelete(_editor_panel);
-        _editor_panel = nullptr;
-
-        _plugin = nullptr;
     }
 }
 
-void OrchestratorPlugin::_edit(Object* p_object)
-{
-    if (p_object && _handles(p_object))
-    {
-        Ref<Resource> resource = Object::cast_to<Resource>(p_object);
-        if (resource.is_valid())
-        {
-            _editor_panel->edit_resource(resource);
-            _window_wrapper->move_to_foreground();
+String OrchestratorPlugin::_get_plugin_name() const {
+    return VERSION_NAME;
+}
+
+Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const {
+    #if GODOT_VERSION >= 0x040500
+    Ref<FileAccess> file = FileAccess::open("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg", FileAccess::READ);
+    if (file.is_valid()) {
+        return DPITexture::create_from_string(file->get_as_text(), EDSCALE);
+    }
+    #endif
+    return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg");
+}
+
+void OrchestratorPlugin::_save_external_data() {
+    GUARD_NULL(_editor_panel);
+
+    if (!_is_exiting()) {
+        _editor_panel->save_all_scripts();
+    }
+
+    // When the editor saves the scene, it will propagate a call to save all external
+    // resources used by the scene. If one of those resources is a script that is
+    // open in the editor, we need to update the script times. If we don't, this will
+    // trigger a notification that the file was modified outside the editor.
+    _editor_panel->update_script_times();
+}
+
+String OrchestratorPlugin::_get_unsaved_status(const String& p_for_scene) const {
+    if (!_editor_panel) {
+        return {};
+    }
+
+    const PackedStringArray unsaved_scripts = _editor_panel->get_unsaved_scripts();
+    if (unsaved_scripts.is_empty()) {
+        return {};
+    }
+
+    PackedStringArray message;
+    if (!p_for_scene.is_empty()) {
+        PackedStringArray unsaved_built_in_scripts;
+        const String scene_file = p_for_scene.get_file();
+        for (const String &E : unsaved_scripts) {
+            if (!ResourceUtils::is_file(E) && E.contains(scene_file)) {
+                unsaved_built_in_scripts.append(E);
+            }
+        }
+
+        if (unsaved_built_in_scripts.is_empty()) {
+            return {};
+        }
+
+        message.resize(unsaved_built_in_scripts.size() + 1);
+        message.append("There are unsaved changes in the following built-in script(s):");
+
+        for (const String &E : unsaved_built_in_scripts) {
+            message.append(E.trim_suffix("(*)"));
+        }
+
+        return String("\n").join(message);
+    }
+
+    message.push_back("Save changes to the following Orchestrator file(s) before quitting?");
+    for (const String& E : unsaved_scripts) {
+        message.push_back(E.trim_suffix("(*)"));
+    }
+
+    return String("\n").join(message);
+}
+
+void OrchestratorPlugin::_apply_changes() {
+    if (_editor_panel) {
+        _editor_panel->apply_scripts();
+    }
+}
+
+void OrchestratorPlugin::_set_window_layout(const Ref<ConfigFile>& p_configuration) {
+    if (_editor_panel) {
+        _editor_panel->set_window_layout(p_configuration);
+    }
+
+    if (restore_windows_on_load()) {
+        if (_window_wrapper->is_window_available() && p_configuration->has_section_key("Orchestrator", "window_rect")) {
+            _window_wrapper->restore_window_from_saved_position(
+                p_configuration->get_value("Orchestrator", "window_rect", Rect2i()),
+                p_configuration->get_value("Orchestrator", "window_screen", -1),
+                p_configuration->get_value("Orchestrator", "window_screen_rect", Rect2i()));
+        } else {
+            _window_wrapper->set_window_enabled(false);
         }
     }
 }
 
-bool OrchestratorPlugin::_handles(Object* p_object) const
-{
-    return p_object->get_class() == "OScript";
+void OrchestratorPlugin::_get_window_layout(const Ref<ConfigFile>& p_configuration) {
+    if (_editor_panel) {
+        _editor_panel->get_window_layout(p_configuration);
+    }
+
+    if (_window_wrapper->get_window_enabled()) {
+        const int screen = _window_wrapper->get_window_screen();
+        p_configuration->set_value("Orchestrator", "window_rect", _window_wrapper->get_window_rect());
+        p_configuration->set_value("Orchestrator", "window_screen", screen);
+        p_configuration->set_value("Orchestrator", "window_screen_rect", DisplayServer::get_singleton()->screen_get_usable_rect(screen));
+    } else {
+        if (p_configuration->has_section_key("Orchestrator", "window_rect")) {
+            p_configuration->erase_section_key("Orchestrator", "window_rect");
+        }
+        if (p_configuration->has_section_key("Orchestrator", "window_screen")) {
+            p_configuration->erase_section_key("Orchestrator", "window_screen");
+        }
+        if (p_configuration->has_section_key("Orchestrator", "window_screen_rect")) {
+            p_configuration->erase_section_key("Orchestrator", "window_screen_rect");
+        }
+    }
 }
 
-bool OrchestratorPlugin::_has_main_screen() const
-{
+bool OrchestratorPlugin::_build() {
     return true;
 }
 
-void OrchestratorPlugin::_make_visible(bool p_visible)
-{
-    if (p_visible)
-    {
-        _window_wrapper->show();
-
-        // EditorPlugin::selected_notify is not exposed to GDExtension, but this method
-        // is called just before "selected_notify" as a way to address this until the
-        // method can be exposed.
-        _focus_another_editor();
-    }
-    else
-        _window_wrapper->hide();
+void OrchestratorPlugin::_enable_plugin() {
 }
 
-String OrchestratorPlugin::_get_plugin_name() const
-{
-    return VERSION_NAME;
+void OrchestratorPlugin::_disable_plugin() {
 }
 
-Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const
-{
-    return ResourceLoader::get_singleton()->load(OScriptLanguage::ICON);
+PackedStringArray OrchestratorPlugin::_get_breakpoints() const {
+    // When the game is started with the debugger, it uses this method to gather all breakpoints,
+    // and these are passed to the CLI of the game process. this should obtain all breakpoints
+    // currently set and return them using the format of "<script_file>:<node_id>".
+    return _editor_panel ? _editor_panel->get_breakpoints() : PackedStringArray();
 }
 
-String OrchestratorPlugin::get_plugin_online_documentation_url() const
-{
-    return VERSION_DOCS_URL;
-}
-
-String OrchestratorPlugin::get_github_release_url() const
-{
-    return VERSION_RELEASES_URL;
-}
-
-String OrchestratorPlugin::get_github_release_tag_url(const String& p_tag)
-{
-    const int index = p_tag.rfind(".");
-    const String tag = p_tag.left(index) + "-" + p_tag.substr(index + 1);
-
-    return vformat(
-        "https://github.com/CraterCrash/godot-orchestrator/releases/download/%s/godot-orchestrator-%s-plugin.zip",
-        p_tag,
-        tag);
-}
-
-String OrchestratorPlugin::get_github_release_notes_url(const String& p_tag)
-{
-    return vformat("https://github.com/CraterCrash/godot-orchestrator/releases/%s", p_tag);
-}
-
-String OrchestratorPlugin::get_github_issues_url() const
-{
+String OrchestratorPlugin::get_github_issues_url() {
     return "https://github.com/CraterCrash/godot-orchestrator/issues/new/choose";
 }
 
-String OrchestratorPlugin::get_patreon_url() const
-{
+String OrchestratorPlugin::get_patreon_url() {
     return "https://donate.cratercrash.space/";
 }
 
-String OrchestratorPlugin::get_community_url() const
-{
+String OrchestratorPlugin::get_community_url() {
     return "https://discord.cratercrash.space/";
 }
 
-bool OrchestratorPlugin::restore_windows_on_load()
-{
-    Ref<EditorSettings> es = get_editor_interface()->get_editor_settings();
-    if (es.is_valid())
-        return es->get_setting("interface/multi_window/restore_windows_on_load");
-    return false;
+String OrchestratorPlugin::get_plugin_online_documentation_url() {
+    return VERSION_DOCS_URL;
 }
 
-Ref<Texture2D> OrchestratorPlugin::get_plugin_icon_hires() const
-{
-    return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg");
+bool OrchestratorPlugin::restore_windows_on_load() {
+    return EDITOR_GET("interface/multi_window/restore_windows_on_load");
 }
 
-Ref<ConfigFile> OrchestratorPlugin::get_metadata()
-{
-    const String file = get_editor_interface()->get_editor_paths()->get_project_settings_dir()
-        .path_join("orchestrator_metadata.cfg");
-
-    Ref<ConfigFile> metadata(memnew(ConfigFile));
-    metadata->load(file);
-
-    return metadata;
-}
-
-void OrchestratorPlugin::save_metadata(const Ref<ConfigFile>& p_metadata)
-{
-    const String file = get_editor_interface()->get_editor_paths()->get_project_settings_dir()
-            .path_join("orchestrator_metadata.cfg");
-
-    p_metadata->save(file);
-}
-
-void OrchestratorPlugin::make_active()
-{
-    get_editor_interface()->set_main_screen_editor(_get_plugin_name());
-}
-
-void OrchestratorPlugin::make_build_panel_active()
-{
-    make_bottom_panel_item_visible(_build_panel);
-}
-
-void OrchestratorPlugin::request_editor_restart()
-{
+void OrchestratorPlugin::request_editor_restart() {
     AcceptDialog* request = memnew(AcceptDialog);
     request->set_title("Restart editor");
-    _editor_panel->add_child(request);
+    request->reset_size();
 
     VBoxContainer* container = memnew(VBoxContainer);
     Label* label = memnew(Label);
     label->set_text("The editor requires a restart.");
     label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
     container->add_child(label);
-
     request->add_child(container);
 
-    request->connect("confirmed", callable_mp_lambda(this, []{ EditorInterface::get_singleton()->restart_editor(true); }));
-    request->popup_centered();
+    request->connect(SceneStringName(confirmed), callable_mp(EI, &EditorInterface::restart_editor).bind(true));
+    request->connect(SceneStringName(canceled), callable_mp(EI, &EditorInterface::restart_editor).bind(true));
+
+    get_tree()->create_timer(1)->connect("timeout", callable_mp(EI, &EditorInterface::popup_dialog_centered).bind(request, Vector2()));
 }
 
-String OrchestratorPlugin::get_plugin_version() const
-{
-    return VERSION_NUMBER;
+Ref<Texture2D> OrchestratorPlugin::get_plugin_icon_hires() const {
+    return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg");
 }
 
-void OrchestratorPlugin::_apply_changes()
-{
-    if (_editor_panel)
-        _editor_panel->apply_changes();
-
-    if (_editor_cache.is_valid())
-        _editor_cache->save();
+Ref<ConfigFile> OrchestratorPlugin::get_metadata() {
+    Ref<ConfigFile> metadata(memnew(ConfigFile));
+    metadata->load(_get_orchestrator_metedata_path());
+    return metadata;
 }
 
-void OrchestratorPlugin::_set_window_layout(const Ref<ConfigFile>& p_configuration)
-{
-    if (_editor_panel)
-        _editor_panel->set_window_layout(p_configuration);
+void OrchestratorPlugin::save_metadata(const Ref<ConfigFile>& p_metadata) {
+    p_metadata->save(_get_orchestrator_metedata_path());
+}
 
-    if (restore_windows_on_load())
-    {
-        if (_window_wrapper->is_window_available() && p_configuration->has_section_key("Orchestrator", "window_rect"))
-        {
-            _window_wrapper->restore_window_from_saved_position(
-                p_configuration->get_value("Orchestrator", "window_rect", Rect2i()),
-                p_configuration->get_value("Orchestrator", "window_screen", -1),
-                p_configuration->get_value("Orchestrator", "window_screen_rect", Rect2i()));
+void OrchestratorPlugin::make_active() {
+    if (_has_main_screen()) {
+        EI->set_main_screen_editor(_get_plugin_name());
+    }
+}
+
+void OrchestratorPlugin::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_ENTER_TREE: {
+            // Plugins only enter the tree once and this happens before the main view.
+            // It's safe then to cache the plugin reference here.
+            _plugin = this;
+
+            _register_plugins();
+
+            _window_wrapper = memnew(OrchestratorWindowWrapper);
+            _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));
+            _window_wrapper->set_margins_enabled(true);
+            _window_wrapper->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+            _window_wrapper->hide();
+            _window_wrapper->connect("window_visibility_changed", callable_mp_this(_window_visibility_changed));
+
+            _editor_panel = memnew(OrchestratorEditor(_window_wrapper));
+            _window_wrapper->set_wrapped_control(_editor_panel);
+
+            EI->get_editor_main_screen()->add_child(_window_wrapper);
+
+            _make_visible(false);
+
+            connect("main_screen_changed", callable_mp_this(_main_screen_changed));
+            break;
         }
-        else
-            _window_wrapper->set_window_enabled(false);
+        case NOTIFICATION_EXIT_TREE: {
+            disconnect("main_screen_changed", callable_mp_this(_main_screen_changed));
+
+            SAFE_MEMDELETE(_editor_panel);
+            _plugin = nullptr;
+            break;
+        }
+        case NOTIFICATION_READY: {
+            if (_is_plugin_just_installed()) {
+                // When a GDExtension is first installed or loaded, there is a known bug that causes
+                // an issue with initialization of the ScriptLanguage, see
+                // https://github.com/godotengine/godot/pull/114131
+                //
+                // We currently force and init in the extension_interface.cpp in the EDITOR level,
+                // however, this only initializes the language but does not update the create script
+                // dialog due to the order of operations.
+                callable_mp_this(request_editor_restart).call_deferred();
+            } else {
+                _add_plugin_icon_to_editor_theme();
+            }
+            break;
+        }
+        default: {
+            break;
+        }
     }
 }
 
-void OrchestratorPlugin::_get_window_layout(const Ref<ConfigFile>& p_configuration)
-{
-    if (_editor_panel)
-        _editor_panel->get_window_layout(p_configuration);
-
-    if (_window_wrapper->get_window_enabled())
-    {
-        p_configuration->set_value("Orchestrator", "window_rect", _window_wrapper->get_window_rect());
-        int screen = _window_wrapper->get_window_screen();
-        p_configuration->set_value("Orchestrator", "window_screen", screen);
-        p_configuration->set_value("Orchestrator", "window_screen_rect",
-                                   DisplayServer::get_singleton()->screen_get_usable_rect(screen));
-    }
-    else
-    {
-        if (p_configuration->has_section_key("Orchestrator", "window_rect"))
-            p_configuration->erase_section_key("Orchestrator", "window_rect");
-        if (p_configuration->has_section_key("Orchestrator", "window_screen"))
-            p_configuration->erase_section_key("Orchestrator", "window_screen");
-        if (p_configuration->has_section_key("Orchestrator", "window_screen_rect"))
-            p_configuration->erase_section_key("Orchestrator", "window_screen_rect");
-    }
+void OrchestratorPlugin::_bind_methods() {
 }
 
-bool OrchestratorPlugin::_build()
-{
-    if (_editor_panel)
-    {
-        _build_panel->reset();
-        return _editor_panel->build();
-    }
-    return true;
-}
-
-void OrchestratorPlugin::_enable_plugin()
-{
-}
-
-void OrchestratorPlugin::_disable_plugin()
-{
-}
-
-PackedStringArray OrchestratorPlugin::_get_breakpoints() const
-{
-    #if GODOT_VERSION >= 0x040300
-    // When the game is started with the debugger, it uses this method to gather all breakpoints,
-    // and these are passed to the CLI of the game process. this should obtain all breakpoints
-    // currently set and return them using the format of "<script_file>:<node_id>".
-    return _editor_panel->get_breakpoints();
-    #else
-    return PackedStringArray();
+OrchestratorPlugin::OrchestratorPlugin() {
+    #if TOOLS_ENABLED
+    OrchestratorScriptGraphEditorView::register_editor();
     #endif
-}
-
-void OrchestratorPlugin::_focus_another_editor()
-{
-    if (_window_wrapper->get_window_enabled())
-    {
-        ERR_FAIL_COND(_last_editor.is_empty());
-        EditorInterface::get_singleton()->set_main_screen_editor(_last_editor);
-    }
-}
-
-void OrchestratorPlugin::_on_window_visibility_changed(bool p_visible)
-{
-    _focus_another_editor();
-}
-
-void OrchestratorPlugin::_on_main_screen_changed(const String& p_name)
-{
-    if (p_name != _get_plugin_name())
-        _last_editor = p_name;
 }
