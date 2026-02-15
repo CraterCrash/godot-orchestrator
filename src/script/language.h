@@ -142,7 +142,7 @@ public:
     Object* _create_script() const override;
     // This method is deprecated and not called by the engine
     bool _has_named_classes() const override { return true; }
-    bool _supports_builtin_mode() const override { return true; }
+    bool _supports_builtin_mode() const override { return false; }
     bool _supports_documentation() const override { return true; }
     bool _can_inherit_from_file() const override { return true; }
     int32_t _find_function(const String& p_function_name, const String& p_code) const override;
