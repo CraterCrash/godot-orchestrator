@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## [2.4.rc2](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.rc2) - 2026-02-15
+
+- [77d0c3d](http://github.com/CraterCrash/godot-orchestrator/commit/77d0c3dd18cff7f78463a5625dd057c18c04f4a6) - GH-1235 Support file-based script inheritance
+- [c165aef](http://github.com/CraterCrash/godot-orchestrator/commit/c165aef1a88278a51a216e5a7e4b00bf0f5faa35) - GH-1244 Update editor/inspector with changes without explicit save
+- [f545598](http://github.com/CraterCrash/godot-orchestrator/commit/f545598f16a25a1bf392b4f0f47e7f5084f6ac94) - GH-1259 Disable support for built-in scripts
+- [2c3d4b5](http://github.com/CraterCrash/godot-orchestrator/commit/2c3d4b5965516f357e0201abdc29a715cb806a5d) - GH-1275 Fix free object working with controls
+- [4311b92](http://github.com/CraterCrash/godot-orchestrator/commit/4311b928058e3d1e8bafd2b861d2bd22b5ba634f) - GH-1277 Omit math constants in debugger global list
+- [f11c050](http://github.com/CraterCrash/godot-orchestrator/commit/f11c05013c0479e00426bc6b03cb4b439ee6f723) - GH-1267 Fix autoload lifecycle access
+- [460b4c9](http://github.com/CraterCrash/godot-orchestrator/commit/460b4c9739de5d0e41af7222d5ed874c130596d8) - GH-1267 Make sure cache is primed on load
+- [4da537f](http://github.com/CraterCrash/godot-orchestrator/commit/4da537f63b5ad7ed196488e398a9cf32bf6e16d9) - GH-1267 Add plugin-level autoload caching
+- [83eca9c](http://github.com/CraterCrash/godot-orchestrator/commit/83eca9cb7eb815a5d8f705acaa5244549fd869ef) - GH-1269 Enable compiler node convergence
+- [8837273](http://github.com/CraterCrash/godot-orchestrator/commit/8837273ecbe2cadbe28a118a843f5ac943b80eb2) - GH-1271 Reduce frequency of script validation
+- [1e9d975](http://github.com/CraterCrash/godot-orchestrator/commit/1e9d9754d96de8357eaa0bfe50f771533624c8bd) - GH-1273 Remove ResourceLoader to resolve resource types
+- [62f1b5c](http://github.com/CraterCrash/godot-orchestrator/commit/62f1b5ca23622e44ed167e0962b41c2f450666d7) - GH-1262 Correctly reset override function state
+- [e9f4470](http://github.com/CraterCrash/godot-orchestrator/commit/e9f4470dcac9edaad6dbdaee4b795aedd08c84ff) - GH-1263 Do not auto-init script language
+- [685288e](http://github.com/CraterCrash/godot-orchestrator/commit/685288ebd4df23b5fa2024789048745197b11317) - GH-1257 Optimize script save & reload signals
+- [7d20fe6](http://github.com/CraterCrash/godot-orchestrator/commit/7d20fe63929351b90a986a5c022cc1df9e963332) - GH-1252 Enable -Wno-ordered-compare-function-pointers for builds
+- [6daf98c](http://github.com/CraterCrash/godot-orchestrator/commit/6daf98c58964d61607bcbe3774b3d9cacdd57c6f) - GH-1253 Resize node to content on autowire
+- [9f7cf87](http://github.com/CraterCrash/godot-orchestrator/commit/9f7cf87fe691e18f98acd0b099b9f56e59a1697f) - GH-1246 Rework Break for extra Variant properties
+- [a4dac9e](http://github.com/CraterCrash/godot-orchestrator/commit/a4dac9e18e37e9525d593f1660a3b283eb07a25f) - GH-1247 Correctly register static functions
+- [165b273](http://github.com/CraterCrash/godot-orchestrator/commit/165b2739be9b9ffd7b6d29326ade5a2b2c2488c4) - GH-1242 Fix errors on plugin first load
+- [33701c9](http://github.com/CraterCrash/godot-orchestrator/commit/33701c992d4c0b1fb0789a86810728be3bcfa9d7) - GH-1249 Correctly decode class scoped types
+- [dd7395f](http://github.com/CraterCrash/godot-orchestrator/commit/dd7395f9c03ec47d725516467551bd80b9fa7a27) - GH-1241 Fix PagedAllocator leak errors
+- [50dc36f](http://github.com/CraterCrash/godot-orchestrator/commit/50dc36fbb829e91e4e62d95d14f880879631e4e5) - GH-1239 Fix editor crash inspecting nodes with exported variants
+
 ## [2.4.rc1](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.rc1) - 2026-02-01
 
 - [5c0917a](http://github.com/CraterCrash/godot-orchestrator/commit/5c0917af393e4fc931b00c7e2951213f2873842e) - GH-1236 Sync with upstream godot-cpp commit 58d1de720b8ffe9f8ffcdfe3a85148582cfd2e74
