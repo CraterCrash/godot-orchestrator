@@ -51,6 +51,11 @@ Ref<Orchestration> OrchestratorScriptComponentsContainer::_get_orchestration() {
     return _orchestration;
 }
 
+void OrchestratorScriptComponentsContainer::_variables_changed() {
+    _set_edited(true);
+    _update_variables();
+}
+
 void OrchestratorScriptComponentsContainer::_open_graph(const String& p_graph_name) {
     emit_signal("open_graph_requested", p_graph_name);
 }
@@ -810,6 +815,8 @@ void OrchestratorScriptComponentsContainer::_component_remove_item(TreeItem* p_i
             break;
         }
     }
+
+    emit_signal("validate_script");
 }
 
 void OrchestratorScriptComponentsContainer::_component_focus_item(TreeItem* p_item) {
@@ -1017,8 +1024,8 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
 
         // Any existing variables should be connected to this function, to refresh the
         // view whenever any variable data changes.
-        if (!variable->is_connected(CoreStringName(changed), callable_mp_this(_update_variables))) {
-            variable->connect(CoreStringName(changed), callable_mp_this(_update_variables));
+        if (!variable->is_connected(CoreStringName(changed), callable_mp_this(_variables_changed))) {
+            variable->connect(CoreStringName(changed), callable_mp_this(_variables_changed));
         }
 
         TreeItem* parent = nullptr;
