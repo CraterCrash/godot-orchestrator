@@ -77,6 +77,8 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
 
     Ref<Orchestration> _get_orchestration();
 
+    void _variables_changed();
+
     void _open_graph(const String& p_graph_name);
     void _open_graph_with_focus(const String& p_graph_name, int p_node_id);
     void _close_graph(const String& p_graph_name);
