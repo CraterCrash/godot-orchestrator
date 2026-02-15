@@ -45,7 +45,9 @@ void OrchestratorEditorPropertyExtends::_select_extends_path() {
     dialog->set_hide_on_ok(true);
     dialog->clear_filters();
     dialog->add_filter("*.os,*.torch", "Orchestrations");
+    #if GODOT_VERSION >= 0x040500
     dialog->set_customization_flag_enabled(FileDialog::CUSTOMIZATION_FILE_FILTER, false);
+    #endif
     dialog->connect("canceled", callable_mp_lambda(this, [dialog] { dialog->queue_free(); }));
     dialog->connect("file_selected", callable_mp_this(_extends_path_selected));
     add_child(dialog);
