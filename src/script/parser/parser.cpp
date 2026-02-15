@@ -2866,10 +2866,14 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
     clazz->fqcn = OScript::canonicalize_path(script_path);
     current_class = clazz;
 
-    // todo: can this extends logic be improved or cleaned up?
-    IdentifierNode* base = build_identifier(p_orchestration->get_base_type());
-    clazz->extends.push_back(base);
-    clazz->extends_used = true;
+    if (p_orchestration->get_base_type().begins_with("res://")) {
+        clazz->extends_path = p_orchestration->get_base_type();
+        clazz->extends_used = true;
+    } else {
+        IdentifierNode* base = build_identifier(p_orchestration->get_base_type());
+        clazz->extends.push_back(base);
+        clazz->extends_used = true;
+    }
 
     if (!p_orchestration->get_global_name().is_empty()) {
          clazz->identifier = build_identifier(p_orchestration->get_global_name());
