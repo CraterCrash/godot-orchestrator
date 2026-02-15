@@ -24,8 +24,7 @@ using namespace godot;
 /// This rule is designed to be configured with a specific <code>GraphType</code> and filters actions
 /// so that they match the given type or have no graph type association.
 ///
-class OrchestratorEditorActionGraphTypeRule : public OrchestratorEditorActionFilterRule
-{
+class OrchestratorEditorActionGraphTypeRule : public OrchestratorEditorActionFilterRule {
     GDCLASS(OrchestratorEditorActionGraphTypeRule, OrchestratorEditorActionFilterRule);
 
     using Action = OrchestratorEditorActionDefinition;

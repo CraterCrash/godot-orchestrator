@@ -19,32 +19,31 @@
 #include "common/string_utils.h"
 #include "editor/actions/filter_engine.h"
 
-bool OrchestratorEditorActionSearchTextRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
-{
+bool OrchestratorEditorActionSearchTextRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
     ERR_FAIL_COND_V(!p_action.is_valid(), false);
 
     // If the search text is empty, match all
-    if (p_context.menu_context.query.is_empty())
+    if (p_context.query.is_empty()) {
         return true;
+    }
 
     // Tokenize the user input
-    const PackedStringArray query_tokens = p_context.menu_context.query.to_lower().split(" ", false);
+    const PackedStringArray query_tokens = p_context.query.to_lower().split(" ", false);
 
     // Generate the necessary text for each action
     const String combined = p_action->name + " " + p_action->tooltip + " " + StringUtils::join(" ", p_action->keywords);
 
     // Iterate tokens
-    for (const String& token : query_tokens)
-    {
-        if (combined.findn(token) == -1)
+    for (const String& token : query_tokens) {
+        if (combined.findn(token) == -1) {
             return false;
+        }
     }
     return true;
 }
 
-float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context)
-{
-    const PackedStringArray tokens = p_context.menu_context.query.to_lower().split(" ", false);
+float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
+    const PackedStringArray tokens = p_context.query.to_lower().split(" ", false);
     const String name = p_action->name.to_lower();
     const PackedStringArray keywords = p_action->keywords;
     const String tooltip = p_action->tooltip.to_lower();
@@ -55,14 +54,15 @@ float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditor
     float tooltip_boost = 0.5f;
 
     for (const String& token : tokens) {
-        if (name.findn(token) != -1)
+        if (name.findn(token) != -1) {
             score += name_boost;
-        else if (keywords.has(token))
+        } else if (keywords.has(token)) {
             score += keyword_boost;
-        else if (tooltip.findn(token) != -1)
+        } else if (tooltip.findn(token) != -1) {
             score += tooltip_boost;
-        else
+        } else {
             score -= 0.3f; // Penalty for unmatched token
+        }
     }
 
     // Normalize score by number of tokens
@@ -71,8 +71,9 @@ float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditor
     // Favor shorter names for equal match
     score *= 1.0f - 0.1f * (float(name.length()) / 100.0f);
 
-    if (!p_action->selectable)
+    if (!p_action->selectable) {
         score *= 0.1f;
+    }
 
     return CLAMP(score, 0.0f, 1.0f);
 }

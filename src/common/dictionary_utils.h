@@ -23,8 +23,8 @@
 
 using namespace godot;
 
-namespace DictionaryUtils
-{
+namespace DictionaryUtils {
+
     /// Convert a Dictionary to a PropertyInfo.
     ///
     /// @param p_dict the dictionary that represents a property
@@ -37,16 +37,6 @@ namespace DictionaryUtils
     /// @param p_use_minimal the dictinoary will only be populated with non-default PropertyInfo values
     /// @return the dictionary
     Dictionary from_property(const PropertyInfo& p_property, bool p_use_minimal = false);
-
-    /// Convert a Dictionary to a GDExtensionPropertyInfo.
-    ///
-    /// @attention A GDExtensionPropertyInfo is unlike a normal PropertyInfo in that the data that
-    /// is held by the StringName and String properties must be pointers as the object will be
-    /// passed back to the Godot engine.
-    ///
-    /// @param p_dict the dictionary that represents a property
-    /// @return the GDExtensionPropertyInfo object
-    GDExtensionPropertyInfo to_extension_property(const Dictionary& p_dict);
 
     /// Convert a Dictionary to a MethodInfo.
     ///
