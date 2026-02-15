@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [2.1.6.rc1](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.6.rc1) - 2025-02-15
+
+- [84da3b1](http://github.com/CraterCrash/godot-orchestrator/commit/84da3b1e8e66518f32db31dc98a2bfb4ea04a4dd) - GH-1168 Make mouse visible when dialogues are shown
+- [c3868be](http://github.com/CraterCrash/godot-orchestrator/commit/c3868bee886639dad44894bee921a64272d8f82b) - GH-1151 Add ui/nodes/connection_hotzone_scale option
+- [ba974cb](http://github.com/CraterCrash/godot-orchestrator/commit/ba974cb4b640fb68e97022ae5c47c63c5cd42b7c) - GH-1131 Correctly identify when pins are enum/bitfields
+- [edb34e8](http://github.com/CraterCrash/godot-orchestrator/commit/edb34e809504d9cdcabd9e2dcee9d61210f53ee9) - GH-1143 Fix pin connectivity with multiple class types
+- [e359ba0](http://github.com/CraterCrash/godot-orchestrator/commit/e359ba00624f8dd7ca81f3a8b1f5802ca6670122) - GH-1121 Allow property nodes to self reference
+- [37d99b2](http://github.com/CraterCrash/godot-orchestrator/commit/37d99b25698f47dd2e8903e310b7b9e23f6dc2ed) - GH-1100 Adjust variable export button tooltip text
+
 ## [2.1.5.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.1.5.stable) - 2025-12-05
 
 - [d352751](http://github.com/CraterCrash/godot-orchestrator/commit/d35275160aa3411ea0e911fd13e084fe06ff6c0e) - GH-1110 Improve static function argument validation
