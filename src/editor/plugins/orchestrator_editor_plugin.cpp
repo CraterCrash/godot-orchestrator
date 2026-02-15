@@ -24,6 +24,7 @@
 #include "editor/export/orchestration_export_plugin.h"
 #include "editor/gui/window_wrapper.h"
 #include "editor/inspector/function_inspector_plugin.h"
+#include "editor/inspector/orchestration_inspector_plugin.h"
 #include "editor/inspector/signal_inspector_plugin.h"
 #include "editor/inspector/type_cast_inspector_plugin.h"
 #include "editor/inspector/variable_inspector_plugin.h"
@@ -71,6 +72,7 @@ void OrchestratorPlugin::_register_plugins() {
     _register_inspector_plugin<OrchestratorEditorInspectorPluginSignal>();
     _register_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
     _register_inspector_plugin<OrchestratorEditorInspectorPluginTypeCast>();
+    _register_inspector_plugin<OrchestratorEditorInspectorPluginOrchestration>();
 
     // Export Plugins
     _register_export_plugin<OrchestratorEditorExportPlugin>();
