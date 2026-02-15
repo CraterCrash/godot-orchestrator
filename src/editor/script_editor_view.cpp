@@ -243,6 +243,9 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
         if (!global_name.is_empty()) {
             button->set_text(vformat("%s Extends %s", global_name, script_type));
             button->set_button_icon(SceneUtils::get_class_icon(global_name));
+        } else if (script_type.begins_with("res://")) {
+            button->set_text(vformat("Extends %s", script_type));
+            button->set_button_icon(SceneUtils::get_class_icon(_script->get_native()->get_name()));
         } else {
             button->set_text(vformat("Extends %s", script_type));
             button->set_button_icon(SceneUtils::get_class_icon(script_type));
@@ -731,6 +734,7 @@ void OrchestratorScriptGraphEditorView::set_edited_resource(const Ref<Resource>&
 
     // Makes sure that when Orchestration changes, any editor tab panels are updated
     _script->get_orchestration()->connect(CoreStringName(changed), callable_mp_this(_update_editor_script_buttons));
+    _script->get_orchestration()->connect(CoreStringName(changed), callable_mp_this(_queue_validate_script));
     _script->get_orchestration()->connect("reloaded", callable_mp_this(_update_editor_post_reload));
     _script->connect(CoreStringName(changed), callable_mp_this(_update_editor_script_buttons));
 
