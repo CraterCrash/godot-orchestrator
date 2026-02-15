@@ -619,7 +619,11 @@ void OrchestratorScriptGraphEditorView::_validate_script() {
     _warnings.clear();
     _errors.clear();
 
-    language->validate(_script, _script->get_path(), &functions, &_warnings, &_errors);
+    if (language->validate(_script, _script->get_path(), &functions, &_warnings, &_errors)) {
+        if (!_script->is_tool()) {
+            _script->_update_exports();
+        }
+    }
 
     _update_warnings();
     _update_errors();
