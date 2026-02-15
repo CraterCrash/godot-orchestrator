@@ -40,7 +40,9 @@
 #include "editor/gui/select_type_dialog.h"
 #include "editor/gui/window_wrapper.h"
 #include "editor/inspector/function_inspector_plugin.h"
+#include "editor/inspector/orchestration_inspector_plugin.h"
 #include "editor/inspector/properties/editor_property_class_name.h"
+#include "editor/inspector/properties/editor_property_extends.h"
 #include "editor/inspector/properties/editor_property_pin_properties.h"
 #include "editor/inspector/properties/editor_property_variable_classification.h"
 #include "editor/inspector/signal_inspector_plugin.h"
@@ -66,6 +68,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginSignal)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginTypeCast)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginOrchestration)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeThemeCache)
 
     // Editor bits
@@ -73,6 +76,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyClassName)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyPinProperties)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyVariableClassification)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyExtends)
     GDREGISTER_INTERNAL_CLASS(OrchestratorFileDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
