@@ -32,6 +32,7 @@
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
+#include "editor/actions/rules/override_function_rule.h"
 #include "editor/autowire_connection_dialog.h"
 #include "editor/debugger/script_debugger_plugin.h"
 #include "editor/graph/graph_node.h"
@@ -1784,11 +1785,17 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position) {
     class_hierarchy_rule.instantiate();
     class_hierarchy_rule->set_script_classes(_graph->get_orchestration()->as_script());
 
+    const PackedStringArray method_names = _graph->get_orchestration()->get_function_names();
+    Ref<OrchestratorEditorActionOverrideFunctionRule> override_rule;
+    override_rule.instantiate();
+    override_rule->set_overridden_methods(method_names);
+
     Ref<OrchestratorEditorActionFilterEngine> filter_engine;
     filter_engine.instantiate();
     filter_engine->add_rule(memnew(OrchestratorEditorActionSearchTextRule));
     filter_engine->add_rule(class_hierarchy_rule);
     filter_engine->add_rule(graph_type_rule);
+    filter_engine->add_rule(override_rule);
 
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
