@@ -46,6 +46,9 @@ void OrchestratorEditorActionClassHierarchyScopeRule::set_script_classes(const R
         String class_name = p_script->get_instance_base_type();
         if (const Ref<OScript> oscript = p_script; oscript.is_valid()) {
             class_name = oscript->get_orchestration()->get_base_type();
+            if (class_name.begins_with("res://")) {
+                class_name = oscript->get_native()->get_name();
+            }
         }
 
         while (!class_name.is_empty()) {
