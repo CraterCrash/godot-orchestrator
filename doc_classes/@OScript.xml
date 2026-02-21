@@ -55,7 +55,7 @@
     </methods>
     <constants>
         <constant name="One" value="1">
-            Constan that represents the numeric value of [code]1[/code].
+            Constant that represents the numeric value of [code]1[/code].
         </constant>
         <constant name="PI" value="3.14159265358979">
             Constant that represents how many times the diameter of a circle fits around its perimeter. This is equivalent to [code]TAU / 2[/code], or 180 degrees in rotations.
