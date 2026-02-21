@@ -842,6 +842,11 @@ void OrchestratorEditorGraphPanel::_node_added(int p_node_id) {
 }
 
 void OrchestratorEditorGraphPanel::_node_removed(int p_node_id) {
+    OrchestratorEditorGraphNode* node = find_node(p_node_id);
+    if (node) {
+        remove_node(node, false);
+    }
+
     _update_center_status();
     emit_signal("validate_script");
 }
