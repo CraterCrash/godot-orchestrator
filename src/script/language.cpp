@@ -769,9 +769,10 @@ TypedArray<Dictionary> OScriptLanguage::_get_public_functions() const {
 
 Dictionary OScriptLanguage::_get_public_constants() const {
     Dictionary results;
+    int index = 0;
     for (const String& name : ExtensionDB::get_math_constant_names()) {
         const ConstantInfo& constant = ExtensionDB::get_math_constant(name);
-        results[constant.name] = constant.value;
+        results[index++] = DictionaryUtils::of({ {"name", constant.name}, {"value", constant.value} });
     }
     return results;
 }
