@@ -1114,7 +1114,7 @@ OrchestratorScriptGraphEditorView::OrchestratorScriptGraphEditorView() {
     _components->connect("scroll_to_center", callable_mp_this(_scroll_to_graph_center));
     _components->connect("focus_node", callable_mp_this(_scroll_to_graph_node));
     _components->connect("add_function_override_requested", callable_mp_this(_show_override_function_menu));
-    _components->connect("validate_script", callable_mp_this(_validate_script));
+    _components->connect("validate_script", callable_mp_this(_queue_validate_script));
     _graph_split->add_child(_components);
 
     _warnings_panel = memnew(RichTextLabel);
