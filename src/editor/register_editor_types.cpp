@@ -20,6 +20,7 @@
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
+#include "editor/actions/rules/override_function_rule.h"
 #include "editor/autowire_connection_dialog.h"
 #include "editor/editor.h"
 #include "editor/export/orchestration_export_plugin.h"
@@ -101,6 +102,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionClassHierarchyScopeRule)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionVirtualFunctionRule)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionGraphTypeRule)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionOverrideFunctionRule)
 
     // View components
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditor)
