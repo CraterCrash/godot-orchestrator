@@ -563,6 +563,10 @@ bool OrchestrationBinarySerializer::recognize(const Ref<Resource>& p_resource) {
 }
 
 Error OrchestrationBinarySerializer::set_uid(const String& p_path, int64_t p_uid) {
+    if (p_path.get_extension().naturalnocasecmp_to(ORCHESTRATOR_SCRIPT_EXTENSION) != 0) {
+        return ERR_FILE_UNRECOGNIZED;
+    }
+
     Ref<FileAccess> file = FileAccess::open_compressed(p_path, FileAccess::READ);
     ERR_FAIL_COND_V_MSG(file.is_null(), ERR_CANT_OPEN, "Cannot open file " + p_path);
 

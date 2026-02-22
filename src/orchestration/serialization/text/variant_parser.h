@@ -50,6 +50,8 @@ public:
 
         Stream() = default;
         virtual ~Stream() = default;
+
+        void set_readahead(bool p_enabled) { _readahead_enabled = p_enabled; }
     };
 
     struct StreamFile : public Stream {
