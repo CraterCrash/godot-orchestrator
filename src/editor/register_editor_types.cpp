@@ -61,9 +61,7 @@
 void register_editor_types() {
     // Plugin bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorPlugin)
-    #if GODOT_VERSION >= 0x040300
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorDebuggerPlugin)
-    #endif
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorExportPlugin)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginFunction)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginSignal)

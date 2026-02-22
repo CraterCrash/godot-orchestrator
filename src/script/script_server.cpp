@@ -16,8 +16,6 @@
 //
 #include "script/script_server.h"
 
-#include "common/version.h"
-
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
@@ -266,16 +264,7 @@ PackedStringArray ScriptServer::get_class_hierarchy(const StringName& p_class_na
 
 String ScriptServer::get_global_name(const Ref<Script>& p_script) {
     if (p_script.is_valid()) {
-        #if GODOT_VERSION >= 0x040300
         return p_script->get_global_name();
-        #else
-        for (const Variant& global_class : _get_global_class_list()) {
-            const Dictionary& entry = global_class;
-            if (entry.has("path") && p_script->get_path().match(entry["path"]) && entry.has("class")) {
-                return entry["class"];
-            }
-        }
-        #endif
     }
     return "";
 }

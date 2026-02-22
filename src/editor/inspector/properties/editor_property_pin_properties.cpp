@@ -16,15 +16,14 @@
 //
 #include "editor/inspector/properties/editor_property_pin_properties.h"
 
-#include "../../gui/select_type_dialog.h"
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
 #include "common/name_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
-#include "common/version.h"
 #include "core/godot/scene_string_names.h"
+#include "editor/gui/select_type_dialog.h"
 
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -287,12 +286,7 @@ void OrchestratorEditorPropertyPinProperties::setup(bool p_inputs, int p_max_ent
     _max_entries = p_max_entries;
 }
 
-void OrchestratorEditorPropertyPinProperties::_notification(int p_what)
-{
-    #if GODOT_VERSION < 0x040202
-    EditorProperty::_notification(p_what);
-    #endif
-
+void OrchestratorEditorPropertyPinProperties::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_READY: {
             _margin = memnew(MarginContainer);
