@@ -17,7 +17,6 @@
 #include "common/settings.h"
 
 #include "common/dictionary_utils.h"
-#include "common/version.h"
 #include "script/script_warning.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
@@ -91,9 +90,7 @@ void OrchestratorSettings::_register_settings() {
     _settings.emplace_back(BOOL_SETTING("ui/graph/disconnect_control_flow_when_dragged", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/grid_enabled", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/grid_snapping_enabled", true));
-    #if GODOT_VERSION >= 0x040300
     _settings.emplace_back(SENUM_SETTING("ui/graph/grid_pattern", "Dots,Lines", "Lines"));
-    #endif
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_advanced_tooltips", false));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_autowire_selection_dialog", true));
     _settings.emplace_back(BOOL_SETTING("ui/graph/show_minimap", false));
@@ -172,9 +169,7 @@ void OrchestratorSettings::_register_settings() {
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed float64 array", Color(0.38, 0.85, 0.96)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector2 array", Color(0.74, 0.57, 0.95)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector3 array", Color(0.84, 0.49, 0.93)));
-    #if GODOT_VERSION >= 0x040300
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed vector4 array", Color(0.84, 0.49, 0.94)));
-    #endif
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/connection_colors/packed color array", Color(0.62, 1.00, 0.44)));
 }
 

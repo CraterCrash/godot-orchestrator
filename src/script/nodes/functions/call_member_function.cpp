@@ -21,7 +21,6 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "common/variant_utils.h"
-#include "common/version.h"
 #include "script/nodes/variables/variable_get.h"
 #include "script/script_server.h"
 
@@ -159,7 +158,6 @@ String OScriptNodeCallMemberFunction::get_node_title_color_name() const {
 }
 
 String OScriptNodeCallMemberFunction::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     if (_reference.target_type != Variant::OBJECT) {
         BuiltInType type = ExtensionDB::get_builtin_type(_reference.target_type);
         return vformat("class_method:%s:%s", type.name, _reference.method.name);
@@ -169,7 +167,6 @@ String OScriptNodeCallMemberFunction::get_help_topic() const {
             return vformat("class_method:%s:%s", class_name, _reference.method.name);
         }
     }
-    #endif
     return super::get_help_topic();
 }
 
