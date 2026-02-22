@@ -191,7 +191,6 @@ String OScriptNodeProperty::get_icon() const {
 }
 
 String OScriptNodeProperty::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     switch (_call_mode) {
         case CALL_INSTANCE:
             return vformat("class_property:%s:%s", _base_type, _property.name);
@@ -209,7 +208,6 @@ String OScriptNodeProperty::get_help_topic() const {
         default:
             break;
     }
-    #endif
     return super::get_help_topic();
 }
 

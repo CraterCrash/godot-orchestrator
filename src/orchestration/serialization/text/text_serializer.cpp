@@ -238,7 +238,6 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
     for (List<Ref<Resource>>::Element* E = _saved_resources.front(); E ; E = E->next()) {
         const Ref<Resource> res = E->get();
         if (E->next() && _is_resource_built_in(res)) {
-            #if GODOT_VERSION >= 0x040300
             if (!res->get_scene_unique_id().is_empty()) {
                 if (used_unique_ids.has(res->get_scene_unique_id())) {
                     res->set_scene_unique_id(""); // Repeated
@@ -246,16 +245,6 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
                     used_unique_ids.insert(res->get_scene_unique_id());
                 }
             }
-            #else
-            const String id = ResourceCache::get_singleton()->get_scene_unique_id(_path, res);
-            if (!id.is_empty()) {
-                if (used_unique_ids.has(id)) {
-                    ResourceCache::get_singleton()->set_scene_unique_id(_path, res, "");
-                } else {
-                    used_unique_ids.insert(id);
-                }
-            }
-            #endif
         }
     }
 
@@ -271,11 +260,7 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
             const String uid = _create_resource_uid(res, used_unique_ids, generated);
 
             if (generated) {
-                #if GODOT_VERSION >= 0x040300
                 res->set_scene_unique_id(uid);
-                #else
-                ResourceCache::get_singleton()->set_scene_unique_id(_path, res, uid);
-                #endif
                 used_unique_ids.insert(uid);
             }
 
