@@ -240,7 +240,6 @@ void OrchestratorEditorGraphNode::_create_indicators() {
         _add_indicator("NodeWarning", "Node is experimental and behavior may change without notice");
     }
 
-    #if GODOT_VERSION >= 0x040300
     if (get_graph()->is_breakpoint(this)) {
         const bool breakpoint_enabled = get_graph()->get_breakpoint(this);
         const String suffix = !breakpoint_enabled ? "On" : "Off";
@@ -250,7 +249,6 @@ void OrchestratorEditorGraphNode::_create_indicators() {
 
         _add_indicator("DebugSkipBreakpoints" + suffix, tooltip_text);
     }
-    #endif
 }
 
 void OrchestratorEditorGraphNode::_add_indicator(const String& p_icon_name, const String& p_tooltip_text) {

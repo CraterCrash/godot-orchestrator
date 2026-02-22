@@ -17,8 +17,6 @@
 #ifndef ORCHESTRATOR_SCRIPT_RESOURCE_CACHE_H
 #define ORCHESTRATOR_SCRIPT_RESOURCE_CACHE_H
 
-#include "common/version.h"
-
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -46,9 +44,6 @@ protected:
     Ref<Mutex> _path_cache_lock;                                    //! Mutex for the resource path cache
     HashMap<String, Resource*> _resources;                          //! Map of resources
     HashMap<String, HashMap<String, String>> _resource_path_cache;  //! Map of resource path to resource IDs
-    #if GODOT_VERSION < 0x040400
-    HashMap<String, List<CacheEntry>> _resource_scene_unique_ids;   //! Map of scene unique IDs for resources
-    #endif
 
     /// Clears the cache
     void _clear();
@@ -97,11 +92,6 @@ public:
 
     /// Helper method for Resource::set_id_for_path
     void set_id_for_path(const String& p_path, const String& p_res_path, const String& p_id);
-
-    #if GODOT_VERSION < 0x040400
-    String get_scene_unique_id(const String& p_path, const Ref<Resource>& p_resource);
-    void set_scene_unique_id(const String& p_path, const Ref<Resource>& p_resource, const String& p_id);
-    #endif
 
     ResourceCache();
     ~ResourceCache();

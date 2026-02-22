@@ -93,11 +93,7 @@ String OScriptNodeEmitMemberSignal::get_node_title() const {
 }
 
 String OScriptNodeEmitMemberSignal::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     return vformat("class_signal:%s:%s", _target_class, _method.name);
-    #else
-    return vformat("%s:%s", _target_class, _method.name);
-    #endif
 }
 
 void OScriptNodeEmitMemberSignal::initialize(const OScriptNodeInitContext& p_context) {
