@@ -31,11 +31,7 @@ bool OrchestrationBinaryParser::_is_cached(const String& p_path) {
 }
 
 Ref<Resource> OrchestrationBinaryParser::_get_cache_ref(const String& p_path) {
-    #if GODOT_VERSION >= 0x040400
     return ResourceLoader::get_singleton()->get_cached_ref(p_path);
-    #else
-    return nullptr;
-    #endif
 }
 
 String OrchestrationBinaryParser::_read_unicode_string() {
@@ -728,7 +724,6 @@ Error OrchestrationBinaryParser::_load() {
                 _internal_resources.write[i].path = path;
             }
 
-            #if GODOT_VERSION >= 0x040300
             if (ResourceFormatLoader::CACHE_MODE_REUSE == _cache_mode && _is_cached(path)) {
                 const Ref<Resource> cached = _get_cache_ref(path);
                 if (cached.is_valid()) {
@@ -736,7 +731,6 @@ Error OrchestrationBinaryParser::_load() {
                     continue;
                 }
             }
-            #endif
         } else {
             if (ResourceFormatLoader::CACHE_MODE_IGNORE == _cache_mode && !_is_cached(_path)) {
                 path = _path;
@@ -749,7 +743,6 @@ Error OrchestrationBinaryParser::_load() {
         String resource_type = _read_unicode_string();
 
         Ref<Resource> resource;
-        #if GODOT_VERSION >= 0x040300
         if (ResourceFormatLoader::CACHE_MODE_REPLACE == _cache_mode && _is_cached(path)) {
             const Ref<Resource> cached = _get_cache_ref(path);
             if (cached->get_class() == resource_type) {
@@ -757,7 +750,6 @@ Error OrchestrationBinaryParser::_load() {
                 _resource = cached;
             }
         }
-        #endif
 
         MissingResource* missing_resource = nullptr;
         if (resource.is_null()) {
@@ -787,9 +779,7 @@ Error OrchestrationBinaryParser::_load() {
                 // resource->set_path(path);
             }
 
-            #if GODOT_VERSION >= 0x040300
             resource->set_scene_unique_id(id);
-            #endif
         }
 
         if (!is_main) {

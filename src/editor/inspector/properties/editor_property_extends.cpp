@@ -78,10 +78,6 @@ void OrchestratorEditorPropertyExtends::setup(const String& p_base_type, bool p_
 }
 
 void OrchestratorEditorPropertyExtends::_notification(int p_what) {
-    #if GODOT_VERSION <= 0x040202
-    EditorProperty::_notification(p_what);
-    #endif
-
     switch (p_what) {
         case NOTIFICATION_READY: {
             HBoxContainer* container = memnew(HBoxContainer);
