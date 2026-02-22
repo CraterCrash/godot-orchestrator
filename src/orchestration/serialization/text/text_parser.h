@@ -95,7 +95,7 @@ class OrchestrationTextParser : public OrchestrationParser {
     Error _parse_sub_resource(OScriptVariantParser::Stream* p_stream, Ref<Resource>& r_res, int& r_line, String& r_err_string);
     Error _parse_ext_resource(OScriptVariantParser::Stream* p_stream, Ref<Resource>& r_res, int& r_line, String& r_err_string);
 
-    Error _open(const Ref<FileAccess>& p_file, bool p_skip_first_tag = false);
+    Error _open(const Ref<FileAccess>& p_file, bool p_skip_first_tag = false, bool p_buffered = true);
     Error _load();
 
 public:
