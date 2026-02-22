@@ -1,6 +1,6 @@
 ![screen-shot](https://static.cratercrash.space/orchestrator/images/banners/orchestrator_banner.png)
 
-![Godot v4.6](https://img.shields.io/badge/Godot-v4.6-%23478cbf?logo=godot-engine&logoColor=white&style=flat-square)
+![Godot v4.7](https://img.shields.io/badge/Godot-v4.7-%23478cbf?logo=godot-engine&logoColor=white&style=flat-square)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/CraterCrash/godot-orchestrator?&style=flat-square)
 [![LICENSE](https://img.shields.io/badge/license-Apache--2.0-blue?logo=apache)](https://github.com/CraterCrash/godot-orchestrator/blob/main/LICENSE)
 
@@ -28,22 +28,28 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 Orchestrator is made using Godot GDExtension technology, which has certain ABI (application binary interface) requirements that must be followed to guarantee that the integration between extensions and the engine works as expected.
 The following table describes which Orchestrator version you should use based on your Godot editor version.
 
-| Godot Version | Orchestrator Version  |
-|---------------|-----------------------|
-| Godot 4.2.x   | v2.0.x (`2.0` branch) |
-| Godot 4.3.x   | v2.1.x (`2.1` branch) |
-| Godot 4.4.x   | v2.2.x (`2.2` branch) |
-| Godot 4.5.x   | v2.3.x (`2.3` branch) |
-| Godot 4.6.x   | v2.4.x (`2.4` branch) |
+| Godot Version | Orchestrator Version   |
+|---------------|------------------------|
+| Godot 4.4.x   | v2.2.x (`2.2` branch)  |
+| Godot 4.5.x   | v2.3.x (`2.3` branch)  |
+| Godot 4.6.x   | v2.4.x (`2.4` branch)  |
+| Godot 4.7.x   | v2.5.x (`main` branch) |
 
 **Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.**
 **Additionally, if your Godot version is not listed, it should be assumed the plug-in is not yet 100% compatible.**
 
+The following Godot versions are no longer supported:
+
+| Godot Version | Last Orchestrator Release                 |
+|---------------|-------------------------------------------|
+| Godot 4.2.x   | 2.0.8.stable (`2.0` branch) on 2026-02-22 |
+| Godot 4.3.x   | 2.1.6.stable (`2.1` branch) on 2026-02-22 |
+
 ## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Features
 
 * A complete visual scripting solution for Godot.
-* Compatible with Godot 4.2+ using Godot GDExtension plug-in technology.
-* Attach an OrchestratorScript to any Godot scene node just like GDScript or CSharp.
+* Compatible with Godot 4.4+ using Godot GDExtension plug-in technology.
+* Attach an Orchestration Script (OScript) to any Godot scene node just like GDScript or CSharp.
 * Hundreds of nodes in dozens of categories such as Flow Control, Logic, Math, Variables, and more. 
 * Drag-and-drop Editor integration for Scene Nodes, Properties, and Resources.
 * Build reusable code with custom functions.
