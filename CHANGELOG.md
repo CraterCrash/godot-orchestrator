@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [2.4.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.stable) - 2026-02-22
+
+- [7681464](http://github.com/CraterCrash/godot-orchestrator/commit/76814647597aed3d80eb6b7be57c708d3d277dff) - GH-1303 Improve unsaved script marker on changes
+- [d3a0de9](http://github.com/CraterCrash/godot-orchestrator/commit/d3a0de9c7cd5ff52939c168c171ab0e12c99dbc3) - GH-1302 Update demo orchestrations
+- [db76611](http://github.com/CraterCrash/godot-orchestrator/commit/db7661133d79c1bd5654a47a65d078dbe6ce5c98) - GH-1299 Avoid text resource truncation
+- [83cffa4](http://github.com/CraterCrash/godot-orchestrator/commit/83cffa40fd1455290ec57acca276029a1329e2c6) - GH-1297 Mark script modified when function changes
+- [2f5b016](http://github.com/CraterCrash/godot-orchestrator/commit/2f5b016d3ed0b4aea8a73043f6ee596218ef6f74) - GH-1295 Remove UI node when removed from data model
+- [4074f8f](http://github.com/CraterCrash/godot-orchestrator/commit/4074f8fe5ff2fccfcdf46960fcb3ca7e51729a20) - Fix `@OScript` description for constant `One`
+- [bcaef5e](http://github.com/CraterCrash/godot-orchestrator/commit/bcaef5ea0a45040538c8f0f8e15c2886f1a02891) - GH-1292 Fix populating public constants dictionary
+- [32c5413](http://github.com/CraterCrash/godot-orchestrator/commit/32c54131550d916ce3252ad01420d7ad7defab98) - GH-1288 Use native class for extends path override menu
+- [5f5efa5](http://github.com/CraterCrash/godot-orchestrator/commit/5f5efa5282abc66a712852f8c7eaf8ff5a27f066) - GH-1286 Avoid showing defined methods in actions menu
+
 ## [2.4.rc2](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.rc2) - 2026-02-15
 
 - [77d0c3d](http://github.com/CraterCrash/godot-orchestrator/commit/77d0c3dd18cff7f78463a5625dd057c18c04f4a6) - GH-1235 Support file-based script inheritance
