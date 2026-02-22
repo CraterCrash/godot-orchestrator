@@ -114,7 +114,7 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
         result = true;
     } else if (p_name.match("description")) {
         _description = p_value;
-        return true;
+        result = true;
     } else if (p_name.match("inputs")) {
         const TypedArray<Dictionary> arguments = p_value;
         const bool refresh_required = _method.arguments.size() != size_t(arguments.size());

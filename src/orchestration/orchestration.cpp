@@ -254,12 +254,9 @@ StringName Orchestration::get_base_type() const {
 void Orchestration::set_base_type(const StringName& p_base_type) {
     if (!_base_type.match(p_base_type)) {
         _base_type = p_base_type;
-        emit_signal("base_type_changed");
 
-        if (_self) {
-            _self->emit_changed();
-        }
-        emit_changed();
+        emit_signal("base_type_changed");
+        set_edited(true);
     }
 }
 
@@ -270,7 +267,7 @@ bool Orchestration::get_tool() const {
 void Orchestration::set_tool(bool p_tool) {
     if (_tool != p_tool) {
         _tool = p_tool;
-        emit_changed();
+        set_edited(true);
     }
 }
 
@@ -281,7 +278,7 @@ StringName Orchestration::get_global_name() const {
 void Orchestration::set_global_name(const StringName& p_global_name) {
     if (_global_name != p_global_name) {
         _global_name = p_global_name;
-        emit_changed();
+        set_edited(true);
     }
 }
 
@@ -292,7 +289,7 @@ String Orchestration::get_icon_path() const {
 void Orchestration::set_icon_path(const String& p_path) {
     if (_icon_path != p_path) {
         _icon_path = p_path;
-        emit_changed();
+        set_edited(true);
     }
 }
 
@@ -303,7 +300,7 @@ String Orchestration::get_brief_description() const {
 void Orchestration::set_brief_description(const String& p_brief_description) {
     if (_brief_description != p_brief_description) {
         _brief_description = p_brief_description;
-        emit_changed();
+        set_edited(true);
     }
 }
 
@@ -314,7 +311,7 @@ String Orchestration::get_description() const {
 void Orchestration::set_description(const String& p_description) {
     if (_description != p_description) {
         _description = p_description;
-        emit_changed();
+        set_edited(true);
     }
 }
 
@@ -343,14 +340,15 @@ int Orchestration::get_available_id() const {
 }
 
 void Orchestration::set_edited(bool p_edited) {
-    if (_edited != p_edited) {
-        _edited = p_edited;
-        if (_edited) {
-            if (_self) {
-                _self->emit_changed();
-            }
-            emit_changed();
+    if (_initialized) {
+        if (_edited != p_edited) {
+            _edited = p_edited;
         }
+
+        if (_self) {
+            _self->emit_changed();
+        }
+        emit_changed();
     }
 }
 
@@ -851,10 +849,8 @@ void Orchestration::remove_function(const StringName& p_name) {
 
         emit_signal("functions_changed");
     }
-    if (_self) {
-        _self->emit_changed();
-    }
-    emit_changed();
+
+    set_edited(true);
 }
 
 Ref<OScriptFunction> Orchestration::find_function(const StringName& p_name) const {
@@ -958,7 +954,7 @@ Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Va
     _variables[p_name] = variable;
 
     emit_signal("variables_changed");
-    emit_changed();
+    set_edited(true);
 
     return variable;
 }
@@ -992,7 +988,8 @@ void Orchestration::remove_variable(const StringName& p_name) {
     _variables.erase(p_name);
 
     emit_signal("variables_changed");
-    emit_changed();
+    set_edited(true);
+
     notify_property_list_changed();
 }
 
@@ -1017,7 +1014,7 @@ bool Orchestration::rename_variable(const StringName& p_old_name, const StringNa
     _variables.erase(p_old_name);
 
     emit_signal("variables_changed");
-    emit_changed();
+    set_edited(true);
     notify_property_list_changed();
 
     return true;
@@ -1140,7 +1137,7 @@ bool Orchestration::rename_custom_user_signal(const StringName& p_old_name, cons
     _signals.erase(p_old_name);
 
     emit_signal("signals_changed");
-    emit_changed();
+    set_edited(true);
     notify_property_list_changed();
 
     return true;

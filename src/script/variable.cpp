@@ -378,6 +378,7 @@ String OScriptVariable::get_variable_type_name() const {
 void OScriptVariable::set_description(const String& p_description) {
     if (_description != p_description) {
         _description = p_description;
+        emit_changed();
     }
 }
 
