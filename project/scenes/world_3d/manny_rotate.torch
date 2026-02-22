@@ -104,7 +104,7 @@ method = {
 chain = false
 id = 3
 size = Vector2(129, 120)
-position = Vector2(1040, 260)
+position = Vector2(980, 260)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -126,18 +126,18 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_0xhvy"]
 title = "Rotate Manny"
-background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+background_color = Color(0.3019610047340393, 0.49803900718688965, 0.6588240265846252, 0.4235289990901947)
 font_size = 24
 comments = "Rotates the character every physics frame."
 id = 4
-size = Vector2(1003, 292)
+size = Vector2(900, 320.0000305175781)
 position = Vector2(240, 160)
 
 [obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_8c50o"]
 variable_name = &"rotation_speed"
 id = 5
 size = Vector2(203, 66)
-position = Vector2(280, 380)
+position = Vector2(300, 380)
 pin_data = Array[Dictionary]([{
 "pin_name": &"value",
 "type": 3,
@@ -158,6 +158,8 @@ description = "Specifies the speed the model rotates."
 
 [resource]
 base_type = &"CharacterBody3D"
+brief_description = "Rotates Manny (the CharacterBody3D \"box\") every frame."
+description = "This simple script showcases how using the [method _physics_process] method, an object can be rotated on each frame at a consistent rate. The speed that the box rotates is defined in [member rotation_speed]."
 variables = Array[OScriptVariable]([SubResource("OScriptVariable_730ue")])
 functions = Array[OScriptFunction]([SubResource("OScriptFunction_8ku1s")])
 connections = Array[int]([0, 1, 1, 0, 1, 0, 2, 0, 0, 0, 3, 0, 5, 0, 1, 1, 2, 0, 3, 2])

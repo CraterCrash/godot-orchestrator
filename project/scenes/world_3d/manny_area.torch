@@ -5,8 +5,8 @@ guid = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
 method = {
 "name": &"_on_body_entered",
 "args": [{
-"type": 24,
 "name": &"body",
+"type": 24,
 "class_name": &"Node3D",
 "usage": 131078
 }]
@@ -22,19 +22,21 @@ method = {
 },
 "args": [{
 "name": &"body",
-"type": 24
+"type": 24,
+"class_name": &"Node"
 }]
 }
 user_defined = true
 id = 25
+description = "Checks whether the provided [param body] node is in the [i]player[/i] node group, returning true if it is or false if it is not."
 
 [obj type="OScriptFunction" id="OScriptFunction_5a116"]
 guid = "76F0B89F-94D2-400F-919B-B9F4DD04AAA1"
 method = {
 "name": &"_on_body_exited",
 "args": [{
-"type": 24,
 "name": &"body",
+"type": 24,
 "class_name": &"Node3D",
 "usage": 131078
 }]
@@ -48,6 +50,7 @@ method = {
 }
 user_defined = true
 id = 44
+description = "Immediately closes the demo by making a call to [method SceneTree.quit], which closes Godot."
 
 [obj type="OScriptFunction" id="OScriptFunction_0vhnn"]
 guid = "F0CC2314-5ACB-4476-8233-83AA27051F56"
@@ -66,7 +69,7 @@ id = 63
 
 [obj type="OScriptGraph" id="OScriptGraph_xn3em"]
 graph_name = &"EventGraph"
-offset = Vector2(-1521.5, -193.351)
+offset = Vector2(-1521.5, -193.3509979248047)
 flags = 8
 nodes = Array[int]([2, 7, 8, 17, 19, 20, 29, 30, 32, 38, 43, 49, 54, 55, 56, 57, 58, 59, 60, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74])
 functions = Array[int]([17, 32, 63])
@@ -88,7 +91,7 @@ functions = Array[int]([44])
 [obj type="OScriptNodeBranch" id="OScriptNodeBranch_vqktw"]
 id = 2
 size = Vector2(185, 93)
-position = Vector2(-300, 180)
+position = Vector2(-2080, -480)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 516,
@@ -110,7 +113,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeBranch" id="OScriptNodeBranch_7c5hw"]
 id = 7
 size = Vector2(185, 93)
-position = Vector2(-380, 1080)
+position = Vector2(-2080, 380)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 516,
@@ -132,7 +135,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodePrintString" id="OScriptNodePrintString_wugb8"]
 id = 8
 size = Vector2(337, 207)
-position = Vector2(-160, 1040)
+position = Vector2(-1860, 380)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -170,22 +173,24 @@ pin_data = Array[Dictionary]([{
 function_id = "A7B384D4-7FC0-44BC-8E99-802EEF1CAC61"
 id = 17
 size = Vector2(230, 93)
-position = Vector2(-800, 180)
+position = Vector2(-2600, -480)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecOut",
 "dir": 1,
 "flags": 4
 }, {
 "pin_name": &"body",
+"type": 24,
 "dir": 1,
 "flags": 2,
+"target_class": "Node3D",
 "usage": 131078
 }])
 
 [obj type="OScriptNodeDialogueChoice" id="OScriptNodeDialogueChoice_8ueq6"]
 id = 19
 size = Vector2(474, 133)
-position = Vector2(-600, 440)
+position = Vector2(-2400, -160)
 pin_data = Array[Dictionary]([{
 "pin_name": &"text",
 "type": 4,
@@ -206,7 +211,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeDialogueChoice" id="OScriptNodeDialogueChoice_oqk3q"]
 id = 20
 size = Vector2(474, 130)
-position = Vector2(-600, 300)
+position = Vector2(-2400, -320)
 pin_data = Array[Dictionary]([{
 "pin_name": &"text",
 "type": 4,
@@ -227,7 +232,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_n64y0"]
 function_id = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
 id = 25
-size = Vector2(108, 83.0001)
+size = Vector2(108, 83.0000991821289)
 position = Vector2(-840, -40)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecOut",
@@ -237,14 +242,15 @@ pin_data = Array[Dictionary]([{
 "pin_name": &"body",
 "type": 24,
 "dir": 1,
-"flags": 2
+"flags": 2,
+"target_class": "Node"
 }])
 
 [obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_p50t4"]
 function_id = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
 id = 26
 size = Vector2(203, 83)
-position = Vector2(-360, -40)
+position = Vector2(-340, -40)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -278,7 +284,7 @@ method = {
 chain = false
 id = 27
 size = Vector2(239, 110)
-position = Vector2(-680, -40)
+position = Vector2(-620, -40)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -307,7 +313,7 @@ pin_data = Array[Dictionary]([{
 variable_name = &"player_group"
 id = 28
 size = Vector2(165, 56)
-position = Vector2(-900, 60)
+position = Vector2(-840, 100)
 pin_data = Array[Dictionary]([{
 "pin_name": &"value",
 "type": 21,
@@ -321,8 +327,8 @@ guid = "ACE9243D-CB1D-48BA-B656-0BE50FEE949B"
 function_name = &"is_player"
 flags = 8
 id = 29
-size = Vector2(225.002, 93)
-position = Vector2(-560, 180)
+size = Vector2(225.0019989013672, 93)
+position = Vector2(-2340, -480)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -333,7 +339,8 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "type": 24,
-"flags": 2
+"flags": 2,
+"target_class": "Node"
 }, {
 "pin_name": &"return_value",
 "type": 1,
@@ -347,7 +354,7 @@ function_name = &"is_player"
 flags = 8
 id = 30
 size = Vector2(225, 93)
-position = Vector2(-640, 1080)
+position = Vector2(-2340, 380)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -358,7 +365,8 @@ pin_data = Array[Dictionary]([{
 }, {
 "pin_name": &"body",
 "type": 24,
-"flags": 2
+"flags": 2,
+"target_class": "Node"
 }, {
 "pin_name": &"return_value",
 "type": 1,
@@ -370,44 +378,46 @@ pin_data = Array[Dictionary]([{
 function_id = "76F0B89F-94D2-400F-919B-B9F4DD04AAA1"
 id = 32
 size = Vector2(219, 93)
-position = Vector2(-860, 1080)
+position = Vector2(-2600, 380)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecOut",
 "dir": 1,
 "flags": 4
 }, {
 "pin_name": &"body",
+"type": 24,
 "dir": 1,
 "flags": 2,
+"target_class": "Node3D",
 "usage": 131078
 }])
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_jtxfd"]
 title = "Manny's Area3D Trigger Conversation"
-background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+background_color = Color(0.3019610047340393, 0.49803900718688965, 0.6588240265846252, 0.4235289990901947)
 font_size = 24
 comments = "Start a conversation with Manny when Player gets within proximity of the area.
 The player can select two outcomes that both end with closing the game."
 id = 38
-size = Vector2(1950.23, 674.003)
-position = Vector2(-820, 40)
+size = Vector2(1900, 760)
+position = Vector2(-2620, -620)
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_jlhe8"]
 title = "Manny Revenge"
-background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+background_color = Color(0.3019610047340393, 0.49803900718688965, 0.6588240265846252, 0.4235289990901947)
 font_size = 24
 comments = "Stops the game when the player leaves the area.
 Manny doesn't like to be lonely.
 Performs a countdown from 3 before stopping the game."
 id = 43
-size = Vector2(2504.55, 460.49)
-position = Vector2(-880, 900)
+size = Vector2(2260, 459.9999694824219)
+position = Vector2(-2620, 200)
 
 [obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_nhhe7"]
 function_id = "D425DB89-BAA2-485C-990E-98CD745979CE"
 id = 44
-size = Vector2(129, 56.0001)
-position = Vector2(-120, 40)
+size = Vector2(129, 56.000099182128906)
+position = Vector2(-720, -80)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecOut",
 "dir": 1,
@@ -430,7 +440,7 @@ method = {
 chain = false
 id = 47
 size = Vector2(195, 113)
-position = Vector2(340, 60)
+position = Vector2(-80, -80)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -454,7 +464,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodePrintString" id="OScriptNodePrintString_g20yq"]
 id = 48
 size = Vector2(210, 197)
-position = Vector2(60, 40)
+position = Vector2(-560, -80)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -493,7 +503,7 @@ function_name = &"close_game"
 flags = 8
 id = 49
 size = Vector2(157, 66)
-position = Vector2(940, 360)
+position = Vector2(-900, -520)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -506,7 +516,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeSceneTree" id="OScriptNodeSceneTree_mdq36"]
 id = 50
 size = Vector2(149, 56)
-position = Vector2(120, 260)
+position = Vector2(-300, -20)
 pin_data = Array[Dictionary]([{
 "pin_name": &"scene_tree",
 "type": 24,
@@ -517,18 +527,18 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_lmb00"]
 title = "Function \"stop_game\""
-background_color = Color(0.301961, 0.521569, 0.788235, 0.537255)
+background_color = Color(0.3019610047340393, 0.521569013595581, 0.7882350087165833, 0.5372549891471863)
 font_size = 32
 comments = "Simple function that calls quit on the SceneTree after 
 writing to the console that the game is being stopped."
 id = 53
 size = Vector2(909, 468)
-position = Vector2(-200, -120)
+position = Vector2(-760, -240)
 
 [obj type="OScriptNodeForLoop" id="OScriptNodeForLoop_fxq2n"]
 id = 54
-size = Vector2(273.002, 126)
-position = Vector2(200, 1040)
+size = Vector2(273.00201416015625, 126)
+position = Vector2(-1480, 380)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -560,7 +570,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodePrintString" id="OScriptNodePrintString_xfts8"]
 id = 55
 size = Vector2(202, 204)
-position = Vector2(1200, 1100)
+position = Vector2(-840, 420)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -598,7 +608,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeDelay" id="OScriptNodeDelay_ymd56"]
 id = 56
 size = Vector2(160, 96)
-position = Vector2(1440, 1100)
+position = Vector2(-560, 420)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -624,7 +634,7 @@ right_type_name = &"int"
 return_type = 2
 id = 57
 size = Vector2(227, 96)
-position = Vector2(500, 1120)
+position = Vector2(-1120, 540)
 pin_data = Array[Dictionary]([{
 "pin_name": &"a",
 "type": 2,
@@ -644,7 +654,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeBranch" id="OScriptNodeBranch_ehc6v"]
 id = 58
 size = Vector2(185, 93)
-position = Vector2(1000, 980)
+position = Vector2(-1120, 300)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 516,
@@ -673,7 +683,7 @@ right_type_name = &"int"
 return_type = 1
 id = 59
 size = Vector2(201, 96)
-position = Vector2(760, 1060)
+position = Vector2(-1120, 420)
 pin_data = Array[Dictionary]([{
 "pin_name": &"a",
 "type": 2,
@@ -695,7 +705,7 @@ function_name = &"close_game"
 flags = 8
 id = 60
 size = Vector2(157, 66)
-position = Vector2(1340, 980)
+position = Vector2(-840, 300)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -708,8 +718,8 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeEvent" id="OScriptNodeEvent_21ug3"]
 function_id = "F0CC2314-5ACB-4476-8233-83AA27051F56"
 id = 63
-size = Vector2(261, 93.0001)
-position = Vector2(-2580, 760)
+size = Vector2(261, 93.0000991821289)
+position = Vector2(-2580, 860)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecOut",
 "dir": 1,
@@ -728,7 +738,7 @@ pin_data = Array[Dictionary]([{
 type = "InputEventKey"
 id = 64
 size = Vector2(227, 120)
-position = Vector2(-2320, 760)
+position = Vector2(-2280, 860)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -757,7 +767,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeSwitchEnum" id="OScriptNodeSwitchEnum_n5bvd"]
 id = 65
 size = Vector2(171, 5250)
-position = Vector2(-1620, 760)
+position = Vector2(-1620, 860)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 516,
@@ -1942,7 +1952,7 @@ property = {
 }
 id = 66
 size = Vector2(259, 66)
-position = Vector2(-2080, 900)
+position = Vector2(-1960, 1080)
 pin_data = Array[Dictionary]([{
 "pin_name": &"target",
 "type": 24,
@@ -1959,7 +1969,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodePrintString" id="OScriptNodePrintString_07utq"]
 id = 67
 size = Vector2(202, 207)
-position = Vector2(-1400, 660)
+position = Vector2(-1300, 760)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -1997,7 +2007,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodePrintString" id="OScriptNodePrintString_skp62"]
 id = 68
 size = Vector2(202, 207)
-position = Vector2(-1400, 880)
+position = Vector2(-1300, 1000)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -2046,7 +2056,7 @@ property = {
 }
 id = 69
 size = Vector2(255, 66)
-position = Vector2(-2080, 820)
+position = Vector2(-1960, 980)
 pin_data = Array[Dictionary]([{
 "pin_name": &"target",
 "type": 24,
@@ -2063,7 +2073,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeBranch" id="OScriptNodeBranch_hoyx5"]
 id = 70
 size = Vector2(213, 93)
-position = Vector2(-1860, 740)
+position = Vector2(-1960, 860)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 516,
@@ -2084,18 +2094,18 @@ pin_data = Array[Dictionary]([{
 
 [obj type="OScriptNodeComment" id="OScriptNodeComment_xrf7a"]
 title = "Unhandled Input Logic"
-background_color = Color(0.301961, 0.498039, 0.658824, 0.423529)
+background_color = Color(0.3019610047340393, 0.49803900718688965, 0.6588240265846252, 0.4235289990901947)
 font_size = 24
 comments = "Reacts to unhandled input.
 Prints Hit Escape or Hit Tab depending on which key was pressed."
 id = 71
-size = Vector2(1440, 486)
-position = Vector2(-2620, 620)
+size = Vector2(1660, 540)
+position = Vector2(-2620, 720)
 
 [obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_d6q01"]
 id = 72
 size = Vector2(397, 307)
-position = Vector2(440, 400)
+position = Vector2(-1360, -200)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -2128,7 +2138,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_yt6sk"]
 id = 73
 size = Vector2(397, 283)
-position = Vector2(440, 100)
+position = Vector2(-1360, -520)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -2162,7 +2172,7 @@ pin_data = Array[Dictionary]([{
 [obj type="OScriptNodeDialogueMessage" id="OScriptNodeDialogueMessage_23vae"]
 id = 74
 size = Vector2(451, 343)
-position = Vector2(-60, 220)
+position = Vector2(-1860, -480)
 pin_data = Array[Dictionary]([{
 "pin_name": &"ExecIn",
 "flags": 4
@@ -2230,9 +2240,13 @@ exported = true
 classification = "type:StringName"
 type = 21
 default_value = &"Player"
+description = "Defines the name of the group that the [b]Player[/b] character is in, to easily identify the player node in the scene."
 
 [resource]
 base_type = &"Area3D"
+brief_description = "Triggers logic when the player enters the area around the character Manny."
+description = "When the player enters the area, a dialogue sequence is started in the [method _body_entered] function. When the character leaves the area, another logic sequence starts printing text to the screen happens in [method _body_exited].
+Lastly, when hitting [b]Escape[/b] or [b]Tab[/b], the [method _unhandled_key_input] is triggered, printing text to the screen when those keys are pressed."
 variables = Array[OScriptVariable]([SubResource("OScriptVariable_quqfk")])
 functions = Array[OScriptFunction]([SubResource("OScriptFunction_p5wor"), SubResource("OScriptFunction_behy4"), SubResource("OScriptFunction_5a116"), SubResource("OScriptFunction_kye8x"), SubResource("OScriptFunction_0vhnn")])
 connections = Array[int]([29, 0, 2, 0, 30, 0, 7, 0, 7, 0, 8, 0, 27, 0, 26, 0, 25, 0, 27, 0, 17, 0, 29, 0, 32, 0, 30, 0, 48, 0, 47, 0, 44, 0, 48, 0, 73, 0, 49, 0, 8, 0, 54, 0, 58, 1, 55, 0, 55, 0, 56, 0, 54, 0, 58, 0, 57, 0, 59, 0, 58, 0, 60, 0, 63, 0, 64, 0, 70, 0, 65, 0, 64, 2, 66, 0, 65, 2, 67, 0, 65, 3, 68, 0, 64, 2, 69, 0, 64, 0, 70, 0, 74, 1, 72, 0, 74, 0, 73, 0, 2, 0, 74, 0, 29, 1, 2, 1, 30, 1, 7, 1, 27, 1, 26, 1, 25, 1, 27, 1, 17, 1, 29, 1, 32, 1, 30, 1, 50, 0, 47, 1, 57, 0, 55, 1, 54, 1, 57, 1, 59, 0, 58, 1, 63, 1, 64, 1, 66, 0, 65, 1, 69, 0, 70, 1, 28, 0, 27, 2, 20, 0, 74, 4, 19, 0, 74, 5])
