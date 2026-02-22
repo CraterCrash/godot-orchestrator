@@ -18,7 +18,6 @@
 
 #include "common/macros.h"
 
-#if GODOT_VERSION >= 0x040300
 OrchestratorEditorDebuggerPlugin* OrchestratorEditorDebuggerPlugin::_singleton = nullptr;
 
 void OrchestratorEditorDebuggerPlugin::_session_started(int32_t p_session_id) {
@@ -138,4 +137,3 @@ OrchestratorEditorDebuggerPlugin::OrchestratorEditorDebuggerPlugin() {
 OrchestratorEditorDebuggerPlugin::~OrchestratorEditorDebuggerPlugin() {
     _singleton = nullptr;
 }
-#endif

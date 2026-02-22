@@ -17,9 +17,6 @@
 #ifndef ORCHESTRATOR_EDITOR_DEBUGGER_PLUGIN_H
 #define ORCHESTRATOR_EDITOR_DEBUGGER_PLUGIN_H
 
-#include "common/version.h"
-
-#if GODOT_VERSION >= 0x040300
 #include <godot_cpp/classes/editor_debugger_plugin.hpp>
 #include <godot_cpp/classes/editor_debugger_session.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -69,6 +66,5 @@ public:
     OrchestratorEditorDebuggerPlugin();
     ~OrchestratorEditorDebuggerPlugin() override;
 };
-#endif
 
 #endif  // ORCHESTRATOR_EDITOR_DEBUGGER_PLUGIN_H

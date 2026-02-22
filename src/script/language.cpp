@@ -38,13 +38,10 @@
 #include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/expression.hpp>
 #include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
-
-#if GODOT_VERSION >= 0x040300
-  #include <godot_cpp/classes/os.hpp>
-#endif
 
 OScriptLanguage* OScriptLanguage::_singleton = nullptr;
 
@@ -362,30 +359,22 @@ String OScriptLanguage::_debug_get_error() const {
 }
 
 int32_t OScriptLanguage::_debug_get_stack_level_count() const {
-    #if GODOT_VERSION >= 0x040300
-    if (_debug_parse_err_line >= 0)
+    if (_debug_parse_err_line >= 0) {
         return 1;
+    }
     return _call_stack_size;
-    #else
-    return 0;
-    #endif
 }
 
 int32_t OScriptLanguage::_debug_get_stack_level_line(int32_t p_level) const {
-    #if GODOT_VERSION >= 0x040300
     if (_debug_parse_err_line >= 0) {
         return _debug_parse_err_line;
     }
 
     ERR_FAIL_INDEX_V(p_level, _call_stack_size, -1);
     return *(_get_stack_level(p_level)->node);
-    #else
-    return -1;
-    #endif
 }
 
 String OScriptLanguage::_debug_get_stack_level_function(int32_t p_level) const {
-    #if GODOT_VERSION >= 0x040300
     if (_debug_parse_err_line >= 0) {
         return {};
     }
@@ -393,26 +382,18 @@ String OScriptLanguage::_debug_get_stack_level_function(int32_t p_level) const {
     ERR_FAIL_INDEX_V(p_level, _call_stack_size, {});
     OScriptCompiledFunction* func = _get_stack_level(p_level)->function;
     return func ? String(func->get_name()) : "";
-    #else
-    return {};
-    #endif
 }
 
 String OScriptLanguage::_debug_get_stack_level_source(int32_t p_level) const {
-    #if GODOT_VERSION >= 0x040300
     if (_debug_parse_err_line >= 0) {
         return _debug_parse_err_file.get();
     }
 
     ERR_FAIL_INDEX_V(p_level, _call_stack_size, {});
     return _get_stack_level(p_level)->function->get_source();
-    #else
-    return {};
-    #endif
 }
 
 Dictionary OScriptLanguage::_debug_get_stack_level_locals(int32_t p_level, int32_t p_max_subitems, int32_t p_max_depth) {
-    #if GODOT_VERSION >= 0x040300
     if (_debug_parse_err_line >= 0) {
         return {};
     }
@@ -440,13 +421,9 @@ Dictionary OScriptLanguage::_debug_get_stack_level_locals(int32_t p_level, int32
     result["locals"] = local_names;
     result["values"] = local_values;
     return result;
-    #else
-    return {};
-    #endif
 }
 
 Dictionary OScriptLanguage::_debug_get_stack_level_members(int32_t p_level, int32_t p_max_subitems, int32_t p_max_depth) {
-    #if GODOT_VERSION >= 0x040300
     if (_debug_parse_err_line >= 0) {
         return {};
     }
@@ -476,26 +453,18 @@ Dictionary OScriptLanguage::_debug_get_stack_level_members(int32_t p_level, int3
     members["values"] = member_values;
 
     return members;
-    #else
-    return {};
-    #endif
 }
 
 void* OScriptLanguage::_debug_get_stack_level_instance(int32_t p_level) {
-    #if GODOT_VERSION >= 0x040300
     if (_debug_parse_err_line >= 0) {
         return nullptr;
     }
 
     ERR_FAIL_INDEX_V(p_level, _call_stack_size, nullptr);
     return _get_stack_level(p_level)->instance->_script_instance;
-    #else
-    return nullptr;
-    #endif
 }
 
 Dictionary OScriptLanguage::_debug_get_globals(int32_t p_max_subitems, int32_t p_max_depth) {
-    #if GODOT_VERSION >= 0x040300
     const HashMap<StringName, int>& name_index = get_global_map();
     const Variant* gl_array = get_global_array();
 
@@ -541,9 +510,6 @@ Dictionary OScriptLanguage::_debug_get_globals(int32_t p_max_subitems, int32_t p
     results["globals"] = global_names;
     results["values"] = global_values;
     return results;
-    #else
-    return {};
-    #endif
 }
 
 String OScriptLanguage::_debug_parse_stack_level_expression(int32_t p_level, const String& p_expression, int32_t p_max_subitems, int32_t p_max_depth) {
@@ -570,7 +536,6 @@ String OScriptLanguage::_debug_parse_stack_level_expression(int32_t p_level, con
 
 TypedArray<Dictionary> OScriptLanguage::_debug_get_current_stack_info() {
     TypedArray<Dictionary> array;
-    #if GODOT_VERSION >= 0x040300
     CallLevel* cl = _call_stack;
     while (cl) {
         Dictionary data;
@@ -580,7 +545,6 @@ TypedArray<Dictionary> OScriptLanguage::_debug_get_current_stack_info() {
         array.append(data);
         cl = cl->prev;
     }
-    #endif
     return array;
 }
 
@@ -1105,7 +1069,6 @@ PackedStringArray OScriptLanguage::get_global_named_constant_names() const {
 }
 
 bool OScriptLanguage::debug_break(const String& p_error, bool p_allow_continue) {
-    #if GODOT_VERSION >= 0x040300
     if (EngineDebugger::get_singleton()->is_active()) {
         _debug_parse_err_line = -1;
         _debug_parse_err_file = "";
@@ -1119,12 +1082,10 @@ bool OScriptLanguage::debug_break(const String& p_error, bool p_allow_continue) 
         _debug_error = String();
         return true;
     }
-    #endif
     return false;
 }
 
 bool OScriptLanguage::debug_break_parse(const String& p_file, int p_node, const String& p_error) {
-    #if GODOT_VERSION >= 0x040300
     if (EngineDebugger::get_singleton()->is_active())
     {
         if (OS::get_singleton()->get_thread_caller_id() == OS::get_singleton()->get_main_thread_id())
@@ -1142,7 +1103,6 @@ bool OScriptLanguage::debug_break_parse(const String& p_file, int p_node, const 
             return true;
         }
     }
-    #endif
     return false;
 }
 

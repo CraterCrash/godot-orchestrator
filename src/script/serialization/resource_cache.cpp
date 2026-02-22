@@ -109,44 +109,6 @@ void ResourceCache::set_id_for_path(const String& p_path, const String& p_res_pa
         add_path_cache(p_path, p_res_path, p_id);
 }
 
-#if GODOT_VERSION < 0x040400
-String ResourceCache::get_scene_unique_id(const String& p_path, const Ref<Resource>& p_resource) {
-    ERR_FAIL_COND_V_MSG(!p_resource.is_valid(), String(), "No resource path was supplied to get_scene_unique_id");
-
-    if (_resource_scene_unique_ids.has(p_path)) {
-        for (const CacheEntry& entry : _resource_scene_unique_ids[p_path]) {
-            if (entry.is_resource(p_resource)) {
-                return entry.id;
-            }
-        }
-    }
-    return {};
-}
-
-void ResourceCache::set_scene_unique_id(const String& p_path, const Ref<Resource>& p_resource, const String& p_id) {
-    ERR_FAIL_COND_MSG(!p_resource.is_valid(), "Cannot set scene unique id on invalid resource.");
-
-    Variant weak_ref = UtilityFunctions::weakref(p_resource);
-    ERR_FAIL_COND_MSG(!weak_ref, "Cannot set scene unique id on an invalid weak reference.");
-
-    if (p_id.is_empty()) {
-        const List<CacheEntry>& list = _resource_scene_unique_ids[p_path];
-        for (const CacheEntry& entry : list) {
-            if (entry.is_resource(p_resource)) {
-                _resource_scene_unique_ids[p_path].erase(entry);
-                break;
-            }
-        }
-    } else {
-        CacheEntry entry;
-        entry.reference = weak_ref;
-        entry.id = p_id;
-
-        _resource_scene_unique_ids[p_path].push_back(entry);
-    }
-}
-#endif
-
 ResourceCache::ResourceCache() {
     _singleton = this;
     _mutex.instantiate();

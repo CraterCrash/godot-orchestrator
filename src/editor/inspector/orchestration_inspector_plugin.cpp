@@ -39,12 +39,7 @@ bool OrchestratorEditorInspectorPluginOrchestration::_parse_property(Object* p_o
                 }
             }));
 
-        #if GODOT_VERSION >= 0x040300
         add_property_editor(p_name, editor, true, "Extends");
-        #else
-        add_property_editor(p_name, editor, true);
-        #endif
-        //return true;
     }
 
     return false;
