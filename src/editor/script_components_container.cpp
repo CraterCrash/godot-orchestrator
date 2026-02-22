@@ -51,6 +51,10 @@ Ref<Orchestration> OrchestratorScriptComponentsContainer::_get_orchestration() {
     return _orchestration;
 }
 
+void OrchestratorScriptComponentsContainer::_functions_changed() {
+    _set_edited(true);
+}
+
 void OrchestratorScriptComponentsContainer::_variables_changed() {
     _set_edited(true);
     _update_variables();
@@ -958,6 +962,10 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
             int function_id = _get_orchestration()->get_function_node_id(script_graph->get_graph_name());
 
             const Ref<OScriptFunction> function = _get_orchestration()->find_function(script_graph->get_graph_name());
+
+            if (function.is_valid() && !function->is_connected(CoreStringName(changed), callable_mp_this(_functions_changed))) {
+                function->connect(CoreStringName(changed), callable_mp_this(_functions_changed));
+            }
 
             String name = script_graph->get_graph_name();
             if (_use_function_friendly_names) {

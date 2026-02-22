@@ -20,7 +20,7 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "orchestration/serialization/format.h"
 #include "orchestration/serialization/text/text_format.h"
-#include "orchestration//serialization/text/variant_parser.h"
+#include "orchestration/serialization/text/variant_parser.h"
 #include "script/script.h"
 #include "script/serialization/resource_cache.h"
 
@@ -191,10 +191,11 @@ Error OrchestrationTextParser::_parse_ext_resource(OScriptVariantParser::Stream*
     return err;
 }
 
-Error OrchestrationTextParser::_open(const Ref<FileAccess>& p_file, bool p_skip_first_tag) {
+Error OrchestrationTextParser::_open(const Ref<FileAccess>& p_file, bool p_skip_first_tag, bool p_buffered) {
     // Initialize state
     _lines = 1;
     _stream.data = p_file;
+    _stream.set_readahead(p_buffered);
     _is_scene = false;
     _ignore_resource_parsing = false;
     _resources_current = 0;
@@ -717,7 +718,7 @@ Error OrchestrationTextParser::rename_dependencies(const String& p_path, const D
     const Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
     ERR_FAIL_COND_V(file.is_null(), ERR_FILE_CANT_OPEN);
 
-    Error err = _open(file, true);
+    Error err = _open(file, true, false);
     if (err) {
         return err;
     }
@@ -926,7 +927,7 @@ Error OrchestrationTextParser::set_uid(const String& p_path, int64_t p_uid) {
     const Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ);
     ERR_FAIL_COND_V(file.is_null(), ERR_FILE_CANT_OPEN);
 
-    Error err = _open(file, true);
+    Error err = _open(file, true, false);
     ERR_FAIL_COND_V(err != OK, err);
 
     _ignore_resource_parsing = true;
@@ -940,7 +941,7 @@ Error OrchestrationTextParser::set_uid(const String& p_path, int64_t p_uid) {
         _icon_path,
         _resources_total,
         OrchestrationFormat::FORMAT_VERSION,
-        p_uid));
+        p_uid).strip_edges());
 
     uint8_t c = file->get_8();
     while (!file->eof_reached()) {

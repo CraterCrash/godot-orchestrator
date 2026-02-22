@@ -128,6 +128,10 @@ bool OrchestrationTextSerializer::recognize(const Ref<Resource>& p_resource) {
 }
 
 Error OrchestrationTextSerializer::set_uid(const String& p_path, int64_t p_uid) {
+    if (p_path.get_extension().naturalnocasecmp_to(ORCHESTRATOR_SCRIPT_TEXT_EXTENSION) != 0) {
+        return ERR_FILE_UNRECOGNIZED;
+    }
+
     OrchestrationTextParser parser;
 
     String local_path = ProjectSettings::get_singleton()->localize_path(p_path);
