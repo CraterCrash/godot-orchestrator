@@ -183,11 +183,7 @@ String OScriptNodeComposeFrom::get_icon() const {
 }
 
 String OScriptNodeComposeFrom::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     return vformat("class:%s", Variant::get_type_name(_type));
-    #else
-    return vformat("%s", Variant::get_type_name(_type));
-    #endif
 }
 
 PackedStringArray OScriptNodeComposeFrom::get_keywords() const {
