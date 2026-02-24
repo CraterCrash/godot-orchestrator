@@ -168,6 +168,10 @@
     "godot_compatibility": "4.5"
   },
   {
+    "version": "v2.3.3.stable",
+    "godot_compatibility": "4.5"
+  },
+  {
     "version": "v2.4.dev1",
     "godot_compatibility": "4.6"
   },
