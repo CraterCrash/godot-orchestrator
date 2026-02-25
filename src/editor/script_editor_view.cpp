@@ -1045,7 +1045,8 @@ bool OrchestratorScriptGraphEditorView::can_lose_focus_on_node_selection() const
 }
 
 static OrchestratorEditorView* create_editor(const Ref<Resource>& p_resource) {
-    if (Object::cast_to<OScript>(*p_resource)) {
+    const Ref<OScript> script = p_resource;
+    if (script.is_valid() && script->get_orchestration().is_valid()) {
         return memnew(OrchestratorScriptGraphEditorView);
     }
     return nullptr;
