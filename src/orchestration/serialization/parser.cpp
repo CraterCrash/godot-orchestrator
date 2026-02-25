@@ -17,6 +17,7 @@
 #include "orchestration/serialization/parser.h"
 
 #include "editor/plugins/orchestrator_editor_plugin.h"
+#include "script/script.h"
 
 #include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -77,6 +78,9 @@ bool OrchestrationParser::_is_creating_missing_resources_if_class_unavailable_en
 }
 
 Variant OrchestrationParser::_instantiate_resource(const String& p_resource_type) {
+    if (p_resource_type == OScript::get_class_static()) {
+        return ClassDB::instantiate(Orchestration::get_class_static());
+    }
     // todo: centralized, we can override this behavior per serialized type
     return ClassDB::instantiate(p_resource_type);
 }
