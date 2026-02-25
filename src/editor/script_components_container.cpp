@@ -975,7 +975,7 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
             TreeItem* item = _functions->add_tree_fancy_item(name, script_graph->get_graph_name(), function_icon);
             item->set_meta("__component_type", SCRIPT_FUNCTION);
             item->set_meta("__node_id", function_id);
-            item->set_meta("__override", !function->is_user_defined());
+            item->set_meta("__override", function.is_valid() ? !function->is_user_defined() : false);
         }
     }
 
