@@ -811,6 +811,10 @@ Error OScript::_reload(bool p_keep_state) {
             if (!orchestration.is_valid()) {
                 OrchestrationBinaryParser binary_parser;
                 orchestration = binary_parser.load(path);
+                if (orchestration.is_null()) {
+                    ERR_PRINT("Failed to open and load script: " + path);
+                    return ERR_PARSE_ERROR;
+                }
                 orchestration->set_self(this);
                 #if TOOLS_ENABLED
                 source_last_modified_time = modified_time;
@@ -829,6 +833,10 @@ Error OScript::_reload(bool p_keep_state) {
             if (!orchestration.is_valid()) {
                 OrchestrationTextParser text_parser;
                 orchestration = text_parser.load(path);
+                if (orchestration.is_null()) {
+                    ERR_PRINT("Failed to open and load script: " + path);
+                    return ERR_PARSE_ERROR;
+                }
                 orchestration->set_self(this);
                 #if TOOLS_ENABLED
                 source_last_modified_time = modified_time;
