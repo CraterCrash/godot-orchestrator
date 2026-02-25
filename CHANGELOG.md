@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [2.3.4.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.3.4.stable) - 2026-02-25
+
+- [ff41046](http://github.com/CraterCrash/godot-orchestrator/commit/ff41046e153cf64f63854ae62dadf7459c569897) - GH-1316 Fix crash when removing function
+- [5bc53cc](http://github.com/CraterCrash/godot-orchestrator/commit/5bc53cc4485c426ba296c1c9cc89acabc1e6b898) - GH-1314 Fix editor crash with binary orchestration scripts
+
 ## [2.3.3.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.3.3.stable) - 2026-02-22
 
 - [3a8cf6a](http://github.com/CraterCrash/godot-orchestrator/commit/3a8cf6ac434a01d42fcd26c5a8f53b64d268e8c8) - GH-1303 Improve unsaved script marker on changes
