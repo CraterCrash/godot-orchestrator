@@ -83,4 +83,11 @@
 #define callable_mp_this_parent(method) callable_mp(this, &parent_type::method)
 #define callable_mp_cast(obj, type, method) callable_mp(static_cast<type*>(obj), &type::method)
 
+// Takes the {@code evt} and propagates the event from {@code source} to {@code target}.
+#define push_and_accept_event(evt, source, target)  \
+    (target)->grab_focus();                         \
+    (target)->get_viewport()->push_input(evt);      \
+    (source)->accept_event();                       \
+    (source)->grab_focus();
+
 #endif // ORCHESTRATOR_MACROS_H
