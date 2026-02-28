@@ -23,6 +23,7 @@
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
+#include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/item_list.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
@@ -224,6 +225,7 @@ protected:
     void _add_recent_script(const String& p_path);
     void _update_recent_scripts();
     void _open_recent_script(int p_index);
+    void _clear_recent_scripts();
 
     void _autosave_scripts();
     void _update_autosave_timer();
@@ -272,6 +274,10 @@ protected:
 
 public:
     static OrchestratorEditor* get_singleton() { return _editor; }
+
+    //~ Begin Wrapped Interface
+    void _shortcut_input(const Ref<InputEvent>& p_event) override;
+    //~ End Wrapped Interface
 
     Ref<OrchestratorEditorGraphNodeThemeCache> get_theme_cache() const;
 

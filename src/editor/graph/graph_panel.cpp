@@ -28,6 +28,7 @@
 #include "common/variant_utils.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/editor/settings/editor_settings.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/menu.h"
@@ -76,6 +77,7 @@
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
+#include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -618,50 +620,61 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     }
 
     const bool can_delete = p_node->can_user_delete_node();
-    menu->add_icon_item("Remove", "Delete", callable_mp_this(remove_node).bind(p_node, true ), !can_delete, KEY_DELETE);
+    menu->add_icon_action("Remove", "Delete", "ui_graph_delete", callable_mp_this(remove_node).bind(p_node, true), !can_delete);
 
-    menu->add_icon_item("ActionCut", "Cut", callable_mp_this(_cut_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_X));
-    menu->add_icon_item("ActionCopy", "Copy", callable_mp_this(_copy_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_C));
-    menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_duplicate_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_D));
-    menu->add_icon_item("DistractionFree", "Toggle Resizer", callable_mp_this(_toggle_resizer_for_selected_nodes));
-    menu->add_icon_item("KeepAspect", "Resize to Content", callable_mp_this(_resize_node_to_content));
+    menu->add_icon_action("ActionCut", "Cut", "ui_cut", callable_mp_this(_cut_nodes_request), false);
+    menu->add_icon_action("ActionCopy", "Copy", "ui_copy", callable_mp_this(_copy_nodes_request), false);
+    menu->add_icon_action("Duplicate", "Duplicate", "ui_graph_duplicate", callable_mp_this(_duplicate_nodes_request), false);
+    menu->add_icon_shortcut("DistractionFree", ED_GET_SHORTCUT("orchestrator_graph_editor/toggle_resizer"), callable_mp_this(_toggle_resizer_for_selected_nodes));
+    menu->add_icon_shortcut("KeepAspect", ED_GET_SHORTCUT("orchestrator_graph_editor/resize_to_content"), callable_mp_this(_resize_node_to_content));
 
     bool has_connections = !get_connected_nodes(p_node).is_empty();
-    menu->add_icon_item("Loop", "Refresh Nodes", callable_mp_this(_refresh_selected_nodes));
-    menu->add_icon_item("Unlinked", "Break Node Link(s)", callable_mp_this(unlink_node_all).bind(p_node), !has_connections);
+    menu->add_icon_shortcut("Loop", ED_GET_SHORTCUT("orchestrator_graph_editor/refresh_nodes"), callable_mp_this(_refresh_selected_nodes));
+    menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("orchestrator_graph_editor/break_all_links"), callable_mp_this(unlink_node_all).bind(p_node), !has_connections);
 
     const Ref<OScriptNodeCallFunction> call_function = script_node;
     const Ref<OScriptNodeEvent> event = script_node;
     const Ref<OScriptNodeFunctionEntry> entry = script_node;
     if (event.is_valid() || (call_function.is_valid() && call_function->is_override()) || (entry.is_valid() && entry->is_override())) {
-        menu->add_icon_item("Override", "Add Call to Parent Function", callable_mp_this(_create_call_to_parent_function).bind(p_node));
+        menu->add_icon_shortcut(
+            "Override",
+            ED_GET_SHORTCUT("orchestrator_graph_editor/call_parent_function"),
+            callable_mp_this(_create_call_to_parent_function).bind(p_node));
     }
 
     if (!are_multiple_selections) {
-        menu->add_icon_item("Anchor", "Toggle Bookmark", callable_mp_this(_toggle_node_bookmark).bind(p_node));
+        menu->add_icon_shortcut(
+            "Anchor",
+            ED_GET_SHORTCUT("orchestrator_graph_editor/toggle_bookmark"),
+            callable_mp_this(_toggle_node_bookmark).bind(p_node));
     }
 
     if (p_node->is_add_pin_button_visible() && !are_multiple_selections) {
-        menu->add_item("Add Option Pin", callable_mp_this(_add_node_pin).bind(p_node));
+        menu->add_shortcut(
+            ED_GET_SHORTCUT("orchestrator_graph_editor/add_option_pin"),
+            callable_mp_this(_add_node_pin).bind(p_node));
     }
 
     menu->add_separator("Organization");
 
     const bool can_expand = cast_to<OScriptNodeCallScriptFunction>(script_node.ptr()) != nullptr;
-    menu->add_item("Expand Node", callable_mp_this(_expand_node).bind(p_node), !can_expand);
-    menu->add_item("Collapse to Function", callable_mp_this(_collapse_selected_nodes_to_function));
+    menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/expand_node"), callable_mp_this(_expand_node).bind(p_node), !can_expand);
+    menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/collapse_to_function"), callable_mp_this(_collapse_selected_nodes_to_function));
 
     OrchestratorEditorContextMenu* align = menu->add_submenu("Alignment");
-    align->add_icon_item("ControlAlignTopWide", "Align Top", callable_mp_this(_align_nodes).bind(p_node, ALIGN_TOP));
-    align->add_icon_item("ControlAlignHCenterWide", "Align Middle", callable_mp_this(_align_nodes).bind(p_node, ALIGN_MIDDLE));
-    align->add_icon_item("ControlAlignBottomWide", "Align Bottom", callable_mp_this(_align_nodes).bind(p_node, ALIGN_BOTTOM));
-    align->add_icon_item("ControlAlignLeftWide", "Align Left", callable_mp_this(_align_nodes).bind(p_node, ALIGN_LEFT));
-    align->add_icon_item("ControlAlignVCenterWide", "Align Center", callable_mp_this(_align_nodes).bind(p_node, ALIGN_CENTER));
-    align->add_icon_item("ControlAlignRightWide", "Align Right", callable_mp_this(_align_nodes).bind(p_node, ALIGN_RIGHT));
+    align->add_icon_shortcut("ControlAlignTopWide", ED_GET_SHORTCUT("orchestrator_graph_editor/align_top"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_TOP));
+    align->add_icon_shortcut("ControlAlignHCenterWide", ED_GET_SHORTCUT("orchestrator_graph_editor/align_middle"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_MIDDLE));
+    align->add_icon_shortcut("ControlAlignBottomWide", ED_GET_SHORTCUT("orchestrator_graph_editor/align_bottom"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_BOTTOM));
+    align->add_icon_shortcut("ControlAlignLeftWide", ED_GET_SHORTCUT("orchestrator_graph_editor/align_left"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_LEFT));
+    align->add_icon_shortcut("ControlAlignVCenterWide", ED_GET_SHORTCUT("orchestrator_graph_editor/align_center"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_CENTER));
+    align->add_icon_shortcut("ControlAlignRightWide", ED_GET_SHORTCUT("orchestrator_graph_editor/align_right"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_RIGHT));
 
     if (!are_multiple_selections && _has_breakpoint_support()) {
         menu->add_separator("Breakpoints");
-        menu->add_item("Toggle Breakpoint", callable_mp_this(_toggle_node_breakpoint).bind(p_node), false, KEY_F9);
+        menu->add_shortcut(
+            ED_GET_SHORTCUT("orchestrator_graph_editor/toggle_breakpoint"),
+            callable_mp_this(_toggle_node_breakpoint).bind(p_node),
+            false);
 
         const bool has_breakpoints = _breakpoints.has(script_node->get_id());
         const bool has_active_breakpoint = has_breakpoints && _breakpoint_state[script_node->get_id()];
@@ -2615,13 +2628,24 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
             }
         }
 
-        if (key->get_keycode() == KEY_F9) {
-            for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
-                _toggle_node_breakpoint(node);
-            }, true);
-
+        if (_knot_editor->is_create_knot_keybind(p_event) && !_hovered_connection.is_empty()) {
+            const Vector2 position = get_local_mouse_position();
+            _create_connection_reroute(_hovered_connection, position);
             accept_event();
         }
+    }
+}
+
+void OrchestratorEditorGraphPanel::_shortcut_input(const Ref<InputEvent>& p_event) {
+    ERR_FAIL_COND(p_event.is_null());
+
+    if (ED_IS_SHORTCUT("orchestrator_graph_editor/toggle_breakpoint", p_event)) {
+        UtilityFunctions::print("toggle breakpoints");
+        for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
+            _toggle_node_breakpoint(node);
+        }, true);
+
+        accept_event();
     }
 }
 

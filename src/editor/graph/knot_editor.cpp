@@ -18,6 +18,7 @@
 
 #include "common/macros.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/editor/settings/editor_settings.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/nodes/comment_graph_node.h"
 #include "editor/graph/nodes/knot_node.h"
@@ -207,11 +208,9 @@ void OrchestratorEditorGraphPanelKnotEditor::set_selected_color(const Color& p_c
 }
 
 bool OrchestratorEditorGraphPanelKnotEditor::is_create_knot_keybind(const Ref<InputEvent>& p_event) const {
-    const Ref<InputEventMouseButton> mb = p_event;
-    return mb.is_valid()
-        && mb->is_pressed()
-        && mb->get_modifiers_mask().has_flag(KEY_MASK_CTRL)
-        && mb->get_button_index() == MOUSE_BUTTON_LEFT;
+    return p_event.is_valid() &&
+        (p_event->is_action_pressed("ui_graph_knot")
+            || ED_IS_SHORTCUT("orchestrator_graph_editor/add_knot", p_event));
 }
 
 bool OrchestratorEditorGraphPanelKnotEditor::is_remove_knot_keybind(const Ref<InputEvent>& p_event) const {
