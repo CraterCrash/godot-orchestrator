@@ -1395,7 +1395,7 @@ OScriptLanguage::OScriptLanguage() {
     _singleton = this;
     lock.instantiate();
 
-    strings._init = StringName("init");
+    strings._init = StringName("_init");
     strings._static_init = StringName("_static_init");
     strings._notification = StringName("_notification");
     strings._set = StringName("_set");
