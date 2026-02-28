@@ -37,6 +37,7 @@ class OrchestratorSceneNodeSelector : public ConfirmationDialog {
     void _close_requested();
     void _confirmed();
     void _filter_changed(const String& p_text);
+    void _filter_gui_input(const Ref<InputEvent>& p_event);
     void _item_activated();
     void _item_selected();
     //~ End Signal Handlers
