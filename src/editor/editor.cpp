@@ -23,6 +23,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "core/godot/config/project_settings_cache.h"
+#include "core/godot/editor/settings/editor_settings.h"
 #include "core/godot/gdextension_compat.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/registry.h"
@@ -48,6 +49,7 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_system_dock.hpp>
 #include <godot_cpp/classes/input.hpp>
+#include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -1017,6 +1019,7 @@ PackedStringArray OrchestratorEditor::_get_recent_scripts() const { // NOLINT
 void OrchestratorEditor::_set_recent_scripts(const PackedStringArray& p_scripts) { // NOLINT
     const Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
     metadata->set_value("recent_files", "orchestrations", p_scripts);
+    OrchestratorPlugin::get_singleton()->save_metadata(metadata);
 }
 
 void OrchestratorEditor::_add_recent_script(const String& p_path) {
@@ -1053,16 +1056,16 @@ void OrchestratorEditor::_update_recent_scripts() {
     }
 
     _recent_history->add_separator();
-    _recent_history->add_item("Clear Recent History");
-
+    _recent_history->add_shortcut(ED_GET_SHORTCUT("orchestrator_editor/clear_recent"));
+    _recent_history->set_item_auto_translate_mode(-1, AUTO_TRANSLATE_MODE_ALWAYS);
     _recent_history->set_item_disabled(_recent_history->get_item_id(_recent_history->get_item_count() - 1), recents.is_empty());
+
     _recent_history->reset_size();
 }
 
 void OrchestratorEditor::_open_recent_script(int p_index) {
     if (p_index == _recent_history->get_item_count() - 1) {
-        _set_recent_scripts(Array());
-        callable_mp_this(_update_recent_scripts).call_deferred();
+        _clear_recent_scripts();
         return;
     }
 
@@ -1088,6 +1091,11 @@ void OrchestratorEditor::_open_recent_script(int p_index) {
 
     _error_dialog->set_text(vformat("Can't open '%s'. The file could have been moved or deleted.", path));
     _error_dialog->popup_centered();
+}
+
+void OrchestratorEditor::_clear_recent_scripts() {
+    _set_recent_scripts(Array());
+    callable_mp_this(_update_recent_scripts).call_deferred();
 }
 
 void OrchestratorEditor::_autosave_scripts() {
@@ -1510,6 +1518,19 @@ void OrchestratorEditor::_update_input_actions_cache() {
     if (_input_action_cache != cache) {
         _input_action_cache = cache;
         emit_signal("input_action_cache_updated");
+    }
+}
+
+void OrchestratorEditor::_shortcut_input(const Ref<InputEvent>& p_event) {
+    ERR_FAIL_COND(p_event.is_null());
+
+    if (!is_visible_in_tree() || !p_event->is_pressed()) {
+        return;
+    }
+
+    if (ED_IS_SHORTCUT("orchestrator_editor/clear_recent", p_event)) {
+        _clear_recent_scripts();
+        accept_event();
     }
 }
 
@@ -2409,6 +2430,27 @@ void OrchestratorEditor::_bind_methods() {
 }
 
 OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapper) {
+    ED_SHORTCUT("orchestrator_editor/reopen_closed_orchestration", "Reopen Closed Orchestration", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT, KEY_T));
+    ED_SHORTCUT("orchestrator_editor/clear_recent", "Clear Recent History");
+
+    // Component Panel
+    ED_SHORTCUT("orchestrator_component_panel/open_graph", "Open Graph", KEY_ENTER);
+    ED_SHORTCUT("orchestrator_component_panel/rename_graph", "Rename Graph", KEY_F2);
+    ED_SHORTCUT("orchestrator_component_panel/remove_graph", "Remove Graph", KEY_DELETE);
+    ED_SHORTCUT("orchestrator_component_panel/goto_event", "Goto Event", KEY_ENTER);
+    ED_SHORTCUT("orchestrator_component_panel/remove_event", "Remove Event", KEY_DELETE);
+    ED_SHORTCUT("orchestrator_component_panel/disconnect_signal", "Disconnect Signal");
+    ED_SHORTCUT("orchestrator_component_panel/open_function_graph", "Open Function Graph", KEY_ENTER);
+    ED_SHORTCUT("orchestrator_component_panel/duplicate_function", "Duplicate Function");
+    ED_SHORTCUT("orchestrator_component_panel/duplicate_function_no_code", "Duplicate Function (no code)");
+    ED_SHORTCUT("orchestrator_component_panel/rename_function", "Rename Function", KEY_F2);
+    ED_SHORTCUT("orchestrator_component_panel/remove_function", "Remove Function", KEY_DELETE);
+    ED_SHORTCUT("orchestrator_component_panel/duplicate_variable", "Duplicate Variable");
+    ED_SHORTCUT("orchestrator_component_panel/rename_variable", "Rename Variable", KEY_F2);
+    ED_SHORTCUT("orchestrator_component_panel/remove_variable", "Remove Variable", KEY_DELETE);
+    ED_SHORTCUT("orchestrator_component_panel/rename_signal", "Rename Signal", KEY_F2);
+    ED_SHORTCUT("orchestrator_component_panel/remove_signal", "Remove Signal", KEY_DELETE);
+
     _window_wrapper = p_window_wrapper;
     _editor = this;
 
@@ -2489,35 +2531,39 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _file_menu->set_shortcut_context(this);
     _menu_hb->add_child(_file_menu);
 
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/new", "New Orchestration...", OACCEL_KEY(KEY_MASK_CTRL, KEY_N)));
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/open", "Open..."), FILE_OPEN);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("orchestrator_editor/reopen_closed_orchestration"), FILE_REOPEN_CLOSED);
+
     _recent_history = memnew(PopupMenu);
     _recent_history->connect(SceneStringName(id_pressed), callable_mp_this(_open_recent_script));
-    _file_menu->get_popup()->add_child(_recent_history);
-
-    _file_menu->get_popup()->add_item("New Orchestration...", FILE_NEW, OACCEL_KEY(KEY_MASK_CTRL, KEY_N));
-    _file_menu->get_popup()->add_item("Open...", FILE_OPEN);
-    _file_menu->get_popup()->add_item("Reopen Closed Orchestration", FILE_REOPEN_CLOSED, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_SHIFT, KEY_T));
     #if GODOT_VERSION >= 0x040300
     _file_menu->get_popup()->add_submenu_node_item("Open Recent", _recent_history, FILE_OPEN_RECENT);
     #else
     _file_menu->add_child(_recent_history);
     _file_menu->get_popup()->add_submenu_item("Open Recent", _recent_history->get_name(), FILE_OPEN_RECENT);
     #endif
+
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Save", FILE_SAVE, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_S));
-    _file_menu->get_popup()->add_item("Save As...", FILE_SAVE_AS);
-    _file_menu->get_popup()->add_item("Save All", FILE_SAVE_ALL, OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S));
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/save", "Save", OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_S)), FILE_SAVE);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/save_as", "Save As..."), FILE_SAVE_AS);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/save_all", "Save All", OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S)), FILE_SAVE_ALL);
+    ED_SHORTCUT_OVERRIDE("orchestrator_editor/save_all", "macos", OACCEL_KEY(KEY_MASK_META | KEY_MASK_CTRL, KEY_S));
+
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Soft Reload Tool Script", FILE_SOFT_RELOAD_TOOL_SCRIPT, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_R));
-    _file_menu->get_popup()->add_item("Copy Orchestration Path", FILE_COPY_PATH);
-    _file_menu->get_popup()->add_item("Copy Orchestration UID", FILE_COPY_UID);
-    _file_menu->get_popup()->add_item("Show in Filesystem", FILE_SHOW_IN_FILESYSTEM);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/reload_orchestration_soft", "Soft Reload Tool Script", OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_R)), FILE_SOFT_RELOAD_TOOL_SCRIPT);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/copy_path", "Copy Orchestration Path"), FILE_COPY_PATH);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/copy_uid", "Copy Orchestration UID"), FILE_COPY_UID);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/show_in_file_system", "Show in Filesystem"), FILE_SHOW_IN_FILESYSTEM);
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Close", FILE_CLOSE, OACCEL_KEY(KEY_MASK_CTRL, KEY_W));
-    _file_menu->get_popup()->add_item("Close All", FILE_CLOSE_ALL);
-    _file_menu->get_popup()->add_item("Close Others", FILE_CLOSE_OTHERS);
+
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/close_orchestration", "Close", OACCEL_KEY(KEY_MASK_CTRL, KEY_W)), FILE_CLOSE);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/close_all", "Close All"), FILE_CLOSE_ALL);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/close_others", "Close Others"), FILE_CLOSE_OTHERS);
+
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Toggle Orchestration List", FILE_TOGGLE_LEFT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_BACKSLASH));
-    _file_menu->get_popup()->add_item("Toggle Component Panel", FILE_TOGGLE_RIGHT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_SLASH));
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/toggle_orchestration_panel", "Toggle Orchestration List", OACCEL_KEY(KEY_MASK_CTRL, KEY_BACKSLASH)), FILE_TOGGLE_LEFT_PANEL);
+    _file_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/toggle_component_panel", "Toggle Component Panel", OACCEL_KEY(KEY_MASK_CTRL, KEY_SLASH)), FILE_TOGGLE_RIGHT_PANEL);
     _file_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _file_menu->get_popup()->connect("about_to_popup", callable_mp_this(_prepare_file_menu));
     _file_menu->get_popup()->connect("popup_hide", callable_mp_this(_file_menu_closed));
@@ -2539,14 +2585,16 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _help_menu->set_switch_on_hover(true);
     _help_menu->set_shortcut_context(this);
     _help_menu->get_popup()->clear();
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Online Documentation", HELP_ONLINE_DOCUMENTATION);
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Community", HELP_COMMUNITY);
+    _help_menu->get_popup()->add_icon_shortcut(SceneUtils::get_editor_icon("ExternalLink"), ED_SHORTCUT("orchestrator_editor/online_documentation", "Online Documentation"), HELP_ONLINE_DOCUMENTATION);
+    _help_menu->get_popup()->add_icon_shortcut(SceneUtils::get_editor_icon("ExternalLink"), ED_SHORTCUT("orchestrator_editor/community", "Community"), HELP_COMMUNITY);
+
     _help_menu->get_popup()->add_separator();
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Report a Bug", HELP_GITHUB_ISSUES);
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Suggest a Feature", HELP_GITHUB_FEATURE);
+    _help_menu->get_popup()->add_icon_shortcut(SceneUtils::get_editor_icon("ExternalLink"), ED_SHORTCUT("orchestrator_editor/report_a_bug", "Report a Bug"), HELP_GITHUB_ISSUES);
+    _help_menu->get_popup()->add_icon_shortcut(SceneUtils::get_editor_icon("ExternalLink"), ED_SHORTCUT("orchestrator_editor/suggest_a_feature", "Suggest a Feature"), HELP_GITHUB_FEATURE);
+
     _help_menu->get_popup()->add_separator();
-    _help_menu->get_popup()->add_item("About " VERSION_NAME, HELP_ABOUT);
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("Heart"), "Support " VERSION_NAME, HELP_SUPPORT);
+    _help_menu->get_popup()->add_shortcut(ED_SHORTCUT("orchestrator_editor/about_orchestrator", "About " VERSION_NAME), HELP_ABOUT);
+    _help_menu->get_popup()->add_icon_shortcut(SceneUtils::get_editor_icon("Heart"), ED_SHORTCUT("orchestrator_editor/support_orchestrator", "Support " VERSION_NAME), HELP_SUPPORT);
     _help_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _menu_hb->add_child(_help_menu);
 
