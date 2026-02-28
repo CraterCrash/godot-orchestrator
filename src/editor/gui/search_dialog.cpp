@@ -148,8 +148,7 @@ void OrchestratorEditorSearchDialog::_search_input(const Ref<InputEvent>& p_even
             case KEY_DOWN:
             case KEY_PAGEUP:
             case KEY_PAGEDOWN: {
-                _search_options->_gui_input(p_event);
-                _search_box->accept_event();
+                push_and_accept_event(p_event, _search_box, _search_options);
                 break;
             }
             case KEY_SPACE: {
