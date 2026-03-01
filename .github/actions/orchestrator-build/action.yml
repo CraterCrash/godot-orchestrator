@@ -43,28 +43,6 @@ runs:
         python -m pip install scons==${{ inputs.scons-version }}
         scons --version
 
-    # Because all branches can refer to the repository's default branch cache, we want it to persist
-    # as the de-facto fallback. However, it easily can be deleted in a matter of hours if nothing
-    # explicitly calls to it, we to work around this, this ensures that it is always pinged
-    # prior to any other cache operations.
-    - name: Ping main cache
-      uses: actions/cache/restore@v4
-      id: cache-ping
-      with:
-        path: ${{ inputs.cache-path }}
-        key: ${{ github.sha }} # Dummy key; we have to rely on the fallback value.
-        restore-keys: ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}
-        lookup-only: true
-
-    # Fallback access isn't logged, so register an explicit cache-hit if found.
-    - name: Ping main cache (exact)
-      if: steps.cache-ping.outputs.cache-matched-key
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{ inputs.cache-path }}
-        key: ${{ steps.cache-ping.outputs.cache-matched-key }}
-        lookup-only: true
-
     # We try to match an existing cache to restore from it. Each potential key is checked against
     # all existing caches as a prefix, e.g. 'linux-editor' would match any cache that starts with
     # "linux-editor", such as "linux-editor-abc|main|6588a4a29af1621086feac0117d5d4d37af957fd".
@@ -77,9 +55,8 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ inputs.cache-path }}
-        key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
+        key: ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}|${{ github.sha }}
         restore-keys: |
-          ${{ inputs.cache-name }}|${{ github.ref_name }}
           ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}
           ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}
 
@@ -94,6 +71,10 @@ runs:
         # Explicitly disable job statistics summary
         job-summary: ""
 
+    - name: Set ccache compression level
+      shell: bash
+      run: ccache --set-config=compression_level=6
+
     - name: Build
       shell: sh
       run: |
@@ -101,6 +82,7 @@ runs:
         cmake --build '${{ github.workspace }}/build/${{ inputs.preset-name }}' --target orchestrator -j 18
 
     - name: Save cache
+      if: github.event_name == 'push'
       uses: actions/cache/save@v4
       with:
         path: ${{ inputs.cache-path }}
