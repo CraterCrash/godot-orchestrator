@@ -974,19 +974,15 @@ Error OScript::_reload(bool p_keep_state) {
 }
 
 #ifdef TOOLS_ENABLED
-#if GODOT_VERSION >= 0x040400
 StringName OScript::_get_doc_class_name() const {
     return doc_class_name;
 }
-#endif
 
 TypedArray<Dictionary> OScript::_get_documentation() const {
     TypedArray<Dictionary> result;
-    #ifdef TOOLS_ENABLED
     for (const DocData::ClassDoc& class_doc : docs) {
         result.push_back(DocData::ClassDoc::to_dict(class_doc));
     }
-    #endif
     return result;
 }
 

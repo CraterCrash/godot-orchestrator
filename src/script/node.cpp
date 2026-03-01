@@ -18,7 +18,6 @@
 
 #include "common/macros.h"
 #include "common/variant_utils.h"
-#include "common/version.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/os.hpp>
@@ -70,14 +69,12 @@ void OScriptNode::set_position(const Vector2& p_position) {
     _position = p_position;
 }
 
-#if GODOT_VERSION >= 0x040300
 void OScriptNode::set_breakpoint_flag(BreakpointFlags p_flag) {
     if (_breakpoint_flag != p_flag) {
         _breakpoint_flag = p_flag;
         emit_changed();
     }
 }
-#endif
 
 void OScriptNode::set_flags(BitField<ScriptNodeFlags> p_flags) {
     _flags = p_flags;
@@ -176,11 +173,7 @@ void OScriptNode::initialize(const OScriptNodeInitContext& p_context) {
 }
 
 String OScriptNode::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     return vformat("class:%s", get_class());
-    #else
-    return get_class();
-    #endif
 }
 
 Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, EPinType p_pin_type, const PropertyInfo& p_property, const Variant& p_default_value) {
@@ -339,10 +332,7 @@ void OScriptNode::_cache_pin_indices() {
 
 OScriptNode::OScriptNode()
     : _flags(CATALOGABLE)
-    #if GODOT_VERSION >= 0x040300
-    , _breakpoint_flag(BREAKPOINT_NONE)
-    #endif
-{
+    , _breakpoint_flag(BREAKPOINT_NONE) {
 }
 
 void OScriptNode::_bind_methods() {

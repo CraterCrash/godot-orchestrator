@@ -20,7 +20,6 @@
 #include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
-#include "common/version.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -124,11 +123,7 @@ String OScriptNodeGlobalConstant::get_node_title() const {
 }
 
 String OScriptNodeGlobalConstant::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     return vformat("class_constant:@GlobalScope:%s", _constant_name);
-    #else
-    return super::get_help_topic();
-    #endif
 }
 
 String OScriptNodeGlobalConstant::get_icon() const {
@@ -184,13 +179,9 @@ String OScriptNodeMathConstant::get_node_title() const {
 }
 
 String OScriptNodeMathConstant::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     // todo: some math constants are not exposed to the documentation, i.e. "One"
     //       check if these can be exposed via OScriptLanguage instead?
     return vformat("class_constant:@GDScript:%s", _constant_name);
-    #else
-    return super::get_help_topic();
-    #endif
 }
 
 String OScriptNodeMathConstant::get_icon() const {
@@ -330,11 +321,7 @@ String OScriptNodeTypeConstant::get_node_title() const {
 }
 
 String OScriptNodeTypeConstant::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     return vformat("class_constant:%s:%s", Variant::get_type_name(_type), _constant_name);
-    #else
-    return super::get_help_topic();
-    #endif
 }
 
 String OScriptNodeTypeConstant::get_icon() const {
@@ -448,7 +435,6 @@ String OScriptNodeClassConstantBase::get_node_title() const {
 }
 
 String OScriptNodeClassConstantBase::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     String class_name = _class_name;
     while (!class_name.is_empty()) {
         PackedStringArray values = ClassDB::class_get_integer_constant_list(class_name, true);
@@ -457,7 +443,6 @@ String OScriptNodeClassConstantBase::get_help_topic() const {
         }
         class_name = ClassDB::get_parent_class(class_name);
     }
-    #endif
     return super::get_help_topic();
 }
 

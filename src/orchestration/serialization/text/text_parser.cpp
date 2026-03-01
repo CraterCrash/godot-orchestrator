@@ -161,11 +161,7 @@ Error OrchestrationTextParser::_parse_ext_resource(OScriptVariantParser::Stream*
                 WARN_PRINT("External resource failed to load at: " + path);
             } else {
                 #ifdef TOOLS_ENABLED
-                    #if GODOT_VERSION >= 0x040400
                     res->set_id_for_path(_path, id);
-                    #else
-                    ResourceCache::get_singleton()->set_id_for_path(_path, res->get_path(), id);
-                    #endif
                 #endif
                 r_res = res;
             }
@@ -370,9 +366,7 @@ Error OrchestrationTextParser::_load() {
             Ref<Resource> cache = ResourceCache::get_singleton()->get_ref(path);
             if (cache.is_valid() && cache->get_class() == type) {
                 res = cache;
-                #if GODOT_VERSION >= 0x040400
                 res->reset_state();
-                #endif
                 do_assign = true;
             }
         }
@@ -427,16 +421,10 @@ Error OrchestrationTextParser::_load() {
                     // res->set_path(path);
                 }
             } else {
-                #if GODOT_VERSION >= 0x040400
                 res->set_path_cache(path);
-                #endif
             }
 
-            #if GODOT_VERSION >= 0x040300
             res->set_scene_unique_id(id);
-            #else
-            ResourceCache::get_singleton()->set_scene_unique_id(_path, res, id);
-            #endif
         }
 
         Dictionary missing_properties;
@@ -484,9 +472,7 @@ Error OrchestrationTextParser::_load() {
 
         Ref<Resource> cache = ResourceCache::get_singleton()->get_ref(_path);
 		if (_cache_mode == ResourceFormatLoader::CACHE_MODE_REPLACE && cache.is_valid() && cache->get_class() == _type) {
-		    #if GODOT_VERSION >= 0x040400
 		    cache->reset_state();
-		    #endif
 			_resource = cache;
 		}
 
@@ -535,9 +521,7 @@ Error OrchestrationTextParser::_load() {
 					    // todo: requires Godot change to support this
 						// _resource->set_as_translation_remapped(_translation_remapped);
 					} else {
-			            #if GODOT_VERSION >= 0x040400
 			            _resource->set_path_cache(_path);
-			            #endif
 					}
 				}
 				return err;

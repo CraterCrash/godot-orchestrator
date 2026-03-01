@@ -78,9 +78,7 @@ void OrchestratorPlugin::_register_plugins() {
     _register_export_plugin<OrchestratorEditorExportPlugin>();
 
     // Debugger Plugins
-    #if GODOT_VERSION >= 0x040300
     _register_debugger_plugin<OrchestratorEditorDebuggerPlugin>();
-    #endif
 }
 
 bool OrchestratorPlugin::_is_plugin_just_installed() const {

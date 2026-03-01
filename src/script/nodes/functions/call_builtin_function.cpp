@@ -18,7 +18,6 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
-#include "common/version.h"
 #include "script/utility_functions.h"
 
 bool OScriptNodeCallBuiltinFunction::_has_execution_pins(const MethodInfo& p_method) const {
@@ -37,14 +36,10 @@ String OScriptNodeCallBuiltinFunction::get_node_title() const {
 }
 
 String OScriptNodeCallBuiltinFunction::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     if (OScriptUtilityFunctions::function_exists(_reference.method.name)) {
         return vformat("class_method:@OScript:%s", _reference.method.name);
     }
     return vformat("class_method:@GlobalScope:%s", _reference.method.name);
-    #else
-    return super::get_help_topic();
-    #endif
 }
 
 void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_context) {

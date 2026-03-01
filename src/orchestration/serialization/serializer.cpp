@@ -71,50 +71,12 @@ String OrchestrationSerializer::_resource_get_class(const Ref<Resource>& p_resou
     return p_resource->get_class();
 }
 
-#if GODOT_VERSION >= 0x040300
 String OrchestrationSerializer::_generate_scene_unique_id() {
     return Resource::generate_scene_unique_id();
 }
-#else
-#include <godot_cpp/classes/time.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
-String OrchestrationSerializer::_generate_scene_unique_id() {
-    const Dictionary dict = Time::get_singleton()->get_datetime_dict_from_system();
-
-    uint32_t hash = hash_murmur3_one_32(Time::get_singleton()->get_ticks_usec());
-    hash = hash_murmur3_one_32(dict["year"], hash);
-    hash = hash_murmur3_one_32(dict["month"], hash);
-    hash = hash_murmur3_one_32(dict["day"], hash);
-    hash = hash_murmur3_one_32(dict["hour"], hash);
-    hash = hash_murmur3_one_32(dict["minute"], hash);
-    hash = hash_murmur3_one_32(dict["second"], hash);
-    hash = hash_murmur3_one_32(UtilityFunctions::randi(), hash);
-
-    static constexpr uint32_t characters = 5;
-    static constexpr uint32_t char_count = ('z' - 'a');
-    static constexpr uint32_t base = char_count + ('9' - '0');
-
-    String id;
-    for (uint32_t i = 0; i < characters; i++) {
-        uint32_t c = hash % base;
-        if (c < char_count) {
-            id += String::chr('a' + c);
-        } else {
-            id += String::chr('0' + (c - char_count));
-        }
-        hash /= base;
-    }
-
-    return id;
-}
-#endif
 
 String OrchestrationSerializer::_create_resource_uid(const Ref<Resource>& p_resource, const HashSet<String>& p_used_ids, bool& r_generated) {
-    #if GODOT_VERSION >= 0x40300
     String uid = p_resource->get_scene_unique_id();
-    #else
-    String uid = ResourceCache::get_singleton()->get_scene_unique_id(_path, p_resource);
-    #endif
 
     if (!uid.is_empty()) {
         r_generated = false;

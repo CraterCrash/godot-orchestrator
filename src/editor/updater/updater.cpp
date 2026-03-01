@@ -22,7 +22,6 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
-#include "common/version.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
@@ -197,9 +196,7 @@ void OrchestratorUpdaterVersionPicker::_request_download() {
 
         const String download_url = selected->get_meta("download_url");
         if (_download->request(download_url) == OK) {
-            #if GODOT_VERSION >= 0x040300
             _progress->set_indeterminate(true);
-            #endif
             set_process(true);
         }
     }
@@ -218,9 +215,7 @@ void OrchestratorUpdaterVersionPicker::_handle_custom_action(const StringName& p
 
 void OrchestratorUpdaterVersionPicker::_download_completed(int p_status, int p_code, const PackedStringArray& p_headers, const PackedByteArray& p_data) {
     _progress->set_visible(false);
-    #if GODOT_VERSION >= 0x040300
     _progress->set_indeterminate(false);
-    #endif
 
     set_process(false);
 
@@ -295,11 +290,9 @@ void OrchestratorUpdaterVersionPicker::_cancel_and_close() {
 
             _download->cancel_request();
 
-            #if GODOT_VERSION >= 0x040300
             _progress->set_indeterminate(false);
-            #endif
-
             _progress->set_visible(false);
+
             _status->set_visible(false);
         }
     }
@@ -412,16 +405,12 @@ void OrchestratorUpdaterVersionPicker::_notification(int p_what) {
             int client_status = _download->get_http_client_status();
             if (client_status == HTTPClient::STATUS_BODY) {
                 if (_download->get_body_size() > 0) {
-                    #if GODOT_VERSION >= 0x040300
                     _progress->set_indeterminate(false);
-                    #endif
                     _status->set_text(vformat("Downloading (%s / %s)...",
                         String::humanize_size(_download->get_downloaded_bytes()),
                         String::humanize_size(_download->get_body_size())));
                 } else {
-                    #if GODOT_VERSION >= 0x040300
                     _progress->set_indeterminate(true);
-                    #endif
                     _status->set_text(vformat("Downloading... (%s)",
                         String::humanize_size(_download->get_downloaded_bytes())));
                 }

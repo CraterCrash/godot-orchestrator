@@ -21,7 +21,6 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
-#include "common/version.h"
 #include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -82,11 +81,7 @@ void OrchestratorPropertySelector::_item_selected() {
 }
 
 bool OrchestratorPropertySelector::_contains_ignore_case(const String& p_text, const String& p_what) const {
-    #if GODOT_VERSION >= 0x040300
     return p_text.containsn(p_what);
-    #else
-    return p_text.to_lower().contains(p_what.to_lower());
-    #endif
 }
 
 void OrchestratorPropertySelector::_update_search() {
@@ -203,11 +198,7 @@ OrchestratorPropertySelector::OrchestratorPropertySelector() {
     SceneUtils::add_margin_child(vbox, "Search:", _search_box);
 
     _search_options = memnew(Tree);
-    #if GODOT_VERSION >= 0x040300
     _search_options->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-    #else
-    _search_options->set_auto_translate(false);
-    #endif
     _search_options->set_hide_root(true);
     _search_options->set_hide_folding(true);
     SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);

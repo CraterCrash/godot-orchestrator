@@ -120,11 +120,7 @@ String OScriptNodeSceneNode::get_icon() const {
 }
 
 String OScriptNodeSceneNode::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     return vformat("class:%s", _class_name);
-    #else
-    return _class_name;
-    #endif
 }
 
 Ref<OScriptTargetObject> OScriptNodeSceneNode::resolve_target(const Ref<OScriptNodePin>& p_pin) const {
