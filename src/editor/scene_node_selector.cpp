@@ -24,6 +24,7 @@
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -40,6 +41,42 @@ void OrchestratorSceneNodeSelector::_confirmed() {
 
 void OrchestratorSceneNodeSelector::_filter_changed(const String& p_text) {
     _update_tree(_tree->get_root());
+}
+
+void OrchestratorSceneNodeSelector::_filter_gui_input(const Ref<InputEvent>& p_event) {
+    const Ref<InputEventKey> key = p_event;
+    if (key.is_valid()) {
+        switch (key->get_keycode()) {
+            case KEY_UP:
+            case KEY_DOWN:
+            case KEY_PAGEUP:
+            case KEY_PAGEDOWN: {
+                push_and_accept_event(key, _filter, _tree);
+
+                TreeItem* root = _tree->get_root();
+                if (!root->get_first_child()) {
+                    break;
+                }
+
+                TreeItem* current = _tree->get_selected();
+                if (!current) {
+                    break;
+                }
+
+                TreeItem* item = _tree->get_next_selected(root);
+                while (item) {
+                    item->deselect(0);
+                    item = _tree->get_next_selected(item);
+                }
+
+                current->select(0);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
 }
 
 void OrchestratorSceneNodeSelector::_item_activated() {
@@ -176,14 +213,24 @@ bool OrchestratorSceneNodeSelector::_update_filter(TreeItem* p_parent, bool p_sc
 }
 
 void OrchestratorSceneNodeSelector::_notification(int p_what) {
-    if (p_what == NOTIFICATION_READY) {
-        OCONNECT(_filter, SceneStringName(text_changed), callable_mp_this(_filter_changed));
-        OCONNECT(_tree, SceneStringName(item_activated), callable_mp_this(_item_activated));
-        OCONNECT(_tree, SceneStringName(item_selected), callable_mp_this(_item_selected));
-        OCONNECT(this, SceneStringName(confirmed), callable_mp_this(_confirmed));
-        OCONNECT(this, SceneStringName(canceled), callable_mp_this(_close_requested));
+    switch (p_what) {
+        case NOTIFICATION_READY: {
+            OCONNECT(_filter, SceneStringName(text_changed), callable_mp_this(_filter_changed));
+            OCONNECT(_filter, SceneStringName(gui_input), callable_mp_this(_filter_gui_input));
+            OCONNECT(_tree, SceneStringName(item_activated), callable_mp_this(_item_activated));
+            OCONNECT(_tree, SceneStringName(item_selected), callable_mp_this(_item_selected));
+            OCONNECT(this, SceneStringName(confirmed), callable_mp_this(_confirmed));
+            OCONNECT(this, SceneStringName(canceled), callable_mp_this(_close_requested));
 
-        callable_mp_this(_update_tree).bind(false).call_deferred();
+            callable_mp_this(_update_tree).bind(false).call_deferred();
+            break;
+        }
+        case NOTIFICATION_VISIBILITY_CHANGED: {
+            if (is_visible()) {
+                _filter->grab_focus();
+            }
+            break;
+        }
     }
 }
 
@@ -203,6 +250,7 @@ OrchestratorSceneNodeSelector::OrchestratorSceneNodeSelector() {
     _filter->set_placeholder("Filter Nodes");
     _filter->set_clear_button_enabled(true);
     _filter->add_theme_constant_override("minimum_character_width", 0);
+    _filter->set_right_icon(SceneUtils::get_editor_icon("Search"));
     container->add_child(_filter);
 
     _tree = memnew(Tree);
