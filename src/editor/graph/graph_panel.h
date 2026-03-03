@@ -358,6 +358,9 @@ public:
     void center_node_id(int p_id);
     void center_node(OrchestratorEditorGraphNode* p_node);
 
+    void straighten_all_connections(OrchestratorEditorGraphPin* p_pin);
+    void straighten_connection(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target);
+
     template <typename T, typename P> Vector<T*> predicate_find(P&& p_predicate);
     template <typename T, typename F> void for_each(F&& p_function, bool p_selected = false);
     template <typename T> Vector<T*> get_selected();
