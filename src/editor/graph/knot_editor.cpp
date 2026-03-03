@@ -218,6 +218,15 @@ bool OrchestratorEditorGraphPanelKnotEditor::is_remove_knot_keybind(const Ref<In
     return is_create_knot_keybind(p_event);
 }
 
+Guid OrchestratorEditorGraphPanelKnotEditor::get_knot_guid(uint64_t p_connection_id, uint32_t p_knot_index) const {
+    const Vector<KnotInfo>* info = _knots.getptr(p_connection_id);
+    if (!info || p_knot_index >= info->size()) {
+        return {};
+    }
+
+    return info->get(p_knot_index).guid;
+}
+
 PackedVector2Array OrchestratorEditorGraphPanelKnotEditor::get_knots_for_connection(uint64_t p_connection_id) const {
     PackedVector2Array results;
     if (_knots.has(p_connection_id)) {
