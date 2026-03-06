@@ -56,6 +56,7 @@ class OrchestratorEditorContextMenu : public Control {
 
     void _id_pressed(int p_id);
     void _cleanup_menu();
+    int _configure_and_get_item_id(const Callable& p_callable, bool p_disabled = false);
 
 protected:
     static void _bind_methods();
@@ -67,6 +68,12 @@ public:
     int add_separator(const String& p_label = String());
     int add_item(const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);
     int add_icon_item(const String& p_icon_name, const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);
+
+    int add_action(const String& p_label, const String& p_action, const Callable& p_callable, bool p_disabled = false);
+    int add_icon_action(const String& p_icon_name, const String& p_label, const String& p_action, const Callable& p_callable, bool p_disabled = false);
+
+    int add_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled = false);
+    int add_icon_shortcut(const String& p_icon_name, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled = false);
 
     void set_item_disabled(int p_id, bool p_disabled);
     void set_item_tooltip(int p_id, const String& p_tooltip_text);

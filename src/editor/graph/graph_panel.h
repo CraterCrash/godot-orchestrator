@@ -292,6 +292,7 @@ protected:
 public:
     //~ Begin Control Interface
     void _gui_input(const Ref<InputEvent>& p_event) override;
+    void _shortcut_input(const Ref<InputEvent>& p_event) override;
     bool _can_drop_data(const Vector2& p_at_position, const Variant& p_data) const override;
     void _drop_data(const Vector2& p_at_position, const Variant& p_data) override;
     //~ End Control Interface
