@@ -18,7 +18,6 @@
 #define ORCHESTRATOR_SCRIPT_LANGUAGE_H
 
 #include "core/godot/string/string.h"
-#include "common/version.h"
 #include "script/compiler/compiled_function.h"
 #include "script/serialization/format_defs.h"
 
@@ -67,7 +66,6 @@ class OScriptLanguage : public ScriptLanguageExtension {
     HashMap<StringName, Variant> named_globals;
     Vector<int> global_array_empty_indexes;
 
-    #if GODOT_VERSION >= 0x040300
     struct CallLevel {
         Variant* stack{ nullptr };
         OScriptCompiledFunction* function{ nullptr };
@@ -76,7 +74,6 @@ class OScriptLanguage : public ScriptLanguageExtension {
         int* node{ nullptr };
         CallLevel* prev{ nullptr };
     };
-    #endif
 
     static thread_local int _debug_parse_err_line;
     static thread_local StringPtr _debug_parse_err_file;
@@ -147,9 +144,7 @@ public:
     bool _can_inherit_from_file() const override { return true; }
     int32_t _find_function(const String& p_function_name, const String& p_code) const override;
     String _make_function(const String& p_class_name, const String& p_function_name, const PackedStringArray& p_function_args) const override;
-    #if GODOT_VERSION >= 0x040300
     bool _can_make_function() const override { return true; }
-    #endif
     Error _open_in_external_editor(const Ref<Script>& p_script, int32_t p_line, int32_t p_column) override { return OK; }
     bool _overrides_external_editor() override { return true; }
     void _add_global_constant(const StringName& p_name, const Variant& p_value) override;

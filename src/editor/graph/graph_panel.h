@@ -303,10 +303,6 @@ public:
     bool _is_in_output_hotzone(Object* p_in_node, int32_t p_in_port, const Vector2& p_mouse_position) override;
     //~ End GraphEdit Interface
 
-    #if GODOT_VERSION < 0x040300
-    Dictionary get_closest_connection_at_point(const Vector2& p_position, float p_max_distance = 4.0f);
-    #endif
-
     void set_graph(const Ref<OrchestrationGraph>& p_graph);
     void reloaded_from_file();
 

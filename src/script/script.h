@@ -217,11 +217,9 @@ public:
     void _set_source_code(const String& p_code) override;
     Error _reload(bool p_keep_state) override;
     #ifdef TOOLS_ENABLED
-    #if GODOT_VERSION >= 0x040400
     StringName _get_doc_class_name() const override;
     TypedArray<Dictionary> _get_documentation() const override;
     String _get_class_icon_path() const override;
-    #endif
     #endif
     bool _has_method(const StringName& p_method) const override;
     bool _has_static_method(const StringName& p_method) const override;
