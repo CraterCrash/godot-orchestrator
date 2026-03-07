@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_REGISTER_SCRIPT_TYPES_H
-#define ORCHESTRATOR_REGISTER_SCRIPT_TYPES_H
+#pragma once
 
 void register_script_types();
 void unregister_script_types();
@@ -34,5 +33,3 @@ void unregister_script_scene_types();
 
 void register_extension_db();
 void unregister_extension_db();
-
-#endif // ORCHESTRATOR_REGISTER_SCRIPT_TYPES_H

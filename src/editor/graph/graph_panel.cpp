@@ -788,13 +788,29 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
     }
 
     if (!pin_connections.is_empty()) {
-        OrchestratorEditorContextMenu* submenu = menu->add_submenu("Jump to connected node...");
-        for (OrchestratorEditorGraphPin* connection : pin_connections) {
-            const int node_id = connection->get_graph_node()->get_id();
-            const String node_name = connection->get_graph_node()->get_title();
+        {
+            OrchestratorEditorContextMenu* submenu = menu->add_submenu("Jump to connected node...");
+            for (OrchestratorEditorGraphPin* connection : pin_connections) {
+                const int node_id = connection->get_graph_node()->get_id();
+                const String node_name = connection->get_graph_node()->get_title();
 
-            const String label = vformat("Jump to %d - %s", node_id, node_name);
-            submenu->add_item(label, callable_mp_this(center_node).bind(connection->get_graph_node()));
+                const String label = vformat("Jump to %d - %s", node_id, node_name);
+                submenu->add_item(label, callable_mp_this(center_node).bind(connection->get_graph_node()));
+            }
+        }
+        {
+            OrchestratorEditorContextMenu* submenu = menu->add_submenu("Straighten Connection...");
+            if (pin_connections.size() > 1) {
+                submenu->add_item("Straighten All Pin Connections", callable_mp_this(straighten_all_connections).bind(p_pin));
+            }
+
+            for (OrchestratorEditorGraphPin* connection : pin_connections) {
+                const String node_name = connection->get_graph_node()->get_title();
+                const String pin_name = connection->get_pin_name();
+
+                const String label = vformat("Straighten Connection to %s (%s)", node_name, pin_name);
+                submenu->add_item(label, callable_mp_this(straighten_connection).bind(p_pin, connection));
+            }
         }
     }
 
@@ -3435,6 +3451,55 @@ void OrchestratorEditorGraphPanel::center_node(OrchestratorEditorGraphNode* p_no
     p_node->set_selected(true);
 
     scroll_to_position(p_node->get_graph_rect().get_center());
+}
+
+void OrchestratorEditorGraphPanel::straighten_all_connections(OrchestratorEditorGraphPin* p_pin) {
+    for (OrchestratorEditorGraphPin* connection : get_connected_pins(p_pin)) {
+        if (p_pin->get_direction() == PD_Output) {
+            straighten_connection(p_pin, connection);
+        } else {
+            straighten_connection(connection, p_pin);
+        }
+    }
+}
+
+void OrchestratorEditorGraphPanel::straighten_connection(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target) {
+    GUARD_NULL(p_source);
+    GUARD_NULL(p_target);
+
+    OrchestratorEditorGraphNode* source_node = p_source->get_graph_node();
+    const Vector2 source_node_position = source_node->get_position_offset();
+    const Vector2 source_pin_position = source_node_position + source_node->get_port_position_for_pin(p_source);
+
+    OrchestratorEditorGraphNode* target_node = p_target->get_graph_node();
+    Vector2 target_node_position = target_node->get_position_offset();
+    const Vector2 target_pin_position = target_node_position + target_node->get_port_position_for_pin(p_target);
+
+    Connection connection;
+    connection.from_node = source_node->get_id();
+    connection.from_port = source_node->get_pin_port(p_source);
+    connection.to_node = target_node->get_id();
+    connection.to_port = target_node->get_pin_port(p_target);
+
+    if (_knot_editor) {
+        const Guid knot_guid = _knot_editor->get_knot_guid(connection.id, 0);
+        if (knot_guid.is_valid()) {
+            // If the connection has a knot, the first knot will be aligned instead of the target node.
+            const Vector<OrchestratorEditorGraphNodeKnot*> knots = get_all<OrchestratorEditorGraphNodeKnot>(false);
+            for (OrchestratorEditorGraphNodeKnot* knot : knots) {
+                if (knot->get_guid() == knot_guid) {
+                    Vector2 offset = knot->get_position_offset();
+                    offset.y = source_pin_position.y;
+                    knot->set_position_offset(offset);
+                    break;
+                }
+            }
+            return;
+        }
+    }
+
+    target_node_position.y += source_pin_position.y - target_pin_position.y;
+    target_node->_node->set_position(target_node_position);
 }
 
 OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_node(const NodeSpawnOptions& p_options) {

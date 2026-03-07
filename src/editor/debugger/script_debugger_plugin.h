@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_DEBUGGER_PLUGIN_H
-#define ORCHESTRATOR_EDITOR_DEBUGGER_PLUGIN_H
+#pragma once
 
 #include "common/version.h"
 
@@ -70,5 +69,3 @@ public:
     ~OrchestratorEditorDebuggerPlugin() override;
 };
 #endif
-
-#endif  // ORCHESTRATOR_EDITOR_DEBUGGER_PLUGIN_H

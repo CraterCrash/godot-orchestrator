@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_TARGET_OBJECT_H
-#define ORCHESTRATOR_SCRIPT_TARGET_OBJECT_H
+#pragma once
 
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
@@ -48,5 +47,3 @@ public:
     explicit OScriptTargetObject(const Variant& p_reference, bool p_owned);
     ~OScriptTargetObject() override;
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_TARGET_OBJECT_H

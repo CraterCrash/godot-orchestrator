@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_SERIALIZATION_RESOURCE_SAVER_BINARY_H
-#define ORCHESTRATOR_SCRIPT_SERIALIZATION_RESOURCE_SAVER_BINARY_H
+#pragma once
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_format_saver.hpp>
@@ -38,5 +37,3 @@ public:
     Error _save(const Ref<Resource>& p_resource, const String& p_path, uint32_t p_flags) override;
     //~ End ResourceFormatSaver Interface
 };
-
-#endif // ORCHESTRATOR_SCRIPT_SERIALIZATION_RESOURCE_SAVER_BINARY_H

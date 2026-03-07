@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_GRAPH_H
-#define ORCHESTRATOR_SCRIPT_GRAPH_H
+#pragma once
 
 #include "script/connection.h"
 
@@ -239,5 +238,3 @@ VARIANT_BITFIELD_CAST(OScriptGraph::GraphFlags)
 
 // todo: eventually build an abstract base class
 typedef OScriptGraph OrchestrationGraph;
-
-#endif  // ORCHESTRATOR_SCRIPT_GRAPH_H

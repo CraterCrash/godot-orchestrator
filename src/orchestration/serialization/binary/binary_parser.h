@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_PARSER_BINARY_H
-#define ORCHESTRATOR_ORCHESTRATION_PARSER_BINARY_H
+#pragma once
 
 #include "orchestration/serialization/parser.h"
 
@@ -97,5 +96,3 @@ public:
     Variant load(const String& p_path) override;
     //~ End OrchestrationParser Interface
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_PARSER_BINARY_H
