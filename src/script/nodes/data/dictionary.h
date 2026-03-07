@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_DICTIONARIES_H_
-#define ORCHESTRATOR_SCRIPT_NODE_DICTIONARIES_H_
+#pragma once
 
 #include "script/script.h"
 #include "script/nodes/editable_pin_node.h"
@@ -69,5 +68,3 @@ public:
     String get_icon() const override;
     //~ End OScriptNode Interface
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_DICTIONARIES_H_

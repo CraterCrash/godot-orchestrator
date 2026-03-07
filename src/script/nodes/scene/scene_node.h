@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_SCENE_NODE_H
-#define ORCHESTRATOR_SCRIPT_NODE_SCENE_NODE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -64,5 +63,3 @@ public:
     NodePath get_scene_node_path() const { return _node_path; }
     String get_scene_node_class_name() const { return _class_name; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_SCENE_NODE_H

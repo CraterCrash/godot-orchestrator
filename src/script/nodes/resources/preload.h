@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_PRELOAD_H
-#define ORCHESTRATOR_SCRIPT_NODE_PRELOAD_H
+#pragma once
 
 #include "script/script.h"
 
@@ -52,5 +51,3 @@ public:
 
     String get_resource_path() const { return _resource_path; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_PRELOAD_H

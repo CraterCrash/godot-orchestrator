@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_ANALYZER_H
-#define ORCHESTRATOR_SCRIPT_ANALYZER_H
+#pragma once
 
 #include "script/parser/parser.h"
 #include "script/script_cache.h"
@@ -158,5 +157,3 @@ public:
 
     OScriptAnalyzer(OScriptParser* p_parser);
 };
-
-#endif // ORCHESTRATOR_SCRIPT_ANALYZER_H

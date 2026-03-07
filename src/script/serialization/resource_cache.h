@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_RESOURCE_CACHE_H
-#define ORCHESTRATOR_SCRIPT_RESOURCE_CACHE_H
+#pragma once
 
 #include "common/version.h"
 
@@ -106,5 +105,3 @@ public:
     ResourceCache();
     ~ResourceCache();
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_RESOURCE_CACHE_H
