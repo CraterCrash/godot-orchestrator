@@ -233,6 +233,8 @@ void OrchestratorEditorComponentView::edit_tree_item(TreeItem* p_item, const Cal
             // fancy name behavior that the item is modified or the tree repopulated. The new changed raw
             // name will be stashed into the item automatically.
             state->edited = callable_mp_lambda(this, [this, p_item, p_success, state] {
+                emit_signal("item_edit_finished");
+
                 const String text = p_item->get_text(0);
                 if (p_item->has_meta("__name")) {
                     p_item->set_meta("__name", text);
@@ -257,6 +259,8 @@ void OrchestratorEditorComponentView::edit_tree_item(TreeItem* p_item, const Cal
             // Defines a 'window_input' callback that handles checking whether the input was ESC.
             // If we detect ESC, the edit is canceled, and we dispatch the canceled callback.
             state->canceled = callable_mp_lambda(this, [this, p_item, p_canceled, state](const Ref<InputEvent>& event) {
+                emit_signal("item_edit_finished");
+
                 if (event.is_valid() && event->is_action_pressed("ui_cancel")) {
                     p_canceled.call(p_item);
 
@@ -281,6 +285,7 @@ void OrchestratorEditorComponentView::edit_tree_item(TreeItem* p_item, const Cal
     const Ref<SceneTreeTimer> timer = get_tree()->create_timer(0.1);
     if (timer.is_valid()) {
         timer->connect("timeout", callable_mp_lambda(this, [this] {
+            emit_signal("item_edit_started");
             _tree->edit_selected(true);
         }));
     }
@@ -395,6 +400,8 @@ void OrchestratorEditorComponentView::_bind_methods() {
     ADD_SIGNAL(MethodInfo("item_selected", PropertyInfo(Variant::OBJECT, "node"), PropertyInfo(Variant::OBJECT, "item")));
     ADD_SIGNAL(MethodInfo("item_activated", PropertyInfo(Variant::OBJECT, "node"), PropertyInfo(Variant::OBJECT, "item")));
     ADD_SIGNAL(MethodInfo("item_button_clicked", PropertyInfo(Variant::OBJECT, "none"), PropertyInfo(Variant::OBJECT, "item"), PropertyInfo(Variant::INT, "column"), PropertyInfo(Variant::INT, "id"), PropertyInfo(Variant::INT, "button")));
+    ADD_SIGNAL(MethodInfo("item_edit_started"));
+    ADD_SIGNAL(MethodInfo("item_edit_finished"));
 }
 
 OrchestratorEditorComponentView::OrchestratorEditorComponentView() {
