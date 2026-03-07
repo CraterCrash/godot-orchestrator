@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PIN_BITFIELD_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PIN_BITFIELD_H
+#pragma once
 
 #include "editor/graph/pins/button_base_pin.h"
 
@@ -41,5 +40,3 @@ protected:
     void _handle_selector_button_pressed() override;
     //~ End OrchestratorEditorGraphPinButtonBase Interface
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PIN_BITFIELD_H

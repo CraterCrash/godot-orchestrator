@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H
-#define ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H
+#pragma once
 
 #include "core/godot/templates/hashfuncs.h"
 #include "script/compiler/code_generator.h"
@@ -304,5 +303,3 @@ public:
 
     ~OScriptBytecodeGenerator() override;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H

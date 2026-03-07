@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_CORE_STRING_NAMES_H
-#define ORCHESTRATOR_CORE_GODOT_CORE_STRING_NAMES_H
+#pragma once
 
 #include <godot_cpp/variant/variant.hpp>
 
@@ -76,5 +75,3 @@ public:
 };
 
 #define CoreStringName(m_name) CoreStringNames::get_singleton()->m_name
-
-#endif // ORCHESTRATOR_CORE_GODOT_CORE_STRING_NAMES_H

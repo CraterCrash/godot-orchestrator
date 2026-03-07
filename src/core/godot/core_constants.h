@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_CORE_CONSTANTS_H
-#define ORCHESTRATOR_CORE_GODOT_CORE_CONSTANTS_H
+#pragma once
 
 #include <godot_cpp/templates/hash_map.hpp>
 
@@ -55,5 +54,3 @@ namespace GDE {
         static HashMap<StringName, int64_t> get_enum_values(const StringName& p_native_type);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_CORE_CONSTANTS_H

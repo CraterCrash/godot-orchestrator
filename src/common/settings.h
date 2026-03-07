@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SETTINGS_H
-#define ORCHESTRATOR_SETTINGS_H
+#pragma once
 
 #include <vector>
 
@@ -114,5 +113,3 @@ _FORCE_INLINE_ bool ORCHESTRATOR_GET_TRACK(T& r_field, const String& p_key, T p_
     }
     return false;
 }
-
-#endif  // ORCHESTRATOR_SETTINGS_H

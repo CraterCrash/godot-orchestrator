@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_CONSTANTS_H
-#define ORCHESTRATOR_SCRIPT_NODE_CONSTANTS_H
+#pragma once
 
 #include "script/script.h"
 
@@ -231,5 +230,3 @@ public:
 
     OScriptNodeSingletonConstant();
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_CONSTANTS_H

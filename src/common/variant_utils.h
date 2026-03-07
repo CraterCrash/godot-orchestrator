@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_VARIANT_UTILS_H
-#define ORCHESTRATOR_VARIANT_UTILS_H
+#pragma once
 
 #include <godot_cpp/variant/variant.hpp>
 
@@ -84,5 +83,3 @@ namespace VariantUtils {
     /// @return the evaluated result value between the two operands
     Variant evaluate(Variant::Operator p_operator, const Variant& p_left, const Variant& p_right);
 }
-
-#endif  // ORCHESTRATOR_VARIANT_UTILS_H
