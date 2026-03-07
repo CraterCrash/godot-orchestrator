@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PIN_INPUT_ACTION_PICKER_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PIN_INPUT_ACTION_PICKER_H
+#pragma once
 
 #include "editor/graph/pins/option_picker_pin.h"
 
@@ -31,5 +30,3 @@ protected:
     Control* _create_default_value_widget() override;
     //~ End OrchestratorEditorGraphPin interface
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PIN_INPUT_ACTION_PICKER_H

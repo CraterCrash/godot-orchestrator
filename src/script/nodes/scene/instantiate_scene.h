@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_INSTANTIATE_SCENE_H
-#define ORCHESTRATOR_SCRIPT_NODE_INSTANTIATE_SCENE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -58,5 +57,3 @@ public:
 
     String get_scene_path() const { return _scene; }
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_INSTANTIATE_SCENE_H

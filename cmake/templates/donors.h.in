@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_DONORS_GENERATED_H
-#define ORCHESTRATOR_DONORS_GENERATED_H
+#pragma once
 
 // THIS FILE IS GENERATED. EDITS WILL BE LOST.
 
@@ -34,5 +33,3 @@ const char *const DONORS_BRONZE[] = {
 const char *const SUPPORTERS[] = {
 @supporters@
 };
-
-#endif // ORCHESTRATOR_DONORS_GENERATED_H

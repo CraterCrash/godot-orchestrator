@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_OBJECT_ENUM_RESOLVER_H
-#define ORCHESTRATOR_CORE_GODOT_OBJECT_ENUM_RESOLVER_H
+#pragma once
 
 #include <godot_cpp/core/property_info.hpp>
 #include <godot_cpp/templates/list.hpp>
@@ -41,5 +40,3 @@ private:
 public:
     static List<EnumItem> resolve(const PropertyInfo& p_property);
 };
-
-#endif // ORCHESTRATOR_CORE_GODOT_OBJECT_ENUM_RESOLVER_H

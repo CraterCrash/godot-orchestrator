@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_H
-#define ORCHESTRATOR_ORCHESTRATION_H
+#pragma once
 
 #include "script/connection.h"
 #include "script/function.h"
@@ -280,5 +279,3 @@ public:
     Orchestration();
     ~Orchestration() override = default;
 };
-
-#endif  // ORCHESTRATOR_ORCHESTRATION_H

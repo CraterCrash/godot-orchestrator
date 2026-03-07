@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_EDITABLE_PIN_NODE_H
-#define ORCHESTRATOR_SCRIPT_EDITABLE_PIN_NODE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -59,5 +58,3 @@ public:
     /// @return true if the pin can be removed, false otherwise
     virtual bool can_remove_dynamic_pin(const Ref<OScriptNodePin>& p_pin) const { return false; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_EDITABLE_PIN_NODE_H

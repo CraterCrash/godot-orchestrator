@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PIN_OPTION_PICKER_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PIN_OPTION_PICKER_H
+#pragma once
 
 #include "editor/graph/graph_pin.h"
 
@@ -52,5 +51,3 @@ public:
 
     void set_tooltip_text(const String& p_tooltip_text);
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PIN_OPTION_PICKER_H

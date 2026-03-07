@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_VARIABLE_SET_H
-#define ORCHESTRATOR_SCRIPT_NODE_VARIABLE_SET_H
+#pragma once
 
 #include "script/nodes/variables/variable.h"
 
@@ -42,5 +41,3 @@ public:
     void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
     //~ End OScriptNode Interface
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_VARIABLE_SET_H

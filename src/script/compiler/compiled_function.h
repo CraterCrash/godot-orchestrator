@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_COMPILED_FUNCTION_H
-#define ORCHESTRATOR_SCRIPT_COMPILED_FUNCTION_H
+#pragma once
 
 #include "script/utility_functions.h"
 
@@ -470,6 +469,3 @@ public:
     OScriptFunctionState();
     ~OScriptFunctionState() override;
 };
-
-
-#endif // ORCHESTRATOR_SCRIPT_COMPILED_FUNCTION_H

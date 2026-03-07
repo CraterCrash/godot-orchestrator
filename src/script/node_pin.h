@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_PIN_H
-#define ORCHESTRATOR_SCRIPT_NODE_PIN_H
+#pragma once
 
 #include "common/guid.h"
 #include "script/target_object.h"
@@ -353,5 +352,3 @@ VARIANT_ENUM_CAST(EPinType);
 VARIANT_BITFIELD_CAST(OScriptNodePin::Flags)
 
 typedef OScriptNodePin OrchestrationGraphPin;
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_PIN_H

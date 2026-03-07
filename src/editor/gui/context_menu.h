@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CONTEXT_MENU_H
-#define ORCHESTRATOR_CONTEXT_MENU_H
+#pragma once
 
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -81,5 +80,3 @@ public:
 
     OrchestratorEditorContextMenu();
 };
-
-#endif // ORCHESTRATOR_CONTEXT_MENU_H

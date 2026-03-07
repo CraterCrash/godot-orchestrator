@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PIN_OBJECT_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PIN_OBJECT_H
+#pragma once
 
 #include "editor/graph/graph_pin.h"
 
@@ -31,5 +30,3 @@ protected:
     String _get_label_text() override;
     //~ End OrchestratorEditorGraphPin Interface
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PIN_OBJECT_H

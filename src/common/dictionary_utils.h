@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_DICTIONARY_UTILS_H
-#define ORCHESTRATOR_DICTIONARY_UTILS_H
+#pragma once
 
 #include <godot_cpp/core/method_bind.hpp>
 #include <godot_cpp/core/property_info.hpp>
@@ -68,5 +67,3 @@ namespace DictionaryUtils {
     /// @return an array of dictionaries
     Array from_properties(const Vector<PropertyInfo>& p_properties);
 }
-
-#endif  // ORCHESTRATOR_DICTIONARY_UTILS_H

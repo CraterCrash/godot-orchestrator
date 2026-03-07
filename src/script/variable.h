@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_VARIABLE_H
-#define ORCHESTRATOR_SCRIPT_VARIABLE_H
+#pragma once
 
 #include <godot_cpp/classes/resource.hpp>
 
@@ -208,5 +207,3 @@ public:
     /// @param p_other the other variable to source state from
     void copy_persistent_state(const Ref<OScriptVariable>& p_other);
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_VARIABLE_H
