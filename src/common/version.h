@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_VERSION_H
-#define ORCHESTRATOR_VERSION_H
+#pragma once
 
 #include "version.gen.h"
 
@@ -66,5 +65,3 @@
 // for easy comparison from code.
 // Exmaple: 2.1.4 will be 0x020104
 #define GODOT_VERSION 0x10000 * GODOT_VERSION_MAJOR + 0x100 * GODOT_VERSION_MINOR + GODOT_VERSION_PATCH
-
-#endif  // ORCHESTRATOR_VERSION_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_OBJECT_SCRIPT_LANGUAGE_H
-#define ORCHESTRATOR_CORE_GODOT_OBJECT_SCRIPT_LANGUAGE_H
+#pragma once
 
 #include <godot_cpp/classes/script.hpp>
 
@@ -30,5 +29,3 @@ namespace GDE {
         static bool is_valid(const Ref<godot::Script>& p_script);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_OBJECT_SCRIPT_LANGUAGE_H

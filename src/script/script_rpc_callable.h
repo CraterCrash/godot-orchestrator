@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_RPC_CALLABLE_H
-#define ORCHESTRATOR_SCRIPT_RPC_CALLABLE_H
+#pragma once
 
 #include <godot_cpp/variant/callable_custom.hpp>
 
@@ -52,5 +51,3 @@ public:
     OScriptRPCCallable(Object* p_object, const StringName& p_method);
     ~OScriptRPCCallable() override = default;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_RPC_CALLABLE_H

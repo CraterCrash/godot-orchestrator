@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_FILTER_RULES_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_FILTER_RULES_H
+#pragma once
 
 #include "editor/actions/rules/any_rule.h"
 #include "editor/actions/rules/action_type_rule.h"
@@ -24,5 +23,3 @@
 #include "editor/actions/rules/port_rule.h"
 #include "editor/actions/rules/search_text_rule.h"
 #include "editor/actions/rules/virtual_function_rule.h"
-
-#endif

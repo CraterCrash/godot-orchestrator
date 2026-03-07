@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_NODE_THEME_CACHE_H
-#define ORCHESTRATOR_EDITOR_GRAPH_NODE_THEME_CACHE_H
+#pragma once
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/style_box.hpp>
@@ -47,5 +46,3 @@ public:
     Ref<StyleBox> get_theme_stylebox(const StringName& p_name, const String& p_type_name);
 
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_NODE_THEME_CACHE_H

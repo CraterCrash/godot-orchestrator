@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_FILE_DIALOG_H
-#define ORCHESTRATOR_FILE_DIALOG_H
+#pragma once
 
 #include <godot_cpp/classes/file_dialog.hpp>
 
@@ -35,5 +34,3 @@ public:
     /// Displays the file dialog with common popup sizing & behavior
     void popup_file_dialog();
 };
-
-#endif // ORCHESTRATOR_FILE_DIALOG_H

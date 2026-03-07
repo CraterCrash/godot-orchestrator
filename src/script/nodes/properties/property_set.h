@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_NODE_SET_PROPERTY_H
-#define ORCHESTRATOR_NODE_SET_PROPERTY_H
+#pragma once
 
 #include "property.h"
 
@@ -35,5 +34,3 @@ public:
 
     void set_default_value(const Variant& p_default_value);
 };
-
-#endif  // ORCHESTRATOR_NODE_SET_PROPERTY_H

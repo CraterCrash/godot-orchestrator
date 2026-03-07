@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_COMMENT_H
-#define ORCHESTRATOR_SCRIPT_NODE_COMMENT_H
+#pragma once
 
 #include "script/script.h"
 
@@ -64,5 +63,3 @@ public:
     /// @return the font size, 0 means use the default size
     int get_font_size() const { return _font_size; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_COMMENT_H
