@@ -1054,6 +1054,12 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         source_graph->move_node_to(node->_node, target_graph);
     }
 
+    // Reapply connections in new graph
+    for (uint64_t connection_id : connections) {
+        const Connection C(connection_id);
+        target_graph->link(C.from_node, C.from_port, C.to_node, C.to_port);
+    }
+
     // Spawn the call functino node in the source graph
     NodeSpawnOptions options;
     options.node_class = OScriptNodeCallScriptFunction::get_class_static();
