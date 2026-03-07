@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_VIEW_H
-#define ORCHESTRATOR_EDITOR_VIEW_H
+#pragma once
 
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -76,6 +75,3 @@ public:
 
     ~OrchestratorEditorView() override = default;
 };
-
-
-#endif // ORCHESTRATOR_EDITOR_VIEW_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_WINDOW_WRAPPER_H
-#define ORCHESTRATOR_WINDOW_WRAPPER_H
+#pragma once
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
@@ -105,5 +104,3 @@ public:
 
     OrchestratorScreenSelect();
 };
-
-#endif // ORCHESTRATOR_WINDOW_WRAPPER_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_INSTANCE_NEW_H
-#define ORCHESTRATOR_SCRIPT_INSTANCE_NEW_H
+#pragma once
 
 #include "common/version.h"
 #include "script/compiler/compiled_function.h"
@@ -176,5 +175,3 @@ public:
     OScriptPlaceHolderInstance(const Ref<OScript>& p_script, Object* p_owner);
     ~OScriptPlaceHolderInstance() override;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_INSTANCE_NEW_H

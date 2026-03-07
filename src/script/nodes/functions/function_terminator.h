@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_FUNCTION_TERMINATOR_H
-#define ORCHESTRATOR_SCRIPT_NODE_FUNCTION_TERMINATOR_H
+#pragma once
 
 #include "script/script.h"
 
@@ -58,5 +57,3 @@ public:
     /// Get the function reference
     Ref<OScriptFunction> get_function() const { return _function; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_FUNCTION_TERMINATOR_H

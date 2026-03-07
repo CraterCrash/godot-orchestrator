@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
+#pragma once
 
 #include "common/godot_version.h"
 #include "core/godot/object/weak_ref.h"
@@ -359,6 +358,9 @@ public:
     void center_node_id(int p_id);
     void center_node(OrchestratorEditorGraphNode* p_node);
 
+    void straighten_all_connections(OrchestratorEditorGraphPin* p_pin);
+    void straighten_connection(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target);
+
     template <typename T, typename P> Vector<T*> predicate_find(P&& p_predicate);
     template <typename T, typename F> void for_each(F&& p_function, bool p_selected = false);
     template <typename T> Vector<T*> get_selected();
@@ -429,6 +431,3 @@ _FORCE_INLINE_ OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_
     p_options.node_class = NodeType::get_class_static();
     return spawn_node(p_options);
 }
-
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PANEL_H

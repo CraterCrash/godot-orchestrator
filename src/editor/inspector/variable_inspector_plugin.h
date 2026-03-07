@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_INSPECTOR_PLUGIN_VARIABLE_H
-#define ORCHESTRATOR_EDITOR_INSPECTOR_PLUGIN_VARIABLE_H
+#pragma once
 
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
 
@@ -43,6 +42,3 @@ public:
     /// @param p_object the object to edit
     void edit_classification(Object* p_object);
 };
-
-
-#endif // ORCHESTRATOR_EDITOR_INSPECTOR_PLUGIN_VARIABLE_H

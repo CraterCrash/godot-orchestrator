@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_PARSER_UTILS_H
-#define ORCHESTRATOR_SCRIPT_PARSER_UTILS_H
+#pragma once
 
 #ifdef DEV_TOOLS
 #include "script/parser/parser_nodes.h"
@@ -205,5 +204,3 @@ namespace OScriptParserUtils {
     };
 }
 #endif
-
-#endif // ORCHESTRATOR_SCRIPT_PARSER_UTILS_H

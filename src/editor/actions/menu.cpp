@@ -85,9 +85,7 @@ void OrchestratorEditorActionMenu::_search_gui_input(const Ref<InputEvent>& p_ev
             case KEY_DOWN:
             case KEY_PAGEUP:
             case KEY_PAGEDOWN: {
-                // Redirect these to the results pane
-                _results->_gui_input(p_event);
-                _search_box->accept_event();
+                push_and_accept_event(p_event, _search_box, _results);
                 break;
             }
             default: {
