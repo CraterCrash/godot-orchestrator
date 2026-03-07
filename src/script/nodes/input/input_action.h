@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_INPUT_ACTION_H
-#define ORCHESTRATOR_SCRIPT_NODE_INPUT_ACTION_H
+#pragma once
 
 #include "script/script.h"
 
@@ -69,5 +68,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(OScriptNodeInputAction::ActionMode)
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_INPUT_ACTION_H

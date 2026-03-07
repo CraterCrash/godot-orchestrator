@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_SELECT_TYPE_DIALOG_H
-#define ORCHESTRATOR_EDITOR_SELECT_TYPE_DIALOG_H
+#pragma once
 
 #include "editor/gui/search_dialog.h"
 
@@ -110,5 +109,3 @@ public:
     /// @param p_title the title to be used
     void set_popup_title(const String& p_title) { _title = p_title; }
 };
-
-#endif  // ORCHESTRATOR_EDITOR_SELECT_TYPE_DIALOG_H

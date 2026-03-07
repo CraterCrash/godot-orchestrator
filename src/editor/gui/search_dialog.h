@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_SEARCH_DIALOG_H
-#define ORCHESTRATOR_EDITOR_SEARCH_DIALOG_H
+#pragma once
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -240,5 +239,3 @@ public:
     /// @param p_current_name the current name
     virtual void popup_create(bool p_dont_clear, bool p_replace_mode = false, const String& p_current_type = "", const String& p_current_name = "");
 };
-
-#endif  // ORCHESTRATOR_EDITOR_SEARCH_DIALOG_H

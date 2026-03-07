@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_H
-#define ORCHESTRATOR_SCRIPT_H
+#pragma once
 
 #include "core/godot/doc_data.h"
 #include "orchestration/orchestration.h"
@@ -326,5 +325,3 @@ public:
     OScript();
     ~OScript() override;
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_H

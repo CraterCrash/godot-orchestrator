@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_SCRIPT_COMPONENTS_CONTAINER_H
-#define ORCHESTRATOR_EDITOR_SCRIPT_COMPONENTS_CONTAINER_H
+#pragma once
 
 #include "orchestration/orchestration.h"
 #include "script/script.h"
@@ -132,5 +131,3 @@ public:
 
     OrchestratorScriptComponentsContainer();
 };
-
-#endif

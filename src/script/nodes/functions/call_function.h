@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_CALL_FUNCTION_H
-#define ORCHESTRATOR_SCRIPT_NODE_CALL_FUNCTION_H
+#pragma once
 
 #include "script/nodes/editable_pin_node.h"
 
@@ -139,5 +138,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(OScriptNodeCallFunction::FunctionFlags)
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_CALL_FUNCTION_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_COMPOSE_H
-#define ORCHESTRATOR_SCRIPT_NODE_COMPOSE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -94,5 +93,3 @@ public:
 
     Variant::Type get_target_type() const { return _type; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_COMPOSE_H

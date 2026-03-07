@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_SIGNALS_H
-#define ORCHESTRATOR_SCRIPT_SIGNALS_H
+#pragma once
 
 #include <godot_cpp/classes/resource.hpp>
 
@@ -85,5 +84,3 @@ public:
     /// @param p_description a description of the signal
     void set_description(const String& p_description);
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_SIGNALS_H

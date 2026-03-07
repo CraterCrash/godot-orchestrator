@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_NODE_PRINT_STRING_H
-#define ORCHESTRATOR_NODE_PRINT_STRING_H
+#pragma once
 
 #include "script/script.h"
 
@@ -72,5 +71,3 @@ public:
     OScriptNodePrintStringOverlay();
     ~OScriptNodePrintStringOverlay() override;
 };
-
-#endif  // ORCHESTRATOR_NODE_PRINT_STRING_H

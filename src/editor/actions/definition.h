@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_DEFINITION_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_DEFINITION_H
+#pragma once
 
 #include <optional>
 
@@ -138,4 +137,3 @@ public:
 
 };
 
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_DEFINITION_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_FUNCTION_ENTRY_H
-#define ORCHESTRATOR_SCRIPT_NODE_FUNCTION_ENTRY_H
+#pragma once
 
 #include "function_terminator.h"
 
@@ -53,5 +52,3 @@ public:
 
     OScriptNodeFunctionEntry();
 };
-
-#endif  // ORCHESTRATOR_FUNCTION_ENTRY_H
