@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_METHOD_BIND_H
-#define ORCHESTRATOR_CORE_GODOT_METHOD_BIND_H
+#pragma once
 
 #include <godot_cpp/core/method_bind.hpp>
 
@@ -26,5 +25,3 @@ namespace GDE {
         static godot::PropertyInfo get_return_info(godot::MethodBind* p_method_bind);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_METHOD_BIND_H

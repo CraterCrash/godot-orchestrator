@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_FACTORY_H
-#define ORCHESTRATOR_SCRIPT_NODE_FACTORY_H
+#pragma once
 
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -159,5 +158,3 @@ private:
 #define ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(m_class) /**************************************/ \
     GDREGISTER_ABSTRACT_CLASS(m_class);                                                             \
     ::OScriptNodeFactory::register_node_class<m_class>();
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_FACTORY_H

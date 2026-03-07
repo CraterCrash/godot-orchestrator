@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EXTENSION_DB_H
-#define ORCHESTRATOR_EXTENSION_DB_H
+#pragma once
 
 #include "common/variant_operators.h"
 
@@ -195,5 +194,3 @@ namespace godot {
         ~ExtensionDB();
     };
 }
-
-#endif // ORCHESTRATOR_EXTENSION_DB_H

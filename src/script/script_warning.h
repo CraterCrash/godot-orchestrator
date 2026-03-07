@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_WARNING_H
-#define ORCHESTRATOR_SCRIPT_WARNING_H
+#pragma once
 
 #ifdef DEBUG_ENABLED
 
@@ -161,5 +160,3 @@ public:
 };
 
 #endif // DEBUG_ENABLED
-
-#endif // ORCHESTRATOR_SCRIPT_WARNING_H

@@ -14,13 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SERIALIZATION_FORMAT_DEFS_H
-#define ORCHESTRATOR_SERIALIZATION_FORMAT_DEFS_H
+#pragma once
 
 #define ORCHESTRATOR_SCRIPT_EXTENSION           "os"
 #define ORCHESTRATOR_SCRIPT_TEXT_EXTENSION      "torch"
 #define ORCHESTRATOR_SCRIPT_TYPE                "OScript"
 
 #define ORCHESTRATOR_SCRIPT_QUALIFY_EXTENSION(x) "." x
-
-#endif  // ORCHESTRATOR_SERIALIZATION_FORMAT_DEFS_H

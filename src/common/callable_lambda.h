@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CALLABLE_LAMBDA_H
-#define ORCHESTRATOR_CALLABLE_LAMBDA_H
+#pragma once
 
 #include <utility>
 
@@ -107,5 +106,3 @@ godot::Callable callable_mp_lambda(godot::Object* p_instance, Lambda&& p_lambda)
 }
 
 #define callable_mp_signal_lambda(name, ...) callable_mp_lambda(this, [this] { emit_signal(name __VA_ARGS__ ); })
-
-#endif

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_UTILS_H
-#define ORCHESTRATOR_ORCHESTRATION_UTILS_H
+#pragma once
 
 #include "orchestration/orchestration.h"
 
@@ -24,5 +23,3 @@ using namespace godot;
 namespace OrchestrationUtils {
     Vector<Node*> find_all_nodes_in_edited_scene_using_orchestration(const Orchestration* p_orchestration);
 }
-
-#endif // ORCHESTRATOR_ORCHESTRATION_UTILS_H

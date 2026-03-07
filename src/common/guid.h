@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_GUID_H
-#define ORCHESTRATOR_GUID_H
+#pragma once
 
 #include <godot_cpp/classes/random_number_generator.hpp>
 
@@ -74,5 +73,3 @@ public:
 };
 
 _FORCE_INLINE_ uint64_t hash(const Guid& p_guid) { return p_guid.hash(); }
-
-#endif  // ORCHESTRATOR_GUID_H

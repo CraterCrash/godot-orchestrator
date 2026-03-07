@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_MACROS_H
-#define ORCHESTRATOR_MACROS_H
+#pragma once
 
 #include "common/version.h"
 
@@ -89,5 +88,3 @@
     (target)->get_viewport()->push_input(evt);      \
     (source)->accept_event();                       \
     (source)->grab_focus();
-
-#endif // ORCHESTRATOR_MACROS_H

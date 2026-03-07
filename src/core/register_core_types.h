@@ -14,13 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_REGISTER_CORE_TYPES_H
-#define ORCHESTRATOR_CORE_REGISTER_CORE_TYPES_H
+#pragma once
 
 void register_core_singletons();
 void unregister_core_singletons();
 
 void create_core_singletons();
 void destroy_core_singletons();
-
-#endif // ORCHESTRATOR_CORE_REGISTER_CORE_TYPES_H

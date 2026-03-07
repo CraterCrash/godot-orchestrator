@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_FILTER_RULE_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_FILTER_RULE_H
+#pragma once
 
 #include "editor/actions/definition.h"
 
@@ -40,5 +39,3 @@ public:
 
     ~OrchestratorEditorActionFilterRule() override = default;
 };
-
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_RULE_H
