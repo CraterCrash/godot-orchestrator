@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_PARSER_H
-#define ORCHESTRATOR_SCRIPT_PARSER_H
+#pragma once
 
 #include "orchestration/orchestration.h"
 #include "script/nodes/script_nodes.h"
@@ -419,6 +418,3 @@ public:
     OScriptParser();
     ~OScriptParser();
 };
-
-
-#endif // ORCHESTRATOR_SCRIPT_PARSER_H

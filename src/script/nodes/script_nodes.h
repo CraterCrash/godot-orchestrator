@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODES_H
-#define ORCHESTRATOR_SCRIPT_NODES_H
+#pragma once
 
 #include "editable_pin_node.h"
 
@@ -93,5 +92,3 @@
 #include "variables/local_variable.h"
 #include "variables/variable_get.h"
 #include "variables/variable_set.h"
-
-#endif  // ORCHESTRATOR_SCRIPT_NODES_H

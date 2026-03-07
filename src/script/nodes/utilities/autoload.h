@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_AUTOLOAD_H
-#define ORCHESTRATOR_SCRIPT_NODE_AUTOLOAD_H
+#pragma once
 
 #include "script/script.h"
 
@@ -61,5 +60,3 @@ public:
 
     String get_autoload_name() const { return _autoload; }
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_AUTOLOAD_H
