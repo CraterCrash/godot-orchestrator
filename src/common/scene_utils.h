@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCENE_UTILS_H
-#define ORCHESTRATOR_SCENE_UTILS_H
+#pragma once
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/font.hpp>
@@ -143,5 +142,3 @@ namespace SceneUtils {
         return nullptr;
     }
 }
-
-#endif  // ORCHESTRATOR_SCENE_UTILS_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_PROPERTY_UTILS_H
-#define ORCHESTRATOR_PROPERTY_UTILS_H
+#pragma once
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -172,5 +171,3 @@ namespace PropertyUtils {
     /// @return the custom script, if applicable, or an invalid reference if applicable
     Ref<Script> get_custom_type_script(const Object* p_object);
 }
-
-#endif // ORCHESTRATOR_PROPERTY_UTILS_H

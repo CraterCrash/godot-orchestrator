@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_SERIALIZATION_RESOURCE_LOADER_TEXT_H
-#define ORCHESTRATOR_SCRIPT_SERIALIZATION_RESOURCE_LOADER_TEXT_H
+#pragma once
 
 #include <godot_cpp/classes/resource_format_loader.hpp>
 
@@ -50,5 +49,3 @@ public:
     Variant _load(const String& p_path, const String& p_original_path, bool p_use_sub_threads, int32_t p_cache_mode) const override;
     //~ End ResourceFormatLoader Interface
 };
-
-#endif // ORCHESTRATOR_SCRIPT_SERIALIZATION_RESOURCE_LOADER_TEXT_H

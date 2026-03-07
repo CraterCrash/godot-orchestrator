@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_LANGUAGE_H
-#define ORCHESTRATOR_SCRIPT_LANGUAGE_H
+#pragma once
 
 #include "core/godot/string/string.h"
 #include "common/version.h"
@@ -240,5 +239,3 @@ public:
     OScriptLanguage();
     ~OScriptLanguage() override;
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_LANGUAGE_H

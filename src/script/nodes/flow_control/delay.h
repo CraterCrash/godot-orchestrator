@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_DELAY_H
-#define ORCHESTRATOR_SCRIPT_NODE_DELAY_H
+#pragma once
 
 #include "script/script.h"
 
@@ -46,5 +45,3 @@ public:
 
     float get_duration() const { return _duration; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_DELAY_H

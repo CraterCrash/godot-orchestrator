@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_PROPERTY_EXTENDS_H
-#define ORCHESTRATOR_EDITOR_PROPERTY_EXTENDS_H
+#pragma once
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_property.hpp>
@@ -59,5 +58,3 @@ public:
     /// @param p_allow_path whether the path option is selectable
     void setup(const String& p_base_type, bool p_allow_path = true);
 };
-
-#endif

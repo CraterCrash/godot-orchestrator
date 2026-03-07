@@ -14,13 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_FORMAT_H
-#define ORCHESTRATOR_ORCHESTRATION_FORMAT_H
+#pragma once
 
 #include <cstdint>
 
 struct OrchestrationFormat {
     static inline uint32_t FORMAT_VERSION = 3;
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_FORMAT_H

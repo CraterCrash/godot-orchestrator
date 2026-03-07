@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
+#pragma once
 
 #include "common/godot_version.h"
 #include "core/godot/object/weak_ref.h"
@@ -431,6 +430,3 @@ _FORCE_INLINE_ OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_
     p_options.node_class = NodeType::get_class_static();
     return spawn_node(p_options);
 }
-
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
