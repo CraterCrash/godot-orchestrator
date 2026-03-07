@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_FORMAT_TEXT_H
-#define ORCHESTRATOR_ORCHESTRATION_FORMAT_TEXT_H
+#pragma once
 
 #include <godot_cpp/classes/resource_loader.hpp>
 
@@ -27,5 +26,3 @@ struct OrchestrationTextFormat {
     static String create_start_tag(const String& p_class, const String& p_script_class, const String& p_icon_path, uint32_t p_steps, uint32_t p_version, int64_t p_uid);
     static String create_ext_resource_tag(const String& p_type, const String& p_path, const String& p_id, bool p_newline = true);
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_FORMAT_TEXT_H

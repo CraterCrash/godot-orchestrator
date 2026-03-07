@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_CHANCE_H
-#define ORCHESTRATOR_SCRIPT_NODE_CHANCE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -47,5 +46,3 @@ public:
     int get_chance() const { return _chance; }
 
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_CHANCE_H

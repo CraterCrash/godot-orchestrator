@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_WEAK_REF_H
-#define ORCHESTRATOR_WEAK_REF_H
+#pragma once
 
 #include <godot_cpp/core/object.hpp>
 
@@ -64,5 +63,3 @@ public:
 
     WeakRef() : _id(ObjectID()) { }
 };
-
-#endif // ORCHESTRATOR_WEAK_REF_H

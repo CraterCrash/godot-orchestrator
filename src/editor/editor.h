@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_H
-#define ORCHESTRATOR_EDITOR_H
+#pragma once
 
 #include "editor/graph/graph_node_theme_cache.h"
 
@@ -351,5 +350,3 @@ public:
     explicit OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapper);
     ~OrchestratorEditor() override = default;
 };
-
-#endif // ORCHESTRATOR_EDITOR_H

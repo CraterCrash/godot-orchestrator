@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_CACHE_H
-#define ORCHESTRATOR_SCRIPT_CACHE_H
+#pragma once
 
 #include "script/script.h"
 #include "script/script_source.h"
@@ -114,5 +113,3 @@ public:
     OScriptCache();
     ~OScriptCache();
 };
-
-#endif // ORCHESTRATOR_SCRIPT_CACHE_H

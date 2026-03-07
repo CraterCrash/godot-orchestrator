@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_LOCAL_VARIABLE_H
-#define ORCHESTRATOR_SCRIPT_NODE_LOCAL_VARIABLE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -81,5 +80,3 @@ public:
     /// Get the associated variable GUID
     String get_variable_guid() const;
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_LOCAL_VARIABLE_H

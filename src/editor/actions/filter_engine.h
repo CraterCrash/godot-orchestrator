@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_FILTER_ENGINE_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_FILTER_ENGINE_H
+#pragma once
 
 #include "editor/actions/definition.h"
 #include "editor/actions/rules/rules.h"
@@ -59,5 +58,3 @@ public:
         const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
         const FilterContext& p_context);
 };
-
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_ENGINE_H

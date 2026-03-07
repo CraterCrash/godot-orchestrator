@@ -14,11 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ERROR_LIST_H
-#define ORCHESTRATOR_ERROR_LIST_H
+#pragma once
 
 namespace godot {
     extern const char* error_names[];
 }
-
-#endif

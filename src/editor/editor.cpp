@@ -1828,6 +1828,7 @@ void OrchestratorEditor::notify_script_changed(const Ref<Script>& p_script) {
 
 void OrchestratorEditor::notify_scene_changed(Node* p_node) {
     // Notifies that a scene tab changed
+    _update_script_names();
     emit_signal("scene_changed", p_node);
 }
 
@@ -2051,15 +2052,9 @@ void OrchestratorEditor::find_scene_scripts(Node* p_base, Node* p_current, HashS
         return;
     }
 
-    #if GODOT_VERSION >= 0x040500
-    // Was introduced in Godot 4.5
-    if (GDE_INTERFACE(object_get_script_instance)(p_current, nullptr))
-    #endif
-    {
-        Ref<Script> script = p_current->get_script();
-        if (script.is_valid()) {
-            r_used.insert(script);
-        }
+    Ref<OScript> script = p_current->get_script();
+    if (script.is_valid()) {
+        r_used.insert(script);
     }
 
     for (int i = 0; i < p_current->get_child_count(); i++) {

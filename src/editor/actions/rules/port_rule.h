@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_FILTER_PORT_RULE_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_FILTER_PORT_RULE_H
+#pragma once
 
 #include "editor/actions/rules/rule.h"
 
@@ -45,5 +44,3 @@ public:
     // Configure the port based on the source drag pin
     void configure(const OrchestratorEditorGraphPin* p_pin, const Object* p_target);
 };
-
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_PORT_RULE_H
