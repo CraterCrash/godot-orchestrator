@@ -276,7 +276,7 @@ void OScriptGraph::remove_all_nodes() {
 
 void OScriptGraph::move_node_to(const Ref<OScriptNode>& p_node, const Ref<OScriptGraph>& p_target) {
     remove_node(p_node);
-    p_target->add_node(p_node);
+    _orchestration->add_node(p_target, p_node);
 }
 
 Ref<OScriptNode> OScriptGraph::copy_node(int p_node_id, bool p_duplicate_resources) {
