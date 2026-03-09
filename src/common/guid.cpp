@@ -16,6 +16,11 @@
 //
 #include "guid.h"
 
+std::mutex& Guid::_get_rng_mutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
 Ref<RandomNumberGenerator>& Guid::_get_random_number_generator() {
     static Ref<RandomNumberGenerator> rng;
     if (rng.is_null()) {
@@ -46,7 +51,7 @@ void Guid::invalidate() {
 }
 
 bool Guid::is_valid() const {
-    return _a != 0 && _b != 0 && _c != 0 && _d != 0;
+    return _a != 0 || _b != 0 || _c != 0 || _d != 0;
 }
 
 String Guid::to_string() const {
@@ -54,6 +59,8 @@ String Guid::to_string() const {
 }
 
 Guid Guid::create_guid() {
+    std::scoped_lock lock(_get_rng_mutex());
+
     const Ref<RandomNumberGenerator>& rng = _get_random_number_generator();
 
     uint32_t a = rng->randi();
@@ -71,6 +78,8 @@ Guid Guid::create_guid() {
 }
 
 void Guid::cleanup() {
+    std::scoped_lock lock(_get_rng_mutex());
+
     Ref<RandomNumberGenerator>& rng = _get_random_number_generator();
     rng.unref();
 }
