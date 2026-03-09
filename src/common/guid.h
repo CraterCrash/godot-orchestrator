@@ -27,6 +27,7 @@ class Guid {
     uint32_t _c{ 0 };
     uint32_t _d{ 0 };
 
+    static std::mutex& _get_rng_mutex();
     static Ref<RandomNumberGenerator>& _get_random_number_generator();
 
     /// Parses the Guid string into its respective components
