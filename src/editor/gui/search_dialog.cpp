@@ -76,6 +76,12 @@ void OrchestratorEditorSearchHelpBit::_notification(int p_what) {
             }
             break;
         }
+        case NOTIFICATION_EXIT_TREE: {
+            if (_help_bit->is_connected("meta_clicked", callable_mp_this(_meta_clicked))) {
+                _help_bit->disconnect("meta_clicked", callable_mp_this(_meta_clicked));
+            }
+            break;
+        }
         default: {
             break;
         }
