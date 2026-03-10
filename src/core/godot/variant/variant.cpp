@@ -105,10 +105,11 @@ bool GDE::Variant::StringLikeVariantComparator::compare(const godot::Variant& p_
 
 bool GDE::Variant::is_null(const godot::Variant& p_value) {
     if (p_value.get_type() == godot::Variant::OBJECT) {
-        return cast_to<Object*>(p_value) != nullptr;
-    } else {
-        return true;
+        if (cast_to<Object*>(p_value)) {
+            return false;
+        }
     }
+    return true;
 }
 
 bool GDE::Variant::is_read_only(const godot::Variant& p_value) {
