@@ -96,8 +96,7 @@ void OrchestratorEditorComponentView::_tree_item_button_clicked(TreeItem* p_item
 
 void OrchestratorEditorComponentView::_reset_tree_size() {
     if (_tree && _tree->is_visible()) {
-        _tree->set_visible(false);
-        _tree->set_visible(true);
+        _tree->update_minimum_size();
     }
 }
 
