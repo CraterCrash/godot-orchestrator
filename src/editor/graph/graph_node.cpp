@@ -434,21 +434,13 @@ Vector<OrchestratorEditorGraphPin*> OrchestratorEditorGraphNode::get_eligible_au
 }
 
 OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_input_pin(int32_t p_slot) {
-    for (const SlotMapKeyValue& E : _slots) {
-        if (E.value.left && E.value.slot == p_slot) {
-            return E.value.left;
-        }
-    }
-    return nullptr;
+    const Slot* slot = _slots.getptr(p_slot);
+    return slot ? slot->left : nullptr;
 }
 
 OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_output_pin(int32_t p_slot) {
-    for (const SlotMapKeyValue& E : _slots) {
-        if (E.value.right && E.value.slot == p_slot) {
-            return E.value.right;
-        }
-    }
-    return nullptr;
+    const Slot* slot = _slots.getptr(p_slot);
+    return slot ? slot->right : nullptr;
 }
 
 OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_pin(int32_t p_slot, EPinDirection p_direction) {
@@ -541,7 +533,8 @@ int32_t OrchestratorEditorGraphNode::get_pin_port(OrchestratorEditorGraphPin* p_
     if (p_pin->get_direction() == PD_Input) {
         for (int32_t port = 0; port < get_input_port_count(); port++) {
             int32_t slot_index = get_input_port_slot(port);
-            if (_slots.has(slot_index) && _slots[slot_index].left == p_pin) {
+            const Slot* slot = _slots.getptr(slot_index);
+            if (slot && slot->left == p_pin) {
                 return port;
             }
         }
@@ -550,7 +543,8 @@ int32_t OrchestratorEditorGraphNode::get_pin_port(OrchestratorEditorGraphPin* p_
     if (p_pin->get_direction() == PD_Output) {
         for (int32_t port = 0; port < get_output_port_count(); port++) {
             int32_t slot_index = get_output_port_slot(port);
-            if (_slots.has(slot_index) && _slots[slot_index].right == p_pin) {
+            const Slot* slot = _slots.getptr(slot_index);
+            if (slot && slot->right == p_pin) {
                 return port;
             }
         }
