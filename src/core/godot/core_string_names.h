@@ -21,13 +21,15 @@
 using namespace godot;
 
 class CoreStringNames {
-    inline static CoreStringNames* singleton = nullptr;
+    static CoreStringNames* singleton;
 
 public:
     static void create() { singleton = memnew(CoreStringNames); }
     static void free() {
-        memdelete(singleton);
-        singleton = nullptr;
+        if (singleton) {
+            memdelete(singleton);
+            singleton = nullptr;
+        }
     }
 
     _FORCE_INLINE_ static CoreStringNames* get_singleton() { return singleton; }
