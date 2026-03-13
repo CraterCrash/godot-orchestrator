@@ -21,13 +21,15 @@
 using namespace godot;
 
 class SceneStringNames {
-    inline static SceneStringNames* singleton = nullptr;
+    static SceneStringNames* singleton;
 
 public:
     static void create() { singleton = memnew(SceneStringNames); }
     static void free() {
-        memdelete(singleton);
-        singleton = nullptr;
+        if (singleton) {
+            memdelete(singleton);
+            singleton = nullptr;
+        }
     }
 
     _FORCE_INLINE_ static SceneStringNames* get_singleton() { return singleton; }
