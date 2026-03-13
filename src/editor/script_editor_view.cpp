@@ -24,6 +24,7 @@
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/editor/settings/editor_settings.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/goto_node_dialog.h"
@@ -40,6 +41,8 @@
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
@@ -425,10 +428,10 @@ void OrchestratorScriptGraphEditorView::_update_bookmarks_list() {
     _bookmarks_menu->set_min_size(Vector2());
     _bookmarks_menu->reset_size();
 
-    _bookmarks_menu->add_item("Toggle Bookmark", TOGGLE_BOOKMARK);
-    _bookmarks_menu->add_item("Remove All Bookmarks", REMOVE_BOOKMARKS);
-    _bookmarks_menu->add_item("Goto Next Bookmark", GOTO_NEXT_BOOKMARK);
-    _bookmarks_menu->add_item("Goto Previous Bookmark", GOTO_PREV_BOOKMARK);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/toggle_bookmark"), TOGGLE_BOOKMARK);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/remove_all_bookmarks"), REMOVE_BOOKMARKS);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/goto_next_bookmark"), GOTO_NEXT_BOOKMARK);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/goto_previous_bookmark"), GOTO_PREV_BOOKMARK);
 
     if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
         const Vector<OrchestratorEditorGraphNode*> nodes = active_panel->predicate_find<OrchestratorEditorGraphNode>(
@@ -449,10 +452,10 @@ void OrchestratorScriptGraphEditorView::_update_breakpoints_list() {
     _breakpoints_menu->set_min_size(Vector2());
     _breakpoints_menu->reset_size();
 
-    _breakpoints_menu->add_item("Toggle Breakpoint", TOGGLE_BREAKPOINT);
-    _breakpoints_menu->add_item("Remove All Breakpoints", REMOVE_BREAKPOINTS);
-    _breakpoints_menu->add_item("Goto Next Breakpoint", GOTO_NEXT_BREAKPOINT);
-    _breakpoints_menu->add_item("Goto Previous Breakpoint", GOTO_PREV_BREAKPOINT);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/toggle_breakpoint"), TOGGLE_BREAKPOINT);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/remove_all_breakpoints"), REMOVE_BREAKPOINTS);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/goto_next_breakpoint"), GOTO_NEXT_BREAKPOINT);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("orchestrator_graph_editor/goto_next_breakpoint"), GOTO_PREV_BREAKPOINT);
 
     if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
         const Vector<OrchestratorEditorGraphNode*> nodes = active_panel->predicate_find<OrchestratorEditorGraphNode>(
@@ -594,11 +597,12 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
 
     _edit_hb->add_child(_debug_menu);
     _debug_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
-    _debug_menu->get_popup()->add_item("Step Into", DEBUG_STEP_INTO, KEY_F11);
-    _debug_menu->get_popup()->add_item("Step Over", DEBUG_STEP_OVER, KEY_F10);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/step_into"), DEBUG_STEP_INTO);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/step_over"), DEBUG_STEP_OVER);
+
     _debug_menu->get_popup()->add_separator();
-    _debug_menu->get_popup()->add_item("Break", DEBUG_BREAK);
-    _debug_menu->get_popup()->add_item("Continue", DEBUG_CONTINUE, KEY_F12);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/break"), DEBUG_BREAK);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/continue"), DEBUG_CONTINUE);
     _debug_menu->connect("about_to_popup", callable_mp_this(_update_debug_menu));
 }
 
@@ -1053,6 +1057,50 @@ static OrchestratorEditorView* create_editor(const Ref<Resource>& p_resource) {
 }
 
 void OrchestratorScriptGraphEditorView::register_editor() {
+
+    ED_SHORTCUT("orchestrator_graph_editor/toggle_bookmark", "Toggle Bookmark", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_ALT, KEY_B));
+    ED_SHORTCUT("orchestrator_graph_editor/remove_all_bookmarks", "Remove All Bookmarks");
+    ED_SHORTCUT("orchestrator_graph_editor/goto_next_bookmark", "Goto Next Bookmark", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_B));
+    ED_SHORTCUT_OVERRIDE("orchestrator_graph_editor/goto_next_bookmark", "macos", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_B));
+    ED_SHORTCUT("orchestrator_graph_editor/goto_previous_bookmark", "Goto Previous Bookmark", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT, KEY_B));
+
+    ED_SHORTCUT("orchestrator_graph_editor/toggle_breakpoint", "Toggle Breakpoint", KEY_F9);
+    ED_SHORTCUT_OVERRIDE("orchestrator_graph_editor/toggle_breakpoint", "macos", OACCEL_KEY(KEY_MASK_META | KEY_MASK_SHIFT, KEY_B));
+    ED_SHORTCUT("orchestrator_graph_editor/remove_all_breakpoints", "Remove All Breakpoints", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT, KEY_F9));
+    // Using Control for these shortcuts even on macOS because Command+Comma is taken for opening Editor Settings
+    ED_SHORTCUT("orchestrator_graph_editor/goto_next_breakpoint", "Goto Next Breakpoint", OACCEL_KEY(KEY_MASK_CTRL, KEY_PERIOD));
+    ED_SHORTCUT("orchestrator_graph_editor/goto_previous_breakpoint", "Goto Previous Breakpoint", OACCEL_KEY(KEY_MASK_CTRL, KEY_COMMA));
+
+    ED_SHORTCUT("orchestrator_graph_editor/goto_node", "Goto Node", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_L));
+
+    if (!InputMap::get_singleton()->has_action("ui_graph_knot")) {
+        Ref<InputEventMouseButton> mb;
+        mb.instantiate();
+        mb->get_modifiers_mask().set_flag(KEY_MASK_CMD_OR_CTRL);
+        mb->set_button_index(MOUSE_BUTTON_LEFT);
+
+        InputMap::get_singleton()->add_action("ui_graph_knot");
+        InputMap::get_singleton()->action_add_event("ui_graph_knot", mb);
+    }
+
+    ED_SHORTCUT("orchestrator_graph_editor/add_knot", "Add Knot");
+
+    // Node options
+    ED_SHORTCUT("orchestrator_graph_editor/toggle_resizer", "Toggle Resizer");
+    ED_SHORTCUT("orchestrator_graph_editor/resize_to_content", "Resize to Content");
+    ED_SHORTCUT("orchestrator_graph_editor/refresh_nodes", "Refresh Nodes");
+    ED_SHORTCUT("orchestrator_graph_editor/break_all_links", "Break Node Link(s)");
+    ED_SHORTCUT("orchestrator_graph_editor/call_parent_function", "Add Call to Parent Function");
+    ED_SHORTCUT("orchestrator_graph_editor/add_option_pin", "Add Option Pin");
+    ED_SHORTCUT("orchestrator_graph_editor/expand_node", "Expand Node");
+    ED_SHORTCUT("orchestrator_graph_editor/collapse_to_function", "Collapse to Function");
+    ED_SHORTCUT("orchestrator_graph_editor/align_top", "Align Top");
+    ED_SHORTCUT("orchestrator_graph_editor/align_middle", "Align Middle");
+    ED_SHORTCUT("orchestrator_graph_editor/align_bottom", "Align Bottom");
+    ED_SHORTCUT("orchestrator_graph_editor/align_left", "Align Left");
+    ED_SHORTCUT("orchestrator_graph_editor/align_center", "Align Center");
+    ED_SHORTCUT("orchestrator_graph_editor/align_right", "Align Right");
+
     OrchestratorEditor::register_create_view_function(create_editor);
 }
 
