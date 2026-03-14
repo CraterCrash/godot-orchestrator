@@ -15,6 +15,7 @@
 ## Supporters
     
     Adrian D
+    dominuslex
     Fred A
     Grindle
     gumby
