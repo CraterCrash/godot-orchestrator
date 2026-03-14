@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## [2.4.2.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.2.stable) - 2026-03-14
+
+- [f7e33fc](http://github.com/CraterCrash/godot-orchestrator/commit/f7e33fc8d8279ae160a811432375218ec4474eba) - GH-1356 Fix crash connecting to while node
+- [2207e60](http://github.com/CraterCrash/godot-orchestrator/commit/2207e606e33fd7aba95d126403c03c09e530ad19) - GH-1283 Remove support for Godot 4.2 and 4.3
+- [7fd6d8d](http://github.com/CraterCrash/godot-orchestrator/commit/7fd6d8d232298d88c53d2895aa02073af595c65d) - GH-1347 Make several UI code performance improvements
+- [c34259e](http://github.com/CraterCrash/godot-orchestrator/commit/c34259e29c91cf15c12e41f95cf41baaf506ba15) - GH-1343 Fix collapse nodes to function behavior
+- [108a3b8](http://github.com/CraterCrash/godot-orchestrator/commit/108a3b8368050bbcb9f8aae41db20f27add14999) - GH-1345 Fix Guid thread-safety & validity check
+- [4b860d2](http://github.com/CraterCrash/godot-orchestrator/commit/4b860d297da1854759892ddb8e9165652b0e02e7) - GH-1349 Use correct null-check in `GDE::Variant::is_null`
+- [d50a1ff](http://github.com/CraterCrash/godot-orchestrator/commit/d50a1ff13e41e5e54cd91a6b14372fd48afaebfa) - GH-1351 Correctly handle signal bindings on tree exit
+- [1dcc5df](http://github.com/CraterCrash/godot-orchestrator/commit/1dcc5df7761339d3a140d4d325a45c2b1362347b) - GH-1357 Fix Stylebox and Editor crash on macOS
+- [1bbbfee](http://github.com/CraterCrash/godot-orchestrator/commit/1bbbfeefff23de56c36d920d047f97a50199e254) - Style: Replace header guards with `#pragma once`
+- [f71ac74](http://github.com/CraterCrash/godot-orchestrator/commit/f71ac746750dab38a66ddd449daedf79050fdca2) - GH-1340 Refresh ConnectionsDock on signal disconnect
+- [6dfbcd7](http://github.com/CraterCrash/godot-orchestrator/commit/6dfbcd741bf01c4b7932a66f5221baca428e3163) - GH-709 Support connection straightening
+- [f77f5ed](http://github.com/CraterCrash/godot-orchestrator/commit/f77f5ed6d66f7adc31188df65f49caacc033db17) - GH-1337 Fix script list highlighting
+- [86fcd31](http://github.com/CraterCrash/godot-orchestrator/commit/86fcd3175d359bb037a1e1213a15aa803f9ff507) - GH-1329 Allow using arrow keys in search dialogs
+- [76c89ff](http://github.com/CraterCrash/godot-orchestrator/commit/76c89ff080f37e06b4fa2d0c7d70be7271d2a62b) - GH-1327 Avoid get_function_node_id error
+- [d5ba002](http://github.com/CraterCrash/godot-orchestrator/commit/d5ba002f468e63a4124aeefe5546a094728044b2) - GH-1325 Fix `_init` method not being called
+
 ## [2.4.1.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.4.1.stable) - 2026-02-25
 
 - [75b60cc](http://github.com/CraterCrash/godot-orchestrator/commit/75b60ccdf4ac28089da83d74ccd1aa5aeae218c7) - GH-1316 Fix crash when removing function
