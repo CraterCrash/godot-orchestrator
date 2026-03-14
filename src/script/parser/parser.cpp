@@ -2016,6 +2016,8 @@ OScriptParser::StatementResult OScriptParser::build_while(const Ref<OScriptNodeW
     const Ref<OScriptNodePin> repeat_pin = p_script_node->find_pin(0, PD_Output);
     if (repeat_pin.is_valid() && repeat_pin->has_any_connections()) {
         while_node->loop = build_suite("while loop", repeat_pin, suite);
+    } else {
+        while_node->loop = alloc_node<SuiteNode>();
     }
 
     add_statement(while_node);
