@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_SERIALIZER_H
-#define ORCHESTRATOR_ORCHESTRATION_SERIALIZER_H
+#pragma once
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
@@ -73,5 +72,3 @@ public:
 
     virtual ~OrchestrationSerializer() = default;
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_SERIALIZER_H

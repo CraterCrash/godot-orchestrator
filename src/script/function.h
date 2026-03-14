@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_FUNCTION_H
-#define ORCHESTRATOR_SCRIPT_FUNCTION_H
+#pragma once
 
 #include "common/guid.h"
 
@@ -201,5 +200,3 @@ public:
     void set_description(const String& p_description);
 
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_FUNCTION_H

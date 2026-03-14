@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_VARIANT_ARRAY_H
-#define ORCHESTRATOR_CORE_GODOT_VARIANT_ARRAY_H
+#pragma once
 
 #include <godot_cpp/variant/variant.hpp>
 
@@ -48,5 +47,3 @@ namespace GDE {
     };
 
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_VARIANT_ARRAY_H

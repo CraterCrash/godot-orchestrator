@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_TYPE_BUTTON_PROPERTY_H
-#define ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_TYPE_BUTTON_PROPERTY_H
+#pragma once
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_property.hpp>
@@ -59,5 +58,3 @@ public:
     /// @param p_selected_type the selected type
     void setup(const String& p_base_type, const String& p_selected_type);
 };
-
-#endif // ORCHESTRATOR_EDITOR_INSPECTOR_PROPERTY_TYPE_BUTTON_PROPERTY_H

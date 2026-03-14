@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_CALL_PARENT_FUNCTION_H
-#define ORCHESTRATOR_SCRIPT_NODE_CALL_PARENT_FUNCTION_H
+#pragma once
 
 #include "script/nodes/functions/call_member_function.h"
 #include "script/nodes/functions/call_script_function.h"
@@ -57,5 +56,3 @@ public:
 
     OScriptNodeCallParentScriptFunction();
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_CALL_PARENT_FUNCTION_H

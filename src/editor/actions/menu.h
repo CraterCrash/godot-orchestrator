@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_MENU_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_MENU_H
+#pragma once
 
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/help.h"
@@ -26,6 +25,7 @@
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/tree.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 
 using namespace godot;
 
@@ -107,5 +107,3 @@ public:
 
     OrchestratorEditorActionMenu();
 };
-
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_MENU_H

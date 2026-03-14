@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_H
-#define ORCHESTRATOR_SCRIPT_NODE_H
+#pragma once
 
 #include "script/action.h"
 #include "script/language.h"
@@ -76,13 +75,11 @@ public:
         EXPERIMENTAL     = 1 << 3       //! Node is experimental and may change
     };
 
-    #if GODOT_VERSION >= 0x040300
     enum BreakpointFlags {
         BREAKPOINT_NONE,
         BREAKPOINT_ENABLED,
         BREAKPOINT_DISABLED
     };
-    #endif
 
 protected:
     Orchestration* _orchestration = nullptr;   //! Owning orchestration
@@ -94,9 +91,7 @@ protected:
     Vector<Ref<OScriptNodePin>> _pins;         //! Pins
     bool _reconstruction_queued = false;       //! Tracks if node reconstruction has been queued
     bool _reconstructing = false;              //! Tracks if the node is in reconstruction
-    #if GODOT_VERSION >= 0x040300
     BreakpointFlags _breakpoint_flag;          //! Transient state for breakpoints
-    #endif
 
 private:
     // Serialization for pins
@@ -152,7 +147,6 @@ public:
     /// @param p_position the node's position coordinates
     void set_position(const Vector2& p_position);
 
-    #if GODOT_VERSION >= 0x040300
     /// Returns whether this node has a breakpoint, regardless if breakpoint is disabled.
     /// @return if this node has a breakpoint
     bool has_breakpoint() const { return _breakpoint_flag != BREAKPOINT_NONE; }
@@ -164,7 +158,6 @@ public:
     /// Sets the node's breakpoint flag
     /// @param p_flag the breakpoint flag state
     void set_breakpoint_flag(BreakpointFlags p_flag);
-    #endif
 
     /// Get the node's flags.
     /// @return flags, defaults to none.
@@ -423,5 +416,3 @@ protected:
     (x)* _node = nullptr;
 
 typedef OScriptNode OrchestrationGraphNode;
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_H

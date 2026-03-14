@@ -21,7 +21,6 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
-#include "common/version.h"
 #include "core/godot/scene_string_names.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -40,8 +39,7 @@ void OrchestratorPropertySelector::_sbox_input(const Ref<InputEvent>& p_event) {
             case KEY_DOWN:
             case KEY_PAGEUP:
             case KEY_PAGEDOWN: {
-                _search_options->_gui_input(key);
-                _search_box->accept_event();
+                push_and_accept_event(key, _search_box, _search_options);
 
                 TreeItem* root = _search_options->get_root();
                 if (!root->get_first_child()) {
@@ -49,6 +47,9 @@ void OrchestratorPropertySelector::_sbox_input(const Ref<InputEvent>& p_event) {
                 }
 
                 TreeItem* current = _search_options->get_selected();
+                if (!current) {
+                    break;
+                }
 
                 TreeItem* item = _search_options->get_next_selected(root);
                 while (item) {
@@ -82,11 +83,7 @@ void OrchestratorPropertySelector::_item_selected() {
 }
 
 bool OrchestratorPropertySelector::_contains_ignore_case(const String& p_text, const String& p_what) const {
-    #if GODOT_VERSION >= 0x040300
     return p_text.containsn(p_what);
-    #else
-    return p_text.to_lower().contains(p_what.to_lower());
-    #endif
 }
 
 void OrchestratorPropertySelector::_update_search() {
@@ -195,19 +192,17 @@ void OrchestratorPropertySelector::_bind_methods() {
     ADD_SIGNAL(MethodInfo("selected", PropertyInfo(Variant::STRING, "name")));
 }
 
-OrchestratorPropertySelector::OrchestratorPropertySelector() {
+OrchestratorPropertySelector::OrchestratorPropertySelector() : _type(Variant::NIL) {
     VBoxContainer* vbox = memnew(VBoxContainer);
     add_child(vbox);
 
     _search_box = memnew(LineEdit);
+    _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
+    _search_box->set_clear_button_enabled(true);
     SceneUtils::add_margin_child(vbox, "Search:", _search_box);
 
     _search_options = memnew(Tree);
-    #if GODOT_VERSION >= 0x040300
     _search_options->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-    #else
-    _search_options->set_auto_translate(false);
-    #endif
     _search_options->set_hide_root(true);
     _search_options->set_hide_folding(true);
     SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);

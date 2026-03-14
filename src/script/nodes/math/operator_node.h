@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_OPERATOR_NODE_H
-#define ORCHESTRATOR_SCRIPT_OPERATOR_NODE_H
+#pragma once
 
 #include "script/script.h"
 #include "api/extension_db.h"
@@ -64,5 +63,3 @@ public:
     /// @return true whether an operator is supported by this node, false if it is not.
     static bool is_operator_supported(const OperatorInfo& p_operator);
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_OPERATOR_NODE_H

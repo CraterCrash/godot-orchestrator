@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PANEL_KNOT_EDITOR_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PANEL_KNOT_EDITOR_H
+#pragma once
 
 #include "common/godot_version.h"
 #include "common/guid.h"
@@ -92,6 +91,8 @@ public:
     bool is_create_knot_keybind(const Ref<InputEvent>& p_event) const;
     bool is_remove_knot_keybind(const Ref<InputEvent>& p_event) const;
 
+    Guid get_knot_guid(uint64_t p_connection_id, uint32_t p_knot_index) const;
+
     PointArray get_knots_for_connection(uint64_t p_connection_id) const;
     Vector<Ref<Curve2D>> get_curves_for_points(const PointArray& p_points, float p_curvature) const;
 
@@ -112,5 +113,3 @@ public:
     explicit OrchestratorEditorGraphPanelKnotEditor(const GodotVersionInfo& p_godot_version);
     ~OrchestratorEditorGraphPanelKnotEditor() override = default;
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PANEL_KNOT_EDITOR_H

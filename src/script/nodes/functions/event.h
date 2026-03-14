@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_NODE_EVENT_H
-#define ORCHESTRATOR_NODE_EVENT_H
+#pragma once
 
 #include "script/nodes/functions/function_entry.h"
 
@@ -59,5 +58,3 @@ public:
     /// @return true if the method is for an event callback, false otherwise
     static bool is_event_method(const MethodInfo& p_method);
 };
-
-#endif  // ORCHESTRATOR_NODE_EVENT_H

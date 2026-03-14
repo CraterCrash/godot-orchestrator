@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_AWAIT_SIGNAL_H
-#define ORCHESTRATOR_SCRIPT_NODE_AWAIT_SIGNAL_H
+#pragma once
 
 #include "script/script.h"
 
@@ -44,5 +43,3 @@ public:
     PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_AWAIT_SIGNAL_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_DOCDATA_H
-#define ORCHESTRATOR_CORE_GODOT_DOCDATA_H
+#pragma once
 
 #include <godot_cpp/templates/hash_map.hpp>
 
@@ -160,5 +159,3 @@ public:
         static Dictionary to_dict(const ClassDoc& p_doc);
     };
 };
-
-#endif // ORCHESTRATOR_CORE_GODOT_DOCDATA_H

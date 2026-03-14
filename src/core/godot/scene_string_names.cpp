@@ -14,19 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#pragma once
+#include "core/godot/scene_string_names.h"
 
-#include "editor/graph/graph_pin.h"
-
-/// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping an <code>Object</code> pin.
-///
-class OrchestratorEditorGraphPinObject : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinObject, OrchestratorEditorGraphPin);
-
-protected:
-    static void _bind_methods() { }
-
-    //~ Begin OrchestratorEditorGraphPin Interface
-    String _get_label_text() override;
-    //~ End OrchestratorEditorGraphPin Interface
-};
+SceneStringNames* SceneStringNames::singleton = nullptr;

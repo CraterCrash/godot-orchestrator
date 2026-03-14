@@ -14,10 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_SERIALIZER_TEXT_H
-#define ORCHESTRATOR_ORCHESTRATION_SERIALIZER_TEXT_H
+#pragma once
 
-#include "common/version.h"
 #include "orchestration/serialization/serializer.h"
 
 // Forward declarations
@@ -38,10 +36,6 @@ class OrchestrationTextSerializer : public OrchestrationSerializer {
 
     HashMap<Ref<Resource>, String> _external_resources;
     HashMap<Ref<Resource>, String> _internal_resources;
-
-    #if GODOT_VERSION < 0x040300
-    String _generate_scene_unique_id();
-    #endif
 
     static String _write_resources(void* p_userdata, const Ref<Resource>& p_resource);
     String _write_resource(const Ref<Resource>& p_resource);
@@ -69,5 +63,3 @@ public:
     Error save(const Ref<Resource>& p_resource, const String& p_path, uint32_t p_flags) override;
     //~ End OrchestrationSerializer Interface
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_SERIALIZER_TEXT_H

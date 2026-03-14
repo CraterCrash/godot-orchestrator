@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_FOR_EACH_H
-#define ORCHESTRATOR_SCRIPT_NODE_FOR_EACH_H
+#pragma once
 
 #include "script/script.h"
 
@@ -54,5 +53,3 @@ public:
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_FOR_EACH_H

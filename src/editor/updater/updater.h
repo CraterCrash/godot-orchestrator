@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_UPDATER_H
-#define ORCHESTRATOR_UPDATER_H
+#pragma once
 
 #include "godot_cpp/templates/hash_map.hpp"
 
@@ -212,5 +211,3 @@ protected:
 public:
     OrchestratorUpdaterButton();
 };
-
-#endif // ORCHESTRATOR_UPDATER_H
