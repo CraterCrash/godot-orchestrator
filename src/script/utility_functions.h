@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_UTILITY_FUNCTIONS_H
-#define ORCHESTRATOR_SCRIPT_UTILITY_FUNCTIONS_H
+#pragma once
 
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/templates/list.hpp>
@@ -39,5 +38,3 @@ public:
     static void register_functions();
     static void unregister_functions();
 };
-
-#endif // ORCHESTRATOR_SCRIPT_UTILITY_FUNCTIONS_H

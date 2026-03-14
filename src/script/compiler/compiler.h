@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_COMPILER_H
-#define ORCHESTRATOR_SCRIPT_COMPILER_H
+#pragma once
 
 #include "script/compiler/code_generator.h"
 #include "script/parser/parser.h"
@@ -95,5 +94,3 @@ public:
 
     OScriptCompiler() = default;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_COMPILER_H

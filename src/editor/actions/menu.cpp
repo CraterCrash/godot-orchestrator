@@ -85,9 +85,7 @@ void OrchestratorEditorActionMenu::_search_gui_input(const Ref<InputEvent>& p_ev
             case KEY_DOWN:
             case KEY_PAGEUP:
             case KEY_PAGEDOWN: {
-                // Redirect these to the results pane
-                _results->_gui_input(p_event);
-                _search_box->accept_event();
+                push_and_accept_event(p_event, _search_box, _results);
                 break;
             }
             default: {
@@ -714,9 +712,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _results = memnew(Tree);
     _results->set_hide_root(true);
     _results->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
-    #if GODOT_VERSION >= 0x040300
     _results->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-    #endif
     _results->connect(SceneStringName(item_activated), callable_mp_this(_confirmed));
     _results->connect("cell_selected", callable_mp_this(_item_selected));
     _results->connect("nothing_selected", callable_mp_this(_nothing_selected));

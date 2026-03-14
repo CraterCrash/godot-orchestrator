@@ -103,9 +103,7 @@ namespace PropertyUtils {
             case Variant::PACKED_STRING_ARRAY:
             case Variant::PACKED_VECTOR2_ARRAY:
             case Variant::PACKED_VECTOR3_ARRAY:
-            #if GODOT_VERSION >= 0x040300
             case Variant::PACKED_VECTOR4_ARRAY:
-            #endif
             case Variant::ARRAY:
             case Variant::DICTIONARY: {
                 return true;

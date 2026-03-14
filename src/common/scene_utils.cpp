@@ -191,30 +191,30 @@ namespace SceneUtils {
         return get_relative_scene_root(p_node->get_owner());
     }
 
-    Vector<Node*> find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script) {
-        Vector<Node*> nodes;
+    void find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script, Vector<Node*>& r_result) {
         if (!p_current || (p_current->get_owner() != p_base && p_base != p_current)) {
-            return nodes;
+            return;
         }
 
         Ref<Script> c = p_current->get_script();
         if (c == p_script) {
-            nodes.push_back(p_current);
+            r_result.push_back(p_current);
         }
 
         for (int i = 0; i < p_current->get_child_count(); i++) {
-            Vector<Node*> found = find_all_nodes_for_script(p_base, p_current->get_child(i), p_script);
-            nodes.append_array(found);
+            find_all_nodes_for_script(p_base, p_current->get_child(i), p_script, r_result);
         }
-
-        return nodes;
     }
 
     Vector<Node*> find_all_nodes_for_script_in_edited_scene(const Ref<Script>& p_script) {
         SceneTree* scene_tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
         if (scene_tree) {
             Node* scene_root = scene_tree->get_edited_scene_root();
-            return find_all_nodes_for_script(scene_root, scene_root, p_script);
+
+            Vector<Node*> results;
+            find_all_nodes_for_script(scene_root, scene_root, p_script, results);
+
+            return results;
         }
         return {};
     }

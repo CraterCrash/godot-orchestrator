@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_STRING_UTILS_H
-#define ORCHESTRATOR_STRING_UTILS_H
+#pragma once
 
 #include <godot_cpp/variant/string.hpp>
 
@@ -61,5 +60,3 @@ namespace StringUtils {
     String quote(const String& p_base, const String& quotechar = "\"");
     //~ End "taken from ustring.h"
 }
-
-#endif // ORCHESTRATOR_STRING_UTILS_H

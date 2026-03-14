@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NATIVE_CLASS_H
-#define ORCHESTRATOR_SCRIPT_NATIVE_CLASS_H
+#pragma once
 
 #include <godot_cpp/classes/ref_counted.hpp>
 
@@ -41,5 +40,3 @@ public:
 
     explicit OScriptNativeClass(const StringName& p_name);
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NATIVE_CLASS_H

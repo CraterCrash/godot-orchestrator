@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_NODE_FACTORY_H
-#define ORCHESTRATOR_EDITOR_GRAPH_NODE_FACTORY_H
+#pragma once
 
 #include "editor/graph/graph_node.h"
 
@@ -23,5 +22,3 @@ class OrchestratorEditorGraphNodeFactory {
 public:
     static OrchestratorEditorGraphNode* create_node(const Ref<OrchestrationGraphNode>& p_node);
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_NODE_FACTORY_H

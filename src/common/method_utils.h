@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_METHOD_UTILS_H
-#define ORCHESTRATOR_METHOD_UTILS_H
+#pragma once
 
 #include <godot_cpp/core/method_bind.hpp>
 
@@ -67,5 +66,3 @@ namespace MethodUtils {
     /// @return true if the method structures are the same, false otherwise
     bool has_same_signature(const MethodInfo& p_method_a, const MethodInfo& p_method_b);
 }
-
-#endif // ORCHESTRATOR_METHOD_UTILS_H

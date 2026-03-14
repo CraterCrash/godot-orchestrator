@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_RANDOM_H
-#define ORCHESTRATOR_SCRIPT_NODE_RANDOM_H
+#pragma once
 
 #include "script/nodes/editable_pin_node.h"
 
@@ -53,5 +52,3 @@ public:
 
     int get_possibility_count() const { return _possibilities; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_RANDOM_H

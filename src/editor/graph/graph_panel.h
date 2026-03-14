@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PANEL_H
+#pragma once
 
 #include "common/godot_version.h"
 #include "core/godot/object/weak_ref.h"
@@ -302,10 +301,6 @@ public:
     bool _is_in_output_hotzone(Object* p_in_node, int32_t p_in_port, const Vector2& p_mouse_position) override;
     //~ End GraphEdit Interface
 
-    #if GODOT_VERSION < 0x040300
-    Dictionary get_closest_connection_at_point(const Vector2& p_position, float p_max_distance = 4.0f);
-    #endif
-
     void set_graph(const Ref<OrchestrationGraph>& p_graph);
     void reloaded_from_file();
 
@@ -357,6 +352,9 @@ public:
 
     void center_node_id(int p_id);
     void center_node(OrchestratorEditorGraphNode* p_node);
+
+    void straighten_all_connections(OrchestratorEditorGraphPin* p_pin);
+    void straighten_connection(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target);
 
     template <typename T, typename P> Vector<T*> predicate_find(P&& p_predicate);
     template <typename T, typename F> void for_each(F&& p_function, bool p_selected = false);
@@ -428,6 +426,3 @@ _FORCE_INLINE_ OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_
     p_options.node_class = NodeType::get_class_static();
     return spawn_node(p_options);
 }
-
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PANEL_H

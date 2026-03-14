@@ -18,7 +18,6 @@
 
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
-#include "common/version.h"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -93,35 +92,8 @@ StringName GDE::ClassDB::get_property_getter(const StringName& p_class_name, con
 }
 
 Variant GDE::ClassDB::get_property_default_value(const StringName& p_class_name, const StringName& p_property_name) {
-    #if GODOT_VERSION >= 0x040300
     // See https://github.com/godotengine/godot/pull/90916
     return GClassDB::class_get_property_default_value(p_class_name, p_property_name);
-    #else
-    static HashMap<String, HashMap<String, Variant>> default_value_cache;
-    if (!default_value_cache.has(p_class_name)) {
-        if (GClassDB::can_instantiate(p_class_name)) {
-            Variant instance =  GClassDB::instantiate(p_class_name);
-            const Ref<Resource> resource = instance;
-            if (resource.is_valid()) {
-                const TypedArray<Dictionary> properties = resource->get_property_list();
-                for (uint32_t index = 0; index < properties.size(); index++) {
-                    const PropertyInfo& property = DictionaryUtils::to_property(properties[index]);
-                    if (property.usage & (PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_EDITOR)) {
-                        default_value_cache[p_class_name][property.name] = resource->get(property.name);
-                    }
-                }
-            } else {
-                // An object
-                memdelete(Object::cast_to<Object>(instance));
-            }
-        }
-    }
-
-    if (default_value_cache.has(p_class_name))
-        return default_value_cache[p_class_name][p_property_name];
-
-    return {};
-    #endif
 }
 
 bool GDE::ClassDB::has_signal(const StringName& p_class_name, const StringName& p_signal_name, bool p_no_inheritance) {

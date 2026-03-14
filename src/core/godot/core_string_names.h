@@ -14,21 +14,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_CORE_STRING_NAMES_H
-#define ORCHESTRATOR_CORE_GODOT_CORE_STRING_NAMES_H
+#pragma once
 
 #include <godot_cpp/variant/variant.hpp>
 
 using namespace godot;
 
 class CoreStringNames {
-    inline static CoreStringNames* singleton = nullptr;
+    static CoreStringNames* singleton;
 
 public:
     static void create() { singleton = memnew(CoreStringNames); }
     static void free() {
-        memdelete(singleton);
-        singleton = nullptr;
+        if (singleton) {
+            memdelete(singleton);
+            singleton = nullptr;
+        }
     }
 
     _FORCE_INLINE_ static CoreStringNames* get_singleton() { return singleton; }
@@ -76,5 +77,3 @@ public:
 };
 
 #define CoreStringName(m_name) CoreStringNames::get_singleton()->m_name
-
-#endif // ORCHESTRATOR_CORE_GODOT_CORE_STRING_NAMES_H

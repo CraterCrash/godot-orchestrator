@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_CONNECTIONS_H
-#define ORCHESTRATOR_SCRIPT_CONNECTIONS_H
+#pragma once
 
 #include <godot_cpp/classes/accept_dialog.hpp>
 
@@ -51,5 +50,3 @@ public:
 
     OrchestratorScriptConnectionsDialog() = default;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_CONNECTIONS_H

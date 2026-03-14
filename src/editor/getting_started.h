@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_GETTING_STARTED_H
-#define ORCHESTRATOR_GETTING_STARTED_H
+#pragma once
 
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -38,5 +37,3 @@ protected:
     void _notification(int p_what);
     //~ End Wrapped Interface
 };
-
-#endif

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_EMIT_MEMBER_SIGNAL_H
-#define ORCHESTRATOR_SCRIPT_NODE_EMIT_MEMBER_SIGNAL_H
+#pragma once
 
 #include "script/script.h"
 
@@ -56,5 +55,3 @@ public:
 
     MethodInfo get_signal_info() const { return _method; }
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_EMIT_MEMBER_SIGNAL_H

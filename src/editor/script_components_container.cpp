@@ -846,6 +846,14 @@ void OrchestratorScriptComponentsContainer::_component_focus_item(TreeItem* p_it
     }
 }
 
+void OrchestratorScriptComponentsContainer::_component_item_edit_started() {
+    _editing = true;
+}
+
+void OrchestratorScriptComponentsContainer::_component_item_edit_finished() {
+    _editing = false;
+}
+
 void OrchestratorScriptComponentsContainer::_update_components(int p_component_type) {
     if (!_orchestration.is_valid()) {
         return;
@@ -882,16 +890,16 @@ void OrchestratorScriptComponentsContainer::_update_components(int p_component_t
 
 void OrchestratorScriptComponentsContainer::_find_and_edit_function(const String& p_function_name) {
     TreeItem* item = _functions->find_item(p_function_name);
-    if (item) {
-        _functions->rename_tree_item(item, callable_mp_this(_component_rename_item));
-    }
+    ERR_FAIL_NULL_MSG(item, "Failed to find function with name " + p_function_name);
+
+    _functions->rename_tree_item(item, callable_mp_this(_component_rename_item));
 }
 
 void OrchestratorScriptComponentsContainer::_find_and_edit_variable(const String& p_variable_name) {
     TreeItem* item = _variables->find_item(p_variable_name);
-    if (item) {
-        _variables->rename_tree_item(item, callable_mp_this(_component_rename_item));
-    }
+    ERR_FAIL_NULL_MSG(item, "Failed to find variable with name " + p_variable_name);
+
+    _variables->rename_tree_item(item, callable_mp_this(_component_rename_item));
 }
 
 void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
@@ -959,23 +967,27 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
                 }
             }
         } else if (script_graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
-            int function_id = _get_orchestration()->get_function_node_id(script_graph->get_graph_name());
+            if (_get_orchestration()->has_function(script_graph->get_graph_name())) {
+                int function_id = _get_orchestration()->get_function_node_id(script_graph->get_graph_name());
 
-            const Ref<OScriptFunction> function = _get_orchestration()->find_function(script_graph->get_graph_name());
+                const Ref<OScriptFunction> function = _get_orchestration()->find_function(script_graph->get_graph_name());
+                if (function.is_valid()) {
 
-            if (function.is_valid() && !function->is_connected(CoreStringName(changed), callable_mp_this(_functions_changed))) {
-                function->connect(CoreStringName(changed), callable_mp_this(_functions_changed));
+                }
+                if (function.is_valid() && !function->is_connected(CoreStringName(changed), callable_mp_this(_functions_changed))) {
+                    function->connect(CoreStringName(changed), callable_mp_this(_functions_changed));
+                }
+
+                String name = script_graph->get_graph_name();
+                if (_use_function_friendly_names) {
+                    name = name.capitalize();
+                }
+
+                TreeItem* item = _functions->add_tree_fancy_item(name, script_graph->get_graph_name(), function_icon);
+                item->set_meta("__component_type", SCRIPT_FUNCTION);
+                item->set_meta("__node_id", function_id);
+                item->set_meta("__override", function.is_valid() ? !function->is_user_defined() : false);
             }
-
-            String name = script_graph->get_graph_name();
-            if (_use_function_friendly_names) {
-                name = name.capitalize();
-            }
-
-            TreeItem* item = _functions->add_tree_fancy_item(name, script_graph->get_graph_name(), function_icon);
-            item->set_meta("__component_type", SCRIPT_FUNCTION);
-            item->set_meta("__node_id", function_id);
-            item->set_meta("__override", function.is_valid() ? !function->is_user_defined() : false);
         }
     }
 
@@ -1230,6 +1242,11 @@ void OrchestratorScriptComponentsContainer::set_edit_state(const Variant& p_stat
 }
 
 void OrchestratorScriptComponentsContainer::update() {
+    // Avoids a queued refresh signal to break edits
+    if (_editing) {
+        return;
+    }
+
     _update_components(COMPONENT_MAX);
 }
 
@@ -1266,6 +1283,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _graphs->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
     _graphs->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _graphs->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
+    _graphs->connect("item_edit_started", callable_mp_this(_component_item_edit_started));
+    _graphs->connect("item_edit_finished", callable_mp_this(_component_item_edit_finished));
     _graphs->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A graph allows you to place many types of nodes to create various behaviors. "
         "Event graphs are flexible and can control multiple event nodes that start execution, "
@@ -1290,6 +1309,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _functions->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
     _functions->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _functions->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
+    _functions->connect("item_edit_started", callable_mp_this(_component_item_edit_started));
+    _functions->connect("item_edit_finished", callable_mp_this(_component_item_edit_finished));
     _functions->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A function graph allows the encapsulation of functionality for re-use. Function graphs have "
         "a single input with an optional output node. Function graphs have a single execution pin "
@@ -1304,6 +1325,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _macros->set_tree_drag_forward(callable_mp_this(_component_item_dragged));
     _macros->set_tree_gui_handler(callable_mp_this(_component_item_gui_input));
     _macros->set_add_button_disabled(true);
+    _macros->connect("item_edit_started", callable_mp_this(_component_item_edit_started));
+    _macros->connect("item_edit_finished", callable_mp_this(_component_item_edit_finished));
     _macros->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A macro graph allows for the encapsulation of functionality for re-use. Macros have both a "
         "singular input and output node, but these nodes can have as many input or output data "
@@ -1321,6 +1344,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _variables->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
     _variables->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _variables->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
+    _variables->connect("item_edit_started", callable_mp_this(_component_item_edit_started));
+    _variables->connect("item_edit_finished", callable_mp_this(_component_item_edit_finished));
     _variables->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A variable represents some data that will be stored and managed by the orchestration.\n\n"
         "Drag a variable from the component view onto the graph area to select whether to create "
@@ -1337,6 +1362,8 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
     _signals->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
     _signals->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
     _signals->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
+    _signals->connect("item_edit_started", callable_mp_this(_component_item_edit_started));
+    _signals->connect("item_edit_finished", callable_mp_this(_component_item_edit_finished));
     _signals->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
         "A signal is used to send a notification synchronously to any number of observers that have "
         "connected to the defined signal on the orchestration. Signals allow for a variable number "

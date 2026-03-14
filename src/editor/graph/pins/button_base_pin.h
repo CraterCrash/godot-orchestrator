@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PIN_BUTTON_BASE_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PIN_BUTTON_BASE_H
+#pragma once
 
 #include "editor/graph/graph_pin.h"
 
@@ -61,5 +60,3 @@ public:
     void set_clear_button_default_value(const Variant& p_clear_default) { _clear_default = p_clear_default; }
 
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PIN_BUTTON_BASE_H
