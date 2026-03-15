@@ -20,7 +20,10 @@
 #include "core/godot/scene_string_names.h"
 
 void OrchestratorEditorGraphPinTextEdit::_update_control_value(const Variant& p_value) {
-    _control->set_text(p_value);
+    const String text = p_value;
+    if (_control->get_text() != text) {
+        _control->set_text(p_value);
+    }
 }
 
 Variant OrchestratorEditorGraphPinTextEdit::_read_control_value() {
