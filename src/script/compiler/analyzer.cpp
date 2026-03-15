@@ -5179,10 +5179,10 @@ void OScriptAnalyzer::reduce_preload(OScriptParser::PreloadNode* p_preload) {
 		} else {
 			// TODO: Don't load if validating: use completion cache.
 
-			// Must load GDScript separately to permit cyclic references
+			// Must load OScript separately to permit cyclic references
 			// as ResourceLoader::load() detects and rejects those.
 			const String &res_type = GDE::ResourceLoader::get_resource_type(p_preload->resolved_path);
-			if (res_type == "GDScript") {
+			if (res_type == "OScript") {
 				Error err = OK;
 				Ref<OScript> res = get_depended_shallow_script(p_preload->resolved_path, err);
 				p_preload->resource = res;
