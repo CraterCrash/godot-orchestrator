@@ -2356,6 +2356,10 @@ void OrchestratorEditorGraphPanel::_drop_data_files_as_exported_variables(const 
         variable->set_exported(true);
         variable->set_info(property);
         variable->set_classification("class:" + res->get_class());
+
+        emit_signal("nodes_changed");
+
+        _set_edited(true);
     }
 }
 
