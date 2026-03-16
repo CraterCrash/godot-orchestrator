@@ -35,7 +35,7 @@ jobs:
           path: |
             ${{ github.workspace }}
       - name: Delete incremental artifacts
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: |
             ${{ matrix.pattern }}
