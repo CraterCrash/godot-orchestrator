@@ -708,7 +708,8 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
                     break;
                 }
                 node_id_map[old_node->get_id()] = entry->get_id();
-                old_graph->move_node_to(entry, new_graph);
+                old_graph->remove_node(entry);
+                new_graph->add_node(entry);
                 new_entry = entry;
                 continue;
             }
@@ -724,7 +725,8 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
                     break;
                 }
                 node_id_map[old_node->get_id()] = result->get_id();
-                old_graph->move_node_to(result, new_graph);
+                old_graph->remove_node(result);
+                new_graph->add_node(result);
                 new_result = result;
                 continue;
             }
