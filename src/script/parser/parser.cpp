@@ -2907,14 +2907,14 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
         if (graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
             // This physical function
             const Ref<OScriptFunction> function = graph->get_functions()[0];
-            if (function.is_valid()) {
+            if (function.is_valid() && function->get_owning_node_id() >= 0) {
                 FunctionNode* node = build_function(function, graph);
                 clazz->add_member(node);
             }
         }
         else if (graph->get_flags().has_flag(OScriptGraph::GF_EVENT)) {
             for (const Ref<OScriptFunction>& function : graph->get_functions()) {
-                if (function.is_valid()) {
+                if (function.is_valid() && function->get_owning_node_id() >= 0) {
                     FunctionNode* node = build_function(function, graph);
                     clazz->add_member(node);
                 }
