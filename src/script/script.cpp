@@ -1142,6 +1142,10 @@ void OScript::reload_from_file() {
     // Setting this to 0 forces a reload off disk when _reload is called
     source_last_modified_time = 0;
 
+    if (get_orchestration().is_valid()) {
+        get_orchestration()->set_edited(false);
+    }
+
     // Only reload scripts that have no compilation errors
     if (_is_valid()) {
         if (Engine::get_singleton()->is_editor_hint() && is_tool()) {
