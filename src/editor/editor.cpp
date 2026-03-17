@@ -2126,15 +2126,7 @@ void OrchestratorEditor::save_resource_as(const Ref<Resource>& p_resource, const
 }
 
 void OrchestratorEditor::save_editor_layout_delayed() {
-    // As of Godot 4.4.1, the first Timer child of EditorNode should be started.
-    if (Node* editor_node = EditorNode) {
-        const TypedArray<Node> timers = editor_node->find_children("*", "Timer", true, false);
-        if (!timers.is_empty()) {
-            if (Timer* timer = cast_to<Timer>(timers.get(0))) {
-                timer->start();
-            }
-        }
-    }
+    OrchestratorPlugin::get_singleton()->queue_save_layout();
 }
 
 void OrchestratorEditor::disambiguate_filenames(const Vector<String>& p_full_paths, Vector<String>& r_filenames) {
