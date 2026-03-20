@@ -1167,7 +1167,7 @@ bool OScriptAnalyzer::get_function_signature(OScriptParser::Node* p_source, bool
 	}
 
 	Ref<Script> base_script = p_base_type.script_type;
-	while (base_script.is_valid() && base_script->has_method(function_name)) {
+	while (base_script.is_valid() && GDE::Script::has_method(base_script, function_name)) {
 		MethodInfo info = GDE::Script::get_method_info(base_script, function_name);
 		if (!(info == MethodInfo())) {
 			return function_signature_from_info(info, r_return_type, r_par_types, r_default_arg_count, r_method_flags);
@@ -2566,11 +2566,11 @@ void OScriptAnalyzer::resolve_function_body(OScriptParser::FunctionNode* p_funct
         // Non-abstract functions must have a body.
         if (p_function->source_lambda != nullptr) {
             push_error(R"(A lambda function must have a ":" followed by a body.)", p_function);
+            return;
         } else if (!p_function->is_abstract) {
-            push_error(vformat(R"(The function "%s" is defined without a body.)", p_function->identifier->name), p_function);
+            // push_error(vformat(R"(The function "%s" is defined without a body.)", p_function->identifier->name), p_function);
             // push_error(vformat(R"(A function "%s" must either have a body, or be marked as "@abstract".)", p_function->identifier->name), p_function);
         }
-        return;
     } else {
         // Abstract functions must not have a body.
         if (p_function->is_abstract) {
