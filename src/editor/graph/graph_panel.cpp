@@ -1277,9 +1277,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         if (call_parent) {
             _set_edited(true);
         }
-    }
-
-    if (const Ref<OScriptNodeFunctionEntry>& node = graph_node; node.is_valid()) {
+    } else if (const Ref<OScriptNodeFunctionEntry>& node = graph_node; node.is_valid()) {
         NodeSpawnOptions options;
         options.node_class = OScriptNodeCallParentScriptFunction::get_class_static();
         options.context.method = node->get_function()->get_method_info();
@@ -1289,9 +1287,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         if (call_parent) {
             _set_edited(true);
         }
-    }
-
-    if (const Ref<OScriptNodeCallMemberFunction>& node = graph_node; node.is_valid()) {
+    } else if (const Ref<OScriptNodeCallMemberFunction>& node = graph_node; node.is_valid()) {
         StringName parent_class_name;
         if (ScriptServer::is_global_class(node->get_target_class())) {
             parent_class_name = ScriptServer::get_global_class(node->get_target_class()).base_type;
@@ -1309,9 +1305,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         if (call_parent) {
             _set_edited(true);
         }
-    }
-
-    if (const Ref<OScriptNodeEvent>& node = graph_node; node.is_valid()) {
+    } else if (const Ref<OScriptNodeEvent>& node = graph_node; node.is_valid()) {
         StringName parent_class_name;
         StringName global_name = _graph->get_orchestration()->get_global_name();
         if (ScriptServer::is_global_class(global_name)) {
