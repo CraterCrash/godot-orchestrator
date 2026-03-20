@@ -566,7 +566,14 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     const Ref<OScript> oscript = p_script;
     if (oscript.is_valid()) {
 
-        const String base_type = oscript->get_orchestration()->get_base_type(); // oscript->get_instance_base_type();
+        const String base_type = oscript->get_orchestration()->get_base_type();
+
+        const Ref<OScript> base_script = oscript->get_base();
+        if (base_script.is_valid() && base_type.begins_with("res://")) {
+            // Inherits from another non-named script
+            actions.append_array(generate_actions_from_script(oscript->get_base()));
+        }
+
         for (const Ref<OScriptFunction>& function : oscript->get_orchestration()->get_functions()) {
 
             if (!function.is_valid() || !function->is_user_defined()) {
