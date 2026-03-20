@@ -61,3 +61,18 @@ bool GDE::Script::is_valid(const Ref<godot::Script>& p_script) {
     }
     return false;
 }
+
+bool GDE::Script::has_method(const Ref<godot::Script>& p_script, const StringName& p_name) {
+    if (p_script.is_valid()) {
+        // todo:
+        //  a bug in Godot prevents calling Ref<Script>::has_method, because this will delegate
+        //  to Object::has_method and never calls the underlying ScriptExtension::has_method.
+        //  To avoid this issue, we directly cast to OScript.
+        Ref<ScriptExtension> script_extension = p_script;
+        if (script_extension.is_valid()) {
+            return script_extension->_has_method(p_name);
+        }
+        return p_script->has_method(p_name);
+    }
+    return false;
+}
