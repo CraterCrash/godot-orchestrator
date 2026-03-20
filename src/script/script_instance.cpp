@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "core/godot/gdextension_compat.h"
+#include "core/godot/object/script_language.h"
 #include "core/godot/scene_string_names.h"
 #include "core/godot/variant/variant.h"
 #include "script/script.h"
@@ -1148,7 +1149,7 @@ bool OScriptPlaceHolderInstance::has_method(const StringName& p_name) const {
 
     Ref<Script> scr = _script;
     while (scr.is_valid()) {
-        if (scr->has_method(p_name)) {
+        if (GDE::Script::has_method(scr, p_name)) {
             return true;
         }
         scr = scr->get_base_script();
