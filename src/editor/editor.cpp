@@ -843,7 +843,11 @@ void OrchestratorEditor::_add_callback(Object* p_object, const String& p_functio
     ERR_FAIL_NULL(p_object);
 
     const Ref<ScriptExtension> script = p_object->get_script();
-    ERR_FAIL_COND(script.is_null());
+    if (script.is_null()) {
+        // This can be called by Editor for any script language, and we shouldn't report an error if the
+        // user is linked a signal to a GDScript script.
+        return;
+    }
 
     const ScriptLanguageExtension* language = cast_to<ScriptLanguageExtension>(script->_get_language());
     if (!language || !language->_can_make_function()) {
