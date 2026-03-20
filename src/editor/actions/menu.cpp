@@ -57,6 +57,7 @@ bool OrchestratorEditorActionMenu::_is_favorite(const Variant& p_value, int& r_i
 void OrchestratorEditorActionMenu::_favorite_selected(int p_index) {
     const String text = _favorites->get_item_text(p_index);
     _search_box->set_text(text);
+    _search_box->set_caret_column(text.length());
     _favorites->deselect_all();
     _update_search();
 }
@@ -69,6 +70,7 @@ void OrchestratorEditorActionMenu::_favorite_activated(int p_index) {
 void OrchestratorEditorActionMenu::_recent_selected(int p_index) {
     const String text = _recents->get_item_text(p_index);
     _search_box->set_text(text);
+    _search_box->set_caret_column(text.length());
     _recents->deselect_all();
     _update_search();
 }
