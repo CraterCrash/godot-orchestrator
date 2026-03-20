@@ -203,6 +203,13 @@ void OrchestratorEditorActionMenu::_confirmed() {
     queue_free();
 }
 
+void OrchestratorEditorActionMenu::_canceled() {
+    _save_user_data();
+
+    hide();
+    queue_free();
+}
+
 void OrchestratorEditorActionMenu::_select_item(TreeItem* p_item, bool p_center_on_item) {
     if (p_item) {
         p_item->select(0);
@@ -729,7 +736,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     connect("about_to_popup", callable_mp_this(_about_to_popup));
     connect(SceneStringName(visibility_changed), callable_mp_this(_visibility_changed));
     connect(SceneStringName(confirmed), callable_mp_this(_confirmed));
-    connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
+    connect(SceneStringName(canceled), callable_mp_this(_canceled));
     connect(SceneStringName(focus_exited), callable_mp_this(_focus_lost));
 
     // Attempt to use Orchestrator bounds, falling back to Godot
