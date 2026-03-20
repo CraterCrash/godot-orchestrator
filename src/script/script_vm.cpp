@@ -562,15 +562,21 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
     int node = initial_node;
 
     if (p_state) {
-        // Use existing state that is supplied
+        // Use existing state that is supplied for await.
         stack = reinterpret_cast<Variant*>(p_state->stack.ptrw());
-        instruction_args = reinterpret_cast<Variant**>(&p_state->stack.ptrw()[sizeof(Variant) * p_state->stack_size]);
+        instruction_args = reinterpret_cast<Variant**>(&p_state->stack.ptrw()[sizeof(Variant) * p_state->stack_size]); // `ptr()` to avoid bounds check.
         node = p_state->node_id;
         ip = p_state->ip;
         alloca_size = p_state->stack.size();
         script = p_state->script;
         p_instance = p_state->instance;
         defarg = p_state->defarg;
+
+        // Responsibility for the stack is moved from `OScriptCompiledFunction` to this method. To handle that, we
+        // reset `p_state->stack_size` to prevent `OScriptCompiledFunction::_clear_stack()` from clearing the stack again.
+        // NOTE: Strictly speaking, ownership doesn't move. However, we can be sure that `p_state->stack` won't be cleared
+        // before the current call completes, and that `p_state` won't be resumed again.
+        p_state->stack_size = 0;
     } else {
         if (p_arg_count != argument_count) {
             if (p_arg_count > argument_count) {
@@ -4027,15 +4033,10 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
     // This ensures the call stack can be properly shown when using 'await', showing what resumed the function.
     if (!p_state || awaited) {
         OScriptLanguage::get_singleton()->exit_function();
-
-        // Free stack, except reserved addresses
-        for (int i = FIXED_ADDRESSES_MAX; i < stack_size; i++) {
-            stack[i].~Variant();
-        }
     }
 
     // Always free reserved addresses, since they are never copied.
-    for (int i = 0; i < FIXED_ADDRESSES_MAX; i++) {
+    for (int i = 0; i < stack_size; i++) {
         stack[i].~Variant();
     }
 
