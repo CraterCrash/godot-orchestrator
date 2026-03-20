@@ -939,6 +939,13 @@ void OrchestratorScriptGraphEditorView::add_callback(const String& p_function, c
 
     OrchestratorEditorGraphPanel* editor = _get_active_graph_tab();
     if (editor) {
+        const Ref<OrchestrationGraph> graph = _script->get_orchestration()->find_graph(editor->get_name());
+        if (graph.is_valid() && graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
+            // Fallback to the default EventGraph, cannot add signal callbacks to function graphs
+            editor = _get_graph_tab("EventGraph");
+            _focus_graph_tab(editor);
+        }
+
         NodeSpawnOptions options;
         options.context.method = method;
         options.position = editor->get_scroll_offset() + (editor->get_size() / 2.0);
