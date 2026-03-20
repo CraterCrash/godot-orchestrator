@@ -26,13 +26,6 @@ bool OrchestratorEditorActionVirtualFunctionRule::matches(const Ref<Orchestrator
     if (p_action->method.has_value()) {
         const MethodInfo& method = p_action->method.value();
         if (method.flags & METHOD_FLAG_VIRTUAL) {
-            // GH-282
-            // Do not add virtual overrides for "_get" or "_set" methods
-            // todo: do we want to add these back but with a config toggle?
-            if (method.name.match("_get") || method.name.match("_set")) {
-                return false;
-            }
-
             return !_method_exclusion_names.has(method.name);
         }
     }
