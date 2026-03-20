@@ -37,6 +37,7 @@
 #include "editor/scene/connections_dock.h"
 #include "editor/updater/updater.h"
 #include "script/script.h"
+#include "script/script_cache.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/display_server.hpp>
@@ -1379,6 +1380,7 @@ void OrchestratorEditor::_files_moved(const String& p_old_file, const String& p_
         OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i));
         if (view && view->edited_file_data.path == p_old_file) {
             view->edited_file_data.path = p_new_file;
+            OScriptCache::move_script(p_old_file, p_new_file);
             break;
         }
     }
