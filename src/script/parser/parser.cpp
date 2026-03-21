@@ -213,6 +213,7 @@ void OScriptParser::bind_handlers() {
     // clang-format off
     register_expression_handler<OScriptNodeSelf,                &OScriptParser::build_self>();
     register_expression_handler<OScriptNodeVariableGet,         &OScriptParser::build_variable_get>();
+    register_expression_handler<OScriptNodeVariableSet,         &OScriptParser::build_variable_set_expression>();
     register_expression_handler<OScriptNodePropertyGet,         &OScriptParser::build_property_get>();
     register_expression_handler<OScriptNodeSceneTree,           &OScriptParser::build_get_scene_tree>();
     register_expression_handler<OScriptNodeSceneNode,           &OScriptParser::build_get_scene_node>();
@@ -1056,6 +1057,10 @@ OScriptParser::ExpressionNode* OScriptParser::build_self(const Ref<OScriptNodeSe
 }
 
 OScriptParser::ExpressionNode* OScriptParser::build_variable_get(const Ref<OScriptNodeVariableGet>& p_node, const Ref<OScriptNodePin>& p_pin) {
+    return build_identifier(p_node->get_variable()->get_variable_name());
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_variable_set_expression(const Ref<OScriptNodeVariableSet>& p_node, const Ref<OScriptNodePin>& p_pin) {
     return build_identifier(p_node->get_variable()->get_variable_name());
 }
 
