@@ -43,6 +43,9 @@ protected:
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
 
+    /// Get the node from scene that has this script, if possible.
+    Node* _get_scene_base_node() const;
+
     /// Get the referenced node from the scene, if possible.
     Node* _get_referenced_node() const;
 
@@ -55,6 +58,7 @@ public:
     String get_node_title_color_name() const override { return "scene"; }
     String get_icon() const override;
     String get_help_topic() const override;
+    Ref<Resource> get_inspect_object() override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override;
