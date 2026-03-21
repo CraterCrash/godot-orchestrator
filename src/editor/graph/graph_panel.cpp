@@ -2631,9 +2631,18 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
                 continue;
             }
 
-            const NodePath path = dropped_node->is_unique_name_in_owner()
-                ? NodePath("%" + dropped_node->get_name())
-                : edited_scene_root->get_path_to(dropped_node);
+            NodePath path;
+            if (dropped_node->is_unique_name_in_owner()) {
+                path = NodePath("%" + dropped_node->get_name());
+            } else {
+                Vector<Node*> attached_nodes;
+                SceneUtils::find_all_nodes_for_script(edited_scene_root, edited_scene_root, _graph->get_orchestration()->as_script(), attached_nodes);
+                if (attached_nodes.is_empty()) {
+                    ORCHESTRATOR_ERROR("Cannot drop a node in a script that is not attached to a node in this scene.");
+                }
+
+                path = attached_nodes[0]->get_path_to(dropped_node);
+            }
 
             String global_name;
             const Ref<Script> dropped_node_script = dropped_node->get_script();
