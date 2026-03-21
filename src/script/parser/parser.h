@@ -313,6 +313,7 @@ private:
     IdentifierNode* build_identifier(const StringName& p_name, SuiteNode* p_override_suite = nullptr); // vars validated
     ExpressionNode* build_self(const Ref<OScriptNodeSelf>& p_self, const Ref<OScriptNodePin>& p_pin); // var validated
     ExpressionNode* build_variable_get(const Ref<OScriptNodeVariableGet>& p_node, const Ref<OScriptNodePin>& p_pin); // var validated
+    ExpressionNode* build_variable_set_expression(const Ref<OScriptNodeVariableSet>& p_node, const Ref<OScriptNodePin>& p_pin);
     ExpressionNode* build_property_get(const Ref<OScriptNodePropertyGet>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_get_scene_tree(const Ref<OScriptNodeSceneTree>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_get_scene_node(const Ref<OScriptNodeSceneNode>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
