@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_TEMPLATE_REGISTRY_H
-#define ORCHESTRATOR_SCRIPT_TEMPLATE_REGISTRY_H
+#pragma once
 
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
@@ -51,5 +50,3 @@ public:
 
     OScriptTemplateRegistry();
 };
-
-#endif // ORCHESTRATOR_SCRIPT_TEMPLATE_REGISTRY_H

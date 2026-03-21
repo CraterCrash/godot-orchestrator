@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_DIALOGS_HELPER_H
-#define ORCHESTRATOR_EDITOR_DIALOGS_HELPER_H
+#pragma once
 
 #include <godot_cpp/variant/variant.hpp>
 
@@ -38,5 +37,3 @@ public:
 #define ORCHESTRATOR_ERROR(message) { OrchestratorEditorDialogs::error(message); return; }
 #define ORCHESTRATOR_ERROR_TITLE(message, title) { OrchestratorEditorDialogs::error(message, title); return; }
 #define ORCHESTRATOR_ERROR_V(message, retval) { OrchestratorEditorDialogs::error(message); return retval; }
-
-#endif // ORCHESTRATOR_EDITOR_DIALOGS_HELPER_H

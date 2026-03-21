@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_SERIALIZER_BINARY_H
-#define ORCHESTRATOR_ORCHESTRATION_SERIALIZER_BINARY_H
+#pragma once
 
 #include "orchestration/serialization/serializer.h"
 
@@ -64,5 +63,3 @@ public:
     Error save(const Ref<Resource>& p_resource, const String& p_path, uint32_t p_flags) override;
     //~ End OrchestrationSerializer Interface
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_SERIALIZER_BINARY_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_HASHFUNCS_H
-#define ORCHESTRATOR_CORE_GODOT_HASHFUNCS_H
+#pragma once
 
 #include "common/version.h"
 #include <godot_cpp/templates/hashfuncs.hpp>
@@ -31,5 +30,3 @@ namespace godot {
     using THashableHasher = HashableHasher<T>;
     #endif
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_HASHFUNCS_H

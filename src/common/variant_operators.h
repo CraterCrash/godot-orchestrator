@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_VARIANT_OPERATORS_H
-#define ORCHESTRATOR_VARIANT_OPERATORS_H
+#pragma once
 
 #include <godot_cpp/variant/variant.hpp>
 
@@ -77,5 +76,3 @@ namespace VariantOperators {
     Variant::Operator to_engine(Code p_code);
 
 }
-
-#endif // ORCHESTRATOR_VARIANT_OPERATORS_H

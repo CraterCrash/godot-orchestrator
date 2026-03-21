@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_GD_EXTENSION_INTERFACE_COMPAT_H
-#define ORCHESTRATOR_CORE_GODOT_GD_EXTENSION_INTERFACE_COMPAT_H
+#pragma once
 
 #include "common/version.h"
 
@@ -39,5 +38,3 @@ bool is_vector_empty(const T& p_container) {
         return p_container.empty();
     }
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_GD_EXTENSION_INTERFACE_COMPAT_H

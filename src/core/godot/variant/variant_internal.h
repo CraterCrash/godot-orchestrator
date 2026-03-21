@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_VARIANT_VARIANT_INTERNAL_H
-#define ORCHESTRATOR_CORE_GODOT_VARIANT_VARIANT_INTERNAL_H
+#pragma once
 
 #include "core/godot/gdextension_compat.h"
 
@@ -37,5 +36,3 @@ namespace GDE {
         }
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_VARIANT_VARIANT_INTERNAL_H

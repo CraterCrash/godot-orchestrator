@@ -2016,6 +2016,8 @@ OScriptParser::StatementResult OScriptParser::build_while(const Ref<OScriptNodeW
     const Ref<OScriptNodePin> repeat_pin = p_script_node->find_pin(0, PD_Output);
     if (repeat_pin.is_valid() && repeat_pin->has_any_connections()) {
         while_node->loop = build_suite("while loop", repeat_pin, suite);
+    } else {
+        while_node->loop = alloc_node<SuiteNode>();
     }
 
     add_statement(while_node);
@@ -2905,14 +2907,14 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
         if (graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
             // This physical function
             const Ref<OScriptFunction> function = graph->get_functions()[0];
-            if (function.is_valid()) {
+            if (function.is_valid() && function->get_owning_node_id() >= 0) {
                 FunctionNode* node = build_function(function, graph);
                 clazz->add_member(node);
             }
         }
         else if (graph->get_flags().has_flag(OScriptGraph::GF_EVENT)) {
             for (const Ref<OScriptFunction>& function : graph->get_functions()) {
-                if (function.is_valid()) {
+                if (function.is_valid() && function->get_owning_node_id() >= 0) {
                     FunctionNode* node = build_function(function, graph);
                     clazz->add_member(node);
                 }

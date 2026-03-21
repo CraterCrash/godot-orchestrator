@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_RESOURCE_UTILS_H
-#define ORCHESTRATOR_RESOURCE_UTILS_H
+#pragma once
 
 #include <godot_cpp/classes/resource.hpp>
 
@@ -68,5 +67,3 @@ namespace ResourceUtils {
 
     String get_class(const Ref<Resource>& p_resource);
 }
-
-#endif // ORCHESTRATOR_RESOURCE_UTILS_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_VARIANT_H
-#define ORCHESTRATOR_CORE_GODOT_VARIANT_H
+#pragma once
 
 #include <vector>
 
@@ -125,5 +124,3 @@ namespace GDE {
         static String get_call_error_text(Object* p_base, const StringName& p_method, ConstVariantPtrs p_args, int p_arg_count, const GDExtensionCallError& r_error);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_VARIANT_H

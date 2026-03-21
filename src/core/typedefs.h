@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_TYPE_DEFS_H
-#define ORCHESTRATOR_CORE_TYPE_DEFS_H
+#pragma once
 
 #include <godot_cpp/core/defs.hpp>
 
@@ -30,5 +29,3 @@ template <typename T, size_t SIZE>
 constexpr size_t std_size(const T(&)[SIZE]) {
     return SIZE;
 }
-
-#endif // ORCHESTRATOR_CORE_TYPE_DEFS_H
