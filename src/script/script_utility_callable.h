@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_UTILITY_CALLABLE_H
-#define ORCHESTRATOR_SCRIPT_UTILITY_CALLABLE_H
+#pragma once
 
 #include "script/utility_functions.h"
 
@@ -55,5 +54,3 @@ public:
 
     explicit OScriptUtilityCallable(const StringName &p_function_name);
 };
-
-#endif // ORCHESTRATOR_SCRIPT_UTILITY_CALLABLE_H

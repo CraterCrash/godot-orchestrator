@@ -974,19 +974,15 @@ Error OScript::_reload(bool p_keep_state) {
 }
 
 #ifdef TOOLS_ENABLED
-#if GODOT_VERSION >= 0x040400
 StringName OScript::_get_doc_class_name() const {
     return doc_class_name;
 }
-#endif
 
 TypedArray<Dictionary> OScript::_get_documentation() const {
     TypedArray<Dictionary> result;
-    #ifdef TOOLS_ENABLED
     for (const DocData::ClassDoc& class_doc : docs) {
         result.push_back(DocData::ClassDoc::to_dict(class_doc));
     }
-    #endif
     return result;
 }
 
@@ -1145,6 +1141,10 @@ void OScript::reload_from_file() {
     #ifdef TOOLS_ENABLED
     // Setting this to 0 forces a reload off disk when _reload is called
     source_last_modified_time = 0;
+
+    if (get_orchestration().is_valid()) {
+        get_orchestration()->set_edited(false);
+    }
 
     // Only reload scripts that have no compilation errors
     if (_is_valid()) {

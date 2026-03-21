@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_INSTANCE_NEW_H
-#define ORCHESTRATOR_SCRIPT_INSTANCE_NEW_H
+#pragma once
 
 #include "common/version.h"
 #include "script/compiler/compiled_function.h"
@@ -29,13 +28,8 @@
 
 using namespace godot;
 
-#if GODOT_VERSION >= 0x040300
 typedef GDExtensionScriptInstanceInfo3 OScriptInstanceInfo;
 #define GDEXTENSION_SCRIPT_INSTANCE_CREATE GDE_INTERFACE(script_instance_create3)
-#else
-typedef GDExtensionScriptInstanceInfo2 OScriptInstanceInfo;
-#define GDEXTENSION_SCRIPT_INSTANCE_CREATE GDE_INTERFACE(script_instance_create2)
-#endif
 
 /// Abstract base class for all OScript-based script instance objects.
 class OScriptInstanceBase {
@@ -176,5 +170,3 @@ public:
     OScriptPlaceHolderInstance(const Ref<OScript>& p_script, Object* p_owner);
     ~OScriptPlaceHolderInstance() override;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_INSTANCE_NEW_H

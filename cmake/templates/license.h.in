@@ -14,12 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_LICENSE_GENERATED_H
-#define ORCHESTRATOR_LICENSE_GENERATED_H
+#pragma once
 
 // THIS FILE IS GENERATED. EDITS WILL BE LOST.
 
 const char *const ORCHESTRATOR_LICENSE_TEXT =
     "@license_text_formatted@";
-
-#endif // ORCHESTRATOR_LICENSE_GENERATED_H

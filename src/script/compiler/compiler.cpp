@@ -21,6 +21,7 @@
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/object/class_db.h"
+#include "core/godot/object/script_language.h"
 #include "core/godot/variant/variant.h"
 #include "script/compiler/analyzer.h"
 #include "script/compiler/bytecode_generator.h"
@@ -707,7 +708,7 @@ OScriptCompiledFunction* OScriptCompiler::make_static_initializer(Error& r_error
         }
     }
 
-    if (p_script->has_method(OScriptLanguage::get_singleton()->strings._static_init)) {
+    if (GDE::Script::has_method(p_script, OScriptLanguage::get_singleton()->strings._static_init)) {
         context.generator->write_newline(p_class->script_node_id);
         context.generator->write_call(OScriptCodeGenerator::Address(), class_addr, OScriptLanguage::get_singleton()->strings._static_init, Vector<OScriptCodeGenerator::Address>());
     }

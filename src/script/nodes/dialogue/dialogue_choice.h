@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_DIALOGUE_CHOICE_H
-#define ORCHESTRATOR_SCRIPT_NODE_DIALOGUE_CHOICE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -36,5 +35,3 @@ public:
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_DIALOGUE_CHOICE_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_NODE_KNOT_H
-#define ORCHESTRATOR_EDITOR_GRAPH_NODE_KNOT_H
+#pragma once
 
 #include "editor/graph/knot_editor.h"
 
@@ -63,5 +62,3 @@ public:
 
     OrchestratorEditorGraphNodeKnot();
 };
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_NODE_KNOT_H

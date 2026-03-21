@@ -811,7 +811,6 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
     // Iterate all internal resources and collect used unique scene ids.
     // For resources that have collisions, first one visited wins; others reassigned.
     HashSet<String> used_unique_ids;
-    #if GODOT_VERSION >= 0x040300
     for (const Ref<Resource>& E : _saved_resources) {
         if (_is_resource_built_in(E)) {
             if (!E->get_scene_unique_id().is_empty()) {
@@ -823,7 +822,6 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
             }
         }
     }
-    #endif
 
     // Store the number of internal resources
     _file->store_32(_saved_resources.size());
@@ -833,7 +831,6 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
     HashMap<Ref<Resource>, uint32_t> resource_map;
     Vector<uint64_t> offsets;
     for (const Ref<Resource>& E: _saved_resources) {
-        #if GODOT_VERSION >= 0x040300
         if (_is_resource_built_in(E)) {
             bool generated;
             String uid_text = _create_resource_uid(E, used_unique_ids, generated);
@@ -849,12 +846,6 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
         } else {
             _save_unicode_string(E->get_path());
         }
-        #else
-        // All internal resources are written as "local://[index]"
-        // This allows renaming and moving of files without impacting the data
-        // When the file is loaded the "local://" prefix is replaced with the resource path
-        _save_unique_string("local://" + itos(resource_index));
-        #endif
 
         // Temporarily store an empty offset "0", and track it in the map
         // These will be serialized later

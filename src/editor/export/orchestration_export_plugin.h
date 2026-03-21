@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_EXPORT_PLUGIN_H
-#define ORCHESTRATOR_EDITOR_EXPORT_PLUGIN_H
+#pragma once
 
 #include <godot_cpp/classes/editor_export_platform.hpp>
 #include <godot_cpp/classes/editor_export_plugin.hpp>
@@ -40,5 +39,3 @@ public:
     void _export_file(const String& p_path, const String& p_type, const PackedStringArray& p_features) override;
     //~ End EditorExportPlugin Interface
 };
-
-#endif // ORCHESTRATOR_EDITOR_EXPORT_PLUGIN_H

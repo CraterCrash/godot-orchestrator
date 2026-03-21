@@ -24,7 +24,6 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
-#include "common/version.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "script/nodes/script_nodes.h"
@@ -243,13 +242,8 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
             }
 
             if (property.usage & PROPERTY_USAGE_INTERNAL) {
-                #if GODOT_VERSION >= 0x040400
                 String getter = StringUtils::default_if_empty(ClassDB::class_get_property_getter(p_class_name, property.name), getter_name);
                 String setter = StringUtils::default_if_empty(ClassDB::class_get_property_setter(p_class_name, property.name), setter_name);
-                #else
-                String getter = getter_name;
-                String setter = setter_name;
-                #endif
                 if (!getter.is_empty()) {
                     internal_method_names.push_back(getter);
                 }
@@ -572,7 +566,14 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     const Ref<OScript> oscript = p_script;
     if (oscript.is_valid()) {
 
-        const String base_type = oscript->get_orchestration()->get_base_type(); // oscript->get_instance_base_type();
+        const String base_type = oscript->get_orchestration()->get_base_type();
+
+        const Ref<OScript> base_script = oscript->get_base();
+        if (base_script.is_valid() && base_type.begins_with("res://")) {
+            // Inherits from another non-named script
+            actions.append_array(generate_actions_from_script(oscript->get_base()));
+        }
+
         for (const Ref<OScriptFunction>& function : oscript->get_orchestration()->get_functions()) {
 
             if (!function.is_valid() || !function->is_user_defined()) {
