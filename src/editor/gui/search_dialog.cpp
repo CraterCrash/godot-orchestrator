@@ -100,6 +100,7 @@ void OrchestratorEditorSearchDialog::_favorite_selected() {
     const Ref<SearchItem> search_item = item->get_meta("__item");
     if (search_item.is_valid() && !search_item->text.is_empty()) {
         _search_box->set_text(search_item->text);
+        _search_box->set_caret_column(search_item->text.length());
         _recent->deselect_all();
         _update_search();
     }
@@ -132,6 +133,7 @@ void OrchestratorEditorSearchDialog::_history_selected(int p_index) {
     const Ref<SearchItem> item = _recent->get_item_metadata(p_index);
     if (item.is_valid()) {
         _search_box->set_text(item->text);
+        _search_box->set_caret_column(item->text.length());
         _favorites->deselect_all();
         _update_search();
     }
