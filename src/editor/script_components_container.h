@@ -77,6 +77,8 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
 
     Ref<Orchestration> _get_orchestration();
 
+    bool _make_inspector_dock_visible() const;
+
     void _functions_changed();
     void _variables_changed();
 
