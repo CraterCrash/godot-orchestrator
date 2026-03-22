@@ -2706,7 +2706,11 @@ OScriptParser::StatementResult OScriptParser::build_await_signal(const Ref<OScri
     await_node->script_node_id = p_script_node->get_id();
     set_coroutine();
 
+    const Ref<OScriptNodePin> result_pin = p_script_node->find_pin("result", PD_Output);
     const String result_term = vformat("node_%s_result", p_script_node->get_id());
+    if (result_pin.is_valid()) {
+        add_pin_alias(result_term, result_pin);
+    }
     create_local_and_push(result_term, await_node);
 
     return create_statement_result(p_script_node, 0);
