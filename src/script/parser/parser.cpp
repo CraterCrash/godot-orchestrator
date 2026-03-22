@@ -441,6 +441,33 @@ void OScriptParser::add_pin_alias(const StringName& p_alias, const Ref<OScriptNo
     suite->add_alias(p_pin, p_alias);
 }
 
+OScriptParser::ExpressionNode* OScriptParser::create_expression(const Variant& p_value) {
+    if (p_value.get_type() == Variant::ARRAY) {
+        ArrayNode* array_node = alloc_node<ArrayNode>();
+
+        Array array_value = p_value;
+        for (int i = 0; i < array_value.size(); i++) {
+            array_node->elements.push_back(create_expression(array_value[i]));
+        }
+
+        return array_node;
+    } else if (p_value.get_type() == Variant::DICTIONARY) {
+        DictionaryNode* dictionary_node = alloc_node<DictionaryNode>();
+
+        Dictionary dict = p_value;
+        Array keys = dict.keys();
+        for (int i = 0; i < keys.size(); i++) {
+            ExpressionNode* key = create_expression(keys[i]);
+            ExpressionNode* value = create_expression(dict[keys[i]]);
+            dictionary_node->elements.push_back({ key, value });
+        }
+
+        return dictionary_node;
+    }
+
+    return create_literal(p_value);
+}
+
 OScriptParser::LiteralNode* OScriptParser::create_literal(const Variant& p_value) {
     LiteralNode* literal = alloc_node<LiteralNode>();
     literal->value = p_value;
@@ -2958,10 +2985,9 @@ OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVari
     }
 
     if (p_variable->get_default_value().get_type() != Variant::NIL) {
-        LiteralNode* default_value = alloc_node<LiteralNode>();
-        default_value->value = p_variable->get_default_value();
-        if (!p_variable->is_constant()) {
-            default_value->is_constant = false;
+        ExpressionNode* default_value = create_expression(p_variable->get_default_value());
+        if (p_variable->is_constant()) {
+            default_value->is_constant = true;
         }
         node->initializer = default_value;
         node->assignments++;
