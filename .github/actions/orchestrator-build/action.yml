@@ -29,7 +29,7 @@ runs:
   steps:
 
     - name: Setup python 3.x
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         # Semantic version range syntax or exact version of a Python version
         python-version: ${{ inputs.python-version }}
