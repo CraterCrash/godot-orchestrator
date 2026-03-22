@@ -1012,7 +1012,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 const StringName native_type = global_names_ptr[native_type_idx];
 
                 bool was_freed = false;
-                Object* object = GDE::Variant::get_validated_object_with_check(value, was_freed);
+                Object* object = GDE::Variant::get_validated_object_with_check(*value, was_freed);
                 if (was_freed) {
                     error_text = "Left operand of 'is' is a previously freed instance.";
                     OPCODE_BREAK;
@@ -1034,7 +1034,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(!script_type);
 
                 bool was_freed = false;
-                Object* object = GDE::Variant::get_validated_object_with_check(value, was_freed);
+                Object* object = GDE::Variant::get_validated_object_with_check(*value, was_freed);
                 if (was_freed) {
                     error_text = "Left operand of 'is' is a previously freed instance.";
                     OPCODE_BREAK;
@@ -1539,7 +1539,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (src->get_type() == Variant::OBJECT) {
                     bool was_freed = false;
-                    Object *src_obj = GDE::Variant::get_validated_object_with_check(src, was_freed);
+                    Object *src_obj = GDE::Variant::get_validated_object_with_check(*src, was_freed);
                     if (!src_obj && was_freed) {
                         error_text = "Trying to assign invalid previously freed instance.";
                         OPCODE_BREAK;
@@ -1576,7 +1576,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (src->get_type() == Variant::OBJECT) {
                     bool was_freed = false;
-                    Object *val_obj = GDE::Variant::get_validated_object_with_check(src, was_freed);
+                    Object *val_obj = GDE::Variant::get_validated_object_with_check(*src, was_freed);
                     if (!val_obj && was_freed) {
                         error_text = "Trying to assign invalid previously freed instance.";
                         OPCODE_BREAK;
@@ -1942,7 +1942,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					if (!call_async && ret->get_type() == Variant::OBJECT) {
 						// Check if getting a function state without await.
 						bool was_freed = false;
-					    Object* obj = GDE::Variant::get_validated_object_with_check(ret, was_freed);
+					    Object* obj = GDE::Variant::get_validated_object_with_check(*ret, was_freed);
 					    if (obj && obj->get_class() == OScriptFunctionState::get_class_static()) {
 							error_text = R"(Trying to call an async function without "await".)";
 							OPCODE_BREAK;
@@ -2026,7 +2026,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
 				bool freed = false;
-				Object *base_obj = GDE::Variant::get_validated_object_with_check(base, freed);
+				Object *base_obj = GDE::Variant::get_validated_object_with_check(*base, freed);
 				if (freed) {
 					error_text = METHOD_CALL_ON_FREED_INSTANCE_ERROR(method);
 					OPCODE_BREAK;
@@ -2116,13 +2116,16 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 const Variant **argptrs = const_cast<const Variant **>(instruction_args);
 
                 GDExtensionCallError err;
+                Variant tmp;
                 GDE_INTERFACE(variant_call_static)(
                     static_cast<GDExtensionVariantType>(builtin_type),
                     methodname,
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs),
                     argc,
-                    *ret,
+                    &tmp,
                     &err);
+
+                *ret = tmp;
 
                 #ifdef DEBUG_ENABLED
                 if (err.error != GDEXTENSION_CALL_OK) {
@@ -2270,7 +2273,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *base_obj = GDE::Variant::get_validated_object_with_check(base, freed);
+                Object *base_obj = GDE::Variant::get_validated_object_with_check(*base, freed);
                 if (freed) {
                     error_text = METHOD_CALL_ON_FREED_INSTANCE_ERROR(method);
                     OPCODE_BREAK;
@@ -2321,7 +2324,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 GET_INSTRUCTION_ARG(base, argc);
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *base_obj = GDE::Variant::get_validated_object_with_check(base, freed);
+                Object *base_obj = GDE::Variant::get_validated_object_with_check(*base, freed);
                 if (freed) {
                     error_text = METHOD_CALL_ON_FREED_INSTANCE_ERROR(method);
                     OPCODE_BREAK;
@@ -2553,7 +2556,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					Variant result = *argobj;
 					if (argobj->get_type() == Variant::OBJECT) {
 						bool was_freed = false;
-						Object *obj = GDE::Variant::get_validated_object_with_check(argobj, was_freed);
+						Object *obj = GDE::Variant::get_validated_object_with_check(*argobj, was_freed);
 						if (was_freed) {
 							error_text = "Trying to await on a freed object.";
 							OPCODE_BREAK;
@@ -2918,7 +2921,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *ret_obj = GDE::Variant::get_validated_object_with_check(r, freed);
+                Object *ret_obj = GDE::Variant::get_validated_object_with_check(*r, freed);
                 if (freed) {
                     error_text = "Trying to return a previously freed instance.";
                     OPCODE_BREAK;
@@ -2960,7 +2963,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *ret_obj = GDE::Variant::get_validated_object_with_check(r, freed);
+                Object *ret_obj = GDE::Variant::get_validated_object_with_check(*r, freed);
                 if (freed) {
                     error_text = "Trying to return a previously freed instance.";
                     OPCODE_BREAK;
@@ -3326,7 +3329,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *obj = GDE::Variant::get_validated_object_with_check(container, freed);
+                Object *obj = GDE::Variant::get_validated_object_with_check(*container, freed);
                 if (freed) {
                     error_text = "Trying to iterate on a previously freed object.";
                     OPCODE_BREAK;
@@ -3716,7 +3719,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *obj = GDE::Variant::get_validated_object_with_check(container, freed);
+                Object *obj = GDE::Variant::get_validated_object_with_check(*container, freed);
                 if (freed) {
                     error_text = "Trying to iterate on a previously freed object.";
                     OPCODE_BREAK;

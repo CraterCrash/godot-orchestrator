@@ -257,6 +257,7 @@ private:
     void add_pin_alias(const StringName& p_alias, const Ref<OScriptNodePin>& p_pin, SuiteNode* p_suite_override = nullptr);
 
     // Helper methods to create often used node cases
+    ExpressionNode* create_expression(const Variant& p_value);
     LiteralNode* create_literal(const Variant& p_value);
     SubscriptNode* create_subscript_attribute(ExpressionNode* p_base, IdentifierNode* p_attribute);
     CallNode* create_func_call(ExpressionNode* p_base, const StringName& p_function); // object-based function
@@ -313,6 +314,7 @@ private:
     IdentifierNode* build_identifier(const StringName& p_name, SuiteNode* p_override_suite = nullptr); // vars validated
     ExpressionNode* build_self(const Ref<OScriptNodeSelf>& p_self, const Ref<OScriptNodePin>& p_pin); // var validated
     ExpressionNode* build_variable_get(const Ref<OScriptNodeVariableGet>& p_node, const Ref<OScriptNodePin>& p_pin); // var validated
+    ExpressionNode* build_variable_set_expression(const Ref<OScriptNodeVariableSet>& p_node, const Ref<OScriptNodePin>& p_pin);
     ExpressionNode* build_property_get(const Ref<OScriptNodePropertyGet>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_get_scene_tree(const Ref<OScriptNodeSceneTree>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_get_scene_node(const Ref<OScriptNodeSceneNode>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated

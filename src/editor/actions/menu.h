@@ -71,6 +71,7 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
     void _visibility_changed();
     void _focus_lost();
     void _confirmed();
+    void _canceled();
     void _select_item(TreeItem* p_item, bool p_center_on_item);
     void _toggle_collapsed(bool p_collapsed);
 
