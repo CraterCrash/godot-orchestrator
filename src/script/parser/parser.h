@@ -257,6 +257,7 @@ private:
     void add_pin_alias(const StringName& p_alias, const Ref<OScriptNodePin>& p_pin, SuiteNode* p_suite_override = nullptr);
 
     // Helper methods to create often used node cases
+    ExpressionNode* create_expression(const Variant& p_value);
     LiteralNode* create_literal(const Variant& p_value);
     SubscriptNode* create_subscript_attribute(ExpressionNode* p_base, IdentifierNode* p_attribute);
     CallNode* create_func_call(ExpressionNode* p_base, const StringName& p_function); // object-based function
