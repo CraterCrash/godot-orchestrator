@@ -1228,25 +1228,27 @@ Variant OScript::_new(const Variant** p_args, GDExtensionInt p_arg_count, GDExte
 
     ERR_FAIL_COND_V(baseptr->native.is_null(), Variant());
     if (baseptr->native.ptr()) {
-        owner = baseptr->native->instantiate();
+        Variant value = baseptr->native->instantiate();
+        owner = cast_to<Object>(value);
+
+        RefCounted* r = cast_to<RefCounted>(owner);
+        if (r) {
+            ref = Ref<RefCounted>(r);
+        }
     } else {
-        owner = memnew(RefCounted); //by default, no base means use reference
+        ref.instantiate(); //by default, no base means use reference
+        owner = ref.ptr();
     }
     ERR_FAIL_NULL_V_MSG(owner, Variant(), "Can't inherit from a virtual class.");
 
-    RefCounted *r = cast_to<RefCounted>(owner);
-    if (r) {
-        ref = Ref<RefCounted>(r);
+    OScriptInstance* instance = _create_instance(p_args, p_arg_count, owner, r_error);
+    if (!instance) {
+        if (ref.is_null()) {
+            memdelete(owner);
+        }
+        return Variant();
     }
 
-    //
-    // We need to use `set_script` here. This forces `Object` to call `script->instance_create` which
-    // delegates to `_instance_create` in the script extension, calling `_create_instance`. This is a
-    // fast way to make sure the script instance is set on the object.
-    //
-    // We tried creating the script instance with `_create_instance` and then using the GDE_INTERFACE
-    // `object_set_script_instance` API, but it was unreliable and crashed, but using `set_script`
-    // always seemed to work as expected.
     if (ref.is_valid()) {
         ref->set_script(this);
         return ref;
