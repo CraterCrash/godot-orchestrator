@@ -18,11 +18,18 @@
 
 #include "common/property_utils.h"
 
+void OScriptNodeAwaitSignal::_upgrade(uint32_t p_version, uint32_t p_current_version) {
+    if (find_pin("result", PD_Output).is_null()) {
+        reconstruct_node();
+    }
+}
+
 void OScriptNodeAwaitSignal::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("signal_name", Variant::STRING));
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("result"));
     super::allocate_default_pins();
 }
 
