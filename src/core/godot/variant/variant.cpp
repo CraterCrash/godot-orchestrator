@@ -624,7 +624,7 @@ GDE::Variant::UtilityFunctionType GDE::Variant::get_utility_function_type(const 
 Object* GDE::Variant::get_validated_object_with_check(const godot::Variant& p_value, bool& r_previously_freed) {
     if (p_value.get_type() == godot::Variant::OBJECT) {
         Object* instance = p_value.get_validated_object();
-        r_previously_freed = !instance && ObjectID(static_cast<int64_t>(p_value)) != ObjectID();
+        r_previously_freed = !instance && p_value.operator ObjectID() != ObjectID();
         return instance;
     } else {
         r_previously_freed = false;
