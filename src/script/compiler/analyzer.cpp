@@ -513,7 +513,18 @@ OScriptParser::DataType OScriptAnalyzer::resolve_datatype(OScriptParser::TypeNod
 					}
 					result = ref->get_parser()->head->get_datatype();
 				} else {
-					result = make_script_meta_type(ResourceLoader::get_singleton()->load(path, "Script"));
+				    // todo: find a better way to deal with this
+				    //  if a GDScript refers to an Orchestration class, it will attempt to load it during
+				    //  it's analyzer phase; however, if that same Orchestration refers to the same GDScript,
+				    //  this creates a circular dependency issue, which will lead to the following Script load
+				    //  call returning an invalid script. In such cases, we need to simply report a parsing
+				    //  error rather than an editor crash.
+				    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "Script");
+				    if (script.is_null()) {
+				        push_error(vformat(R"(Could not load script "%s".)", path), p_type);
+				        return bad_type;
+				    }
+				    result = make_script_meta_type(script);
 				}
 			}
 
