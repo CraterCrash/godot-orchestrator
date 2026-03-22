@@ -38,8 +38,8 @@ void OrchestratorEditorIntrospector::_apply_method_overrides(const String& p_cla
     if (p_class_name == Object::get_class_static() && r_method.name == CoreStringName(_connect)) {
         for (uint32_t j = 0; j < r_method.arguments.size(); j++) {
             if (r_method.arguments[j].name == StringName("flags")) {
-                r_method.arguments[j].hint_string = "Object.ConnectFlags";
-                r_method.arguments[j].usage |= PROPERTY_USAGE_CLASS_IS_ENUM;
+                r_method.arguments[j].hint_string = "Default:0,Deferred:1,Persist:2,One Shot:4,Reference Counted:8,Append Source Object:16";
+                r_method.arguments[j].hint = PROPERTY_HINT_ENUM;
                 break;
             }
         }
