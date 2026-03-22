@@ -33,6 +33,10 @@ class OScriptNodeAwaitSignal : public OScriptNode {
 protected:
     static void _bind_methods() { }
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
