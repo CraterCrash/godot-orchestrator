@@ -52,7 +52,7 @@ runs:
     #   2. A partial match for the same cache name and reference name.
     #   3. A partial match for the same cache name and default branch name
     - name: Restore cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.cache-path }}
         key: ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}|${{ github.sha }}
