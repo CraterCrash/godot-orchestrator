@@ -51,6 +51,36 @@ Ref<Orchestration> OrchestratorScriptComponentsContainer::_get_orchestration() {
     return _orchestration;
 }
 
+// todo: remove when https://github.com/godotengine/godot/issues/117458 is fixed
+bool OrchestratorScriptComponentsContainer::_make_inspector_dock_visible() const {
+    const TypedArray<Node> docks = EditorNode->find_children("Inspector", "InspectorDock", true, false);
+    ERR_FAIL_COND_V(docks.is_empty(), false);
+
+    Control* inspector = cast_to<Control>(docks[0]);
+    ERR_FAIL_NULL_V(inspector, false);
+
+    Control* parent = inspector->get_parent_control();
+    ERR_FAIL_NULL_V(parent, false);
+
+    if (!parent->get_name().begins_with("DockSlot")) {
+        // Floating or invisible
+        if (!inspector->is_visible()) {
+            ERR_FAIL_V_MSG("Cannot make inspector visible, it isn't toggled", false);
+            return false;
+        }
+    }
+
+    // Inspector is docked
+    const TypedArray<Node> tabs = parent->find_children("*", "TabBar", true, false);
+    ERR_FAIL_COND_V(tabs.is_empty(), false);
+
+    TabBar* tab_bar = cast_to<TabBar>(tabs[0]);
+    ERR_FAIL_NULL_V(tab_bar, false);
+
+    tab_bar->set_current_tab(inspector->get_index());
+    return true;
+}
+
 void OrchestratorScriptComponentsContainer::_functions_changed() {
     _set_edited(true);
 }
@@ -325,12 +355,25 @@ void OrchestratorScriptComponentsContainer::_component_item_button_clicked(Node*
 
             // p_id == 1 -> warning
             if (p_column == 0 && p_id == 2) {
-                const Ref<OrchestratorEditorInspectorPluginVariable> plugin =
-                    OrchestratorPlugin::get_singleton()->get_editor_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
 
-                if (plugin.is_valid()) {
+                const Ref<OrchestratorEditorInspectorPluginVariable> plugin =
+                        OrchestratorPlugin::get_singleton()->get_editor_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
+                if (plugin.is_null()) {
+                    return;
+                }
+
+                const GodotVersionInfo version;
+                if (version.at_least(4, 7)) {
+                    if (!_make_inspector_dock_visible()) {
+                        return;
+                    }
+                    callable_mp_lambda(this, [plugin, variable] {
+                        plugin->edit_classification(variable.ptr());
+                    }).call_deferred();
+                } else {
                     plugin->edit_classification(variable.ptr());
                 }
+
             } else if (p_column == 0 && p_id == 3) {
                 variable->set_exported(!variable->is_exported());
                 _set_edited(true);
