@@ -83,7 +83,7 @@ runs:
 
     - name: Save cache
       if: github.event_name == 'push'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: ${{ inputs.cache-path }}
         key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
