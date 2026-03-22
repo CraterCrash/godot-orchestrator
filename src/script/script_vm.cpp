@@ -2116,13 +2116,16 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 const Variant **argptrs = const_cast<const Variant **>(instruction_args);
 
                 GDExtensionCallError err;
+                Variant tmp;
                 GDE_INTERFACE(variant_call_static)(
                     static_cast<GDExtensionVariantType>(builtin_type),
                     methodname,
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs),
                     argc,
-                    *ret,
+                    &tmp,
                     &err);
+
+                *ret = tmp;
 
                 #ifdef DEBUG_ENABLED
                 if (err.error != GDEXTENSION_CALL_OK) {
