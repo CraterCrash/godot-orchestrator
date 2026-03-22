@@ -37,7 +37,9 @@ jobs:
           choco install ccache
           choco upgrade ccache ninja
       # This forces the use of MSVC rather than GCC
-      - uses: ilammy/msvc-dev-cmd@v1.13.0
+      - uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
 
       - name: Build
         uses: ./.github/actions/orchestrator-build
