@@ -199,19 +199,19 @@ String OScriptCompiledFunction::get_call_error(const String& p_where, const Vari
 
 String OScriptCompiledFunction::get_callable_call_error(const String& p_where, const Callable& p_callable, const Variant** p_args, int p_arg_count, const Variant& p_result, const GDExtensionCallError& p_error) const {
     const Array binds = p_callable.get_bound_arguments();
-    const int binds_size = p_callable.get_bound_arguments_count();
+    const int args_unbound = p_callable.get_unbound_arguments_count();
 
-    if (p_arg_count - binds_size < 0) {
-        return "Callable unbinds " + itos(binds_size) + " arguments, but called with " + itos(p_arg_count);
+    if (p_arg_count - args_unbound < 0) {
+        return "Callable unbinds " + itos(args_unbound) + " arguments, but called with " + itos(p_arg_count);
     }
 
     Vector<const Variant*> argptrs;
-    argptrs.resize(p_arg_count - binds_size + binds.size());
-    for (int i  = 0; i < p_arg_count - binds_size; i++) {
+    argptrs.resize(p_arg_count - args_unbound + binds.size());
+    for (int i  = 0; i < p_arg_count - args_unbound; i++) {
         argptrs.write[i] = p_args[i];
     }
     for (int i = 0; i < binds.size(); i++) {
-        argptrs.write[i  + p_arg_count - binds_size] = &binds[i];
+        argptrs.write[i  + p_arg_count - args_unbound] = &binds[i];
     }
 
     return get_call_error(p_where, (const Variant**) argptrs.ptr(), argptrs.size(), p_result, p_error);
@@ -562,15 +562,21 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
     int node = initial_node;
 
     if (p_state) {
-        // Use existing state that is supplied
+        // Use existing state that is supplied for await.
         stack = reinterpret_cast<Variant*>(p_state->stack.ptrw());
-        instruction_args = reinterpret_cast<Variant**>(&p_state->stack.ptrw()[sizeof(Variant) * p_state->stack_size]);
+        instruction_args = reinterpret_cast<Variant**>(&p_state->stack.ptrw()[sizeof(Variant) * p_state->stack_size]); // `ptr()` to avoid bounds check.
         node = p_state->node_id;
         ip = p_state->ip;
         alloca_size = p_state->stack.size();
         script = p_state->script;
         p_instance = p_state->instance;
         defarg = p_state->defarg;
+
+        // Responsibility for the stack is moved from `OScriptCompiledFunction` to this method. To handle that, we
+        // reset `p_state->stack_size` to prevent `OScriptCompiledFunction::_clear_stack()` from clearing the stack again.
+        // NOTE: Strictly speaking, ownership doesn't move. However, we can be sure that `p_state->stack` won't be cleared
+        // before the current call completes, and that `p_state` won't be resumed again.
+        p_state->stack_size = 0;
     } else {
         if (p_arg_count != argument_count) {
             if (p_arg_count > argument_count) {
@@ -1012,7 +1018,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 const StringName native_type = global_names_ptr[native_type_idx];
 
                 bool was_freed = false;
-                Object* object = GDE::Variant::get_validated_object_with_check(value, was_freed);
+                Object* object = GDE::Variant::get_validated_object_with_check(*value, was_freed);
                 if (was_freed) {
                     error_text = "Left operand of 'is' is a previously freed instance.";
                     OPCODE_BREAK;
@@ -1034,7 +1040,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(!script_type);
 
                 bool was_freed = false;
-                Object* object = GDE::Variant::get_validated_object_with_check(value, was_freed);
+                Object* object = GDE::Variant::get_validated_object_with_check(*value, was_freed);
                 if (was_freed) {
                     error_text = "Left operand of 'is' is a previously freed instance.";
                     OPCODE_BREAK;
@@ -1539,7 +1545,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (src->get_type() == Variant::OBJECT) {
                     bool was_freed = false;
-                    Object *src_obj = GDE::Variant::get_validated_object_with_check(src, was_freed);
+                    Object *src_obj = GDE::Variant::get_validated_object_with_check(*src, was_freed);
                     if (!src_obj && was_freed) {
                         error_text = "Trying to assign invalid previously freed instance.";
                         OPCODE_BREAK;
@@ -1576,7 +1582,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (src->get_type() == Variant::OBJECT) {
                     bool was_freed = false;
-                    Object *val_obj = GDE::Variant::get_validated_object_with_check(src, was_freed);
+                    Object *val_obj = GDE::Variant::get_validated_object_with_check(*src, was_freed);
                     if (!val_obj && was_freed) {
                         error_text = "Trying to assign invalid previously freed instance.";
                         OPCODE_BREAK;
@@ -1942,7 +1948,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					if (!call_async && ret->get_type() == Variant::OBJECT) {
 						// Check if getting a function state without await.
 						bool was_freed = false;
-					    Object* obj = GDE::Variant::get_validated_object_with_check(ret, was_freed);
+					    Object* obj = GDE::Variant::get_validated_object_with_check(*ret, was_freed);
 					    if (obj && obj->get_class() == OScriptFunctionState::get_class_static()) {
 							error_text = R"(Trying to call an async function without "await".)";
 							OPCODE_BREAK;
@@ -2026,7 +2032,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
 				bool freed = false;
-				Object *base_obj = GDE::Variant::get_validated_object_with_check(base, freed);
+				Object *base_obj = GDE::Variant::get_validated_object_with_check(*base, freed);
 				if (freed) {
 					error_text = METHOD_CALL_ON_FREED_INSTANCE_ERROR(method);
 					OPCODE_BREAK;
@@ -2116,13 +2122,16 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 const Variant **argptrs = const_cast<const Variant **>(instruction_args);
 
                 GDExtensionCallError err;
+                Variant tmp;
                 GDE_INTERFACE(variant_call_static)(
                     static_cast<GDExtensionVariantType>(builtin_type),
                     methodname,
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs),
                     argc,
-                    *ret,
+                    &tmp,
                     &err);
+
+                *ret = tmp;
 
                 #ifdef DEBUG_ENABLED
                 if (err.error != GDEXTENSION_CALL_OK) {
@@ -2270,7 +2279,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *base_obj = GDE::Variant::get_validated_object_with_check(base, freed);
+                Object *base_obj = GDE::Variant::get_validated_object_with_check(*base, freed);
                 if (freed) {
                     error_text = METHOD_CALL_ON_FREED_INSTANCE_ERROR(method);
                     OPCODE_BREAK;
@@ -2321,7 +2330,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 GET_INSTRUCTION_ARG(base, argc);
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *base_obj = GDE::Variant::get_validated_object_with_check(base, freed);
+                Object *base_obj = GDE::Variant::get_validated_object_with_check(*base, freed);
                 if (freed) {
                     error_text = METHOD_CALL_ON_FREED_INSTANCE_ERROR(method);
                     OPCODE_BREAK;
@@ -2553,7 +2562,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					Variant result = *argobj;
 					if (argobj->get_type() == Variant::OBJECT) {
 						bool was_freed = false;
-						Object *obj = GDE::Variant::get_validated_object_with_check(argobj, was_freed);
+						Object *obj = GDE::Variant::get_validated_object_with_check(*argobj, was_freed);
 						if (was_freed) {
 							error_text = "Trying to await on a freed object.";
 							OPCODE_BREAK;
@@ -2797,8 +2806,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                         GDE::Variant::construct(ret_type, retvalue, const_cast<const Variant**>(&r), 1, err);
                     } else {
                         #ifdef DEBUG_ENABLED
-                        error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                                Variant::get_type_name(r->get_type()), Variant::get_type_name(ret_type));
+                        error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                                _get_var_type(r), Variant::get_type_name(ret_type));
                         #endif // DEBUG_ENABLED
 
                         // Construct a base type anyway so type constraints are met.
@@ -2827,9 +2836,9 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (r->get_type() != Variant::ARRAY) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "Array[%s]".)",
-                            Variant::get_type_name(r->get_type()), Variant::get_type_name(builtin_type));
-                    #endif
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Array[%s]".)",
+                            _get_var_type(r), Variant::get_type_name(builtin_type));
+                    #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
 
@@ -2839,7 +2848,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     array->get_typed_class_name() != native_type ||
                     array->get_typed_script() != *script_type) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return an array of type "%s" where expected return type is "Array[%s]".)",
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Array[%s]".)",
                             _get_var_type(r), _get_element_type(builtin_type, native_type, *script_type));
                     #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
@@ -2871,7 +2880,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
 				if (r->get_type() != Variant::DICTIONARY) {
                     #ifdef DEBUG_ENABLED
-					error_text = vformat(R"(Trying to return a value of type "%s" where expected return type is "Dictionary[%s, %s]".)",
+					error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Dictionary[%s, %s]".)",
 							_get_var_type(r), _get_element_type(key_builtin_type, key_native_type, *key_script_type),
 							_get_element_type(value_builtin_type, value_native_type, *value_script_type));
                     #endif // DEBUG_ENABLED
@@ -2887,7 +2896,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					dictionary->get_typed_value_class_name() != value_native_type ||
 					dictionary->get_typed_value_script() != *value_script_type) {
                     #ifdef DEBUG_ENABLED
-					error_text = vformat(R"(Trying to return a dictionary of type "%s" where expected return type is "Dictionary[%s, %s]".)",
+					error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Dictionary[%s, %s]".)",
 							_get_var_type(r), _get_element_type(key_builtin_type, key_native_type, *key_script_type),
 							_get_element_type(value_builtin_type, value_native_type, *value_script_type));
                     #endif // DEBUG_ENABLED
@@ -2911,14 +2920,16 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(!nc);
 
                 if (r->get_type() != Variant::OBJECT && r->get_type() != Variant::NIL) {
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                            Variant::get_type_name(r->get_type()), nc->get_name());
+                    #ifdef DEBUG_ENABLED
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                            _get_var_type(r), nc->get_name());
+                    #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *ret_obj = GDE::Variant::get_validated_object_with_check(r, freed);
+                Object *ret_obj = GDE::Variant::get_validated_object_with_check(*r, freed);
                 if (freed) {
                     error_text = "Trying to return a previously freed instance.";
                     OPCODE_BREAK;
@@ -2929,8 +2940,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (ret_obj && !ClassDB::is_parent_class(ret_obj->get_class(), nc->get_name())) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                        ret_obj->get_class(), nc->get_name());
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                        _get_var_type(r), nc->get_name());
                     #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
@@ -2952,15 +2963,15 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (r->get_type() != Variant::OBJECT && r->get_type() != Variant::NIL) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                            Variant::get_type_name(r->get_type()), OScript::debug_get_script_name(Ref<Script>(base_type)));
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                            _get_var_type(r), OScript::debug_get_script_name(Ref<Script>(base_type)));
                     #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *ret_obj = GDE::Variant::get_validated_object_with_check(r, freed);
+                Object *ret_obj = GDE::Variant::get_validated_object_with_check(*r, freed);
                 if (freed) {
                     error_text = "Trying to return a previously freed instance.";
                     OPCODE_BREAK;
@@ -2973,8 +2984,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     Script *ret_type = Ref<Script>(ret_obj->get_script()).ptr();
                     if (!ret_type) {
                         #ifdef DEBUG_ENABLED
-                        error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                                ret_obj->get_class(), OScript::debug_get_script_name(Ref<OScript>(base_type)));
+                        error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                                _get_var_type(r), OScript::debug_get_script_name(Ref<OScript>(base_type)));
                         #endif // DEBUG_ENABLED
                         OPCODE_BREAK;
                     }
@@ -2990,8 +3001,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                     if (!valid) {
                         #ifdef DEBUG_ENABLED
-                        error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                            OScript::debug_get_script_name(ret_obj->get_script()), OScript::debug_get_script_name(Ref<OScript>(base_type)));
+                        error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                            _get_var_type(r), OScript::debug_get_script_name(Ref<OScript>(base_type)));
                         #endif // DEBUG_ENABLED
                         OPCODE_BREAK;
                     }
@@ -3326,7 +3337,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *obj = GDE::Variant::get_validated_object_with_check(container, freed);
+                Object *obj = GDE::Variant::get_validated_object_with_check(*container, freed);
                 if (freed) {
                     error_text = "Trying to iterate on a previously freed object.";
                     OPCODE_BREAK;
@@ -3716,7 +3727,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
                 bool freed = false;
-                Object *obj = GDE::Variant::get_validated_object_with_check(container, freed);
+                Object *obj = GDE::Variant::get_validated_object_with_check(*container, freed);
                 if (freed) {
                     error_text = "Trying to iterate on a previously freed object.";
                     OPCODE_BREAK;
@@ -4027,15 +4038,10 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
     // This ensures the call stack can be properly shown when using 'await', showing what resumed the function.
     if (!p_state || awaited) {
         OScriptLanguage::get_singleton()->exit_function();
-
-        // Free stack, except reserved addresses
-        for (int i = FIXED_ADDRESSES_MAX; i < stack_size; i++) {
-            stack[i].~Variant();
-        }
     }
 
     // Always free reserved addresses, since they are never copied.
-    for (int i = 0; i < FIXED_ADDRESSES_MAX; i++) {
+    for (int i = 0; i < stack_size; i++) {
         stack[i].~Variant();
     }
 

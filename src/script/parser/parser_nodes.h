@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_PARSER_NODES_H
-#define ORCHESTRATOR_SCRIPT_PARSER_NODES_H
+#pragma once
 
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -726,6 +725,7 @@ namespace OScriptParserNodes
     struct ReturnNode : Node {
         ExpressionNode* return_value = nullptr;
         bool void_return = false;
+        bool use_conversion = false;
 
         ReturnNode() { type = RETURN; }
     };
@@ -959,4 +959,3 @@ namespace OScriptParserNodes
     };
 
 }
-#endif // ORCHESTRATOR_SCRIPT_PARSER_NODES_H

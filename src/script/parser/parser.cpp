@@ -213,6 +213,7 @@ void OScriptParser::bind_handlers() {
     // clang-format off
     register_expression_handler<OScriptNodeSelf,                &OScriptParser::build_self>();
     register_expression_handler<OScriptNodeVariableGet,         &OScriptParser::build_variable_get>();
+    register_expression_handler<OScriptNodeVariableSet,         &OScriptParser::build_variable_set_expression>();
     register_expression_handler<OScriptNodePropertyGet,         &OScriptParser::build_property_get>();
     register_expression_handler<OScriptNodeSceneTree,           &OScriptParser::build_get_scene_tree>();
     register_expression_handler<OScriptNodeSceneNode,           &OScriptParser::build_get_scene_node>();
@@ -439,6 +440,33 @@ void OScriptParser::add_pin_alias(const StringName& p_alias, const Ref<OScriptNo
         return;
     }
     suite->add_alias(p_pin, p_alias);
+}
+
+OScriptParser::ExpressionNode* OScriptParser::create_expression(const Variant& p_value) {
+    if (p_value.get_type() == Variant::ARRAY) {
+        ArrayNode* array_node = alloc_node<ArrayNode>();
+
+        Array array_value = p_value;
+        for (int i = 0; i < array_value.size(); i++) {
+            array_node->elements.push_back(create_expression(array_value[i]));
+        }
+
+        return array_node;
+    } else if (p_value.get_type() == Variant::DICTIONARY) {
+        DictionaryNode* dictionary_node = alloc_node<DictionaryNode>();
+
+        Dictionary dict = p_value;
+        Array keys = dict.keys();
+        for (int i = 0; i < keys.size(); i++) {
+            ExpressionNode* key = create_expression(keys[i]);
+            ExpressionNode* value = create_expression(dict[keys[i]]);
+            dictionary_node->elements.push_back({ key, value });
+        }
+
+        return dictionary_node;
+    }
+
+    return create_literal(p_value);
 }
 
 OScriptParser::LiteralNode* OScriptParser::create_literal(const Variant& p_value) {
@@ -1029,6 +1057,10 @@ OScriptParser::ExpressionNode* OScriptParser::build_self(const Ref<OScriptNodeSe
 }
 
 OScriptParser::ExpressionNode* OScriptParser::build_variable_get(const Ref<OScriptNodeVariableGet>& p_node, const Ref<OScriptNodePin>& p_pin) {
+    return build_identifier(p_node->get_variable()->get_variable_name());
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_variable_set_expression(const Ref<OScriptNodeVariableSet>& p_node, const Ref<OScriptNodePin>& p_pin) {
     return build_identifier(p_node->get_variable()->get_variable_name());
 }
 
@@ -1853,6 +1885,27 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
 OScriptParser::StatementResult OScriptParser::build_call_builtin_function(const Ref<OScriptNodeCallBuiltinFunction>& p_script_node) {
     const MethodInfo& method = p_script_node->get_method_info();
 
+    if (method.name == StringName("assert")) {
+        AssertNode* assert_node = alloc_node<AssertNode>();
+        assert_node->script_node_id = p_script_node->get_id();
+
+        assert_node->condition = resolve_input(p_script_node->find_pin(1, PD_Input));
+        if (assert_node->condition == nullptr) {
+            push_error("Expected expression to assert.");
+            return create_stop_result();
+        }
+
+        assert_node->message = resolve_input(p_script_node->find_pin(2, PD_Input));
+        if (assert_node->message == nullptr) {
+            push_error("Expected error message for assert.");
+            return create_stop_result();
+        }
+
+        add_statement(assert_node);
+
+        return create_statement_result(p_script_node, 0);
+    }
+
     CallNode* call_node = create_func_call(method.name);
     call_node->script_node_id = p_script_node->get_id();
     bind_call_func_args(call_node, p_script_node);
@@ -2016,6 +2069,8 @@ OScriptParser::StatementResult OScriptParser::build_while(const Ref<OScriptNodeW
     const Ref<OScriptNodePin> repeat_pin = p_script_node->find_pin(0, PD_Output);
     if (repeat_pin.is_valid() && repeat_pin->has_any_connections()) {
         while_node->loop = build_suite("while loop", repeat_pin, suite);
+    } else {
+        while_node->loop = alloc_node<SuiteNode>();
     }
 
     add_statement(while_node);
@@ -2704,7 +2759,11 @@ OScriptParser::StatementResult OScriptParser::build_await_signal(const Ref<OScri
     await_node->script_node_id = p_script_node->get_id();
     set_coroutine();
 
+    const Ref<OScriptNodePin> result_pin = p_script_node->find_pin("result", PD_Output);
     const String result_term = vformat("node_%s_result", p_script_node->get_id());
+    if (result_pin.is_valid()) {
+        add_pin_alias(result_term, result_pin);
+    }
     create_local_and_push(result_term, await_node);
 
     return create_statement_result(p_script_node, 0);
@@ -2905,14 +2964,14 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
         if (graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
             // This physical function
             const Ref<OScriptFunction> function = graph->get_functions()[0];
-            if (function.is_valid()) {
+            if (function.is_valid() && function->get_owning_node_id() >= 0) {
                 FunctionNode* node = build_function(function, graph);
                 clazz->add_member(node);
             }
         }
         else if (graph->get_flags().has_flag(OScriptGraph::GF_EVENT)) {
             for (const Ref<OScriptFunction>& function : graph->get_functions()) {
-                if (function.is_valid()) {
+                if (function.is_valid() && function->get_owning_node_id() >= 0) {
                     FunctionNode* node = build_function(function, graph);
                     clazz->add_member(node);
                 }
@@ -2956,10 +3015,9 @@ OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVari
     }
 
     if (p_variable->get_default_value().get_type() != Variant::NIL) {
-        LiteralNode* default_value = alloc_node<LiteralNode>();
-        default_value->value = p_variable->get_default_value();
-        if (!p_variable->is_constant()) {
-            default_value->is_constant = false;
+        ExpressionNode* default_value = create_expression(p_variable->get_default_value());
+        if (p_variable->is_constant()) {
+            default_value->is_constant = true;
         }
         node->initializer = default_value;
         node->assignments++;
@@ -3341,10 +3399,10 @@ bool OScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_tar
 					String enum_hint_string;
 					bool first = true;
 					for (const KeyValue<StringName, int64_t> &E : export_type.enum_values) {
-						if (!first) {
-							enum_hint_string += ",";
+						if (first) {
+						    first = false;
 						} else {
-							first = false;
+							enum_hint_string += ",";
 						}
 						enum_hint_string += String(E.key).capitalize().xml_escape();
 						enum_hint_string += ":";
@@ -3424,10 +3482,10 @@ bool OScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_tar
 						String enum_hint_string;
 						bool first = true;
 						for (const KeyValue<StringName, int64_t> &E : export_type.enum_values) {
-							if (!first) {
-								enum_hint_string += ",";
+							if (first) {
+							    first = false;
 							} else {
-								first = false;
+							    enum_hint_string += ",";
 							}
 							enum_hint_string += String(E.key).capitalize().xml_escape();
 							enum_hint_string += ":";

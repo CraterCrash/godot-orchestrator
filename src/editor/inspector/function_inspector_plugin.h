@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_INSPECTOR_PLUGIN_FUNCTION_H
-#define ORCHESTRATOR_EDITOR_INSPECTOR_PLUGIN_FUNCTION_H
+#pragma once
 
 #include "script/function.h"
 
@@ -49,5 +48,3 @@ public:
     bool _parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint_type, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage_flags, bool p_wide) override;
     //~ End EditorInspectorPlugin Interface
 };
-
-#endif // ORCHESTRATOR_EDITOR_INSPECTOR_PLUGIN_FUNCTION_H

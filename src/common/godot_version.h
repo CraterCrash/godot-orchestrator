@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_GODOT_VERSION_H
-#define ORCHESTRATOR_GODOT_VERSION_H
+#pragma once
 
 #include "common/version.h"
 #include "core/godot/gdextension_compat.h"
@@ -66,5 +65,3 @@ public:
     constexpr GodotVersionInfo(const GDExtensionGodotVersion& v) : _version(v) {}
     #endif
 };
-
-#endif // ORCHESTRATOR_GODOT_VERSION_H

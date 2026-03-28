@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "core/godot/gdextension_compat.h"
+#include "core/godot/object/script_language.h"
 #include "core/godot/scene_string_names.h"
 #include "core/godot/variant/variant.h"
 #include "script/script.h"
@@ -143,15 +144,9 @@ struct OScriptInstanceCallbacks {
         return INSTANCE->get_property_list(r_size);
     }
 
-    #if GODOT_VERSION >= 0x040300
     static void free_property_list_func(GDExtensionScriptInstanceDataPtr p_instance, const GDExtensionPropertyInfo* p_list, uint32_t p_count) {
         INSTANCE->free_property_list(p_list, p_count);
     }
-    #else
-    static void free_property_list_func(GDExtensionScriptInstanceDataPtr p_instance, const GDExtensionPropertyInfo* p_list) {
-        INSTANCE->free_property_list(p_list);
-    }
-    #endif
 
     static GDExtensionBool property_can_revert_func(GDExtensionScriptInstanceDataPtr p_instance, GDExtensionConstStringNamePtr p_name) {
         return INSTANCE->property_can_revert(CAST_STRINGNAME(p_name));
@@ -173,15 +168,9 @@ struct OScriptInstanceCallbacks {
         return INSTANCE->get_method_list(r_size);
     }
 
-    #if GODOT_VERSION >= 0x040300
     static void free_method_list_func(GDExtensionScriptInstanceDataPtr p_instance, const GDExtensionMethodInfo* p_list, uint32_t p_count) {
         INSTANCE->free_method_list(p_list, p_count);
     }
-    #else
-    static void free_method_list_func(GDExtensionScriptInstanceDataPtr p_instance, const GDExtensionMethodInfo* p_list) {
-        INSTANCE->free_method_list(p_list);
-    }
-    #endif
 
     static GDExtensionVariantType get_property_type_func(GDExtensionScriptInstanceDataPtr p_instance, GDExtensionConstStringNamePtr p_name, GDExtensionBool* r_valid) {
         return static_cast<GDExtensionVariantType>(INSTANCE->get_property_type(CAST_STRINGNAME(p_name), CAST_BOOL(r_valid)));
@@ -1160,7 +1149,7 @@ bool OScriptPlaceHolderInstance::has_method(const StringName& p_name) const {
 
     Ref<Script> scr = _script;
     while (scr.is_valid()) {
-        if (scr->has_method(p_name)) {
+        if (GDE::Script::has_method(scr, p_name)) {
             return true;
         }
         scr = scr->get_base_script();

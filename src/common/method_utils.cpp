@@ -102,16 +102,20 @@ namespace MethodUtils {
         signature += " " + p_method.name + " (";
 
         int index = 0;
+        bool first = true;
         for (const PropertyInfo& property : p_method.arguments) {
-            if (!signature.ends_with("(")) {
+            if (!first) {
                 signature += ", ";
             }
+
             if (property.name.is_empty()) {
                 signature += "p" + itos(index++);
             } else {
                 signature += property.name;
             }
+
             signature += ":" + PropertyUtils::get_property_type_name(property);
+            first = false;
         }
 
         if (p_method.flags & METHOD_FLAG_VARARG) {

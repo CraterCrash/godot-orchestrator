@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_FILTER_GRAPH_TYPE_RULE_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_FILTER_GRAPH_TYPE_RULE_H
+#pragma once
 
 #include "editor/actions/rules/rule.h"
 
@@ -41,5 +40,3 @@ public:
 
     void set_graph_type(Action::GraphType p_graph_type) { _graph_type = p_graph_type;}
 };
-
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_GRAPH_TYPE_RULE_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_FORMAT_BINARY_H
-#define ORCHESTRATOR_ORCHESTRATION_FORMAT_BINARY_H
+#pragma once
 
 #include <godot_cpp/classes/file_access.hpp>
 
@@ -90,5 +89,3 @@ struct OrchestrationBinaryFormat {
     static void save_unicode_string(const Ref<FileAccess>& p_file, const String& p_value, bool p_bit_on_length = false);
     static String read_unicode_string(const Ref<FileAccess>& p_file);
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_FORMAT_BINARY_H

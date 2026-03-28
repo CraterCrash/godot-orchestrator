@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_OBJECT_CLASSDB_H
-#define ORCHESTRATOR_CORE_GODOT_OBJECT_CLASSDB_H
+#pragma once
 
 #include <godot_cpp/core/object.hpp>
 
@@ -46,5 +45,3 @@ namespace GDE {
         static bool get_signal(const godot::StringName& p_class_name, const godot::StringName& p_signal_name, godot::MethodInfo& r_info);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_OBJECT_CLASSDB_H

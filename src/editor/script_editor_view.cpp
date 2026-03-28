@@ -573,22 +573,15 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
     _goto_menu->get_popup()->add_item("Goto Node", SEARCH_LOCATE_NODE, OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_L));
 
     _goto_menu->get_popup()->add_separator();
-    #if GODOT_VERSION >= 0x040300
     _goto_menu->get_popup()->add_submenu_node_item("Bookmarks", _bookmarks_menu);
-    #else
-    _goto_menu->add_child(_bookmarks_menu);
-    _goto_menu->get_popup()->add_submenu_item("Bookmarks", _bookmarks_menu->get_name());
-    #endif
     _update_bookmarks_list();
     _bookmarks_menu->connect("about_to_popup", callable_mp_this(_update_bookmarks_list));
     _bookmarks_menu->connect("index_pressed", callable_mp_this(_bookmarks_menu_option));
 
-    #if GODOT_VERSION >= 0x040300
     _goto_menu->get_popup()->add_submenu_node_item("Breakpoints", _breakpoints_menu);
     _update_breakpoints_list();
     _breakpoints_menu->connect("about_to_popup", callable_mp_this(_update_breakpoints_list));
     _breakpoints_menu->connect("index_pressed", callable_mp_this(_breakpoints_menu_option));
-    #endif
 
     _edit_hb->add_child(_debug_menu);
     _debug_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
@@ -945,6 +938,13 @@ void OrchestratorScriptGraphEditorView::add_callback(const String& p_function, c
 
     OrchestratorEditorGraphPanel* editor = _get_active_graph_tab();
     if (editor) {
+        const Ref<OrchestrationGraph> graph = _script->get_orchestration()->find_graph(editor->get_name());
+        if (graph.is_valid() && graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
+            // Fallback to the default EventGraph, cannot add signal callbacks to function graphs
+            editor = _get_graph_tab("EventGraph");
+            _focus_graph_tab(editor);
+        }
+
         NodeSpawnOptions options;
         options.context.method = method;
         options.position = editor->get_scroll_offset() + (editor->get_size() / 2.0);
@@ -1055,8 +1055,6 @@ void OrchestratorScriptGraphEditorView::register_editor() {
 }
 
 void OrchestratorScriptGraphEditorView::_notification(int p_what) {
-    GDE_NOTIFICATION(OrchestratorEditorView, p_what);
-
     // We maintain a private group of objects under the "_orchestrator_script_graph_views" group, which
     // is used by the plugin to identify all script graph views. This group is used to coordinate when
     // the component panel visibility and width changes across the views.

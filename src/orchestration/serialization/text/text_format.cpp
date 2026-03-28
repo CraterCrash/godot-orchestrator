@@ -16,12 +16,9 @@
 //
 #include "orchestration/serialization/text/text_format.h"
 
-#include "common/version.h"
-
 #include <godot_cpp/classes/resource_uid.hpp>
 
 int64_t OrchestrationTextFormat::get_resource_id_for_path(const String& p_path, bool p_generate) {
-    #if GODOT_VERSION >= 0x040300
     int64_t fallback = ResourceLoader::get_singleton()->get_resource_uid(p_path);
     if (fallback != ResourceUID::INVALID_ID) {
         return fallback;
@@ -29,7 +26,6 @@ int64_t OrchestrationTextFormat::get_resource_id_for_path(const String& p_path, 
     if (p_generate) {
         return ResourceUID::get_singleton()->create_id();
     }
-    #endif
 
     return ResourceUID::INVALID_ID;
 }

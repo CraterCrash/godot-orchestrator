@@ -76,6 +76,12 @@ void OrchestratorEditorSearchHelpBit::_notification(int p_what) {
             }
             break;
         }
+        case NOTIFICATION_EXIT_TREE: {
+            if (_help_bit->is_connected("meta_clicked", callable_mp_this(_meta_clicked))) {
+                _help_bit->disconnect("meta_clicked", callable_mp_this(_meta_clicked));
+            }
+            break;
+        }
         default: {
             break;
         }
@@ -94,6 +100,7 @@ void OrchestratorEditorSearchDialog::_favorite_selected() {
     const Ref<SearchItem> search_item = item->get_meta("__item");
     if (search_item.is_valid() && !search_item->text.is_empty()) {
         _search_box->set_text(search_item->text);
+        _search_box->set_caret_column(search_item->text.length());
         _recent->deselect_all();
         _update_search();
     }
@@ -126,6 +133,7 @@ void OrchestratorEditorSearchDialog::_history_selected(int p_index) {
     const Ref<SearchItem> item = _recent->get_item_metadata(p_index);
     if (item.is_valid()) {
         _search_box->set_text(item->text);
+        _search_box->set_caret_column(item->text.length());
         _favorites->deselect_all();
         _update_search();
     }
@@ -148,8 +156,7 @@ void OrchestratorEditorSearchDialog::_search_input(const Ref<InputEvent>& p_even
             case KEY_DOWN:
             case KEY_PAGEUP:
             case KEY_PAGEDOWN: {
-                _search_options->_gui_input(p_event);
-                _search_box->accept_event();
+                push_and_accept_event(p_event, _search_box, _search_options);
                 break;
             }
             case KEY_SPACE: {

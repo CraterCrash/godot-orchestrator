@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_PARSER_TEXT_H
-#define ORCHESTRATOR_ORCHESTRATION_PARSER_TEXT_H
+#pragma once
 
 #include "orchestration/serialization/parser.h"
 #include "orchestration/serialization/text/variant_parser.h"
@@ -110,5 +109,3 @@ public:
 
     Error set_uid(const String& p_path, int64_t p_uid);
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_PARSER_TEXT_H

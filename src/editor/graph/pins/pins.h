@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_GRAPH_PINS_H
-#define ORCHESTRATOR_EDITOR_GRAPH_PINS_H
+#pragma once
 
 #include "editor/graph/pins/bitfield_pin.h"
 #include "editor/graph/pins/checkbox_pin.h"
@@ -31,5 +30,3 @@
 #include "editor/graph/pins/option_picker_pin.h"
 #include "editor/graph/pins/struct_pin.h"
 #include "editor/graph/pins/text_edit_pin.h"
-
-#endif // ORCHESTRATOR_EDITOR_GRAPH_PINS_H

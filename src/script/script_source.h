@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_SOURCE_H
-#define ORCHESTRATOR_SCRIPT_SOURCE_H
+#pragma once
 
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/variant/packed_byte_array.hpp>
@@ -65,5 +64,3 @@ public:
     explicit OScriptSource(Type p_type, const String& p_source, const String& p_path);
     explicit OScriptSource(Type p_type, const PackedByteArray& p_binary_source, const String& p_path);
 };
-
-#endif // ORCHESTRATOR_SCRIPT_SOURCE_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_DOCGEN_H
-#define ORCHESTRATOR_SCRIPT_DOCGEN_H
+#pragma once
 
 #include "script/parser/parser.h"
 
@@ -40,5 +39,3 @@ public:
     static String doc_value_from_expression(const Parser::ExpressionNode* p_expression);
 };
 #endif
-
-#endif // ORCHESTRATOR_SCRIPT_DOCGEN_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EXTENSION_INTERFACE_H
-#define ORCHESTRATOR_EXTENSION_INTERFACE_H
+#pragma once
 
 #include <godot_cpp/core/class_db.hpp>
 
@@ -29,5 +28,3 @@ namespace godot {
                                                           GDExtensionInitialization* r_initialization);
     }
 }
-
-#endif
