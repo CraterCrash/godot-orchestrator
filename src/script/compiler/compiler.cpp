@@ -2959,9 +2959,10 @@ Error OScriptCompiler::prepare_compilation(OScript* p_script, const OScriptParse
                     }
                 }
 
-                minfo.data_type = resolve_type(variable->get_datatype(), p_script);
+                const OScriptParser::DataType variable_type = variable->get_datatype();
+                minfo.data_type = resolve_type(variable_type, p_script);
 
-                PropertyInfo property = variable->get_datatype().to_property_info(name);
+                PropertyInfo property = variable_type.to_property_info(name);
                 PropertyInfo export_info = variable->export_info;
 
                 if (variable->exported) {
@@ -2972,6 +2973,27 @@ Error OScriptCompiler::prepare_compilation(OScript* p_script, const OScriptParse
                     property.hint = export_info.hint;
                     property.hint_string = export_info.hint_string;
                     property.usage = export_info.usage;
+                } else {
+                    // Enum hint doesn't really belong to the data type information, so we don't want to add it to
+                    // `OScriptParser::DataType::to_property_info()`. However, we still want to add this metadata
+                    // for unexported properties so they display nicely in the Remote Tree Inspector.
+                    if (variable_type.kind == OScriptParser::DataType::ENUM && !variable_type.is_meta_type) {
+                        property.hint = PROPERTY_HINT_ENUM;
+
+                        String enum_hint_string;
+                        bool first = true;
+                        for (const KeyValue<StringName, int64_t>& E : variable_type.enum_values) {
+                            if (first) {
+                                first = false;
+                            } else {
+                                enum_hint_string += ",";
+                            }
+                            enum_hint_string += String(E.key).capitalize().xml_escape();
+                            enum_hint_string += ":";
+                            enum_hint_string += String::num_int64(E.value).xml_escape();
+                        }
+                        property.hint_string = enum_hint_string;
+                    }
                 }
                 property.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
                 minfo.property_info = property;
