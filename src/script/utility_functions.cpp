@@ -113,12 +113,14 @@ struct OScriptUtilityFunctionsDefinitions
     /// These are functions that we expose as part of the `@OScript` family of methods to the user as nodes that can
     /// be directly called from scripts. These call into the C++ engine directly.
 
+    #ifndef DISABLE_DEPRECATED
     /// Checks whether the specified class name exists, returning <code>true</code> or <code>false</code>.
     static void type_exists(Variant* r_ret, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error) {
         DEBUG_VALIDATE_ARG_COUNT(1, 1);
         DEBUG_VALIDATE_ARG_TYPE(0, Variant::STRING_NAME);
         *r_ret = ClassDB::class_exists(*p_args[0]);
     }
+    #endif
 
     static void print_debug(Variant* r_ret, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error) {
         String s;
@@ -566,8 +568,9 @@ void OScriptUtilityFunctions::register_functions() {
     REGISTER_FUNC(print_debug, false, RET(NIL), NOARGS, true, varray(), false);
     REGISTER_FUNC(print_stack, false, RET(NIL), NOARGS, false, varray(), false);
     REGISTER_FUNC(get_stack, false, RET(ARRAY), NOARGS, false, varray(), false);
-
+    #ifndef DISABLE_DEPRECATED
     REGISTER_FUNC(type_exists, true, RET(BOOL), ARGS(ARG("type", STRING_NAME)), false, varray(), false);
+    #endif
     REGISTER_FUNC(len, true, RET(INT), ARGS(ARGVAR("var")), false, varray(), false);
     REGISTER_FUNC(load, false, RETCLS("Resource"), ARGS( ARG("path", STRING) ), false, varray(), false);
 
