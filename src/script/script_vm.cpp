@@ -2806,8 +2806,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                         GDE::Variant::construct(ret_type, retvalue, const_cast<const Variant**>(&r), 1, err);
                     } else {
                         #ifdef DEBUG_ENABLED
-                        error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                                Variant::get_type_name(r->get_type()), Variant::get_type_name(ret_type));
+                        error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                                _get_var_type(r), Variant::get_type_name(ret_type));
                         #endif // DEBUG_ENABLED
 
                         // Construct a base type anyway so type constraints are met.
@@ -2836,9 +2836,9 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (r->get_type() != Variant::ARRAY) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "Array[%s]".)",
-                            Variant::get_type_name(r->get_type()), Variant::get_type_name(builtin_type));
-                    #endif
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Array[%s]".)",
+                            _get_var_type(r), Variant::get_type_name(builtin_type));
+                    #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
 
@@ -2848,7 +2848,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     array->get_typed_class_name() != native_type ||
                     array->get_typed_script() != *script_type) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return an array of type "%s" where expected return type is "Array[%s]".)",
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Array[%s]".)",
                             _get_var_type(r), _get_element_type(builtin_type, native_type, *script_type));
                     #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
@@ -2880,7 +2880,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
 				if (r->get_type() != Variant::DICTIONARY) {
                     #ifdef DEBUG_ENABLED
-					error_text = vformat(R"(Trying to return a value of type "%s" where expected return type is "Dictionary[%s, %s]".)",
+					error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Dictionary[%s, %s]".)",
 							_get_var_type(r), _get_element_type(key_builtin_type, key_native_type, *key_script_type),
 							_get_element_type(value_builtin_type, value_native_type, *value_script_type));
                     #endif // DEBUG_ENABLED
@@ -2896,7 +2896,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					dictionary->get_typed_value_class_name() != value_native_type ||
 					dictionary->get_typed_value_script() != *value_script_type) {
                     #ifdef DEBUG_ENABLED
-					error_text = vformat(R"(Trying to return a dictionary of type "%s" where expected return type is "Dictionary[%s, %s]".)",
+					error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "Dictionary[%s, %s]".)",
 							_get_var_type(r), _get_element_type(key_builtin_type, key_native_type, *key_script_type),
 							_get_element_type(value_builtin_type, value_native_type, *value_script_type));
                     #endif // DEBUG_ENABLED
@@ -2920,8 +2920,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(!nc);
 
                 if (r->get_type() != Variant::OBJECT && r->get_type() != Variant::NIL) {
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                            Variant::get_type_name(r->get_type()), nc->get_name());
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                            _get_var_type(r), nc->get_name());
                     OPCODE_BREAK;
                 }
 
@@ -2938,8 +2938,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (ret_obj && !ClassDB::is_parent_class(ret_obj->get_class(), nc->get_name())) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                        ret_obj->get_class(), nc->get_name());
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                        _get_var_type(r), nc->get_name());
                     #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
@@ -2961,8 +2961,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 if (r->get_type() != Variant::OBJECT && r->get_type() != Variant::NIL) {
                     #ifdef DEBUG_ENABLED
-                    error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                            Variant::get_type_name(r->get_type()), OScript::debug_get_script_name(Ref<Script>(base_type)));
+                    error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                            _get_var_type(r), OScript::debug_get_script_name(Ref<Script>(base_type)));
                     #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
@@ -2982,8 +2982,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     Script *ret_type = Ref<Script>(ret_obj->get_script()).ptr();
                     if (!ret_type) {
                         #ifdef DEBUG_ENABLED
-                        error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                                ret_obj->get_class(), OScript::debug_get_script_name(Ref<OScript>(base_type)));
+                        error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                                _get_var_type(r), OScript::debug_get_script_name(Ref<OScript>(base_type)));
                         #endif // DEBUG_ENABLED
                         OPCODE_BREAK;
                     }
@@ -2999,8 +2999,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                     if (!valid) {
                         #ifdef DEBUG_ENABLED
-                        error_text = vformat(R"(Trying to return value of type "%s" from a function whose return type is "%s".)",
-                            OScript::debug_get_script_name(ret_obj->get_script()), OScript::debug_get_script_name(Ref<OScript>(base_type)));
+                        error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
+                            _get_var_type(r), OScript::debug_get_script_name(Ref<OScript>(base_type)));
                         #endif // DEBUG_ENABLED
                         OPCODE_BREAK;
                     }
