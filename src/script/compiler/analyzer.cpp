@@ -3240,7 +3240,7 @@ void OScriptAnalyzer::resolve_return(OScriptParser::ReturnNode* p_return) {
 		}
 	}
 
-	if (has_expected_type && !expected_type.is_variant()) {
+	if (has_expected_type && !expected_type.is_variant() && expected_type.is_hard_type()) {
 		if (result.is_variant() || !result.is_hard_type()) {
 		    p_return->use_conversion = true;
 			mark_node_unsafe(p_return);
