@@ -55,6 +55,8 @@ class OrchestratorEditorIntrospector {
 
     static void _apply_method_overrides(const String& p_class_name, MethodInfo& r_method);
 
+    static void _register_static_methods(const String& p_lookup_class, const String& p_register_class, const String& p_category, Vector<Ref<Action>>& r_actions);
+
 public:
 
     // registrar.filter->target_object->get_target()

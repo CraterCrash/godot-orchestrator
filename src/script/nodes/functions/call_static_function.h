@@ -29,17 +29,15 @@ protected:
     static void _bind_methods() { }
 
     //~ Begin Wrapped Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     void _get_property_list(List<PropertyInfo>* r_list) const;
     bool _get(const StringName& p_name, Variant& r_value) const;
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
-    void _resolve_method_info();
-
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
-    void post_placed_new_node() override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
