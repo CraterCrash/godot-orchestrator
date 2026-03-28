@@ -469,4 +469,5 @@ OScriptFunctionState::~OScriptFunctionState() {
     MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
     scripts_list.remove_from_list();
     instances_list.remove_from_list();
+    _clear_stack();
 }
