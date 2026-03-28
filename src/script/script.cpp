@@ -36,11 +36,9 @@
 #include "common/macros.h"
 #include "core/godot/error_macros.h"
 #include "core/godot/gdextension_compat.h"
-#include "editor/debugger/script_debugger_plugin.h"
 #include "orchestration/serialization/binary/binary_parser.h"
 
 #include <godot_cpp/classes/dir_access.hpp>
-#include <godot_cpp/classes/editor_file_system.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
@@ -547,61 +545,6 @@ TypedArray<Dictionary> OScript::_get_script_signals(bool p_include_base) const {
     }
 
     return list;
-}
-
-OScript* OScript::_get_from_variant(const Variant& p_value) { // NOLINT
-    Object* obj = p_value;
-    if (obj == nullptr || ObjectID(obj->get_instance_id()).is_null()) {
-        return nullptr;
-    }
-    return cast_to<OScript>(obj);
-}
-
-void OScript::_collect_function_dependencies(OScriptCompiledFunction* p_function, RBSet<OScript*>& p_dependencies, const OScript* p_except) { // NOLINT
-    if (p_function == nullptr) {
-        return;
-    }
-    for (OScriptCompiledFunction* lambda : p_function->lambdas) {
-        _collect_function_dependencies(lambda, p_dependencies, p_except);
-    }
-    for (const Variant& value : p_function->constants) {
-        OScript* script = _get_from_variant(value);
-        if (script != nullptr && script != p_except) {
-            script->_collect_dependencies(p_dependencies, p_except);
-        }
-    }
-}
-
-void OScript::_collect_dependencies(RBSet<OScript*>& p_dependencies, const OScript* p_except) { // NOLINT
-    if (p_dependencies.has(this)) {
-        return;
-    }
-    if (this != p_except) {
-        p_dependencies.insert(this);
-    }
-    for (const KeyValue<StringName, OScriptCompiledFunction*>& E : member_functions) {
-        _collect_function_dependencies(E.value, p_dependencies, p_except);
-    }
-    if (implicit_initializer) {
-        _collect_function_dependencies(implicit_initializer, p_dependencies, p_except);
-    }
-    if (implicit_ready) {
-        _collect_function_dependencies(implicit_ready, p_dependencies, p_except);
-    }
-    if (static_initializer) {
-        _collect_function_dependencies(static_initializer, p_dependencies, p_except);
-    }
-    for (const KeyValue<StringName, Ref<OScript>>& E : subclasses) {
-        if (E.value != p_except) {
-            E.value->_collect_dependencies(p_dependencies, p_except);
-        }
-    }
-    for (const KeyValue<StringName, Variant>& E : constants) {
-        OScript* script = _get_from_variant(E.value);
-        if (script != nullptr && script != p_except) {
-            script->_collect_dependencies(p_dependencies, p_except);
-        }
-    }
 }
 
 bool OScript::_editor_can_reload_from_file() {
@@ -1265,24 +1208,14 @@ String OScript::get_script_path() const {
     return path;
 }
 
-void OScript::clear(ClearData* p_clear_data) {
+void OScript::clear() {
     if (clearing) {
         return;
     }
 
     clearing = true;
 
-    ClearData data;
-    ClearData* clear_data = p_clear_data;
-    bool is_root = false;
-
-    // When 'clear_data' is null, this is the root script.
-    // The root is in charge to clear functions and scripts of itself and dependencies
-    if (clear_data == nullptr) {
-        clear_data = &data;
-        is_root = true;
-    }
-
+    RBSet<OScriptCompiledFunction*> functions_to_clear;
     {
         MutexLock lock(*func_ptrs_to_update_mutex.ptr());
         for (UpdatableFuncPtr* updatable : func_ptrs_to_update) {
@@ -1290,51 +1223,33 @@ void OScript::clear(ClearData* p_clear_data) {
         }
     }
 
-    // If we are in the process of shutting down then every single script will be cleared
-    // So we can safely skip this costly step
-    // todo: implement this when class inheritance/dependencies
-    if (!OScriptLanguage::get_singleton()->finishing) {
-    //     RBSet<OScript*> must_clear_dependencies = get_must_clear_dependencies();
-    //     for (OScript* E : must_clear_dependencies) {
-    //         clear_data->scripts.insert(E);
-    //         E->clear(clear_data);
-    //     }
-    }
-
     for (const KeyValue<StringName, OScriptCompiledFunction*>& E : member_functions) {
-        clear_data->functions.insert(E.value);
+        functions_to_clear.insert(E.value);
     }
     member_functions.clear();
 
     for (KeyValue<StringName, MemberInfo>& E : member_indices) {
-        clear_data->scripts.insert(E.value.data_type.script_type_ref);
         E.value.data_type.script_type_ref = Ref<Script>();
     }
 
-    for (KeyValue<StringName, MemberInfo>& E : static_variables_indices) {
-        clear_data->scripts.insert(E.value.data_type.script_type_ref);
-        E.value.data_type.script_type_ref = Ref<Script>();
-    }
+    member_indices.clear();
     static_variables.clear();
     static_variables_indices.clear();
 
     if (implicit_initializer) {
-        clear_data->functions.insert(implicit_initializer);
+        functions_to_clear.insert(implicit_initializer);
         implicit_initializer = nullptr;
     }
 
     if (implicit_ready) {
-        clear_data->functions.insert(implicit_ready);
+        functions_to_clear.insert(implicit_ready);
         implicit_ready = nullptr;
     }
 
     if (static_initializer) {
-        clear_data->functions.insert(static_initializer);
+        functions_to_clear.insert(static_initializer);
         static_initializer = nullptr;
     }
-
-    // todo: add this if we decide to support subclasses
-    // _save_orphan_subclasses(clear_data);
 
     #ifdef TOOLS_ENABLED
     if (_owner) {
@@ -1342,20 +1257,11 @@ void OScript::clear(ClearData* p_clear_data) {
     }
     #endif
 
-    if (is_root) {
-        for (OScriptCompiledFunction* E : clear_data->functions) {
-            memdelete(E);
-        }
-
-        for (Ref<Script>& E : clear_data->scripts) {
-            Ref<OScript> scr = E;
-            if (scr.is_valid()) {
-                OScriptCache::remove_script(scr->get_path());
-            }
-        }
-
-        clear_data->clear();
+    // All dependencies have been accounted for
+    for (OScriptCompiledFunction* E : functions_to_clear) {
+        memdelete(E);
     }
+    functions_to_clear.clear();
 }
 
 void OScript::cancel_pending_functions(bool p_warn) {
@@ -1430,67 +1336,6 @@ OScript* OScript::get_root_script() {
         result = result->subclass_owner;
     }
     return result;
-}
-
-RBSet<OScript*> OScript::get_dependencies() {
-    RBSet<OScript*> dependencies;
-    _collect_dependencies(dependencies, this);
-    dependencies.erase(this);
-    return dependencies;
-}
-
-HashMap<OScript*, RBSet<OScript*>> OScript::get_all_dependencies() {
-    HashMap<OScript*, RBSet<OScript*>> all_dependencies;
-
-    List<OScript*> scripts;
-    {
-        MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
-        SelfList<OScript>* elem = OScriptLanguage::get_singleton()->_scripts.first();
-        while (elem) {
-            scripts.push_back(elem->self());
-            elem = elem->next();
-        }
-    }
-
-    for (OScript* scr : scripts) {
-        if (scr == nullptr || scr->destructing) {
-            continue;
-        }
-        all_dependencies.insert(scr, scr->get_dependencies());
-    }
-
-    return all_dependencies;
-}
-
-RBSet<OScript*> OScript::get_must_clear_dependencies() {
-    RBSet<OScript*> must_clear_dependencies;
-    RBSet<OScript*> dependencies = get_dependencies();
-    HashMap<OScript*, RBSet<OScript*>> all_dependencies = get_all_dependencies();
-
-    RBSet<OScript*> cant_clear;
-    for (KeyValue<OScript*, RBSet<OScript*>>& E : all_dependencies) {
-        if (dependencies.has(E.key)) {
-            continue;
-        }
-        for (OScript* F : E.value) {
-            if (dependencies.has(F)) {
-                cant_clear.insert(F);
-            }
-        }
-    }
-
-    for (OScript* E : dependencies) {
-        if (cant_clear.has(E) || ScriptServer::is_global_class(E->get_fully_qualified_class_name())) {
-            continue;
-        }
-        must_clear_dependencies.insert(E);
-    }
-
-    cant_clear.clear();
-    dependencies.clear();
-    all_dependencies.clear();
-
-    return must_clear_dependencies;
 }
 
 StringName OScript::debug_get_member_by_index(int p_index) const {
