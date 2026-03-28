@@ -1533,10 +1533,6 @@ void OScript::get_constants(HashMap<StringName, Variant>* r_constants) {
     }
 }
 
-void OScript::unload_static() const {
-    OScriptCache::remove_script(fully_qualified_name);
-}
-
 Ref<Orchestration> OScript::get_orchestration() {
     return orchestration;
 }
