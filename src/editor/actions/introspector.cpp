@@ -38,8 +38,8 @@ void OrchestratorEditorIntrospector::_apply_method_overrides(const String& p_cla
     if (p_class_name == Object::get_class_static() && r_method.name == CoreStringName(_connect)) {
         for (uint32_t j = 0; j < r_method.arguments.size(); j++) {
             if (r_method.arguments[j].name == StringName("flags")) {
-                r_method.arguments[j].hint_string = "Object.ConnectFlags";
-                r_method.arguments[j].usage |= PROPERTY_USAGE_CLASS_IS_ENUM;
+                r_method.arguments[j].hint_string = "Default:0,Deferred:1,Persist:2,One Shot:4,Reference Counted:8,Append Source Object:16";
+                r_method.arguments[j].hint = PROPERTY_HINT_ENUM;
                 break;
             }
         }
@@ -566,7 +566,14 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     const Ref<OScript> oscript = p_script;
     if (oscript.is_valid()) {
 
-        const String base_type = oscript->get_orchestration()->get_base_type(); // oscript->get_instance_base_type();
+        const String base_type = oscript->get_orchestration()->get_base_type();
+
+        const Ref<OScript> base_script = oscript->get_base();
+        if (base_script.is_valid() && base_type.begins_with("res://")) {
+            // Inherits from another non-named script
+            actions.append_array(generate_actions_from_script(oscript->get_base()));
+        }
+
         for (const Ref<OScriptFunction>& function : oscript->get_orchestration()->get_functions()) {
 
             if (!function.is_valid() || !function->is_user_defined()) {

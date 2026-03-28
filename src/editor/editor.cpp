@@ -37,6 +37,7 @@
 #include "editor/scene/connections_dock.h"
 #include "editor/updater/updater.h"
 #include "script/script.h"
+#include "script/script_cache.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/display_server.hpp>
@@ -843,7 +844,11 @@ void OrchestratorEditor::_add_callback(Object* p_object, const String& p_functio
     ERR_FAIL_NULL(p_object);
 
     const Ref<ScriptExtension> script = p_object->get_script();
-    ERR_FAIL_COND(script.is_null());
+    if (script.is_null()) {
+        // This can be called by Editor for any script language, and we shouldn't report an error if the
+        // user is linked a signal to a GDScript script.
+        return;
+    }
 
     const ScriptLanguageExtension* language = cast_to<ScriptLanguageExtension>(script->_get_language());
     if (!language || !language->_can_make_function()) {
@@ -1379,6 +1384,7 @@ void OrchestratorEditor::_files_moved(const String& p_old_file, const String& p_
         OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i));
         if (view && view->edited_file_data.path == p_old_file) {
             view->edited_file_data.path = p_new_file;
+            OScriptCache::move_script(p_old_file, p_new_file);
             break;
         }
     }
@@ -2126,15 +2132,7 @@ void OrchestratorEditor::save_resource_as(const Ref<Resource>& p_resource, const
 }
 
 void OrchestratorEditor::save_editor_layout_delayed() {
-    // As of Godot 4.4.1, the first Timer child of EditorNode should be started.
-    if (Node* editor_node = EditorNode) {
-        const TypedArray<Node> timers = editor_node->find_children("*", "Timer", true, false);
-        if (!timers.is_empty()) {
-            if (Timer* timer = cast_to<Timer>(timers.get(0))) {
-                timer->start();
-            }
-        }
-    }
+    OrchestratorPlugin::get_singleton()->queue_save_layout();
 }
 
 void OrchestratorEditor::disambiguate_filenames(const Vector<String>& p_full_paths, Vector<String>& r_filenames) {

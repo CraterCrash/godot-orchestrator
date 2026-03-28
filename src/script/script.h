@@ -306,7 +306,6 @@ public:
     bool get_property_default_value(const StringName& p_property, Variant& r_value) const;
     void get_constants(HashMap<StringName, Variant>* r_constants);
 
-    void unload_static() const;
     //~ End Helper methods
 
     Ref<Orchestration> get_orchestration();

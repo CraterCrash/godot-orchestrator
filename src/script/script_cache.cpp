@@ -58,6 +58,10 @@ Error OScriptParserRef::raise_status(Status p_new_status) {
     ERR_FAIL_COND_V(_clearing, ERR_BUG);
     ERR_FAIL_COND_V(_parser == nullptr && _status != EMPTY, ERR_BUG);
 
+    if (p_new_status < _status) {
+        return OK;
+    }
+
     while (_result == OK && p_new_status > _status) {
         switch (_status) {
             case EMPTY: {

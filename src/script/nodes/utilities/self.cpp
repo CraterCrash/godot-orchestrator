@@ -24,6 +24,17 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 
 void OScriptNodeSelf::_upgrade(uint32_t p_version, uint32_t p_current_version) {
+    // Fixup for global class name
+    const String global_class = get_orchestration()->get_global_name();
+    if (!global_class.is_empty()) {
+        const Ref<OScriptNodePin> self = find_pin("self", PD_Output);
+        if (self.is_valid() && self->get_property_info().class_name != get_orchestration()->get_global_name()) {
+            reconstruct_node();
+            super::_upgrade(p_version, p_current_version);
+            return;
+        }
+    }
+
     if (p_version == 1 && p_current_version >= 2) {
         // Fixup - makes sure that base type matches pin
         const Ref<OScriptNodePin> self = find_pin("self", PD_Output);
@@ -50,7 +61,11 @@ void OScriptNodeSelf::post_placed_new_node() {
 }
 
 void OScriptNodeSelf::allocate_default_pins() {
-    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_base_type()));
+    if (get_orchestration()->get_global_name().is_empty()) {
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_base_type()));
+    } else {
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_global_name()));
+    }
 }
 
 String OScriptNodeSelf::get_tooltip_text() const {

@@ -57,6 +57,7 @@ bool OrchestratorEditorActionMenu::_is_favorite(const Variant& p_value, int& r_i
 void OrchestratorEditorActionMenu::_favorite_selected(int p_index) {
     const String text = _favorites->get_item_text(p_index);
     _search_box->set_text(text);
+    _search_box->set_caret_column(text.length());
     _favorites->deselect_all();
     _update_search();
 }
@@ -69,6 +70,7 @@ void OrchestratorEditorActionMenu::_favorite_activated(int p_index) {
 void OrchestratorEditorActionMenu::_recent_selected(int p_index) {
     const String text = _recents->get_item_text(p_index);
     _search_box->set_text(text);
+    _search_box->set_caret_column(text.length());
     _recents->deselect_all();
     _update_search();
 }
@@ -197,6 +199,13 @@ void OrchestratorEditorActionMenu::_confirmed() {
         }
     }
 
+    _save_user_data();
+
+    hide();
+    queue_free();
+}
+
+void OrchestratorEditorActionMenu::_canceled() {
     _save_user_data();
 
     hide();
@@ -729,7 +738,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     connect("about_to_popup", callable_mp_this(_about_to_popup));
     connect(SceneStringName(visibility_changed), callable_mp_this(_visibility_changed));
     connect(SceneStringName(confirmed), callable_mp_this(_confirmed));
-    connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
+    connect(SceneStringName(canceled), callable_mp_this(_canceled));
     connect(SceneStringName(focus_exited), callable_mp_this(_focus_lost));
 
     // Attempt to use Orchestrator bounds, falling back to Godot

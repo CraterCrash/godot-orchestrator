@@ -21,6 +21,7 @@
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/object/class_db.h"
+#include "core/godot/object/script_language.h"
 #include "core/godot/variant/variant.h"
 #include "script/compiler/analyzer.h"
 #include "script/compiler/bytecode_generator.h"
@@ -707,7 +708,7 @@ OScriptCompiledFunction* OScriptCompiler::make_static_initializer(Error& r_error
         }
     }
 
-    if (p_script->has_method(OScriptLanguage::get_singleton()->strings._static_init)) {
+    if (GDE::Script::has_method(p_script, OScriptLanguage::get_singleton()->strings._static_init)) {
         context.generator->write_newline(p_class->script_node_id);
         context.generator->write_call(OScriptCodeGenerator::Address(), class_addr, OScriptLanguage::get_singleton()->strings._static_init, Vector<OScriptCodeGenerator::Address>());
     }
@@ -1030,10 +1031,10 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                 }
 
                 if (node->void_return) {
-                    // Always return 'nil'
-                    generator->write_return(p_context.add_constant(Variant()));
+                    // Always return `null`, even if the expression is a call to a `void` function.
+                    generator->write_return(p_context.add_constant(Variant()), false);
                 } else {
-                    generator->write_return(value);
+                    generator->write_return(value, node->use_conversion);
                 }
 
                 if (value.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -2958,9 +2959,10 @@ Error OScriptCompiler::prepare_compilation(OScript* p_script, const OScriptParse
                     }
                 }
 
-                minfo.data_type = resolve_type(variable->get_datatype(), p_script);
+                const OScriptParser::DataType variable_type = variable->get_datatype();
+                minfo.data_type = resolve_type(variable_type, p_script);
 
-                PropertyInfo property = variable->get_datatype().to_property_info(name);
+                PropertyInfo property = variable_type.to_property_info(name);
                 PropertyInfo export_info = variable->export_info;
 
                 if (variable->exported) {
@@ -2971,6 +2973,27 @@ Error OScriptCompiler::prepare_compilation(OScript* p_script, const OScriptParse
                     property.hint = export_info.hint;
                     property.hint_string = export_info.hint_string;
                     property.usage = export_info.usage;
+                } else {
+                    // Enum hint doesn't really belong to the data type information, so we don't want to add it to
+                    // `OScriptParser::DataType::to_property_info()`. However, we still want to add this metadata
+                    // for unexported properties so they display nicely in the Remote Tree Inspector.
+                    if (variable_type.kind == OScriptParser::DataType::ENUM && !variable_type.is_meta_type) {
+                        property.hint = PROPERTY_HINT_ENUM;
+
+                        String enum_hint_string;
+                        bool first = true;
+                        for (const KeyValue<StringName, int64_t>& E : variable_type.enum_values) {
+                            if (first) {
+                                first = false;
+                            } else {
+                                enum_hint_string += ",";
+                            }
+                            enum_hint_string += String(E.key).capitalize().xml_escape();
+                            enum_hint_string += ":";
+                            enum_hint_string += String::num_int64(E.value).xml_escape();
+                        }
+                        property.hint_string = enum_hint_string;
+                    }
                 }
                 property.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
                 minfo.property_info = property;
