@@ -29,7 +29,7 @@ runs:
   steps:
 
     - name: Setup python 3.x
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         # Semantic version range syntax or exact version of a Python version
         python-version: ${{ inputs.python-version }}
@@ -52,7 +52,7 @@ runs:
     #   2. A partial match for the same cache name and reference name.
     #   3. A partial match for the same cache name and default branch name
     - name: Restore cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.cache-path }}
         key: ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}|${{ github.sha }}
@@ -62,7 +62,7 @@ runs:
 
     # Installs ccache
     - name: Install ccache
-      uses: hendrikmuhs/ccache-action@v1.2.17
+      uses: hendrikmuhs/ccache-action@v1.2.21
       with:
         key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
         restore: false
@@ -82,8 +82,8 @@ runs:
         cmake --build '${{ github.workspace }}/build/${{ inputs.preset-name }}' --target orchestrator -j 18
 
     - name: Save cache
-      if: github.event_name == 'push'
-      uses: actions/cache/save@v4
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      uses: actions/cache/save@v5
       with:
         path: ${{ inputs.cache-path }}
         key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
