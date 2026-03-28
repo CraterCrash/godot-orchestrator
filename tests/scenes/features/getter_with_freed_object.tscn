@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c7605jatqw7i7"]
+
+[ext_resource type="Script" uid="uid://btjl2lsvujfq0" path="res://scenes/features/getter_with_freed_object.torch" id="1_v1735"]
+
+[node name="GetterWithFreedObject" type="Node" unique_id=779667587]
+script = ExtResource("1_v1735")

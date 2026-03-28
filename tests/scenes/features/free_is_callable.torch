@@ -1,0 +1,193 @@
+[orchestration type="OScript" load_steps=11 format=3 uid="uid://c52bn4tdtwfil"]
+
+[obj type="OScriptFunction" id="OScriptFunction_tlcet"]
+guid = "1E040E85-9254-417C-828C-043E3F3F5048"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3, 4, 5, 6])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_otuk0"]
+function_id = "1E040E85-9254-417C-828C-043E3F3F5048"
+id = 0
+size = Vector2(139, 66)
+position = Vector2(600, 340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_24aad"]
+variable_name = &"node"
+id = 1
+size = Vector2(130, 96)
+position = Vector2(980, 340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"node",
+"type": 24,
+"flags": 2050,
+"target_class": "Node",
+"hint": 34,
+"hint_string": "Node",
+"usage": 4102
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 1026,
+"target_class": "Node",
+"hint": 34,
+"hint_string": "Node",
+"usage": 4102
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_tlcet"]
+class_name = "Node"
+id = 2
+size = Vector2(167, 96)
+position = Vector2(780, 340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "Node"
+}])
+
+[obj type="OScriptNodeComposeFrom" id="OScriptNodeComposeFrom_wyomh"]
+id = 3
+size = Vector2(254, 98)
+position = Vector2(1180, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"object",
+"type": 24,
+"flags": 2
+}, {
+"pin_name": &"method",
+"type": 21,
+"flags": 2,
+"dv": "free"
+}, {
+"pin_name": &"value",
+"type": 25,
+"dir": 1,
+"flags": 2,
+"dv": Callable()
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_ecwwh"]
+function_name = &"call"
+target_type = 25
+flags = 554
+method = {
+"name": &"call",
+"return": {
+"usage": 131078
+},
+"flags": 21
+}
+variable_arg_count = 0
+chain = false
+id = 4
+size = Vector2(151, 127)
+position = Vector2(1580, 340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 25,
+"flags": 2058,
+"label": "Callable"
+}, {
+"pin_name": &"return_value",
+"dir": 1,
+"flags": 1026,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_otuk0"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 5
+size = Vector2(113, 127)
+position = Vector2(1940, 340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_6cvgx"]
+variable_name = &"node"
+id = 6
+size = Vector2(116, 66)
+position = Vector2(1760, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 2050,
+"label": "node",
+"target_class": "Node",
+"hint": 34,
+"hint_string": "Node",
+"usage": 4102
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_astf7"]
+name = "node"
+category = "Default"
+classification = "class:Node"
+type = 24
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_astf7")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_tlcet")])
+connections = Array[int]([2, 0, 1, 0, 0, 0, 2, 0, 1, 1, 3, 0, 1, 0, 4, 0, 4, 0, 5, 0, 2, 1, 1, 1, 3, 0, 4, 1, 6, 0, 5, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_otuk0"), SubResource("OScriptNodeVariableSet_24aad"), SubResource("OScriptNodeNew_tlcet"), SubResource("OScriptNodeComposeFrom_wyomh"), SubResource("OScriptNodeCallMemberFunction_ecwwh"), SubResource("OScriptNodeCallBuiltinFunction_otuk0"), SubResource("OScriptNodeVariableGet_6cvgx")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

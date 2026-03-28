@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dwib8qg0tm0c3"]
+
+[ext_resource type="Script" uid="uid://d36gcd4yjko1d" path="res://scenes/errors/assign_freed_instance.torch" id="1_mmog3"]
+
+[node name="AssignFreedInstance" type="Node" unique_id=1838284113]
+script = ExtResource("1_mmog3")

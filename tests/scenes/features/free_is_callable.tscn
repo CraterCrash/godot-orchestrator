@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://d07ioum57naet"]
+
+[ext_resource type="Script" uid="uid://c52bn4tdtwfil" path="res://scenes/features/free_is_callable.torch" id="1_24aad"]
+
+[node name="FreeIsCallable" type="Node" unique_id=1415071921]
+script = ExtResource("1_24aad")

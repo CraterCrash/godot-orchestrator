@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Division by zero error in operator '/'.
+   at: _ready (res://scenes/errors/division_by_zero.torch:4)
+   OScript backtrace (most recent call first):
+       [0] _ready (res://scenes/errors/division_by_zero.torch:1)
