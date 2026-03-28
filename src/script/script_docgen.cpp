@@ -404,10 +404,9 @@ void OScriptDocGen::_generate_docs(OScript* p_script, const Parser::ClassNode* p
 					method_doc.qualifiers += "static";
 				}
 
-				if (func_name == StringName("_init")) {
+				if (func_name == StringName("_init") || func_name == StringName("_static_init")) {
 					method_doc.return_type = "void";
-				} else if (m_func->return_type) {
-					// `m_func->return_type->get_datatype()` is a metatype.
+				} else if (!m_func->get_datatype().is_variant()) {
 					_doctype_from_script_type(m_func->get_datatype(), method_doc.return_type, method_doc.return_enum, true);
 				} else if (!m_func->body->has_return) {
 					// If no `return` statement, then return type is `void`, not `Variant`.

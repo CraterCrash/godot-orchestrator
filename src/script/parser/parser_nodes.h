@@ -725,6 +725,7 @@ namespace OScriptParserNodes
     struct ReturnNode : Node {
         ExpressionNode* return_value = nullptr;
         bool void_return = false;
+        bool use_conversion = false;
 
         ReturnNode() { type = RETURN; }
     };
