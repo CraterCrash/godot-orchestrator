@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cwhr538d3bbuu"]
+
+[ext_resource type="Script" uid="uid://codhkwpxw46h5" path="res://scenes/features/assign_member_with_operation.torch" id="1_hob6c"]
+
+[node name="AssignMemberWithOperation" type="Node" unique_id=1327031646]
+script = ExtResource("1_hob6c")

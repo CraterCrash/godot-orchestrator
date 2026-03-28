@@ -1,5 +1,5 @@
 # Godot 4+ specific ignores
-.godot/
+project/.godot/*
 
 # Godot-specific ignores
 .import/
@@ -42,7 +42,11 @@ mono_crash.*.json
 .idea
 
 # Test data
-test/*
+tests/addons
+tests/**/*.import
+tests/.godot/*
+tests/bin/*
+!tests/.godot/extension_list.cfg
 
 # Publish scripts
 *.sh
