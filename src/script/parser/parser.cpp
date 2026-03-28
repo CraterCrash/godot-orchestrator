@@ -3399,10 +3399,10 @@ bool OScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_tar
 					String enum_hint_string;
 					bool first = true;
 					for (const KeyValue<StringName, int64_t> &E : export_type.enum_values) {
-						if (!first) {
-							enum_hint_string += ",";
+						if (first) {
+						    first = false;
 						} else {
-							first = false;
+							enum_hint_string += ",";
 						}
 						enum_hint_string += String(E.key).capitalize().xml_escape();
 						enum_hint_string += ":";
@@ -3482,10 +3482,10 @@ bool OScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_tar
 						String enum_hint_string;
 						bool first = true;
 						for (const KeyValue<StringName, int64_t> &E : export_type.enum_values) {
-							if (!first) {
-								enum_hint_string += ",";
+							if (first) {
+							    first = false;
 							} else {
-								first = false;
+							    enum_hint_string += ",";
 							}
 							enum_hint_string += String(E.key).capitalize().xml_escape();
 							enum_hint_string += ":";
