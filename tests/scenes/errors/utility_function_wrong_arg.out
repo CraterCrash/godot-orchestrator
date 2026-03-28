@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Error calling OScript utility function "len()": Value of type 'Color' cannot provide a length
+   at: _ready (res://scenes/errors/utility_function_wrong_arg.torch:3)
+   OScript backtrace (most recent call first):
+       [0] _ready (res://scenes/errors/utility_function_wrong_arg.torch:1)

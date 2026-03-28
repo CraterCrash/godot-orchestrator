@@ -1,0 +1,417 @@
+[orchestration type="OScript" load_steps=22 format=3 uid="uid://ctcmgxw3055gx"]
+
+[obj type="OScriptFunction" id="OScriptFunction_nq0he"]
+guid = "EA1609A8-37F9-4312-A0DB-BAB890E9BB14"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptFunction" id="OScriptFunction_xsn07"]
+guid = "C1ECBB3C-69A2-475A-A0A5-51C9113A17B2"
+method = {
+"name": &"_enter_tree",
+"flags": 8
+}
+id = 1
+
+[obj type="OScriptFunction" id="OScriptFunction_n8nd7"]
+guid = "209B0EE8-8176-4BB5-8DE4-941FCFCF1810"
+method = {
+"name": &"_exit_tree",
+"flags": 8
+}
+id = 2
+
+[obj type="OScriptFunction" id="OScriptFunction_xd4aw"]
+guid = "FF97A816-0C76-4953-AD3B-11EC8B1E4A86"
+method = {
+"name": &"_physics_process",
+"flags": 8,
+"args": [{
+"name": &"delta",
+"type": 3
+}]
+}
+id = 3
+
+[obj type="OScriptFunction" id="OScriptFunction_pijyb"]
+guid = "CCC2C782-9301-425D-9DF1-1C8BDFF48330"
+method = {
+"name": &"_process",
+"flags": 8,
+"args": [{
+"name": &"delta",
+"type": 3
+}]
+}
+id = 4
+
+[obj type="OScriptFunction" id="OScriptFunction_mkreh"]
+guid = "289BCA43-BDBF-4A37-88D1-3F6E5E4BE167"
+method = {
+"name": &"_init",
+"flags": 73
+}
+id = 6
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+functions = Array[int]([0, 1, 2, 3, 4, 6])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_gsdna"]
+function_id = "EA1609A8-37F9-4312-A0DB-BAB890E9BB14"
+id = 0
+position = Vector2(480, 640)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_oeff6"]
+function_id = "C1ECBB3C-69A2-475A-A0A5-51C9113A17B2"
+id = 1
+position = Vector2(480, 900)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_pf1wo"]
+function_id = "209B0EE8-8176-4BB5-8DE4-941FCFCF1810"
+id = 2
+position = Vector2(480, 1160)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_d0nmj"]
+function_id = "FF97A816-0C76-4953-AD3B-11EC8B1E4A86"
+id = 3
+position = Vector2(480, 1420)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"delta",
+"type": 3,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_rm8ja"]
+function_id = "CCC2C782-9301-425D-9DF1-1C8BDFF48330"
+id = 4
+position = Vector2(480, 1700)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"delta",
+"type": 3,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_hlfm3"]
+id = 5
+position = Vector2(760, 640)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "_ready"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2,
+"gdv": 0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_7dkm7"]
+function_id = "289BCA43-BDBF-4A37-88D1-3F6E5E4BE167"
+id = 6
+position = Vector2(480, 380)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_wpw1w"]
+id = 7
+position = Vector2(760, 380)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "_init"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2,
+"gdv": 0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_jpl05"]
+id = 8
+position = Vector2(760, 900)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "_enter_tree"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2,
+"gdv": 0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_7o0ab"]
+id = 9
+position = Vector2(760, 1160)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "_exit_tree"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2,
+"gdv": 0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_rnaok"]
+id = 10
+position = Vector2(760, 1420)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "_physics_process"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2,
+"gdv": 0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodePrintString" id="OScriptNodePrintString_uykpn"]
+id = 11
+position = Vector2(760, 1700)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"Text",
+"type": 4,
+"flags": 2,
+"dv": "_process"
+}, {
+"pin_name": &"PrintToScreen",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"PrintToLog",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"TextColor",
+"type": 20,
+"flags": 2,
+"dv": Color(1, 1, 1, 1)
+}, {
+"pin_name": &"Duration",
+"type": 3,
+"flags": 2,
+"dv": 2,
+"gdv": 0
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeSceneTree" id="OScriptNodeSceneTree_275rf"]
+id = 12
+position = Vector2(1040, 1760)
+pin_data = Array[Dictionary]([{
+"pin_name": &"scene_tree",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "SceneTree"
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_nq0he"]
+function_name = &"quit"
+target_class_name = "SceneTree"
+target_type = 24
+flags = 520
+method = {
+"name": &"quit",
+"default_args": [0],
+"args": [{
+"name": &"exit_code",
+"type": 2
+}]
+}
+chain = false
+id = 13
+size = Vector2(167, 128)
+position = Vector2(1240, 1700)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "SceneTree",
+"target_class": "SceneTree"
+}, {
+"pin_name": &"exit_code",
+"type": 2,
+"flags": 2,
+"dv": 0
+}])
+
+[resource]
+base_type = &"Node2D"
+brief_description = "Empty template suitable for all Objects"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_nq0he"), SubResource("OScriptFunction_xsn07"), SubResource("OScriptFunction_n8nd7"), SubResource("OScriptFunction_xd4aw"), SubResource("OScriptFunction_pijyb"), SubResource("OScriptFunction_mkreh")])
+connections = Array[int]([0, 0, 5, 0, 6, 0, 7, 0, 1, 0, 8, 0, 2, 0, 9, 0, 3, 0, 10, 0, 4, 0, 11, 0, 11, 0, 13, 0, 12, 0, 13, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_gsdna"), SubResource("OScriptNodeEvent_oeff6"), SubResource("OScriptNodeEvent_pf1wo"), SubResource("OScriptNodeEvent_d0nmj"), SubResource("OScriptNodeEvent_rm8ja"), SubResource("OScriptNodePrintString_hlfm3"), SubResource("OScriptNodeEvent_7dkm7"), SubResource("OScriptNodePrintString_wpw1w"), SubResource("OScriptNodePrintString_jpl05"), SubResource("OScriptNodePrintString_7o0ab"), SubResource("OScriptNodePrintString_rnaok"), SubResource("OScriptNodePrintString_uykpn"), SubResource("OScriptNodeSceneTree_275rf"), SubResource("OScriptNodeCallMemberFunction_nq0he")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

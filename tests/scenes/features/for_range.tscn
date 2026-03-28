@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://4c5xpwg5q4hn"]
+
+[ext_resource type="Script" uid="uid://4bcqq3vf10k1" path="res://scenes/features/for_range.torch" id="1_17xgc"]
+
+[node name="ForRange" type="Node" unique_id=1615373898]
+script = ExtResource("1_17xgc")

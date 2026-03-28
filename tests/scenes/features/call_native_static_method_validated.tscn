@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://el2axtckj8tt"]
+
+[ext_resource type="Script" uid="uid://hw7y6ni75iqk" path="res://scenes/features/call_native_static_method_validated.torch" id="1_aa7pe"]
+
+[node name="CallNativeStaticMethodValidated" type="Node" unique_id=2014222357]
+script = ExtResource("1_aa7pe")

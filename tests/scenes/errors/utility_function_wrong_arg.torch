@@ -1,0 +1,111 @@
+[orchestration type="OScript" load_steps=8 format=3 uid="uid://gv1d5skoe7qi"]
+
+[obj type="OScriptFunction" id="OScriptFunction_q5rht"]
+guid = "4934BE69-5271-44F3-8F01-DA8A1C636BED"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 2, 3, 4])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_3764o"]
+function_id = "4934BE69-5271-44F3-8F01-DA8A1C636BED"
+id = 0
+size = Vector2(29, 41)
+position = Vector2(280, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_rf0ng"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 2
+size = Vector2(29, 41)
+position = Vector2(720, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_p40nw"]
+function_name = &"len"
+method = {
+"name": &"len",
+"return": {
+"type": 2
+},
+"args": [{
+"name": &"var",
+"usage": 131072
+}]
+}
+id = 3
+size = Vector2(29, 41)
+position = Vector2(560, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"var",
+"flags": 2,
+"usage": 131072
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_g85qv"]
+variable_name = &"c"
+id = 4
+size = Vector2(29, 41)
+position = Vector2(420, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 20,
+"dir": 1,
+"flags": 2050,
+"label": "c",
+"dv": Color(0, 0, 0, 1),
+"usage": 4102
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_q5rht"]
+name = "c"
+category = "Default"
+classification = "type:Color"
+type = 20
+default_value = Color(0, 0, 0, 1)
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_q5rht")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_q5rht")])
+connections = Array[int]([0, 0, 2, 0, 4, 0, 3, 0, 3, 0, 2, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_3764o"), SubResource("OScriptNodeCallBuiltinFunction_rf0ng"), SubResource("OScriptNodeCallBuiltinFunction_p40nw"), SubResource("OScriptNodeVariableGet_g85qv")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])
