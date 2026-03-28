@@ -282,3 +282,37 @@ bool ScriptServer::is_scripting_enabled() {
 void ScriptServer::set_scripting_enabled(bool p_enabled) {
     _scripting_enabled = p_enabled;
 }
+
+void ScriptServer::get_static_method_list(const StringName& p_class, TypedArray<Dictionary>* r_methods, bool p_no_inheritance) {
+
+    String class_name = p_class;
+
+    GlobalClass global_class = get_global_class(class_name);
+    while (!global_class.name.is_empty()) {
+        const TypedArray<Dictionary> methods = global_class.get_method_list();
+        for (int i = 0; i < methods.size(); i++) {
+            const Dictionary& data = methods[i];
+            const int32_t flags = data["flags"];
+            if (flags & METHOD_FLAG_STATIC) {
+                r_methods->push_back(methods[i]);
+            }
+        }
+
+        if (p_no_inheritance) {
+            return;
+        }
+
+        class_name = global_class.base_type;
+        global_class = get_global_class(class_name);
+    }
+
+    const TypedArray<Dictionary> methods = ClassDB::class_get_method_list(class_name, p_no_inheritance);
+    for (int i = 0; i < methods.size(); i++) {
+        const Dictionary& data = methods[i];
+        const int32_t flags = data["flags"];
+        if (flags & METHOD_FLAG_STATIC) {
+            r_methods->push_back(methods[i]);
+        }
+    }
+
+}

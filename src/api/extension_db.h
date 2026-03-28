@@ -188,7 +188,7 @@ namespace godot {
         static bool is_class_enum_bitfield(const StringName& p_class_name, const StringName& p_enum_name);
         static PackedStringArray get_class_static_function_names(const StringName& p_class_name);
         static bool get_class_method_info(const StringName& p_class_name, const StringName& p_method_name, MethodInfo& r_info, bool p_no_inheritance = false);
-        static MethodBind* get_method(const StringName& p_class_name, const StringName& p_method_name);
+        static MethodBind* get_method(const StringName& p_class_name, const StringName& p_method_name, MethodInfo* r_info = nullptr);
 
         ExtensionDB();
         ~ExtensionDB();
