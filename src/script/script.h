@@ -192,10 +192,6 @@ class OScript : public ScriptExtension {
     TypedArray<Dictionary> _get_script_methods(bool p_include_base) const;
     TypedArray<Dictionary> _get_script_signals(bool p_include_base) const;
 
-    OScript* _get_from_variant(const Variant& p_value);
-    void _collect_function_dependencies(OScriptCompiledFunction* p_function, RBSet<OScript*>& p_dependencies, const OScript* p_except);
-    void _collect_dependencies(RBSet<OScript*>& p_dependencies, const OScript* p_except);
-
 protected:
     static void _bind_methods();
 
@@ -270,7 +266,7 @@ public:
 
     _FORCE_INLINE_ StringName get_local_name() const { return local_name; }
 
-    void clear(ClearData* p_clear_data = nullptr);
+    void clear();
 
     // Cancels all functions of the script that are waiting to be resumed after using await.
     void cancel_pending_functions(bool p_warn);
@@ -293,10 +289,6 @@ public:
     _FORCE_INLINE_ const OScriptCompiledFunction* get_implicit_initializer() const { return implicit_initializer; }
     _FORCE_INLINE_ const OScriptCompiledFunction* get_implicit_ready() const { return implicit_ready; }
     _FORCE_INLINE_ const OScriptCompiledFunction* get_static_initializer() const { return static_initializer; }
-
-    RBSet<OScript*> get_dependencies();
-    HashMap<OScript*, RBSet<OScript*>> get_all_dependencies();
-    RBSet<OScript*> get_must_clear_dependencies();
 
     const HashMap<StringName, MemberInfo>& debug_get_member_indices() const { return member_indices; }
     const HashMap<StringName, OScriptCompiledFunction*>& debug_get_member_functions() const { return member_functions; } // debug only
