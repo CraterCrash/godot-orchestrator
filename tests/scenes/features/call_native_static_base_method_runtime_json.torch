@@ -1,0 +1,271 @@
+[orchestration type="OScript" script_class="TestCallNativeStaticJson" load_steps=12 format=3 uid="uid://cq4avq54wea61"]
+
+[obj type="OScriptFunction" id="OScriptFunction_hpqt8"]
+guid = "6E39170D-FACB-4755-8005-A1E4013DEC86"
+method = {
+"name": &"test"
+}
+user_defined = true
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptGraph" id="OScriptGraph_7vvpa"]
+graph_name = &"test"
+flags = 22
+nodes = Array[int]([0, 3, 5, 6, 7, 8, 9, 10])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_m4c4g"]
+function_id = "6E39170D-FACB-4755-8005-A1E4013DEC86"
+id = 0
+size = Vector2(83, 66)
+position = Vector2(160, -240)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_latga"]
+function_name = &"prints"
+flags = 33
+method = {
+"name": &"prints",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 3
+size = Vector2(29, 41)
+position = Vector2(1300, -40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeSequence" id="OScriptNodeSequence_bb4uk"]
+id = 5
+size = Vector2(122, 127)
+position = Vector2(360, -240)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"then_0",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"then_1",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_tvlk7"]
+function_name = &"call"
+target_class_name = "Object"
+target_type = 24
+flags = 552
+method = {
+"name": &"call",
+"return": {
+"usage": 131078
+},
+"flags": 17,
+"args": [{
+"name": &"method",
+"type": 21
+}]
+}
+variable_arg_count = 1
+chain = false
+id = 6
+size = Vector2(29, 41)
+position = Vector2(960, -240)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "Object",
+"target_class": "Object"
+}, {
+"pin_name": &"method",
+"type": 21,
+"flags": 2,
+"dv": "stringify"
+}, {
+"pin_name": &"arg2",
+"flags": 2,
+"usage": 131078
+}, {
+"pin_name": &"return_value",
+"dir": 1,
+"flags": 1026,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeComposeFrom" id="OScriptNodeComposeFrom_wq85y"]
+id = 7
+size = Vector2(29, 41)
+position = Vector2(580, -20)
+pin_data = Array[Dictionary]([{
+"pin_name": &"from",
+"type": 4,
+"flags": 2,
+"dv": "test"
+}, {
+"pin_name": &"value",
+"type": 4,
+"dir": 1,
+"flags": 2,
+"dv": ""
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_odqr3"]
+function_name = &"prints"
+flags = 33
+method = {
+"name": &"prints",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 8
+size = Vector2(29, 41)
+position = Vector2(1300, -240)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeSelf" id="OScriptNodeSelf_hpqt8"]
+id = 9
+size = Vector2(29, 41)
+position = Vector2(780, -160)
+pin_data = Array[Dictionary]([{
+"pin_name": &"self",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "TestCallNativeStaticJson"
+}])
+
+[obj type="OScriptNodeCallStaticFunction" id="OScriptNodeCallStaticFunction_hpqt8"]
+class_name = &"TestCallNativeStaticJson"
+method = {
+"name": &"stringify",
+"return": {
+"name": &"",
+"type": 4,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 6
+},
+"flags": 33,
+"default_args": ["", true, false],
+"args": [{
+"name": &"data",
+"type": 0,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 131078
+}, {
+"name": &"indent",
+"type": 4,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 6
+}, {
+"name": &"sort_keys",
+"type": 1,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 6
+}, {
+"name": &"full_precision",
+"type": 1,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 6
+}]
+}
+id = 10
+size = Vector2(29, 41)
+position = Vector2(960, -40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"data",
+"flags": 2,
+"usage": 131078
+}, {
+"pin_name": &"indent",
+"type": 4,
+"flags": 2,
+"dv": ""
+}, {
+"pin_name": &"sort_keys",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"full_precision",
+"type": 1,
+"flags": 2,
+"dv": false
+}, {
+"pin_name": &"return_value",
+"type": 4,
+"dir": 1,
+"flags": 1026
+}])
+
+[resource]
+base_type = &"JSON"
+class_name = &"TestCallNativeStaticJson"
+brief_description = "Empty template suitable for all Objects"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_hpqt8")])
+connections = Array[int]([10, 0, 3, 0, 0, 0, 5, 0, 5, 0, 6, 0, 6, 0, 8, 0, 5, 1, 10, 0, 10, 1, 3, 1, 9, 0, 6, 1, 6, 1, 8, 1, 7, 0, 10, 1, 7, 0, 6, 3])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_m4c4g"), SubResource("OScriptNodeCallBuiltinFunction_latga"), SubResource("OScriptNodeSequence_bb4uk"), SubResource("OScriptNodeCallMemberFunction_tvlk7"), SubResource("OScriptNodeComposeFrom_wq85y"), SubResource("OScriptNodeCallBuiltinFunction_odqr3"), SubResource("OScriptNodeSelf_hpqt8"), SubResource("OScriptNodeCallStaticFunction_hpqt8")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp"), SubResource("OScriptGraph_7vvpa")])

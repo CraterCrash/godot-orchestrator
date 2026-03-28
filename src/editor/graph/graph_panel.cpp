@@ -1818,6 +1818,7 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
             NodeSpawnOptions options;
             options.node_class = p_action->node_class.value();
             options.context.user_data = p_action->data;
+            options.context.method = p_action->method;
             options.position = spawn_position;
             options.drag_pin = _drag_from_pin;
 
