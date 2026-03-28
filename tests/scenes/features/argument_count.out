@@ -1,0 +1,17 @@
+OSCRIPT_TEST_PASS
+2
+3
+1
+2
+2
+3
+Static methods are not yet supported.
+Rpc methods are not yet supported.
+2
+1
+4
+5
+Variant callable assignment not yet supported.
+Vararg Variant callable assignment not yet supported.
+Global method callables not yet supported.
+Script method callables not yet supported.
