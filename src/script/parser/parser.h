@@ -383,6 +383,7 @@ private:
     StatementResult build_message_dialogue(const Ref<OScriptNodeDialogueMessage>& p_script_node);
     StatementResult build_new_object(const Ref<OScriptNodeNew>& p_script_node);
     StatementResult build_free_object(const Ref<OScriptNodeFree>& p_script_node);
+    StatementResult build_assert(const Ref<OScriptNode>& p_script_node);
 
     // Program Logic
     ClassNode* build_class(Orchestration* p_orchestration);

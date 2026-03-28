@@ -1885,6 +1885,27 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
 OScriptParser::StatementResult OScriptParser::build_call_builtin_function(const Ref<OScriptNodeCallBuiltinFunction>& p_script_node) {
     const MethodInfo& method = p_script_node->get_method_info();
 
+    if (method.name == StringName("assert")) {
+        AssertNode* assert_node = alloc_node<AssertNode>();
+        assert_node->script_node_id = p_script_node->get_id();
+
+        assert_node->condition = resolve_input(p_script_node->find_pin(1, PD_Input));
+        if (assert_node->condition == nullptr) {
+            push_error("Expected expression to assert.");
+            return create_stop_result();
+        }
+
+        assert_node->message = resolve_input(p_script_node->find_pin(2, PD_Input));
+        if (assert_node->message == nullptr) {
+            push_error("Expected error message for assert.");
+            return create_stop_result();
+        }
+
+        add_statement(assert_node);
+
+        return create_statement_result(p_script_node, 0);
+    }
+
     CallNode* call_node = create_func_call(method.name);
     call_node->script_node_id = p_script_node->get_id();
     bind_call_func_args(call_node, p_script_node);
