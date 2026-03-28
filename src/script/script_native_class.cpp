@@ -16,7 +16,27 @@
 //
 #include "script/script_native_class.h"
 
+#include "api/extension_db.h"
 #include "common/dictionary_utils.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/gdextension_compat.h"
+#include "script/compiler/compiled_function.h"
+
+MethodBind* OScriptNativeClass::_resolve_static_method_bind(const StringName& p_method) {
+    MethodBind** binding = _static_bindings.getptr(p_method);
+    if (binding) {
+        return *binding;
+    }
+
+    MethodInfo mi;
+    MethodBind* bind = ExtensionDB::get_method(_name, p_method, &mi);
+    if (bind && mi.flags & METHOD_FLAG_STATIC) {
+        _static_bindings[p_method] = bind;
+        return bind;
+    }
+
+    return nullptr;
+}
 
 bool OScriptNativeClass::_get(const StringName& p_name, Variant& r_value) const {
     if (ClassDB::class_has_integer_constant(_name, p_name)) {
@@ -57,6 +77,22 @@ Variant OScriptNativeClass::instantiate() {
 }
 
 Variant OScriptNativeClass::callp(const StringName& p_method, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error) {
+    if (p_method != CoreStringName(new_)) {
+        const MethodBind* bind = _resolve_static_method_bind(p_method);
+        if (bind) {
+            Variant ret;
+            GDE_INTERFACE(object_method_bind_call)(
+                    bind,
+                    nullptr,
+                    reinterpret_cast<GDExtensionConstVariantPtr*>(p_args),
+                    p_arg_count,
+                    &ret,
+                    &r_error);
+
+            return ret;
+        }
+    }
+
     r_error.error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
     return {};
 }

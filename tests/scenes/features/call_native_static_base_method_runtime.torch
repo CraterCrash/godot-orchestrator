@@ -1,0 +1,83 @@
+[orchestration type="OScript" load_steps=6 format=3 uid="uid://y3liepkref3m"]
+
+[obj type="OScriptFunction" id="OScriptFunction_hpqt8"]
+guid = "D81F5FDE-6A7B-4D05-9383-E4E922F07EDC"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_7vvpa"]
+function_id = "D81F5FDE-6A7B-4D05-9383-E4E922F07EDC"
+id = 0
+size = Vector2(29, 41)
+position = Vector2(160, 220)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_m4c4g"]
+class_name = "TestCallNativeStaticJson"
+id = 1
+size = Vector2(305, 96)
+position = Vector2(360, 220)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "TestCallNativeStaticJson",
+"dv": null
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_hpqt8"]
+function_name = &"test"
+target_class_name = "TestCallNativeStaticJson"
+target_type = 24
+flags = 520
+method = {
+"name": &"test"
+}
+chain = false
+id = 2
+size = Vector2(242, 96)
+position = Vector2(700, 220)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "TestCallNativeStaticJson",
+"target_class": "TestCallNativeStaticJson",
+"dv": null
+}])
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_hpqt8")])
+connections = Array[int]([0, 0, 1, 0, 1, 0, 2, 0, 1, 1, 2, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_7vvpa"), SubResource("OScriptNodeNew_m4c4g"), SubResource("OScriptNodeCallMemberFunction_hpqt8")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

@@ -2934,6 +2934,8 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
     _is_tool = p_orchestration->get_tool();
 
     ClassNode* clazz = alloc_node<ClassNode>();
+    head = clazz;
+
     clazz->fqcn = OScript::canonicalize_path(script_path);
     current_class = clazz;
 
@@ -3610,7 +3612,7 @@ Error OScriptParser::parse(Orchestration* p_orchestration, const String& p_scrip
     ERR_FAIL_NULL_V_MSG(p_orchestration, ERR_PARSE_ERROR, "Orchestration was null and cannot be parsed.");
 
     script_path = p_script_path;
-    head = build_class(p_orchestration);
+    build_class(p_orchestration);
 
     return errors.is_empty() ? OK : ERR_PARSE_ERROR;
 }
