@@ -638,11 +638,17 @@ bool ExtensionDB::get_class_method_info(const StringName& p_class_name, const St
     return false;
 }
 
-MethodBind* ExtensionDB::get_method(const StringName& p_class_name, const StringName& p_method_name) {
+MethodBind* ExtensionDB::get_method(const StringName& p_class_name, const StringName& p_method_name, MethodInfo* r_info) {
     const ClassInfo* clazz = _singleton->classes.getptr(p_class_name);
     while (clazz) {
         const ClassMethodInfo* method = clazz->methods.getptr(p_method_name);
         if (method) {
+            if (r_info) {
+                // The MethodBind does not populate the static attribute correctly when fetched over
+                // the Godot/GDExtension boundary, so if a MethodInfo is supplied, we can pass that
+                // information back to the caller, if needed.
+                *r_info = method->method;
+            }
             return const_cast<MethodBind*>(static_cast<const MethodBind*>(
                 GDE_INTERFACE(classdb_get_method_bind)(
                     p_class_name._native_ptr(), p_method_name._native_ptr(), method->hash)));

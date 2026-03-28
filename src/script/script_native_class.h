@@ -22,7 +22,11 @@ using namespace godot;
 
 class OScriptNativeClass : public RefCounted {
     GDCLASS(OScriptNativeClass, RefCounted);
+
     StringName _name;
+    HashMap<StringName, MethodBind*> _static_bindings;
+
+    MethodBind* _resolve_static_method_bind(const StringName& p_method);
 
 protected:
     static void _bind_methods();
