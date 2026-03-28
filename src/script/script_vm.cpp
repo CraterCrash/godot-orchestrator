@@ -2914,8 +2914,10 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(!nc);
 
                 if (r->get_type() != Variant::OBJECT && r->get_type() != Variant::NIL) {
+                    #ifdef DEBUG_ENABLED
                     error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
                             _get_var_type(r), nc->get_name());
+                    #endif // DEBUG_ENABLED
                     OPCODE_BREAK;
                 }
 
