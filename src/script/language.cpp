@@ -728,6 +728,17 @@ TypedArray<Dictionary> OScriptLanguage::_get_public_functions() const {
         const MethodInfo method = OScriptUtilityFunctions::get_function_info(function);
         results.push_back(DictionaryUtils::from_method(method));
     }
+
+    {
+        MethodInfo mi;
+        mi.name = "assert";
+        mi.return_val.type = Variant::NIL;
+        mi.arguments.push_back(PropertyInfo(Variant::BOOL, "condition"));
+        mi.arguments.push_back(PropertyInfo(Variant::STRING, "message"));
+        mi.default_arguments.push_back(String());
+        results.push_back(DictionaryUtils::from_method(mi));
+    }
+
     return results;
 }
 
