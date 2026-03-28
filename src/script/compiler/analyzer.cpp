@@ -3181,23 +3181,26 @@ void OScriptAnalyzer::resolve_match_pattern(OScriptParser::PatternNode* p_patter
 }
 
 void OScriptAnalyzer::resolve_return(OScriptParser::ReturnNode* p_return) {
+    const bool has_expected_type = parser->current_function != nullptr;
+    const OScriptParser::DataType expected_type = has_expected_type ? parser->current_function->get_datatype() : OScriptParser::DataType();
+
     OScriptParser::DataType result;
 
-	OScriptParser::DataType expected_type;
-	bool has_expected_type = parser->current_function != nullptr;
-	if (has_expected_type) {
-		expected_type = parser->current_function->get_datatype();
-	}
-
-	if (p_return->return_value != nullptr) {
-		bool is_void_function = has_expected_type &&
+    if (p_return->return_value == nullptr) {
+        // Return type is 'nil' by default.
+        result.type_source = OScriptParser::DataType::ANNOTATED_EXPLICIT;
+        result.kind = OScriptParser::DataType::BUILTIN;
+        result.builtin_type = Variant::NIL;
+        result.is_constant = true;
+    } else {
+		const bool is_void_function = has_expected_type &&
 		    expected_type.is_hard_type() &&
 		    expected_type.kind == OScriptParser::DataType::BUILTIN &&
 		    expected_type.builtin_type == Variant::NIL;
 
-		bool is_call = p_return->return_value->type == OScriptParser::Node::CALL;
+		const bool is_call = p_return->return_value->type == OScriptParser::Node::CALL;
 		if (is_void_function && is_call) {
-			// Pretend the call is a root expression to allow those that are "void".
+		    // Pretend the call is a root expression to allow those that are `void`.
 			reduce_call(static_cast<OScriptParser::CallNode*>(p_return->return_value), false, true);
 		} else {
 			reduce_expression(p_return->return_value);
@@ -3235,30 +3238,32 @@ void OScriptAnalyzer::resolve_return(OScriptParser::ReturnNode* p_return) {
 			}
 			result = p_return->return_value->get_datatype();
 		}
-	} else {
-		// Return type is null by default.
-		result.type_source = OScriptParser::DataType::ANNOTATED_EXPLICIT;
-		result.kind = OScriptParser::DataType::BUILTIN;
-		result.builtin_type = Variant::NIL;
-		result.is_constant = true;
 	}
 
 	if (has_expected_type && !expected_type.is_variant()) {
 		if (result.is_variant() || !result.is_hard_type()) {
+		    p_return->use_conversion = true;
 			mark_node_unsafe(p_return);
 			if (!is_type_compatible(expected_type, result, true, p_return)) {
 				downgrade_node_type_source(p_return);
 			}
 		} else if (!is_type_compatible(expected_type, result, true, p_return)) {
-			mark_node_unsafe(p_return);
-			if (!is_type_compatible(result, expected_type)) {
-				push_error(vformat(R"(Cannot return value of type "%s" because the function return type is "%s" at node %d.)",
-				    result.to_string(), expected_type.to_string(), p_return->script_node_id), p_return);
-			}
-        #ifdef DEBUG_ENABLED
-		} else if (expected_type.builtin_type == Variant::INT && result.builtin_type == Variant::FLOAT) {
-			parser->push_warning(p_return, OScriptWarning::NARROWING_CONVERSION);
-        #endif // DEBUG_ENABLED
+		    if (is_type_compatible(result, expected_type)) {
+		        p_return->use_conversion = true;
+		        mark_node_unsafe(p_return);
+		    } else {
+		        push_error(vformat(R"(Cannot return value of type "%s" because the function return type is "%s" at node %d.)",
+                    result.to_string(), expected_type.to_string(), p_return->script_node_id), p_return);
+		    }
+		} else {
+		    if (!is_type_compatible(expected_type, result)) {
+		        p_return->use_conversion = true;
+		    }
+            #ifdef DEBUG_ENABLED
+		    if (expected_type.builtin_type == Variant::INT && result.builtin_type == Variant::FLOAT) {
+		        parser->push_warning(p_return, OScriptWarning::NARROWING_CONVERSION);
+		    }
+            #endif // DEBUG_ENABLED
 		}
 	}
 
