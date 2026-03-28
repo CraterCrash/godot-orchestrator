@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dc1k6j5un3pfo"]
+
+[ext_resource type="Script" uid="uid://cmw4st5ua6gei" path="res://scenes/features/array_string_stringname_equivalent.torch" id="1_qnrfu"]
+
+[node name="ArrayStringStringnameEquivalent" type="Node" unique_id=1541734531]
+script = ExtResource("1_qnrfu")

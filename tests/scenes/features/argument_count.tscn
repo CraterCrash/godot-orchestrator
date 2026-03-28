@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cfo4ctnf6pujd"]
+
+[ext_resource type="Script" uid="uid://dm8ejapu7ht6r" path="res://scenes/features/argument_count.torch" id="1_wywee"]
+
+[node name="ArgumentCount" type="Node" unique_id=1241355220]
+script = ExtResource("1_wywee")
