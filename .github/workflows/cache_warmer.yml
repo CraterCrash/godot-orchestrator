@@ -1,0 +1,19 @@
+name: 🕐 Cache Warmer
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  warm-cache:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [main, '2.4', '2.3', '2.2']
+    steps:
+      - name: Trigger workflow on ${{ matrix.branch }}
+        run: |
+          gh workflow run runner.yml --ref ${{ matrix.branch }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
