@@ -199,19 +199,19 @@ String OScriptCompiledFunction::get_call_error(const String& p_where, const Vari
 
 String OScriptCompiledFunction::get_callable_call_error(const String& p_where, const Callable& p_callable, const Variant** p_args, int p_arg_count, const Variant& p_result, const GDExtensionCallError& p_error) const {
     const Array binds = p_callable.get_bound_arguments();
-    const int binds_size = p_callable.get_bound_arguments_count();
+    const int args_unbound = p_callable.get_unbound_arguments_count();
 
-    if (p_arg_count - binds_size < 0) {
-        return "Callable unbinds " + itos(binds_size) + " arguments, but called with " + itos(p_arg_count);
+    if (p_arg_count - args_unbound < 0) {
+        return "Callable unbinds " + itos(args_unbound) + " arguments, but called with " + itos(p_arg_count);
     }
 
     Vector<const Variant*> argptrs;
-    argptrs.resize(p_arg_count - binds_size + binds.size());
-    for (int i  = 0; i < p_arg_count - binds_size; i++) {
+    argptrs.resize(p_arg_count - args_unbound + binds.size());
+    for (int i  = 0; i < p_arg_count - args_unbound; i++) {
         argptrs.write[i] = p_args[i];
     }
     for (int i = 0; i < binds.size(); i++) {
-        argptrs.write[i  + p_arg_count - binds_size] = &binds[i];
+        argptrs.write[i  + p_arg_count - args_unbound] = &binds[i];
     }
 
     return get_call_error(p_where, (const Variant**) argptrs.ptr(), argptrs.size(), p_result, p_error);
