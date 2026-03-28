@@ -137,10 +137,26 @@ bool GDE::Variant::is_type_shared(Type p_type) {
         case godot::Variant::OBJECT:
         case godot::Variant::ARRAY:
         case godot::Variant::DICTIONARY:
+        // NOTE: Packed array constructors **do** copies (unlike `Array()` and `Dictionary()`),
+        // whereas they pass by reference when inside a `Variant`.
+        case godot::Variant::PACKED_BYTE_ARRAY:
+        case godot::Variant::PACKED_INT32_ARRAY:
+        case godot::Variant::PACKED_INT64_ARRAY:
+        case godot::Variant::PACKED_FLOAT32_ARRAY:
+        case godot::Variant::PACKED_FLOAT64_ARRAY:
+        case godot::Variant::PACKED_STRING_ARRAY:
+        case godot::Variant::PACKED_VECTOR2_ARRAY:
+        case godot::Variant::PACKED_VECTOR3_ARRAY:
+        case godot::Variant::PACKED_COLOR_ARRAY:
+        case godot::Variant::PACKED_VECTOR4_ARRAY:
             return true;
         default:
             return false;
     }
+}
+
+bool GDE::Variant::is_shared(const godot::Variant& p_value) {
+    return is_type_shared(p_value.get_type());
 }
 
 Variant GDE::Variant::evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right, bool& r_valid) {
