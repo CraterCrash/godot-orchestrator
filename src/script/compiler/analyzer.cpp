@@ -2918,7 +2918,7 @@ void OScriptAnalyzer::resolve_for(OScriptParser::ForNode* p_for) {
 	OScriptParser::DataType list_type;
 
 	if (p_for->list) {
-		resolve_node(p_for->list, false);
+		resolve_node(p_for->list);
 
 		bool is_range = false;
 		if (p_for->list->type == OScriptParser::Node::CALL) {
@@ -3035,7 +3035,7 @@ void OScriptAnalyzer::resolve_for(OScriptParser::ForNode* p_for) {
 }
 
 void OScriptAnalyzer::resolve_while(OScriptParser::WhileNode* p_while) {
-    resolve_node(p_while->condition, false);
+    resolve_node(p_while->condition);
 
     resolve_suite(p_while->loop);
     p_while->set_datatype(p_while->loop->get_datatype());
