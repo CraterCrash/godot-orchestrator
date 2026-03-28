@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dbyvoffb0p87u"]
+
+[ext_resource type="Script" uid="uid://cl76lg5mb6tgw" path="res://scenes/features/emit_after_await.torch" id="1_45lvd"]
+
+[node name="EmitAfterAwait" type="Node" unique_id=1453693668]
+script = ExtResource("1_45lvd")
