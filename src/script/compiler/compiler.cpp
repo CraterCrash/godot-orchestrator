@@ -1031,10 +1031,10 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                 }
 
                 if (node->void_return) {
-                    // Always return 'nil'
-                    generator->write_return(p_context.add_constant(Variant()));
+                    // Always return `null`, even if the expression is a call to a `void` function.
+                    generator->write_return(p_context.add_constant(Variant()), false);
                 } else {
-                    generator->write_return(value);
+                    generator->write_return(value, node->use_conversion);
                 }
 
                 if (value.mode == OScriptCodeGenerator::Address::TEMPORARY) {
