@@ -17,3 +17,4 @@ jobs:
           gh workflow run runner.yml --ref ${{ matrix.branch }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
