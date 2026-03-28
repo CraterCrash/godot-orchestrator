@@ -1,0 +1,110 @@
+[orchestration type="OScript" load_steps=8 format=3 uid="uid://dekndv81p4hlc"]
+
+[obj type="OScriptFunction" id="OScriptFunction_qmgdd"]
+guid = "F190533B-AF89-46E7-9123-AC334B98A38A"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 4])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_xqsyq"]
+function_id = "F190533B-AF89-46E7-9123-AC334B98A38A"
+id = 0
+size = Vector2(29, 41)
+position = Vector2(400, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_ica17"]
+variable_name = &"integer"
+id = 1
+size = Vector2(29, 41)
+position = Vector2(540, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 2,
+"dir": 1,
+"flags": 2050,
+"label": "integer",
+"dv": 0,
+"usage": 4102
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_n015f"]
+op = 9
+code = &"/"
+name = &"Division"
+left_type = 2
+left_type_name = &"int"
+right_type = 2
+right_type_name = &"int"
+return_type = 2
+id = 2
+size = Vector2(29, 41)
+position = Vector2(700, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 2,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 2,
+"flags": 2
+}, {
+"pin_name": &"result",
+"type": 2,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_tsj3i"]
+variable_name = &"integer"
+id = 4
+size = Vector2(29, 41)
+position = Vector2(920, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"integer",
+"type": 2,
+"flags": 2050,
+"dv": 0,
+"usage": 4102
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 2,
+"dir": 1,
+"flags": 1026,
+"usage": 4102
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_iua4w"]
+name = "integer"
+category = "Default"
+classification = "type:int"
+type = 2
+default_value = 1
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_iua4w")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_qmgdd")])
+connections = Array[int]([1, 0, 2, 0, 0, 0, 4, 0, 2, 0, 4, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_xqsyq"), SubResource("OScriptNodeVariableGet_ica17"), SubResource("OScriptNodeOperator_n015f"), SubResource("OScriptNodeVariableSet_tsj3i")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://csh4l7jxj4ygh"]
+
+[ext_resource type="Script" uid="uid://bqx65gd71jj5l" path="res://scenes/errors/array_bad_index.torch" id="1_ntut7"]
+
+[node name="ArrayBadIndex" type="Node" unique_id=112999084]
+script = ExtResource("1_ntut7")

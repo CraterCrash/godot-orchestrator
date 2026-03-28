@@ -1,0 +1,175 @@
+[orchestration type="OScript" load_steps=13 format=3 uid="uid://d36gcd4yjko1d"]
+
+[obj type="OScriptFunction" id="OScriptFunction_ntut7"]
+guid = "8018B8FF-3E82-413D-BDEA-8C1B2D3D5CB2"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3, 4, 5, 6])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_kisfm"]
+function_id = "8018B8FF-3E82-413D-BDEA-8C1B2D3D5CB2"
+id = 0
+position = Vector2(420, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_daqxb"]
+class_name = "Node"
+id = 1
+position = Vector2(620, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "Node"
+}])
+
+[obj type="OScriptNodeFree" id="OScriptNodeFree_vhvku"]
+id = 2
+position = Vector2(1000, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 10,
+"label": "instance",
+"target_class": "Object"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_ntut7"]
+variable_name = &"x"
+id = 3
+position = Vector2(840, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"x",
+"flags": 2050,
+"usage": 135170
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 135170
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_kisfm"]
+variable_name = &"ok"
+id = 4
+position = Vector2(1220, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ok",
+"flags": 2050,
+"usage": 135170
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 135170
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_daqxb"]
+variable_name = &"x"
+id = 5
+position = Vector2(1080, 520)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"dir": 1,
+"flags": 2050,
+"label": "x",
+"usage": 135170
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_vhvku"]
+variable_name = &"bad"
+id = 6
+position = Vector2(1420, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"bad",
+"type": 24,
+"flags": 2050,
+"target_class": "Node",
+"hint": 34,
+"hint_string": "Node",
+"usage": 4102
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 1026,
+"target_class": "Node",
+"hint": 34,
+"hint_string": "Node",
+"usage": 4102
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_uax07"]
+name = "x"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[obj type="OScriptVariable" id="OScriptVariable_p7s8f"]
+name = "ok"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[obj type="OScriptVariable" id="OScriptVariable_c6wgo"]
+name = "bad"
+category = "Default"
+classification = "class:Node"
+type = 24
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_uax07"), SubResource("OScriptVariable_p7s8f"), SubResource("OScriptVariable_c6wgo")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_ntut7")])
+connections = Array[int]([0, 0, 1, 0, 3, 0, 2, 0, 1, 0, 3, 0, 2, 0, 4, 0, 4, 0, 6, 0, 3, 1, 2, 1, 1, 1, 3, 1, 5, 0, 4, 1, 5, 0, 6, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_kisfm"), SubResource("OScriptNodeNew_daqxb"), SubResource("OScriptNodeFree_vhvku"), SubResource("OScriptNodeVariableSet_ntut7"), SubResource("OScriptNodeVariableSet_kisfm"), SubResource("OScriptNodeVariableGet_daqxb"), SubResource("OScriptNodeVariableSet_vhvku")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

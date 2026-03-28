@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://hcv0ij4awxkx"]
+
+[ext_resource type="Script" uid="uid://ctcmgxw3055gx" path="res://scenes/features/simple_lifecycle.torch" id="1_275rf"]
+
+[node name="SimpleLifecycle" type="Node2D" unique_id=1786243649]
+script = ExtResource("1_275rf")

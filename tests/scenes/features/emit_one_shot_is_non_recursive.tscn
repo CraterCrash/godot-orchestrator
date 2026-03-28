@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b3kew6n3icbv0"]
+
+[ext_resource type="Script" uid="uid://db66pm8pvdyj1" path="res://scenes/features/emit_one_shot_is_non_recursive.torch" id="1_unxb6"]
+
+[node name="EmitOneShotIsNonRecursive" type="Node" unique_id=1270586103]
+script = ExtResource("1_unxb6")
