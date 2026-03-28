@@ -165,4 +165,10 @@ public:
     /// Set whether scripts are reloaded on save
     /// @param p_reload_on_save whether to reload scripts on save
     static void set_reload_scripts_on_save(bool p_reload_on_save) { _reload_scripts_on_save = p_reload_on_save;}
+
+    /// Get all static methods associated with the global class
+    /// @param p_class the global class name
+    /// @param r_methods the return array of methods
+    /// @param p_no_inheritance whether to traverse the inheritance hierarchy, defaults false.
+    static void get_static_method_list(const StringName& p_class, TypedArray<Dictionary>* r_methods, bool p_no_inheritance = false);
 };

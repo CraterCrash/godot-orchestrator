@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://11hxsyx6pdtx"]
+
+[ext_resource type="Script" uid="uid://y3liepkref3m" path="res://scenes/features/call_native_static_base_method_runtime.torch" id="1_hpqt8"]
+
+[node name="CallNativeStaticBaseMethodRuntime" type="Node" unique_id=414678451]
+script = ExtResource("1_hpqt8")

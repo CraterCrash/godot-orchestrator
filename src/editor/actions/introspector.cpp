@@ -26,6 +26,7 @@
 #include "common/variant_utils.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/object/class_db.h"
 #include "script/nodes/script_nodes.h"
 #include "script/script_server.h"
 
@@ -42,6 +43,47 @@ void OrchestratorEditorIntrospector::_apply_method_overrides(const String& p_cla
                 r_method.arguments[j].hint = PROPERTY_HINT_ENUM;
                 break;
             }
+        }
+    }
+}
+
+void OrchestratorEditorIntrospector::_register_static_methods(
+    const String& p_lookup_class, const String& p_register_class, const String& p_category, Vector<Ref<Action>>& r_actions) {
+
+    const PackedStringArray static_functions = ExtensionDB::get_class_static_function_names(p_lookup_class);
+    if (!static_functions.is_empty()) {
+        const Ref<OScriptNodeCallStaticFunction> node = _get_or_create_node_template<OScriptNodeCallStaticFunction>();
+
+        for (const String& function_name : static_functions) {
+            PackedStringArray keywords = node->get_keywords();
+            keywords.append_array(function_name.capitalize().to_lower().split(" ", false));
+            if (p_lookup_class != p_register_class) {
+                keywords.append(p_lookup_class);
+                keywords.append(p_register_class);
+            } else {
+                keywords.append(p_lookup_class);
+            }
+
+            MethodInfo mi;
+            ExtensionDB::get_class_method_info(p_lookup_class, function_name, mi);
+            if (MethodUtils::is_empty(mi)) {
+                ERR_PRINT(vformat("Failed to locate method info for %s.%s", p_lookup_class, function_name));
+            }
+
+            r_actions.append(
+                ActionBuilder(p_category, vformat("%s", function_name))
+                .type(ActionType::ACTION_SPAWN_NODE)
+                .icon("AudioBusSolo")
+                .type_icon("AudioBusSolo")
+                .tooltip(node->get_tooltip_text())
+                .keywords(keywords)
+                .selectable(true)
+                .node_class(node->get_class())
+                .class_name(p_register_class)
+                .data(DictionaryUtils::of({ { "class_name", p_register_class } }))
+                .method(mi)
+                .executions(true)
+                .build());
         }
     }
 }
@@ -394,30 +436,7 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
         }
     }
 
-    const PackedStringArray static_functions = ExtensionDB::get_class_static_function_names(p_class_name);
-    if (!static_functions.is_empty()) {
-        const Ref<OScriptNodeCallStaticFunction> node = _get_or_create_node_template<OScriptNodeCallStaticFunction>();
-
-        for (const String& function_name : static_functions) {
-            PackedStringArray keywords = node->get_keywords();
-            keywords.append_array(function_name.capitalize().to_lower().split(" ", false));
-            keywords.append(p_class_name);
-
-            actions.append(
-                ActionBuilder(static_methods_category, vformat("%s", function_name))
-                .type(ActionType::ACTION_SPAWN_NODE)
-                .icon("AudioBusSolo")
-                .type_icon("AudioBusSolo")
-                .tooltip(node->get_tooltip_text())
-                .keywords(keywords)
-                .selectable(true)
-                .node_class(node->get_class())
-                .class_name(p_class_name)
-                .data(DictionaryUtils::of({ { "class_name", p_class_name }, { "method_name", function_name } }))
-                .executions(true)
-                .build());
-        }
-    }
+    _register_static_methods(p_class_name, p_class_name, static_methods_category, actions);
 
     return actions;
 }
@@ -936,8 +955,9 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                     _script_node_builder<OScriptNodeCallStaticFunction>(
                         category,
                         method.name,
-                        DictionaryUtils::of({ { "class_name", type.name }, { "method_name", method.name } }))
+                        DictionaryUtils::of({ { "class_name", type.name } }))
                     .executions(true)
+                    .method(method)
                     .build());
             } else {
                 actions.push_back(
@@ -1074,8 +1094,9 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 _script_node_builder<OScriptNodeCallStaticFunction>(
                     category,
                     static_method.name,
-                    DictionaryUtils::of({ { "class_name", global_class }, { "method_name", static_method.name } }))
+                    DictionaryUtils::of({ { "class_name", global_class } }))
                 .executions(true)
+                .method(static_method)
                 .build());
         }
     }
@@ -1111,10 +1132,15 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
                 _script_node_builder<OScriptNodeCallStaticFunction>(
                     static_category_name,
                     static_method.name,
-                    DictionaryUtils::of({ { "class_name", global_name }, { "method_name", static_method.name } }))
+                    DictionaryUtils::of({ { "class_name", global_name } }))
                 .executions(true)
+                .method(static_method)
                 .build());
         }
+
+        // Also register static methods from parent type as accessible via the script type.
+        const String base_type = ScriptServer::get_global_class(global_name).base_type;
+        _register_static_methods(base_type, global_name, static_category_name, actions);
     }
 
     return actions;
