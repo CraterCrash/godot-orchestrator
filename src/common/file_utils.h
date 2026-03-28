@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_FILE_UTILS_H
-#define ORCHESTRATOR_FILE_UTILS_H
+#pragma once
 
 #include <functional>
 #include <godot_cpp/classes/file_access.hpp>
@@ -34,5 +33,3 @@ namespace FileUtils {
     /// @param p_callback the callback function to call for each line
     void for_each_line(const Ref<FileAccess>& p_file, const std::function<void(const String&)>& p_callback);
 }
-
-#endif // ORCHESTRATOR_FILE_UTILS_H

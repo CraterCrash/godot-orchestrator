@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_AWAIT_SIGNAL_H
-#define ORCHESTRATOR_SCRIPT_NODE_AWAIT_SIGNAL_H
+#pragma once
 
 #include "script/script.h"
 
@@ -34,6 +33,10 @@ class OScriptNodeAwaitSignal : public OScriptNode {
 protected:
     static void _bind_methods() { }
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
@@ -44,5 +47,3 @@ public:
     PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NODE_AWAIT_SIGNAL_H

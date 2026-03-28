@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_OBJECT_SCRIPT_LANGUAGE_H
-#define ORCHESTRATOR_CORE_GODOT_OBJECT_SCRIPT_LANGUAGE_H
+#pragma once
 
 #include <godot_cpp/classes/script.hpp>
 
@@ -28,7 +27,6 @@ namespace GDE {
         static MethodInfo get_method_info(const Ref<godot::Script>& p_script, const StringName& p_function);
         static bool inherits_script(const Ref<godot::Script>& p_script, const Ref<godot::Script>& p_parent_script);
         static bool is_valid(const Ref<godot::Script>& p_script);
+        static bool has_method(const Ref<godot::Script>& p_script, const StringName& p_name);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_OBJECT_SCRIPT_LANGUAGE_H

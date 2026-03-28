@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_VARIABLE_GET_H
-#define ORCHESTRATOR_SCRIPT_NODE_VARIABLE_GET_H
+#pragma once
 
 #include "variable.h"
 
@@ -66,5 +65,3 @@ public:
     /// @param p_validated when true, rendered as validated get
     void set_validated(bool p_validated);
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_VARIABLE_GET_H

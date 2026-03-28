@@ -20,7 +20,6 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
-#include "common/version.h"
 #include "core/godot/gdextension_compat.h"
 #include "script/script_server.h"
 
@@ -135,12 +134,10 @@ String OScriptNodeCallStaticFunction::get_node_title() const {
 }
 
 String OScriptNodeCallStaticFunction::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     const String class_name = MethodUtils::get_method_class(_class_name, _method_name);
     if (!class_name.is_empty()) {
         return vformat("class_method:%s:%s", class_name, _method_name);
     }
-    #endif
     return super::get_help_topic();
 }
 

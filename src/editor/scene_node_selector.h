@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCENE_NODE_SELECTOR_H
-#define ORCHESTRATOR_SCENE_NODE_SELECTOR_H
+#pragma once
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
@@ -37,6 +36,7 @@ class OrchestratorSceneNodeSelector : public ConfirmationDialog {
     void _close_requested();
     void _confirmed();
     void _filter_changed(const String& p_text);
+    void _filter_gui_input(const Ref<InputEvent>& p_event);
     void _item_activated();
     void _item_selected();
     //~ End Signal Handlers
@@ -81,5 +81,3 @@ public:
     /// Constructor
     OrchestratorSceneNodeSelector();
 };
-
-#endif  // ORCHESTRATOR_SCENE_NODE_SELECTOR_H

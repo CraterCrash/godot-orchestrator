@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_EDITOR_FILESYSTEM_EDITOR_PATHS_H
-#define ORCHESTRATOR_CORE_GODOT_EDITOR_FILESYSTEM_EDITOR_PATHS_H
+#pragma once
 
 #include <godot_cpp/variant/string.hpp>
 
@@ -28,5 +27,3 @@ namespace GDE {
     };
 }
 #endif // TOOLS_ENABLED
-
-#endif // ORCHESTRATOR_CORE_GODOT_EDITOR_FILESYSTEM_EDITOR_PATHS_H

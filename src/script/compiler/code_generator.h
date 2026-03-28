@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_CODE_GENERATOR_H
-#define ORCHESTRATOR_SCRIPT_CODE_GENERATOR_H
+#pragma once
 
 #include "script/compiler/compiled_function.h"
 
@@ -139,10 +138,8 @@ public:
     virtual void write_continue() = 0;
     virtual void write_breakpoint() = 0;
     virtual void write_newline(int p_node) = 0;
-    virtual void write_return(const Address& p_value) = 0;
+    virtual void write_return(const Address& p_value, bool p_use_conversion) = 0;
     virtual void write_assert(const Address& p_test, const Address& p_message) = 0;
 
     virtual ~OScriptCodeGenerator() = default;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_CODE_GENERATOR_H

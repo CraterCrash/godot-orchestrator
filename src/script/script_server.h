@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_SERVER_H
-#define ORCHESTRATOR_SCRIPT_SERVER_H
+#pragma once
 
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
@@ -167,5 +166,3 @@ public:
     /// @param p_reload_on_save whether to reload scripts on save
     static void set_reload_scripts_on_save(bool p_reload_on_save) { _reload_scripts_on_save = p_reload_on_save;}
 };
-
-#endif // ORCHESTRATOR_SCRIPT_SERVER_H

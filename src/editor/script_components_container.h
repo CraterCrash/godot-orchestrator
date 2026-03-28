@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_SCRIPT_COMPONENTS_CONTAINER_H
-#define ORCHESTRATOR_EDITOR_SCRIPT_COMPONENTS_CONTAINER_H
+#pragma once
 
 #include "orchestration/orchestration.h"
 #include "script/script.h"
@@ -74,8 +73,11 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
 
     bool _use_graph_friendly_names = false;
     bool _use_function_friendly_names = false;
+    bool _editing = false;
 
     Ref<Orchestration> _get_orchestration();
+
+    bool _make_inspector_dock_visible() const;
 
     void _functions_changed();
     void _variables_changed();
@@ -100,6 +102,8 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
     void _component_rename_item(TreeItem* p_item);
     void _component_remove_item(TreeItem* p_item, bool p_confirm = true);
     void _component_focus_item(TreeItem* p_item);
+    void _component_item_edit_started();
+    void _component_item_edit_finished();
     void _update_components(int p_component_type = COMPONENT_MAX);
     void _find_and_edit_function(const String& p_function_name);
     void _find_and_edit_variable(const String& p_variable_name);
@@ -132,5 +136,3 @@ public:
 
     OrchestratorScriptComponentsContainer();
 };
-
-#endif

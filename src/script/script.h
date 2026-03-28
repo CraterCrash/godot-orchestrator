@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_H
-#define ORCHESTRATOR_SCRIPT_H
+#pragma once
 
 #include "core/godot/doc_data.h"
 #include "orchestration/orchestration.h"
@@ -217,11 +216,9 @@ public:
     void _set_source_code(const String& p_code) override;
     Error _reload(bool p_keep_state) override;
     #ifdef TOOLS_ENABLED
-    #if GODOT_VERSION >= 0x040400
     StringName _get_doc_class_name() const override;
     TypedArray<Dictionary> _get_documentation() const override;
     String _get_class_icon_path() const override;
-    #endif
     #endif
     bool _has_method(const StringName& p_method) const override;
     bool _has_static_method(const StringName& p_method) const override;
@@ -309,7 +306,6 @@ public:
     bool get_property_default_value(const StringName& p_property, Variant& r_value) const;
     void get_constants(HashMap<StringName, Variant>* r_constants);
 
-    void unload_static() const;
     //~ End Helper methods
 
     Ref<Orchestration> get_orchestration();
@@ -326,5 +322,3 @@ public:
     OScript();
     ~OScript() override;
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_H

@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCENE_UTILS_H
-#define ORCHESTRATOR_SCENE_UTILS_H
+#pragma once
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/font.hpp>
@@ -111,8 +110,8 @@ namespace SceneUtils {
     /// @param p_base the base node to start from, should not be <code>null</code>
     /// @param p_current the current node, should not be <code>null</code>
     /// @param p_script the script instance, should be valid
-    /// @return vector list of node instances or an empty vector if none found
-    Vector<Node*> find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script);
+    /// @param r_result the resulting vector to be populated
+    void find_all_nodes_for_script(Node* p_base, Node* p_current, const Ref<Script>& p_script, Vector<Node*>& r_result);
 
     /// Calls the @link find_all_nodes_for_script method for the specified script in the current edited scene.
     /// @param p_script the script instance, should be valid
@@ -143,5 +142,3 @@ namespace SceneUtils {
         return nullptr;
     }
 }
-
-#endif  // ORCHESTRATOR_SCENE_UTILS_H

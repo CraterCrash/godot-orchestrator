@@ -422,24 +422,8 @@ Variant OScriptFunctionState::resume(const Variant& p_arg) {
     GDExtensionCallError error;
     Variant result = function->call(nullptr, nullptr, 0, error, &state);
 
-    bool completed = true;
-    if (result.get_type() == Variant::OBJECT) {
-        ObjectID id(result.get_validated_object()->get_instance_id());
-        if (id.is_ref_counted()) {
-            OScriptFunctionState* fs = cast_to<OScriptFunctionState>(result);
-            if (fs && fs->function == function) {
-                completed = false;
-                fs->first_state = first_state.is_valid() ? first_state : Ref<OScriptFunctionState>(this);
-            }
-        }
-    }
-
-    function = nullptr;
+    function = nullptr; // Cleaned up.
     state.result = Variant();
-
-    if (completed) {
-        _clear_stack();
-    }
 
     return result;
 }
@@ -485,4 +469,5 @@ OScriptFunctionState::~OScriptFunctionState() {
     MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
     scripts_list.remove_from_list();
     instances_list.remove_from_list();
+    _clear_stack();
 }

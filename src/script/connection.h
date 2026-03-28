@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_CONNECTION_H
-#define ORCHESTRATOR_SCRIPT_CONNECTION_H
+#pragma once
 
 #include <godot_cpp/templates/rb_set.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
@@ -77,5 +76,3 @@ struct NodeSetConnections
     int input_data{ 0 };                   //! Number of input data connections
     int output_data{ 0 };                  //! Number of output data connections
 };
-
-#endif // ORCHESTRATOR_SCRIPT_CONNECTION_H

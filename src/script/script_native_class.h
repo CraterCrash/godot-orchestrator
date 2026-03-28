@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NATIVE_CLASS_H
-#define ORCHESTRATOR_SCRIPT_NATIVE_CLASS_H
+#pragma once
 
 #include <godot_cpp/classes/ref_counted.hpp>
 
@@ -34,12 +33,10 @@ protected:
 public:
     _FORCE_INLINE_ const StringName& get_name() const { return _name; }
     Variant _new();
-    Object* instantiate();
+    Variant instantiate();
     virtual Variant callp(const StringName& p_method, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error);
 
     String _to_string() const { return vformat("<OScriptNativeClass:%s:%s>", _name, get_instance_id()); }
 
     explicit OScriptNativeClass(const StringName& p_name);
 };
-
-#endif // ORCHESTRATOR_SCRIPT_NATIVE_CLASS_H
