@@ -34,6 +34,7 @@ public:
 
     _FORCE_INLINE_ static CoreStringNames* get_singleton() { return singleton; }
 
+    const StringName new_ = "new";
     const StringName free_ = "free";
     const StringName changed = "changed";
     const StringName script = "script";

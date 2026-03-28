@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dvuyfqm4bhtpf"]
+
+[ext_resource type="Script" uid="uid://gb5mi1e8tvt5" path="res://scenes/features/constants_are_read_only.torch" id="1_fk31a"]
+
+[node name="ConstantsAreReadOnly" type="Node" unique_id=1008037469]
+script = ExtResource("1_fk31a")

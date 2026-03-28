@@ -21,13 +21,66 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "core/godot/gdextension_compat.h"
+#include "orchestration/orchestration.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
 
+void OScriptNodeCallStaticFunction::_upgrade(uint32_t p_version, uint32_t p_current_version) {
+    if (MethodUtils::is_empty(_method)) {
+        bool found = false;
+
+        if (ExtensionDB::is_builtin_type(_class_name)) {
+            const BuiltInType type = ExtensionDB::get_builtin_type(_class_name);
+            for (const MethodInfo& method : type.get_method_list()) {
+                if (method.name.match(_method_name)) {
+                    found = true;
+                    _method = method;
+                    break;
+                }
+            }
+        } else {
+            TypedArray<Dictionary> methods;
+            if (ScriptServer::is_global_class(_class_name)) {
+                if (get_orchestration()->get_global_name() == _class_name) {
+                    // Orchestrations can inherit from native classes with static methods, but does not
+                    // currently support user-defined static methods, so this can safely look this up
+                    // via the native class API.
+                    const StringName native_class = ScriptServer::get_global_class_native_base(_class_name);
+                    methods = ClassDB::class_get_method_list(native_class, true);
+                } else {
+                    ScriptServer::get_static_method_list(_class_name, &methods);
+                }
+            } else {
+                methods = ClassDB::class_get_method_list(_class_name, true);
+            }
+
+            for (uint32_t i = 0; i < methods.size(); i++) {
+                const Dictionary& dict = methods[i];
+                if (_method_name.match(dict["name"])) {
+                    found = true;
+                    _method = DictionaryUtils::to_method(dict);
+                    break;
+                }
+            }
+        }
+
+        if (!found) {
+            ERR_FAIL_MSG(vformat("Failed to locate method for %s.%s", _class_name, _method_name));
+        } else {
+            reconstruct_node();
+        }
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
 void OScriptNodeCallStaticFunction::_get_property_list(List<PropertyInfo>* r_list) const {
     r_list->push_back(PropertyInfo(Variant::STRING, "class_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
-    r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    if (MethodUtils::is_empty(_method)) {
+        r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    }
+    r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
 bool OScriptNodeCallStaticFunction::_get(const StringName& p_name, Variant& r_value) const {
@@ -36,6 +89,9 @@ bool OScriptNodeCallStaticFunction::_get(const StringName& p_name, Variant& r_va
         return true;
     } else if (p_name.match("function_name")) {
         r_value = _method_name;
+        return true;
+    } else if (p_name.match("method")) {
+        r_value = DictionaryUtils::from_method(_method);
         return true;
     }
     return false;
@@ -48,48 +104,16 @@ bool OScriptNodeCallStaticFunction::_set(const StringName& p_name, const Variant
     } else if (p_name.match("function_name")) {
         _method_name = p_value;
         return true;
+    } else if (p_name.match("method")) {
+        _method = DictionaryUtils::to_method(p_value);
+        return true;
     }
     return false;
 }
 
-void OScriptNodeCallStaticFunction::_resolve_method_info() {
-    // Lookup the MethodInfo
-    TypedArray<Dictionary> methods;
-    if (ScriptServer::is_global_class(_class_name)) {
-        methods = ScriptServer::get_global_class(_class_name).get_method_list();
-    }
-    else if (ExtensionDB::is_builtin_type(_class_name)) {
-        BuiltInType type = ExtensionDB::get_builtin_type(_class_name);
-        for (const MethodInfo& method : type.get_method_list()) {
-            if (method.name.match(_method_name)) {
-                _method = method;
-                break;
-            }
-        }
-        return;
-    }
-    else {
-        methods = ClassDB::class_get_method_list(_class_name, true);
-    }
-
-    for (uint32_t i = 0; i < methods.size(); i++) {
-        const Dictionary& dict = methods[i];
-        if (_method_name.match(dict["name"])) {
-            _method = DictionaryUtils::to_method(dict);
-            break;
-        }
-    }
-}
-
 void OScriptNodeCallStaticFunction::post_initialize() {
-    _resolve_method_info();
     reconstruct_node();
     super::post_initialize();
-}
-
-void OScriptNodeCallStaticFunction::post_placed_new_node() {
-    _resolve_method_info();
-    super::post_placed_new_node();
 }
 
 void OScriptNodeCallStaticFunction::allocate_default_pins() {
@@ -120,38 +144,36 @@ void OScriptNodeCallStaticFunction::allocate_default_pins() {
 }
 
 String OScriptNodeCallStaticFunction::get_tooltip_text() const {
-    if (!_class_name.is_empty() && !_method_name.is_empty()) {
-        return vformat("Calls the static function '%s.%s'", _class_name, _method_name);
+    if (!_class_name.is_empty() && !_method.name.is_empty()) {
+        return vformat("Calls the static function '%s.%s'", _class_name, _method.name);
     }
     return "Calls a static function";
 }
 
 String OScriptNodeCallStaticFunction::get_node_title() const {
-    if (!_class_name.is_empty() && !_method_name.is_empty()) {
-        return vformat("%s %s", _class_name, _method_name.capitalize());
+    if (!_class_name.is_empty() && !_method.name.is_empty()) {
+        return vformat("%s %s", _class_name, _method.name.capitalize());
     }
     return "Call Static Function";
 }
 
 String OScriptNodeCallStaticFunction::get_help_topic() const {
-    const String class_name = MethodUtils::get_method_class(_class_name, _method_name);
+    const String class_name = MethodUtils::get_method_class(_class_name, _method.name);
     if (!class_name.is_empty()) {
-        return vformat("class_method:%s:%s", class_name, _method_name);
+        return vformat("class_method:%s:%s", class_name, _method.name);
     }
     return super::get_help_topic();
 }
 
 void OScriptNodeCallStaticFunction::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "Failed to initialize CallStaticFunction without user data");
+    ERR_FAIL_COND_MSG(!p_context.method, "Method is missing");
 
     const Dictionary data = p_context.user_data.value();
     ERR_FAIL_COND_MSG(!data.has("class_name"), "Data is missing the class name.");
-    ERR_FAIL_COND_MSG(!data.has("method_name"), "Data is missing the method name.");
 
     _class_name = data["class_name"];
-    _method_name = data["method_name"];
-
-    _resolve_method_info();
+    _method = p_context.method.value();
 
     super::initialize(p_context);
 }
