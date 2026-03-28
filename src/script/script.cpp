@@ -196,17 +196,28 @@ Variant OScript::callp(const StringName& p_method, const Variant** p_args, int p
         top = top->base.ptr();
     }
 
-    Variant result;
-    Script* parent_this = this;
-    GDE_INTERFACE(variant_call)(
-        parent_this,
-        &p_method,
-        reinterpret_cast<GDExtensionConstVariantPtr*>(p_args),
-        p_arg_count,
-        &result,
-        &r_error);
+    {
+        Variant result;
+        Script* parent_this = this;
+        GDE_INTERFACE(variant_call)(
+            parent_this,
+            &p_method,
+            reinterpret_cast<GDExtensionConstVariantPtr*>(p_args),
+            p_arg_count,
+            &result,
+            &r_error);
 
-    return result;
+        if (r_error.error != GDEXTENSION_CALL_ERROR_INVALID_METHOD) {
+            return result;
+        }
+    }
+
+    if (native.is_valid()) {
+        native->callp(p_method, p_args, p_arg_count, r_error);
+    }
+
+    r_error.error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
+    return Variant();
 }
 
 OScriptCompiledFunction* OScript::_super_constructor(OScript* p_script) { // NOLINT
