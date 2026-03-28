@@ -3240,6 +3240,8 @@ void OScriptCompiler::convert_to_initializer_type(Variant& p_variant, const OScr
 }
 
 void OScriptCompiler::make_scripts(OScript* p_script, const OScriptParser::ClassNode* p_class, bool p_keep_state) {
+    ERR_FAIL_NULL(p_script);
+    ERR_FAIL_NULL(p_class);
 
     p_script->fully_qualified_name = p_class->fqcn;
     p_script->local_name = p_class->identifier ? p_class->identifier->name : StringName();

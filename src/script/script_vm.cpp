@@ -41,7 +41,7 @@ static bool _profile_count_as_native(const Object* p_base_obj, const StringName&
     }
 
     StringName cname = p_base_obj->get_class();
-    if ((p_method_name == StringName("new") && cname == StringName("OScript")) || p_method_name == StringName("call")) {
+    if ((p_method_name == CoreStringName(new_) && cname == StringName("OScript")) || p_method_name == StringName("call")) {
         return false;
     }
 
@@ -514,6 +514,29 @@ void (*type_init_function_table[])(Variant*) = {
 
 #define METHOD_CALL_ON_NULL_VALUE_ERROR(method_pointer) "Cannot call method '" + (method_pointer)->get_name() + "' on a null value."
 #define METHOD_CALL_ON_FREED_INSTANCE_ERROR(method_pointer) "Cannot call method '" + (method_pointer)->get_name() + "' on a previously freed instance."
+
+// On the Engine side, it's possible when calling Variant::callp, that this ends up calling the
+// GDScript::callp virtual override; however, because ScriptExtension has no such contract and
+// there is no way to effectively provide the same solution, the VM must be aggressive about the
+// comparison of the Variant* and if it's an OScript, delegate directly to have the same sort
+// of behavior as the engine. Once ScriptExtension provides a callp handler in some capacity,
+// then we can simply replace this.
+//
+// This logic explicitly uses a static_cast rather than Godot's cast_to as we do not need to
+// walk the class hierarchy and instead simply need to check whether the object is an OScript
+// and delegate directly.
+//
+#define BASE_CALLP_HELPER(p_base, p_method, p_args, p_arg_count, r_ret, r_error) \
+    if (p_base->get_type() == Variant::OBJECT) { \
+        Object* object = base->operator Object*(); \
+        if (*p_method != CoreStringName(new_) && object->get_class() == OScript::get_class_static()) { \
+            r_ret = static_cast<OScript*>(object)->callp(*p_method, p_args, p_arg_count, r_error); \
+        } else { \
+            p_base->callp(*p_method, p_args, p_arg_count, r_ret, r_error); \
+        } \
+    } else { \
+        p_base->callp(*p_method, p_args, p_arg_count, r_ret, r_error); \
+    }
 
 Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error, CallState* p_state) {
     OPCODES_TABLE;
@@ -1926,7 +1949,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 GDExtensionCallError err;
 				if (call_ret) {
 					GET_INSTRUCTION_ARG(ret, argc + 1);
-					base->callp(*methodname, (const Variant **)argptrs, argc, temp_ret, err);
+				    BASE_CALLP_HELPER(base, methodname, (const Variant**)argptrs, argc, temp_ret, err);
 					*ret = temp_ret;
 
                     #ifdef DEBUG_ENABLED
@@ -1956,7 +1979,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					}
                     #endif
 				} else {
-					base->callp(*methodname, (const Variant **)argptrs, argc, temp_ret, err);
+				    BASE_CALLP_HELPER(base, methodname, (const Variant**)argptrs, argc, temp_ret, err);
 				}
 
                 #ifdef DEBUG_ENABLED
