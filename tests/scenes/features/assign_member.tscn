@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://fm70crkki8x4"]
+
+[ext_resource type="Script" uid="uid://hm8i7tsevau7" path="res://scenes/features/assign_member.torch" id="1_w753f"]
+
+[node name="AssignMember" type="Node" unique_id=1109452876]
+script = ExtResource("1_w753f")
