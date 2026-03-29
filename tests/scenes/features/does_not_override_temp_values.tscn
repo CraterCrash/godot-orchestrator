@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://tcum0brlbf6k"]
+
+[ext_resource type="Script" uid="uid://dnvpkqre422f7" path="res://scenes/features/does_not_override_temp_values.torch" id="1_5rg56"]
+
+[node name="DoesNotOverrideTempValues" type="Node" unique_id=661532357]
+script = ExtResource("1_5rg56")

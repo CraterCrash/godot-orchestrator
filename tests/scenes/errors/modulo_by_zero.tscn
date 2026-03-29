@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cjsf1lne2eiiu"]
+
+[ext_resource type="Script" uid="uid://ctlqo1jpvv3td" path="res://scenes/errors/modulo_by_zero.torch" id="1_n3rqs"]
+
+[node name="ModuloByZero" type="Node" unique_id=1056138782]
+script = ExtResource("1_n3rqs")

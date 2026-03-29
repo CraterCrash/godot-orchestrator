@@ -1,0 +1,39 @@
+[orchestration type="OScript" script_class="DuplicateTestResource" load_steps=5 format=3 uid="uid://cht4d4dtpgn0j"]
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptVariable" id="OScriptVariable_lnixc"]
+name = "text"
+category = "Default"
+exported = true
+classification = "type:String"
+type = 4
+default_value = "holaaa"
+
+[obj type="OScriptVariable" id="OScriptVariable_2ityq"]
+name = "arr"
+category = "Default"
+exported = true
+classification = "type:Array"
+type = 28
+default_value = [1, 2, 3]
+
+[obj type="OScriptVariable" id="OScriptVariable_84038"]
+name = "dict"
+category = "Default"
+exported = true
+classification = "type:Dictionary"
+type = 27
+default_value = {
+"a": 1,
+"b": 2
+}
+
+[resource]
+base_type = &"Resource"
+class_name = &"DuplicateTestResource"
+brief_description = "Empty template suitable for all Objects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_lnixc"), SubResource("OScriptVariable_2ityq"), SubResource("OScriptVariable_84038")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://btpajtotyb2bk"]
+
+[ext_resource type="Script" uid="uid://cft282fhdco2l" path="res://scenes/features/arrays_arent_shared.torch" id="1_2eiwl"]
+
+[node name="ArraysArentShared" type="Node" unique_id=363475432]
+script = ExtResource("1_2eiwl")

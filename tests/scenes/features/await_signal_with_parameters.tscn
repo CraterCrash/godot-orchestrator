@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://fqf4o4ra60fl"]
+
+[ext_resource type="Script" uid="uid://dl7uxfmur0sbd" path="res://scenes/features/await_signal_with_parameters.torch" id="1_ophv3"]
+
+[node name="AwaitSignalWithParameters" type="Node" unique_id=894719129]
+script = ExtResource("1_ophv3")
