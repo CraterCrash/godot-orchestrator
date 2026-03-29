@@ -1407,6 +1407,16 @@ void OScriptBytecodeGenerator::write_get_static_variable(const Address& p_target
 }
 
 void OScriptBytecodeGenerator::write_assign(const Address& p_target, const Address& p_source) {
+    // See https://github.com/godotengine/godot-cpp/pull/1960
+    if (p_target.mode == p_source.mode && p_target.address == p_source.address) {
+        // In godot-cpp Variant::operator=, an explicit clear is used before copying.
+        // This leads to the value being corrupted, and the value being set to '<null>'.
+        // The current solution, at least for OScript, is to treat this operation as a
+        // no-op and skip the OPCODE_ASSIGN. This is done explicitly when both the mode
+        // and address locations are identical, e.g. "i = i"
+        return;
+    }
+
     if (p_target.type.kind == OScriptDataType::BUILTIN && p_target.type.builtin_type == Variant::ARRAY && p_target.type.has_container_element_type(0)) {
         const OScriptDataType &element_type = p_target.type.get_container_element_type(0);
         append_opcode(OScriptCompiledFunction::OPCODE_ASSIGN_TYPED_ARRAY);
