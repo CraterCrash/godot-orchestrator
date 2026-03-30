@@ -1237,7 +1237,12 @@ bool OrchestratorEditorGraphPanel::_create_new_function_override(const MethodInf
     NodeSpawnOptions options;
     options.node_class = OScriptNodeFunctionEntry::get_class_static();
     options.context.method = p_method;
-    options.context.user_data = DictionaryUtils::of({ { "user_defined", false } });
+
+    if (p_method.flags & METHOD_FLAG_VIRTUAL) {
+        options.context.user_data = DictionaryUtils::of({ { "user_defined", false } });
+    } else {
+        options.context.user_data = DictionaryUtils::of({ { "user_defined", true } });
+    }
 
     const Ref<OScriptNodeFunctionEntry> entry = function_graph->create_node<OScriptNodeFunctionEntry>(options.context);
     if (!entry.is_valid()) {
@@ -3078,9 +3083,19 @@ void OrchestratorEditorGraphPanel::show_override_function_action_menu(const Call
     graph_type_rule.instantiate();
     graph_type_rule->set_graph_type(OrchestratorEditorActionDefinition::GRAPH_EVENT);
 
+    PackedStringArray user_defined_methods;
+    const TypedArray<Dictionary> methods = _graph->get_orchestration()->as_script()->get_script_method_list();
+    for (int i = 0; i < methods.size(); i++) {
+        const MethodInfo mi = DictionaryUtils::to_method(methods[i]);
+        if (!user_defined_methods.has(mi.name)) {
+            user_defined_methods.push_back(mi.name);
+        }
+    }
+
     Ref<OrchestratorEditorActionVirtualFunctionRule> virtual_function_rule;
     virtual_function_rule.instantiate();
     virtual_function_rule->set_method_exclusions(_graph->get_orchestration()->get_function_names());
+    virtual_function_rule->set_method_overrides(user_defined_methods);
 
     Ref<OrchestratorEditorActionClassHierarchyScopeRule> class_hierarchy_rule;
     class_hierarchy_rule.instantiate();
