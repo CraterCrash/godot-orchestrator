@@ -387,6 +387,7 @@ private:
 
     // Program Logic
     ClassNode* build_class(Orchestration* p_orchestration);
+    ConstantNode* build_constant_variable(const Ref<OScriptVariable>& p_variable);
     VariableNode* build_variable(const Ref<OScriptVariable>& p_variable);
     SignalNode* build_signal(const Ref<OScriptSignal>& p_signal);
     FunctionNode* build_function(const Ref<OScriptFunction>& p_function, const Ref<OScriptGraph>& p_graph);

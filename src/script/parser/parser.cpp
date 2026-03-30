@@ -2951,8 +2951,13 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
     }
 
     for (const Ref<OScriptVariable>& variable : p_orchestration->get_variables()) {
-        VariableNode* node = build_variable(variable);
-        clazz->add_member(node);
+        if (variable->is_constant()) {
+            ConstantNode* constant = build_constant_variable(variable);
+            clazz->add_member(constant);
+        } else {
+            VariableNode* node = build_variable(variable);
+            clazz->add_member(node);
+        }
     }
 
     for (const Ref<OScriptSignal>& signal : p_orchestration->get_custom_signals()) {
@@ -2989,6 +2994,28 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
     #endif
 
     return clazz;
+}
+
+OScriptParser::ConstantNode* OScriptParser::build_constant_variable(const Ref<OScriptVariable>& p_variable) {
+    ConstantNode* constant = alloc_node<ConstantNode>();
+    constant->identifier = build_identifier(p_variable->get_variable_name());
+
+    if (p_variable->get_default_value().get_type() == Variant::NIL) {
+        push_error("Expected constant to be assigned an initial value");
+        return constant;
+    }
+
+    constant->initializer = create_expression(p_variable->get_default_value());
+
+    IdentifierNode* type_name = alloc_node<IdentifierNode>();
+    type_name->name = p_variable->get_variable_type_name();
+
+    TypeNode* type = alloc_node<TypeNode>();
+    type->type_chain.push_back(type_name);
+
+    constant->datatype_specifier = type;
+
+    return constant;
 }
 
 OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVariable>& p_variable) {
