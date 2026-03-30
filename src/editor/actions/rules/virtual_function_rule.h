@@ -26,6 +26,7 @@ class OrchestratorEditorActionVirtualFunctionRule : public OrchestratorEditorAct
     GDCLASS(OrchestratorEditorActionVirtualFunctionRule, OrchestratorEditorActionFilterRule);
 
     PackedStringArray _method_exclusion_names;
+    PackedStringArray _method_override_names;
 
 protected:
     static void _bind_methods() { }
@@ -37,4 +38,5 @@ public:
     //~ End ActionFilterRule Interface
 
     void set_method_exclusions(const PackedStringArray& p_method_names) { _method_exclusion_names = p_method_names; }
+    void set_method_overrides(const PackedStringArray& p_method_names) { _method_override_names = p_method_names; }
 };
