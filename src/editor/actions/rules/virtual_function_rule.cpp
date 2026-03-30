@@ -27,6 +27,10 @@ bool OrchestratorEditorActionVirtualFunctionRule::matches(const Ref<Orchestrator
         const MethodInfo& method = p_action->method.value();
         if (method.flags & METHOD_FLAG_VIRTUAL) {
             return !_method_exclusion_names.has(method.name);
+        } else {
+            if (!_method_exclusion_names.has(method.name) && _method_override_names.has(method.name)) {
+                return true;
+            }
         }
     }
     return false;
