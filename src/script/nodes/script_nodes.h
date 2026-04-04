@@ -77,12 +77,12 @@
 #include "scene/scene_tree.h"
 
 // Signals
-#include "signals/await_signal.h"
 #include "signals/emit_member_signal.h"
 #include "signals/emit_signal.h"
 
 // Utility
 #include "utilities/autoload.h"
+#include "utilities/await.h"
 #include "utilities/comment.h"
 #include "utilities/engine_singleton.h"
 #include "utilities/self.h"
