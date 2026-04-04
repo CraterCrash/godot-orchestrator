@@ -21,7 +21,7 @@
 #include "common/settings.h"
 #include "common/variant_utils.h"
 #include "script/nodes/data/coercion_node.h"
-#include "script/nodes/functions/call_function.h"
+#include "script/nodes/script_nodes.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -740,26 +740,33 @@ PackedStringArray OScriptNodePin::get_suggestions() {
 }
 
 bool OScriptNodePin::is_target_self() const {
-    if (!cast_to<OScriptNodeCallFunction>(get_owning_node())) {
+    //! Nodes only allowed to apply self labels
+    const bool is_await = get_owning_node()->is_type<OScriptNodeAwait>();
+    const bool is_call_function = get_owning_node()->is_type<OScriptNodeCallFunction>();
+
+    if (is_call_function && get_pin_name().match("target")) {
         return false;
     }
 
-    if (!get_pin_name().match("target") || has_any_connections()) {
-        return false;
+    if ((is_await || is_call_function) && !has_any_connections()) {
+        const String target_class = _property.class_name;
+        if (target_class.is_empty()) {
+            return false;
+        }
+
+        String base_type = get_owning_node()->get_orchestration()->get_base_type();
+        if (!base_type.is_empty()) {
+            ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(base_type);
+            if (!global_class.name.is_empty()) {
+                base_type = global_class.base_type;
+            }
+            return ClassDB::is_parent_class(base_type, target_class);
+        }
+
+        return true;
     }
 
-    const String target_class = _property.class_name;
-    if (target_class.is_empty()) {
-        return false;
-    }
-
-    // todo: needs to support classes
-    const String base_type = get_owning_node()->get_orchestration()->get_base_type();
-    if (!ClassDB::is_parent_class(base_type, target_class)) {
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 void OScriptNodePin::_bind_methods() {
