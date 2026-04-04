@@ -642,6 +642,12 @@ void OrchestratorEditorGraphNode::update() {
         set_position_offset(_node->get_position());
     }
 
+    if (!get_size().is_equal_approx(_node->get_size())) {
+        set_anchor_and_offset(SIDE_RIGHT, 0, 0);
+        set_anchor_and_offset(SIDE_BOTTOM, 0, 0);
+        set_size(_node->get_size());
+    }
+
     set_tooltip_text(SceneUtils::create_wrapped_tooltip_text(_get_tooltip_text()));
 }
 

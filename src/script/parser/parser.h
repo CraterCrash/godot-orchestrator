@@ -258,6 +258,7 @@ private:
 
     // Helper methods to create often used node cases
     ExpressionNode* create_expression(const Variant& p_value);
+    ExpressionNode* create_target_self_fallback(const Ref<OScriptNodePin>& p_target);
     LiteralNode* create_literal(const Variant& p_value);
     SubscriptNode* create_subscript_attribute(ExpressionNode* p_base, IdentifierNode* p_attribute);
     CallNode* create_func_call(ExpressionNode* p_base, const StringName& p_function); // object-based function
@@ -376,6 +377,7 @@ private:
     StatementResult build_switch_on_enum(const Ref<OScriptNodeSwitchEnum>& p_script_node);
     StatementResult build_random(const Ref<OScriptNodeRandom>& p_script_node); // vars validated
     StatementResult build_instantiate_scene(const Ref<OScriptNodeInstantiateScene>& p_script_node); // vars validated
+    StatementResult build_await_coroutine(const Ref<OScriptNodeAwaitCoroutine>& p_script_node);
     StatementResult build_await_signal(const Ref<OScriptNodeAwaitSignal>& p_script_node);
     StatementResult build_emit_member_signal(const Ref<OScriptNodeEmitMemberSignal>& p_script_node); // vars validated
     StatementResult build_emit_signal(const Ref<OScriptNodeEmitSignal>& p_script_node); // vars validated

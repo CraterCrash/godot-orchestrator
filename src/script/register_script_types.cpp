@@ -230,6 +230,7 @@ void register_script_node_types() {
     //~ Utility
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAutoload)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwait)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwaitCoroutine)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwaitSignal)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeComment)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEngineSingleton)

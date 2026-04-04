@@ -230,11 +230,11 @@ void OScriptNodePin::set_owning_node(OScriptNode* p_owning_node) {
 
 int32_t OScriptNodePin::get_pin_index() const {
     #ifdef _DEBUG
-    CRASH_COND_MSG(_cached_pin_index == -1, "OScriptNodePin index is not cached.");
+    CRASH_COND_MSG(_cached_pin_index == -1, vformat("OScriptNodePin index for %s is not cached.", _property.name));
     #else
     ERR_FAIL_COND_V_MSG(_cached_pin_index == -1, -1,
-                        vformat("OScriptNodePin index not yet cached in Node %s with ID %d, possible bug?!",
-                                _owning_node->get_class(), _owning_node->get_id()));
+                        vformat("OScriptNodePin index not yet cached for %s in Node %s with ID %d, possible bug?!",
+                                _property.name, _owning_node->get_class(), _owning_node->get_id()));
     #endif
     return _cached_pin_index;
 }

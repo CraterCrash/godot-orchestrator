@@ -781,10 +781,9 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
     actions.push_back(_script_node_builder<OScriptNodeSceneTree>("Scene", "Get Scene Tree").build());
     actions.push_back(_script_node_builder<OScriptNodeSelf>("Scene", "Get Self").build());
 
-    // Signals
-    actions.push_back(_script_node_builder<OScriptNodeAwaitSignal>("Signals", "Await Signal").executions(true).build());
-
     // Utilities
+    actions.push_back(_script_node_builder<OScriptNodeAwaitCoroutine>("Utilities", "Await Coroutine").executions(true).build());
+    actions.push_back(_script_node_builder<OScriptNodeAwaitSignal>("Utilities", "Await Signal").executions(true).build());
     actions.push_back(_script_node_builder<OScriptNodeComment>("Utilities", "Add Comment").build());
     actions.push_back(_script_node_builder<OScriptNodeAutoload>("Utilities", "Get an Autoload").build());
     actions.push_back(_script_node_builder<OScriptNodeEngineSingleton>("Utilities", "Get an Engine Singleton").build());
