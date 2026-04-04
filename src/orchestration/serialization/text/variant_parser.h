@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_VARIANT_PARSER_H
-#define ORCHESTRATOR_SCRIPT_VARIANT_PARSER_H
+#pragma once
 
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/resource.hpp>
@@ -165,5 +164,3 @@ public:
     static Error write(const Variant& p_variant, StoreStringFunction p_store_string, void* p_store_userdata, EncodeResourceFunction p_encode_resource, void* p_encode_userdata,int p_recursion_count = 0);
     static Error write_to_string(const Variant& p_variant, String& r_string, EncodeResourceFunction p_encode_resource = nullptr, void* p_encode_userdata = nullptr);
 };
-
-#endif // ORCHESTRATOR_SCRIPT_VARIANT_PARSER_H

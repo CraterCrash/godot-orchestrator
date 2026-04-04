@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H
-#define ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H
+#pragma once
 
 #include "core/godot/templates/hashfuncs.h"
 #include "script/compiler/code_generator.h"
@@ -298,11 +297,9 @@ public:
     void write_continue() override;
     void write_breakpoint() override;
     void write_newline(int p_node) override;
-    void write_return(const Address& p_return_value) override;
+    void write_return(const Address& p_return_value, bool p_use_conversion) override;
     void write_assert(const Address& p_test, const Address& p_message) override;
     //~ End OScriptCodeGenerator Interface
 
     ~OScriptBytecodeGenerator() override;
 };
-
-#endif // ORCHESTRATOR_SCRIPT_BYTECODE_GENERATOR_H

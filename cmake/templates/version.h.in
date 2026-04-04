@@ -14,11 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_VERSION_GENERATED_H
-#define ORCHESTRATOR_VERSION_GENERATED_H
+#pragma once
 
 // THIS FILE IS GENERATED. EDITS WILL BE LOST.
 
 @version_formatted@
-
-#endif // ORCHESTRATOR_VERSION_GENERATED_H

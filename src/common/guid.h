@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_GUID_H
-#define ORCHESTRATOR_GUID_H
+#pragma once
 
 #include <godot_cpp/classes/random_number_generator.hpp>
 
@@ -28,6 +27,7 @@ class Guid {
     uint32_t _c{ 0 };
     uint32_t _d{ 0 };
 
+    static std::mutex& _get_rng_mutex();
     static Ref<RandomNumberGenerator>& _get_random_number_generator();
 
     /// Parses the Guid string into its respective components
@@ -74,5 +74,3 @@ public:
 };
 
 _FORCE_INLINE_ uint64_t hash(const Guid& p_guid) { return p_guid.hash(); }
-
-#endif  // ORCHESTRATOR_GUID_H

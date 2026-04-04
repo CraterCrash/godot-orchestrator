@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_MENU_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_MENU_H
+#pragma once
 
 #include "editor/actions/filter_engine.h"
 #include "editor/actions/help.h"
@@ -26,6 +25,7 @@
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/tree.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 
 using namespace godot;
 
@@ -71,6 +71,7 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
     void _visibility_changed();
     void _focus_lost();
     void _confirmed();
+    void _canceled();
     void _select_item(TreeItem* p_item, bool p_center_on_item);
     void _toggle_collapsed(bool p_collapsed);
 
@@ -107,5 +108,3 @@ public:
 
     OrchestratorEditorActionMenu();
 };
-
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_MENU_H

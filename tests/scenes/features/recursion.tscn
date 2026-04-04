@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3tp71r8b1axl"]
+
+[ext_resource type="Script" uid="uid://bjjodwpypwjam" path="res://scenes/features/recursion.torch" id="1_0ebqm"]
+
+[node name="Recursion" type="Node" unique_id=1984274356]
+script = ExtResource("1_0ebqm")

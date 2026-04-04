@@ -43,7 +43,6 @@ bool OrchestratorEditorActionSearchTextRule::matches(const Ref<OrchestratorEdito
 }
 
 float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
-    const PackedStringArray tokens = p_context.query.to_lower().split(" ", false);
     const String name = p_action->name.to_lower();
     const PackedStringArray keywords = p_action->keywords;
     const String tooltip = p_action->tooltip.to_lower();
@@ -53,9 +52,20 @@ float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditor
     float keyword_boost = 0.7f;
     float tooltip_boost = 0.5f;
 
+    // Always favor exact matches over non-exact matches
+    if (name == p_context.query.to_lower()) {
+        return 1.0f;
+    }
+    if (name.begins_with(p_context.query.to_lower())) {
+        score += 0.5f;
+    }
+
+    const PackedStringArray tokens = name.split(" ", false);
     for (const String& token : tokens) {
-        if (name.findn(token) != -1) {
-            score += name_boost;
+        if (tokens.has(token)) {
+            score += name_boost; // exact word match in name
+        } else if (name.findn(token) != -1) {
+            score += name_boost * 0.5f; // substring match (weaker)
         } else if (keywords.has(token)) {
             score += keyword_boost;
         } else if (tooltip.findn(token) != -1) {

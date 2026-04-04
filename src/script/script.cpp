@@ -974,19 +974,15 @@ Error OScript::_reload(bool p_keep_state) {
 }
 
 #ifdef TOOLS_ENABLED
-#if GODOT_VERSION >= 0x040400
 StringName OScript::_get_doc_class_name() const {
     return doc_class_name;
 }
-#endif
 
 TypedArray<Dictionary> OScript::_get_documentation() const {
     TypedArray<Dictionary> result;
-    #ifdef TOOLS_ENABLED
     for (const DocData::ClassDoc& class_doc : docs) {
         result.push_back(DocData::ClassDoc::to_dict(class_doc));
     }
-    #endif
     return result;
 }
 
@@ -1146,6 +1142,10 @@ void OScript::reload_from_file() {
     // Setting this to 0 forces a reload off disk when _reload is called
     source_last_modified_time = 0;
 
+    if (get_orchestration().is_valid()) {
+        get_orchestration()->set_edited(false);
+    }
+
     // Only reload scripts that have no compilation errors
     if (_is_valid()) {
         if (Engine::get_singleton()->is_editor_hint() && is_tool()) {
@@ -1228,25 +1228,27 @@ Variant OScript::_new(const Variant** p_args, GDExtensionInt p_arg_count, GDExte
 
     ERR_FAIL_COND_V(baseptr->native.is_null(), Variant());
     if (baseptr->native.ptr()) {
-        owner = baseptr->native->instantiate();
+        Variant value = baseptr->native->instantiate();
+        owner = cast_to<Object>(value);
+
+        RefCounted* r = cast_to<RefCounted>(owner);
+        if (r) {
+            ref = Ref<RefCounted>(r);
+        }
     } else {
-        owner = memnew(RefCounted); //by default, no base means use reference
+        ref.instantiate(); //by default, no base means use reference
+        owner = ref.ptr();
     }
     ERR_FAIL_NULL_V_MSG(owner, Variant(), "Can't inherit from a virtual class.");
 
-    RefCounted *r = cast_to<RefCounted>(owner);
-    if (r) {
-        ref = Ref<RefCounted>(r);
+    OScriptInstance* instance = _create_instance(p_args, p_arg_count, owner, r_error);
+    if (!instance) {
+        if (ref.is_null()) {
+            memdelete(owner);
+        }
+        return Variant();
     }
 
-    //
-    // We need to use `set_script` here. This forces `Object` to call `script->instance_create` which
-    // delegates to `_instance_create` in the script extension, calling `_create_instance`. This is a
-    // fast way to make sure the script instance is set on the object.
-    //
-    // We tried creating the script instance with `_create_instance` and then using the GDE_INTERFACE
-    // `object_set_script_instance` API, but it was unreliable and crashed, but using `set_script`
-    // always seemed to work as expected.
     if (ref.is_valid()) {
         ref->set_script(this);
         return ref;
@@ -1529,10 +1531,6 @@ void OScript::get_constants(HashMap<StringName, Variant>* r_constants) {
             (*r_constants)[E.key] = E.value;
         }
     }
-}
-
-void OScript::unload_static() const {
-    OScriptCache::remove_script(fully_qualified_name);
 }
 
 Ref<Orchestration> OScript::get_orchestration() {

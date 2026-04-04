@@ -1,0 +1,7 @@
+OSCRIPT_TEST_PASS
+_init
+_enter_tree
+_ready
+_physics_process
+_process
+_exit_tree

@@ -48,6 +48,8 @@ void OrchestratorEditorGraphPinLineEdit::_popup_window_input(const Ref<InputEven
 void OrchestratorEditorGraphPinLineEdit::_popup_index_pressed(int p_index) {
     const String popup_suggestion = _popup->get_item_text(p_index);
     _control->set_text(popup_suggestion);
+    _default_value_changed();
+
     _control->release_focus();
 }
 

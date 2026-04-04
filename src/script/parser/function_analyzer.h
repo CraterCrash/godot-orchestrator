@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_PARSER_GRAPH_ANALYZER_H
-#define ORCHESTRATOR_SCRIPT_PARSER_GRAPH_ANALYZER_H
+#pragma once
 
 #include "script/function.h"
 #include "script/node_pin.h"
@@ -211,5 +210,3 @@ public:
     bool has_errors() const { return !errors.is_empty(); }
     const List<AnalyzerError>& get_errors() const { return errors; }
 };
-
-#endif // ORCHESTRATOR_SCRIPT_PARSER_GRAPH_ANALYZER_H

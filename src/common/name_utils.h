@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_NAME_UTILS_H
-#define ORCHESTRATOR_NAME_UTILS_H
+#pragma once
 
 #include <godot_cpp/variant/packed_string_array.hpp>
 
@@ -28,5 +27,3 @@ namespace NameUtils {
     /// @return the unique name
     String create_unique_name(const String& p_prefix, const PackedStringArray& p_names = PackedStringArray());
 }
-
-#endif // ORCHESTRATOR_NAME_UTILS_H

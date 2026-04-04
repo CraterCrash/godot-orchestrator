@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_ACTION_H
-#define ORCHESTRATOR_SCRIPT_ACTION_H
+#pragma once
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/variant/callable.hpp>
@@ -57,5 +56,3 @@ public:
         , _disabled(p_disabled) { }
 
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_ACTION_H

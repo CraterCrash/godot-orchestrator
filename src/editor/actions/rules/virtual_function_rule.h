@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_EDITOR_ACTIONS_FILTER_VIRTUAL_FUNCTION_RULE_H
-#define ORCHESTRATOR_EDITOR_ACTIONS_FILTER_VIRTUAL_FUNCTION_RULE_H
+#pragma once
 
 #include "editor/actions/rules/rule.h"
 
@@ -39,5 +38,3 @@ public:
 
     void set_method_exclusions(const PackedStringArray& p_method_names) { _method_exclusion_names = p_method_names; }
 };
-
-#endif // ORCHESTRATOR_EDITOR_ACTIONS_FILTER_VIRTUAL_FUNCTION_RULE_H

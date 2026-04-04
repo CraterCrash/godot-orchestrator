@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_IO_RESOURCE_LOADER_H
-#define ORCHESTRATOR_CORE_GODOT_IO_RESOURCE_LOADER_H
+#pragma once
 
 #include <godot_cpp/variant/string.hpp>
 
@@ -34,5 +33,3 @@ namespace GDE {
         static String path_remap(const String& p_path);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_IO_RESOURCE_LOADER_H
