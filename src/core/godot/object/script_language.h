@@ -27,5 +27,6 @@ namespace GDE {
         static MethodInfo get_method_info(const Ref<godot::Script>& p_script, const StringName& p_function);
         static bool inherits_script(const Ref<godot::Script>& p_script, const Ref<godot::Script>& p_parent_script);
         static bool is_valid(const Ref<godot::Script>& p_script);
+        static bool has_method(const Ref<godot::Script>& p_script, const StringName& p_name);
     };
 }

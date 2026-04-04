@@ -18,17 +18,21 @@
 
 #include "script/script.h"
 
-/// Awaits a signal.
-///
-/// Much like GDScript, you can use the "await" keyword to create a coroutine that will yield
-/// and waits until the specified signal is raised before the program flow continues. This
-/// node is designed to provide the same functionality in Orchestrator.
-///
-/// This node requires two inputs, the object that will emit the signal and the signal name
-/// that should cause the yield until it is raised.
-///
-class OScriptNodeAwaitSignal : public OScriptNode {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeAwaitSignal, OScriptNode);
+/// Base class for all Await-based nodes
+class OScriptNodeAwait : public OScriptNode {
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeAwait, OScriptNode);
+
+protected:
+    static void _bind_methods() { }
+
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+};
+
+/// Awaits Member Signals
+class OScriptNodeAwaitSignal : public OScriptNodeAwait {
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeAwaitSignal, OScriptNodeAwait);
 
 protected:
     static void _bind_methods() { }

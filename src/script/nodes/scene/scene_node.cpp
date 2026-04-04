@@ -88,15 +88,26 @@ void OScriptNodeSceneNode::_upgrade(uint32_t p_version, uint32_t p_current_versi
     super::_upgrade(p_version, p_current_version);
 }
 
-Node* OScriptNodeSceneNode::_get_referenced_node() const {
+Node* OScriptNodeSceneNode::_get_scene_base_node() const {
     if (_is_in_editor() && !_node_path.is_empty()) {
-        if (SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())) {
+        if (SceneTree* st = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())) {
             if (st->get_edited_scene_root()) {
                 if (Node* root = st->get_edited_scene_root()) {
-                    return root->get_node_or_null(_node_path);
+                    Vector<Node*> nodes;
+                    SceneUtils::find_all_nodes_for_script(root, root, get_orchestration()->as_script(), nodes);
+                    if (!nodes.is_empty()) {
+                        return nodes[0];
+                    }
                 }
             }
         }
+    }
+    return nullptr;
+}
+
+Node* OScriptNodeSceneNode::_get_referenced_node() const {
+    if (Node* base_node = _get_scene_base_node()) {
+        return base_node->get_node_or_null(_node_path);
     }
     return nullptr;
 }
@@ -121,6 +132,15 @@ String OScriptNodeSceneNode::get_icon() const {
 
 String OScriptNodeSceneNode::get_help_topic() const {
     return vformat("class:%s", _class_name);
+}
+
+Ref<Resource> OScriptNodeSceneNode::get_inspect_object() {
+    if (_is_in_editor()) {
+        if (Node* base_node = _get_scene_base_node()) {
+            set_meta("__base_node_relative", base_node);
+        }
+    }
+    return super::get_inspect_object();
 }
 
 Ref<OScriptTargetObject> OScriptNodeSceneNode::resolve_target(const Ref<OScriptNodePin>& p_pin) const {

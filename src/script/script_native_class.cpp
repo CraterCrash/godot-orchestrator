@@ -41,7 +41,8 @@ bool OScriptNativeClass::_get(const StringName& p_name, Variant& r_value) const 
 }
 
 Variant OScriptNativeClass::_new() {
-    Object* object = instantiate();
+    Variant value = instantiate();
+    Object* object = cast_to<Object>(value);
     ERR_FAIL_NULL_V_MSG(object, Variant(), "Class type: " + String(_name) + " is not instantiable.");
 
     RefCounted* rc = cast_to<RefCounted>(object);
@@ -51,7 +52,7 @@ Variant OScriptNativeClass::_new() {
     return object;
 }
 
-Object* OScriptNativeClass::instantiate() {
+Variant OScriptNativeClass::instantiate() {
     return ClassDB::instantiate(_name);
 }
 

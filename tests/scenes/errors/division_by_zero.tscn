@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cpbmwv5h26628"]
+
+[ext_resource type="Script" uid="uid://dekndv81p4hlc" path="res://scenes/errors/division_by_zero.torch" id="1_tsj3i"]
+
+[node name="DivisionByZero" type="Node" unique_id=1794396243]
+script = ExtResource("1_tsj3i")

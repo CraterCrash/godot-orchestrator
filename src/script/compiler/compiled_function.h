@@ -444,7 +444,6 @@ class OScriptFunctionState : public RefCounted {
     OScriptCompiledFunction* function = nullptr;
     OScriptCompiledFunction::CallState state;
 
-    Ref<OScriptFunctionState> first_state;
     SelfList<OScriptFunctionState> scripts_list;
     SelfList<OScriptFunctionState> instances_list;
 

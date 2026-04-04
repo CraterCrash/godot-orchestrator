@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://jckk2dwt08da"]
+
+[ext_resource type="Script" uid="uid://8rnm3eepqxf1" path="res://scenes/features/duplicate_resource.torch" id="1_puml6"]
+
+[node name="DuplicateResource" type="Node" unique_id=850472590]
+script = ExtResource("1_puml6")
