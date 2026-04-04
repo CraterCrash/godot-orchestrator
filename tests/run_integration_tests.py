@@ -12,6 +12,12 @@ from pathlib import Path
 scenes_dir  = Path(__file__).parent / "scenes"
 exit_code = 0
 
+def strip_backtrace(text):
+    return "\n".join(
+        line for line in text.splitlines()
+        if not line.startswith("   OScript backtrace") and not line.startswith("       [")
+    ).strip()
+
 def validate_output(source, result, elapsed):
     global exit_code
     source = source.resolve()
@@ -39,6 +45,10 @@ def validate_output(source, result, elapsed):
         actual = result.stdout.strip()
     elif directive == "OSCRIPT_TEST_FAILURE":
         actual = result.stderr.strip()
+        # Godot did not add backtrace support until Godot 4.5+
+        if version == "4.4":
+            actual = strip_backtrace(actual)
+            expected = strip_backtrace(expected)
     else:
         print(f"ERROR: Unknown directive '{directive}' in {out_file}")
         exit_code = 1
