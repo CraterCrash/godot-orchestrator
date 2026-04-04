@@ -2746,8 +2746,20 @@ OScriptParser::StatementResult OScriptParser::build_instantiate_scene(const Ref<
 }
 
 OScriptParser::StatementResult OScriptParser::build_await_signal(const Ref<OScriptNodeAwaitSignal>& p_script_node) {
+    ExpressionNode* target = nullptr;
+    const Ref<OScriptNodePin> object = p_script_node->find_pin(1, PD_Input);
+    if (object.is_valid()) {
+        if (object->has_any_connections()) {
+            target = resolve_input(object);
+        } else {
+            SelfNode* self = alloc_node<SelfNode>();
+            self->current_class = current_class;
+            target = self;
+        }
+    }
+
     SubscriptNode* the_signal = alloc_node<SubscriptNode>();
-    the_signal->base = resolve_input(p_script_node->find_pin(1, PD_Input));
+    the_signal->base = target;
     the_signal->index = resolve_input(p_script_node->find_pin(2, PD_Input));
     the_signal->base->script_node_id = p_script_node->get_id();
     the_signal->index->script_node_id = p_script_node->get_id();
