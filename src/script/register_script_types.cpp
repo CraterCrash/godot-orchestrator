@@ -224,12 +224,13 @@ void register_script_node_types() {
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSceneTree)
 
     //~ Signals
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwaitSignal)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitMemberSignal)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitSignal)
 
     //~ Utility
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAutoload)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwait)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwaitSignal)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeComment)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEngineSingleton)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePrintString)
