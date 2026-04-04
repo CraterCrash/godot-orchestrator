@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_ORCHESTRATION_PARSER_H
-#define ORCHESTRATOR_ORCHESTRATION_PARSER_H
+#pragma once
 
 #include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/classes/resource.hpp>
@@ -47,5 +46,3 @@ public:
 
     virtual ~OrchestrationParser() = default;
 };
-
-#endif // ORCHESTRATOR_ORCHESTRATION_PARSER_H

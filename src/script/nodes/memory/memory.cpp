@@ -17,7 +17,6 @@
 #include "script/nodes/memory/memory.h"
 
 #include "common/property_utils.h"
-#include "common/version.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -83,11 +82,7 @@ String OScriptNodeNew::get_node_title() const {
 }
 
 String OScriptNodeNew::get_help_topic() const {
-    #if GODOT_VERSION >= 0x040300
     return vformat("class:%s", _class_name);
-    #else
-    return super::get_help_topic();
-    #endif
 }
 
 String OScriptNodeNew::get_icon() const {

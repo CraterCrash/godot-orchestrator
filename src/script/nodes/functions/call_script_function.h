@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_CALL_SCRIPT_FUNCTION_H
-#define ORCHESTRATOR_SCRIPT_NODE_CALL_SCRIPT_FUNCTION_H
+#pragma once
 
 #include "call_function.h"
 
@@ -61,5 +60,3 @@ public:
     /// @return the script function reference the node calls
     Ref<OScriptFunction> get_function() { return _function; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_CALL_SCRIPT_FUNCTION_H

@@ -14,10 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_REGISTER_EDITOR_TYPES_H
-#define ORCHESTRATOR_REGISTER_EDITOR_TYPES_H
+#pragma once
 
 void register_editor_types();
 void unregister_editor_types();
-
-#endif // ORCHESTRATOR_REGISTER_EDITOR_TYPES_H

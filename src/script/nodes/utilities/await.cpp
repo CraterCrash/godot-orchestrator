@@ -14,15 +14,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "script/nodes/signals/await_signal.h"
+#include "script/nodes/utilities/await.h"
 
 #include "common/property_utils.h"
+
+void OScriptNodeAwait::_upgrade(uint32_t p_version, uint32_t p_current_version) {
+    if (find_pin("result", PD_Output).is_null()) {
+        reconstruct_node();
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OScriptNodeAwaitSignal
 
 void OScriptNodeAwaitSignal::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target"));
     create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("signal_name", Variant::STRING));
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("result"));
     super::allocate_default_pins();
 }
 
@@ -43,11 +53,10 @@ void OScriptNodeAwaitSignal::on_pin_disconnected(const Ref<OScriptNodePin>& p_pi
 }
 
 PackedStringArray OScriptNodeAwaitSignal::get_suggestions(const Ref<OScriptNodePin>& p_pin) {
-    if (p_pin.is_valid() && p_pin->is_input() && p_pin->get_pin_name().match("signal_name"))
-    {
+    if (p_pin.is_valid() && p_pin->is_input() && p_pin->get_pin_name().match("signal_name")) {
         const Ref<OScriptNodePin> target_pin = find_pin("target", PD_Input);
         if (target_pin.is_valid()) {
-            return target_pin->resolve_signal_names();
+            return target_pin->resolve_signal_names(true);
         }
     }
     return super::get_suggestions(p_pin);

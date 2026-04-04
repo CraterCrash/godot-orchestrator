@@ -678,11 +678,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
 
     menu->add_separator("Documentation");
 
-    #if GODOT_VERSION >= 0x040300
     const String view_doc_topic = script_node->get_help_topic();
-    #else
-    const String view_doc_topic = script_node->get_class();
-    #endif
     menu->add_icon_item("Help", "View Documentation", callable_mp_this(_view_documentation).bind(view_doc_topic));
 
     const Ref<OScriptNodeVariableGet> variable_get = script_node;
@@ -788,13 +784,29 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
     }
 
     if (!pin_connections.is_empty()) {
-        OrchestratorEditorContextMenu* submenu = menu->add_submenu("Jump to connected node...");
-        for (OrchestratorEditorGraphPin* connection : pin_connections) {
-            const int node_id = connection->get_graph_node()->get_id();
-            const String node_name = connection->get_graph_node()->get_title();
+        {
+            OrchestratorEditorContextMenu* submenu = menu->add_submenu("Jump to connected node...");
+            for (OrchestratorEditorGraphPin* connection : pin_connections) {
+                const int node_id = connection->get_graph_node()->get_id();
+                const String node_name = connection->get_graph_node()->get_title();
 
-            const String label = vformat("Jump to %d - %s", node_id, node_name);
-            submenu->add_item(label, callable_mp_this(center_node).bind(connection->get_graph_node()));
+                const String label = vformat("Jump to %d - %s", node_id, node_name);
+                submenu->add_item(label, callable_mp_this(center_node).bind(connection->get_graph_node()));
+            }
+        }
+        {
+            OrchestratorEditorContextMenu* submenu = menu->add_submenu("Straighten Connection...");
+            if (pin_connections.size() > 1) {
+                submenu->add_item("Straighten All Pin Connections", callable_mp_this(straighten_all_connections).bind(p_pin));
+            }
+
+            for (OrchestratorEditorGraphPin* connection : pin_connections) {
+                const String node_name = connection->get_graph_node()->get_title();
+                const String pin_name = connection->get_pin_name();
+
+                const String label = vformat("Straighten Connection to %s (%s)", node_name, pin_name);
+                submenu->add_item(label, callable_mp_this(straighten_connection).bind(p_pin, connection));
+            }
         }
     }
 
@@ -808,11 +820,7 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
 
     menu->add_separator("Documentation");
 
-    #if GODOT_VERSION >= 0x040300
     const String view_doc_topic = script_node->get_help_topic();
-    #else
-    const String view_doc_topic = script_node->get_class();
-    #endif
     menu->add_icon_item("Help", "View Documentation", callable_mp_this(_view_documentation).bind(view_doc_topic));
 
     menu->set_position(p_pin->get_screen_position() + p_position * get_zoom());
@@ -1035,6 +1043,12 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
     // Transfer the nodes between the graphs
     for (OrchestratorEditorGraphNode* node : selected_nodes) {
         source_graph->move_node_to(node->_node, target_graph);
+    }
+
+    // Reapply connections in new graph
+    for (uint64_t connection_id : connections) {
+        const Connection C(connection_id);
+        target_graph->link(C.from_node, C.from_port, C.to_node, C.to_port);
     }
 
     // Spawn the call functino node in the source graph
@@ -1263,9 +1277,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         if (call_parent) {
             _set_edited(true);
         }
-    }
-
-    if (const Ref<OScriptNodeFunctionEntry>& node = graph_node; node.is_valid()) {
+    } else if (const Ref<OScriptNodeFunctionEntry>& node = graph_node; node.is_valid()) {
         NodeSpawnOptions options;
         options.node_class = OScriptNodeCallParentScriptFunction::get_class_static();
         options.context.method = node->get_function()->get_method_info();
@@ -1275,9 +1287,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         if (call_parent) {
             _set_edited(true);
         }
-    }
-
-    if (const Ref<OScriptNodeCallMemberFunction>& node = graph_node; node.is_valid()) {
+    } else if (const Ref<OScriptNodeCallMemberFunction>& node = graph_node; node.is_valid()) {
         StringName parent_class_name;
         if (ScriptServer::is_global_class(node->get_target_class())) {
             parent_class_name = ScriptServer::get_global_class(node->get_target_class()).base_type;
@@ -1295,9 +1305,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         if (call_parent) {
             _set_edited(true);
         }
-    }
-
-    if (const Ref<OScriptNodeEvent>& node = graph_node; node.is_valid()) {
+    } else if (const Ref<OScriptNodeEvent>& node = graph_node; node.is_valid()) {
         StringName parent_class_name;
         StringName global_name = _graph->get_orchestration()->get_global_name();
         if (ScriptServer::is_global_class(global_name)) {
@@ -1412,17 +1420,12 @@ void OrchestratorEditorGraphPanel::_toggle_node_bookmark(OrchestratorEditorGraph
 }
 
 bool OrchestratorEditorGraphPanel::_has_breakpoint_support() const {
-    #if GODOT_VERSION >= 0x040300
     return true;
-    #else
-    return false;
-    #endif
 }
 
 void OrchestratorEditorGraphPanel::_toggle_node_breakpoint(OrchestratorEditorGraphNode* p_node) {
     ERR_FAIL_NULL_MSG(p_node, "Cannot toggle node breakpoint on an invalid node reference");
 
-    #if GODOT_VERSION >= 0x040300
     const int id = p_node->get_id();
     if (!_breakpoint_state.has(id)) {
         _breakpoint_state[id] = true;
@@ -1443,14 +1446,11 @@ void OrchestratorEditorGraphPanel::_toggle_node_breakpoint(OrchestratorEditorGra
     }
 
     p_node->notify_breakpoints_changed();
-
-    #endif
 }
 
 void OrchestratorEditorGraphPanel::_set_node_breakpoint(OrchestratorEditorGraphNode* p_node, bool p_breaks) {
     ERR_FAIL_NULL_MSG(p_node, "Cannot set node breakpoint on an invalid node reference");
 
-    #if GODOT_VERSION >= 0x040300
     const int id = p_node->get_id();
     if (p_breaks) {
         _breakpoint_state[id] = true;
@@ -1476,13 +1476,11 @@ void OrchestratorEditorGraphPanel::_set_node_breakpoint(OrchestratorEditorGraphN
     }
 
     p_node->notify_breakpoints_changed();
-    #endif
 }
 
 void OrchestratorEditorGraphPanel::_set_node_breakpoint_enabled(OrchestratorEditorGraphNode* p_node, bool p_enabled) {
     ERR_FAIL_NULL_MSG(p_node, "Cannot set node breakpoint status on an invalid node reference");
 
-    #if GODOT_VERSION >= 0x040300
     const int id = p_node->get_id();
     _breakpoint_state[id] = p_enabled;
     emit_signal("breakpoint_changed", id, p_enabled);
@@ -1496,7 +1494,6 @@ void OrchestratorEditorGraphPanel::_set_node_breakpoint_enabled(OrchestratorEdit
     }
 
     p_node->notify_breakpoints_changed();
-    #endif
 }
 
 void OrchestratorEditorGraphPanel::_set_variable_node_validation(OrchestratorEditorGraphNode* p_node, bool p_validated) {
@@ -1650,12 +1647,7 @@ void OrchestratorEditorGraphPanel::_reset_pin_to_generated_default_value(Orchest
 
 void OrchestratorEditorGraphPanel::_view_documentation(const String& p_topic) {
     EI->set_main_screen_editor("Script");
-
-    #if GODOT_VERSION >= 0x040300
     EI->get_script_editor()->goto_help(p_topic);
-    #else
-    EI->get_script_editor()->call("_help_class_open", p_topic);
-    #endif
 }
 
 void OrchestratorEditorGraphPanel::_connect_graph_node_signals(OrchestratorEditorGraphNode* p_node) {
@@ -1670,11 +1662,7 @@ void OrchestratorEditorGraphPanel::_connect_graph_node_signals(OrchestratorEdito
     // Godot 4.3 introduced a new resize_end callback that we will use now to handle triggering the
     // final size of a node. This helps to avoid issues with editor scale changes being problematic
     // by leaving nodes too large after scale up.
-    #if GODOT_VERSION < 0x040300
-    p_node->connect(SceneStringName(resized), callable_mp_this(_node_resized).bind(p_node));
-    #else
     p_node->connect("resize_end", callable_mp_this(_node_resize_end).bind(p_node));
-    #endif
 
     _connect_graph_node_pin_signals(p_node);
 }
@@ -1691,11 +1679,7 @@ void OrchestratorEditorGraphPanel::_disconnect_graph_node_signals(OrchestratorEd
     // Godot 4.3 introduced a new resize_end callback that we will use now to handle triggering the
     // final size of a node. This helps to avoid issues with editor scale changes being problematic
     // by leaving nodes too large after scale up.
-    #if GODOT_VERSION < 0x040300
-    p_node->disconnect(SceneStringName(resized), callable_mp_this(_node_resized).bind(p_node));
-    #else
     p_node->disconnect("resize_end", callable_mp_this(_node_resize_end).bind(p_node));
-    #endif
 
     _disconnect_graph_node_pin_signals(p_node);
 }
@@ -1974,9 +1958,7 @@ void OrchestratorEditorGraphPanel::_action_menu_canceled() {
 }
 
 void OrchestratorEditorGraphPanel::_grid_pattern_changed(int p_index) {
-    #if GODOT_VERSION >= 0x040300
     set_grid_pattern(CAST_INT_TO_ENUM(GridPattern, _grid_pattern->get_item_metadata(p_index)));
-    #endif
 }
 
 void OrchestratorEditorGraphPanel::_settings_changed() {
@@ -2649,9 +2631,18 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
                 continue;
             }
 
-            const NodePath path = dropped_node->is_unique_name_in_owner()
-                ? NodePath("%" + dropped_node->get_name())
-                : edited_scene_root->get_path_to(dropped_node);
+            NodePath path;
+            if (dropped_node->is_unique_name_in_owner()) {
+                path = NodePath("%" + dropped_node->get_name());
+            } else {
+                Vector<Node*> attached_nodes;
+                SceneUtils::find_all_nodes_for_script(edited_scene_root, edited_scene_root, _graph->get_orchestration()->as_script(), attached_nodes);
+                if (attached_nodes.is_empty()) {
+                    ORCHESTRATOR_ERROR("Cannot drop a node in a script that is not attached to a node in this scene.");
+                }
+
+                path = attached_nodes[0]->get_path_to(dropped_node);
+            }
 
             String global_name;
             const Ref<Script> dropped_node_script = dropped_node->get_script();
@@ -2886,105 +2877,6 @@ bool OrchestratorEditorGraphPanel::_is_in_output_hotzone(Object* p_in_node, int3
     return _is_in_port_hotzone(pos / zoom, p_mouse_position, port_size, false);
 }
 
-#if GODOT_VERSION < 0x040300
-static Vector2 get_closest_point_to_segment(const Vector2& p_point, const Vector2* p_segment) {
-    Vector2 p = p_point - p_segment[0];
-    Vector2 n = p_segment[1] - p_segment[0];
-    real_t l2 = n.length_squared();
-
-    if (l2 < 1e-20f) {
-        return p_segment[0]; // Both points are the same, just give any.
-    }
-
-    real_t d = n.dot(p) / l2;
-
-    if (d <= 0.0f) {
-        return p_segment[0]; // Before first point.
-    }
-
-    if (d >= 1.0f) {
-        return p_segment[1]; // After first point.
-    }
-
-    return p_segment[0] + n * d; // Inside.
-}
-
-static float get_distance_to_segment(const Vector2& p_point, const Vector2* p_segment) {
-    return p_point.distance_to(get_closest_point_to_segment(p_point, p_segment));
-}
-
-Dictionary OrchestratorEditorGraphPanel::get_closest_connection_at_point(const Vector2& p_position, float p_max_distance) {
-    Vector2 transformed_point = p_position + get_scroll_offset();
-
-    Dictionary closest_connection;
-    float closest_distance = p_max_distance;
-
-    TypedArray<Dictionary> connections = get_connection_list();
-    for (int i = 0; i < connections.size(); i++) {
-        const Dictionary& connection = connections[i];
-
-        const String source_name = connection["from_node"];
-        const int32_t source_port = connection["from_port"];
-        OrchestratorEditorGraphNode* source = find_node(source_name);
-        if (!source) {
-            continue;
-        }
-
-        const String target_name = connection["to_node"];
-        const int32_t target_port = connection["to_port"];
-        OrchestratorEditorGraphNode* target = find_node(target_name);
-        if (!target) {
-            continue;
-        }
-
-        // What is cached
-        Vector2 from_pos = source->get_output_port_position(source_port) + source->get_position_offset();
-        Vector2 to_pos = target->get_input_port_position(target_port) + target->get_position_offset();
-
-        if (_godot_version.at_least(4, 3)) {
-            from_pos *= get_zoom();
-            to_pos *= get_zoom();
-        }
-
-        // This function is called during both draw and this logic, and so the results need to be handled
-        // differently based on the context of the call in Godot 4.2.
-        PackedVector2Array points = get_connection_line(from_pos, to_pos);
-        if (points.is_empty()) {
-            continue;
-        }
-
-        if (!_godot_version.at_least(4, 3)) {
-            for (int j = 0; j < points.size(); j++) {
-                points[j] *= get_zoom();
-            }
-        }
-
-        const real_t line_thickness = get_connection_lines_thickness();
-
-        Rect2 aabb(points[0], Vector2());
-        for (int j = 0; j < points.size(); j++) {
-            aabb = aabb.expand(points[j]);
-        }
-
-        aabb.grow_by(line_thickness * static_cast<real_t>(0.5));
-
-        if (aabb.distance_to(transformed_point) > p_max_distance) {
-            continue;
-        }
-
-        for (int j = 0; j < points.size(); j++) {
-            float distance = get_distance_to_segment(transformed_point, &points[j]);
-            if (distance <= line_thickness * 0.5 + p_max_distance && distance < closest_distance) {
-                closest_distance = distance;
-                closest_connection = connection;
-            }
-        }
-    }
-
-    return closest_connection;
-}
-#endif
-
 void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_graph) {
     ERR_FAIL_COND_MSG(!p_graph.is_valid(), "The provided graph panel model is invalid");
 
@@ -3167,11 +3059,9 @@ void OrchestratorEditorGraphPanel::clear_breakpoints() {
     while (!_breakpoints.is_empty()) {
         int node_id = _breakpoints[_breakpoints.size() - 1];
 
-        #if GODOT_VERSION >= 0x040300
         if (OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton()) {
             debugger->set_breakpoint(_graph->get_orchestration()->as_script()->get_path(), node_id, false);
         }
-        #endif
 
         _breakpoints.remove_at(_breakpoints.size() - 1);
         _breakpoint_state.erase(node_id);
@@ -3437,6 +3327,55 @@ void OrchestratorEditorGraphPanel::center_node(OrchestratorEditorGraphNode* p_no
     scroll_to_position(p_node->get_graph_rect().get_center());
 }
 
+void OrchestratorEditorGraphPanel::straighten_all_connections(OrchestratorEditorGraphPin* p_pin) {
+    for (OrchestratorEditorGraphPin* connection : get_connected_pins(p_pin)) {
+        if (p_pin->get_direction() == PD_Output) {
+            straighten_connection(p_pin, connection);
+        } else {
+            straighten_connection(connection, p_pin);
+        }
+    }
+}
+
+void OrchestratorEditorGraphPanel::straighten_connection(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target) {
+    GUARD_NULL(p_source);
+    GUARD_NULL(p_target);
+
+    OrchestratorEditorGraphNode* source_node = p_source->get_graph_node();
+    const Vector2 source_node_position = source_node->get_position_offset();
+    const Vector2 source_pin_position = source_node_position + source_node->get_port_position_for_pin(p_source);
+
+    OrchestratorEditorGraphNode* target_node = p_target->get_graph_node();
+    Vector2 target_node_position = target_node->get_position_offset();
+    const Vector2 target_pin_position = target_node_position + target_node->get_port_position_for_pin(p_target);
+
+    Connection connection;
+    connection.from_node = source_node->get_id();
+    connection.from_port = source_node->get_pin_port(p_source);
+    connection.to_node = target_node->get_id();
+    connection.to_port = target_node->get_pin_port(p_target);
+
+    if (_knot_editor) {
+        const Guid knot_guid = _knot_editor->get_knot_guid(connection.id, 0);
+        if (knot_guid.is_valid()) {
+            // If the connection has a knot, the first knot will be aligned instead of the target node.
+            const Vector<OrchestratorEditorGraphNodeKnot*> knots = get_all<OrchestratorEditorGraphNodeKnot>(false);
+            for (OrchestratorEditorGraphNodeKnot* knot : knots) {
+                if (knot->get_guid() == knot_guid) {
+                    Vector2 offset = knot->get_position_offset();
+                    offset.y = source_pin_position.y;
+                    knot->set_position_offset(offset);
+                    break;
+                }
+            }
+            return;
+        }
+    }
+
+    target_node_position.y += source_pin_position.y - target_pin_position.y;
+    target_node->_node->set_position(target_node_position);
+}
+
 OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_node(const NodeSpawnOptions& p_options) {
     ERR_FAIL_COND_V_MSG(p_options.node_class.is_empty(), nullptr, "No node class specified, cannot spawn node");
     ERR_FAIL_COND_V_MSG(!_graph.is_valid(), nullptr, "Cannot spawn into an invalid graph");
@@ -3497,11 +3436,8 @@ Variant OrchestratorEditorGraphPanel::get_edit_state() const {
     panel_state["breakpoints"] = breakpoints;
     panel_state["minimap"] = is_minimap_enabled();
     panel_state["snapping"] = is_snapping_enabled();
-
-    #if GODOT_VERSION >= 0x040300
     panel_state["grid"] = is_showing_grid();
     panel_state["grid_pattern"] = get_grid_pattern();
-    #endif
 
     return panel_state;
 }
@@ -3547,13 +3483,11 @@ void OrchestratorEditorGraphPanel::set_edit_state(const Variant& p_state, const 
         }).call_deferred();
     }
 
-    #if GODOT_VERSION >= 0x040300
     set_show_grid(state.get("grid", true));
 
     const int grid_pattern = state.get("grid_pattern", 0);
     set_grid_pattern(CAST_INT_TO_ENUM(GridPattern, grid_pattern));
     _grid_pattern->select(grid_pattern);
-    #endif
 }
 
 void OrchestratorEditorGraphPanel::_notification(int p_what) {
@@ -3637,7 +3571,6 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
 
     // New dots-based grid style was introduced in Godot 4.3.
     // Introduces a new drop-down option for selecting the specific grid pattern
-    #if GODOT_VERSION >= 0x040300
     const String grid_pattern = ORCHESTRATOR_GET("ui/graph/grid_pattern", "Lines");
     const int selected = grid_pattern == "Lines" ? 0 : 1;
     _grid_pattern = memnew(OptionButton);
@@ -3655,7 +3588,6 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     VSeparator* sep = memnew(VSeparator());
     get_menu_hbox()->add_child(sep);
     get_menu_hbox()->move_child(sep, 6);
-    #endif
 
     set_minimap_enabled(ORCHESTRATOR_GET("ui/graph/show_minimap", false));
     set_show_arrange_button(ORCHESTRATOR_GET("ui/graph/show_arrange_button", false));

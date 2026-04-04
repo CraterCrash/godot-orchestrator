@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_ERROR_MACROS_H
-#define ORCHESTRATOR_CORE_GODOT_ERROR_MACROS_H
+#pragma once
 
 namespace godot {
     // Taken from engine enum definition
@@ -26,5 +25,3 @@ namespace godot {
         ERR_HANDLER_SHADER,
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_ERROR_MACROS_H

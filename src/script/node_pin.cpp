@@ -21,7 +21,7 @@
 #include "common/settings.h"
 #include "common/variant_utils.h"
 #include "script/nodes/data/coercion_node.h"
-#include "script/nodes/functions/call_function.h"
+#include "script/nodes/script_nodes.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -31,12 +31,6 @@ Ref<OScriptNodePin> OScriptNodePin::create(OScriptNode* p_owning_node, const Pro
     Ref<OScriptNodePin> pin(memnew(OScriptNodePin));
     pin->_owning_node = p_owning_node;
     pin->_property = p_property;
-
-    #if GODOT_VERSION < 0x040202
-    if (pin->_property.usage == 7) {
-        pin->_property.usage = PROPERTY_USAGE_DEFAULT;
-    }
-    #endif
 
     if (PropertyUtils::is_enum(p_property)) {
         pin->_flags.set_flag(ENUM);
@@ -127,12 +121,6 @@ bool OScriptNodePin::_load(const Dictionary& p_data) {
         _property.usage = p_data["usage"];
     }
 
-    #if GODOT_VERSION < 0x040202
-    if (_property.usage == 7) {
-        _property.usage = PROPERTY_USAGE_DEFAULT;
-    }
-    #endif
-
     return true;
 }
 
@@ -182,12 +170,6 @@ Dictionary OScriptNodePin::_save() {
     if (!_property.hint_string.is_empty()) {
         data["hint_string"] = _property.hint_string;
     }
-
-    #if GODOT_VERSION < 0x040202
-    if (_property.usage == 7) {
-        _property.usage = PROPERTY_USAGE_DEFAULT;
-    }
-    #endif
 
     if (_property.usage != PROPERTY_USAGE_DEFAULT) {
         data["usage"] = _property.usage;
@@ -758,26 +740,33 @@ PackedStringArray OScriptNodePin::get_suggestions() {
 }
 
 bool OScriptNodePin::is_target_self() const {
-    if (!cast_to<OScriptNodeCallFunction>(get_owning_node())) {
+    //! Nodes only allowed to apply self labels
+    const bool is_await = get_owning_node()->is_type<OScriptNodeAwait>();
+    const bool is_call_function = get_owning_node()->is_type<OScriptNodeCallFunction>();
+
+    if (is_call_function && get_pin_name().match("target")) {
         return false;
     }
 
-    if (!get_pin_name().match("target") || has_any_connections()) {
-        return false;
+    if ((is_await || is_call_function) && !has_any_connections()) {
+        const String target_class = _property.class_name;
+        if (target_class.is_empty()) {
+            return false;
+        }
+
+        String base_type = get_owning_node()->get_orchestration()->get_base_type();
+        if (!base_type.is_empty()) {
+            ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(base_type);
+            if (!global_class.name.is_empty()) {
+                base_type = global_class.base_type;
+            }
+            return ClassDB::is_parent_class(base_type, target_class);
+        }
+
+        return true;
     }
 
-    const String target_class = _property.class_name;
-    if (target_class.is_empty()) {
-        return false;
-    }
-
-    // todo: needs to support classes
-    const String base_type = get_owning_node()->get_orchestration()->get_base_type();
-    if (!ClassDB::is_parent_class(base_type, target_class)) {
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 void OScriptNodePin::_bind_methods() {

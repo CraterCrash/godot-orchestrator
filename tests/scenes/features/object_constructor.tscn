@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c2t4pghairsf0"]
+
+[ext_resource type="Script" uid="uid://bo7tg2nm6syco" path="res://scenes/features/object_constructor.torch" id="1_hdpmd"]
+
+[node name="ObjectConstructor" type="Node" unique_id=1123367140]
+script = ExtResource("1_hdpmd")

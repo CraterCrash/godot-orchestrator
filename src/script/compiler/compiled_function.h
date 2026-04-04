@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_COMPILED_FUNCTION_H
-#define ORCHESTRATOR_SCRIPT_COMPILED_FUNCTION_H
+#pragma once
 
 #include "script/utility_functions.h"
 
@@ -445,7 +444,6 @@ class OScriptFunctionState : public RefCounted {
     OScriptCompiledFunction* function = nullptr;
     OScriptCompiledFunction::CallState state;
 
-    Ref<OScriptFunctionState> first_state;
     SelfList<OScriptFunctionState> scripts_list;
     SelfList<OScriptFunctionState> instances_list;
 
@@ -470,6 +468,3 @@ public:
     OScriptFunctionState();
     ~OScriptFunctionState() override;
 };
-
-
-#endif // ORCHESTRATOR_SCRIPT_COMPILED_FUNCTION_H

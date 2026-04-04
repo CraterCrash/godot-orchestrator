@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bet31j43hy7li"]
+
+[ext_resource type="Script" uid="uid://gv1d5skoe7qi" path="res://scenes/errors/utility_function_wrong_arg.torch" id="1_g85qv"]
+
+[node name="UtilityFunctionWrongArg" type="Node" unique_id=785045338]
+script = ExtResource("1_g85qv")

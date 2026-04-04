@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_SCENE_NODE_H
-#define ORCHESTRATOR_SCRIPT_NODE_SCENE_NODE_H
+#pragma once
 
 #include "script/script.h"
 
@@ -44,6 +43,9 @@ protected:
     void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
     //~ End OScriptNode Interface
 
+    /// Get the node from scene that has this script, if possible.
+    Node* _get_scene_base_node() const;
+
     /// Get the referenced node from the scene, if possible.
     Node* _get_referenced_node() const;
 
@@ -56,6 +58,7 @@ public:
     String get_node_title_color_name() const override { return "scene"; }
     String get_icon() const override;
     String get_help_topic() const override;
+    Ref<Resource> get_inspect_object() override;
     Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override;
@@ -64,5 +67,3 @@ public:
     NodePath get_scene_node_path() const { return _node_path; }
     String get_scene_node_class_name() const { return _class_name; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_SCENE_NODE_H

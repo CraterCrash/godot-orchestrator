@@ -72,6 +72,8 @@ static OScriptParser::DataType make_native_meta_type(const StringName& p_class_n
     return type;
 }
 
+// WARNING: Use this function **only** to create non-OScript script metatypes. Otherwise, `check_type_compatibility()`
+// may return an incorrect result due to the assumption "A script type cannot be a subtype of a OScript class".
 static OScriptParser::DataType make_script_meta_type(const Ref<Script>& p_script) {
     OScriptParser::DataType type;
     type.type_source = OScriptParser::DataType::ANNOTATED_EXPLICIT;
@@ -513,7 +515,18 @@ OScriptParser::DataType OScriptAnalyzer::resolve_datatype(OScriptParser::TypeNod
 					}
 					result = ref->get_parser()->head->get_datatype();
 				} else {
-					result = make_script_meta_type(ResourceLoader::get_singleton()->load(path, "Script"));
+				    // todo: find a better way to deal with this
+				    //  if a GDScript refers to an Orchestration class, it will attempt to load it during
+				    //  it's analyzer phase; however, if that same Orchestration refers to the same GDScript,
+				    //  this creates a circular dependency issue, which will lead to the following Script load
+				    //  call returning an invalid script. In such cases, we need to simply report a parsing
+				    //  error rather than an editor crash.
+				    const Ref<Script> script = ResourceLoader::get_singleton()->load(path, "Script");
+				    if (script.is_null()) {
+				        push_error(vformat(R"(Could not load script "%s".)", path), p_type);
+				        return bad_type;
+				    }
+				    result = make_script_meta_type(script);
 				}
 			}
 
@@ -684,6 +697,57 @@ OScriptParser::DataType OScriptAnalyzer::resolve_datatype(OScriptParser::TypeNod
 	return result;
 }
 
+OScriptParser::DataType OScriptAnalyzer::type_from_script(const Ref<Script>& p_script, const OScriptParser::Node* p_source, bool p_is_meta_type) {
+    ERR_FAIL_COND_V(!p_script.is_valid(), OScriptParser::DataType());
+
+    OScriptParser::DataType result;
+    result.is_constant = true;
+    result.kind = OScriptParser::DataType::NATIVE;
+    result.builtin_type = Variant::OBJECT;
+    result.type_source = OScriptParser::DataType::ANNOTATED_EXPLICIT; // Constant has explicit type.
+    result.is_meta_type = p_is_meta_type;
+
+    Ref<OScript> oscript = p_script;
+    if (oscript.is_valid()) {
+        // This might be an inner class, so we want to get the parser for the root.
+        // But still get the inner class from that tree.
+        String script_path = oscript->get_script_path();
+        Ref<OScriptParserRef> ref = parser->get_depended_parser_for(script_path);
+        if (ref.is_null()) {
+            push_error(vformat(R"(Could not find script "%s".)", script_path), p_source);
+            OScriptParser::DataType error_type;
+            error_type.kind = OScriptParser::DataType::VARIANT;
+            return error_type;
+        }
+        Error err = ref->raise_status(OScriptParserRef::INHERITANCE_SOLVED);
+        OScriptParser::ClassNode *found = nullptr;
+        if (err == OK) {
+            found = ref->get_parser()->find_class(oscript->fully_qualified_name);
+            if (found != nullptr) {
+                err = resolve_class_inheritance(found, p_source);
+            }
+        }
+        if (err || found == nullptr) {
+            push_error(vformat(R"(Could not resolve script "%s".)", script_path), p_source);
+            OScriptParser::DataType error_type;
+            error_type.kind = OScriptParser::DataType::VARIANT;
+            return error_type;
+        }
+
+        result.kind = OScriptParser::DataType::CLASS;
+        result.native_type = found->get_datatype().native_type;
+        result.class_type = found;
+        result.script_path = ref->get_parser()->script_path;
+    } else {
+        result.kind = OScriptParser::DataType::SCRIPT;
+        result.native_type = p_script->get_instance_base_type();
+        result.script_path = p_script->get_path();
+    }
+    result.script_type = p_script;
+
+    return result;
+}
+
 OScriptParser::DataType OScriptAnalyzer::type_from_variant(const Variant& p_value, const OScriptParser::Node* p_source) {
     OScriptParser::DataType result;
 	result.is_constant = true;
@@ -694,7 +758,7 @@ OScriptParser::DataType OScriptAnalyzer::type_from_variant(const Variant& p_valu
 	if (p_value.get_type() == Variant::ARRAY) {
 		const Array &array = p_value;
 		if (array.get_typed_script()) {
-			result.set_container_element_type(0, type_from_metatype(make_script_meta_type(array.get_typed_script())));
+			result.set_container_element_type(0, type_from_metatype(type_from_script(array.get_typed_script(), p_source, true)));
 		} else if (!array.get_typed_class_name().is_empty()) {
 			result.set_container_element_type(0, type_from_metatype(make_native_meta_type(array.get_typed_class_name())));
 		} else if (array.get_typed_builtin() != Variant::NIL) {
@@ -703,14 +767,14 @@ OScriptParser::DataType OScriptAnalyzer::type_from_variant(const Variant& p_valu
 	} else if (p_value.get_type() == Variant::DICTIONARY) {
 		const Dictionary &dict = p_value;
 		if (dict.get_typed_key_script()) {
-			result.set_container_element_type(0, type_from_metatype(make_script_meta_type(dict.get_typed_key_script())));
+			result.set_container_element_type(0, type_from_metatype(type_from_script(dict.get_typed_key_script(), p_source, true)));
 		} else if (!dict.get_typed_key_class_name().is_empty()) {
 			result.set_container_element_type(0, type_from_metatype(make_native_meta_type(dict.get_typed_key_class_name())));
 		} else if (dict.get_typed_key_builtin() != Variant::NIL) {
 			result.set_container_element_type(0, type_from_metatype(make_builtin_meta_type(GDE::Variant::as_type(dict.get_typed_key_builtin()))));
 		}
 		if (dict.get_typed_value_script()) {
-			result.set_container_element_type(1, type_from_metatype(make_script_meta_type(dict.get_typed_value_script())));
+			result.set_container_element_type(1, type_from_metatype(type_from_script(dict.get_typed_value_script(), p_source, true)));
 		} else if (!dict.get_typed_value_class_name().is_empty()) {
 			result.set_container_element_type(1, type_from_metatype(make_native_meta_type(dict.get_typed_value_class_name())));
 		} else if (dict.get_typed_value_builtin() != Variant::NIL) {
@@ -727,54 +791,16 @@ OScriptParser::DataType OScriptAnalyzer::type_from_variant(const Variant& p_valu
 		result.native_type = obj->get_class();
 
 		Ref<Script> scr = p_value; // Check if value is a script itself.
+	    bool is_meta_type;
 		if (scr.is_valid()) {
-			result.is_meta_type = true;
+			is_meta_type = true;
 		} else {
-			result.is_meta_type = false;
+			is_meta_type = false;
 			scr = obj->get_script();
 		}
 
 		if (scr.is_valid()) {
-			Ref<OScript> os = scr;
-			if (os.is_valid()) {
-				// This might be an inner class, so we want to get the parser for the root.
-				// But still get the inner class from that tree.
-				String script_path = os->get_script_path();
-				Ref<OScriptParserRef> ref = parser->get_depended_parser_for(script_path);
-				if (ref.is_null()) {
-					push_error(vformat(R"(Could not find script "%s".)", script_path), p_source);
-					OScriptParser::DataType error_type;
-					error_type.kind = OScriptParser::DataType::VARIANT;
-					return error_type;
-				}
-
-				Error err = ref->raise_status(OScriptParserRef::INHERITANCE_SOLVED);
-				OScriptParser::ClassNode *found = nullptr;
-				if (err == OK) {
-					found = ref->get_parser()->find_class(os->fully_qualified_name);
-					if (found != nullptr) {
-						err = resolve_class_inheritance(found, p_source);
-					}
-				}
-
-				if (err || found == nullptr) {
-					push_error(vformat(R"(Could not resolve script "%s".)", script_path), p_source);
-					OScriptParser::DataType error_type;
-					error_type.kind = OScriptParser::DataType::VARIANT;
-					return error_type;
-				}
-
-				result.kind = OScriptParser::DataType::CLASS;
-				result.native_type = found->get_datatype().native_type;
-				result.class_type = found;
-				result.script_path = ref->get_parser()->script_path;
-			} else {
-				result.kind = OScriptParser::DataType::SCRIPT;
-				result.native_type = scr->get_instance_base_type();
-				result.script_path = scr->get_path();
-			}
-
-			result.script_type = scr;
+            result = type_from_script(scr, p_source, is_meta_type);
 		} else {
 			result.kind = OScriptParser::DataType::NATIVE;
 			if (result.native_type == OScriptNativeClass::get_class_static()) {
@@ -1167,7 +1193,7 @@ bool OScriptAnalyzer::get_function_signature(OScriptParser::Node* p_source, bool
 	}
 
 	Ref<Script> base_script = p_base_type.script_type;
-	while (base_script.is_valid() && base_script->has_method(function_name)) {
+	while (base_script.is_valid() && GDE::Script::has_method(base_script, function_name)) {
 		MethodInfo info = GDE::Script::get_method_info(base_script, function_name);
 		if (!(info == MethodInfo())) {
 			return function_signature_from_info(info, r_return_type, r_par_types, r_default_arg_count, r_method_flags);
@@ -1610,12 +1636,13 @@ void OScriptAnalyzer::resolve_annotation(OScriptParser::AnnotationNode* p_node) 
 
         reduce_expression(argument);
 
-        if (!argument->is_constant) {
+        bool is_argument_value_reduced = false;
+        Variant value = make_expression_reduced_value(argument, is_argument_value_reduced);
+        if (!is_argument_value_reduced) {
             push_error(vformat(R"(Argument %d of annotation "%s" isn't a constant expression.)", i + 1, p_node->name), argument);
             return;
         }
 
-        Variant value = argument->reduced_value;
         if (value.get_type() != argument_info.type) {
             #ifdef DEBUG_ENABLED
             if (argument_info.type == Variant::INT && value.get_type() == Variant::FLOAT) {
@@ -2566,11 +2593,11 @@ void OScriptAnalyzer::resolve_function_body(OScriptParser::FunctionNode* p_funct
         // Non-abstract functions must have a body.
         if (p_function->source_lambda != nullptr) {
             push_error(R"(A lambda function must have a ":" followed by a body.)", p_function);
+            return;
         } else if (!p_function->is_abstract) {
-            push_error(vformat(R"(The function "%s" is defined without a body.)", p_function->identifier->name), p_function);
+            // push_error(vformat(R"(The function "%s" is defined without a body.)", p_function->identifier->name), p_function);
             // push_error(vformat(R"(A function "%s" must either have a body, or be marked as "@abstract".)", p_function->identifier->name), p_function);
         }
-        return;
     } else {
         // Abstract functions must not have a body.
         if (p_function->is_abstract) {
@@ -2918,7 +2945,7 @@ void OScriptAnalyzer::resolve_for(OScriptParser::ForNode* p_for) {
 	OScriptParser::DataType list_type;
 
 	if (p_for->list) {
-		resolve_node(p_for->list, false);
+		resolve_node(p_for->list);
 
 		bool is_range = false;
 		if (p_for->list->type == OScriptParser::Node::CALL) {
@@ -3035,7 +3062,7 @@ void OScriptAnalyzer::resolve_for(OScriptParser::ForNode* p_for) {
 }
 
 void OScriptAnalyzer::resolve_while(OScriptParser::WhileNode* p_while) {
-    resolve_node(p_while->condition, false);
+    resolve_node(p_while->condition);
 
     resolve_suite(p_while->loop);
     p_while->set_datatype(p_while->loop->get_datatype());
@@ -3181,23 +3208,26 @@ void OScriptAnalyzer::resolve_match_pattern(OScriptParser::PatternNode* p_patter
 }
 
 void OScriptAnalyzer::resolve_return(OScriptParser::ReturnNode* p_return) {
+    const bool has_expected_type = parser->current_function != nullptr;
+    const OScriptParser::DataType expected_type = has_expected_type ? parser->current_function->get_datatype() : OScriptParser::DataType();
+
     OScriptParser::DataType result;
 
-	OScriptParser::DataType expected_type;
-	bool has_expected_type = parser->current_function != nullptr;
-	if (has_expected_type) {
-		expected_type = parser->current_function->get_datatype();
-	}
-
-	if (p_return->return_value != nullptr) {
-		bool is_void_function = has_expected_type &&
+    if (p_return->return_value == nullptr) {
+        // Return type is 'nil' by default.
+        result.type_source = OScriptParser::DataType::ANNOTATED_EXPLICIT;
+        result.kind = OScriptParser::DataType::BUILTIN;
+        result.builtin_type = Variant::NIL;
+        result.is_constant = true;
+    } else {
+		const bool is_void_function = has_expected_type &&
 		    expected_type.is_hard_type() &&
 		    expected_type.kind == OScriptParser::DataType::BUILTIN &&
 		    expected_type.builtin_type == Variant::NIL;
 
-		bool is_call = p_return->return_value->type == OScriptParser::Node::CALL;
+		const bool is_call = p_return->return_value->type == OScriptParser::Node::CALL;
 		if (is_void_function && is_call) {
-			// Pretend the call is a root expression to allow those that are "void".
+		    // Pretend the call is a root expression to allow those that are `void`.
 			reduce_call(static_cast<OScriptParser::CallNode*>(p_return->return_value), false, true);
 		} else {
 			reduce_expression(p_return->return_value);
@@ -3235,30 +3265,32 @@ void OScriptAnalyzer::resolve_return(OScriptParser::ReturnNode* p_return) {
 			}
 			result = p_return->return_value->get_datatype();
 		}
-	} else {
-		// Return type is null by default.
-		result.type_source = OScriptParser::DataType::ANNOTATED_EXPLICIT;
-		result.kind = OScriptParser::DataType::BUILTIN;
-		result.builtin_type = Variant::NIL;
-		result.is_constant = true;
 	}
 
-	if (has_expected_type && !expected_type.is_variant()) {
+	if (has_expected_type && !expected_type.is_variant() && expected_type.is_hard_type()) {
 		if (result.is_variant() || !result.is_hard_type()) {
+		    p_return->use_conversion = true;
 			mark_node_unsafe(p_return);
 			if (!is_type_compatible(expected_type, result, true, p_return)) {
 				downgrade_node_type_source(p_return);
 			}
 		} else if (!is_type_compatible(expected_type, result, true, p_return)) {
-			mark_node_unsafe(p_return);
-			if (!is_type_compatible(result, expected_type)) {
-				push_error(vformat(R"(Cannot return value of type "%s" because the function return type is "%s" at node %d.)",
-				    result.to_string(), expected_type.to_string(), p_return->script_node_id), p_return);
-			}
-        #ifdef DEBUG_ENABLED
-		} else if (expected_type.builtin_type == Variant::INT && result.builtin_type == Variant::FLOAT) {
-			parser->push_warning(p_return, OScriptWarning::NARROWING_CONVERSION);
-        #endif // DEBUG_ENABLED
+		    if (is_type_compatible(result, expected_type)) {
+		        p_return->use_conversion = true;
+		        mark_node_unsafe(p_return);
+		    } else {
+		        push_error(vformat(R"(Cannot return value of type "%s" because the function return type is "%s" at node %d.)",
+                    result.to_string(), expected_type.to_string(), p_return->script_node_id), p_return);
+		    }
+		} else {
+		    if (!is_type_compatible(expected_type, result)) {
+		        p_return->use_conversion = true;
+		    }
+            #ifdef DEBUG_ENABLED
+		    if (expected_type.builtin_type == Variant::INT && result.builtin_type == Variant::FLOAT) {
+		        parser->push_warning(p_return, OScriptWarning::NARROWING_CONVERSION);
+		    }
+            #endif // DEBUG_ENABLED
 		}
 	}
 
@@ -3488,9 +3520,7 @@ void OScriptAnalyzer::reduce_assignment(OScriptParser::AssignmentNode* p_assignm
 					if (id_type.is_hard_type()) {
 						switch (id_type.kind) {
 						    case OScriptParser::DataType::BUILTIN: {
-						        // TODO: Change `Variant::is_type_shared()` to include packed arrays?
-						        need_warn = !GDE::Variant::is_type_shared(id_type.builtin_type) &&
-                                    id_type.builtin_type < Variant::PACKED_BYTE_ARRAY;
+						        need_warn = !GDE::Variant::is_type_shared(id_type.builtin_type);
 						        break;
 						    }
 							case OScriptParser::DataType::ENUM: {
@@ -3734,7 +3764,10 @@ void OScriptAnalyzer::reduce_binary_op(OScriptParser::BinaryOpNode* p_binary_op)
 	}
     #endif // DEBUG_ENABLED
 
-	if (p_binary_op->left_operand->is_constant && p_binary_op->right_operand->is_constant) {
+	if (p_binary_op->left_operand->is_constant &&
+	    p_binary_op->right_operand->is_constant &&
+	    !GDE::Variant::is_shared(p_binary_op->left_operand->reduced_value) &&
+	    !GDE::Variant::is_shared(p_binary_op->right_operand->reduced_value)) {
 		p_binary_op->is_constant = true;
 		if (p_binary_op->variant_op < Variant::OP_MAX) {
 			bool valid = false;
@@ -3831,32 +3864,9 @@ void OScriptAnalyzer::reduce_call(OScriptParser::CallNode* p_call, bool p_is_awa
 			call_type.kind = OScriptParser::DataType::BUILTIN;
 			call_type.builtin_type = builtin_type;
 
-			bool safe_to_fold = true;
-			switch (builtin_type) {
-				// Those are stored by reference so not suited for compile-time construction.
-				// Because in this case they would be the same reference in all constructed values.
-				case Variant::OBJECT:
-				case Variant::DICTIONARY:
-				case Variant::ARRAY:
-				case Variant::PACKED_BYTE_ARRAY:
-				case Variant::PACKED_INT32_ARRAY:
-				case Variant::PACKED_INT64_ARRAY:
-				case Variant::PACKED_FLOAT32_ARRAY:
-				case Variant::PACKED_FLOAT64_ARRAY:
-				case Variant::PACKED_STRING_ARRAY:
-				case Variant::PACKED_VECTOR2_ARRAY:
-				case Variant::PACKED_VECTOR3_ARRAY:
-				case Variant::PACKED_COLOR_ARRAY:
-				case Variant::PACKED_VECTOR4_ARRAY: {
-				    safe_to_fold = false;
-				    break;
-				}
-				default: {
-				    break;
-				}
-			}
-
-			if (all_is_constant && safe_to_fold) {
+		    // Reference types are not suited for compile-time construction.
+		    // Because in this case they would be the same reference in all constructed values.
+			if (all_is_constant && !GDE::Variant::is_type_shared(builtin_type)) {
 				// Construct here.
 				Vector<const Variant *> args;
 				for (int i = 0; i < p_call->arguments.size(); i++) {
@@ -5179,10 +5189,10 @@ void OScriptAnalyzer::reduce_preload(OScriptParser::PreloadNode* p_preload) {
 		} else {
 			// TODO: Don't load if validating: use completion cache.
 
-			// Must load GDScript separately to permit cyclic references
+			// Must load OScript separately to permit cyclic references
 			// as ResourceLoader::load() detects and rejects those.
 			const String &res_type = GDE::ResourceLoader::get_resource_type(p_preload->resolved_path);
-			if (res_type == "GDScript") {
+			if (res_type == "OScript") {
 				Error err = OK;
 				Ref<OScript> res = get_depended_shallow_script(p_preload->resolved_path, err);
 				p_preload->resource = res;
@@ -5693,10 +5703,10 @@ void OScriptAnalyzer::reduce_type_test(OScriptParser::TypeTestNode* p_type_test)
         p_type_test->is_constant = true;
         p_type_test->reduced_value = false;
 
-        if (!is_type_compatible(test_type, operand_type)) {
+        if (!is_type_compatible_strict_collections(test_type, operand_type)) {
             push_error(vformat(R"(Expression is of type "%s" so it can't be of type "%s".)",
                 operand_type.to_string(), test_type.to_string()), p_type_test->operand);
-        } else if (is_type_compatible(test_type, type_from_variant(p_type_test->operand->reduced_value, p_type_test->operand))) {
+        } else if (is_type_compatible_strict_collections(test_type, type_from_variant(p_type_test->operand->reduced_value, p_type_test->operand))) {
             p_type_test->reduced_value = test_type.builtin_type != Variant::OBJECT ||
                 !GDE::Variant::is_null(p_type_test->operand->reduced_value);
         }
@@ -5814,25 +5824,33 @@ Dictionary OScriptAnalyzer::make_dictionary_from_element_datatype(const OScriptP
     return dictionary;
 }
 
-Variant OScriptAnalyzer::make_expression_reduced_value(OScriptParser::ExpressionNode* p_expression, bool& is_reduced) {
+Variant OScriptAnalyzer::make_expression_reduced_value(OScriptParser::ExpressionNode* p_expression, bool& r_is_reduced) {
     if (p_expression == nullptr) {
         return Variant();
     }
 
     if (p_expression->is_constant) {
-        is_reduced = true;
+        r_is_reduced = true;
         return p_expression->reduced_value;
     }
 
     switch (p_expression->type) {
         case OScriptParser::Node::ARRAY:
-            return make_array_reduced_value(static_cast<OScriptParser::ArrayNode*>(p_expression), is_reduced);
+            return make_array_reduced_value(static_cast<OScriptParser::ArrayNode*>(p_expression), r_is_reduced);
         case OScriptParser::Node::DICTIONARY:
-            return make_dictionary_reduced_value(static_cast<OScriptParser::DictionaryNode*>(p_expression), is_reduced);
+            return make_dictionary_reduced_value(static_cast<OScriptParser::DictionaryNode*>(p_expression), r_is_reduced);
         case OScriptParser::Node::SUBSCRIPT:
-            return make_subscript_reduced_value(static_cast<OScriptParser::SubscriptNode*>(p_expression), is_reduced);
+            return make_subscript_reduced_value(static_cast<OScriptParser::SubscriptNode*>(p_expression), r_is_reduced);
         case OScriptParser::Node::CALL:
-            return make_call_reduced_value(static_cast<OScriptParser::CallNode*>(p_expression), is_reduced);
+            return make_call_reduced_value(static_cast<OScriptParser::CallNode*>(p_expression), r_is_reduced);
+        case OScriptParser::Node::BINARY_OPERATOR:
+            return make_binary_op_reduced_value(static_cast<OScriptParser::BinaryOpNode*>(p_expression), r_is_reduced);
+        case OScriptParser::Node::TERNARY_OPERATOR:
+            return make_ternary_op_reduced_value(static_cast<OScriptParser::TernaryOpNode*>(p_expression), r_is_reduced);
+        case OScriptParser::Node::CAST:
+            return make_cast_reduced_value(static_cast<OScriptParser::CastNode*>(p_expression), r_is_reduced);
+        case OScriptParser::Node::TYPE_TEST:
+            return make_type_test_reduced_value(static_cast<OScriptParser::TypeTestNode*>(p_expression), r_is_reduced);
         default:
             break;
     }
@@ -5840,7 +5858,7 @@ Variant OScriptAnalyzer::make_expression_reduced_value(OScriptParser::Expression
     return Variant();
 }
 
-Variant OScriptAnalyzer::make_array_reduced_value(OScriptParser::ArrayNode* p_array, bool& is_reduced) {
+Variant OScriptAnalyzer::make_array_reduced_value(OScriptParser::ArrayNode* p_array, bool& r_is_reduced) {
     Array array = p_array->get_datatype().has_container_element_type(0)
         ? make_array_from_element_datatype(p_array->get_datatype().get_container_element_type(0))
         : Array();
@@ -5860,11 +5878,11 @@ Variant OScriptAnalyzer::make_array_reduced_value(OScriptParser::ArrayNode* p_ar
 
     array.make_read_only();
 
-    is_reduced = true;
+    r_is_reduced = true;
     return array;
 }
 
-Variant OScriptAnalyzer::make_dictionary_reduced_value(OScriptParser::DictionaryNode* p_dictionary, bool& is_reduced) {
+Variant OScriptAnalyzer::make_dictionary_reduced_value(OScriptParser::DictionaryNode* p_dictionary, bool& r_is_reduced) {
         Dictionary dictionary = p_dictionary->get_datatype().has_container_element_types()
                 ? make_dictionary_from_element_datatype(
                     p_dictionary->get_datatype().get_container_element_type_or_variant(0),
@@ -5891,11 +5909,11 @@ Variant OScriptAnalyzer::make_dictionary_reduced_value(OScriptParser::Dictionary
 
     dictionary.make_read_only();
 
-    is_reduced = true;
+    r_is_reduced = true;
     return dictionary;
 }
 
-Variant OScriptAnalyzer::make_subscript_reduced_value(OScriptParser::SubscriptNode* p_subscript, bool& is_reduced) {
+Variant OScriptAnalyzer::make_subscript_reduced_value(OScriptParser::SubscriptNode* p_subscript, bool& r_is_reduced) {
     if (p_subscript->base == nullptr || p_subscript->index == nullptr) {
         return Variant();
     }
@@ -5910,7 +5928,7 @@ Variant OScriptAnalyzer::make_subscript_reduced_value(OScriptParser::SubscriptNo
         bool is_valid = false;
         Variant value = base_value.get_named(p_subscript->attribute->name, is_valid);
         if (is_valid) {
-            is_reduced = true;
+            r_is_reduced = true;
             return value;
         } else {
             return Variant();
@@ -5925,7 +5943,7 @@ Variant OScriptAnalyzer::make_subscript_reduced_value(OScriptParser::SubscriptNo
         bool is_valid = false;
         Variant value = base_value.get(index_value, &is_valid);
         if (is_valid) {
-            is_reduced = true;
+            r_is_reduced = true;
             return value;
         } else {
             return Variant();
@@ -5933,7 +5951,7 @@ Variant OScriptAnalyzer::make_subscript_reduced_value(OScriptParser::SubscriptNo
     }
 }
 
-Variant OScriptAnalyzer::make_call_reduced_value(OScriptParser::CallNode* p_call, bool& is_reduced) {
+Variant OScriptAnalyzer::make_call_reduced_value(OScriptParser::CallNode* p_call, bool& r_is_reduced) {
     if (p_call->get_callee_type() == OScriptParser::Node::IDENTIFIER) {
         Variant::Type type = Variant::NIL;
         if (p_call->function_name == StringName("Array")) {
@@ -5972,11 +5990,144 @@ Variant OScriptAnalyzer::make_call_reduced_value(OScriptParser::CallNode* p_call
             dictionary.make_read_only();
         }
 
-        is_reduced = true;
+        r_is_reduced = true;
         return result;
     }
 
     return Variant();
+}
+
+Variant OScriptAnalyzer::make_binary_op_reduced_value(OScriptParser::BinaryOpNode* p_binary_op, bool& r_is_reduced) {
+	if (p_binary_op->variant_op == Variant::OP_MAX) {
+		return Variant();
+	}
+
+	bool is_left_op_value_reduced = false;
+	Variant left_op_value = make_expression_reduced_value(p_binary_op->left_operand, is_left_op_value_reduced);
+	if (!is_left_op_value_reduced) {
+		return Variant();
+	}
+
+	bool is_right_op_value_reduced = false;
+	Variant right_op_value = make_expression_reduced_value(p_binary_op->right_operand, is_right_op_value_reduced);
+	if (!is_right_op_value_reduced) {
+		return Variant();
+	}
+
+	Variant result;
+	bool valid = false;
+	Variant::evaluate(p_binary_op->variant_op, left_op_value, right_op_value, result, valid);
+	if (!valid) {
+		return Variant();
+	}
+
+	if (result.get_type() == Variant::ARRAY) {
+		Array array = result;
+		array.make_read_only();
+	} else if (result.get_type() == Variant::DICTIONARY) {
+		Dictionary dictionary = result;
+		dictionary.make_read_only();
+	}
+
+	r_is_reduced = true;
+	return result;
+}
+
+Variant OScriptAnalyzer::make_ternary_op_reduced_value(OScriptParser::TernaryOpNode* p_ternary_op, bool& r_is_reduced) {
+	bool is_condition_value_reduced = false;
+	Variant condition_value = make_expression_reduced_value(p_ternary_op->condition, is_condition_value_reduced);
+	if (!is_condition_value_reduced) {
+		return Variant();
+	}
+
+	bool is_true_expr_value_reduced = false;
+	Variant true_expr_value = make_expression_reduced_value(p_ternary_op->true_expr, is_true_expr_value_reduced);
+	if (!is_true_expr_value_reduced) {
+		return Variant();
+	}
+
+	bool is_false_expr_value_reduced = false;
+	Variant false_expr_value = make_expression_reduced_value(p_ternary_op->false_expr, is_false_expr_value_reduced);
+	if (!is_false_expr_value_reduced) {
+		return Variant();
+	}
+
+	r_is_reduced = true;
+	return condition_value.booleanize() ? true_expr_value : false_expr_value;
+}
+
+Variant OScriptAnalyzer::make_cast_reduced_value(OScriptParser::CastNode* p_cast, bool& r_is_reduced) {
+	bool is_operand_value_reduced = false;
+	Variant operand_value = make_expression_reduced_value(p_cast->operand, is_operand_value_reduced);
+	if (!is_operand_value_reduced) {
+		return Variant();
+	}
+
+	OScriptParser::DataType cast_type = type_from_metatype(resolve_datatype(p_cast->cast_type));
+
+	if (!cast_type.is_set()) {
+		return Variant();
+	}
+
+	if (cast_type.is_variant()) {
+		r_is_reduced = true;
+		return operand_value;
+	}
+
+	if (cast_type.kind == OScriptParser::DataType::BUILTIN || cast_type.kind == OScriptParser::DataType::ENUM) {
+		Variant result;
+		const Variant *argptr = &operand_value;
+	    GDExtensionCallError ce;
+	    GDE::Variant::construct(cast_type.builtin_type, result, &argptr, 1, ce);
+		if (ce.error) {
+			return Variant();
+		}
+
+		if (result.get_type() == Variant::ARRAY) {
+			Array array = cast_type.has_container_element_type(0) ? make_array_from_element_datatype(cast_type.get_container_element_type(0)) : Array();
+			array.assign(result);
+			array.make_read_only();
+			result = array;
+		} else if (result.get_type() == Variant::DICTIONARY) {
+			Dictionary dictionary = cast_type.has_container_element_types()
+					? make_dictionary_from_element_datatype(cast_type.get_container_element_type_or_variant(0), cast_type.get_container_element_type_or_variant(1))
+					: Dictionary();
+			dictionary.assign(result);
+			dictionary.make_read_only();
+			result = dictionary;
+		}
+
+		r_is_reduced = true;
+		return result;
+	}
+
+	return Variant();
+}
+
+Variant OScriptAnalyzer::make_type_test_reduced_value(OScriptParser::TypeTestNode* p_type_test, bool& r_is_reduced) {
+	bool is_operand_value_reduced = false;
+	Variant operand_value = make_expression_reduced_value(p_type_test->operand, is_operand_value_reduced);
+	if (!is_operand_value_reduced) {
+		return Variant();
+	}
+
+	OScriptParser::DataType test_type = type_from_metatype(p_type_test->test_type->get_datatype());
+	if (!test_type.is_set()) {
+		return Variant();
+	}
+
+	OScriptParser::DataType operand_type = type_from_variant(operand_value, p_type_test->operand);
+	if (!operand_type.is_set()) {
+		return Variant();
+	}
+
+	bool result = false;
+	if (is_type_compatible_strict_collections(test_type, operand_type)) {
+		result = test_type.builtin_type != Variant::OBJECT || !GDE::Variant::is_null(operand_value);
+	}
+
+	r_is_reduced = true;
+	return result;
 }
 
 bool OScriptAnalyzer::is_type_compatible(const OScriptParser::DataType& p_target, const OScriptParser::DataType& p_source, bool p_allow_implicit_conversion, const OScriptParser::Node* p_source_node) {
@@ -5990,6 +6141,21 @@ bool OScriptAnalyzer::is_type_compatible(const OScriptParser::DataType& p_target
     }
     #endif // DEBUG_ENABLED
     return check_type_compatibility(p_target, p_source, p_allow_implicit_conversion, p_source_node);
+}
+
+// NOTE:`is_type_compatible()` considers typed arrays/dictionaries compatible with untyped ones (but the operation is unsafe).
+// However, in the case of constant expressions, this leads to incorrect results.
+bool OScriptAnalyzer::is_type_compatible_strict_collections(const OScriptParser::DataType &p_target, const OScriptParser::DataType &p_source) {
+    if (p_target.builtin_type == Variant::ARRAY && p_source.builtin_type == Variant::ARRAY) {
+        if (p_target.has_container_element_type(0) && !p_source.has_container_element_type(0)) {
+            return false;
+        }
+    } else if (p_target.builtin_type == Variant::DICTIONARY && p_source.builtin_type == Variant::DICTIONARY) {
+        if (p_target.has_container_element_types() && !p_source.has_container_element_types()) {
+            return false;
+        }
+    }
+    return is_type_compatible(p_target, p_source);
 }
 
 #ifdef DEBUG_ENABLED

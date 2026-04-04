@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODE_SEQUENCE_H
-#define ORCHESTRATOR_SCRIPT_NODE_SEQUENCE_H
+#pragma once
 
 #include "script/nodes/editable_pin_node.h"
 
@@ -61,5 +60,3 @@ public:
     // Get the number of configured steps
     int get_steps() const { return _steps; }
 };
-
-#endif  // ORCHESTRATOR_SCRIPT_NODE_SEQUENCE_H

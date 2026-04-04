@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_CORE_GODOT_VARIANT_H
-#define ORCHESTRATOR_CORE_GODOT_VARIANT_H
+#pragma once
 
 #include <vector>
 
@@ -71,6 +70,7 @@ namespace GDE {
         static bool is_read_only(const godot::Variant& p_value);
         static bool is_ref_counted(const godot::Variant& p_value);
         static bool is_type_shared(Type p_type);
+        static bool is_shared(const godot::Variant& p_value);
 
         static godot::Variant evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right, bool& r_valid);
         static godot::Variant evaluate(godot::Variant::Operator p_operator, const godot::Variant& p_left, const godot::Variant& p_right);
@@ -125,5 +125,3 @@ namespace GDE {
         static String get_call_error_text(Object* p_base, const StringName& p_method, ConstVariantPtrs p_args, int p_arg_count, const GDExtensionCallError& r_error);
     };
 }
-
-#endif // ORCHESTRATOR_CORE_GODOT_VARIANT_H

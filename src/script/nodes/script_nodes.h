@@ -14,8 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef ORCHESTRATOR_SCRIPT_NODES_H
-#define ORCHESTRATOR_SCRIPT_NODES_H
+#pragma once
 
 #include "editable_pin_node.h"
 
@@ -78,12 +77,12 @@
 #include "scene/scene_tree.h"
 
 // Signals
-#include "signals/await_signal.h"
 #include "signals/emit_member_signal.h"
 #include "signals/emit_signal.h"
 
 // Utility
 #include "utilities/autoload.h"
+#include "utilities/await.h"
 #include "utilities/comment.h"
 #include "utilities/engine_singleton.h"
 #include "utilities/self.h"
@@ -93,5 +92,3 @@
 #include "variables/local_variable.h"
 #include "variables/variable_get.h"
 #include "variables/variable_set.h"
-
-#endif  // ORCHESTRATOR_SCRIPT_NODES_H
