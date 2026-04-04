@@ -116,18 +116,25 @@ def get_minimum_godot_version():
     return match.group(1)
 
 def find_latest_godot_release(major_minor):
-    url = "https://api.github.com/repos/godotengine/godot-builds/releases"
-    req = urllib.request.Request(url, headers={"User-Agent": "godot-test-runner"})
-    with urllib.request.urlopen(req) as r:
-        releases = json.load(r)
+    page = 1
+    while True:
+        url = f"https://api.github.com/repos/godotengine/godot-builds/releases?per_page=100&page={page}"
+        req = urllib.request.Request(url, headers={"User-Agent": "godot-test-runner"})
+        with urllib.request.urlopen(req) as r:
+            releases = json.load(r)
 
-    for release in releases:
-        tag = release["tag_name"]  # e.g. "4.7-dev3", "4.6.2-rc2"
-        if tag.startswith(f"{major_minor}-") or tag.startswith(f"{major_minor}."):
-            for asset in release["assets"]:
-                asset_name = asset["name"]
-                if asset_name.endswith("linux.x86_64.zip"):
-                    return release, tag, asset
+        if not releases:
+            break
+
+        for release in releases:
+            tag = release["tag_name"]  # e.g. "4.7-dev3", "4.6.2-rc2"
+            if tag.startswith(f"{major_minor}-") or tag.startswith(f"{major_minor}."):
+                for asset in release["assets"]:
+                    asset_name = asset["name"]
+                    if asset_name.endswith("linux.x86_64.zip"):
+                        return release, tag, asset
+
+        page += 1
 
     raise RuntimeError(f"No release found for Godot {major_minor}")
 
