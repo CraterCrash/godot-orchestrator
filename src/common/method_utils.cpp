@@ -187,4 +187,8 @@ namespace MethodUtils {
 
         return true;
     }
+
+    bool is_empty(const MethodInfo& p_method) {
+        return p_method.id == 0 && p_method.name.is_empty();
+    }
 }
