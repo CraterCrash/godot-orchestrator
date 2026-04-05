@@ -127,6 +127,7 @@ void OrchestratorSettings::_register_settings() {
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/resources", Color(0.263, 0.275, 0.359)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/scene", Color(0.208, 0.141, 0.282)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/signals", Color(0.353, 0.0, 0.0)));
+    _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/utilities", Color(0.027, 0.156, 0.114)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/variable", Color(0.259, 0.177, 0.249)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/type_cast", Color(0.009, 0.221, 0.203)));
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/comment", Color(0.4, 0.4, 0.4)));

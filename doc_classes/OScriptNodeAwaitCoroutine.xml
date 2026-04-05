@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OScriptNodeAwaitCoroutine" inherits="OScriptNodeAwait" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Yields execution of the orchestration until the specified method finishes.
+    </brief_description>
+    <description>
+        The [OScriptNodeAwaitCoroutine] node provides coroutine behavior to an orchestration for function calls.
+        The node accepts two key input values, the [param target] pin specifies the object/owner of the function while the [param function_name] specifies the name of the function to wait for. When this node executes, it registers a callback, and yields execution back to Godot. Only once the function ends the orchestration resumes; otherwise it continues to wait indefinitely.
+    </description>
+</class>
