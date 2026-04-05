@@ -65,4 +65,9 @@ namespace MethodUtils {
     /// @param p_method_b the right method structure
     /// @return true if the method structures are the same, false otherwise
     bool has_same_signature(const MethodInfo& p_method_a, const MethodInfo& p_method_b);
+
+    /// Checks whether the method info is empty
+    /// @param p_method the method
+    /// @return true if the method is empty, false otherwise
+    bool is_empty(const MethodInfo& p_method);
 }
