@@ -17,6 +17,7 @@
 #include "script/script_instance.h"
 
 #include "common/dictionary_utils.h"
+#include "core/godot/core_string_names.h"
 #include "core/godot/gdextension_compat.h"
 #include "core/godot/object/script_language.h"
 #include "core/godot/scene_string_names.h"
@@ -210,8 +211,7 @@ struct OScriptInstanceCallbacks {
 
     static void to_string_func(GDExtensionScriptInstanceDataPtr p_instance, GDExtensionBool* r_valid, GDExtensionStringPtr r_value) {
         if (r_value) {
-            *r_valid = true;
-            *static_cast<String*>(r_value) = INSTANCE->to_string();
+            *static_cast<String*>(r_value) = INSTANCE->to_string(CAST_BOOL(r_valid));
         }
     }
 
@@ -441,7 +441,28 @@ Variant OScriptInstanceBase::get_rpc_config() const {
     return _script->get_rpc_config();
 }
 
-String OScriptInstanceBase::to_string() {
+String OScriptInstanceBase::to_string(bool *r_valid) {
+    if (has_method(CoreStringName(_to_string))) {
+        GDExtensionCallError ce;
+        Variant ret = callp(CoreStringName(_to_string), nullptr, 0, ce);
+        if (ce.error == GDEXTENSION_CALL_OK) {
+            if (ret.get_type() != Variant::STRING) {
+                if (r_valid) {
+                    *r_valid = false;
+                }
+                ERR_FAIL_V_MSG(String(), "Wrong type for " + CoreStringName(_to_string) + ", must be a String.");
+            }
+            if (r_valid) {
+                *r_valid = true;
+            }
+            return ret.operator String();
+        }
+    }
+
+    if (r_valid) {
+        *r_valid = true;
+    }
+
     String prefix = "";
     if (Node* node = Object::cast_to<Node>(_owner)) {
         if (!node->get_name().is_empty()) {
