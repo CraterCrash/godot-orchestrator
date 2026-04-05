@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/error_list.h"
+#include "common/method_utils.h"
 #include "common/resource_utils.h"
 #include "common/variant_utils.h"
 #include "core/godot/config/project_settings_cache.h"
@@ -1195,7 +1196,7 @@ bool OScriptAnalyzer::get_function_signature(OScriptParser::Node* p_source, bool
 	Ref<Script> base_script = p_base_type.script_type;
 	while (base_script.is_valid() && GDE::Script::has_method(base_script, function_name)) {
 		MethodInfo info = GDE::Script::get_method_info(base_script, function_name);
-		if (!(info == MethodInfo())) {
+	    if (!MethodUtils::is_empty(info)) {
 			return function_signature_from_info(info, r_return_type, r_par_types, r_default_arg_count, r_method_flags);
 		}
 		base_script = base_script->get_base_script();
