@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cc0flmxouofyk"]
+
+[ext_resource type="Script" uid="uid://dj2k1mhn4df7b" path="res://scenes/features/override_to_string.torch" id="1_78nj3"]
+
+[node name="OverrideToString" type="Node" unique_id=1982854301]
+script = ExtResource("1_78nj3")

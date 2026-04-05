@@ -80,7 +80,7 @@ public:
     virtual bool is_placeholder() const { return false; }
     virtual void notification(int p_notification, bool p_reversed = false) {}
     virtual Variant callp(const StringName& p_method, const Variant** p_args, int p_argcount, GDExtensionCallError& r_error) = 0;
-    virtual String to_string();
+    virtual String to_string(bool *r_valid);
 
     GDExtensionScriptInstancePtr get_instance_info() const { return _script_instance; }
     void set_instance_info(const GDExtensionScriptInstancePtr& p_info);
