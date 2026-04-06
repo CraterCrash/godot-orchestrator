@@ -3171,7 +3171,8 @@ OScriptParser::FunctionNode* OScriptParser::build_function(const Ref<OScriptFunc
                 if (pin.is_valid()) {
                     VariableNode* local = create_local(create_cached_variable_name(pin), nullptr, body);
                     local->datatype_specifier = build_type(pin->get_property_info());
-                    body->add_local(local, function_node);
+                    local->identifier->script_node_id = local_var.key;
+                    local->script_node_id = local_var.key;
                     add_statement(local, body);
                 }
             }
@@ -3611,7 +3612,7 @@ Error OScriptParser::parse(Orchestration* p_orchestration, const String& p_scrip
     script_path = p_script_path;
     head = build_class(p_orchestration);
 
-    return OK;
+    return errors.is_empty() ? OK : ERR_PARSE_ERROR;
 }
 
 Error OScriptParser::parse(const OScriptSource& p_source, const String& p_script_path) {
