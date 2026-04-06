@@ -403,7 +403,60 @@ void OScriptFunctionAnalyzer::_find_merge_point(Context& p_context, NodeId p_div
         return;
     }
 
-    // Find the first node reachable from ALL divergence paths
+    const int k = (int)paths.size();
+
+    if (k <= 64) {
+        // Pass O(n + e)
+        // Single forward pass over the pre-built topological order using bitmasks. Each bit i
+        // represents "reachable from path i". The first node in topological order where all k
+        // bits are set is the merge point (closest node reached by every path).
+        const uint64_t all_bits = (k < 64) ? ((1ULL << k) - 1) : ~0ULL;
+        HashMap<NodeId, uint64_t> reach_mask;
+
+        int i = 0;
+        for (NodeId path_start : paths) {
+            uint64_t* m = reach_mask.getptr(path_start);
+            if (m) {
+                *m |= (1ULL << i);
+            } else {
+                reach_mask[path_start] = (1ULL << i);
+            }
+            i++;
+        }
+
+        for (NodeId node_id : p_context.info.linear_execution_list) {
+            const uint64_t* mask_ptr = reach_mask.getptr(node_id);
+            if (!mask_ptr || *mask_ptr == 0) {
+                continue;
+            }
+
+            const uint64_t mask = *mask_ptr;
+            if (mask == all_bits) {
+                p_context.info.divergence_to_merge_point[p_divergence_node_id] = node_id;
+                return;
+            }
+
+            const Ref<OScriptNode> node = p_context.get_node_by_id(node_id);
+            if (!node.is_valid()) {
+                continue;
+            }
+
+            for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+                const NodeId succ_id = successor->get_id();
+                uint64_t* succ_mask = reach_mask.getptr(succ_id);
+                if (succ_mask) {
+                    *succ_mask |= mask;
+                } else {
+                    reach_mask[succ_id] = mask;
+                }
+            }
+        }
+
+        // No merge point found (e.g., one or more paths end without reconverging)
+        return;
+    }
+
+    // Fallback for k > 64 paths (should virtually never happens in practice)
     HashSet<NodeId> common_reachable;
     bool first = true;
 
@@ -432,62 +485,42 @@ void OScriptFunctionAnalyzer::_find_merge_point(Context& p_context, NodeId p_div
 }
 
 void OScriptFunctionAnalyzer::_find_merge_point_by_pin(Context& p_context, NodeId p_divergence_node_id) {
-    OScriptNodePinSet successor_pins;
-    HashSet<NodeId> successor_nodes;
-
-    if (p_context.info.divergence_paths.has(p_divergence_node_id)) {
-        for (const NodeId successor_id : p_context.info.divergence_paths[p_divergence_node_id]) {
-            const Ref<OScriptNode> successor = p_context.get_node_by_id(successor_id);
-            for (const Ref<OScriptNodePin>& input : successor->find_pins(PD_Input)) {
-                if (input.is_valid() && input->is_execution()) {
-                    for (const Ref<OScriptNodePin>& source : input->get_connections()) {
-                        if (source->get_owning_node()->get_id() == p_divergence_node_id) {
-                            successor_pins.insert({ successor_id, input->get_pin_index() });
-                            successor_nodes.insert(successor_id);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (successor_pins.is_empty()) {
+    // The merge node is already known from _find_merge_point(); derive the merge pin from it
+    // instead of running a separate O(k*n) pin-level DFS + intersection.
+    const HashMap<NodeId, NodeId>::ConstIterator merge_it = p_context.info.divergence_to_merge_point.find(p_divergence_node_id);
+    if (!merge_it) {
         return;
     }
 
-    if (successor_nodes.size() == 1) {
-        // Paths immediately converge at one node
-        NodeId merge_node = *successor_nodes.begin();
-
-        // All successor pins target the same input pin
-        PinId merge_pin = (*successor_pins.begin()).pin;
-        p_context.info.divergence_to_merge_pins[p_divergence_node_id] = { merge_node, merge_pin };
+    const NodeId merge_node_id = merge_it->value;
+    const Ref<OScriptNode> merge_node = p_context.get_node_by_id(merge_node_id);
+    if (!merge_node.is_valid()) {
         return;
     }
 
-    // Find first node (and its pin) reachable from ALL paths
-    OScriptNodePinSet common_reachable;
-    bool first = true;
+    // Check whether the merge is within the loop body or not.
+    // This is useful so that the logic below can safely include or exclude loop break pins
+    bool divergence_is_in_loop_body = p_context.info.nodes_in_loop_body.has(merge_node_id)
+        && p_context.info.nodes_in_loop_body[merge_node_id].has(p_divergence_node_id);
 
-    for (OScriptNodePinId successor_pin : successor_pins) {
-        OScriptNodePinSet reachable = _get_all_reachable_pins(p_context, successor_pin);
-        if (first) {
-            common_reachable = reachable;
-            first = false;
-        } else {
-            OScriptNodePinSet intersection;
-            for (const OScriptNodePinId& pin_id : common_reachable) {
-                if (reachable.has(pin_id)) {
-                    intersection.insert(pin_id);
-                }
-            }
-            common_reachable = intersection;
+    // Find the first connected execution input pin on the merge node: the convergence pin.
+    // For loop nodes with a break pin, skip the break pin unless the divergence originates
+    // from within the loop body (where breaking out is valid).
+    for (const Ref<OScriptNodePin>& input : merge_node->find_pins(PD_Input)) {
+        if (input.is_valid() && input->is_execution() && input->has_any_connections()
+            && (divergence_is_in_loop_body || !merge_node->is_loop_break_pin(input))) {
+            p_context.info.divergence_to_merge_pins[p_divergence_node_id] = { merge_node_id, input->get_pin_index() };
+            return;
         }
     }
 
-    if (common_reachable.size() > 0) {
-        OScriptNodePinId merge_id = *common_reachable.begin();
-        p_context.info.divergence_to_merge_pins[p_divergence_node_id] = { merge_id.node, merge_id.pin };
+    // Fallback: take the first execution pin (no connections found above).
+    for (const Ref<OScriptNodePin>& input : merge_node->find_pins(PD_Input)) {
+        if (input.is_valid() && input->is_execution()
+            && (divergence_is_in_loop_body || !merge_node->is_loop_break_pin(input))) {
+            p_context.info.divergence_to_merge_pins[p_divergence_node_id] = { merge_node_id, input->get_pin_index() };
+            return;
+        }
     }
 }
 
@@ -579,28 +612,30 @@ void OScriptFunctionAnalyzer::_collect_graph_nodes(Context& p_context) {
     }
 }
 
-void OScriptFunctionAnalyzer::_collect_node_types(Context& p_context) {
+void OScriptFunctionAnalyzer::_analyze_combined(Context& p_context) {
     HashSet<NodeId> visited;
+    HashSet<NodeId> type_visited;
+    HashSet<NodeId> reachable;
+    HashMap<NodeId, uint64_t> incoming_edge_count;
+    List<NodeId> loop_stack;
     OScriptFunctionInfo& info = p_context.info;
 
-    std::function <void(const Ref<OScriptNode>&)> visit = [&](const Ref<OScriptNode>& current) {
+    // Classify node types and traverse backward through data pins.
+    // Uses a separate visited set so the main control-flow pass can still visit all nodes.
+    std::function<void(const Ref<OScriptNode>&)> visit_types = [&](const Ref<OScriptNode>& current) {
         const NodeId node_id = current->get_id();
-        if (visited.has(node_id)) {
+        if (type_visited.has(node_id)) {
             return;
         }
-
-        visited.insert(node_id);
+        type_visited.insert(node_id);
 
         if (is_for_loop_node(current)) {
             info.is_loop_node[node_id] = true;
-
-            // Track loop body first node
             const Ref<OScriptNodePin> body_pin = current->find_pin("loop_body", PD_Output);
             if (body_pin.is_valid() && body_pin->has_any_connections()) {
                 const Ref<OScriptNode> target = body_pin->get_connection()->get_owning_node();
                 info.loop_body_start_nodes[node_id] = target->get_id();
             }
-
         } else if (const Ref<OScriptNodeBranch>& branch = current; branch.is_valid()) {
             info.is_branch_node[node_id] = true;
         } else if (const Ref<OScriptNodeLocalVariable>& local_variable = current; local_variable.is_valid()) {
@@ -612,18 +647,149 @@ void OScriptFunctionAnalyzer::_collect_node_types(Context& p_context) {
                 for (const Ref<OScriptNodePin>& source : input->get_connections()) {
                     const Ref<OScriptNode> owner = source->get_owning_node();
                     if (owner.is_valid()) {
-                        visit(owner);
+                        visit_types(owner);
                     }
                 }
             }
         }
+    };
 
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(current)) {
-            visit(successor);
+    // Combined forward-control DFS: handles _detect_control_flow_issues, _analyze_data_dependencies,
+    // _detect_divergence_points, and _analyze_nesting in a single traversal.
+    std::function<void(const Ref<OScriptNode>&)> visit = [&](const Ref<OScriptNode>& current) {
+        const NodeId node_id = current->get_id();
+
+        // On revisit (back-edge within a loop body): still record loop membership for nesting.
+        if (visited.has(node_id)) {
+            if (loop_stack.size() > 0) {
+                const NodeId enclosing_loop_id = loop_stack.back()->get();
+                info.node_to_enclosing_loop[node_id].insert(enclosing_loop_id);
+                info.nodes_in_loop_body[enclosing_loop_id].insert(node_id);
+            }
+            return;
+        }
+
+        visited.insert(node_id);
+        reachable.insert(node_id);
+
+        // --- _collect_node_types: classify this node and its data predecessors ---
+        visit_types(current);
+
+        // --- _analyze_data_dependencies ---
+        _collect_data_dependencies(current, info.node_data_dependencies[node_id]);
+        if (info.node_data_dependencies[node_id].size() > 0) {
+            info.has_data_dependencies[node_id] = true;
+        }
+
+        // --- _detect_divergence_points ---
+        if (current->is_type<OScriptNodeBranch>()) {
+            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
+            _populate_divergence_paths(p_context, node_id);
+            _find_merge_point(p_context, node_id);
+            _find_merge_point_by_pin(p_context, node_id);
+        } else if (current->is_type<OScriptNodeTypeCast>()) {
+            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::TypeCast;
+            _populate_divergence_paths(p_context, node_id);
+            _find_merge_point(p_context, node_id);
+            _find_merge_point_by_pin(p_context, node_id);
+        } else if (is_for_loop_node(current)) {
+            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::LoopBreak;
+            const Ref<OScriptNodePin> abort_pin = current->find_pin("aborted", PD_Output);
+            if (abort_pin.is_valid()) {
+                for (const Ref<OScriptNodePin>& target_pin : abort_pin->get_connections()) {
+                    info.divergence_paths[node_id].insert(target_pin->get_owning_node()->get_id());
+                }
+            }
+            const Ref<OScriptNodePin> completed_pin = current->find_pin("completed", PD_Output);
+            if (completed_pin.is_valid()) {
+                for (const Ref<OScriptNodePin>& target_pin : completed_pin->get_connections()) {
+                    info.divergence_paths[node_id].insert(target_pin->get_owning_node()->get_id());
+                }
+            }
+            _find_merge_point(p_context, node_id);
+            _find_merge_point_by_pin(p_context, node_id);
+        } else if (current->is_type<OScriptNodeChance>()) {
+            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
+            _populate_divergence_paths(p_context, node_id);
+            _find_merge_point(p_context, node_id);
+            _find_merge_point_by_pin(p_context, node_id);
+        } else if (current->is_type<OScriptNodeSwitchEnum>() || current->is_type<OScriptNodeSwitchInteger>() || current->is_type<OScriptNodeSwitchString>()) {
+            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::Switch;
+            _populate_divergence_paths(p_context, node_id);
+            _find_merge_point(p_context, node_id);
+            _find_merge_point_by_pin(p_context, node_id);
+        } else if (current->is_type<OScriptNodeRandom>()) {
+            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
+            _populate_divergence_paths(p_context, node_id);
+            _find_merge_point(p_context, node_id);
+            _find_merge_point_by_pin(p_context, node_id);
+        } else if (current->is_type<OScriptNodeDialogueMessage>()) {
+            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
+            _populate_divergence_paths(p_context, node_id);
+            _find_merge_point(p_context, node_id);
+            _find_merge_point_by_pin(p_context, node_id);
+        }
+        // todo: what about OScriptNodeSwitch?
+
+        // --- _analyze_nesting: record enclosing loop for this node ---
+        if (loop_stack.size() > 0) {
+            const NodeId enclosing_loop_id = loop_stack.back()->get();
+            info.node_to_enclosing_loop[node_id].insert(enclosing_loop_id);
+            info.nodes_in_loop_body[enclosing_loop_id].insert(node_id);
+        }
+
+        // --- _analyze_nesting: push loop node onto stack ---
+        if (info.is_loop_node.has(node_id)) {
+            if (loop_stack.size() > 0) {
+                info.has_nested_loops[loop_stack.back()->get()] = true;
+            }
+            loop_stack.push_back(node_id);
+        }
+
+        // Compute successors once: used by dead-end detection, incoming-edge counting, and recursion.
+        const Vector<Ref<OScriptNode>> successors = get_control_flow_successors(current);
+
+        // --- _detect_control_flow_issues: dead-end detection ---
+        if (successors.is_empty() && !is_entry_node(current) && !is_return_node(current)) {
+            info.dead_end_nodes.insert(node_id);
+        }
+
+        for (const Ref<OScriptNode>& successor : successors) {
+            // --- _detect_control_flow_issues: count incoming control-flow edges ---
+            incoming_edge_count[successor->get_id()]++;
+
+            // --- _analyze_nesting: loop nodes only recurse into their body, not break/completion ---
+            if (info.is_loop_node.has(node_id)) {
+                const NodeId body_start = info.loop_body_start_nodes[node_id];
+                if (successor->get_id() == body_start) {
+                    visit(successor);
+                }
+            } else {
+                visit(successor);
+            }
+        }
+
+        // --- _analyze_nesting: pop loop stack after all successors are visited ---
+        if (info.is_loop_node.has(node_id)) {
+            loop_stack.pop_back();
         }
     };
 
     visit(p_context.entry_node);
+
+    // Derive unreachable nodes as the complement of the reachable set within the full graph.
+    for (NodeId node_id : info.graph_nodes) {
+        if (!reachable.has(node_id)) {
+            info.unreachable_nodes.insert(node_id);
+        }
+    }
+
+    // Store incoming-edge counts only for actual merge points (more than one incoming edge).
+    for (const KeyValue<NodeId, uint64_t>& E : incoming_edge_count) {
+        if (E.value > 1) {
+            info.incoming_control_flow_count[E.key] = E.value;
+        }
+    }
 }
 
 void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
@@ -672,224 +838,6 @@ void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
     visit(p_context.entry_node);
 }
 
-void OScriptFunctionAnalyzer::_analyze_data_dependencies(Context& p_context) {
-    HashSet<NodeId> visited;
-    OScriptFunctionInfo& info = p_context.info;
-
-    std::function <void(const Ref<OScriptNode>&)> visit = [&](const Ref<OScriptNode>& current) {
-        const NodeId node_id = current->get_id();
-        if (visited.has(node_id)) {
-            return;
-        }
-
-        visited.insert(node_id);
-
-        _collect_data_dependencies(current, info.node_data_dependencies[node_id]);
-        if (info.node_data_dependencies[node_id].size() > 0) {
-            info.has_data_dependencies[node_id] = true;
-        }
-
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(current)) {
-            visit(successor);
-        }
-    };
-
-    visit(p_context.entry_node);
-}
-
-void OScriptFunctionAnalyzer::_detect_control_flow_issues(Context& p_context) {
-    HashSet<NodeId> reachable;
-    HashMap<NodeId, uint64_t> incoming_edge_count;
-    HashMap<NodeId, Vector<NodeId>> predecessor_map;
-
-    // Mark reachable nodes
-    HashSet<NodeId> visited;
-    std::function <void(const Ref<OScriptNode>&)> mark_reachable = [&](const Ref<OScriptNode>& node) {
-        const NodeId node_id = node->get_id();
-        if (visited.has(node_id)) {
-            return;
-        }
-
-        visited.insert(node_id);
-        reachable.insert(node_id);
-
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
-            incoming_edge_count[successor->get_id()]++;
-            predecessor_map[successor->get_id()].push_back(node_id);
-            mark_reachable(successor);
-        }
-    };
-
-    mark_reachable(p_context.entry_node);
-
-    // Locate unreachable nodes
-    for (NodeId node_id : p_context.info.graph_nodes) {
-        if (!reachable.has(node_id)) {
-            p_context.info.unreachable_nodes.insert(node_id);
-        }
-    }
-
-    // Find merge points (nodes with multiple incoming edges)
-    for (const KeyValue<NodeId, uint64_t>& E : incoming_edge_count) {
-        if (E.value > 1) {
-            p_context.info.incoming_control_flow_count[E.key] = E.value;
-        }
-    }
-
-    visited.clear();
-
-    // Locate dead ends (nodes with no successors that aren't entry/completion nodes)
-    std::function <void(const Ref<OScriptNode>&)> find_dead_ends = [&](const Ref<OScriptNode>& current) {
-        const NodeId node_id = current->get_id();
-        if (visited.has(node_id)) {
-            return;
-        }
-
-        visited.insert(node_id);
-
-        const Vector<Ref<OScriptNode>> successors = get_control_flow_successors(current);
-        if (successors.size() == 0 && !is_entry_node(current) && !is_return_node(current)) {
-            p_context.info.dead_end_nodes.insert(node_id);
-        }
-
-        for (const Ref<OScriptNode>& successor : successors) {
-            find_dead_ends(successor);
-        }
-    };
-
-    find_dead_ends(p_context.entry_node);
-}
-
-void OScriptFunctionAnalyzer::_detect_divergence_points(Context& p_context) {
-    HashSet<NodeId> visited;
-    OScriptFunctionInfo& info = p_context.info;
-
-    std::function <void(const Ref<OScriptNode>&)> visit = [&](const Ref<OScriptNode>& current) {
-        const NodeId node_id = current->get_id();
-        if (visited.has(node_id)) {
-            return;
-        }
-
-        visited.insert(node_id);
-
-        if (current->is_type<OScriptNodeBranch>()) {
-            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
-
-            _populate_divergence_paths(p_context, node_id);
-            _find_merge_point(p_context, node_id);
-            _find_merge_point_by_pin(p_context, node_id);
-        } else if (current->is_type<OScriptNodeTypeCast>()) {
-            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::TypeCast;
-
-            _populate_divergence_paths(p_context, node_id);
-            _find_merge_point(p_context, node_id);
-            _find_merge_point_by_pin(p_context, node_id);
-        } else if (is_for_loop_node(current)) {
-            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::LoopBreak;
-
-            const Ref<OScriptNodePin> abort_pin = current->find_pin("aborted", PD_Output);
-            if (abort_pin.is_valid()) {
-                for (const Ref<OScriptNodePin>& target_pin : abort_pin->get_connections()) {
-                    info.divergence_paths[node_id].insert(target_pin->get_owning_node()->get_id());
-                }
-            }
-            const Ref<OScriptNodePin> completed_pin = current->find_pin("completed", PD_Output);
-            if (completed_pin.is_valid()) {
-                for (const Ref<OScriptNodePin>& target_pin : completed_pin->get_connections()) {
-                    info.divergence_paths[node_id].insert(target_pin->get_owning_node()->get_id());
-                }
-            }
-
-            _find_merge_point(p_context, node_id);
-            _find_merge_point_by_pin(p_context, node_id);
-        } else if (current->is_type<OScriptNodeChance>()) {
-            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
-            _populate_divergence_paths(p_context, node_id);
-            _find_merge_point(p_context, node_id);
-            _find_merge_point_by_pin(p_context, node_id);
-        } else if (current->is_type<OScriptNodeSwitchEnum>() || current->is_type<OScriptNodeSwitchInteger>() || current->is_type<OScriptNodeSwitchString>()) {
-            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::Switch;
-            _populate_divergence_paths(p_context, node_id);
-            _find_merge_point(p_context, node_id);
-            _find_merge_point_by_pin(p_context, node_id);
-        } else if (current->is_type<OScriptNodeRandom>()) {
-            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
-            _populate_divergence_paths(p_context, node_id);
-            _find_merge_point(p_context, node_id);
-            _find_merge_point_by_pin(p_context, node_id);
-        }
-        else if (current->is_type<OScriptNodeDialogueMessage>()) {
-            info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::ConditionalBranch;
-            _populate_divergence_paths(p_context, node_id);
-            _find_merge_point(p_context, node_id);
-            _find_merge_point_by_pin(p_context, node_id);
-        }
-        // todo: what about OScriptNodeSwitch?
-
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(current)) {
-            visit(successor);
-        }
-    };
-
-    visit(p_context.entry_node);
-}
-
-void OScriptFunctionAnalyzer::_analyze_nesting(Context& p_context) {
-    HashSet<NodeId> visited;
-    List<NodeId> loop_stack;
-
-    std::function <void(const Ref<OScriptNode>&)> visit = [&](const Ref<OScriptNode>& current) {
-        const NodeId node_id = current->get_id();
-        if (visited.has(node_id)) {
-            // Check whether visiting a node that is in a deeper loop context.
-            if (loop_stack.size() > 0) {
-                const NodeId enclosing_loop_id = loop_stack.back()->get();
-                p_context.info.node_to_enclosing_loop[node_id].insert(enclosing_loop_id);
-                p_context.info.nodes_in_loop_body[enclosing_loop_id].insert(node_id);
-            }
-            return;
-        }
-
-        visited.insert(node_id);
-
-        // Record which loop this node is within
-        if (loop_stack.size() > 0) {
-            const NodeId enclosing_loop_id = loop_stack.back()->get();
-            p_context.info.node_to_enclosing_loop[node_id].insert(enclosing_loop_id);
-            p_context.info.nodes_in_loop_body[enclosing_loop_id].insert(node_id);
-        }
-
-        // Push loop onto stack
-        if (p_context.info.is_loop_node.has(node_id)) {
-            if (loop_stack.size() > 0) {
-                p_context.info.has_nested_loops[loop_stack.back()->get()] = true;
-            }
-            loop_stack.push_back(node_id);
-        }
-
-        // Visit successors
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(current)) {
-            // If current node is a loop, only follow the Body pin, not Break/Completion
-            if (p_context.info.is_loop_node.has(node_id)) {
-                const NodeId body_start = p_context.info.loop_body_start_nodes[node_id];
-                if (successor->get_id() == body_start) {
-                    visit(successor);
-                }
-                // Skip break/completion paths
-            } else {
-                visit(successor);
-            }
-        }
-
-        // Pop loop after visiting all successors
-        if (p_context.info.is_loop_node.has(node_id)) {
-            loop_stack.pop_back();
-        }
-    };
-
-    visit(p_context.entry_node);
-}
-
 void OScriptFunctionAnalyzer::_validate(const Context& p_context) {
     warnings.clear();
     errors.clear();
@@ -928,14 +876,13 @@ OScriptFunctionInfo OScriptFunctionAnalyzer::analyze_function(const Ref<OScriptF
     context.info.entry_node_id = context.entry_node->get_id();
 
     _collect_graph_nodes(context);
+    _build_linear_execution_list(context, false);
 
-    // Perform multi-pass analysis stages
-    _collect_node_types(context);
-    _detect_control_flow_issues(context);
+    // Combined single-pass analysis: node types, control-flow issues, data dependencies,
+    // divergence points, and nesting are all resolved in one DFS traversal.
+    _analyze_combined(context);
+    // Loop-break analysis runs after the combined pass because it needs unreachable_nodes.
     _analyze_loop_breaks(context);
-    _analyze_data_dependencies(context);
-    _detect_divergence_points(context);
-    _analyze_nesting(context);
     _validate(context);
 
     // Generate variable allocation network analysis
