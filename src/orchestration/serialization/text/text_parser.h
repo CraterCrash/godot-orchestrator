@@ -80,8 +80,6 @@ class OrchestrationTextParser : public OrchestrationParser {
 
     Ref<Resource> _resource;
 
-    String _remap_class(const String& p_class);
-
     static Error _parse_sub_resource_dummys(void* p_self, OScriptVariantParser::Stream* p_stream, Ref<Resource>& r_res, int& r_line, String& r_err_string);
     static Error _parse_sub_resource_dummy(DummyReadData* p_data, OScriptVariantParser::Stream* p_stream, Ref<Resource>& r_res, int& r_line, String& r_err_string);
 

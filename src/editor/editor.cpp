@@ -1702,6 +1702,9 @@ bool OrchestratorEditor::edit(const Ref<Resource>& p_resource, int p_node, bool 
     }
 
     const Ref<OScript> script = p_resource;
+    if (script.is_valid() && !script->get_orchestration().is_valid()) {
+        return false;
+    }
 
     for (int i = 0; i < _tab_container->get_tab_count(); i++) {
         OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i));
