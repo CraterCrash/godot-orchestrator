@@ -18,6 +18,9 @@ def strip_backtrace(text):
         if not line.startswith("   OScript backtrace") and not line.startswith("       [")
     ).strip()
 
+def normalize_cpp_lines(text):
+    return re.sub(r'(\w+\.cpp):\d+', r'\1', text)
+
 def validate_output(source, result, elapsed):
     global exit_code
     source = source.resolve()
@@ -49,6 +52,10 @@ def validate_output(source, result, elapsed):
         if version == "4.4":
             actual = strip_backtrace(actual)
             expected = strip_backtrace(expected)
+
+        actual = normalize_cpp_lines(actual)
+        expected = normalize_cpp_lines(expected)
+
     else:
         print(f"ERROR: Unknown directive '{directive}' in {out_file}")
         exit_code = 1
