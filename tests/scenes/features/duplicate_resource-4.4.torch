@@ -1,0 +1,616 @@
+[orchestration type="OScript" load_steps=29 format=3 uid="uid://8rnm3eepqxf2"]
+
+[obj type="OScriptFunction" id="OScriptFunction_puml6"]
+guid = "F6C7DD2D-3C91-4628-8478-59E002D8FA69"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptFunction" id="OScriptFunction_8fffb"]
+guid = "A6BF6F78-3287-434B-A702-BA6252A63D72"
+method = {
+"name": &"print_properties",
+"args": [{
+"name": &"res",
+"type": 24,
+"class_name": &"DuplicateTestResource"
+}]
+}
+user_defined = true
+id = 25
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 2, 4, 13, 14, 15, 33, 35, 36, 37, 38, 39, 40])
+functions = Array[int]([0])
+
+[obj type="OScriptGraph" id="OScriptGraph_ppl6l"]
+graph_name = &"print_properties"
+flags = 22
+nodes = Array[int]([25, 27, 28, 29, 45, 46, 47])
+functions = Array[int]([25])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_8fffb"]
+function_id = "F6C7DD2D-3C91-4628-8478-59E002D8FA69"
+id = 0
+size = Vector2(29, 41)
+position = Vector2(-240, 480)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_bcaqa"]
+variable_name = &"res"
+id = 2
+size = Vector2(29, 41)
+position = Vector2(520, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"res",
+"type": 24,
+"flags": 2050,
+"target_class": "DuplicateTestResource",
+"hint": 17,
+"hint_string": "DuplicateTestResource",
+"usage": 4102
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 1026,
+"target_class": "DuplicateTestResource",
+"hint": 17,
+"hint_string": "DuplicateTestResource",
+"usage": 4102
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_8fffb"]
+variable_name = &"dupe"
+id = 4
+size = Vector2(29, 41)
+position = Vector2(1320, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"dupe",
+"type": 24,
+"flags": 2050,
+"target_class": "DuplicateTestResource",
+"hint": 17,
+"hint_string": "DuplicateTestResource",
+"usage": 4102
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 1026,
+"target_class": "DuplicateTestResource",
+"hint": 17,
+"hint_string": "DuplicateTestResource",
+"usage": 4102
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_puml6"]
+class_name = "DuplicateTestResource"
+id = 13
+size = Vector2(29, 41)
+position = Vector2(180, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "DuplicateTestResource"
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_puml6"]
+function_name = &"duplicate"
+target_class_name = "Resource"
+target_type = 24
+flags = 522
+method = {
+"name": &"duplicate",
+"return": {
+"type": 24,
+"class_name": &"Resource",
+"hint": 17,
+"hint_string": "Resource"
+},
+"flags": 5,
+"default_args": [false],
+"args": [{
+"name": &"deep",
+"type": 1
+}]
+}
+chain = false
+id = 14
+size = Vector2(29, 41)
+position = Vector2(680, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "Resource",
+"target_class": "Resource",
+"hint": 17,
+"hint_string": "Resource"
+}, {
+"pin_name": &"deep",
+"type": 1,
+"flags": 2,
+"dv": false
+}, {
+"pin_name": &"return_value",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"label": "Resource",
+"target_class": "Resource",
+"hint": 17,
+"hint_string": "Resource"
+}])
+
+[obj type="OScriptNodeTypeCast" id="OScriptNodeTypeCast_puml6"]
+type = "DuplicateTestResource"
+id = 15
+size = Vector2(29, 41)
+position = Vector2(940, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"flags": 2,
+"target_class": "Object"
+}, {
+"pin_name": &"yes",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"no",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"output",
+"type": 24,
+"dir": 1,
+"flags": 2050,
+"label": "as DuplicateTestResource",
+"target_class": "DuplicateTestResource"
+}])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_oovv2"]
+function_id = "A6BF6F78-3287-434B-A702-BA6252A63D72"
+id = 25
+size = Vector2(29, 41)
+position = Vector2(-40, -120)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"res",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "DuplicateTestResource"
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_56mo0"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 27
+size = Vector2(29, 41)
+position = Vector2(620, -120)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_6fw0a"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 28
+size = Vector2(29, 41)
+position = Vector2(820, -120)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_04qtp"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 29
+size = Vector2(29, 41)
+position = Vector2(1020, -120)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_puml6"]
+guid = "A6BF6F78-3287-434B-A702-BA6252A63D72"
+function_name = &"print_properties"
+flags = 8
+id = 33
+size = Vector2(161, 96)
+position = Vector2(1500, 260)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"res",
+"type": 24,
+"flags": 2,
+"target_class": "DuplicateTestResource"
+}])
+
+[obj type="OScriptNodeSequence" id="OScriptNodeSequence_puml6"]
+id = 35
+size = Vector2(29, 41)
+position = Vector2(-60, 480)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"then_0",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"then_1",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_8fffb"]
+class_name = "DuplicateTestResource"
+id = 36
+size = Vector2(29, 41)
+position = Vector2(180, 600)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "DuplicateTestResource"
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_ppl6l"]
+variable_name = &"res_var"
+id = 37
+size = Vector2(29, 41)
+position = Vector2(520, 600)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"res_var",
+"flags": 2050,
+"usage": 131074
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 131074
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_bcaqa"]
+function_name = &"duplicate"
+target_class_name = "Resource"
+target_type = 24
+flags = 522
+method = {
+"name": &"duplicate",
+"return": {
+"type": 24,
+"class_name": &"Resource",
+"hint": 17,
+"hint_string": "Resource"
+},
+"flags": 5,
+"default_args": [false],
+"args": [{
+"name": &"deep",
+"type": 1
+}]
+}
+chain = false
+id = 38
+size = Vector2(29, 41)
+position = Vector2(720, 600)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "Resource",
+"target_class": "Resource",
+"hint": 17,
+"hint_string": "Resource"
+}, {
+"pin_name": &"deep",
+"type": 1,
+"flags": 2,
+"dv": false
+}, {
+"pin_name": &"return_value",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"label": "Resource",
+"target_class": "Resource",
+"hint": 17,
+"hint_string": "Resource"
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_v38xh"]
+variable_name = &"dupe_var"
+id = 39
+size = Vector2(29, 41)
+position = Vector2(1000, 600)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"dupe_var",
+"flags": 2050,
+"usage": 131074
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 131074
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_mf583"]
+guid = "A6BF6F78-3287-434B-A702-BA6252A63D72"
+function_name = &"print_properties"
+flags = 8
+id = 40
+size = Vector2(161, 96)
+position = Vector2(1220, 600)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"res",
+"type": 24,
+"flags": 2,
+"target_class": "DuplicateTestResource"
+}])
+
+[obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_puml6"]
+mode = 1
+target_class = &"DuplicateTestResource"
+property_name = &"text"
+property = {
+"name": &"text",
+"type": 4,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 4102
+}
+id = 45
+size = Vector2(29, 41)
+position = Vector2(280, -60)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "DuplicateTestResource",
+"target_class": "DuplicateTestResource"
+}, {
+"pin_name": &"text",
+"type": 4,
+"dir": 1,
+"flags": 2,
+"dv": "",
+"usage": 4102
+}])
+
+[obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_8fffb"]
+mode = 1
+target_class = &"DuplicateTestResource"
+property_name = &"arr"
+property = {
+"name": &"arr",
+"type": 28,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 4102
+}
+id = 46
+size = Vector2(29, 41)
+position = Vector2(380, 40)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "DuplicateTestResource",
+"target_class": "DuplicateTestResource"
+}, {
+"pin_name": &"arr",
+"type": 28,
+"dir": 1,
+"flags": 2,
+"dv": [],
+"usage": 4102
+}])
+
+[obj type="OScriptNodePropertyGet" id="OScriptNodePropertyGet_ppl6l"]
+mode = 1
+target_class = &"DuplicateTestResource"
+property_name = &"dict"
+property = {
+"name": &"dict",
+"type": 27,
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"usage": 4102
+}
+id = 47
+size = Vector2(29, 41)
+position = Vector2(480, 140)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "DuplicateTestResource",
+"target_class": "DuplicateTestResource"
+}, {
+"pin_name": &"dict",
+"type": 27,
+"dir": 1,
+"flags": 2,
+"dv": {},
+"usage": 4102
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_v38xh"]
+name = "res"
+category = "Default"
+classification = "class:DuplicateTestResource"
+type = 24
+
+[obj type="OScriptVariable" id="OScriptVariable_mf583"]
+name = "dupe"
+category = "Default"
+classification = "class:DuplicateTestResource"
+type = 24
+
+[obj type="OScriptVariable" id="OScriptVariable_04qtp"]
+name = "res_var"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[obj type="OScriptVariable" id="OScriptVariable_2tbbj"]
+name = "dupe_var"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_v38xh"), SubResource("OScriptVariable_mf583"), SubResource("OScriptVariable_04qtp"), SubResource("OScriptVariable_2tbbj")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_puml6"), SubResource("OScriptFunction_8fffb")])
+connections = Array[int]([13, 0, 2, 0, 15, 0, 4, 0, 35, 0, 13, 0, 2, 0, 14, 0, 14, 0, 15, 0, 25, 0, 27, 0, 27, 0, 28, 0, 28, 0, 29, 0, 4, 0, 33, 0, 0, 0, 35, 0, 35, 1, 36, 0, 36, 0, 37, 0, 37, 0, 38, 0, 38, 0, 39, 0, 39, 0, 40, 0, 25, 1, 45, 0, 25, 1, 46, 0, 25, 1, 47, 0, 13, 1, 2, 1, 15, 2, 4, 1, 2, 1, 14, 1, 14, 1, 15, 1, 45, 0, 27, 1, 46, 0, 28, 1, 47, 0, 29, 1, 4, 1, 33, 1, 36, 1, 37, 1, 37, 1, 38, 1, 38, 1, 39, 1, 39, 1, 40, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_8fffb"), SubResource("OScriptNodeVariableSet_bcaqa"), SubResource("OScriptNodeVariableSet_8fffb"), SubResource("OScriptNodeNew_puml6"), SubResource("OScriptNodeCallMemberFunction_puml6"), SubResource("OScriptNodeTypeCast_puml6"), SubResource("OScriptNodeFunctionEntry_oovv2"), SubResource("OScriptNodeCallBuiltinFunction_56mo0"), SubResource("OScriptNodeCallBuiltinFunction_6fw0a"), SubResource("OScriptNodeCallBuiltinFunction_04qtp"), SubResource("OScriptNodeCallScriptFunction_puml6"), SubResource("OScriptNodeSequence_puml6"), SubResource("OScriptNodeNew_8fffb"), SubResource("OScriptNodeVariableSet_ppl6l"), SubResource("OScriptNodeCallMemberFunction_bcaqa"), SubResource("OScriptNodeVariableSet_v38xh"), SubResource("OScriptNodeCallScriptFunction_mf583"), SubResource("OScriptNodePropertyGet_puml6"), SubResource("OScriptNodePropertyGet_8fffb"), SubResource("OScriptNodePropertyGet_ppl6l")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp"), SubResource("OScriptGraph_ppl6l")])
