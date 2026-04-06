@@ -376,6 +376,11 @@ public:
     /// Return whether the specified port is a loop-based port
     virtual bool is_loop_port(int p_port) const { return false; }
 
+    /// Return whether the given pin is the loop break pin.
+    /// @param p_pin the pin to check
+    /// @return true if the pin is the break pin; false otherwise
+    virtual bool is_loop_break_pin(const Ref<OScriptNodePin>& p_pin) { return false; }
+
     /// Get suggestion options for the specified pin.
     /// @param p_pin the pin
     /// @return a list of suggestion options as contextual choices
