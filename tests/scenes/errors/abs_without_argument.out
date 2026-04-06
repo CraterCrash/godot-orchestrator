@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: Invalid argument for "abs()" function: Argument "x" must be "int", "float", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", or "Vector4i".
+   at: OScript::reload (res://scenes/errors/abs_without_argument.torch:2)
+ERROR: Failed to load script "res://scenes/errors/abs_without_argument.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)
