@@ -66,6 +66,7 @@ protected:
     void _node_selected();
     void _pin_connection_status_changed(int p_type, int p_index, bool p_connected);
 
+    Ref<Texture2D> _get_titlebar_icon();
     void _update_titlebar();
 
     virtual void _create_pin_widgets();
