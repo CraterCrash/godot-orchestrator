@@ -12,6 +12,29 @@ from pathlib import Path
 scenes_dir  = Path(__file__).parent / "scenes"
 exit_code = 0
 
+def parse_version(v):
+    return tuple(int(x) for x in v.split(".")[:2])
+
+def is_version_supported(version, scene_file):
+    meta_file = scene_file.with_suffix(".meta")
+    if not meta_file.exists():
+        # If no meta exists, the test is acceptable to run on all versions
+        return True
+
+    meta = {}
+    for line in meta_file.read_text().splitlines():
+        if ":" in line:
+            key, value = line.split(":", 1)
+            meta[key.strip()] = value.strip()
+
+    current = parse_version(version)
+    if "min_version" in meta and current < parse_version(meta["min_version"]):
+        return False
+    if "max_version" in meta and current > parse_version(meta["max_version"]):
+        return False
+
+    return True
+
 def strip_backtrace(text):
     return "\n".join(
         line for line in text.splitlines()
@@ -72,9 +95,13 @@ def validate_output(source, result, elapsed):
         print("")
         exit_code = 1
 
-def test_scenes():
+def test_scenes(version):
     global exit_code
     for scene_file in sorted(scenes_dir.rglob("*.tscn")):
+
+        if not is_version_supported(version, scene_file.resolve()):
+            continue
+
         print(f"-------------------------------------------------------------------------------------------------------------------")
         print(f"Scene: {scene_file.resolve()}")
         start = time.monotonic()
@@ -187,7 +214,7 @@ version = get_minimum_godot_version()
 godot_path = download_godot(version)
 
 update_libraries()
-test_scenes()
+test_scenes(version)
 
 
 sys.exit(exit_code)
