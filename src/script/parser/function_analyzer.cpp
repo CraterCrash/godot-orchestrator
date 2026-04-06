@@ -181,117 +181,45 @@ Ref<OScriptNode> OScriptFunctionAnalyzer::Context::get_node_by_id(NodeId p_node_
     return {};
 }
 
-void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context, bool p_data_dependencies) {
+void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
     HashMap<Ref<OScriptNode>, int> node_degrees;
-    HashMap<Ref<OScriptNode>, Vector<Ref<OScriptNode>>> graph;
-    HashSet<Ref<OScriptNode>> visited;
     HashSet<Ref<OScriptNode>> all_nodes;
 
-    if (p_data_dependencies) {
+    for (NodeId node_id : p_context.info.graph_nodes) {
+        const Ref<OScriptNode> node = p_context.get_node_by_id(node_id);
+        if (node.is_valid()) {
+            all_nodes.insert(node);
+            node_degrees[node] = 0;
+        }
+    }
 
-        for (NodeId id : p_context.info.graph_nodes) {
-            const Ref<OScriptNode> node = p_context.get_node_by_id(id);
-            if (node.is_valid()) {
-                all_nodes.insert(node);
+    // Count incoming control flow edges
+    for (const Ref<OScriptNode>& node : all_nodes) {
+        for (const Ref<OScriptNodePin>& input : node->find_pins(PD_Input)) {
+            if (input.is_valid() && input->is_execution()) {
+                node_degrees[node] += input->get_connections().size();
             }
         }
+    }
 
-        std::function <uint64_t(const Ref<OScriptNode>&)> count_incoming_edges = [&](const Ref<OScriptNode>& node) {
-            uint64_t edges = 0;
-            for (const Ref<OScriptNodePin>& input : node->find_pins(PD_Input)) {
-                if (input.is_valid() && !input->is_execution()) {
-                    edges += input->get_connections().size();
-                }
-            }
-            return edges;
-        };
-
-        List<Ref<OScriptNode>> nodes_with_no_edges;
-        HashMap<Ref<OScriptNode>, uint64_t> edge_map;
-        int64_t total_edges_left = 0;
-
-        for (const Ref<OScriptNode>& node : all_nodes) {
-            const uint64_t edges = count_incoming_edges(node);
-            edge_map[node] = edges;
-            total_edges_left += edges;
-            if (edges == 0) {
-                nodes_with_no_edges.push_back(node);
-            }
+    List<Ref<OScriptNode>> queue;
+    for (const Ref<OScriptNode>& node : all_nodes) {
+        if (node_degrees[node] == 0) {
+            queue.push_back(node);
         }
+    }
 
-        while (!nodes_with_no_edges.is_empty()) {
-            const Ref<OScriptNode> node = nodes_with_no_edges.front()->get();
-            nodes_with_no_edges.pop_front();
+    while (!queue.is_empty()) {
+        const Ref<OScriptNode> node = queue.front()->get();
+        queue.pop_front();
 
-            p_context.info.linear_execution_list.push_back(node->get_id());
+        p_context.info.linear_execution_list.push_back(node->get_id());
 
-            // Decrement edge counts for things that depend on this node, and queue up any that hit 0.
-            for (const Ref<OScriptNodePin>& output_data_pin : node->find_pins(PD_Output)) {
-                if (!output_data_pin->is_execution()) {
-                    for (const Ref<OScriptNodePin>& target_data_pin : output_data_pin->get_connections()) {
-                        const Ref<OScriptNode> target_node = target_data_pin->get_owning_node();
-
-                        uint64_t* edges_left = target_node.is_valid() ? edge_map.getptr(target_node) : nullptr;
-                        if (edges_left) {
-                            uint64_t& edges = *edges_left;
-                            if (edges <= 0) {
-                                errors.push_back({ -1, "Internal compiler error generating execution list." });
-                                p_context.info.linear_execution_list.clear();
-                                return;
-                            }
-
-                            edges--;
-                            total_edges_left--;
-
-                            if (edges == 0) {
-                                nodes_with_no_edges.push_back(target_node);
-                            }
-                        } else {
-                            errors.push_back({ -1, "Internal compiler error generating execution list." });
-                            p_context.info.linear_execution_list.clear();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        for (NodeId node_id : p_context.info.graph_nodes) {
-            const Ref<OScriptNode> node = p_context.get_node_by_id(node_id);
-            if (node.is_valid()) {
-                all_nodes.insert(node);
-                node_degrees[node] = 0;
-            }
-        }
-
-        // Count incoming control flow edges
-        for (const Ref<OScriptNode>& node : all_nodes) {
-            for (const Ref<OScriptNodePin>& input : node->find_pins(PD_Input)) {
-                if (input.is_valid() && input->is_execution()) {
-                    node_degrees[node] += input->get_connections().size();
-                }
-            }
-        }
-
-        List<Ref<OScriptNode>> queue;
-        for (const Ref<OScriptNode>& node : all_nodes) {
-            if (node_degrees[node] == 0) {
-                queue.push_back(node);
-            }
-        }
-
-        while (!queue.is_empty()) {
-            const Ref<OScriptNode> node = queue.front()->get();
-            queue.pop_front();
-
-            p_context.info.linear_execution_list.push_back(node->get_id());
-
-            // Decrement for successors
-            for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
-                node_degrees[successor]--;
-                if (node_degrees[successor] == 0) {
-                    queue.push_back(successor);
-                }
+        // Decrement for successors
+        for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+            node_degrees[successor]--;
+            if (node_degrees[successor] == 0) {
+                queue.push_back(successor);
             }
         }
     }
@@ -876,7 +804,7 @@ OScriptFunctionInfo OScriptFunctionAnalyzer::analyze_function(const Ref<OScriptF
     context.info.entry_node_id = context.entry_node->get_id();
 
     _collect_graph_nodes(context);
-    _build_linear_execution_list(context, false);
+    _build_linear_execution_list(context);
 
     // Combined single-pass analysis: node types, control-flow issues, data dependencies,
     // divergence points, and nesting are all resolved in one DFS traversal.

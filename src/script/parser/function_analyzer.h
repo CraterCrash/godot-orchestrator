@@ -180,19 +180,19 @@ private:
     List<AnalyzerWarning> warnings;
     List<AnalyzerError> errors;
 
-    void _build_linear_execution_list(Context& p_context, bool p_data_dependencies = false);
-    void _register_incoming_nets(Context& p_context, const Ref<OScriptNodePin>& p_pin, NodeId p_node_id);
-    void _register_nets(Context& p_context);
+    static void _build_linear_execution_list(Context& p_context);
+    static void _register_incoming_nets(Context& p_context, const Ref<OScriptNodePin>& p_pin, NodeId p_node_id);
+    static void _register_nets(Context& p_context);
 
-    void _populate_divergence_paths(Context& p_context, NodeId p_divergence_node_id);
+    static void _populate_divergence_paths(Context& p_context, NodeId p_divergence_node_id);
     void _find_merge_point(Context& p_context, NodeId p_divergence_node_id);
-    void _find_merge_point_by_pin(Context& p_context, NodeId p_divergence_node_id);
-    HashSet<NodeId> _get_all_reachable_nodes(Context& p_context, NodeId p_from_node_id);
-    OScriptNodePinSet _get_all_reachable_pins(Context& p_context, const OScriptNodePinId& p_id);
+    static void _find_merge_point_by_pin(Context& p_context, NodeId p_divergence_node_id);
+    static HashSet<NodeId> _get_all_reachable_nodes(Context& p_context, NodeId p_from_node_id);
+    static OScriptNodePinSet _get_all_reachable_pins(Context& p_context, const OScriptNodePinId& p_id);
     void _collect_data_dependencies(const Ref<OScriptNode>& p_node, OScriptNodePinSet& p_dependencies);
     void _collect_data_dependencies(const Ref<OScriptNode>& p_node, HashSet<NodeId>& p_dependencies);
 
-    void _collect_graph_nodes(Context& p_context);
+    static void _collect_graph_nodes(Context& p_context);
     void _analyze_combined(Context& p_context);
     void _analyze_loop_breaks(Context& p_context);
     void _validate(const Context& p_context);
