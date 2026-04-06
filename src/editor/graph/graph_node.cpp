@@ -29,10 +29,12 @@
 #include "editor/graph/graph_pin_factory.h"
 #include "script/nodes/data/type_cast.h"
 #include "script/nodes/editable_pin_node.h"
+#include "script/nodes/utilities/self.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/resource_uid.hpp>
 
 void OrchestratorEditorGraphNode::_resize_to_content() {
     set_anchor_and_offset(SIDE_RIGHT, 0, 0);
@@ -53,19 +55,36 @@ void OrchestratorEditorGraphNode::_pin_connection_status_changed(int p_type, int
     }
 }
 
+Ref<Texture2D> OrchestratorEditorGraphNode::_get_titlebar_icon() {
+    String icon_name = _node->get_icon();
+    if (!icon_name.is_empty()) {
+
+        if (icon_name.begins_with("uid://")) {
+            icon_name = ResourceUID::uid_to_path(icon_name);
+        }
+
+        if (icon_name.begins_with("res://")) {
+            return ResourceLoader::get_singleton()->load(icon_name);
+        }
+
+        if (const Ref<OScriptNodeTypeCast> type_cast = _node; type_cast.is_valid()) {
+            return SceneUtils::get_class_icon(icon_name);
+        }
+
+        if (const Ref<OScriptNodeSelf> self = _node; self.is_valid()) {
+            return SceneUtils::get_class_icon(icon_name);
+        }
+
+        return SceneUtils::get_editor_icon(icon_name);
+    }
+
+    return {};
+}
+
 void OrchestratorEditorGraphNode::_update_titlebar() {
     HBoxContainer* hbox = get_titlebar_hbox();
 
-    Ref<Texture2D> icon;
-
-    const String icon_name = _node->get_icon();
-    if (!icon_name.is_empty() && icon_name.begins_with("res://")) {
-        icon = ResourceLoader::get_singleton()->load(icon_name);
-    } else if (const Ref<OScriptNodeTypeCast> type_cast = _node; type_cast.is_valid()) {
-        icon = SceneUtils::get_class_icon(icon_name);
-    } else if (!icon_name.is_empty()) {
-        icon = SceneUtils::get_editor_icon(icon_name);
-    }
+    Ref<Texture2D> icon = _get_titlebar_icon();
 
     TextureRect* icon_rect = cast_to<TextureRect>(hbox->find_child("NodeIcon", false, false));
     if (!icon_rect && icon.is_valid()) {

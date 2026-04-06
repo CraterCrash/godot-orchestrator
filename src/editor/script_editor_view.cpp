@@ -33,6 +33,7 @@
 #include "editor/scene/script_connections.h"
 #include "editor/script_components_container.h"
 #include "script/nodes/functions/event.h"
+#include "script/nodes/utilities/self.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/editor_inspector.hpp>
@@ -224,6 +225,12 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
     static String WARN_ERROR_SEP = "ScriptWarnErrorSep";
     static String WARNING_BUTTON_NAME = "ScriptWarningButton";
     static String ERROR_BUTTON_NAME   = "ScriptErrorButton";
+
+    for (const Ref<OScriptNode>& node : _script->get_orchestration()->get_nodes()) {
+        if (node.is_valid() && node->is_type<OScriptNodeSelf>()) {
+            node->reconstruct_node();
+        }
+    }
 
     for (int i = 0; i < _tab_container->get_child_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
