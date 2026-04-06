@@ -132,6 +132,10 @@ bool OScriptNodeForLoop::is_loop_port(int p_port) const {
     return p_port <= 1;
 }
 
+bool OScriptNodeForLoop::is_loop_break_pin(const Ref<OScriptNodePin>& p_pin) {
+    return _with_break && p_pin.is_valid() && p_pin->get_pin_name().match("break");
+}
+
 void OScriptNodeForLoop::get_actions(List<Ref<OScriptAction>>& p_action_list) {
     if (_with_break) {
         Callable callable = callable_mp_this(_set_with_break).bind(false);
