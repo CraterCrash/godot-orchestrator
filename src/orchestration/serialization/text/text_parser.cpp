@@ -17,6 +17,7 @@
 #include "orchestration/serialization/text/text_parser.h"
 
 #include "common/string_utils.h"
+#include "core/godot/object/class_db.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "orchestration/serialization/format.h"
 #include "orchestration/serialization/text/text_format.h"
@@ -32,13 +33,6 @@
 #include <godot_cpp/classes/resource_uid.hpp>
 
 #define _printerr() ERR_PRINT(String(_path + ":" + itos(_lines) + " - Parse Error: " + _error_text).utf8().get_data());
-
-String OrchestrationTextParser::_remap_class(const String& p_class) {
-    if (p_class == OScript::get_class_static()) {
-        return "Orchestration";
-    }
-    return p_class;
-}
 
 Error OrchestrationTextParser::_parse_sub_resources(void* p_self, OScriptVariantParser::Stream* p_stream, Ref<Resource>& r_res, int& r_line, String& r_err_string) {
     return static_cast<OrchestrationTextParser*>(p_self)->_parse_sub_resource(p_stream, r_res, r_line, r_err_string);
@@ -379,8 +373,16 @@ Error OrchestrationTextParser::_load() {
                 // cached, do not assign
                 res = cache;
             } else {
+
+                const StringName type_name = _remap_class_type(type);
+                if (!GDE::ClassDB::is_class_exposed(type_name)) {
+                    _error_text = "Class " + type + " is not available";
+                    _printerr();
+                    return ERR_FILE_CORRUPT;
+                }
+
                 // Create
-                Variant obj = ClassDB::instantiate(_remap_class(type));
+                Variant obj = ClassDB::instantiate(type_name);
                 if (!obj) {
                     if (_is_creating_missing_resources_if_class_unavailable_enabled()) {
                         missing_resource = memnew(MissingResource);
@@ -479,7 +481,14 @@ Error OrchestrationTextParser::_load() {
 		MissingResource *missing_resource = nullptr;
 
 		if (!_resource.is_valid()) {
-			Variant obj = ClassDB::instantiate(_remap_class(_type));
+		    const StringName type_name = _remap_class_type(_type);
+		    if (!GDE::ClassDB::is_class_exposed(type_name)) {
+		        _error_text += "Class " + _type + " is not available";
+		        _printerr();
+		        return ERR_FILE_CORRUPT;
+		    }
+
+			Variant obj = ClassDB::instantiate(type_name);
 			if (!obj) {
 				if (_is_creating_missing_resources_if_class_unavailable_enabled()) {
 					missing_resource = memnew(MissingResource);
