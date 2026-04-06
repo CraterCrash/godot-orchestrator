@@ -20,7 +20,6 @@
 #include "script/script.h"
 
 #include <godot_cpp/classes/missing_resource.hpp>
-#include <godot_cpp/core/class_db.hpp>
 
 void OrchestrationParser::_set_resource_property(Ref<Resource>& r_resource, const MissingResource* p_missing_resource, const StringName& p_name, const Variant& p_value, Dictionary& r_missing_properties) {
     Variant value = p_value;
@@ -74,15 +73,15 @@ void OrchestrationParser::_set_resource_property(Ref<Resource>& r_resource, cons
 
 bool OrchestrationParser::_is_creating_missing_resources_if_class_unavailable_enabled() const {
     // EditorNode sets this to true, existence of our plugin should suffice.
-    return OrchestratorPlugin::get_singleton() != nullptr;
+    // return OrchestratorPlugin::get_singleton() != nullptr;
+    return false;
 }
 
-Variant OrchestrationParser::_instantiate_resource(const String& p_resource_type) {
-    if (p_resource_type == OScript::get_class_static()) {
-        return ClassDB::instantiate(Orchestration::get_class_static());
+String OrchestrationParser::_remap_class_type(const String& p_class_name) {
+    if (p_class_name == OScript::get_class_static()) {
+        return Orchestration::get_class_static();
     }
-    // todo: centralized, we can override this behavior per serialized type
-    return ClassDB::instantiate(p_resource_type);
+    return p_class_name;
 }
 
 void OrchestrationParser::_set_resource_edited(const Ref<Resource>& p_resource, bool p_edited) {
