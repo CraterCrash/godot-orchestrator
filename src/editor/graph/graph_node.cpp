@@ -22,6 +22,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/io/resource_uid.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/graph/graph_panel.h"
@@ -34,7 +35,6 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/resource_uid.hpp>
 
 void OrchestratorEditorGraphNode::_resize_to_content() {
     set_anchor_and_offset(SIDE_RIGHT, 0, 0);
@@ -60,7 +60,7 @@ Ref<Texture2D> OrchestratorEditorGraphNode::_get_titlebar_icon() {
     if (!icon_name.is_empty()) {
 
         if (icon_name.begins_with("uid://")) {
-            icon_name = ResourceUID::uid_to_path(icon_name);
+            icon_name = GDE::ResourceUID::uid_to_path(icon_name);
         }
 
         if (icon_name.begins_with("res://")) {
