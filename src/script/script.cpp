@@ -752,7 +752,6 @@ Error OScript::_reload(bool p_keep_state) {
                 OrchestrationBinaryParser binary_parser;
                 orchestration = binary_parser.load(path);
                 if (orchestration.is_null()) {
-                    ERR_PRINT("Failed to open and load script: " + path);
                     return ERR_PARSE_ERROR;
                 }
                 orchestration->set_self(this);
@@ -774,7 +773,6 @@ Error OScript::_reload(bool p_keep_state) {
                 OrchestrationTextParser text_parser;
                 orchestration = text_parser.load(path);
                 if (orchestration.is_null()) {
-                    ERR_PRINT("Failed to open and load script: " + path);
                     return ERR_PARSE_ERROR;
                 }
                 orchestration->set_self(this);
