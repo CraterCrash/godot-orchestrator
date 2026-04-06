@@ -193,12 +193,8 @@ private:
     void _collect_data_dependencies(const Ref<OScriptNode>& p_node, HashSet<NodeId>& p_dependencies);
 
     void _collect_graph_nodes(Context& p_context);
-    void _collect_node_types(Context& p_context);
+    void _analyze_combined(Context& p_context);
     void _analyze_loop_breaks(Context& p_context);
-    void _analyze_data_dependencies(Context& p_context);
-    void _analyze_nesting(Context& p_context);
-    void _detect_control_flow_issues(Context& p_context);
-    void _detect_divergence_points(Context& p_context);
     void _validate(const Context& p_context);
 
 public:
