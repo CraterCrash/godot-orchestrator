@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cwxq2m34da1mb"]
+
+[ext_resource type="Script" uid="uid://w48nnx8w4vhr" path="res://scenes/errors/abs_without_argument.torch" id="1_1gahn"]
+
+[node name="AbsWithoutArgument" type="Node" unique_id=1156560061]
+script = ExtResource("1_1gahn")
