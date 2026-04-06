@@ -33,7 +33,7 @@ protected:
     static void _set_resource_property(Ref<Resource>& r_resource, const MissingResource* p_missing_resource, const StringName& p_name, const Variant& p_value, Dictionary& r_missing_properties);
 
     bool _is_creating_missing_resources_if_class_unavailable_enabled() const;
-    Variant _instantiate_resource(const String& p_resource_type);
+    String _remap_class_type(const String& p_class_name);
     void _set_resource_edited(const Ref<Resource>& p_resource, bool p_edited);
 
 public:

@@ -17,6 +17,7 @@
 #include "orchestration/serialization/binary/binary_parser.h"
 
 #include "common/string_utils.h"
+#include "core/godot/object/class_db.h"
 #include "orchestration/orchestration.h"
 #include "orchestration/serialization/binary/binary_format.h"
 #include "orchestration/serialization/format.h"
@@ -754,7 +755,12 @@ Error OrchestrationBinaryParser::_load() {
         MissingResource* missing_resource = nullptr;
         if (resource.is_null()) {
 
-            Variant instance = _instantiate_resource(resource_type);
+            const StringName type_name = _remap_class_type(resource_type);
+            if (!GDE::ClassDB::is_class_exposed(type_name)) {
+                ERR_FAIL_V_MSG(ERR_FILE_CORRUPT, _path + ": Class " + resource_type + " is not available");
+            }
+
+            Variant instance = ClassDB::instantiate(type_name);
             Object* object = instance;
             if (!object) {
                 if (_is_creating_missing_resources_if_class_unavailable_enabled()) {
