@@ -577,6 +577,10 @@ bool GDE::Variant::call_utility_function(const StringName& p_function, godot::Va
         args.push_back(*p_args[i]);
     }
 
+    r_error.argument = 0;
+    r_error.expected = 0;
+    r_error.error = GDEXTENSION_CALL_OK;
+
     const String expression = vformat("%s(%s)", p_function, StringUtils::join(",", arg_names));
     Ref<Expression> parser;
     parser.instantiate();
@@ -588,10 +592,13 @@ bool GDE::Variant::call_utility_function(const StringName& p_function, godot::Va
         return false;
     }
 
-    godot::Variant result = parser->execute(args);
+    godot::Variant result = parser->execute(args, nullptr, false);
     if (parser->has_execute_failed()) {
         r_error.error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
         r_reason = vformat(R"*(Error executing utility function "%s()": %s)*", p_function, parser->get_error_text());
+        if (result.get_type() == Type::STRING) {
+            r_value = result;
+        }
         return false;
     }
 
