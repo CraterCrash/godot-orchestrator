@@ -82,6 +82,9 @@ String OScriptNodeSelf::get_help_topic() const {
 
 String OScriptNodeSelf::get_icon() const {
     if (get_orchestration()) {
+        if (!get_orchestration()->get_icon_path().is_empty()) {
+            return get_orchestration()->get_icon_path();
+        }
         return get_orchestration()->get_base_type();
     }
     return super::get_icon();
