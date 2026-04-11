@@ -19,7 +19,6 @@
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
-#include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
@@ -86,8 +85,6 @@
 #include <godot_cpp/classes/v_separator.hpp>
 
 #define IS_COMMENT(n) cast_to<OrchestratorEditorGraphNodeComment>(n) != nullptr
-
-OrchestratorEditorGraphPanel::CopyBuffer OrchestratorEditorGraphPanel::_copy_buffer;
 
 using Connection = OScriptConnection;
 
@@ -254,247 +251,91 @@ void OrchestratorEditorGraphPanel::_connection_drag_ended() {
 }
 
 void OrchestratorEditorGraphPanel::_copy_nodes_request() {
-    _clear_copy_buffer();
-
-    Vector2 selection_center;
-    HashSet<int> node_ids;
-
     const Vector<OrchestratorEditorGraphNode*> selected_nodes = get_selected<OrchestratorEditorGraphNode>();
     if (!selected_nodes.is_empty() && !_can_duplicate_nodes(selected_nodes)) {
         return;
     }
 
-    for (OrchestratorEditorGraphNode* node : selected_nodes) {
-        const int node_id = node->get_id();
-        const Ref<OrchestrationGraphNode> script_node = _graph->get_orchestration()->get_node(node_id);
-
-        const Vector2 position = node->get_position_offset();
-        selection_center += position;
-
-        CopyItem item;
-        item.id = node_id;
-        item.node = _graph->copy_node(node_id, true);
-        item.position = position;
-        item.size = node->get_size();
-
-        node_ids.insert(node_id);
-        _copy_buffer.nodes.push_back(item);
-
-        const Ref<OScriptNodeCallScriptFunction> call_script_func_node = script_node;
-        if (call_script_func_node.is_valid()) {
-            _copy_buffer.function_names.insert(call_script_func_node->get_function()->get_function_name());
-        }
-
-        const Ref<OScriptNodeVariable> variable_node = script_node;
-        if (variable_node.is_valid()) {
-            _copy_buffer.variable_names.insert(variable_node->get_variable()->get_variable_name());
-        }
-
-        const Ref<OScriptNodeEmitSignal> signal_node = script_node;
-        if (signal_node.is_valid()) {
-            _copy_buffer.signal_names.insert(signal_node->get_signal()->get_signal_name());
-        }
-    }
-
-    for (const Connection& C : _graph->get_orchestration()->get_connections()) {
-        if (node_ids.has(C.from_node) && node_ids.has(C.to_node)) {
-            _copy_buffer.connections.push_back(C.id);
-        }
-    }
-
-    _copy_buffer.orchestration = _graph->get_orchestration();
+    _clipboard.copy(selected_nodes, _graph);
 }
 
 void OrchestratorEditorGraphPanel::_cut_nodes_request() {
-    _clear_copy_buffer();
-    _copy_nodes_request();
-
-    if (_copy_buffer.is_empty()) {
+    const Vector<OrchestratorEditorGraphNode*> selected = get_selected<OrchestratorEditorGraphNode>();
+    if (selected.is_empty() || !_can_duplicate_nodes(selected)) {
         return;
     }
 
-    for (const CopyItem& item : _copy_buffer.nodes) {
-        OrchestratorEditorGraphNode* node = find_node(item.id);
+    const OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.copy(selected, _graph);
+    if (result.added_nodes.is_empty()) {
+        return;
+    }
+
+    for (OrchestratorEditorGraphNode* node : selected) {
         remove_node(node, false);
     }
 }
 
 void OrchestratorEditorGraphPanel::_duplicate_nodes_request() {
     const Vector<OrchestratorEditorGraphNode*> selected = get_selected<OrchestratorEditorGraphNode>();
-    if (selected.is_empty()) {
+    if (selected.is_empty() || !_can_duplicate_nodes(selected)) {
         return;
     }
 
-    if (!_can_duplicate_nodes(selected)) {
+    OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.duplicate(selected, _graph, Vector2(25, 25));
+    if (result.added_nodes.is_empty()) {
         return;
-    }
-
-    HashMap<int, int> connection_remap;
-    HashSet<int> added_set;
-
-    const Vector2 offset = Vector2(25, 25);
-    for (OrchestratorEditorGraphNode* node : selected) {
-        const Ref<OrchestrationGraphNode> new_node = _graph->duplicate_node(node->get_id(), offset, true);
-        ERR_CONTINUE(!new_node.is_valid());
-
-        connection_remap[node->get_id()] = new_node->get_id();
-        added_set.insert(new_node->get_id());
-    }
-
-    for (const Connection& C : _graph->get_orchestration()->get_connections()) {
-        if (connection_remap.has(C.from_node) && connection_remap.has(C.to_node)) {
-            _graph->link(connection_remap[C.from_node], C.from_port, connection_remap[C.to_node], C.to_port);
-        }
     }
 
     _set_edited(true);
     _refresh_panel_connections_with_model();
 
+    emit_signal("nodes_changed");
+
     clear_selections();
 
-    for (int node_id : added_set) {
+    for (uint64_t node_id : result.added_nodes) {
         find_node(node_id)->set_selected(true);
     }
 }
 
 void OrchestratorEditorGraphPanel::_paste_nodes_request() {
-    // Pass 1 - Verify functions
-    for (const StringName& function_name : _copy_buffer.function_names) {
-        const Ref<OScriptFunction> source_function = _copy_buffer.orchestration->find_function(function_name);
-        if (!source_function.is_valid()) {
-            const String message = vformat("Cannot paste because source function '%s' no longer exists", function_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
+    const Vector2 offset = (get_scroll_offset() + get_local_mouse_position()) / get_zoom();
 
-        const Ref<OScriptFunction> function = _graph->get_orchestration()->find_function(function_name);
-        if (!function.is_valid()) {
-            const String message = vformat("Cannot paste because function '%s' does not exist", function_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
+    OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.paste(
+        _graph, offset, is_snapping_enabled(), get_snapping_distance());
 
-        if (!MethodUtils::has_same_signature(source_function->get_method_info(), function->get_method_info())) {
-            const String message = vformat("Function '%s' exists but with a different definition", function_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
+    if (result.added_nodes.is_empty()) {
+        ORCHESTRATOR_ERROR("No nodes were pasted");
     }
 
-    // Pass 2 - Verify Variables
-    for (const StringName& variable_name : _copy_buffer.variable_names) {
-        const Ref<OScriptVariable> source_variable = _copy_buffer.orchestration->get_variable(variable_name);
-        if (!source_variable.is_valid()) {
-            const String message = vformat("Variable '%s' no longer exists in the source orchestration", variable_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
-
-        const Ref<OScriptVariable> variable = _graph->get_orchestration()->get_variable(variable_name);
-        if (variable.is_valid() && !PropertyUtils::are_equal(source_variable->get_info(), variable->get_info())) {
-            const String message = vformat("Variable '%s' exists but with a different definition", variable_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
-    }
-
-    // Pass 3 - Verify Signals
-    for (const StringName& signal_name : _copy_buffer.signal_names) {
-        const Ref<OScriptSignal> source_signal = _copy_buffer.orchestration->find_custom_signal(signal_name);
-        if (!source_signal.is_valid()) {
-            const String message = vformat("Cannot paste because source signal '%s' no longer exists", signal_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
-
-        const Ref<OScriptSignal> signal = _graph->get_orchestration()->find_custom_signal(signal_name);
-        if (!signal.is_valid()) {
-            const String message = vformat("Cannot paste because signal '%s' does not exist", signal_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
-
-        if (!MethodUtils::has_same_signature(source_signal->get_method_info(), signal->get_method_info())) {
-            const String message = vformat("Signal '%s' exists but with a different definition", signal_name);
-            ORCHESTRATOR_ERROR_TITLE(message, "Clipboard error");
-        }
-    }
-
-    // Pass 4 - Create variable references that don't already exist
-    for (const StringName& variable_name : _copy_buffer.variable_names) {
-        const Ref<OScriptVariable> source_variable = _copy_buffer.orchestration->get_variable(variable_name);
-        if (source_variable.is_valid()) {
-            continue;
-        }
-
-        const Ref<OScriptVariable> variable = _graph->get_orchestration()->create_variable(variable_name);
-        ERR_CONTINUE(!variable.is_valid());
-
-        variable->copy_persistent_state(source_variable);
-    }
-
-    // Pass 5 - Create signal references that don't already exist
-    for (const StringName& signal_name : _copy_buffer.signal_names) {
-        const Ref<OScriptSignal> source_signal = _copy_buffer.orchestration->find_custom_signal(signal_name);
-        if (source_signal.is_valid()) {
-            continue;
-        }
-
-        const Ref<OScriptSignal> signal = _graph->get_orchestration()->create_custom_signal(signal_name);
-        ERR_CONTINUE(!signal.is_valid());
-
-        signal->copy_persistent_state(source_signal);
-    }
-
-    // Pass 6 - Compute paste offset
-    Vector2 offset = (get_scroll_offset() + get_local_mouse_position()) / get_zoom();
-    #if GODOT_VERSION >= 0x040500
-    if (!_copy_buffer.nodes.is_empty()) {
-        offset -= _copy_buffer.nodes.get(0).position;
-    }
-    #else
-    if (!_copy_buffer.nodes.is_empty()) {
-        offset -= _copy_buffer.nodes[0].position;
-    }
-    #endif
-
-    if (is_snapping_enabled()) {
-        offset = offset.snapped(Vector2(get_snapping_distance(), get_snapping_distance()));
-    }
-
-    // Pass 7 - Create the nodes
-    HashMap<int, int> connection_remap;
-    HashSet<int> added_set;
-
-    for (const CopyItem& item : _copy_buffer.nodes) {
-        const Ref<OrchestrationGraphNode> node = item.node;
-
-        // Since the source and target function definitions may, the copy needs to refer to the GUID
-        // in the target because while the function signatures match, they have different GUIDs.
-        const Ref<OScriptNodeCallScriptFunction> call_script_func = node;
-        if (call_script_func.is_valid()) {
-            const StringName func_name = call_script_func->get_function()->get_function_name();
-            const Ref<OScriptFunction> target_func = _graph->get_orchestration()->find_function(func_name);
-            if (target_func.is_valid()) {
-                call_script_func->set("guid", target_func->get_guid().to_string());
-            }
-        }
-
-        const Ref<OrchestrationGraphNode> new_node = _graph->paste_node(node, item.position + offset);
-
-        connection_remap[item.id] = new_node->get_id();
-        added_set.insert(new_node->get_id());
-    }
-
-    // Pass 8 - Apply connections between pasted nodes
-    for (const uint64_t connection_id : _copy_buffer.connections) {
-        const Connection C(connection_id);
-        _graph->link(connection_remap[C.from_node], C.from_port, connection_remap[C.to_node], C.to_port);
-    }
-
-    // Pass 9 - Update the UI
     _refresh_panel_connections_with_model();
 
-    // Pass 10 - Apply selections on the newly pasted nodes
+    emit_signal("nodes_changed");
+
     clear_selections();
-    for (int node_id : added_set) {
+
+    for (uint64_t node_id : result.added_nodes) {
         find_node(node_id)->set_selected(true);
     }
 
     _set_edited(true);
+
+    if (result.had_skipped_nodes()) {
+        String message = "Several nodes were not pasted due to the following reasons:\n\n";
+        for (const KeyValue<StringName, String>& E : result.skipped_functions) {
+            message += "* Function " + E.key + ": " + E.value + "\n";
+        }
+        for (const KeyValue<StringName, String>& E : result.skipped_events) {
+            message += "* Event " + E.key + ": " + E.value + "\n";
+        }
+        for (const KeyValue<StringName, String>& E : result.skipped_variables) {
+            message += "* Variable " + E.key + ": " + E.value + "\n";
+        }
+        for (const KeyValue<StringName, String>& E : result.skipped_signals) {
+            message += "* Signal " + E.key + ": " + E.value + "\n";
+        }
+        ORCHESTRATOR_ERROR(message);
+    }
 }
 
 void OrchestratorEditorGraphPanel::_begin_node_move() {
@@ -872,12 +713,7 @@ void OrchestratorEditorGraphPanel::_knots_changed() {
 }
 
 void OrchestratorEditorGraphPanel::_clear_copy_buffer() {
-    _copy_buffer.nodes.clear();
-    _copy_buffer.connections.clear();
-    _copy_buffer.orchestration = nullptr;
-    _copy_buffer.variable_names.clear();
-    _copy_buffer.function_names.clear();
-    _copy_buffer.signal_names.clear();
+    _clipboard.clear();
 }
 
 void OrchestratorEditorGraphPanel::_toggle_resizer_for_selected_nodes() {
@@ -1190,81 +1026,28 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
 }
 
 bool OrchestratorEditorGraphPanel::_create_new_function(const String& p_name, bool p_has_return) {
-    ERR_FAIL_COND_V_MSG(_graph->get_orchestration()->has_function(p_name), false, "A function already exists with that name");
-
-    const int flags = OrchestrationGraph::GF_FUNCTION | OrchestrationGraph::GF_DEFAULT;
-    const Ref<OrchestrationGraph> function_graph = _graph->get_orchestration()->create_graph(p_name, flags);
-    ERR_FAIL_COND_V_MSG(!function_graph.is_valid(), false, "Failed to create function graph");
-
-    MethodInfo mi;
-    mi.name = p_name;
-    mi.flags = METHOD_FLAG_NORMAL;
-    mi.return_val.type = Variant::NIL;
-    mi.return_val.hint = PROPERTY_HINT_NONE;
-    mi.return_val.usage = PROPERTY_USAGE_DEFAULT;
-
-    NodeSpawnOptions options;
-    options.node_class = OScriptNodeFunctionEntry::get_class_static();
-    options.context.method = mi;
-
-    const Ref<OrchestrationGraphNode> entry = function_graph->create_node<OScriptNodeFunctionEntry>(options.context);
-    if (!entry.is_valid()) {
-        _graph->get_orchestration()->remove_graph(function_graph->get_graph_name());
-        ERR_FAIL_V_MSG(false, "Failed to create function entry node in the function graph");
+    const Ref<OScriptFunction> function = _graph->get_orchestration()->create_function(p_name, p_has_return);
+    if (function.is_null()) {
+        return false;
     }
 
     _set_edited(true);
-
-    if (!p_has_return) {
-        return true;
-    }
-
-    const Vector2 position = entry->get_position() + Vector2(300, 0);
-    if (!function_graph->create_node<OScriptNodeFunctionResult>(options.context, position).is_valid()) {
-        ERR_FAIL_V_MSG(false, "Failed to create function result node in the function graph, please create it manually.");
-    }
 
     return true;
 }
 
 bool OrchestratorEditorGraphPanel::_create_new_function_override(const MethodInfo& p_method) {
-    ERR_FAIL_COND_V_MSG(_graph->get_orchestration()->has_function(p_method.name), false, "A function already exists with that name");
+    bool user_defined = !(p_method.flags & METHOD_FLAG_VIRTUAL);
 
-    const int flags = OrchestrationGraph::GF_FUNCTION | OrchestrationGraph::GF_DEFAULT;
-    const Ref<OrchestrationGraph> function_graph = _graph->get_orchestration()->create_graph(p_method.name, flags);
-    ERR_FAIL_COND_V_MSG(!function_graph.is_valid(), false, "Failed to create function graph");
-
-    NodeSpawnOptions options;
-    options.node_class = OScriptNodeFunctionEntry::get_class_static();
-    options.context.method = p_method;
-
-    if (p_method.flags & METHOD_FLAG_VIRTUAL) {
-        options.context.user_data = DictionaryUtils::of({ { "user_defined", false } });
-    } else {
-        options.context.user_data = DictionaryUtils::of({ { "user_defined", true } });
-    }
-
-    const Ref<OScriptNodeFunctionEntry> entry = function_graph->create_node<OScriptNodeFunctionEntry>(options.context);
-    if (!entry.is_valid()) {
-        _graph->get_orchestration()->remove_graph(function_graph->get_graph_name());
-        ERR_FAIL_V_MSG(false, "Failed to create function entry node in the function graph");
+    const Ref<OScriptFunction> function = _graph->get_orchestration()->create_function(p_method, user_defined);
+    if (!function.is_valid()) {
+        return false;
     }
 
     _set_edited(true);
 
-    if (MethodUtils::has_return_value(p_method)) {
-        const Vector2 position = entry->get_position() + Vector2(300, 0);
+    call_deferred("emit_signal", "focus_requested", function);
 
-        const Ref<OScriptNodeFunctionResult> result = function_graph->create_node<OScriptNodeFunctionResult>(options.context, position);
-        if (!result.is_valid()) {
-            _graph->get_orchestration()->remove_graph(function_graph->get_graph_name());
-            ERR_FAIL_V_MSG(false, "Failed to create function " + p_method.name);
-        }
-
-        entry->find_pin(0, PD_Output)->link(result->find_pin(0, PD_Input));
-    }
-
-    call_deferred("emit_signal", "focus_requested", entry->get_function());
     return true;
 }
 

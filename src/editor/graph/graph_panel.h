@@ -18,6 +18,7 @@
 
 #include "common/godot_version.h"
 #include "core/godot/object/weak_ref.h"
+#include "editor/graph/graph_clipboard.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel_styler.h"
 
@@ -87,27 +88,7 @@ private:
         int32_t pin_port;
     };
 
-    struct CopyItem {
-        int id;
-        Ref<OrchestrationGraphNode> node;
-        Vector2 position;
-        Vector2 size;
-    };
-
-    struct CopyBuffer {
-        List<CopyItem> nodes;
-        List<uint64_t> connections;
-        Orchestration* orchestration = nullptr;
-        HashSet<StringName> variable_names;
-        HashSet<StringName> function_names;
-        HashSet<StringName> signal_names;
-
-        bool is_empty() const {
-            return nodes.is_empty();
-        }
-    };
-
-    static CopyBuffer _copy_buffer;
+    OrchestratorEditorGraphClipboard _clipboard;
 
     GodotVersionInfo _godot_version;
 

@@ -16,6 +16,7 @@
 //
 #include "orchestration/orchestration.h"
 
+#include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/variant_utils.h"
@@ -643,6 +644,80 @@ PackedStringArray Orchestration::get_graph_names() const {
 
 bool Orchestration::has_function(const StringName& p_name) const {
     return _functions.has(p_name);
+}
+
+Ref<OScriptFunction> Orchestration::create_function(const StringName& p_name, bool p_has_return) {
+    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot create functions, instances exist.");
+    ERR_FAIL_COND_V_MSG(!String(p_name).is_valid_identifier(), nullptr, "Invalid function name: " + p_name);
+    ERR_FAIL_COND_V_MSG(_functions.has(p_name), nullptr, "A function already exists with the name: " + p_name);
+    ERR_FAIL_COND_V_MSG(_variables.has(p_name), nullptr, "A variable already exists with the name: " + p_name);
+    ERR_FAIL_COND_V_MSG(_signals.has(p_name), nullptr, "A signal already exists with the name: " + p_name);
+
+    constexpr int flags = OrchestrationGraph::GF_FUNCTION | OrchestrationGraph::GF_DEFAULT;
+    const Ref<OrchestrationGraph> graph = create_graph(p_name, flags);
+    ERR_FAIL_COND_V_MSG(!graph.is_valid(), {}, "Failed to create the function graph");
+
+    MethodInfo method;
+    method.name = p_name;
+    method.flags = METHOD_FLAG_NORMAL;
+    method.return_val.type = Variant::NIL;
+    method.return_val.hint = PROPERTY_HINT_NONE;
+    method.return_val.usage = PROPERTY_USAGE_DEFAULT;
+
+    OScriptNodeInitContext context;
+    context.method = method;
+
+    const Ref<OrchestrationGraphNode> entry = graph->create_node<OScriptNodeFunctionEntry>(context);
+    if (!entry.is_valid()) {
+        remove_graph(graph->get_graph_name());
+        ERR_FAIL_V_MSG({}, "Failed to create function entry node in the function graph");
+    }
+
+    const Ref<OScriptFunction> function = find_function(graph->get_graph_name());
+
+    if (p_has_return) {
+        const Vector2 position = entry->get_position() + Vector2(300, 0);
+        if (!graph->create_node<OScriptNodeFunctionResult>(context, position).is_valid()) {
+            ERR_FAIL_V_MSG(function, "Failed to create function result node in the graph, please create it manually.");
+        }
+    }
+
+    return function;
+}
+
+Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, bool p_user_defined) {
+    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot create functions, instances exist.");
+    ERR_FAIL_COND_V_MSG(!String(p_method.name).is_valid_identifier(), nullptr, "Invalid function name: " + p_method.name);
+    ERR_FAIL_COND_V_MSG(_functions.has(p_method.name), nullptr, "A function already exists with the name: " + p_method.name);
+    ERR_FAIL_COND_V_MSG(_variables.has(p_method.name), nullptr, "A variable already exists with the name: " + p_method.name);
+    ERR_FAIL_COND_V_MSG(_signals.has(p_method.name), nullptr, "A signal already exists with the name: " + p_method.name);
+
+    constexpr int flags = OrchestrationGraph::GF_FUNCTION | OrchestrationGraph::GF_DEFAULT;
+    const Ref<OrchestrationGraph> graph = create_graph(p_method.name, flags);
+    ERR_FAIL_COND_V_MSG(!graph.is_valid(), {}, "Failed to create the function graph");
+
+    OScriptNodeInitContext context;
+    context.method = p_method;
+    context.user_data = DictionaryUtils::of({ { "user_defined", p_user_defined } });
+
+    const Ref<OrchestrationGraphNode> entry = graph->create_node<OScriptNodeFunctionEntry>(context);
+    if (!entry.is_valid()) {
+        remove_graph(graph->get_graph_name());
+        ERR_FAIL_V_MSG({}, "Failed to create function entry node in the function graph");
+    }
+
+    if (MethodUtils::has_return_value(p_method)) {
+        const Vector2 position = entry->get_position() + Vector2(300, 0);
+        const Ref<OScriptNodeFunctionResult> result = graph->create_node<OScriptNodeFunctionResult>(context, position);
+        if (!result.is_valid()) {
+            remove_graph(graph->get_graph_name());
+            ERR_FAIL_V_MSG({}, "Failed to create function " + p_method.name);
+        }
+
+        entry->find_pin(0, PD_Output)->link(result->find_pin(0, PD_Input));
+    }
+
+    return find_function(graph->get_graph_name());
 }
 
 Ref<OScriptFunction> Orchestration::create_function(const MethodInfo& p_method, int p_node_id, bool p_user_defined) {
