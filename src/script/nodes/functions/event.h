@@ -49,7 +49,7 @@ public:
     String get_icon() const override { return "PlayStart"; }
     bool can_user_delete_node() const override { return true; }
     bool can_inspect_node_properties() const override { return true; }
-    bool can_duplicate() const override { return false; }
+    bool can_duplicate() const override { return true; }
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
     //~ End OScriptNode Interface
 

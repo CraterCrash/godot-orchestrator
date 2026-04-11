@@ -16,6 +16,7 @@
 //
 #pragma once
 
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/variant/string.hpp>
 
 using namespace godot;
@@ -33,6 +34,25 @@ namespace StringUtils {
             result = p_array[0];
             for (int i = 1; i < p_array.size(); i++) {
                 result += (p_delimiter + String(p_array[i]));
+            }
+        }
+        return result;
+    }
+
+    /// Join the set elements with the delimiter
+    /// @tparam T the set type
+    /// @param p_delimiter the delimiter
+    /// @param p_set the hash set
+    /// @return the string result joined by the delimiter
+    template<typename T> String join(const String& p_delimiter, const HashSet<T>& p_set) {
+        String result;
+        if (!p_set.is_empty()) {
+            for (const Variant& p_value : p_set) {
+                if (result.length() == 0) {
+                    result = String(p_value);
+                } else {
+                    result += p_delimiter + String(p_value);
+                }
             }
         }
         return result;
