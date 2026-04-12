@@ -34,6 +34,7 @@
 #include "editor/actions/rules/override_function_rule.h"
 #include "editor/autowire_connection_dialog.h"
 #include "editor/debugger/script_debugger_plugin.h"
+#include "editor/graph/graph_markers.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_node_factory.h"
 #include "editor/graph/graph_panel_styler.h"
@@ -478,7 +479,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     }
 
     if (!are_multiple_selections) {
-        menu->add_icon_item("Anchor", "Toggle Bookmark", callable_mp_this(_toggle_node_bookmark).bind(p_node));
+        menu->add_icon_item("Anchor", "Toggle Bookmark", callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_bookmark).bind(p_node));
     }
 
     if (p_node->is_add_pin_button_visible() && !are_multiple_selections) {
@@ -499,21 +500,21 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     align->add_icon_item("ControlAlignVCenterWide", "Align Center", callable_mp_this(_align_nodes).bind(p_node, ALIGN_CENTER));
     align->add_icon_item("ControlAlignRightWide", "Align Right", callable_mp_this(_align_nodes).bind(p_node, ALIGN_RIGHT));
 
-    if (!are_multiple_selections && _has_breakpoint_support()) {
+    if (!are_multiple_selections) {
         menu->add_separator("Breakpoints");
-        menu->add_item("Toggle Breakpoint", callable_mp_this(_toggle_node_breakpoint).bind(p_node), false, KEY_F9);
+        menu->add_item("Toggle Breakpoint", callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_breakpoint).bind(p_node), false, KEY_F9);
 
-        const bool has_breakpoints = _breakpoints.has(script_node->get_id());
-        const bool has_active_breakpoint = has_breakpoints && _breakpoint_state[script_node->get_id()];
+        const bool has_breakpoints = _markers->has_breakpoint(script_node->get_id());
+        const bool has_active_breakpoint = _markers->is_breakpoint_enabled(script_node->get_id());
 
         menu->add_item(
             vformat("%s breakpoint", has_breakpoints ? "Remove" : "Add"),
-            callable_mp_this(_set_node_breakpoint).bind(p_node, !has_breakpoints));
+            callable_mp(_markers, &OrchestratorEditorGraphMarkers::set_breakpoint).bind(p_node, !has_breakpoints));
 
         if (has_breakpoints) {
             const String label = has_active_breakpoint ? "Disable breakpoint" : "Enable breakpoint";
             menu->add_item(label,
-                callable_mp_this(_set_node_breakpoint_enabled).bind(p_node, !has_active_breakpoint));
+                callable_mp(_markers, &OrchestratorEditorGraphMarkers::set_breakpoint_enabled).bind(p_node, !has_active_breakpoint));
         }
     }
 
@@ -1190,98 +1191,6 @@ void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_a
     }
 
     #undef SET_NODE_POS
-}
-
-void OrchestratorEditorGraphPanel::_toggle_node_bookmark(OrchestratorEditorGraphNode* p_node) {
-    GUARD_NULL(p_node);
-
-    const int id = p_node->get_id();
-
-    const int index = _bookmarks.find(id);
-    if (index != -1) {
-        _bookmarks.remove_at(index);
-    } else {
-        _bookmarks.push_back(id);
-    }
-
-    p_node->notify_bookmarks_changed();
-}
-
-bool OrchestratorEditorGraphPanel::_has_breakpoint_support() const {
-    return true;
-}
-
-void OrchestratorEditorGraphPanel::_toggle_node_breakpoint(OrchestratorEditorGraphNode* p_node) {
-    ERR_FAIL_NULL_MSG(p_node, "Cannot toggle node breakpoint on an invalid node reference");
-
-    const int id = p_node->get_id();
-    if (!_breakpoint_state.has(id)) {
-        _breakpoint_state[id] = true;
-        _breakpoints.push_back(id);
-        emit_signal("breakpoint_added", id);
-    } else {
-        _breakpoint_state.erase(id);
-
-        if (_breakpoints.has(id)) {
-            _breakpoints.remove_at(_breakpoints.find(id));
-        }
-
-        emit_signal("breakpoint_removed", id);
-    }
-
-    if (OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton()) {
-        debugger->set_breakpoint(_graph->get_orchestration()->as_script()->get_path(), id, _breakpoints.has(id));
-    }
-
-    p_node->notify_breakpoints_changed();
-}
-
-void OrchestratorEditorGraphPanel::_set_node_breakpoint(OrchestratorEditorGraphNode* p_node, bool p_breaks) {
-    ERR_FAIL_NULL_MSG(p_node, "Cannot set node breakpoint on an invalid node reference");
-
-    const int id = p_node->get_id();
-    if (p_breaks) {
-        _breakpoint_state[id] = true;
-
-        if (!_breakpoints.has(id)) {
-            _breakpoints.push_back(id);
-        }
-
-        emit_signal("breakpoint_added", id);
-    } else {
-        _breakpoint_state.erase(id);
-
-        const int index = _breakpoints.find(id);
-        if (index != -1) {
-            _breakpoints.remove_at(index);
-        }
-
-        emit_signal("breakpoint_removed", id);
-    }
-
-    if (OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton()) {
-        debugger->set_breakpoint(_graph->get_orchestration()->as_script()->get_path(), id, p_breaks);
-    }
-
-    p_node->notify_breakpoints_changed();
-}
-
-void OrchestratorEditorGraphPanel::_set_node_breakpoint_enabled(OrchestratorEditorGraphNode* p_node, bool p_enabled) {
-    ERR_FAIL_NULL_MSG(p_node, "Cannot set node breakpoint status on an invalid node reference");
-
-    const int id = p_node->get_id();
-    _breakpoint_state[id] = p_enabled;
-    emit_signal("breakpoint_changed", id, p_enabled);
-
-    if (!_breakpoints.has(id)) {
-        _breakpoints.push_back(id);
-    }
-
-    if (OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton()) {
-        debugger->set_breakpoint(_graph->get_orchestration()->as_script()->get_path(), id, p_enabled);
-    }
-
-    p_node->notify_breakpoints_changed();
 }
 
 void OrchestratorEditorGraphPanel::_set_variable_node_validation(OrchestratorEditorGraphNode* p_node, bool p_validated) {
@@ -2350,7 +2259,7 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
 
         if (key->get_keycode() == KEY_F9) {
             for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
-                _toggle_node_breakpoint(node);
+                _markers->toggle_breakpoint(node);
             }, true);
 
             accept_event();
@@ -2721,142 +2630,47 @@ Node* OrchestratorEditorGraphPanel::get_connection_layer_node() const {
 }
 
 bool OrchestratorEditorGraphPanel::is_bookmarked(const OrchestratorEditorGraphNode* p_node) const {
-    return !p_node ? false : _bookmarks.has(p_node->get_id());
+    return _markers->is_bookmarked(p_node);
 }
 
 void OrchestratorEditorGraphPanel::set_bookmarked(OrchestratorEditorGraphNode* p_node, bool p_bookmarked) {
-    ERR_FAIL_NULL(p_node);
-
-    const int node_id = p_node->get_id();
-
-    const int index = _bookmarks.find(node_id);
-    if (index != -1 && !p_bookmarked) {
-        _bookmarks.remove_at(index);
-        p_node->notify_bookmarks_changed();
-    } else if (index == -1 && p_bookmarked) {
-        _bookmarks.push_back(node_id);
-        p_node->notify_bookmarks_changed();
-    }
+    _markers->set_bookmarked(p_node, p_bookmarked);
 }
 
 void OrchestratorEditorGraphPanel::goto_next_bookmark() {
-    if (_bookmarks.is_empty()) {
-        _bookmarks_index = -1;
-        return;
-    }
-
-    if (_bookmarks_index >= _bookmarks.size()) {
-        _bookmarks_index = -1;
-    }
-
-    _bookmarks_index = (_bookmarks_index == -1)
-        ? 0
-        : (_bookmarks_index + 1) % _bookmarks.size();
-
-    center_node_id(_bookmarks[_bookmarks_index]);
+    _markers->goto_next_bookmark();
 }
 
 void OrchestratorEditorGraphPanel::goto_previous_bookmark() {
-    if (_bookmarks.is_empty()) {
-        _bookmarks_index = -1;
-        return;
-    }
-
-    if (_bookmarks_index >= _bookmarks.size()) {
-        _bookmarks_index = -1;
-    }
-
-    _bookmarks_index = (_bookmarks_index == -1)
-        ? _bookmarks.size() - 1
-        : (_bookmarks_index - 1 + _bookmarks.size()) % _bookmarks.size();
-
-    center_node_id(_bookmarks[_bookmarks_index]);
+    _markers->goto_previous_bookmark();
 }
 
 bool OrchestratorEditorGraphPanel::is_breakpoint(const OrchestratorEditorGraphNode* p_node) const {
-    ERR_FAIL_NULL_V(p_node, false);
-    return _breakpoints.has(p_node->get_id());
+    return _markers->is_breakpoint(p_node);
 }
 
 void OrchestratorEditorGraphPanel::set_breakpoint(OrchestratorEditorGraphNode* p_node, bool p_breakpoint) {
-    ERR_FAIL_NULL(p_node);
-
-    const int node_id = p_node->get_id();
-
-    const int index = _breakpoints.find(node_id);
-    if (index != -1 && !p_breakpoint) {
-        _breakpoints.remove_at(index);
-        _breakpoint_state.erase(node_id);
-        p_node->notify_breakpoints_changed();
-    } else if (index == -1 && p_breakpoint) {
-        _breakpoints.push_back(node_id);
-        _breakpoint_state[node_id] = true;
-        p_node->notify_breakpoints_changed();
-    }
+    _markers->set_breakpoint(p_node, p_breakpoint);
 }
 
 bool OrchestratorEditorGraphPanel::get_breakpoint(OrchestratorEditorGraphNode* p_node) {
-    ERR_FAIL_NULL_V(p_node, false);
-    return _breakpoint_state.has(p_node->get_id()) ? _breakpoint_state[p_node->get_id()] : false;
+    return _markers->get_breakpoint(p_node);
 }
 
 void OrchestratorEditorGraphPanel::goto_next_breakpoint() {
-    if (_breakpoints.is_empty()) {
-        _breakpoints_index = -1;
-        return;
-    }
-
-    if (_breakpoints_index >= _breakpoints.size()) {
-        _breakpoints_index = -1;
-    }
-
-    _breakpoints_index = (_breakpoints_index == -1)
-        ? 0
-        : (_breakpoints_index + 1) % _breakpoints.size();
-
-    center_node_id(_breakpoints[_breakpoints_index]);
+    _markers->goto_next_breakpoint();
 }
 
 void OrchestratorEditorGraphPanel::goto_previous_breakpoint() {
-    if (_breakpoints.is_empty()) {
-        _breakpoints_index = -1;
-        return;
-    }
-
-    if (_breakpoints_index >= _breakpoints.size()) {
-        _breakpoints_index = -1;
-    }
-
-    _breakpoints_index = (_breakpoints_index == -1)
-        ? _breakpoints.size() - 1
-        : (_breakpoints_index - 1 + _breakpoints.size()) % _breakpoints.size();
-
-    center_node_id(_breakpoints[_breakpoints_index]);
+    _markers->goto_previous_breakpoint();
 }
 
 PackedInt32Array OrchestratorEditorGraphPanel::get_breakpoints() const {
-    PackedInt32Array active_breakpoints;
-    for (const KeyValue<int, bool>& E : _breakpoint_state) {
-        if (E.value && !active_breakpoints.has(E.key)) {
-            active_breakpoints.push_back(E.key);
-        }
-    }
-    return active_breakpoints;
+    return _markers->get_breakpoints();
 }
 
 void OrchestratorEditorGraphPanel::clear_breakpoints() {
-    while (!_breakpoints.is_empty()) {
-        int node_id = _breakpoints[_breakpoints.size() - 1];
-
-        if (OrchestratorEditorDebuggerPlugin* debugger = OrchestratorEditorDebuggerPlugin::get_singleton()) {
-            debugger->set_breakpoint(_graph->get_orchestration()->as_script()->get_path(), node_id, false);
-        }
-
-        _breakpoints.remove_at(_breakpoints.size() - 1);
-        _breakpoint_state.erase(node_id);
-    }
-
-    _queue_panel_refresh();
+    _markers->clear_breakpoints();
 }
 
 void OrchestratorEditorGraphPanel::show_override_function_action_menu(const Callable& p_callback) {
@@ -2999,16 +2813,8 @@ void OrchestratorEditorGraphPanel::remove_node(OrchestratorEditorGraphNode* p_no
         ORCHESTRATOR_CONFIRM("Do you wish to delete this node?", callable_mp_this(remove_node).bind(p_node, false));
     }
 
-    const int node_id = p_node->get_id();
-
-    if (_breakpoints.has(node_id)) {
-        _breakpoint_state.erase(node_id);
-        _breakpoints.remove_at(_breakpoints.find(node_id));
-    }
-
-    if (_bookmarks.has(node_id)) {
-        _bookmarks.remove_at(_bookmarks.find(node_id));
-    }
+    _markers->set_bookmarked(p_node, false);
+    _markers->set_breakpoint(p_node, false);
 
     if (p_node->is_selected()) {
         p_node->set_selected(false);
@@ -3016,6 +2822,7 @@ void OrchestratorEditorGraphPanel::remove_node(OrchestratorEditorGraphNode* p_no
 
     p_node->queue_free();
 
+    const int node_id = p_node->get_id();
     _graph->get_orchestration()->remove_node(node_id);
 
     // This makes sure that we only ever emit 1 event during bulk node removal
@@ -3219,24 +3026,17 @@ Variant OrchestratorEditorGraphPanel::get_edit_state() const {
         }
     }
 
-    Array breakpoints;
-    for (const KeyValue<int, bool>& E : _breakpoint_state) {
-        Dictionary data;
-        data[E.key] = E.value;
-        breakpoints.push_back(data);
-    }
-
     Dictionary panel_state;
     panel_state["name"] = get_name();
     panel_state["viewport_offset"] = get_scroll_offset();
     panel_state["zoom"] = get_zoom();
     panel_state["selections"] = selections;
-    panel_state["bookmarks"] = _bookmarks;
-    panel_state["breakpoints"] = breakpoints;
     panel_state["minimap"] = is_minimap_enabled();
     panel_state["snapping"] = is_snapping_enabled();
     panel_state["grid"] = is_showing_grid();
     panel_state["grid_pattern"] = get_grid_pattern();
+
+    _markers->save_state(panel_state);
 
     return panel_state;
 }
@@ -3252,35 +3052,7 @@ void OrchestratorEditorGraphPanel::set_edit_state(const Variant& p_state, const 
     set_minimap_enabled(state.get("minimap", false));
     set_snapping_enabled(state.get("snapping", true));
 
-    _bookmarks = state.get("bookmarks", PackedInt64Array());
-    for (int bookmark : _bookmarks) {
-        if (OrchestratorEditorGraphNode* node = find_node(bookmark)) {
-            node->notify_bookmarks_changed();
-        }
-    }
-
-    Array breakpoints = state.get("breakpoints", Array());
-    for (int i = 0; i < breakpoints.size(); i++) {
-        const Dictionary& data = breakpoints[i];
-
-        const int node_id = data.keys()[0];
-        const bool status = data[node_id];
-
-        if (!_graph->has_node(node_id)) {
-            continue;
-        }
-
-        _breakpoint_state[node_id] = status;
-        _breakpoints.push_back(node_id);
-
-        // Notify in deferred as GraphEdit does not yet have GraphNode instances
-        callable_mp_lambda(this, [this, node_id] {
-            OrchestratorEditorGraphNode* node = find_node(node_id);
-            if (node) {
-                node->notify_breakpoints_changed();
-            }
-        }).call_deferred();
-    }
+    _markers->load_state(state);
 
     set_show_grid(state.get("grid", true));
 
@@ -3325,6 +3097,9 @@ void OrchestratorEditorGraphPanel::_bind_methods() {
 OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     _knot_editor = memnew(KnotHelper(_godot_version));
     add_child(_knot_editor);
+
+    _markers = memnew(OrchestratorEditorGraphMarkers);
+    _markers->initialize(this);
 
     _styler.instantiate();
     _styler->set_graph_panel(this);
@@ -3441,4 +3216,6 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
 }
 
 OrchestratorEditorGraphPanel::~OrchestratorEditorGraphPanel() {
+    memdelete(_markers);
+    _markers = nullptr;
 }

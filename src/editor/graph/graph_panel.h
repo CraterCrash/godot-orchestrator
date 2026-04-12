@@ -35,6 +35,7 @@ using namespace godot;
 
 /// Forward declarations
 class OrchestratorEditorActionDefinition;
+class OrchestratorEditorGraphMarkers;
 class OrchestratorEditorGraphPanelKnotEditor;
 
 /// A graph panel is a widget that allows the placement of pins that contain ports (aka pins) that provide a
@@ -42,6 +43,7 @@ class OrchestratorEditorGraphPanelKnotEditor;
 ///
 class OrchestratorEditorGraphPanel : public GraphEdit {
     friend class OrchestratorEditorGraphPanelKnotEditor;
+    friend class OrchestratorEditorGraphMarkers;
 
     using KnotHelper = OrchestratorEditorGraphPanelKnotEditor;
 
@@ -99,6 +101,7 @@ private:
     // no longer valid, any future use will return null if the pin object no longer exists.
     WeakRef<OrchestratorEditorGraphPin> _drag_from_pin;
 
+    OrchestratorEditorGraphMarkers* _markers = nullptr;
     KnotHelper* _knot_editor = nullptr;
 
     HFlowContainer* _toolbar_hflow = nullptr;
@@ -126,13 +129,6 @@ private:
     Vector2 _box_selection_from;
 
     Vector2 _menu_position;
-
-    HashMap<int, bool> _breakpoint_state;
-    PackedInt64Array _breakpoints;
-    int _breakpoints_index = -1;
-
-    PackedInt64Array _bookmarks;
-    int _bookmarks_index = -1;
 
 protected:
     static void _bind_methods();
@@ -202,11 +198,6 @@ protected:
     bool _create_new_function_override(const MethodInfo& p_method);
     void _create_call_to_parent_function(OrchestratorEditorGraphNode* p_node);
     void _align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment);
-    void _toggle_node_bookmark(OrchestratorEditorGraphNode* p_node);
-    bool _has_breakpoint_support() const;
-    void _toggle_node_breakpoint(OrchestratorEditorGraphNode* p_node);
-    void _set_node_breakpoint(OrchestratorEditorGraphNode* p_node, bool p_breaks);
-    void _set_node_breakpoint_enabled(OrchestratorEditorGraphNode* p_node, bool p_enabled);
     void _set_variable_node_validation(OrchestratorEditorGraphNode* p_node, bool p_validated);
 
     void _select_connected_execution_pins(OrchestratorEditorGraphPin* p_pin);
