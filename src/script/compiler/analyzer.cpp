@@ -6185,6 +6185,14 @@ void OScriptAnalyzer::is_shadowing(OScriptParser::IdentifierNode* p_identifier, 
 		} else if (OScriptParser::get_builtin_type(name) < Variant::VARIANT_MAX) {
 			parser->push_warning(p_identifier, OScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "built-in type");
 			return;
+		} else if (name == StringName("PI") || name == StringName("TAU") || name == StringName("INF") || name == StringName("NAN")) {
+		    parser->push_warning(p_identifier, OScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "global constant");
+		    return;
+		} else if (GDE::CoreConstants::is_global_constant(name)) {
+		    parser->push_warning(p_identifier, OScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "global constant");
+		}
+        else if (GDE::CoreConstants::is_global_enum(name)) {
+		    parser->push_warning(p_identifier, OScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "global enum");
 		}
 	}
 
