@@ -1429,8 +1429,10 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
     Vector<Ref<OrchestratorEditorActionDefinition>> actions;
     if (target) {
         actions = action_registry->get_actions(target);
-    } else if (target_reference.is_valid() && !target_reference->get_target_class().is_empty()) {
-        actions = action_registry->get_actions(target_reference->get_target_class());
+    } else if (target_reference.is_valid()) {
+        if (target_reference->has_target() && !target_reference->get_target_class().is_empty()) {
+            actions = action_registry->get_actions(target_reference->get_target_class());
+        }
     }
 
     if (actions.is_empty()) {
