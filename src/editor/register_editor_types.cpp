@@ -26,6 +26,7 @@
 #include "editor/export/orchestration_export_plugin.h"
 #include "editor/getting_started.h"
 #include "editor/goto_node_dialog.h"
+#include "editor/graph/graph_markers.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/knot_editor.h"
@@ -124,6 +125,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanel)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanelStyler)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanelKnotEditor)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphMarkers)
 
     // Graph Node Type
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNode)

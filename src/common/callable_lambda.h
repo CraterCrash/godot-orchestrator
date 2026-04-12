@@ -18,7 +18,7 @@
 
 #include <utility>
 
-#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/core/binder_common.hpp>
 #include <godot_cpp/variant/callable_custom.hpp>
 
 namespace callable_internal {
