@@ -30,12 +30,17 @@ class OScriptTargetObject : public RefCounted {
 
     OScriptTargetObject() = default;
 
+    _FORCE_INLINE_ Object* _get_object() const { return cast_to<Object>(_reference); }
+
+    using ListMethod = TypedArray<Dictionary>(Object::*)() const;
+    TypedArray<Dictionary> _get_object_list(ListMethod p_method) const;
+
 protected:
     static void _bind_methods() {}
 
 public:
 
-    _FORCE_INLINE_ bool has_target() const { return _reference.get_type() != Variant::NIL; }
+    bool has_target() const;
 
     Variant get_target() const;
     StringName get_target_class() const;
