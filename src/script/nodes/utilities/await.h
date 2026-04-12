@@ -24,10 +24,33 @@ class OScriptNodeAwait : public OScriptNode {
 
 protected:
     static void _bind_methods() { }
+};
 
+/// Awaits Coroutine Functions
+class OScriptNodeAwaitCoroutine : public OScriptNodeAwait {
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeAwaitCoroutine, OScriptNodeAwait);
+
+    MethodInfo _method;
+
+protected:
+    static void _bind_methods();
+
+public:
     //~ Begin OScriptNode Interface
-    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    void allocate_default_pins() override;
+    String get_tooltip_text() const override;
+    String get_node_title() const override;
+    String get_node_title_color_name() const override { return "utilities"; }
+    void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
+    void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
+    void pin_default_value_changed(const Ref<OScriptNodePin>& p_pin) override;
+    PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
+
+    Dictionary get_method() const;
+    void set_method(const Dictionary& p_method);
+
+    MethodInfo get_method_info() const;
 };
 
 /// Awaits Member Signals
@@ -37,12 +60,16 @@ class OScriptNodeAwaitSignal : public OScriptNodeAwait {
 protected:
     static void _bind_methods() { }
 
+    //~ Begin OScriptNode Interface
+    void _upgrade(uint32_t p_version, uint32_t p_current_version) override;
+    //~ End OScriptNode Interface
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
     String get_node_title() const override;
-    String get_node_title_color_name() const override { return "signals"; }
+    String get_node_title_color_name() const override { return "utilities"; }
     void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
     PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface

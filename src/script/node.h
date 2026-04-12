@@ -109,6 +109,9 @@ protected:
     virtual void _upgrade(uint32_t p_version, uint32_t p_current_version) { }
     //~ End Upgrade Interface
 
+    /// Returns whether the node is actively in reconstruction
+    bool _is_queued_for_reconstruction() { return _reconstructing || _reconstruction_queued; }
+
     /// Queues the node for reconstruction at the end of the frame
     void _queue_reconstruct();
 

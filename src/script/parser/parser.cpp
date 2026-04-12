@@ -198,6 +198,7 @@ void OScriptParser::bind_handlers() {
     register_statement_handler<OScriptNodeSwitchEnum,               &OScriptParser::build_switch_on_enum>();
     register_statement_handler<OScriptNodeRandom,                   &OScriptParser::build_random>();
     register_statement_handler<OScriptNodeInstantiateScene,         &OScriptParser::build_instantiate_scene>();
+    register_statement_handler<OScriptNodeAwaitCoroutine,           &OScriptParser::build_await_coroutine>();
     register_statement_handler<OScriptNodeAwaitSignal,              &OScriptParser::build_await_signal>();
     register_statement_handler<OScriptNodeEmitMemberSignal,         &OScriptParser::build_emit_member_signal>();
     register_statement_handler<OScriptNodeEmitSignal,               &OScriptParser::build_emit_signal>();
@@ -467,6 +468,20 @@ OScriptParser::ExpressionNode* OScriptParser::create_expression(const Variant& p
     }
 
     return create_literal(p_value);
+}
+
+OScriptParser::ExpressionNode* OScriptParser::create_target_self_fallback(const Ref<OScriptNodePin>& p_target) {
+    ExpressionNode* target = nullptr;
+    if (p_target.is_valid()) {
+        if (p_target->has_any_connections()) {
+            target = resolve_input(p_target);
+        } else {
+            SelfNode* self = alloc_node<SelfNode>();
+            self->current_class = current_class;
+            target = self;
+        }
+    }
+    return target;
 }
 
 OScriptParser::LiteralNode* OScriptParser::create_literal(const Variant& p_value) {
@@ -2745,29 +2760,65 @@ OScriptParser::StatementResult OScriptParser::build_instantiate_scene(const Ref<
     return create_statement_result(p_script_node, 0);
 }
 
-OScriptParser::StatementResult OScriptParser::build_await_signal(const Ref<OScriptNodeAwaitSignal>& p_script_node) {
-    ExpressionNode* target = nullptr;
-    const Ref<OScriptNodePin> object = p_script_node->find_pin(1, PD_Input);
-    if (object.is_valid()) {
-        if (object->has_any_connections()) {
-            target = resolve_input(object);
-        } else {
-            SelfNode* self = alloc_node<SelfNode>();
-            self->current_class = current_class;
-            target = self;
-        }
+OScriptParser::StatementResult OScriptParser::build_await_coroutine(const Ref<OScriptNodeAwaitCoroutine>& p_script_node) {
+    ExpressionNode* target = create_target_self_fallback(p_script_node->find_pin(1, PD_Input));
+    if (target == nullptr) {
+        push_error("Failed to resolve await target");
+        return create_stop_result();
     }
 
-    SubscriptNode* the_signal = alloc_node<SubscriptNode>();
-    the_signal->base = target;
-    the_signal->index = resolve_input(p_script_node->find_pin(2, PD_Input));
-    the_signal->base->script_node_id = p_script_node->get_id();
-    the_signal->index->script_node_id = p_script_node->get_id();
-    the_signal->script_node_id = p_script_node->get_id();
+    CallNode* call_node = alloc_node<CallNode>();
 
-    // Await on the signal
+    const Ref<OScriptNodePin> function_name_pin = p_script_node->find_pin(2, PD_Input);
+    if (!function_name_pin.is_valid()) {
+        push_error("Failed to resolve function name for await taget");
+        return create_stop_result();
+    }
+
+    if (function_name_pin->has_any_connections()) {
+        // Dynamic case: await target.call(method, args...)
+        call_node = create_func_call(target, "call");
+        call_node->add_argument(resolve_input(function_name_pin));
+    } else {
+        // Static case: target.function_name(args...)
+        const StringName function_name = function_name_pin->get_effective_default_value();
+        if (function_name.is_empty()) {
+            push_error("No function name specified for await");
+            return create_stop_result();
+        }
+        call_node = create_func_call(target, function_name_pin->get_effective_default_value());
+    }
+
+    bind_call_func_args(call_node, p_script_node, 3);
+    call_node->script_node_id = p_script_node->get_id();
+
     AwaitNode* await_node = alloc_node<AwaitNode>();
-    await_node->to_await = the_signal;
+    await_node->to_await = call_node;
+    await_node->script_node_id = p_script_node->get_id();
+    set_coroutine();
+
+    const Ref<OScriptNodePin> result_pin = p_script_node->find_pin("result", PD_Output);
+    const String result_term = vformat("node_%s_result", p_script_node->get_id());
+    if (result_pin.is_valid()) {
+        add_pin_alias(result_term, result_pin);
+    }
+    create_local_and_push(result_term, await_node);
+
+    return create_statement_result(p_script_node, 0);
+}
+
+OScriptParser::StatementResult OScriptParser::build_await_signal(const Ref<OScriptNodeAwaitSignal>& p_script_node) {
+    ExpressionNode* target = create_target_self_fallback(p_script_node->find_pin(1, PD_Input));
+
+    SubscriptNode* the_awaitable = alloc_node<SubscriptNode>();
+    the_awaitable->base = target;
+    the_awaitable->index = resolve_input(p_script_node->find_pin(2, PD_Input));
+    the_awaitable->base->script_node_id = p_script_node->get_id();
+    the_awaitable->index->script_node_id = p_script_node->get_id();
+    the_awaitable->script_node_id = p_script_node->get_id();
+
+    AwaitNode* await_node = alloc_node<AwaitNode>();
+    await_node->to_await = the_awaitable;
     await_node->script_node_id = p_script_node->get_id();
     set_coroutine();
 
