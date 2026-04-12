@@ -25,6 +25,16 @@ jobs:
             cache-name: web-threads-release
             preset: web-threads-release
 
+          - name: Template w/o threads (target=template_debug, threads=no)
+            artifact-name: web-nothreads-debug
+            cache-name: web-nothreads-debug
+            preset: web-nothreads-debug
+
+          - name: Template w/ threads (target=template_debug, threads=yes)
+            artifact-name: web-threads-debug
+            cache-name: web-threads-debug
+            preset: web-threads-debug
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
