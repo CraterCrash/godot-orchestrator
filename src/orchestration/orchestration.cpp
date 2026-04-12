@@ -979,6 +979,27 @@ bool Orchestration::rename_function(const StringName& p_old_name, const StringNa
     _functions.erase(p_old_name);
     _functions[p_new_name] = function;
 
+    // Handles updating any Make Callable reference for the old function name.
+    // The criteria are based on where the object pin is mapped to a Get Self node and where the method pin
+    // has no connection and refers to the old function name.
+    // For cross orchestration updates, see https://github.com/CraterCrash/godot-orchestrator/issues/1506
+    for (const Ref<OrchestrationGraphNode>& node : get_nodes()) {
+        if (const Ref<OScriptNodeComposeFrom> compose_node = node; compose_node.is_valid()) {
+            const Ref<OScriptNodePin> object = compose_node->find_pin(0, PD_Input);
+            if (object.is_valid() && object->has_any_connections()) {
+                const Ref<OScriptNodePin> source = object->get_connections()[0];
+                if (source.is_valid() && source->get_owning_node()->is_type<OScriptNodeSelf>()) {
+                    const Ref<OScriptNodePin> method = compose_node->find_pin(1, PD_Input);
+                    if (method.is_valid() && !method->has_any_connections()) {
+                        if (method->get_default_value() == p_old_name) {
+                            method->set_default_value(p_new_name);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     emit_signal("functions_changed");
     return true;
 }
