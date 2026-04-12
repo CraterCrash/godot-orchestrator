@@ -16,38 +16,44 @@
 //
 #include "orchestration/target_object.h"
 
+TypedArray<Dictionary> OScriptTargetObject::_get_object_list(ListMethod p_method) const {
+    Object* obj = _get_object();
+    return obj ? (obj->*p_method)() : TypedArray<Dictionary>();
+}
+
+bool OScriptTargetObject::has_target() const {
+    if (_reference.get_type() == Variant::OBJECT) {
+        return _get_object() != nullptr;
+    }
+    return _reference.get_type() != Variant::NIL;
+}
+
 Variant OScriptTargetObject::get_target() const {
     return _reference;
 }
 
 StringName OScriptTargetObject::get_target_class() const {
-    switch (_reference.get_type()) {
-        case Variant::OBJECT:
-            return cast_to<Object>(_reference)->get_class();
-        default:
-            return Variant::get_type_name(_reference.get_type());
+    if (!has_target()) {
+        return {};
     }
+
+    if (_reference.get_type() == Variant::OBJECT) {
+        return _get_object()->get_class();
+    }
+
+    return Variant::get_type_name(_reference.get_type());
 }
 
 TypedArray<Dictionary> OScriptTargetObject::get_target_property_list() const {
-    if (_reference.get_type() == Variant::OBJECT) {
-        return cast_to<Object>(_reference)->get_property_list();
-    }
-    return {};
+    return _get_object_list(&Object::get_property_list);
 }
 
 TypedArray<Dictionary> OScriptTargetObject::get_target_method_list() const {
-    if (_reference.get_type() == Variant::OBJECT) {
-        return cast_to<Object>(_reference)->get_method_list();
-    }
-    return {};
+    return _get_object_list(&Object::get_method_list);
 }
 
 TypedArray<Dictionary> OScriptTargetObject::get_target_signal_list() const {
-    if (_reference.get_type() == Variant::OBJECT) {
-        return cast_to<Object>(_reference)->get_signal_list();
-    }
-    return {};
+    return _get_object_list(&Object::get_signal_list);
 }
 
 OScriptTargetObject::OScriptTargetObject(const Variant& p_reference, bool p_owned) {
@@ -57,9 +63,9 @@ OScriptTargetObject::OScriptTargetObject(const Variant& p_reference, bool p_owne
 
 OScriptTargetObject::~OScriptTargetObject() {
     if (_owned && _reference.get_type() == Variant::OBJECT) {
-        RefCounted* referenced = cast_to<RefCounted>(_reference);
-        if (!referenced) {
-            memdelete(cast_to<Object>(_reference));
+        Object* obj = _get_object();
+        if (obj && !cast_to<RefCounted>(obj)) {
+            memdelete(obj);
         }
     }
 }
