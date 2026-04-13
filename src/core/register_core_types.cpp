@@ -16,11 +16,15 @@
 //
 #include "core/register_core_types.h"
 
+#include "common/settings.h"
+#include "core/godot/core_string_names.h"
+#include "core/godot/scene_string_names.h"
 #include "godot/config/project_settings_cache.h"
 
 #include <godot_cpp/core/class_db.hpp>
 
 void register_core_singletons() {
+    GDREGISTER_INTERNAL_CLASS(OrchestratorSettings);
     GDREGISTER_INTERNAL_CLASS(OrchestratorProjectSettingsCache);
 }
 
@@ -29,9 +33,17 @@ void unregister_core_singletons() {
 }
 
 void create_core_singletons() {
+    CoreStringNames::create();
+    SceneStringNames::create();
+
+    OrchestratorSettings::create();
     OrchestratorProjectSettingsCache::create();
 }
 
 void destroy_core_singletons() {
     OrchestratorProjectSettingsCache::destroy();
+    OrchestratorSettings::destroy();
+
+    SceneStringNames::free();
+    CoreStringNames::free();
 }

@@ -20,7 +20,7 @@
 #include "common/macros.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "editor/actions/introspector.h"
-#include "script/nodes/data/arrays.h"
+#include "orchestration/nodes/arrays.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_file_system.hpp>

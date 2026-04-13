@@ -18,7 +18,7 @@
 
 #include "api/extension_db.h"
 #include "editor/actions/definition.h"
-#include "script/node.h"
+#include "orchestration/node.h"
 
 #include <godot_cpp/templates/hash_map.hpp>
 

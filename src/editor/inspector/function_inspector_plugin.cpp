@@ -19,7 +19,8 @@
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
 #include "editor/inspector/properties/editor_property_pin_properties.h"
-#include "script/nodes/functions/function_entry.h"
+#include "orchestration/nodes/function_entry.h"
+#include "orchestration/orchestration.h"
 
 void OrchestratorEditorInspectorPluginFunction::_move_up(int p_index, const Ref<OScriptFunction>& p_function) {
     _swap(p_index, 0, -1, p_function);

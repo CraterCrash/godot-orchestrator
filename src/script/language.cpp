@@ -24,10 +24,10 @@
 #include "core/godot/core_constants.h"
 #include "core/godot/variant/variant.h"
 #include "core/typedefs.h"
+#include "orchestration/nodes/print_string.h"
 #include "orchestration/serialization/text/text_parser.h"
 #include "orchestration/serialization/text/variant_parser.h"
 #include "script/compiler/analyzer.h"
-#include "script/nodes/utilities/print_string.h"
 #include "script/parser/parser.h"
 #include "script/script.h"
 #include "script/script_cache.h"
@@ -1353,6 +1353,17 @@ OScriptLanguage* OScriptLanguage::get_singleton() {
     return _singleton;
 }
 
+void OScriptLanguage::create() {
+    _singleton = memnew(OScriptLanguage);
+}
+
+void OScriptLanguage::destroy() {
+    if (_singleton) {
+        memdelete(_singleton);
+        _singleton = nullptr;
+    }
+}
+
 OScriptNodePrintStringOverlay* OScriptLanguage::get_or_create_overlay() {
     MutexLock guard(*lock.ptr());
     return OScriptNodePrintStringOverlay::get_or_create_overlay();
@@ -1362,8 +1373,6 @@ void OScriptLanguage::_bind_methods() {
 }
 
 OScriptLanguage::OScriptLanguage() {
-    ERR_FAIL_COND(_singleton);
-    _singleton = this;
     lock.instantiate();
 
     strings._init = StringName("_init");
@@ -1392,8 +1401,6 @@ OScriptLanguage::OScriptLanguage() {
 }
 
 OScriptLanguage::~OScriptLanguage() {
-    _singleton = nullptr;
-
     global_array.clear();
     globals.clear();
     named_globals.clear();

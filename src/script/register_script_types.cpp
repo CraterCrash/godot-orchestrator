@@ -16,41 +16,20 @@
 //
 #include "script/register_script_types.h"
 
-#include "common/settings.h"
-#include "common/version.h"
-#include "core/godot/core_string_names.h"
-#include "core/godot/scene_string_names.h"
-#include "script/nodes/functions/call_parent_function.h"
-#include "script/nodes/script_nodes.h"
+#include "script/language.h"
 #include "script/script.h"
 #include "script/script_cache.h"
 #include "script/serialization/binary/resource_loader_binary.h"
 #include "script/serialization/binary/resource_saver_binary.h"
 #include "script/serialization/resource_cache.h"
+#include "script/serialization/resource_format.h"
 #include "script/serialization/text/resource_loader_text.h"
 #include "script/serialization/text/resource_saver_text.h"
 #include "script/utility_functions.h"
 
 #include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/resource_saver.hpp>
-#include <godot_cpp/templates/vector.hpp>
-
-namespace orchestrator {
-    namespace internal {
-        Vector<Ref<ResourceFormatLoader>> loaders;
-        Vector<Ref<ResourceFormatSaver>> savers;
-
-        OScriptLanguage* language = nullptr;
-        OrchestratorSettings* settings = nullptr;
-        ExtensionDB* extension_db = nullptr;
-        OScriptCache* script_cache = nullptr;
-        ResourceCache* resource_cache = nullptr;
-    }
-}
 
 void register_script_types() {
-    using namespace orchestrator::internal;
 
     // Register loader/savers
     GDREGISTER_INTERNAL_CLASS(OScriptTextResourceFormatLoader)
@@ -58,253 +37,46 @@ void register_script_types() {
     GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceFormatLoader)
     GDREGISTER_INTERNAL_CLASS(OScriptBinaryResourceFormatSaver)
 
-    // Settings
-    GDREGISTER_INTERNAL_CLASS(OrchestratorSettings)
-
     // Nodes - Abstract first
-    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNode)
-    GDREGISTER_INTERNAL_CLASS(OScriptTargetObject)
-    GDREGISTER_INTERNAL_CLASS(OScriptNodePin)
     GDREGISTER_INTERNAL_CLASS(OScriptLanguage)
-    #if GODOT_VERSION >= 0x040500
-    GDREGISTER_CLASS(OScriptGraph)
-    GDREGISTER_CLASS(OScriptFunction)
-    GDREGISTER_CLASS(OScriptVariable)
-    GDREGISTER_CLASS(OScriptSignal)
-    #else
-    GDREGISTER_INTERNAL_CLASS(OScriptGraph)
-    GDREGISTER_INTERNAL_CLASS(OScriptFunction)
-    GDREGISTER_INTERNAL_CLASS(OScriptVariable)
-    GDREGISTER_INTERNAL_CLASS(OScriptSignal)
-    #endif
-    GDREGISTER_INTERNAL_CLASS(OScriptAction)
 
     // Purposely public
     GDREGISTER_CLASS(OScript)
-    GDREGISTER_CLASS(Orchestration) // todo: make private?
     GDREGISTER_INTERNAL_CLASS(OScriptNativeClass)
     GDREGISTER_INTERNAL_CLASS(OScriptFunctionState)
     GDREGISTER_INTERNAL_CLASS(OScriptParserRef)
 
-    CoreStringNames::create();
-    SceneStringNames::create();
-
-    // Create the ScriptExtension and ScriptCache
-    language = memnew(OScriptLanguage);
-    script_cache = memnew(OScriptCache);
-
+    OScriptLanguage::create();
+    OScriptCache::create();
     OScriptUtilityFunctions::register_functions();
 }
 
 void unregister_script_types() {
-    using namespace orchestrator::internal;
-
-    if (script_cache) {
-        memdelete(script_cache);
-        script_cache = nullptr;
-    }
-    if (language) {
-        memdelete(language);
-        language = nullptr;
-    }
-
+    OScriptCache::destroy();
+    OScriptLanguage::destroy();
     OScriptUtilityFunctions::unregister_functions();
-    SceneStringNames::free();
-    CoreStringNames::free();
 }
 
 void register_script_extension() {
-    using namespace orchestrator::internal;
-
-    // Create the settings implementation
-    // This must be done before we create the OScriptLanguage
-    settings = memnew(OrchestratorSettings);
-    Engine::get_singleton()->register_script_language(language);
+    OScriptLanguage* language = OScriptLanguage::get_singleton();
+    if (language) {
+        Engine::get_singleton()->register_script_language(language);
+    }
 }
 
 void unregister_script_extension() {
-    using namespace orchestrator::internal;
-
+    OScriptLanguage* language = OScriptLanguage::get_singleton();
     if (language) {
         Engine::get_singleton()->unregister_script_language(language);
     }
-    if (settings) {
-        memdelete(settings);
-        settings = nullptr;
-    }
-}
-
-void register_script_node_types() {
-    // Script Nodes (Abstracts first)
-    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptEditablePinNode)
-    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeProperty)
-    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeVariable)
-    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeConstant)
-    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeSwitchEditablePin)
-    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeClassConstantBase)
-
-    //~ Constants
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeGlobalConstant)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeMathConstant)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeTypeConstant)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeClassConstant)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSingletonConstant)
-
-    //~ Data
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeMakeArray)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeMakeDictionary)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArrayGet)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArraySet)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArrayFind)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArrayClear)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArrayAppend)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArrayAddElement)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArrayRemoveElement)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeArrayRemoveIndex)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCoercion)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCompose)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeComposeFrom)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDecompose)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDictionarySet)
-
-    //~ Dialogue
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDialogueChoice)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDialogueMessage)
-
-    //~ Flow
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeBranch)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeChance)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeDelay)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeForLoop)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeForEach)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeRandom)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSelect)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSequence)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitch)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitchEnum)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeTypeCast)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeWhile)
-
-    //~ Functions
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallFunction)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallBuiltinFunction)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallMemberFunction)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallScriptFunction)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallStaticFunction)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeFunctionTerminator)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeFunctionEntry)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeFunctionResult)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEvent)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitchString)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSwitchInteger)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallParentMemberFunction)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeCallParentScriptFunction)
-
-    //~ Input
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeInputAction)
-
-    //~ Math
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeOperator)
-
-    //~ Memory
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeNew);
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeFree);
-
-    //~ Properties
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePropertyGet)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePropertySet)
-
-    //~ Resources
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePreload)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeResourcePath)
-
-    //~ Scene
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeInstantiateScene)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSceneNode)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSceneTree)
-
-    //~ Signals
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitMemberSignal)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitSignal)
-
-    //~ Utility
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAutoload)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwait)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwaitSignal)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeComment)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEngineSingleton)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePrintString)
-
-    // Variables
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSelf)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeVariableGet)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeVariableSet)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeLocalVariable)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAssignLocalVariable)
-}
-
-void unregister_script_node_types() {
 }
 
 void register_script_resource_formats() {
-    using namespace orchestrator::internal;
-
-    resource_cache = new ResourceCache();
-
-    // Create loaders & register
-    loaders.push_back(memnew(OScriptBinaryResourceFormatLoader));
-    loaders.push_back(memnew(OScriptTextResourceFormatLoader));
-    for (const Ref<ResourceFormatLoader>& loader : loaders) {
-        ResourceLoader::get_singleton()->add_resource_format_loader(loader);
-    }
-
-    // Create savers & register
-    savers.push_back(memnew(OScriptBinaryResourceFormatSaver));
-    savers.push_back(memnew(OScriptTextResourceFormatSaver));
-    for (const Ref<ResourceFormatSaver>& saver : savers) {
-        ResourceSaver::get_singleton()->add_resource_format_saver(saver);
-    }
+    ResourceCache::create();
+    OScriptResourceFormat::create();
 }
 
 void unregister_script_resource_formats() {
-    using namespace orchestrator::internal;
-
-    for (Ref<ResourceFormatSaver>& saver : savers) {
-        ResourceSaver::get_singleton()->remove_resource_format_saver(saver);
-        saver.unref();
-    }
-    savers.clear();
-
-    for (Ref<ResourceFormatLoader>& loader : loaders) {
-        ResourceLoader::get_singleton()->remove_resource_format_loader(loader);
-        loader.unref();
-    }
-    loaders.clear();
-
-    delete resource_cache;
-    resource_cache = nullptr;
-}
-
-void register_script_scene_types() {
-    GDREGISTER_INTERNAL_CLASS(OScriptNodePrintStringOverlay)
-}
-
-void unregister_script_scene_types() {
-}
-
-void register_extension_db() {
-    using namespace orchestrator::internal;
-
-    extension_db = new ExtensionDB();
-}
-
-void unregister_extension_db() {
-    using namespace orchestrator::internal;
-
-    delete extension_db;
-    extension_db = nullptr;
-
-    // The GUID class maintains a static RandomNumberGenerator
-    // We need to clean this up on exit.
-    Guid::cleanup();
+    OScriptResourceFormat::destroy();
+    ResourceCache::destroy();
 }

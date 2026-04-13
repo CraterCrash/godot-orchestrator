@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "core/godot/variant/variant.h"
+#include "script/language.h"
 #include "script/script.h"
 
 #include <godot_cpp/core/mutex_lock.hpp>

@@ -17,8 +17,7 @@
 #include "editor/actions/rules/virtual_function_rule.h"
 
 #include "editor/actions/filter_engine.h"
-#include "script/function.h"
-#include "script/script.h"
+#include "orchestration/function.h"
 
 bool OrchestratorEditorActionVirtualFunctionRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
     ERR_FAIL_COND_V(!p_action.is_valid(), false);

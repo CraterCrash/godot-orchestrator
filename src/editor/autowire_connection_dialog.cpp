@@ -21,7 +21,7 @@
 #include "common/scene_utils.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/graph/graph_pin.h"
-#include "script/nodes/math/operator_node.h"
+#include "orchestration/nodes/operator_node.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>

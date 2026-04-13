@@ -17,8 +17,8 @@
 #include "editor/graph/graph_pin_factory.h"
 
 #include "editor/graph/pins/pins.h"
-#include "script/nodes/dialogue/dialogue_message.h"
-#include "script/nodes/functions/call_member_function.h"
+#include "orchestration/nodes/call_function.h"
+#include "orchestration/nodes/dialogue.h"
 
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event.hpp>
