@@ -16,7 +16,7 @@
 //
 #pragma once
 
-#include "script/node_pin.h"
+#include "orchestration/node_pin.h"
 
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/input_event.hpp>

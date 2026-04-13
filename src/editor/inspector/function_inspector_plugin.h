@@ -16,7 +16,7 @@
 //
 #pragma once
 
-#include "script/function.h"
+#include "orchestration/function.h"
 
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
 

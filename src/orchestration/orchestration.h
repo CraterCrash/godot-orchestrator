@@ -16,12 +16,12 @@
 //
 #pragma once
 
-#include "script/connection.h"
-#include "script/function.h"
-#include "script/graph.h"
-#include "script/node.h"
-#include "script/signals.h"
-#include "script/variable.h"
+#include "orchestration/connection.h"
+#include "orchestration/function.h"
+#include "orchestration/graph.h"
+#include "orchestration/node.h"
+#include "orchestration/signals.h"
+#include "orchestration/variable.h"
 
 #include <godot_cpp/templates/rb_set.hpp>
 
@@ -38,6 +38,7 @@ VARIANT_ENUM_CAST(OrchestrationType);
 class OrchestrationBinaryParser;
 class OrchestrationTextParser;
 class OScriptCache;
+class OScript;
 
 /// The common contract for different types of Orchestration resources.
 ///
@@ -250,6 +251,7 @@ public:
     PackedStringArray get_function_names() const;
     int get_function_node_id(const StringName& p_name) const;
     Vector<Ref<OScriptFunction>> get_functions() const;
+    bool is_function_override(const StringName& p_name);
     //~ End Function Interface
 
     //~ Begin Variable Interface

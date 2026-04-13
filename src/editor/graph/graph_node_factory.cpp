@@ -16,8 +16,7 @@
 //
 #include "editor/graph/graph_node_factory.h"
 #include "editor/graph/nodes/comment_graph_node.h"
-#include "script/node.h"
-#include "script/nodes/utilities/comment.h"
+#include "orchestration/nodes/comment.h"
 
 OrchestratorEditorGraphNode* OrchestratorEditorGraphNodeFactory::create_node(const Ref<OrchestrationGraphNode>& p_node) {
     const Ref<OScriptNodeComment> comment = p_node;

@@ -17,7 +17,7 @@
 #include "editor/inspector/type_cast_inspector_plugin.h"
 
 #include "editor/inspector/properties/editor_property_class_name.h"
-#include "script/nodes/data/type_cast.h"
+#include "orchestration/nodes/type_cast.h"
 
 bool OrchestratorEditorInspectorPluginTypeCast::_can_handle(Object* p_object) const {
     return p_object && p_object->get_class() == OScriptNodeTypeCast::get_class_static();

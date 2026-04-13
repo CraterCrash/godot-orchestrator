@@ -16,7 +16,7 @@
 //
 #pragma once
 
-#include "script/node_pin.h"
+#include "orchestration/node_pin.h"
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>

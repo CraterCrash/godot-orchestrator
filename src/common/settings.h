@@ -60,6 +60,9 @@ private:
 public:
     static OrchestratorSettings* get_singleton() { return _singleton; }
 
+    static void create();
+    static void destroy();
+
     /// Check whether the specified setting exists
     /// @param p_key the setting to lookup
     /// @return true if the setting exists, false otherwise

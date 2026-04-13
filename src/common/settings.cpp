@@ -213,6 +213,17 @@ void OrchestratorSettings::_update_default_settings() {
     }
 }
 
+void OrchestratorSettings::create() {
+    _singleton = memnew(OrchestratorSettings);
+}
+
+void OrchestratorSettings::destroy() {
+    if (_singleton) {
+        memdelete(_singleton);
+        _singleton = nullptr;
+    }
+}
+
 bool OrchestratorSettings::has_setting(const String& p_key) const {
     const String path = _make_key(p_key);
     const bool result = ProjectSettings::get_singleton()->has_setting(path);
@@ -287,12 +298,9 @@ void OrchestratorSettings::set_notify_prerelease_builds(bool p_notify_about_prer
 }
 
 OrchestratorSettings::OrchestratorSettings() {
-    _singleton = this;
-
     _initialize_settings();
     _update_default_settings();
 }
 
 OrchestratorSettings::~OrchestratorSettings() {
-    _singleton = nullptr;
 }

@@ -52,6 +52,9 @@ public:
     /// @return the resource cache singleton, should never be <code>null</code>
     static ResourceCache* get_singleton() { return _singleton; }
 
+    static void create();
+    static void destroy();
+
     /// Check if the resource cache has the specified resource
     /// @param p_path the resource path
     /// @return <code>true</code> if the resource cache has the specified resource, <code>false</code> otherwise

@@ -22,6 +22,7 @@
 #include "core/godot/object/script_language.h"
 #include "core/godot/scene_string_names.h"
 #include "core/godot/variant/variant.h"
+#include "script/language.h"
 #include "script/script.h"
 #include "script/script_rpc_callable.h"
 

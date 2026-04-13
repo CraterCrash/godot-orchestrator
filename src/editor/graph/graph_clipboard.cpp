@@ -19,11 +19,12 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
+#include "common/version.h"
 #include "orchestration/orchestration.h"
-#include "script/nodes/functions/call_script_function.h"
-#include "script/nodes/functions/event.h"
-#include "script/nodes/signals/emit_signal.h"
-#include "script/nodes/variables/variable.h"
+#include "orchestration/nodes/call_function.h"
+#include "orchestration/nodes/emit_signal.h"
+#include "orchestration/nodes/event.h"
+#include "orchestration/nodes/variables.h"
 
 OrchestratorEditorGraphClipboard::Buffer OrchestratorEditorGraphClipboard::_buffer;
 

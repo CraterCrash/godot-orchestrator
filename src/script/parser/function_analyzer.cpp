@@ -18,8 +18,7 @@
 
 #include "common/string_utils.h"
 #include "core/godot/variant/array.h"
-#include "script/node.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes.h"
 
 #include <functional>
 

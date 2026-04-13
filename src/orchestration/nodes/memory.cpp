@@ -1,0 +1,140 @@
+// This file is part of the Godot Orchestrator project.
+//
+// Copyright (c) 2023-present Crater Crash Studios LLC and its contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+#include "orchestration/nodes/memory.h"
+
+#include "common/property_utils.h"
+#include "script/script_server.h"
+
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/node.hpp>
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OScriptNodeNew::_get_property_list(List<PropertyInfo>* r_list) const {
+    r_list->push_back(PropertyInfo(Variant::STRING, "class_name", PROPERTY_HINT_TYPE_STRING, "Object"));
+}
+
+bool OScriptNodeNew::_get(const StringName& p_name, Variant& r_value) const {
+    if (p_name.match("class_name")) {
+        r_value = _class_name;
+        return true;
+    }
+    return false;
+}
+
+bool OScriptNodeNew::_set(const StringName& p_name, const Variant& p_value) {
+    if (p_name.match("class_name")) {
+        if (_class_name != p_value) {
+            // Script types will supply the script path
+            String value = p_value;
+            if (value.begins_with("res://")) {
+                ScriptServer::GlobalClass global_class = ScriptServer::get_global_class_by_path(value);
+                if (!global_class.name.is_empty()) {
+                    value = global_class.name;
+                }
+            }
+            const bool is_singleton = Engine::get_singleton()->get_singleton_list().has(value);
+            ERR_FAIL_COND_V_MSG(is_singleton, false, vformat("Cannot create an instance of '%s', a singleton.", value));
+
+            _class_name = value;
+            _notify_pins_changed();
+            return true;
+        }
+    }
+    return false;
+}
+
+void OScriptNodeNew::post_initialize() {
+    // Fixup - always reconstruct the node
+    reconstruct_node();
+
+    super::post_initialize();
+}
+
+void OScriptNodeNew::allocate_default_pins() {
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("instance", _class_name));
+
+    super::allocate_default_pins();
+}
+
+String OScriptNodeNew::get_tooltip_text() const {
+    return vformat("Creates a new instance of %s.", _class_name.is_empty() ? "a class" : _class_name);
+}
+
+String OScriptNodeNew::get_node_title() const {
+    return _class_name.is_empty() ? "Create instance" : vformat("Create a %s", _class_name);
+}
+
+String OScriptNodeNew::get_help_topic() const {
+    return vformat("class:%s", _class_name);
+}
+
+String OScriptNodeNew::get_icon() const {
+    return "CurveCreate";
+}
+
+void OScriptNodeNew::initialize(const OScriptNodeInitContext& p_context) {
+    _class_name = "Object";
+
+    if (p_context.user_data && p_context.user_data.value().has("class_name")) {
+        _class_name = p_context.user_data.value()["class_name"];
+    }
+
+    super::initialize(p_context);
+}
+
+OScriptNodeNew::OScriptNodeNew() {
+    _flags.set_flag(EXPERIMENTAL);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OScriptNodeFree
+
+void OScriptNodeFree::post_initialize() {
+    reconstruct_node();
+    super::post_initialize();
+}
+
+void OScriptNodeFree::allocate_default_pins() {
+    create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
+
+    Ref<OScriptNodePin> instance = create_pin(PD_Input, PT_Data, PropertyUtils::make_object("target"));
+    instance->set_label("instance");
+    instance->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
+
+    create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("ExecOut"));
+
+    super::allocate_default_pins();
+}
+
+String OScriptNodeFree::get_tooltip_text() const {
+    return "Free the memory used by the specified object.";
+}
+
+String OScriptNodeFree::get_node_title() const {
+    return "Free instance";
+}
+
+String OScriptNodeFree::get_icon() const {
+    return "CurveDelete";
+}
+
+OScriptNodeFree::OScriptNodeFree() {
+    _flags.set_flag(EXPERIMENTAL);
+}
