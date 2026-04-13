@@ -23,6 +23,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "core/godot/config/project_settings_cache.h"
+#include "core/godot/core_string_names.h"
 #include "core/godot/gdextension_compat.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/registry.h"
@@ -470,8 +471,9 @@ void OrchestratorEditor::_go_to_tab(int p_idx) {
     control = _tab_container->get_current_tab_control();
 
     if (OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(control)) {
-        _script_name_label->set_text(view->get_name());
-        _script_icon->set_texture(view->get_theme_icon());
+        _script_name_button->set_text(view->get_name());
+        _calculate_script_name_button_size();
+
         if (is_visible_in_tree()) {
             view->ensure_focus();
         }
@@ -725,8 +727,8 @@ void OrchestratorEditor::_update_script_names() {
         if (_tab_container->get_current_tab() == data_filtered[i].index) {
             _script_list->select(index);
 
-            _script_name_label->set_text(data_filtered[i].name);
-            _script_icon->set_texture(data_filtered[i].icon);
+            _script_name_button->set_text(data_filtered[i].name);
+            _calculate_script_name_button_size();
 
             OrchestratorEditorView* view = _get_current_editor();
             if (view) {
@@ -825,7 +827,48 @@ void OrchestratorEditor::_make_script_list_context_menu() {
 void OrchestratorEditor::_script_selected(int p_index) {
     _grab_focus_block = !Input::get_singleton()->is_mouse_button_pressed(MOUSE_BUTTON_LEFT);
     _go_to_tab(_script_list->get_item_metadata(p_index));
+
+    _script_name_button->set_text(_script_list->get_item_text(p_index));
+    _calculate_script_name_button_size();
+
     _grab_focus_block = false;
+}
+
+void OrchestratorEditor::_calculate_script_name_button_size() {
+    const Ref<Font> font = _script_name_button->get_theme_font(SceneStringName(font), StringName("Button"));
+    const int font_size = _script_name_button->get_theme_font_size(SceneStringName(font_size), StringName("Button"));
+
+    const HorizontalAlignment alignment = _script_name_button->get_text_alignment();
+    const String text = _script_name_button->get_text();
+
+    const int jst_flags = TextServer::JUSTIFICATION_WORD_BOUND | TextServer::JUSTIFICATION_KASHIDA
+        | TextServer::JUSTIFICATION_SKIP_LAST_LINE | TextServer::JUSTIFICATION_DO_NOT_SKIP_SINGLE_LINE;
+
+    TextServer::Direction direction = TextServer::Direction(_script_name_button->get_text_direction());
+    Vector2 text_size = font->get_string_size(text, alignment, -1, font_size, jst_flags, direction, TextServer::ORIENTATION_HORIZONTAL);
+
+    _script_name_width = text_size.x
+        + _script_name_button->get_theme_stylebox(CoreStringName(normal))->get_content_margin(SIDE_LEFT)
+        + _script_name_button->get_theme_stylebox(CoreStringName(normal))->get_content_margin(SIDE_RIGHT);
+
+    _calculate_script_name_button_ratio();
+}
+
+void OrchestratorEditor::_calculate_script_name_button_ratio() {
+    const float total_width = _script_name_button_hbox->get_size().width;
+    if (total_width <= 0) {
+        return;
+    }
+
+    // Make the ratios a fraction bigger, to avoid unnecessary trimming.
+    const float extra_ratio = 4 / total_width;
+
+    const float script_name_ratio = MIN(1, _script_name_width / total_width + extra_ratio);
+    _script_name_button->set_stretch_ratio(script_name_ratio);
+
+    float ratio_left = 1 - script_name_ratio;
+    _script_name_button_left_spacer->set_stretch_ratio(ratio_left / 2);
+    _script_name_button_right_spacer->set_stretch_ratio(ratio_left / 2);
 }
 
 void OrchestratorEditor::_script_changed() { // NOLINT
@@ -2316,6 +2359,8 @@ void OrchestratorEditor::_notification(int p_what) {
         case NOTIFICATION_THEME_CHANGED: {
             _tab_container->add_theme_stylebox_override(SceneStringName(panel), get_theme_stylebox("ScriptEditor", "EditorStyles"));
 
+            _calculate_script_name_button_size();
+
             _site_search->set_button_icon(SceneUtils::get_editor_icon("ExternalLink"));
             _filter_scripts->set_right_icon(SceneUtils::get_editor_icon("Search"));
 
@@ -2505,18 +2550,27 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _help_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _menu_hb->add_child(_help_menu);
 
-    _menu_hb->add_spacer(false);
+    _script_name_button_hbox = memnew(HBoxContainer);
+    _script_name_button_hbox->set_h_size_flags(SIZE_EXPAND_FILL);
+    _script_name_button_hbox->add_theme_constant_override("separation", 0);
+    _script_name_button_hbox->connect(SceneStringName(item_rect_changed), callable_mp_this(_calculate_script_name_button_ratio));
+    _menu_hb->add_child(_script_name_button_hbox);
 
-    _script_icon = memnew(TextureRect);
-    _menu_hb->add_child(_script_icon);
+    _script_name_button_left_spacer = memnew(Control);
+    _script_name_button_left_spacer->set_h_size_flags(SIZE_EXPAND_FILL);
+    _script_name_button_hbox->add_child(_script_name_button_left_spacer);
 
-    _script_name_label = memnew(Label);
-    _menu_hb->add_child(_script_name_label);
+    _script_name_button = memnew(Button);
+    _script_name_button->set_flat(true);
+    _script_name_button->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+    _script_name_button->set_h_size_flags(SIZE_EXPAND_FILL);
+    _script_name_button->set_tooltip_text("Navigate to script list.");
+    _script_name_button->connect(SceneStringName(pressed), callable_mp(_script_list, &ItemList::ensure_current_is_visible));
+    _script_name_button_hbox->add_child(_script_name_button);
 
-    _script_icon->hide();
-    _script_name_label->hide();
-
-    _menu_hb->add_spacer(false);
+    _script_name_button_right_spacer = memnew(Control);
+    _script_name_button_right_spacer->set_h_size_flags(SIZE_EXPAND_FILL);
+    _script_name_button_hbox->add_child(_script_name_button_right_spacer);
 
     _site_search = memnew(Button);
     _site_search->set_flat(true);
