@@ -18,7 +18,7 @@
 
 #include "common/macros.h"
 #include "editor/inspector/properties/editor_property_variable_classification.h"
-#include "script/variable.h"
+#include "orchestration/variable.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 

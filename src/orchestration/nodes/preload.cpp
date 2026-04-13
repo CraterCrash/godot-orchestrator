@@ -1,0 +1,130 @@
+// This file is part of the Godot Orchestrator project.
+//
+// Copyright (c) 2023-present Crater Crash Studios LLC and its contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+#include "orchestration/nodes/preload.h"
+
+#include "common/property_utils.h"
+#include "common/string_utils.h"
+#include "core/godot/scene_string_names.h"
+
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/packed_scene.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+
+void OScriptNodePreload::_get_property_list(List<PropertyInfo> *r_list) const {
+    r_list->push_back(PropertyInfo(Variant::STRING, "path", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+}
+
+bool OScriptNodePreload::_get(const StringName &p_name, Variant &r_value) const {
+    if (p_name.match("path")) {
+        r_value = _resource_path;
+        return true;
+    }
+    return false;
+}
+
+bool OScriptNodePreload::_set(const StringName &p_name, const Variant& p_value) {
+    if (p_name.match("path")) {
+        _resource_path = p_value;
+        notify_property_list_changed();
+        _notify_pins_changed();
+        return true;
+    }
+    return false;
+}
+
+StringName OScriptNodePreload::_get_resource_class_name() const {
+    Ref<Resource> resource = ResourceLoader::get_singleton()->load(_resource_path);
+    if (resource.is_valid()) {
+        const Ref<PackedScene> scene = resource;
+        if (scene.is_valid() && scene->can_instantiate()) {
+            Node* node = scene->instantiate();
+            StringName class_name = node->get_class();
+            memdelete(node);
+            return class_name;
+        }
+
+        if (resource->has_meta(SceneStringName(_custom_type_script))) {
+            const Ref<Script> custom_script = PropertyUtils::get_custom_type_script(resource.ptr());
+            if (custom_script.is_valid()) {
+                const String global_name = custom_script->get_global_name();
+                if (!global_name.is_empty()) {
+                    return global_name;
+                }
+            }
+        }
+
+        return resource->get_class();
+    }
+
+    return Resource::get_class_static();
+}
+
+void OScriptNodePreload::post_initialize() {
+    reconstruct_node();
+    super::post_initialize();
+}
+
+void OScriptNodePreload::allocate_default_pins() {
+    const String class_name = _get_resource_class_name();
+    const String path = StringUtils::default_if_empty(_resource_path, "No Resource");
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("path", class_name), _resource_path)->set_label(path, false);
+
+    super::allocate_default_pins();
+}
+
+String OScriptNodePreload::get_tooltip_text() const {
+    return "Asynchronously loads the specified resource and returns the resource if the load succeeds.";
+}
+
+String OScriptNodePreload::get_node_title() const {
+    return "Preload Resource";
+}
+
+String OScriptNodePreload::get_icon() const {
+    return "ResourcePreloader";
+}
+
+StringName OScriptNodePreload::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const {
+    if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution()) {
+        return _get_resource_class_name();
+    }
+    return super::resolve_type_class(p_pin);
+}
+
+Ref<OScriptTargetObject> OScriptNodePreload::resolve_target(const Ref<OScriptNodePin>& p_pin) const {
+    if (p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution()) {
+        const Ref<Resource> resource = ResourceLoader::get_singleton()->load(_resource_path);
+        // If resource is valid, if scene, get root node type; otherwise resource type
+        if (resource.is_valid()) {
+            const Ref<PackedScene> scene = resource;
+            if (scene.is_valid() && scene->can_instantiate()) {
+                return memnew(OScriptTargetObject(scene->instantiate(), true));
+            }
+            else if (!scene.is_valid()) {
+                return memnew(OScriptTargetObject(resource, false));
+            }
+        }
+    }
+    return super::resolve_target(p_pin);
+}
+
+void OScriptNodePreload::initialize(const OScriptNodeInitContext& p_context) {
+    if (p_context.resource_path) {
+        _resource_path = p_context.resource_path.value();
+    }
+    super::initialize(p_context);
+}

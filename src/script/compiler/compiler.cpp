@@ -25,6 +25,7 @@
 #include "core/godot/variant/variant.h"
 #include "script/compiler/analyzer.h"
 #include "script/compiler/bytecode_generator.h"
+#include "script/language.h"
 #include "script/script.h"
 #include "script/script_cache.h"
 #include "script/script_instance.h"

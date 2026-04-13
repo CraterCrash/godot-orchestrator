@@ -21,6 +21,7 @@
 #include "core/godot/variant/variant_internal.h"
 #include "core/typedefs.h"
 #include "script/compiler/compiled_function.h"
+#include "script/language.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/engine.hpp>

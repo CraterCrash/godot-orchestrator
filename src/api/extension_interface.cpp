@@ -16,8 +16,11 @@
 //
 #include "extension_interface.h"
 
+#include "api/extension_db.h"
+#include "common/guid.h"
 #include "core/register_core_types.h"
 #include "editor/register_editor_types.h"
+#include "orchestration/register_orchestration_types.h"
 #include "script/register_script_types.h"
 
 #include <gdextension_interface.h>
@@ -29,42 +32,46 @@ using namespace godot;
 namespace orchestrator {
     void initialize_extension_module(ModuleInitializationLevel p_level) {
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
-            register_extension_db();
+            ExtensionDB::create();
             register_core_singletons();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
+            register_orchestration_types();
             register_script_types();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
             register_script_extension();
             register_script_resource_formats();
-            register_script_node_types();
+            register_orchestration_node_types();
 
             create_core_singletons();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-            register_script_scene_types();
+            register_orchestration_editor_types();
             register_editor_types();
         }
     }
 
     void uninitialize_extension_module(ModuleInitializationLevel p_level) {
         if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-            unregister_script_scene_types();
             unregister_editor_types();
+            unregister_orchestration_editor_types();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-            unregister_script_node_types();
+            unregister_orchestration_node_types();
             unregister_script_extension();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
             unregister_script_resource_formats();
             unregister_script_types();
+            unregister_orchestration_types();
             destroy_core_singletons();
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
             unregister_core_singletons();
-            unregister_extension_db();
+
+            ExtensionDB::destroy();
+            Guid::cleanup();
         }
     }
 

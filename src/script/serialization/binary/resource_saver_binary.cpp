@@ -17,8 +17,10 @@
 #include "script/serialization/binary/resource_saver_binary.h"
 
 #include "orchestration/serialization/binary/binary_serializer.h"
+#include "script/language.h"
 #include "script/script.h"
 #include "script/script_server.h"
+#include "script/serialization/format_defs.h"
 
 PackedStringArray OScriptBinaryResourceFormatSaver::_get_recognized_extensions(const Ref<Resource>& p_resource) const {
     return _recognize(p_resource) ? Array::make(ORCHESTRATOR_SCRIPT_EXTENSION) : Array();

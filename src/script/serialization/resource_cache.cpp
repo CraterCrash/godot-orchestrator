@@ -46,6 +46,17 @@ void ResourceCache::_clear() {
     _resources.clear();
 }
 
+void ResourceCache::create() {
+    _singleton = memnew(ResourceCache);
+}
+
+void ResourceCache::destroy() {
+    if (_singleton) {
+        memdelete(_singleton);
+        _singleton = nullptr;
+    }
+}
+
 bool ResourceCache::has_path(const String& p_path) {
     MutexLock lock(*_path_cache_lock.ptr());
 
@@ -110,11 +121,10 @@ void ResourceCache::set_id_for_path(const String& p_path, const String& p_res_pa
 }
 
 ResourceCache::ResourceCache() {
-    _singleton = this;
     _mutex.instantiate();
     _path_cache_lock.instantiate();
 }
 
 ResourceCache::~ResourceCache() {
-    _singleton = nullptr;
+
 }

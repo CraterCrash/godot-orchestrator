@@ -18,8 +18,8 @@
 
 #include "common/godot_version.h"
 #include "common/guid.h"
-#include "script/connection.h"
-#include "script/graph.h"
+#include "orchestration/connection.h"
+#include "orchestration/graph.h"
 
 #include <memory>
 

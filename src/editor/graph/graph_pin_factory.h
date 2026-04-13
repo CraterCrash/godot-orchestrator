@@ -16,7 +16,7 @@
 //
 #pragma once
 
-#include "script/node_pin.h"
+#include "orchestration/node_pin.h"
 
 class OrchestratorEditorGraphPin;
 

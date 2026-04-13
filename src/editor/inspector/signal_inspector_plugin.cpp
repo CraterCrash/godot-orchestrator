@@ -19,8 +19,8 @@
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
 #include "editor/inspector/properties/editor_property_pin_properties.h"
-#include "script/graph.h"
-#include "script/nodes/signals/emit_signal.h"
+#include "orchestration/nodes/emit_signal.h"
+#include "orchestration/orchestration.h"
 
 void OrchestratorEditorInspectorPluginSignal::_move_up(int p_index, const Ref<OScriptSignal>& p_signal) {
     _swap(p_index, 0, -1, p_signal);

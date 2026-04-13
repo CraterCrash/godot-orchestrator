@@ -34,8 +34,8 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/connections_dock.h"
 #include "editor/scene/script_connections.h"
-#include "script/nodes/functions/function_entry.h"
-#include "script/nodes/functions/function_result.h"
+#include "orchestration/nodes/function_entry.h"
+#include "orchestration/nodes/function_result.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/editor_settings.hpp>

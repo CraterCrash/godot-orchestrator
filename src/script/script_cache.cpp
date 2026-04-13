@@ -23,6 +23,7 @@
 #include "script/compiler/analyzer.h"
 #include "script/compiler/compiler.h"
 #include "script/parser/parser.h"
+#include "script/serialization/format_defs.h"
 
 #include <godot_cpp/classes/native_menu.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
@@ -144,6 +145,17 @@ OScriptCache* OScriptCache::_singleton = nullptr;
 
 Mutex& OScriptCache::get_cache_mutex() {
     return *_singleton->_mutex.ptr();
+}
+
+void OScriptCache::create() {
+    _singleton = memnew(OScriptCache);
+}
+
+void OScriptCache::destroy() {
+    if (_singleton) {
+        memdelete(_singleton);
+        _singleton = nullptr;
+    }
 }
 
 void OScriptCache::move_script(const String& p_source, const String& p_target) {
@@ -489,7 +501,6 @@ void OScriptCache::clear() {
 }
 
 OScriptCache::OScriptCache() {
-    _singleton = this;
     _mutex.instantiate();
 }
 
@@ -497,5 +508,4 @@ OScriptCache::~OScriptCache() {
     if (!_cleared) {
         clear();
     }
-    _singleton = nullptr;
 }
