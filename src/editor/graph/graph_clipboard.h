@@ -17,9 +17,9 @@
 #pragma once
 
 #include "editor/graph/graph_node.h"
-#include "script/node.h"
-#include "script/signals.h"
-#include "script/variable.h"
+#include "orchestration/node.h"
+#include "orchestration/signals.h"
+#include "orchestration/variable.h"
 
 #include <godot_cpp/templates/hash_set.hpp>
 

@@ -17,7 +17,7 @@
 #pragma once
 
 #include "editor/graph/pins/button_base_pin.h"
-#include "script/node_pin.h"
+#include "orchestration/node_pin.h"
 
 class OrchestratorSceneNodeSelector;
 class OrchestratorPropertySelector;

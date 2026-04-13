@@ -16,7 +16,6 @@
 //
 #include "editor/graph/graph_pin.h"
 
-#include "../gui/context_menu.h"
 #include "common/macros.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
@@ -25,7 +24,7 @@
 #include "common/variant_utils.h"
 #include "core/godot/core_string_names.h"
 #include "editor/graph/graph_panel.h"
-#include "script/nodes/functions/call_function.h"
+#include "editor/gui/context_menu.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 

@@ -27,7 +27,9 @@
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/object/class_db.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes.h"
+#include "script/language.h"
+#include "script/script.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/engine.hpp>

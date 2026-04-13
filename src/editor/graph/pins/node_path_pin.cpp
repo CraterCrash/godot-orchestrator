@@ -22,9 +22,9 @@
 #include "editor/gui/dialogs_helper.h"
 #include "editor/property_selector.h"
 #include "editor/scene_node_selector.h"
-#include "script/nodes/functions/call_member_function.h"
-#include "script/nodes/properties/property_set.h"
-#include "script/nodes/utilities/self.h"
+#include "orchestration/nodes/call_function.h"
+#include "orchestration/nodes/properties.h"
+#include "orchestration/nodes/self.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>

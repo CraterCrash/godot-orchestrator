@@ -17,8 +17,10 @@
 #include "script/serialization/text/resource_saver_text.h"
 
 #include "orchestration/serialization/text/text_serializer.h"
+#include "script/language.h"
 #include "script/script.h"
 #include "script/script_server.h"
+#include "script/serialization/format_defs.h"
 
 PackedStringArray OScriptTextResourceFormatSaver::_get_recognized_extensions(const Ref<Resource>& p_resource) const {
     return _recognize(p_resource) ? Array::make(ORCHESTRATOR_SCRIPT_TEXT_EXTENSION) : Array();

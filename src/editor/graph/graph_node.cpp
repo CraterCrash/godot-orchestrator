@@ -28,9 +28,9 @@
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/graph_pin.h"
 #include "editor/graph/graph_pin_factory.h"
-#include "script/nodes/data/type_cast.h"
-#include "script/nodes/editable_pin_node.h"
-#include "script/nodes/utilities/self.h"
+#include "orchestration/nodes/editable_pin_node.h"
+#include "orchestration/nodes/self.h"
+#include "orchestration/nodes/type_cast.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>

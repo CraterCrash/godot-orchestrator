@@ -87,6 +87,9 @@ class OScriptCache {
     static Mutex& get_cache_mutex();
 
 public:
+    static void create();
+    static void destroy();
+
     static void move_script(const String& p_source, const String& p_target);
     static void remove_script(const String& p_path);
 

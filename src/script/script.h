@@ -24,6 +24,7 @@
 #include "script/script_source.h"
 
 #include <gdextension_interface.h>
+#include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>

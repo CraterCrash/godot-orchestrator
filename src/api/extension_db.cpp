@@ -515,6 +515,17 @@ void ExtensionDB::_load_classes(const Dictionary& p_data) {
     }
 }
 
+void ExtensionDB::create() {
+    _singleton = memnew(ExtensionDB);
+}
+
+void ExtensionDB::destroy() {
+    if (_singleton) {
+        memdelete(_singleton);
+        _singleton = nullptr;
+    }
+}
+
 bool ExtensionDB::is_builtin_type(const StringName& p_type_name) {
     return _singleton->builtin_types.has(p_type_name);
 }
@@ -659,10 +670,8 @@ MethodBind* ExtensionDB::get_method(const StringName& p_class_name, const String
 }
 
 ExtensionDB::ExtensionDB() {
-    _singleton = this;
     _decompress_and_load();
 }
 
 ExtensionDB::~ExtensionDB() {
-    _singleton = nullptr;
 }

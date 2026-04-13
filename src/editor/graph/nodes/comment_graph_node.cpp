@@ -20,7 +20,7 @@
 #include "common/scene_utils.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/graph/graph_panel.h"
-#include "script/nodes/utilities/comment.h"
+#include "orchestration/nodes/comment.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/margin_container.hpp>

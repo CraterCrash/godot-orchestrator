@@ -16,7 +16,7 @@
 //
 #pragma once
 
-#include "script/signals.h"
+#include "orchestration/signals.h"
 
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
 
