@@ -122,8 +122,12 @@ private:
     Ref<ConfigFile> _editor_cache;
     Ref<OrchestratorEditorGraphNodeThemeCache> _theme_cache;
 
-    TextureRect* _script_icon = nullptr;
-    Label* _script_name_label = nullptr;
+    HBoxContainer* _script_name_button_hbox = nullptr;
+    Control* _script_name_button_left_spacer = nullptr;
+    Control* _script_name_button_right_spacer = nullptr;
+    Button* _script_name_button = nullptr;
+    int _script_name_width = 0;
+
     Window* _about_dialog = nullptr;
     HBoxContainer* _menu_hb = nullptr;
     HSplitContainer* _script_split = nullptr;
@@ -209,6 +213,9 @@ protected:
     void _script_list_clicked(int p_item, Vector2 p_local_mouse_pos, MouseButton p_button_index);
     void _make_script_list_context_menu();
     void _script_selected(int p_index);
+
+    void _calculate_script_name_button_size();
+    void _calculate_script_name_button_ratio();
 
     void _script_changed();
     void _script_created(const Ref<Script>& p_script);
