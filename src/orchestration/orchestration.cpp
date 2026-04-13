@@ -20,18 +20,12 @@
 #include "common/method_utils.h"
 #include "common/name_utils.h"
 #include "common/variant_utils.h"
+#include "orchestration/nodes.h"
 #include "orchestration/serialization/format.h"
 #include "script/compiler/analyzer.h"
 #include "script/compiler/compiler.h"
-#include "script/node.h"
-#include "script/nodes/functions/call_script_function.h"
-#include "script/nodes/functions/function_entry.h"
-#include "script/nodes/functions/function_result.h"
-#include "script/nodes/signals/emit_signal.h"
-#include "script/nodes/variables/variable.h"
 #include "script/parser/parser.h"
 #include "script/script_server.h"
-#include "script/variable.h"
 
 #include <godot_cpp/classes/os.hpp>
 
@@ -1002,6 +996,20 @@ Vector<Ref<OScriptFunction>> Orchestration::get_functions() const {
         results.push_back(E.value);
     }
     return results;
+}
+
+bool Orchestration::is_function_override(const StringName& p_name) {
+    Ref<OScript> script = as_script();
+    if (script.is_valid()) {
+        script = script->get_base();
+        while (script.is_valid()) {
+            if (script->_has_method(p_name)) {
+                return true;
+            }
+            script = script->get_base();
+        }
+    }
+    return false;
 }
 
 bool Orchestration::has_variable(const StringName& p_name) const {

@@ -162,6 +162,9 @@ namespace godot {
         void _load_classes(const Dictionary& p_data);
 
     public:
+        static void create();
+        static void destroy();
+
         // Built-in Types
         static bool is_builtin_type(const StringName& p_type_name);
         static Vector<BuiltInType> get_builtin_types();

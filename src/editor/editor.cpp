@@ -36,6 +36,7 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/connections_dock.h"
 #include "editor/updater/updater.h"
+#include "script/language.h"
 #include "script/script.h"
 #include "script/script_cache.h"
 #include "script/script_server.h"

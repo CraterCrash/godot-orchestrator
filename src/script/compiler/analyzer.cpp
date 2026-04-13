@@ -30,6 +30,7 @@
 #include "core/godot/templates/hashfuncs.h"
 #include "core/godot/variant/variant.h"
 #include "core/godot/variant/variant_internal.h"
+#include "script/language.h"
 #include "script/script_server.h"
 #include "script/script_utility_callable.h"
 #include "script/script_warning.h"

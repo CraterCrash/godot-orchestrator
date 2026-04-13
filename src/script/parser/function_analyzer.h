@@ -16,8 +16,8 @@
 //
 #pragma once
 
-#include "script/function.h"
-#include "script/node_pin.h"
+#include "orchestration/function.h"
+#include "orchestration/node_pin.h"
 
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>

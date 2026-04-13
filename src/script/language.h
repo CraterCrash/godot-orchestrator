@@ -222,6 +222,8 @@ public:
     String get_script_extension_filter() const;
 
     static OScriptLanguage* get_singleton();
+    static void create();
+    static void destroy();
 
     OScriptNodePrintStringOverlay* get_or_create_overlay();
 

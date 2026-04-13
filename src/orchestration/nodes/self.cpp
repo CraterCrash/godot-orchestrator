@@ -1,0 +1,116 @@
+// This file is part of the Godot Orchestrator project.
+//
+// Copyright (c) 2023-present Crater Crash Studios LLC and its contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//		http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+#include "orchestration/nodes/self.h"
+
+#include "common/macros.h"
+#include "common/property_utils.h"
+#include "common/scene_utils.h"
+#include "orchestration/orchestration.h"
+
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/script.hpp>
+
+void OScriptNodeSelf::_upgrade(uint32_t p_version, uint32_t p_current_version) {
+    // Fixup for global class name
+    const String global_class = get_orchestration()->get_global_name();
+    if (!global_class.is_empty()) {
+        const Ref<OScriptNodePin> self = find_pin("self", PD_Output);
+        if (self.is_valid() && self->get_property_info().class_name != get_orchestration()->get_global_name()) {
+            reconstruct_node();
+            super::_upgrade(p_version, p_current_version);
+            return;
+        }
+    }
+
+    if (p_version == 1 && p_current_version >= 2) {
+        // Fixup - makes sure that base type matches pin
+        const Ref<OScriptNodePin> self = find_pin("self", PD_Output);
+        if (self.is_valid() && self->get_property_info().class_name != get_orchestration()->get_base_type()) {
+            reconstruct_node();
+        }
+    }
+
+    super::_upgrade(p_version, p_current_version);
+}
+
+void OScriptNodeSelf::post_initialize() {
+    if (_is_in_editor() && get_orchestration()) {
+        OCONNECT(get_orchestration(), "base_type_changed", callable_mp_this(_on_base_type_changed));
+    }
+    super::post_initialize();
+}
+
+void OScriptNodeSelf::post_placed_new_node() {
+    if (_is_in_editor() && get_orchestration()) {
+        OCONNECT(get_orchestration(), "base_type_changed", callable_mp_this(_on_base_type_changed));
+    }
+    super::post_placed_new_node();
+}
+
+void OScriptNodeSelf::allocate_default_pins() {
+    if (get_orchestration()->get_global_name().is_empty()) {
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_base_type()));
+    } else {
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_global_name()));
+    }
+}
+
+String OScriptNodeSelf::get_tooltip_text() const {
+    return "Get a reference to this instance of an Orchestration";
+}
+
+String OScriptNodeSelf::get_node_title() const {
+    return "Get self";
+}
+
+String OScriptNodeSelf::get_help_topic() const {
+    return vformat("class:%s", _orchestration->get_base_type());
+}
+
+String OScriptNodeSelf::get_icon() const {
+    if (get_orchestration()) {
+        if (!get_orchestration()->get_icon_path().is_empty()) {
+            return get_orchestration()->get_icon_path();
+        }
+        return get_orchestration()->get_base_type();
+    }
+    return super::get_icon();
+}
+
+Ref<OScriptTargetObject> OScriptNodeSelf::resolve_target(const Ref<OScriptNodePin>& p_pin) const {
+    if (_is_in_editor()) {
+        Ref<Script> script = get_orchestration()->get_self();
+        if (script.is_valid()) {
+            // For now look at the current edited scene, and if one exists, try and find the node
+            // that has the attached script to refer to as "self". This is just an approximation,
+            // as multiple nodes could have the script attached.
+            Node* root = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
+            if (root) {
+                Node* node = SceneUtils::get_node_with_script(script, root, root);
+                return memnew(OScriptTargetObject(node, false));
+            }
+        }
+    }
+
+    return super::resolve_target(p_pin);
+}
+
+void OScriptNodeSelf::_on_base_type_changed() {
+    reconstruct_node();
+    _notify_pins_changed();
+}

@@ -32,8 +32,8 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/script_connections.h"
 #include "editor/script_components_container.h"
-#include "script/nodes/functions/event.h"
-#include "script/nodes/utilities/self.h"
+#include "orchestration/nodes/event.h"
+#include "orchestration/nodes/self.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/editor_inspector.hpp>

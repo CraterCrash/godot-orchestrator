@@ -18,8 +18,8 @@
 
 #include "common/settings.h"
 #include "core/godot/variant/variant.h"
+#include "orchestration/nodes/print_string.h"
 #include "script/language.h"
-#include "script/nodes/utilities/print_string.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_access.hpp>

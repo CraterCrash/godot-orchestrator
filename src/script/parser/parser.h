@@ -17,7 +17,7 @@
 #pragma once
 
 #include "orchestration/orchestration.h"
-#include "script/nodes/script_nodes.h"
+#include "orchestration/nodes.h"
 #include "script/parser/parser_nodes.h"
 #include "script/parser/function_analyzer.h"
 #include "script/script_cache.h"
