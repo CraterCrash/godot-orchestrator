@@ -357,7 +357,7 @@ void OrchestratorScriptComponentsContainer::_component_item_button_clicked(Node*
             if (p_column == 0 && p_id == 2) {
 
                 const Ref<OrchestratorEditorInspectorPluginVariable> plugin =
-                        OrchestratorPlugin::get_singleton()->get_editor_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
+                        OrchestratorPlugin::get_singleton()->get_plugin<OrchestratorEditorInspectorPluginVariable>();
                 if (plugin.is_null()) {
                     return;
                 }
