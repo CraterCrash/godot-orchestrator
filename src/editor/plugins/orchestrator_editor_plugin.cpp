@@ -68,17 +68,23 @@ bool OrchestratorPlugin::_is_exiting() const {
 
 void OrchestratorPlugin::_register_plugins() {
     // Inspector plugins
-    _register_inspector_plugin<OrchestratorEditorInspectorPluginFunction>();
-    _register_inspector_plugin<OrchestratorEditorInspectorPluginSignal>();
-    _register_inspector_plugin<OrchestratorEditorInspectorPluginVariable>();
-    _register_inspector_plugin<OrchestratorEditorInspectorPluginTypeCast>();
-    _register_inspector_plugin<OrchestratorEditorInspectorPluginOrchestration>();
+    _register_plugin<OrchestratorEditorInspectorPluginFunction>();
+    _register_plugin<OrchestratorEditorInspectorPluginSignal>();
+    _register_plugin<OrchestratorEditorInspectorPluginVariable>();
+    _register_plugin<OrchestratorEditorInspectorPluginTypeCast>();
+    _register_plugin<OrchestratorEditorInspectorPluginOrchestration>();
 
     // Export Plugins
-    _register_export_plugin<OrchestratorEditorExportPlugin>();
+    _register_plugin<OrchestratorEditorExportPlugin>();
 
     // Debugger Plugins
-    _register_debugger_plugin<OrchestratorEditorDebuggerPlugin>();
+    _register_plugin<OrchestratorEditorDebuggerPlugin>();
+}
+
+void OrchestratorPlugin::_unregister_plugins() {
+    _unregister_plugin<EditorDebuggerPlugin>();
+    _unregister_plugin<EditorExportPlugin>();
+    _unregister_plugin<EditorInspectorPlugin>();
 }
 
 bool OrchestratorPlugin::_is_plugin_just_installed() const {
@@ -388,6 +394,8 @@ void OrchestratorPlugin::_notification(int p_what) {
         }
         case NOTIFICATION_EXIT_TREE: {
             disconnect("main_screen_changed", callable_mp_this(_main_screen_changed));
+
+            _unregister_plugins();
 
             SAFE_MEMDELETE(_editor_panel);
             _plugin = nullptr;
