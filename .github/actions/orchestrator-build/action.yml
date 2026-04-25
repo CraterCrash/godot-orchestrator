@@ -94,7 +94,9 @@ runs:
       run: |
         gh cache list --key "${CACHE_PREFIX}" --json id \
           | jq -r '.[].id' \
-          | xargs --no-run-if-empty -I{} gh cache delete --repo "${GH_REPO}" {}
+          | while IFS= read -r id; do
+              gh cache delete --repo "${GH_REPO}" "$id"
+            done
 
     - name: Save cache
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
