@@ -16,9 +16,14 @@
 //
 #include "editor/inspector/orchestration_inspector_plugin.h"
 
-#include "common/callable_lambda.h"
+#include "common/macros.h"
 #include "editor/inspector/properties/editor_property_extends.h"
-#include "orchestration/orchestration.h"
+
+void OrchestratorEditorInspectorPluginOrchestration::_base_type_changed(const StringName& p_property, const Variant& p_value, const StringName& p_field, bool p_changing, const Ref<Orchestration>& p_orchestration) {
+    if (p_orchestration.is_valid()) {
+        p_orchestration->set_edited(true);
+    }
+}
 
 bool OrchestratorEditorInspectorPluginOrchestration::_can_handle(Object* p_object) const {
     return p_object && p_object->get_class() == Orchestration::get_class_static();
@@ -30,16 +35,10 @@ bool OrchestratorEditorInspectorPluginOrchestration::_parse_property(Object* p_o
     const Ref<Orchestration> orchestration = cast_to<Orchestration>(p_object);
     if (orchestration.is_valid() && p_name == "base_type") {
         OrchestratorEditorPropertyExtends* editor = memnew(OrchestratorEditorPropertyExtends);
-        editor->setup(orchestration->get_base_type(), true);
-        editor->connect("property_changed", callable_mp_lambda(
-            this,
-            [orchestration](const StringName& property, const Variant& value, const StringName& field, bool changing) {
-                if (orchestration.is_valid()) {
-                    orchestration->set_edited(true);
-                }
-            }));
-
+        editor->setup(true);
+        editor->connect("property_changed", callable_mp_this(_base_type_changed).bind(orchestration));
         add_property_editor(p_name, editor, true, "Extends");
+        return true;
     }
 
     return false;

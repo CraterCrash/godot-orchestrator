@@ -58,7 +58,10 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
     Vector<Ref<SearchItem>> items;
 
     // Generate class hierarchy
-    const PackedStringArray hierarchy = _get_class_hierarchy(p_class);
+    PackedStringArray hierarchy = _get_class_hierarchy(p_class);
+    if (hierarchy.has(p_root->name)) {
+        hierarchy.remove_at(hierarchy.find(p_root->name));
+    }
 
     // Remove most immediate known parent
     Ref<SearchItem> parent;
@@ -157,6 +160,10 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
     for (const String& class_name : ClassDB::get_class_list()) {
         // Exclude Orchestrator Types
         if (class_name.begins_with("OScript") || class_name.begins_with("Orchestrator")) {
+            continue;
+        }
+
+        if (_base_type == class_name) {
             continue;
         }
 
