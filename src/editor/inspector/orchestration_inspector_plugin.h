@@ -17,12 +17,15 @@
 #pragma once
 
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
+#include "orchestration/orchestration.h"
 
 using namespace godot;
 
 /// An EditorInspectorPlugin that handles Orchestration object selection
 class OrchestratorEditorInspectorPluginOrchestration : public EditorInspectorPlugin {
     GDCLASS(OrchestratorEditorInspectorPluginOrchestration, EditorInspectorPlugin);
+
+    void _base_type_changed(const StringName& p_property, const Variant& p_value, const StringName& p_field, bool p_changing, const Ref<Orchestration>& p_orchestration);
 
 protected:
     static void _bind_methods() { }
