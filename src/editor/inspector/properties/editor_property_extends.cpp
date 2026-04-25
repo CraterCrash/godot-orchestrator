@@ -24,17 +24,24 @@
 #include "core/godot/scene_string_names.h"
 #include "editor/gui/dialogs_helper.h"
 #include "editor/gui/file_dialog.h"
+#include "editor/gui/select_class_dialog.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_file_dialog.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 
 void OrchestratorEditorPropertyExtends::_select_extends_class() {
-    if (_editor_property_class) {
-        Control* button = cast_to<Button>(_editor_property_class->find_child("*Button*", true, false));
-        if (button) {
-            button->emit_signal("pressed");
+    if (_dialog) {
+        String value = get_edited_object()->get(get_edited_property());
+        if (value.begins_with("res://")) {
+            value = "Object";
         }
+
+        _dialog->set_base_type("Object");
+        _dialog->set_allow_abstract_types(true);
+        _dialog->set_popup_title("Select Orchestration Base Type");
+        _dialog->popup_create(true, true, value, get_edited_property());
     }
 }
 
@@ -56,24 +63,40 @@ void OrchestratorEditorPropertyExtends::_select_extends_path() {
     dialog->set_title("Select Orchestration To Extend");
 }
 
+void OrchestratorEditorPropertyExtends::_extends_class_selected() {
+    if (_dialog) {
+        const String selected_value = _dialog->get_selected();
+        _handle_selection(get_edited_property(), selected_value);
+    }
+}
+
 void OrchestratorEditorPropertyExtends::_extends_path_selected(const String& p_path) {
     const String extension = p_path.get_extension();
     if (!Array::make("os", "torch").has(extension)) {
         ORCHESTRATOR_ERROR("The selected file is not an orchestration.");
     }
+    _handle_selection(get_edited_property(), p_path);
+}
 
-    emit_changed("base_type", p_path);
+void OrchestratorEditorPropertyExtends::_handle_selection(const StringName& p_property, const String& p_value) {
+    String value = p_value;
+    if (value.begins_with("res://")) {
+        ScriptServer::GlobalClass global_class = ScriptServer::get_global_class_by_path(value);
+        if (!global_class.name.is_empty()) {
+            value = global_class.name;
+        }
+    }
+    emit_changed(get_edited_property(), value);
 }
 
 void OrchestratorEditorPropertyExtends::_update_property() {
     if (get_edited_object()) {
-        _selected_value = get_edited_object()->get(get_edited_property());
-        _extends->set_text(_selected_value);
+        const Variant value = get_edited_object()->get(get_edited_property());
+        _extends->set_text(value);
     }
 }
 
-void OrchestratorEditorPropertyExtends::setup(const String& p_base_type, bool p_allow_path) {
-    _base_type = p_base_type;
+void OrchestratorEditorPropertyExtends::setup(bool p_allow_path) {
     _allow_path = p_allow_path;
 }
 
@@ -85,13 +108,7 @@ void OrchestratorEditorPropertyExtends::_notification(int p_what) {
 
             _extends = memnew(LineEdit);
             _extends->set_h_size_flags(SIZE_EXPAND_FILL);
-            _extends->set_text(_base_type);
-            _extends->connect(SceneStringName(focus_exited), callable_mp_lambda(this, [this] {
-                emit_changed(get_edited_property(), _extends->get_text());
-            }));
-            _extends->connect(SceneStringName(text_submitted), callable_mp_lambda(this, [this] (const String& p_value) {
-                emit_changed(get_edited_property(), p_value);
-            }));
+            _extends->set_editable(false);
             container->add_child(_extends);
 
             _select_class_button = memnew(Button);
@@ -111,12 +128,12 @@ void OrchestratorEditorPropertyExtends::_notification(int p_what) {
             add_child(container);
             add_focusable(_extends);
 
-            int node_index = get_index();
-            if (node_index >= 1) {
-                // Allows us to reuse the same class selection behavior
-                _editor_property_class = cast_to<Control>(get_parent()->get_child(node_index - 1));
-                _editor_property_class->set_visible(false);
-            }
+            _dialog = memnew(OrchestratorSelectClassSearchDialog);
+            _dialog->set_data_suffix("extends");
+            _dialog->connect("confirmed", callable_mp_this(_extends_class_selected));
+            add_child(_dialog);
+
+            update_property();
 
             break;
         }

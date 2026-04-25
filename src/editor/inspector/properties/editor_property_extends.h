@@ -22,16 +22,16 @@
 
 using namespace godot;
 
+class OrchestratorSelectClassSearchDialog;
+
 class OrchestratorEditorPropertyExtends : public EditorProperty {
     GDCLASS(OrchestratorEditorPropertyExtends, EditorProperty);
 
+    OrchestratorSelectClassSearchDialog* _dialog = nullptr;
     Button* _select_class_button = nullptr;
     Button* _select_path_button = nullptr;
     LineEdit* _extends = nullptr;
-    String _base_type;
-    String _selected_value;
     bool _allow_path = false;
-    Control* _editor_property_class = nullptr;
 
 protected:
     static void _bind_methods();
@@ -43,18 +43,18 @@ protected:
     //~ Begin Signal Handlers
     void _select_extends_class();
     void _select_extends_path();
+    void _extends_class_selected();
     void _extends_path_selected(const String& p_path);
     //~ End Signal Handlers
+
+    void _handle_selection(const StringName& p_property, const String& p_value);
 
 public:
     //~ Begin EditorProperty Interface
     void _update_property() override;
     //~ End EditorProperty Interface
 
-    String get_selected_value() const { return _selected_value; }
-
     /// Setup the editor property
-    /// @param p_base_type the base type
     /// @param p_allow_path whether the path option is selectable
-    void setup(const String& p_base_type, bool p_allow_path = true);
+    void setup(bool p_allow_path = true);
 };
