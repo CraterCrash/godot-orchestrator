@@ -52,13 +52,14 @@ runs:
     #   2. A partial match for the same cache name and reference name.
     #   3. A partial match for the same cache name and default branch name
     - name: Restore cache
+      id: restore-cache
       uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.cache-path }}
         key: ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}|${{ github.sha }}
         restore-keys: |
-          ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}
-          ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}
+          ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}|
+          ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}|
 
     # Installs ccache
     - name: Install ccache
@@ -73,13 +74,27 @@ runs:
 
     - name: Set ccache compression level
       shell: bash
-      run: ccache --set-config=compression_level=6
+      run: |
+        ccache --set-config=compression_level=9
+        ccache --set-config=max_size=500M
 
     - name: Build
       shell: sh
       run: |
         cmake --preset ${{ inputs.preset-name }} -S '${{ github.workspace }}'
         cmake --build '${{ github.workspace }}/build/${{ inputs.preset-name }}' --target orchestrator -j 18
+
+    - name: Prune old caches
+      if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && steps.restore-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        CACHE_PREFIX: ${{ inputs.cache-name }}|${{ github.ref_name }}|
+      run: |
+        gh cache list --key "${CACHE_PREFIX}" --json id \
+          | jq -r '.[].id' \
+          | xargs --no-run-if-empty -I{} gh cache delete --repo "${GH_REPO}" {}
 
     - name: Save cache
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
