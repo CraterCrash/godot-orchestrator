@@ -94,8 +94,10 @@ runs:
       run: |
         gh cache list --key "${CACHE_PREFIX}" --json id \
           | jq -r '.[].id' \
+          | tr -d '\r' \
           | while IFS= read -r id; do
-              gh cache delete --repo "${GH_REPO}" "$id"
+              [ -z "$id" ] && continue
+              gh cache delete --repo "${GH_REPO}" "$id" || true
             done
 
     - name: Save cache
