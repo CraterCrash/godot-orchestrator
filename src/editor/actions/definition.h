@@ -18,6 +18,7 @@
 
 #include <optional>
 
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/vector.hpp>
