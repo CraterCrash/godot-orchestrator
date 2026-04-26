@@ -214,5 +214,9 @@
   {
     "version": "v2.4.2.stable",
     "godot_compatibility": "4.6"
+  },
+  {
+    "version": "v2.4.3.stable",
+    "godot_compatibility": "4.6"
   }
 ]
