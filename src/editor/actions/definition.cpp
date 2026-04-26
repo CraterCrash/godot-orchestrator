@@ -26,11 +26,6 @@ OrchestratorEditorActionBuilder& OrchestratorEditorActionBuilder::icon(const Str
     return *this;
 }
 
-OrchestratorEditorActionBuilder& OrchestratorEditorActionBuilder::type_icon(const String& p_type_icon) {
-    _action->type_icon = p_type_icon;
-    return *this;
-}
-
 OrchestratorEditorActionBuilder& OrchestratorEditorActionBuilder::target_class(const String& p_target_class) {
     _action->target_class = p_target_class;
     return *this;

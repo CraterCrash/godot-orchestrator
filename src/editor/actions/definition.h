@@ -19,6 +19,7 @@
 #include <optional>
 
 #include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
@@ -62,7 +63,6 @@ public:
     String category;
     String tooltip;
     String icon;
-    String type_icon;
     String target_class;
     PackedStringArray keywords;
     ActionType type = ACTION_NONE;
@@ -111,7 +111,6 @@ public:
 
     OrchestratorEditorActionBuilder& tooltip(const String& p_tooltip);
     OrchestratorEditorActionBuilder& icon(const String& p_icon);
-    OrchestratorEditorActionBuilder& type_icon(const String& p_type_icon);
     OrchestratorEditorActionBuilder& target_class(const String& p_target_class);
     OrchestratorEditorActionBuilder& keywords(const PackedStringArray& p_keywords);
     OrchestratorEditorActionBuilder& type(OrchestratorEditorActionDefinition::ActionType p_type);
@@ -137,3 +136,22 @@ public:
 
 };
 
+struct OrchestratorEditorActionDefinitionHasher {
+    static uint32_t hash(const Ref<OrchestratorEditorActionDefinition>& p_action) {
+        const uint32_t h = p_action->category.hash();
+        return hash_murmur3_one_32(p_action->name.hash(), h);
+    }
+};
+
+struct OrchestratorEditorActionDefinitionEquality {
+    static bool compare(const Ref<OrchestratorEditorActionDefinition>& a, const Ref<OrchestratorEditorActionDefinition>& b) {
+        if (!a.is_valid() || !b.is_valid()) {
+            return a == b;
+        }
+        return a->category == b->category && a->name == b->name;
+    }
+};
+
+typedef HashSet<Ref<OrchestratorEditorActionDefinition>,
+    OrchestratorEditorActionDefinitionHasher,
+    OrchestratorEditorActionDefinitionEquality> OrchestratorEditorActionSet;
