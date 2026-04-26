@@ -31,97 +31,111 @@
 
 OrchestratorEditorActionRegistry* OrchestratorEditorActionRegistry::_singleton = nullptr;
 
-template <typename T, typename C = Comparator<T>>
-Vector<T> deduplicate(const Vector<T>& p_vector) {
-    RBSet<T, C> set;
-    for (const T& item : p_vector) {
-        set.insert(item);
-    }
+void OrchestratorEditorActionRegistry::_rebuild_base_actions() {
+    _building = true;
 
-    Vector<T> result;
-    for (const T& item : set) {
-        result.push_back(item);
-    }
+    // Performs the building of immutable actions in a background thread
+    // This should prevent the UI from blocking during editor loads
+    WorkerThreadPool::get_singleton()->add_task(callable_mp_lambda(this, [&] {
+        if (_immutable_actions.is_empty()) {
+            _build_actions();
+        }
+        _global_script_classes_updated();
+        _autoloads_updated();
 
-    return result;
+        OrchestratorEditorActionSet combined;
+        for (const Ref<Action>& action : _immutable_actions) {
+            combined.insert(action);
+        }
+
+        for (const Ref<Action>& action : _global_class_actions) {
+            combined.insert(action);
+        }
+
+        for (const Ref<Action>& action : _autoload_actions) {
+            combined.insert(action);
+        }
+
+        _base_actions = combined;
+        _building = false;
+    }));
 }
 
 void OrchestratorEditorActionRegistry::_build_actions() {
     // Immutable actions are ones that will never be overwritten
-    Vector<Ref<Action>> actions;
+    _immutable_actions.clear();
 
     // These are all the immutable actions
-    actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_script_nodes());
-    actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_variant_types());
-    actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_builtin_functions());
-    actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_native_classes());
-    actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_static_script_methods());
-
-    // Deduplicate the actions
-    _actions = deduplicate<Ref<Action>, ActionComparator>(actions);
+    OrchestratorEditorIntrospector::generate_actions_from_script_nodes(_immutable_actions);
+    OrchestratorEditorIntrospector::generate_actions_from_variant_types(_immutable_actions);
+    OrchestratorEditorIntrospector::generate_actions_from_builtin_functions(_immutable_actions);
+    OrchestratorEditorIntrospector::generate_actions_from_native_classes(_immutable_actions);
+    OrchestratorEditorIntrospector::generate_actions_from_static_script_methods(_immutable_actions);
 }
 
 void OrchestratorEditorActionRegistry::_global_script_classes_updated() {
-    _global_classes = OrchestratorEditorIntrospector::generate_actions_from_script_global_classes();
+    _global_class_actions.clear();
+    OrchestratorEditorIntrospector::generate_actions_from_script_global_classes(_global_class_actions);
 }
 
 void OrchestratorEditorActionRegistry::_autoloads_updated() {
-    _autoloads = OrchestratorEditorIntrospector::generate_actions_from_autoloads();
+    _autoload_actions.clear();
+    OrchestratorEditorIntrospector::generate_actions_from_autoloads(_autoload_actions);
 }
 
 void OrchestratorEditorActionRegistry::_resources_reloaded(const PackedStringArray& p_file_names) {
     // No-op
 }
 
-Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions() {
+OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions() {
     // If something calls this method before the background thread finishes, it blocks
     while (_building) {
         OS::get_singleton()->delay_msec(1000);
     }
-    return _actions;
+    return _base_actions;
 }
 
-Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(
-    const Ref<Script>& p_script, const Ref<Script>& p_other) {
-    Vector<Ref<Action>> actions;
-    actions.append_array(get_actions());
+OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions(const Ref<Script>& p_script, const Ref<Script>& p_other) {
+    OrchestratorEditorActionSet actions = get_actions();
 
     if (p_script.is_valid()) {
-        actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_script(p_script));
+        OrchestratorEditorIntrospector::generate_actions_from_script(p_script, actions);
     }
 
     if (p_other.is_valid()) {
-        actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_script(p_other));
+        OrchestratorEditorIntrospector::generate_actions_from_script(p_other, actions);
     }
 
-    actions.append_array(_global_classes);
-    actions.append_array(_autoloads);
-
-    return deduplicate<Ref<Action>, ActionComparator>(actions);
+    return actions;
 }
 
-Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(Object* p_target) {
-    Vector<Ref<Action>> actions;
-    actions.append_array(get_actions());
-
-    if (p_target) {
-        actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_object(p_target));
+OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions(Object* p_target) {
+    if (!p_target) {
+        return get_actions();
     }
 
-    actions.append_array(_global_classes);
-    actions.append_array(_autoloads);
+    const Ref<Script> script = p_target->get_script();
+    if (!script.is_valid() && ClassDB::class_exists(p_target->get_class())) {
+        return get_actions();
+    }
 
-    return deduplicate<Ref<Action>, ActionComparator>(actions);
+    if (!ScriptServer::get_global_name(script).is_empty()) {
+        return get_actions();
+    }
+
+    OrchestratorEditorActionSet actions = get_actions();
+    OrchestratorEditorIntrospector::generate_actions_from_object(p_target, actions);
+    return actions;
 }
 
-Vector<Ref<OrchestratorEditorActionRegistry::Action>> OrchestratorEditorActionRegistry::get_actions(const StringName& p_class_name) {
-    Vector<Ref<Action>> actions;
-    actions.append_array(get_actions());
-    actions.append_array(OrchestratorEditorIntrospector::generate_actions_from_class(p_class_name));
-    actions.append_array(_global_classes);
-    actions.append_array(_autoloads);
+OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions(const StringName& p_class_name) {
+    if (ClassDB::class_exists(p_class_name) || ScriptServer::is_global_class(p_class_name)) {
+        return get_actions();
+    }
 
-    return deduplicate<Ref<Action>, ActionComparator>(actions);
+    OrchestratorEditorActionSet actions = get_actions();
+    OrchestratorEditorIntrospector::generate_actions_from_class(p_class_name, actions);
+    return actions;
 }
 
 void OrchestratorEditorActionRegistry::_bind_methods() {
@@ -132,26 +146,18 @@ OrchestratorEditorActionRegistry::OrchestratorEditorActionRegistry()
     _global_script_class_update_timer = memnew(Timer);
     _global_script_class_update_timer->set_one_shot(true);
     _global_script_class_update_timer->set_wait_time(.5);
-    _global_script_class_update_timer->connect("timeout", callable_mp_this(_global_script_classes_updated));
+    _global_script_class_update_timer->connect("timeout", callable_mp_this(_rebuild_base_actions));
     add_child(_global_script_class_update_timer);
 
     _project_settings_update_timer = memnew(Timer);
     _project_settings_update_timer->set_one_shot(true);
     _project_settings_update_timer->set_wait_time(.5);
-    _project_settings_update_timer->connect("timeout", callable_mp_this(_autoloads_updated));
+    _project_settings_update_timer->connect("timeout", callable_mp_this(_rebuild_base_actions));
     add_child(_project_settings_update_timer);
 
     _singleton = this;
-    _building = true;
 
-    // Performs the building of immutable actions in a background thread
-    // This should prevent the UI from blocking during editor loads
-    WorkerThreadPool::get_singleton()->add_task(callable_mp_lambda(this, [&] {
-        _build_actions();
-        _building = false;
-        _global_script_classes_updated();
-        _autoloads_updated();
-    }));
+    _rebuild_base_actions();
 
     EI->get_resource_filesystem()->connect("script_classes_updated", callable_mp_lambda(this, [&] {
         // In the event this signal is called multiple times by the file system in quick succession,

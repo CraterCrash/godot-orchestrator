@@ -52,7 +52,12 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
     bool _sorting;
 
     HashMap<String, Ref<Texture2D>> _icon_cache;
-    Vector<Ref<OrchestratorEditorActionDefinition>> _actions;
+    OrchestratorEditorActionSet _actions;
+    Vector<Ref<OrchestratorEditorActionDefinition>> _sorted_actions;
+    HashMap<String, Ref<OrchestratorEditorActionDefinition>> _category_definitions;
+    PackedStringArray _sorted_category_keys;
+    String _last_query;
+    Vector<Ref<OrchestratorEditorActionDefinition>> _last_filtered_actions;
     Ref<OrchestratorEditorActionFilterEngine> _filter_engine;
 
     bool _is_favorite(const Variant& p_value, int& r_index);
@@ -61,6 +66,7 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
     void _recent_selected(int p_index);
     void _recent_activated(int p_index);
     void _search_changed(const String& p_text);
+    void _search_submitted(const String& p_text);
     void _search_gui_input(const Ref<InputEvent>& p_event);
     void _item_selected();
     void _nothing_selected();
@@ -100,10 +106,10 @@ public:
     void set_show_filter_option(bool p_show_filter_option) { _filter_options->set_visible(p_show_filter_option); }
     void set_start_collapsed(bool p_start_collapsed);
 
-    void popup(const Vector2& p_position, const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
+    void popup(const Vector2& p_position, const OrchestratorEditorActionSet& p_actions,
                const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine);
 
-    void popup_centered(const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
+    void popup_centered(const OrchestratorEditorActionSet& p_actions,
                const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine);
 
     OrchestratorEditorActionMenu();
