@@ -83,7 +83,14 @@ void OrchestratorEditorActionHelp::parse_action(const Ref<OrchestratorEditorActi
 
         _title->show();
 
-        set_text(p_action->tooltip);
+        String text = p_action->tooltip;
+        if (text.is_empty()) {
+            text = "There is no description available.";
+        } else if (!text.ends_with(".")) {
+            text += ".";
+        }
+
+        set_text(text);
         set_disabled(false);
     } else {
         _title->clear();

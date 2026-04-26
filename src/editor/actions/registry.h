@@ -44,12 +44,16 @@ class OrchestratorEditorActionRegistry : public Node {
     using ActionType = OrchestratorEditorActionDefinition::ActionType;
     using GraphType = OrchestratorEditorActionDefinition::GraphType;
 
-    Vector<Ref<Action>> _actions;
-    Vector<Ref<Action>> _global_classes;
-    Vector<Ref<Action>> _autoloads;
+    OrchestratorEditorActionSet _base_actions;
+    OrchestratorEditorActionSet _immutable_actions;
+    OrchestratorEditorActionSet _global_class_actions;
+    OrchestratorEditorActionSet _autoload_actions;
+
     bool _building = false;
     Timer* _global_script_class_update_timer = nullptr;
     Timer* _project_settings_update_timer = nullptr;
+
+    void _rebuild_base_actions();
 
     void _build_actions();
     void _global_script_classes_updated();
@@ -62,10 +66,10 @@ protected:
 public:
     static OrchestratorEditorActionRegistry* get_singleton() { return _singleton; }
 
-    Vector<Ref<Action>> get_actions();
-    Vector<Ref<Action>> get_actions(const Ref<Script>& p_script, const Ref<Script>& p_other = Ref<Script>());
-    Vector<Ref<Action>> get_actions(Object* p_target);
-    Vector<Ref<Action>> get_actions(const StringName& p_class_name);
+    OrchestratorEditorActionSet get_actions();
+    OrchestratorEditorActionSet get_actions(const Ref<Script>& p_script, const Ref<Script>& p_other = Ref<Script>());
+    OrchestratorEditorActionSet get_actions(Object* p_target);
+    OrchestratorEditorActionSet get_actions(const StringName& p_class_name);
 
     OrchestratorEditorActionRegistry();
     ~OrchestratorEditorActionRegistry() override;
