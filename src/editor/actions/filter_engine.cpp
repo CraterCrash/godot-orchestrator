@@ -38,8 +38,7 @@ Vector<ScoredAction> OrchestratorEditorActionFilterEngine::filter_actions(
     const FilterContext& p_context) {
 
     Vector<ScoredAction> result;
-    for (int i  = 0; i < p_actions.size(); i++) {
-        const Ref<OrchestratorEditorActionDefinition>& action = p_actions[i];
+    for (const Ref<OrchestratorEditorActionDefinition>& action : p_actions) {
         const bool use_context = p_context.context_sensitive;
 
         bool passed = true;

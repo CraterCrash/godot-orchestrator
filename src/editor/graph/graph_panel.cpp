@@ -1427,7 +1427,7 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
 
     OrchestratorEditorActionRegistry* action_registry = OrchestratorEditorActionRegistry::get_singleton();
 
-    Vector<Ref<OrchestratorEditorActionDefinition>> actions;
+    OrchestratorEditorActionSet actions;
     if (target) {
         actions = action_registry->get_actions(target);
     } else if (target_reference.is_valid()) {
