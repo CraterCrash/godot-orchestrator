@@ -28,12 +28,12 @@ The following screenshots only scratch the surface of what the plug-in offers ou
 Orchestrator is made using Godot GDExtension technology, which has certain ABI (application binary interface) requirements that must be followed to guarantee that the integration between extensions and the engine works as expected.
 The following table describes which Orchestrator version you should use based on your Godot editor version.
 
-| Godot Version | Orchestrator Version   |
-|---------------|------------------------|
-| Godot 4.4.x   | v2.2.x (`2.2` branch)  |
-| Godot 4.5.x   | v2.3.x (`2.3` branch)  |
-| Godot 4.6.x   | v2.4.x (`2.4` branch)  |
-| Godot 4.7.x   | v2.5.x (`main` branch) |
+| Godot Version | Orchestrator Version   | Development Status                    |
+|---------------|------------------------|---------------------------------------|
+| Godot 4.7.x   | v2.5.x (`main` branch) | Active Development                    |
+| Godot 4.6.x   | v2.4.x (`2.4` branch)  | Bug fixes and Compatible New Features |
+| Godot 4.5.x   | v2.3.x (`2.3` branch)  | Bug fixes only                        |
+| Godot 4.4.x   | v2.2.x (`2.2` branch)  | Bug fixes only                        |
 
 **Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.**
 **Additionally, if your Godot version is not listed, it should be assumed the plug-in is not yet 100% compatible.**
