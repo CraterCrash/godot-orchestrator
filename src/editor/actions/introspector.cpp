@@ -67,8 +67,9 @@ void OrchestratorEditorIntrospector::_register_static_methods(const String& p_lo
 }
 
 void OrchestratorEditorIntrospector::_register_global_class_static_methods(const String& p_class_name, const String& p_category, ActionSet& r_actions) {
-    for (const Variant& entry : ScriptServer::get_global_class(p_class_name).get_static_method_list()) {
-        const MethodInfo method = DictionaryUtils::to_method(entry);
+    const TypedArray<Dictionary> methods = ScriptServer::get_global_class(p_class_name).get_static_method_list();
+    for (int i = 0; i < methods.size(); i++) {
+        const MethodInfo method = DictionaryUtils::to_method(methods[i]);
         r_actions.insert(_create_static_function_action(p_category, method.name, p_class_name, method));
     }
 }
