@@ -187,7 +187,12 @@ void OrchestratorEditorActionMenu::_visibility_changed() {
     } else {
         _load_user_data();
 
+        #if GODOT_VERSION >= 0x040600
         callable_mp_cast(_search_box, Control, grab_focus).call_deferred(false);
+        #else
+        callable_mp_cast(_search_box, Control, grab_focus).call_deferred();
+        #endif
+
         _search_box->select_all();
     }
 }
@@ -717,7 +722,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
     _search_box->connect(SceneStringName(text_changed), callable_mp_this(_search_changed));
     _search_box->connect(SceneStringName(gui_input), callable_mp_this(_search_gui_input));
-    _search_box->connect(SceneStringName(text_submitted), callable_mp_this(_search_submitted));
+    // _search_box->connect(SceneStringName(text_submitted), callable_mp_this(_search_submitted));
 
     _favorite_button = memnew(Button);
     _favorite_button->set_toggle_mode(true);
