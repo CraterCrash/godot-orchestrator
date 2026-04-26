@@ -814,7 +814,7 @@ void OrchestratorEditor::_make_script_list_context_menu() {
         _context_menu->add_separator();
     }
 
-    _context_menu->add_item("Tooltip Orchestration Panel", FILE_TOGGLE_LEFT_PANEL);
+    _context_menu->add_item("Toggle Orchestration Panel", FILE_TOGGLE_LEFT_PANEL);
 
     _context_menu->set_item_disabled(_context_menu->get_item_index(FILE_CLOSE_ALL), _tab_container->get_tab_count() == 0);
     _context_menu->set_item_disabled(_context_menu->get_item_index(FILE_CLOSE_OTHERS), _tab_container->get_tab_count() == 0);
