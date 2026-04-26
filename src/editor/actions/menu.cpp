@@ -31,6 +31,8 @@
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
 #include <godot_cpp/classes/worker_thread_pool.hpp>
@@ -77,6 +79,15 @@ void OrchestratorEditorActionMenu::_recent_selected(int p_index) {
 
 void OrchestratorEditorActionMenu::_search_changed(const String& p_text) {
     _update_search();
+}
+
+void OrchestratorEditorActionMenu::_search_submitted(const String& p_text) {
+    if (get_ok_button() && get_ok_button()->is_disabled()) {
+        callable_mp_lambda(this, [this] {
+            _search_box->release_focus();
+            _search_box->grab_focus();
+        }).call_deferred();
+    }
 }
 
 void OrchestratorEditorActionMenu::_search_gui_input(const Ref<InputEvent>& p_event) {
@@ -329,15 +340,25 @@ void OrchestratorEditorActionMenu::_update_search() {
         return;
     }
 
-    const String query = _search_box->get_text(); //.strip_edges(); //.trim_prefix(" ").trim_suffix(" ");
+    const String query = _search_box->get_text();
 
     FilterContext context;
     context.context_sensitive = true;
     context.query = query;
     context._filter_action_type = -1;
 
-    // Filter actions
-    Vector<ScoredAction> filtered_actions = _filter_engine->filter_actions(_actions, context);
+    const Vector<Ref<OrchestratorEditorActionDefinition>>& source =
+        (!_last_query.is_empty() && query.begins_with(_last_query))
+        ? _last_filtered_actions
+        : _sorted_actions;
+
+    Vector<ScoredAction> filtered_actions = _filter_engine->filter_actions(source, context);
+
+    _last_query = query;
+    _last_filtered_actions.clear();
+    for (const ScoredAction& sa : filtered_actions) {
+        _last_filtered_actions.push_back(sa.action);
+    }
 
     _results->clear();
     TreeItem* root = _results->create_item();
@@ -349,42 +370,19 @@ void OrchestratorEditorActionMenu::_update_search() {
     _results->hide();
 
     HashMap<String, TreeItem*> category_items;
-    PackedStringArray sorted_keys;
-    HashMap<String, Ref<OrchestratorEditorActionDefinition>> category_definitions;
     Vector<ScoredAction> leaf_items;
 
-    // Pass 1: Sort into categories and leaf nodes
-    for (int i = 0; i < filtered_actions.size(); i++) {
-        const ScoredAction& scored_action = filtered_actions[i];
-        const Ref<OrchestratorEditorActionDefinition>& action = filtered_actions[i].action;
-        if (action->selectable) {
+    // Pass 1: Collect leaf nodes, category structure is pre-built in _category_definitions
+    for (const ScoredAction& scored_action : filtered_actions) {
+        if (scored_action.action->selectable) {
             leaf_items.push_back(scored_action);
-
-            // Check if the leaf action's category is defined.
-            // If it isn't, automatically inject a temporary one.
-            // Should the user define one later with icons, the dummy one is replaced.
-            if (!category_definitions.has(action->category) && !action->category.is_empty()) {
-                Vector<Ref<OrchestratorEditorActionDefinition>> category_actions =
-                    OrchestratorEditorIntrospector::generate_actions_from_category(action->category);
-
-                for (const Ref<OrchestratorEditorActionDefinition>& category_action : category_actions) {
-                    if (!category_definitions.has(category_action->category)) {
-                        category_definitions[category_action->category] = category_action;
-                        sorted_keys.push_back(category_action->category);
-                    }
-                }
-            }
-        } else if (!action->category.is_empty()) {
-            category_definitions[action->category] = action;
-            sorted_keys.push_back(action->category);
         }
     }
 
-    // Pass 2: Create all category tree items in order
+    // Pass 2: Create all category tree items using pre-built sorted keys
     const String separator = "/";
-    HashMap<String, Ref<Texture2D>> icon_cache;
-    for (const String& path : sorted_keys) {
-        const Ref<OrchestratorEditorActionDefinition>& category = category_definitions[path];
+    for (const String& path : _sorted_category_keys) {
+        const Ref<OrchestratorEditorActionDefinition>& category = _category_definitions[path];
         const PackedStringArray segments = path.split(separator);
 
         String cumulative_path;
@@ -402,7 +400,7 @@ void OrchestratorEditorActionMenu::_update_search() {
                 item->set_selectable(0, false);
 
                 if (i == segments.size() - 1 && !category->icon.is_empty()) {
-                    item->set_icon(0, SceneUtils::get_class_icon(category->icon));
+                    item->set_icon(0, _get_cached_icon(category->icon));
                 }
 
                 category_items[cumulative_path] = item;
@@ -415,8 +413,7 @@ void OrchestratorEditorActionMenu::_update_search() {
     // Pass 3: Add selectable action items and track best match
     TreeItem* best_match = nullptr;
     float best_score = -1;
-    for (int i = 0; i < leaf_items.size(); i++) {
-        const ScoredAction& scored_action = leaf_items[i];
+    for (const ScoredAction& scored_action : leaf_items) {
         const Ref<OrchestratorEditorActionDefinition>& leaf = scored_action.action;
         const String& path = leaf->category;
 
@@ -427,7 +424,7 @@ void OrchestratorEditorActionMenu::_update_search() {
         item->set_selectable(0, leaf->selectable);
 
         if (!leaf->icon.is_empty()) {
-            item->set_icon(0, SceneUtils::get_class_icon(leaf->icon));
+            item->set_icon(0, _get_cached_icon(leaf->icon));
         }
 
         item->set_metadata(0, leaf);
@@ -575,10 +572,48 @@ void OrchestratorEditorActionMenu::_perform_background_sort() {
     _sorting = true;
 
     WorkerThreadPool::get_singleton()->add_task(callable_mp_lambda(this, [&] {
-        Vector<Ref<OrchestratorEditorActionDefinition>> sorted = _actions;
+        Vector<Ref<OrchestratorEditorActionDefinition>> sorted;
+        for (const Ref<OrchestratorEditorActionDefinition>& action : _actions) {
+            sorted.push_back(action);
+        }
         sorted.sort_custom<OrchestratorEditorActionDefinitionComparator>();
 
-        _actions = sorted;
+        _sorted_actions = sorted;
+
+        _category_definitions.clear();
+        _sorted_category_keys.clear();
+
+        // First pass: collect categories from non-selectable category actions
+        for (const Ref<OrchestratorEditorActionDefinition>& action : _sorted_actions) {
+            if (!action->selectable && !action->category.is_empty()) {
+                if (!_category_definitions.has(action->category)) {
+                    _category_definitions[action->category] = action;
+                    _sorted_category_keys.push_back(action->category);
+                }
+            }
+        }
+
+        // Second pass: inject categories for selectable actions whose category has no
+        // corresponding non-selectable category action (e.g. "Constants", "Flow Control")
+        for (const Ref<OrchestratorEditorActionDefinition>& action : _sorted_actions) {
+            if (action->selectable && !action->category.is_empty()
+                    && !_category_definitions.has(action->category)) {
+                const Vector<Ref<OrchestratorEditorActionDefinition>> category_actions =
+                    OrchestratorEditorIntrospector::generate_actions_from_category(action->category);
+                for (const Ref<OrchestratorEditorActionDefinition>& cat : category_actions) {
+                    if (!_category_definitions.has(cat->category)) {
+                        _category_definitions[cat->category] = cat;
+                        _sorted_category_keys.push_back(cat->category);
+                    }
+                }
+            }
+        }
+
+        _sorted_category_keys.sort();
+
+        _last_query = String();
+        _last_filtered_actions.clear();
+
         _sorting = false;
 
         callable_mp_this(_update_search).call_deferred();
@@ -595,7 +630,7 @@ void OrchestratorEditorActionMenu::set_start_collapsed(bool p_start_collapsed) {
     }
 }
 
-void OrchestratorEditorActionMenu::popup_centered(const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
+void OrchestratorEditorActionMenu::popup_centered(const OrchestratorEditorActionSet& p_actions,
                                                   const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine)
 {
     _actions = p_actions;
@@ -609,7 +644,7 @@ void OrchestratorEditorActionMenu::popup_centered(const Vector<Ref<OrchestratorE
 }
 
 void OrchestratorEditorActionMenu::popup(const Vector2& p_position,
-                                         const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
+                                         const OrchestratorEditorActionSet& p_actions,
                                          const Ref<OrchestratorEditorActionFilterEngine>& p_filter_engine) {
     _actions = p_actions;
     _filter_engine = p_filter_engine;
@@ -682,6 +717,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
     _search_box->connect(SceneStringName(text_changed), callable_mp_this(_search_changed));
     _search_box->connect(SceneStringName(gui_input), callable_mp_this(_search_gui_input));
+    _search_box->connect(SceneStringName(text_submitted), callable_mp_this(_search_submitted));
 
     _favorite_button = memnew(Button);
     _favorite_button->set_toggle_mode(true);

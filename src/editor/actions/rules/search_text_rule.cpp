@@ -52,20 +52,22 @@ float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditor
     float keyword_boost = 0.7f;
     float tooltip_boost = 0.5f;
 
-    // Always favor exact matches over non-exact matches
+    // Always favor exact matches over non-exact matches.
+    // Return 2.0 so the score beats any non-exact match, which is clamped to 1.0 at most.
     if (name == p_context.query.to_lower()) {
-        return 1.0f;
+        return 2.0f;
     }
     if (name.begins_with(p_context.query.to_lower())) {
-        score += 0.5f;
+        score += 0.3f;
     }
 
-    const PackedStringArray tokens = name.split(" ", false);
-    for (const String& token : tokens) {
-        if (tokens.has(token)) {
+    const PackedStringArray name_words = name.split(" ", false);
+    const PackedStringArray query_tokens = p_context.query.to_lower().split(" ", false);
+    for (const String& token : query_tokens) {
+        if (name_words.has(token)) {
             score += name_boost; // exact word match in name
         } else if (name.findn(token) != -1) {
-            score += name_boost * 0.5f; // substring match (weaker)
+            score += name_boost * 0.5f; // substring match in name (weaker)
         } else if (keywords.has(token)) {
             score += keyword_boost;
         } else if (tooltip.findn(token) != -1) {
@@ -75,8 +77,8 @@ float OrchestratorEditorActionSearchTextRule::score(const Ref<OrchestratorEditor
         }
     }
 
-    // Normalize score by number of tokens
-    score /= tokens.size();
+    // Normalize score by number of query tokens
+    score /= query_tokens.size();
 
     // Favor shorter names for equal match
     score *= 1.0f - 0.1f * (float(name.length()) / 100.0f);

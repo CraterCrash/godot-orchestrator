@@ -29,8 +29,10 @@ class OrchestratorEditorIntrospector {
 
     using ActionBuilder = OrchestratorEditorActionBuilder;
     using Action = OrchestratorEditorActionDefinition;
+    using ActionComparator = OrchestratorEditorActionDefinitionComparator;
     using ActionType = Action::ActionType;
     using GraphType = Action::GraphType;
+    using ActionSet = OrchestratorEditorActionSet;
 
     static HashMap<String, Ref<OScriptNode>> _script_node_cache;
 
@@ -43,37 +45,40 @@ class OrchestratorEditorIntrospector {
 
     static ActionBuilder _script_node_builder(const String& p_node_type, const String& p_name, const String& p_category, const Dictionary& p_data = Dictionary());
     static Ref<OScriptNode> _get_or_create_node_template(const String& p_node_type, bool p_ignore_not_catalogable = false);
-    static Vector<Ref<Action>> _create_categories_from_path(const String& p_category_path, const String& p_icon = String());
+    static void _create_categories_from_path(ActionSet& r_actions, const String& p_category_path, const String& p_icon = String());
     static PackedStringArray _get_native_class_hierarchy(const String& p_class_name);
 
     static String _get_type_icon(Variant::Type p_type);
     static String _get_type_name(Variant::Type p_type);
     static String _get_method_icon_name(const MethodInfo& p_method);
-    static String _get_method_type_icon_name(const MethodInfo& p_method);
     static String _get_builtin_function_category_from_godot_category(const FunctionInfo& p_function_info);
-    static Vector<Ref<Action>> _get_actions_for_class(const String& p_class_name, const String& p_category_name, const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals);
+    static PackedStringArray _build_member_keywords(const String& p_name, const String& p_class_name);
+    static void _get_actions_for_class(const String& p_class_name, const String& p_category_name, const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals, ActionSet& r_actions);
+    static void _get_actions_for_named_class(const String& p_class_name, ActionSet& r_actions);
 
     static void _apply_method_overrides(const String& p_class_name, MethodInfo& r_method);
 
-    static void _register_static_methods(const String& p_lookup_class, const String& p_register_class, const String& p_category, Vector<Ref<Action>>& r_actions);
+    static Ref<Action> _create_static_function_action(const String& p_category, const String& p_name, const String& p_class_name, const MethodInfo& p_method, const PackedStringArray& p_extra_keywords = PackedStringArray());
+    static void _register_static_methods(const String& p_lookup_class, const String& p_register_class, const String& p_category, ActionSet& r_actions);
+    static void _register_global_class_static_methods(const String& p_class_name, const String& p_category, ActionSet& r_actions);
 
 public:
 
     // registrar.filter->target_object->get_target()
-    static Vector<Ref<Action>> generate_actions_from_object(Object* p_object);
+    static void generate_actions_from_object(Object* p_object, ActionSet& r_actions);
     // registrar.filter->target_classes()
-    static Vector<Ref<Action>> generate_actions_from_classes(const PackedStringArray& p_class_names);
+    static void generate_actions_from_classes(const PackedStringArray& p_class_names, ActionSet& r_actions);
     // No specific registrar filter
-    static Vector<Ref<Action>> generate_actions_from_class(const StringName& p_class_name);
-    static Vector<Ref<Action>> generate_actions_from_script(const Ref<Script>& p_script);
+    static void generate_actions_from_class(const StringName& p_class_name, ActionSet& r_actions);
+    static void generate_actions_from_script(const Ref<Script>& p_script, ActionSet& r_actions);
 
-    static Vector<Ref<Action>> generate_actions_from_script_nodes();
-    static Vector<Ref<Action>> generate_actions_from_variant_types();
-    static Vector<Ref<Action>> generate_actions_from_builtin_functions();
-    static Vector<Ref<Action>> generate_actions_from_autoloads();
-    static Vector<Ref<Action>> generate_actions_from_native_classes();
-    static Vector<Ref<Action>> generate_actions_from_static_script_methods();
-    static Vector<Ref<Action>> generate_actions_from_script_global_classes();
+    static void generate_actions_from_script_nodes(ActionSet& r_actions);
+    static void generate_actions_from_variant_types(ActionSet& r_actions);
+    static void generate_actions_from_builtin_functions(ActionSet& r_actions);
+    static void generate_actions_from_autoloads(ActionSet& r_actions);
+    static void generate_actions_from_native_classes(ActionSet& r_actions);
+    static void generate_actions_from_static_script_methods(ActionSet& r_actions);
+    static void generate_actions_from_script_global_classes(ActionSet& r_actions);
 
     static Vector<Ref<Action>> generate_actions_from_category(const String& p_category, const String& p_icon = String());
 
