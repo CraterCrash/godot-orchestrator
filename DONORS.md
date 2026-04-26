@@ -15,10 +15,11 @@
 ## Supporters
     
     Adrian D
+    DominusLex
     Fred A
     Grindle
-    gumby
-    jimmy
+    Gumby
+    Jimmy
     John W
     Richard A
-    whokarez
+    Whokarez
