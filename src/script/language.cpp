@@ -256,7 +256,7 @@ Ref<Script> OScriptLanguage::_make_template(const String& p_template, const Stri
     }
 
     if (!source.is_empty()) {
-        const Ref<FileAccess> temp = FileAccess::create_temp(FileAccess::WRITE_READ, "", "torch");
+        const Ref<FileAccess> temp = FileAccess::create_temp(FileAccess::WRITE_READ, "orchestration-template", "torch");
         temp->store_string(source);
         temp->seek(0);
         temp->flush();
