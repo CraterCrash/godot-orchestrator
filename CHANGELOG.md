@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [2.2.6.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.2.6.stable) - 2026-04-27
+
+- [d001207b](http://github.com/CraterCrash/godot-orchestrator/commit/d001207b9e5f0e6094a8866303ecca086f5f08f1) - GH-1534 Apply temp file prefix when making templates
+
 ## [2.2.5.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.2.5.stable) - 2026-04-26
 
 - [4713bbe3](http://github.com/CraterCrash/godot-orchestrator/commit/4713bbe314406d216a9ce0ac249beed7fdf347bc) - GH-1531 Fix typo in orchestration list context menu
