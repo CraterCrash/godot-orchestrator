@@ -284,10 +284,11 @@ private:
 
     void push_error(const String& p_message, const Node* p_origin = nullptr);
     void push_error(const String& p_message, int p_node_id);
+    void push_error(const String& p_message, const Ref<OScriptNode>& p_node);
     #ifdef DEBUG_ENABLED
-    void push_warning(const Node *p_source, OScriptWarning::Code p_code, const Vector<String> &p_symbols);
+    void push_warning(const Node* p_source, OScriptWarning::Code p_code, const Vector<String>& p_symbols);
     template <typename... Symbols>
-    void push_warning(const Node *p_source, OScriptWarning::Code p_code, const Symbols &...p_symbols) {
+    void push_warning(const Node* p_source, OScriptWarning::Code p_code, const Symbols& ...p_symbols) {
         push_warning(p_source, p_code, Vector<String>{ p_symbols... });
     }
     void apply_pending_warnings();
