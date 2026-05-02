@@ -775,8 +775,17 @@ void OScriptParser::push_error(const String& p_message, int p_node_id) {
     errors.push_back({ p_message, p_node_id });
 }
 
+void OScriptParser::push_error(const String& p_message, const Ref<OScriptNode>& p_node) {
+    panic_mode = true;
+    if (p_node.is_valid()) {
+        errors.push_back({ p_message, p_node->get_id() });
+    } else {
+        errors.push_back({ p_message, -1 });
+    }
+}
+
 #ifdef DEBUG_ENABLED
-void OScriptParser::push_warning(const Node *p_source, OScriptWarning::Code p_code, const Vector<String> &p_symbols) {
+void OScriptParser::push_warning(const Node* p_source, OScriptWarning::Code p_code, const Vector<String>& p_symbols) {
     ERR_FAIL_NULL(p_source);
     ERR_FAIL_INDEX(p_code, OScriptWarning::WARNING_MAX);
 
@@ -2317,6 +2326,11 @@ OScriptParser::StatementResult OScriptParser::build_array_remove_index(const Ref
 }
 
 OScriptParser::StatementResult OScriptParser::build_dictionary_set_item(const Ref<OScriptNodeDictionarySet>& p_script_node) {
+    const Ref<OScriptNodePin> dict_pin = p_script_node->find_pin(1, PD_Input);
+    if (dict_pin.is_valid() && !dict_pin->has_any_connections()) {
+        push_error("A dictionary target must be specified", p_script_node);
+    }
+
     const String dict_term = get_term_name(p_script_node->find_pin(1, PD_Input));
     ExpressionNode* key = resolve_input(p_script_node->find_pin(2, PD_Input));
     ExpressionNode* value = resolve_input(p_script_node->find_pin(3, PD_Input));
