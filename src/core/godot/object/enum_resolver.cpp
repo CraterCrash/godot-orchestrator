@@ -145,7 +145,7 @@ List<EnumResolver::EnumItem> EnumResolver::_resolve_class_enums(const String& p_
                     EnumItem item;
                     item.name = enum_values[index];
                     item.friendly_name = _generate_friendly_name(prefix, item.name);
-                    item.value = index;
+                    item.value = ClassDB::class_get_integer_constant(class_name, item.name);
                     results.push_back(item);
                 }
             }
