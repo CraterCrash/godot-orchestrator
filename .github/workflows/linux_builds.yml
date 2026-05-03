@@ -29,7 +29,9 @@ jobs:
 
     steps:
       - name: Install toolchain
-        run: dnf install -y gcc-toolset-13 ninja-build cmake
+        run: |
+          dnf install -y gcc-toolset-13 ninja-build cmake
+          ln -sf /opt/python/cp311-cp311/bin/python3.11 /usr/local/bin/python
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -65,10 +67,13 @@ jobs:
     env:
       PATH: /opt/rh/gcc-toolset-13/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       LD_LIBRARY_PATH: /opt/rh/gcc-toolset-13/root/usr/lib64
+      SKIP_SETUP_PYTHON: 1
 
     steps:
       - name: Install toolchain
-        run: dnf install -y gcc-toolset-13 ninja-build cmake
+        run: |
+          dnf install -y gcc-toolset-13 ninja-build cmake
+          ln -sf /opt/python/cp311-cp311/bin/python3.11 /usr/local/bin/python
 
       - name: Checkout
         uses: actions/checkout@v6
