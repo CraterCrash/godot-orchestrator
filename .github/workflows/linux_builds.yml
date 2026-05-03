@@ -23,7 +23,6 @@ jobs:
             preset: linux-release
 
     env:
-      PATH: /opt/rh/gcc-toolset-13/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       LD_LIBRARY_PATH: /opt/rh/gcc-toolset-13/root/usr/lib64
       SKIP_SETUP_PYTHON: 1
 
@@ -31,7 +30,8 @@ jobs:
       - name: Install toolchain
         run: |
           dnf install -y gcc-toolset-13 ninja-build cmake
-          ln -sf /opt/python/cp311-cp311/bin/python3.11 /usr/local/bin/python
+          echo "/opt/python/cp311-cp311/bin" >> $GITHUB_PATH
+          echo "/opt/rh/gcc-toolset-13/root/usr/bin" >> $GITHUB_PATH
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -65,7 +65,6 @@ jobs:
             preset: linux-release
 
     env:
-      PATH: /opt/rh/gcc-toolset-13/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       LD_LIBRARY_PATH: /opt/rh/gcc-toolset-13/root/usr/lib64
       SKIP_SETUP_PYTHON: 1
 
@@ -73,7 +72,8 @@ jobs:
       - name: Install toolchain
         run: |
           dnf install -y gcc-toolset-13 ninja-build cmake
-          ln -sf /opt/python/cp311-cp311/bin/python3.11 /usr/local/bin/python
+          echo "/opt/python/cp311-cp311/bin" >> $GITHUB_PATH
+          echo "/opt/rh/gcc-toolset-13/root/usr/bin" >> $GITHUB_PATH
 
       - name: Checkout
         uses: actions/checkout@v6
