@@ -2193,9 +2193,11 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 // The MethodBind needs to be used via the GDE interface, not via "method->call".
                 GDExtensionCallError err;
+                Variant tmp;
                 GDE_INTERFACE(object_method_bind_call)(
-                    method, nullptr, reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs), argc, ret, &err);
-                //*ret = method->call(nullptr, reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs), argc, err);
+                    method, nullptr, reinterpret_cast<const GDExtensionConstVariantPtr*>(argptrs), argc, &tmp, &err);
+
+                *ret = tmp;
 
                 #ifdef DEBUG_ENABLED
                 if (OScriptLanguage::get_singleton()->profiling && OScriptLanguage::get_singleton()->profile_native_calls) {
