@@ -29,6 +29,7 @@ runs:
   steps:
 
     - name: Setup python 3.x
+      if: ${{ !env.SKIP_SETUP_PYTHON }}
       uses: actions/setup-python@v6
       with:
         # Semantic version range syntax or exact version of a Python version

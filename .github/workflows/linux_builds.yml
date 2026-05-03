@@ -25,6 +25,7 @@ jobs:
     env:
       PATH: /opt/rh/gcc-toolset-13/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       LD_LIBRARY_PATH: /opt/rh/gcc-toolset-13/root/usr/lib64
+      SKIP_SETUP_PYTHON: 1
 
     steps:
       - name: Install toolchain
