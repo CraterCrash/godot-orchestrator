@@ -5,6 +5,7 @@ on:
 jobs:
   build-linux:
     runs-on: ubuntu-22.04
+    container: quay.io/pypa/manylinux_2_28_x86_64
     name: ${{ matrix.name }}
     timeout-minutes: 60
     strategy:
@@ -21,26 +22,19 @@ jobs:
             cache-name: linux-release
             preset: linux-release
 
+    env:
+      PATH: /opt/rh/gcc-toolset-13/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      LD_LIBRARY_PATH: /opt/rh/gcc-toolset-13/root/usr/lib64
+
     steps:
+      - name: Install toolchain
+        run: dnf install -y gcc-toolset-13 ninja-build cmake
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
           submodules: recursive
 
-      - name: Install GCC (Linux)
-        shell: sh
-        run: |
-          sudo apt-get update
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-          sudo apt-get install gcc-13 g++-13 -y
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
-          sudo update-alternatives --config gcc
-          sudo update-alternatives --config g++
-      - name: Install Ninja (Linux)
-        shell: sh
-        run: |
-          sudo apt-get install ninja-build
       - name: Build
         uses: ./.github/actions/orchestrator-build
         with:
@@ -50,6 +44,7 @@ jobs:
 
   build-linux-arm64:
     runs-on: ubuntu-22.04-arm
+    container: quay.io/pypa/manylinux_2_28_aarch64
     name: ${{ matrix.name }}
     timeout-minutes: 60
     strategy:
@@ -66,26 +61,19 @@ jobs:
             cache-name: linux-release-arm64
             preset: linux-release
 
+    env:
+      PATH: /opt/rh/gcc-toolset-13/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      LD_LIBRARY_PATH: /opt/rh/gcc-toolset-13/root/usr/lib64
+
     steps:
+      - name: Install toolchain
+        run: dnf install -y gcc-toolset-13 ninja-build cmake
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
           submodules: recursive
 
-      - name: Install GCC (Linux)
-        shell: sh
-        run: |
-          sudo apt-get update
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-          sudo apt-get install gcc-13 g++-13 -y
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
-          sudo update-alternatives --config gcc
-          sudo update-alternatives --config g++
-      - name: Install Ninja (Linux)
-        shell: sh
-        run: |
-          sudo apt-get install ninja-build
       - name: Build
         uses: ./.github/actions/orchestrator-build
         with:
