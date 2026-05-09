@@ -331,7 +331,7 @@ void OScriptNodeCallMemberFunction::_upgrade(uint32_t p_version, uint32_t p_curr
             if (target->has_any_connections()) {
                 // VariableGet missing class encoding - player.torch - _character property??
 
-                Ref<OScriptNodePin> source = target->get_connections()[0];
+                Ref<OScriptNodePin> source = target->get_resolved_connection();
                 if (source.is_valid() && !source->get_property_info().class_name.is_empty()) {
                     const String target_class = source->get_property_info().class_name;
                     if (ClassDB::class_has_method(target_class, _reference.method.name)) {

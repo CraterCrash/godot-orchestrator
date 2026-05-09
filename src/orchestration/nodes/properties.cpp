@@ -139,7 +139,7 @@ void OScriptNodeProperty::_upgrade(uint32_t p_version, uint32_t p_current_versio
                     // Attempt to resolve the base type based on the connection, if possible.
                     const Ref<OScriptNodePin> target = find_pin("target", PD_Input);
                     if (target.is_valid() && target->has_any_connections()) {
-                        const Ref<OScriptNodePin> source = target->get_connections()[0];
+                        const Ref<OScriptNodePin> source = target->get_resolved_connection();
                         if (source.is_valid()) {
                             const PropertyInfo& pi = source->get_property_info();
                             if (pi.type == Variant::OBJECT && !pi.class_name.is_empty())

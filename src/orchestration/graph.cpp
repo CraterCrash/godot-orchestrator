@@ -142,6 +142,65 @@ void OScriptGraph::post_initialize() {
     }
 }
 
+void OScriptGraph::_upgrade(uint32_t p_old_version, uint32_t p_new_version) {
+    // Version 4: migrate knots to reroute nodes
+    if (p_old_version < 4 && !_knots.is_empty()) {
+        for (const KeyValue<uint64_t, PackedVector2Array>& E : _knots) {
+            const OScriptConnection conn(E.key);
+            const PackedVector2Array& positions = E.value;
+
+            if (positions.is_empty()) {
+                continue;
+            }
+
+            // Determine the type of the original connection (execution vs data)
+            OScriptNodeReroute::ERerouteType conn_type = OScriptNodeReroute::REROUTE_ANY;
+            {
+                const Ref<OScriptNode> src_node = _orchestration->get_node(conn.from_node);
+                if (src_node.is_valid()) {
+                    const Ref<OScriptNodePin> src_pin = src_node->find_pin(conn.from_port, PD_Output);
+                    if (src_pin.is_valid()) {
+                        conn_type = src_pin->is_execution()
+                            ? OScriptNodeReroute::REROUTE_CONTROL
+                            : OScriptNodeReroute::REROUTE_DATA;
+                    }
+                }
+            }
+
+            // Create a chain of reroute nodes at each knot position
+            int prev_source_id   = conn.from_node;
+            int prev_source_port = conn.from_port;
+
+            for (int i = 0; i < positions.size(); i++) {
+                OScriptNodeInitContext ctx;
+                const Ref<OScriptNodeReroute> reroute = create_node<OScriptNodeReroute>(ctx, positions[i]);
+                if (!reroute.is_valid()) {
+                    break;
+                }
+
+                // Establish the input connection first so force_reroute_type can read the source
+                // pin's data type when it calls allocate_default_pins() during reconstruction.
+                link(prev_source_id, prev_source_port, reroute->get_id(), 0);
+
+                if (conn_type != OScriptNodeReroute::REROUTE_ANY) {
+                    reroute->force_reroute_type(conn_type);
+                }
+
+                prev_source_id   = reroute->get_id();
+                prev_source_port = 0;
+            }
+
+            // Connect last reroute to original target, remove original direct connection
+            if (prev_source_id != conn.from_node || prev_source_port != static_cast<int>(conn.from_port)) {
+                link(prev_source_id, prev_source_port, conn.to_node, conn.to_port);
+                unlink(conn.from_node, conn.from_port, conn.to_node, conn.to_port);
+            }
+        }
+
+        _knots.clear();
+    }
+}
+
 Orchestration* OScriptGraph::get_orchestration() const {
     return _orchestration;
 }

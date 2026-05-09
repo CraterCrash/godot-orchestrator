@@ -36,16 +36,12 @@ using namespace godot;
 /// Forward declarations
 class OrchestratorEditorActionDefinition;
 class OrchestratorEditorGraphMarkers;
-class OrchestratorEditorGraphPanelKnotEditor;
 
 /// A graph panel is a widget that allows the placement of pins that contain ports (aka pins) that provide a
 /// visual way to define logic behavior that can be used for scripting.
 ///
 class OrchestratorEditorGraphPanel : public GraphEdit {
-    friend class OrchestratorEditorGraphPanelKnotEditor;
     friend class OrchestratorEditorGraphMarkers;
-
-    using KnotHelper = OrchestratorEditorGraphPanelKnotEditor;
 
     GDCLASS(OrchestratorEditorGraphPanel, GraphEdit);
 
@@ -102,7 +98,6 @@ private:
     WeakRef<OrchestratorEditorGraphPin> _drag_from_pin;
 
     OrchestratorEditorGraphMarkers* _markers = nullptr;
-    KnotHelper* _knot_editor = nullptr;
 
     HFlowContainer* _toolbar_hflow = nullptr;
     Control* _center_status = nullptr;
@@ -183,10 +178,6 @@ protected:
     void _graph_changed();
     //~ End OrchestrationGraph Signals
 
-    //~ Begin KnotEditor Signals
-    void _knots_changed();
-    //~ End KnotEditor Signals
-
     void _clear_copy_buffer();
     void _toggle_resizer_for_selected_nodes();
     void _resize_node_to_content();
@@ -258,6 +249,7 @@ protected:
 
     void _disconnect_connection(const Dictionary& p_connection);
     void _create_connection_reroute(const Dictionary& p_connection, const Vector2& p_position);
+    void _dissolve_selected_reroutes();
 
 public:
     //~ Begin Control Interface
