@@ -21,6 +21,7 @@
 #include "common/settings.h"
 #include "common/variant_utils.h"
 #include "orchestration/nodes.h"
+#include "orchestration/nodes/reroute.h"
 #include "orchestration/orchestration.h"
 #include "script/script_server.h"
 
@@ -413,6 +414,15 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
         return false;
     }
 
+    // ANY reroutes accept all pin types and they adopt the type from the first connection
+    OScriptNode* owner = get_owning_node();
+    if (owner && owner->is_reroute()) {
+        const OScriptNodeReroute* reroute = cast_to<OScriptNodeReroute>(owner);
+        if (reroute && reroute->get_reroute_type() == OScriptNodeReroute::REROUTE_ANY) {
+            return true;
+        }
+    }
+
     // Short-circuit execution ports, if both are executions, allow
     if (is_execution() && p_pin->is_execution()) {
         return true;
@@ -531,7 +541,12 @@ void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin) {
 
     bool intermediate_required = false;
     if (!source_pin->is_execution() && !target_pin->is_execution()) {
-        intermediate_required = get_type() != target_pin->get_type();
+        // Never insert a coercion node when connecting to/from a reroute, it adopts the type
+        const bool source_is_reroute = source->is_reroute();
+        const bool target_is_reroute = target->is_reroute();
+        if (!source_is_reroute && !target_is_reroute) {
+            intermediate_required = get_type() != target_pin->get_type();
+        }
     }
 
     Ref<OScriptNode> intermediate;
@@ -662,6 +677,21 @@ Ref<OScriptNodePin> OScriptNodePin::get_connection() const {
     ERR_FAIL_V_MSG({}, "A data flow pin can have multiple connections, use get_connections instead.");
 }
 
+Ref<OScriptNodePin> OScriptNodePin::get_resolved_connection() const {
+    return _resolve_reroute(get_connection());
+}
+
+Vector<Ref<OScriptNodePin>> OScriptNodePin::get_resolved_connections() const {
+    Vector<Ref<OScriptNodePin>> result;
+    for (const Ref<OScriptNodePin>& pin : get_connections()) {
+        const Ref<OScriptNodePin> resolved = _resolve_reroute(pin);
+        if (resolved.is_valid()) {
+            result.push_back(resolved);
+        }
+    }
+    return result;
+}
+
 bool OScriptNodePin::is_label_visible() const {
     if (_flags.has_flag(HIDE_LABEL) || _flags.has_flag(HIDDEN)) {
         return false;
@@ -681,7 +711,10 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback) con
 
     if (is_input()) {
         if (has_any_connections()) {
-            const Ref<OScriptNodePin> connection = get_connections()[0];
+            const Ref<OScriptNodePin> connection = get_resolved_connection();
+            if (!connection.is_valid()) {
+                return signal_names;
+            }
             const Ref<OScriptTargetObject> target = connection->resolve_target();
             if (target.is_valid() && target->has_target()) {
                 const TypedArray<Dictionary> signal_list = target->get_target_signal_list();
@@ -792,4 +825,24 @@ void OScriptNodePin::_bind_methods() {
     BIND_ENUM_CONSTANT(Flags::FILE)
     BIND_ENUM_CONSTANT(Flags::MULTILINE)
     BIND_ENUM_CONSTANT(Flags::ENUM)
+}
+
+Ref<OScriptNodePin> OScriptNodePin::_resolve_reroute(const Ref<OScriptNodePin>& p_pin) {
+    if (!p_pin.is_valid()) {
+        return {};
+    }
+
+    OScriptNode* owner = p_pin->get_owning_node();
+    if (!owner || !owner->is_reroute()) {
+        return p_pin;
+    }
+
+    // Follow through the reroute: input pin looks at the other side (output) and vice versa
+    EPinDirection other = p_pin->is_input() ? PD_Output : PD_Input;
+    Ref<OScriptNodePin> other_pin = owner->find_pin(other == PD_Input ? "input" : "output", other);
+    if (!other_pin.is_valid() || !other_pin->has_any_connections()) {
+        return {};
+    }
+
+    return _resolve_reroute(other_pin->get_connections()[0]);
 }

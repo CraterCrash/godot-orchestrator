@@ -36,6 +36,12 @@ class OrchestratorEditorGraphNode : public GraphNode {
 
     GDCLASS(OrchestratorEditorGraphNode, GraphNode);
 
+    Ref<OrchestrationGraphNode> _node;
+    HBoxContainer* _indicators_hbox = nullptr;
+    bool _show_type_icons = true;
+    bool _show_advanced_tooltips = false;
+
+protected:
     struct Slot {
         int64_t slot = 0;
         Control* row = nullptr;
@@ -46,13 +52,8 @@ class OrchestratorEditorGraphNode : public GraphNode {
     typedef HashMap<int, Slot> SlotMap;
     typedef KeyValue<int, Slot> SlotMapKeyValue;
 
-    Ref<OrchestrationGraphNode> _node;
-    HBoxContainer* _indicators_hbox = nullptr;
     SlotMap _slots;
-    bool _show_type_icons = true;
-    bool _show_advanced_tooltips = false;
 
-protected:
     static void _bind_methods();
 
     //~ Begin Wrapped Interface

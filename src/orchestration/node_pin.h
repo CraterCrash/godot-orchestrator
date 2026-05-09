@@ -101,6 +101,8 @@ private:
     bool _valid = true;                        //! Indicates if the pin is valid
     int _cached_pin_index = -1;                //! Cached pin index calculated after pins added to node
 
+    static Ref<OScriptNodePin> _resolve_reroute(const Ref<OScriptNodePin>& p_pin);
+
 protected:
     static void _bind_methods();
 
@@ -274,6 +276,10 @@ public:
     bool has_any_connections() const;
 
     /// Get the connections to this pin.
+    ///
+    /// Any pin that is connected to a reroute node will include the reroute node pin.
+    /// To obtain connections by ignoring reroutes, use {@code get_resolved_connections} instead.
+    ///
     /// @return the connected pins
     Vector<Ref<OScriptNodePin>> get_connections() const;
 
@@ -282,8 +288,28 @@ public:
     /// For control flow, there is always one output pin, while for data flow pins there is always one input.
     /// This utility method checks the pin's direction and returns the single connection if one exists, or it
     /// will throw an error if the direction and use case mismatch, with an invalid reference.
+    ///
+    /// Any pin that is connected to a reroute node will include the reroute node pin.
+    /// To obtain the connection by ignoring reroutes, use {@code get_resolved_connection} instead.
+    ///
     /// @return the singular connected pin
     Ref<OScriptNodePin> get_connection() const;
+
+    /// Get the connections to this pin.
+    ///
+    /// Any pin that is connected to a reroute will be traversed until a non-reroute pin is found.
+    /// Any chain that ends with a reroute node is considered dangling, and omitted.
+    ///
+    /// @return the resolved connection pins
+    Vector<Ref<OScriptNodePin>> get_resolved_connections() const;
+
+    /// Get the target connection for this pin.
+    ///
+    /// Any pin that is connected to a reroute node will be traversed until a non-reroute pin is found.
+    /// Any chain that ends with a reroute node is considered dangling, and omitted.
+    ///
+    /// @return the singular connected pin
+    Ref<OScriptNodePin> get_resolved_connection() const;
 
     /// Return whether this pin is hidden.
     /// @return true if the pin is hidden, false otherwise

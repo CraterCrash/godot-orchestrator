@@ -269,6 +269,10 @@ public:
     /// @return true to draw the node as a bead, false otherwise.
     virtual bool should_draw_as_bead() const { return false; }
 
+    /// Whether this node is a reroute node.
+    /// @return true if this node is a reroute, false otherwise.
+    virtual bool is_reroute() const { return false; }
+
     /// Get the object to be inspected when clicking this node.
     /// @return the inspectable object, typically this, the node.
     virtual Ref<Resource> get_inspect_object() { return this; }

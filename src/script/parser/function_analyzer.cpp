@@ -18,6 +18,7 @@
 
 #include "common/string_utils.h"
 #include "core/godot/variant/array.h"
+#include "orchestration/node_pin.h"
 #include "orchestration/nodes.h"
 
 #include <functional>
@@ -38,7 +39,10 @@ static Vector<Ref<OScriptNode>> get_control_flow_successors(const Ref<OScriptNod
     Vector<Ref<OScriptNode>> successors;
     for (const Ref<OScriptNodePin>& output : p_node->find_pins(PD_Output)) {
         if (output.is_valid() && output->is_execution() && output->has_any_connections()) {
-            successors.push_back(output->get_connection()->get_owning_node());
+            const Ref<OScriptNodePin> target = output->get_resolved_connection();
+            if (target.is_valid()) {
+                successors.push_back(target->get_owning_node());
+            }
         }
     }
     return successors;
@@ -186,7 +190,7 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
 
     for (NodeId node_id : p_context.info.graph_nodes) {
         const Ref<OScriptNode> node = p_context.get_node_by_id(node_id);
-        if (node.is_valid()) {
+        if (node.is_valid() && !node->is_reroute()) {
             all_nodes.insert(node);
             node_degrees[node] = 0;
         }
@@ -230,7 +234,7 @@ void OScriptFunctionAnalyzer::_register_incoming_nets(Context& p_context, const 
         return;
     }
 
-    for (const Ref<OScriptNodePin>& source_pin : p_pin->get_connections()) {
+    for (const Ref<OScriptNodePin>& source_pin : p_pin->get_resolved_connections()) {
         const Ref<OScriptNode> source_node = source_pin->get_owning_node();
         if (!source_node.is_valid()) {
             continue;
@@ -281,8 +285,7 @@ void OScriptFunctionAnalyzer::_register_nets(Context& p_context) {
             if (input.is_valid() && !input->is_execution()) {
                 _register_incoming_nets(p_context, input, node_id);
 
-                // Visit nodes that feed this node for pure nodes
-                for (const Ref<OScriptNodePin>& source_pin : input->get_connections()) {
+                for (const Ref<OScriptNodePin>& source_pin : input->get_resolved_connections()) {
                     const Ref<OScriptNode> source = source_pin->get_owning_node();
                     if (source.is_valid()) {
                         visit(source);
@@ -496,8 +499,10 @@ OScriptNodePinSet OScriptFunctionAnalyzer::_get_all_reachable_pins(Context& p_co
 
         for (const Ref<OScriptNodePin>& output_pin : node->find_pins(PD_Output)) {
             if (output_pin->is_execution() && output_pin->has_any_connections()) {
-                const Ref<OScriptNodePin> target_pin = output_pin->get_connection();
-                DFS({ target_pin->get_owning_node()->get_id(), target_pin->get_pin_index() });
+                const Ref<OScriptNodePin> target_pin = output_pin->get_resolved_connection();
+                if (target_pin.is_valid()) {
+                    DFS({ target_pin->get_owning_node()->get_id(), target_pin->get_pin_index() });
+                }
             }
         }
     };
@@ -510,7 +515,11 @@ void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>&
     // Recursively collect all nodes this node depends on via data pins
     for (const Ref<OScriptNodePin>& input : p_node->find_pins(PD_Input)) {
         if (input.is_valid() && !input->is_execution() && input->has_any_connections()) {
-            const Ref<OScriptNode> source_node = input->get_connection()->get_owning_node();
+            const Ref<OScriptNodePin> source_pin = input->get_resolved_connection();
+            if (!source_pin.is_valid()) {
+                continue;
+            }
+            const Ref<OScriptNode> source_node = source_pin->get_owning_node();
             p_dependencies.insert({ source_node->get_id(), input->get_pin_index() });
             _collect_data_dependencies(source_node, p_dependencies);
         }
@@ -521,7 +530,11 @@ void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>&
     // Recursively collect all nodes this node depends on via data pins
     for (const Ref<OScriptNodePin>& input : p_node->find_pins(PD_Input)) {
         if (input.is_valid() && !input->is_execution() && input->has_any_connections()) {
-            const Ref<OScriptNode> source_node = input->get_connection()->get_owning_node();
+            const Ref<OScriptNodePin> source_pin = input->get_resolved_connection();
+            if (!source_pin.is_valid()) {
+                continue;
+            }
+            const Ref<OScriptNode> source_node = source_pin->get_owning_node();
             p_dependencies.insert(source_node->get_id());
             _collect_data_dependencies(source_node, p_dependencies);
         }
@@ -560,8 +573,10 @@ void OScriptFunctionAnalyzer::_analyze_combined(Context& p_context) {
             info.is_loop_node[node_id] = true;
             const Ref<OScriptNodePin> body_pin = current->find_pin("loop_body", PD_Output);
             if (body_pin.is_valid() && body_pin->has_any_connections()) {
-                const Ref<OScriptNode> target = body_pin->get_connection()->get_owning_node();
-                info.loop_body_start_nodes[node_id] = target->get_id();
+                const Ref<OScriptNodePin> body_target = body_pin->get_resolved_connection();
+                if (body_target.is_valid()) {
+                    info.loop_body_start_nodes[node_id] = body_target->get_owning_node()->get_id();
+                }
             }
         } else if (const Ref<OScriptNodeBranch>& branch = current; branch.is_valid()) {
             info.is_branch_node[node_id] = true;
@@ -571,7 +586,7 @@ void OScriptFunctionAnalyzer::_analyze_combined(Context& p_context) {
 
         for (const Ref<OScriptNodePin>& input : current->find_pins(PD_Input)) {
             if (input.is_valid() && input->has_any_connections()) {
-                for (const Ref<OScriptNodePin>& source : input->get_connections()) {
+                for (const Ref<OScriptNodePin>& source : input->get_resolved_connections()) {
                     const Ref<OScriptNode> owner = source->get_owning_node();
                     if (owner.is_valid()) {
                         visit_types(owner);
@@ -623,13 +638,13 @@ void OScriptFunctionAnalyzer::_analyze_combined(Context& p_context) {
             info.node_divergence_type[node_id] = OScriptFunctionInfo::DivergenceType::LoopBreak;
             const Ref<OScriptNodePin> abort_pin = current->find_pin("aborted", PD_Output);
             if (abort_pin.is_valid()) {
-                for (const Ref<OScriptNodePin>& target_pin : abort_pin->get_connections()) {
+                for (const Ref<OScriptNodePin>& target_pin : abort_pin->get_resolved_connections()) {
                     info.divergence_paths[node_id].insert(target_pin->get_owning_node()->get_id());
                 }
             }
             const Ref<OScriptNodePin> completed_pin = current->find_pin("completed", PD_Output);
             if (completed_pin.is_valid()) {
-                for (const Ref<OScriptNodePin>& target_pin : completed_pin->get_connections()) {
+                for (const Ref<OScriptNodePin>& target_pin : completed_pin->get_resolved_connections()) {
                     info.divergence_paths[node_id].insert(target_pin->get_owning_node()->get_id());
                 }
             }
@@ -739,8 +754,7 @@ void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
             if (break_pin.is_valid()) {
                 info.loop_break_targets.insert({ loop_id, break_pin->get_pin_index() });
 
-                const Vector<Ref<OScriptNodePin>> break_inputs = break_pin->get_connections();
-                for (const Ref<OScriptNodePin>& input : break_inputs) {
+                for (const Ref<OScriptNodePin>& input : break_pin->get_resolved_connections()) {
                     const Ref<OScriptNode> input_node = input->get_owning_node();
                     if (info.unreachable_nodes.has(input_node->get_id())) {
                         errors.push_back({ node_id, vformat("Node %d connects to for loop %d break pint but it isn't reachable.", input_node->get_id(), node_id) });
