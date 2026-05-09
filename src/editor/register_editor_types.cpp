@@ -29,9 +29,8 @@
 #include "editor/graph/graph_markers.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel.h"
-#include "editor/graph/knot_editor.h"
 #include "editor/graph/nodes/comment_graph_node.h"
-#include "editor/graph/nodes/knot_node.h"
+#include "editor/graph/nodes/reroute_graph_node.h"
 #include "editor/graph/pins/pins.h"
 #include "editor/gui/about_dialog.h"
 #include "editor/gui/context_menu.h"
@@ -124,13 +123,12 @@ void register_editor_types() {
     // Graph Classes
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanel)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanelStyler)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPanelKnotEditor)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphMarkers)
 
     // Graph Node Type
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNode)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeComment)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeKnot)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeReroute)
 
     // Graph Pin Types
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPin)

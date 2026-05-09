@@ -139,6 +139,9 @@ void register_orchestration_node_types() {
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitMemberSignal)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeEmitSignal)
 
+    //~ Reroute
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeReroute)
+
     //~ Utility
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAutoload)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAwait)
