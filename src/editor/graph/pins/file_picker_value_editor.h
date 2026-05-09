@@ -16,15 +16,15 @@
 //
 #pragma once
 
-#include "editor/graph/pins/button_base_pin.h"
+#include "editor/graph/pins/button_base_value_editor.h"
 
 class OrchestratorFileDialog;
 
-/// An implementation of <code>OrchestratorEditorGraphPinButtonBase</code> wrapping a <code>FileDialog</code>
-/// that provides selecting a file path value.
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditorButtonBase</code> that wraps a Godot
+/// <code>FileDialog</code> allowing users to select a file path value.
 ///
-class OrchestratorEditorGraphPinFilePicker : public OrchestratorEditorGraphPinButtonBase {
-    GDCLASS(OrchestratorEditorGraphPinFilePicker, OrchestratorEditorGraphPinButtonBase);
+class OrchestratorEditorGraphPinValueEditorFilePicker : public OrchestratorEditorGraphPinValueEditorButtonBase {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorFilePicker, OrchestratorEditorGraphPinValueEditorButtonBase);
 
     OrchestratorFileDialog* _dialog = nullptr;
     PackedStringArray _file_type_filters;
@@ -32,12 +32,12 @@ class OrchestratorEditorGraphPinFilePicker : public OrchestratorEditorGraphPinBu
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPinButtonBase Interface
+    //~ Begin OrchestratorEditorGraphPinValueEditorButtonBase Interface
     void _handle_selector_button_pressed() override;
-    //~ End OrchestratorEditorGraphPinButtonBase Interface
+    //~ End OrchestratorEditorGraphPinValueEditorButtonBase Interface
 
 public:
     void set_filters(const PackedStringArray& p_file_type_filters) { _file_type_filters = p_file_type_filters; }
 
-    OrchestratorEditorGraphPinFilePicker();
+    OrchestratorEditorGraphPinValueEditorFilePicker();
 };

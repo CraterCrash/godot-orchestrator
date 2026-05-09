@@ -16,67 +16,84 @@
 //
 #include "editor/graph/graph_pin_factory.h"
 
-#include "editor/graph/pins/pins.h"
+#include "common/property_utils.h"
+#include "editor/graph/pins/value_editors.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/dialogue.h"
 
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 
-OrchestratorEditorGraphPin* OrchestratorEditorGraphPinFactory::_create_pin_widget_internal(const Ref<OrchestrationGraphPin>& p_pin) {
+static bool _is_input_action_pin(const Ref<OrchestrationGraphPin>& p_pin) {
+    static PackedStringArray input_event_names = Array::make(
+        "is_action_pressed", "is_action_released", "is_action", "get_action_strength");
+
+    static PackedStringArray input_names = Array::make(
+        "action_press", "action_release", "get_action_raw_strength", "get_action_strength",
+        "is_action_just_pressed", "is_action_just_released", "is_action_pressed");
+
+    const OScriptNodeCallMemberFunction* cmf =
+        Object::cast_to<OScriptNodeCallMemberFunction>(p_pin->get_owning_node());
+
+    if (cmf && p_pin->get_pin_name().match("action")) {
+        const String target_class = cmf->get_target_class();
+        const MethodInfo& method = cmf->get_function();
+
+        if (InputEvent::get_class_static() == target_class && input_event_names.has(method.name)) {
+            return true;
+        }
+        if (Input::get_class_static() == target_class && input_names.has(method.name)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+OrchestratorEditorGraphPinValueEditor* OrchestratorEditorGraphPinFactory::create_value_editor(const Ref<OrchestrationGraphPin>& p_pin) {
     ERR_FAIL_COND_V(!p_pin.is_valid(), nullptr);
 
-    // Handle special use cases.
-    if (p_pin->is_execution()) {
-        return memnew(OrchestratorEditorGraphPinExec);
+    if (PropertyUtils::is_variant(p_pin->get_property_info())) {
+        return memnew(OrchestratorEditorGraphPinValueEditorAny);
     }
 
     if (p_pin->is_file()) {
-        OrchestratorEditorGraphPinFilePicker* file_picker = memnew(OrchestratorEditorGraphPinFilePicker);
-        file_picker->set_filters(Array::make(p_pin->get_file_types()));
-
+        OrchestratorEditorGraphPinValueEditorFilePicker* fp = memnew(OrchestratorEditorGraphPinValueEditorFilePicker);
+        fp->set_filters(Array::make(p_pin->get_file_types()));
         if (Object::cast_to<OScriptNodeDialogueMessage>(p_pin->get_owning_node())) {
-            file_picker->set_default_text("Default Scene");
+            fp->set_default_text("Default Scene");
         }
-
-        return file_picker;
+        return fp;
     }
 
     if (p_pin->is_enum()) {
-        return memnew(OrchestratorEditorGraphPinEnum);
+        return memnew(OrchestratorEditorGraphPinValueEditorEnum);
     }
 
     if (p_pin->is_bitfield()) {
-        return memnew(OrchestratorEditorGraphPinBitfield);
+        return memnew(OrchestratorEditorGraphPinValueEditorBitfield);
     }
 
     switch (p_pin->get_type()) {
-        case Variant::BOOL: {
-            return memnew(OrchestratorEditorGraphPinCheckbox);
-        }
+        case Variant::BOOL:
+            return memnew(OrchestratorEditorGraphPinValueEditorCheckbox);
         case Variant::STRING:
         case Variant::STRING_NAME: {
-            if (is_input_action_pin(p_pin)) {
-                return memnew(OrchestratorEditorGraphPinInputActionPicker);
+            if (_is_input_action_pin(p_pin)) {
+                return memnew(OrchestratorEditorGraphPinValueEditorInputActionPicker);
             }
             if (p_pin->is_multiline_text()) {
-                return memnew(OrchestratorEditorGraphPinTextEdit);
+                return memnew(OrchestratorEditorGraphPinValueEditorTextEdit);
             }
-            return memnew(OrchestratorEditorGraphPinLineEdit);
+            return memnew(OrchestratorEditorGraphPinValueEditorLineEdit);
         }
-        case Variant::COLOR: {
-            return memnew(OrchestratorEditorGraphPinColorPicker);
-        }
+        case Variant::COLOR:
+            return memnew(OrchestratorEditorGraphPinValueEditorColorPicker);
         case Variant::INT:
-        case Variant::FLOAT: {
-            return memnew(OrchestratorEditorGraphPinNumber);
-        }
-        case Variant::OBJECT: {
-            return memnew(OrchestratorEditorGraphPinObject);
-        }
-        case Variant::NODE_PATH: {
-            return memnew(OrchestratorEditorGraphPinNodePath);
-        }
+        case Variant::FLOAT:
+            return memnew(OrchestratorEditorGraphPinValueEditorNumber);
+        case Variant::NODE_PATH:
+            return memnew(OrchestratorEditorGraphPinValueEditorNodePath);
         case Variant::VECTOR2:
         case Variant::VECTOR2I:
         case Variant::VECTOR3:
@@ -91,51 +108,9 @@ OrchestratorEditorGraphPin* OrchestratorEditorGraphPinFactory::_create_pin_widge
         case Variant::QUATERNION:
         case Variant::PROJECTION:
         case Variant::AABB:
-        case Variant::BASIS: {
-            return memnew(OrchestratorEditorGraphPinStruct);
-        }
-        default: {
-            return memnew(OrchestratorEditorGraphPin);
-        }
+        case Variant::BASIS:
+            return memnew(OrchestratorEditorGraphPinValueEditorStruct);
+        default:
+            return nullptr;
     }
-}
-
-bool OrchestratorEditorGraphPinFactory::is_input_action_pin(const Ref<OrchestrationGraphPin>& p_pin) {
-    ERR_FAIL_COND_V(!p_pin.is_valid(), false);
-
-    static PackedStringArray input_event_names = Array::make(
-            "is_action_pressed", "is_action_released", "is_action", "get_action_strength");
-
-    static PackedStringArray input_names = Array::make(
-        "action_press", "action_release", "get_action_raw_strength", "get_action_strength",
-        "is_action_just_pressed", "is_action_just_released", "is_action_pressed");
-
-    const OScriptNodeCallMemberFunction* call_member_function_node =
-        Object::cast_to<OScriptNodeCallMemberFunction>(p_pin->get_owning_node());
-
-    if (call_member_function_node && p_pin->get_pin_name().match("action")) {
-        const String target_class = call_member_function_node->get_target_class();
-        const MethodInfo& method = call_member_function_node->get_function();
-
-        if (InputEvent::get_class_static() == target_class && input_event_names.has(method.name)) {
-            return true;
-        }
-
-        if (Input::get_class_static() == target_class && input_names.has(method.name)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-OrchestratorEditorGraphPin* OrchestratorEditorGraphPinFactory::create_pin_widget(const Ref<OrchestrationGraphPin>& p_pin) {
-    ERR_FAIL_COND_V_MSG(!p_pin.is_valid(), nullptr, "Cannot create pin widget for an invalid pin model");
-
-    OrchestratorEditorGraphPin* pin = _create_pin_widget_internal(p_pin);
-    ERR_FAIL_NULL_V_MSG(pin, nullptr, "Failed to create pin widget");
-
-    pin->set_pin(p_pin);
-
-    return pin;
 }

@@ -19,11 +19,10 @@
 #include "orchestration/node_pin.h"
 
 class OrchestratorEditorGraphPin;
+class OrchestratorEditorGraphPinValueEditor;
 
 class OrchestratorEditorGraphPinFactory {
-    static OrchestratorEditorGraphPin* _create_pin_widget_internal(const Ref<OrchestrationGraphPin>& p_pin);
-
 public:
-    static bool is_input_action_pin(const Ref<OrchestrationGraphPin>& p_pin);
-    static OrchestratorEditorGraphPin* create_pin_widget(const Ref<OrchestrationGraphPin>& p_pin);
+    /// Create the appropriate value editor for a given pin's type and flags.
+    static OrchestratorEditorGraphPinValueEditor* create_value_editor(const Ref<OrchestrationGraphPin>& p_pin);
 };
