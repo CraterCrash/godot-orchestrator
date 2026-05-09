@@ -371,6 +371,12 @@ void Orchestration::post_initialize() {
         for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
             E.value->_upgrade(_version, OrchestrationFormat::FORMAT_VERSION);
         }
+
+        // Upgrade graphs (e.g., knots converted to reroute node migration at v4)
+        for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs) {
+            G.value->_upgrade(_version, OrchestrationFormat::FORMAT_VERSION);
+        }
+
         _version = OrchestrationFormat::FORMAT_VERSION;
     }
 
@@ -981,7 +987,7 @@ bool Orchestration::rename_function(const StringName& p_old_name, const StringNa
         if (const Ref<OScriptNodeComposeFrom> compose_node = node; compose_node.is_valid()) {
             const Ref<OScriptNodePin> object = compose_node->find_pin(0, PD_Input);
             if (object.is_valid() && object->has_any_connections()) {
-                const Ref<OScriptNodePin> source = object->get_connections()[0];
+                const Ref<OScriptNodePin> source = object->get_resolved_connection();
                 if (source.is_valid() && source->get_owning_node()->is_type<OScriptNodeSelf>()) {
                     const Ref<OScriptNodePin> method = compose_node->find_pin(1, PD_Input);
                     if (method.is_valid() && !method->has_any_connections()) {

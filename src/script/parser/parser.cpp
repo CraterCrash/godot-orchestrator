@@ -21,6 +21,7 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "core/godot/object/class_db.h"
+#include "orchestration/node_pin.h"
 #include "orchestration/nodes/branch.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/event.h"
@@ -253,7 +254,7 @@ OScriptNetKey* OScriptParser::get_net_from_pin(const Ref<OScriptNodePin>& p_pin)
 
 Ref<OScriptNodePin> OScriptParser::get_target_from_source(const Ref<OScriptNodePin>& p_source) {
     if (p_source.is_valid()) {
-        return p_source->get_connection();
+        return p_source->get_resolved_connection();
     }
     return {};
 }
@@ -840,7 +841,10 @@ OScriptParser::ExpressionNode* OScriptParser::resolve_input(const Ref<OScriptNod
         return build_literal(p_pin);
     }
 
-    const Ref<OScriptNodePin> source_pin = p_pin->get_connections()[0];
+    const Ref<OScriptNodePin> source_pin = p_pin->get_resolved_connection();
+    if (!source_pin.is_valid()) {
+        return build_literal(p_pin);
+    }
     const Ref<OScriptNode> source_node = source_pin->get_owning_node();
 
     // Check object identity for passthroughs
@@ -897,7 +901,10 @@ StringName OScriptParser::get_term_name(const Ref<OScriptNodePin>& p_pin) {
         return "";
     }
 
-    const Ref<OScriptNodePin> source_pin = p_pin->get_connections()[0];
+    const Ref<OScriptNodePin> source_pin = p_pin->get_resolved_connection();
+    if (!source_pin.is_valid()) {
+        return "";
+    }
     const Ref<OScriptNode> source_node = source_pin->get_owning_node();
     const uint64_t source_id = source_node->get_id();
 
@@ -928,7 +935,10 @@ OScriptParser::ExpressionNode* OScriptParser::build_expression(const Ref<OScript
         return build_literal(p_pin);
     }
 
-    const Ref<OScriptNodePin> source_pin = p_pin->get_connections()[0];
+    const Ref<OScriptNodePin> source_pin = p_pin->get_resolved_connection();
+    if (!source_pin.is_valid()) {
+        return build_literal(p_pin);
+    }
     const Ref<OScriptNode> source_node = source_pin->get_owning_node();
 
     if (current_suite) {
@@ -1286,7 +1296,8 @@ OScriptParser::ExpressionNode* OScriptParser::build_deconstruct(const Ref<OScrip
     // Short-circuit attempt to reduce and do a direct pass of values if there is a compose followed by decompose
     const Ref<OScriptNodePin> input_pin = p_node->find_pin(0, PD_Input);
     if (input_pin.is_valid() && input_pin->has_any_connections()) {
-        const Ref<OScriptNode> source_node = input_pin->get_connections()[0]->get_owning_node();
+        const Ref<OScriptNodePin> resolved = input_pin->get_resolved_connection();
+        const Ref<OScriptNode> source_node = resolved.is_valid() ? resolved->get_owning_node() : Ref<OScriptNode>();
 
         bool reduce = false;
         if (const Ref<OScriptNodeComposeFrom>& compose_from = source_node; compose_from.is_valid()) {
@@ -2034,10 +2045,12 @@ OScriptParser::StatementResult OScriptParser::build_call_super(const Ref<OScript
 OScriptParser::StatementResult OScriptParser::build_sequence(const Ref<OScriptNodeSequence>& p_script_node) {
     for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
         if (output.is_valid() && output->has_any_connections()) {
-            const Ref<OScriptNodePin> start_node_pin = output->get_connections()[0];
+            const Ref<OScriptNodePin> start_node_pin = output->get_resolved_connection();
             // Given that a SequenceNode does not introduce any special scope, we append
             // all statements to the current suite.
-            build_statements(output, start_node_pin, current_suite);
+            if (start_node_pin.is_valid()) {
+                build_statements(output, start_node_pin, current_suite);
+            }
         }
     }
 
@@ -2912,7 +2925,8 @@ OScriptParser::StatementResult OScriptParser::build_free_object(const Ref<OScrip
     const Ref<OScriptNodePin> object_pin = p_script_node->find_pin(1, PD_Input);
 
     if (object_pin->has_any_connections()) {
-        const StringName class_name = object_pin->get_connection()->get_property_info().class_name;
+        const Ref<OScriptNodePin> _src_pin = object_pin->get_resolved_connection();
+        const StringName class_name = _src_pin.is_valid() ? _src_pin->get_property_info().class_name : StringName();
 
         bool is_node = false;
         if (ScriptServer::is_global_class(class_name)) {
@@ -3251,9 +3265,11 @@ OScriptParser::SuiteNode* OScriptParser::build_suite(const String& p_name, const
     }
 
     if (p_source_pin.is_valid() && p_source_pin->has_any_connections()) {
-        const Ref<OScriptNodePin> target_pin = p_source_pin->get_connection();
-        // Build statements for the suite
-        build_statements(p_source_pin, target_pin, suite);
+        const Ref<OScriptNodePin> target_pin = p_source_pin->get_resolved_connection();
+        if (target_pin.is_valid()) {
+            // Build statements for the suite
+            build_statements(p_source_pin, target_pin, suite);
+        }
     }
 
     // Pop the suite to the parent

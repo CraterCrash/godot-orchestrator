@@ -25,6 +25,7 @@
 #include "core/godot/core_string_names.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/gui/context_menu.h"
+#include "orchestration/nodes/reroute.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 
@@ -234,9 +235,34 @@ OrchestratorEditorGraphPinSlotInfo OrchestratorEditorGraphPin::get_slot_info() c
 
     OrchestratorEditorGraphPinSlotInfo info;
     info.enabled = _pin->is_connectable() && !_pin->is_hidden();
-    info.type    = _pin->is_execution() ? 0 : 1;
-    info.icon    = _pin->is_execution() ? "VisualShaderPort" : "GuiGraphNodePort";
-    info.color   = ORCHESTRATOR_GET(_get_pin_color_name(), Color(1.0, 1.0, 1.0, 1.0));
+
+    const OScriptNodeReroute* reroute = cast_to<OScriptNodeReroute>(_pin->get_owning_node());
+    if (reroute) {
+        // Reroutes always use the round port icon regardless of whether they carry
+        // execution or data flow. Slot type drives connection compatibility:
+        //   2 = ANY  (connects to both exec and data)
+        //   0 = CONTROL (execution)
+        //   1 = DATA
+        switch (reroute->get_reroute_type()) {
+            case OScriptNodeReroute::REROUTE_CONTROL:
+                info.type  = 0;
+                info.color = ORCHESTRATOR_GET(_get_pin_color_name(), Color(1.0, 1.0, 1.0, 1.0));
+                break;
+            case OScriptNodeReroute::REROUTE_DATA:
+                info.type  = 1;
+                info.color = ORCHESTRATOR_GET(_get_pin_color_name(), Color(1.0, 1.0, 1.0, 1.0));
+                break;
+            default: // REROUTE_ANY
+                info.type  = 2;
+                info.color = Color(0.78f, 0.78f, 0.78f, 1.0f);
+                break;
+        }
+        info.icon = "GuiGraphNodePort";
+    } else {
+        info.type  = _pin->is_execution() ? 0 : 1;
+        info.icon  = _pin->is_execution() ? "VisualShaderPort" : "GuiGraphNodePort";
+        info.color = ORCHESTRATOR_GET(_get_pin_color_name(), Color(1.0, 1.0, 1.0, 1.0));
+    }
 
     return info;
 }

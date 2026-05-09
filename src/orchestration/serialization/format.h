@@ -19,5 +19,6 @@
 #include <cstdint>
 
 struct OrchestrationFormat {
-    static inline uint32_t FORMAT_VERSION = 3;
+    // Format 4: Introduction of OScriptNodeReroute nodes
+    static inline uint32_t FORMAT_VERSION = 4;
 };
