@@ -96,6 +96,11 @@ public:
     /// This is used to align and fix-up state across versions.
     void post_initialize();
 
+    /// Performs version-based upgrades for this graph.
+    /// @param p_old_version the version stored in the script file
+    /// @param p_new_version the current plugin format version
+    void _upgrade(uint32_t p_old_version, uint32_t p_new_version);
+
     /// Get the owning orchestration
     /// @return the owning orchestration
     Orchestration* get_orchestration() const;

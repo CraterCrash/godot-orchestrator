@@ -16,12 +16,19 @@
 //
 #include "editor/graph/graph_node_factory.h"
 #include "editor/graph/nodes/comment_graph_node.h"
+#include "editor/graph/nodes/reroute_graph_node.h"
 #include "orchestration/nodes/comment.h"
+#include "orchestration/nodes/reroute.h"
 
 OrchestratorEditorGraphNode* OrchestratorEditorGraphNodeFactory::create_node(const Ref<OrchestrationGraphNode>& p_node) {
     const Ref<OScriptNodeComment> comment = p_node;
     if (comment.is_valid()) {
         return memnew(OrchestratorEditorGraphNodeComment);
+    }
+
+    const Ref<OScriptNodeReroute> reroute = p_node;
+    if (reroute.is_valid()) {
+        return memnew(OrchestratorEditorGraphNodeReroute);
     }
 
     return memnew(OrchestratorEditorGraphNode);

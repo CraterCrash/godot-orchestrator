@@ -74,6 +74,9 @@
 #include "orchestration/nodes/emit_member_signal.h"
 #include "orchestration/nodes/emit_signal.h"
 
+// Reroute
+#include "orchestration/nodes/reroute.h"
+
 // Utility
 #include "orchestration/nodes/autoload.h"
 #include "orchestration/nodes/await.h"

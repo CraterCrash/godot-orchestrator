@@ -33,24 +33,23 @@
 #include "editor/actions/registry.h"
 #include "editor/actions/rules/override_function_rule.h"
 #include "editor/autowire_connection_dialog.h"
-#include "editor/debugger/script_debugger_plugin.h"
 #include "editor/graph/graph_markers.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_node_factory.h"
 #include "editor/graph/graph_panel_styler.h"
 #include "editor/graph/graph_pin.h"
-#include "editor/graph/knot_editor.h"
 #include "editor/graph/nodes/comment_graph_node.h"
-#include "editor/graph/nodes/knot_node.h"
+#include "editor/graph/nodes/reroute_graph_node.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/dialogs_helper.h"
-#include "orchestration/orchestration.h"
 #include "orchestration/graph.h"
 #include "orchestration/nodes.h"
+#include "orchestration/orchestration.h"
 #include "script/script.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/center_container.hpp>
+#include <godot_cpp/classes/curve2d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
@@ -170,15 +169,10 @@ void OrchestratorEditorGraphPanel::_delete_nodes_request(const PackedStringArray
     }
 
     HashSet<OrchestratorEditorGraphNode*> node_set;
-    HashSet<GraphElement*> knot_set;
     for (const String& name : p_names) {
         GraphElement* element = cast_to<GraphElement>(find_child(name, false, false));
         if (!element) {
             continue;
-        }
-
-        if (_knot_editor->is_knot(element)) {
-            knot_set.insert(element);
         }
 
         if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(element)) {
@@ -186,25 +180,10 @@ void OrchestratorEditorGraphPanel::_delete_nodes_request(const PackedStringArray
         }
     }
 
-    const uint32_t knot_count = knot_set.size();
     const uint32_t node_count = node_set.size();
-
     const TypedArray<OrchestratorEditorGraphNode> node_array = set_to_typed_array(node_set);
-    const TypedArray<GraphElement> knot_array = set_to_typed_array(knot_set);
 
-    if (knot_count > 0 && node_count > 0) {
-        const String message = vformat("Do you want to delete %d node(s) and %d knot(s)?", node_count, knot_count);
-        OrchestratorEditorDialogs::confirm(message, callable_mp_lambda(this, [knot_array, node_array, this] {
-            _knot_editor->remove_knots(knot_array);
-            remove_nodes(node_array, false);
-        }));
-    } else if (knot_count > 0) {
-        const String message = vformat("Do you want to delete %d knot(s)?", knot_count);
-        OrchestratorEditorDialogs::confirm(message, callable_mp_lambda(this, [knot_array, this] {
-            _knot_editor->remove_knots(knot_array);
-        }));
-    } else if (node_count > 0) {
-        // No need to display any confirmation here, the call will handle that just for nodes.
+    if (node_count > 0) {
         remove_nodes(node_array);
     }
 }
@@ -422,6 +401,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     p_node->set_selected(true);
 
     const bool are_multiple_selections = get_selection_count() > 1;
+    const bool is_reroute = cast_to<OrchestratorEditorGraphNodeReroute>(p_node);
 
     OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
     menu->set_auto_destroy(true);
@@ -429,7 +409,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
 
     const Ref<OrchestrationGraphNode> script_node = p_node->_node;
 
-    menu->add_separator("Node Actions");
+    menu->add_separator(is_reroute ? "Reroute Actions" : "Node Actions");
 
     List<Ref<OScriptAction>> script_node_actions;
     script_node->get_actions(script_node_actions);
@@ -447,6 +427,13 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     menu->add_icon_item("ActionCut", "Cut", callable_mp_this(_cut_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_X));
     menu->add_icon_item("ActionCopy", "Copy", callable_mp_this(_copy_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_C));
     menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_duplicate_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_D));
+
+    if (is_reroute) {
+        menu->set_position(p_node->get_screen_position() + p_position * get_zoom());
+        menu->popup();
+        return;
+    }
+
     menu->add_icon_item("DistractionFree", "Toggle Resizer", callable_mp_this(_toggle_resizer_for_selected_nodes));
     menu->add_icon_item("KeepAspect", "Resize to Content", callable_mp_this(_resize_node_to_content));
 
@@ -691,10 +678,6 @@ void OrchestratorEditorGraphPanel::_graph_changed() {
     }
 }
 
-void OrchestratorEditorGraphPanel::_knots_changed() {
-    _knot_editor->flush_knot_cache(_graph);
-    _set_edited(true);
-}
 
 void OrchestratorEditorGraphPanel::_clear_copy_buffer() {
     _clipboard.clear();
@@ -1657,9 +1640,6 @@ void OrchestratorEditorGraphPanel::_settings_changed() {
     set_minimap_enabled(ORCHESTRATOR_GET("ui/graph/show_minimap", false));
     set_show_arrange_button(ORCHESTRATOR_GET("ui/graph/show_arrange_button", false));
 
-    const Color knot_selected_color = ORCHESTRATOR_GET("ui/graph/knot_selected_color", Color(0.68f, 0.44f, 0.09f));
-    _knot_editor->set_selected_color(knot_selected_color);
-
     _show_overlay_action_tooltips = ORCHESTRATOR_GET("ui/graph/show_overlay_action_tooltips", true);
     _disconnect_control_flow_when_dragged = ORCHESTRATOR_GET("ui/graph/disconnect_control_flow_when_dragged", true);
     _show_advanced_tooltips= ORCHESTRATOR_GET("ui/graph/show_advanced_tooltips", false);
@@ -1895,9 +1875,6 @@ void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
         Error err = connect_node(itos(E.from_node), E.from_port, itos(E.to_node), E.to_port);
         ERR_CONTINUE_MSG(err != OK, "Failed to create graph connection for connection id " + itos(E.id));
     }
-
-    // This must be forced so that knots can be redrawn since all elements were deleted above
-    _knot_editor->update(_graph->get_knots(), true);
 
     // Queue up a revalidation sequence
     emit_signal("validate_script");
@@ -2138,12 +2115,78 @@ void OrchestratorEditorGraphPanel::_create_connection_reroute(const Dictionary& 
     }
 
     const Connection connection = Connection::from_dict(p_connection);
-    const Vector2 position = (p_position + get_scroll_offset()) / get_zoom();
+    const Vector2 graph_position = (p_position + get_scroll_offset()) / get_zoom();
 
-    GraphNode* source = find_node(connection.from_node);
-    GraphNode* target = find_node(connection.to_node);
+    OrchestratorEditorGraphNode* source_graph_node = find_node(connection.from_node);
+    OrchestratorEditorGraphNode* target_graph_node = find_node(connection.to_node);
+    ERR_FAIL_NULL_MSG(source_graph_node, "Cannot insert reroute: source graph node not found.");
+    ERR_FAIL_NULL_MSG(target_graph_node, "Cannot insert reroute: target graph node not found.");
 
-    _knot_editor->create_knot(connection, position, source, target, get_connection_lines_curvature());
+    OrchestratorEditorGraphPin* source_pin = source_graph_node->get_output_pin(connection.from_port);
+    OrchestratorEditorGraphPin* target_pin = target_graph_node->get_input_pin(connection.to_port);
+    ERR_FAIL_NULL_MSG(source_pin, "Cannot insert reroute: source pin not found.");
+    ERR_FAIL_NULL_MSG(target_pin, "Cannot insert reroute: target pin not found.");
+
+    // Disconnect original connection before inserting reroute
+    unlink(source_pin, target_pin);
+
+    // Spawn the reroute node at the click position
+    NodeSpawnOptions options;
+    options.node_class = OScriptNodeReroute::get_class_static();
+    options.position = graph_position;
+    OrchestratorEditorGraphNode* reroute_graph_node = spawn_node(options);
+    ERR_FAIL_NULL_MSG(reroute_graph_node, "Failed to spawn reroute node.");
+
+    // Connect: original source TO reroute input TO reroute output TO original target
+    OrchestratorEditorGraphPin* reroute_in  = reroute_graph_node->get_input_pin(0);
+    OrchestratorEditorGraphPin* reroute_out = reroute_graph_node->get_output_pin(0);
+    ERR_FAIL_NULL_MSG(reroute_in,  "Reroute node missing input pin.");
+    ERR_FAIL_NULL_MSG(reroute_out, "Reroute node missing output pin.");
+
+    link(source_pin, reroute_in);
+    link(reroute_out, target_pin);
+}
+
+void OrchestratorEditorGraphPanel::_dissolve_selected_reroutes() {
+    const Vector<OrchestratorEditorGraphNodeReroute*> reroutes = get_selected<OrchestratorEditorGraphNodeReroute>();
+    if (reroutes.is_empty()) {
+        return;
+    }
+
+    const RBSet<OScriptConnection>& all_connections = _graph->get_orchestration()->get_connections();
+
+    for (OrchestratorEditorGraphNodeReroute* reroute : reroutes) {
+        const int reroute_id = reroute->get_id();
+
+        OScriptConnection incoming, outgoing;
+        int incoming_count = 0, outgoing_count = 0;
+
+        for (const OScriptConnection& C : all_connections) {
+            if (C.to_node == static_cast<uint64_t>(reroute_id)) {
+                incoming = C;
+                incoming_count++;
+            } else if (C.from_node == static_cast<uint64_t>(reroute_id)) {
+                outgoing = C;
+                outgoing_count++;
+            }
+        }
+
+        if (incoming_count == 1 && outgoing_count == 1) {
+            OrchestratorEditorGraphNode* source_node = find_node(static_cast<int>(incoming.from_node));
+            OrchestratorEditorGraphNode* target_node = find_node(static_cast<int>(outgoing.to_node));
+            if (source_node && target_node) {
+                OrchestratorEditorGraphPin* source_pin = source_node->get_output_pin(static_cast<int>(incoming.from_port));
+                OrchestratorEditorGraphPin* target_pin = target_node->get_input_pin(static_cast<int>(outgoing.to_port));
+                if (source_pin && target_pin) {
+                    link(source_pin, target_pin);
+                }
+            }
+        }
+
+        remove_node(reroute, false);
+    }
+
+    _drag_hint->hide();
 }
 
 void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable) {
@@ -2201,17 +2244,6 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
         {StringName("ui_down"),  Vector2( 0,  1)},
     };
 
-    // In Godot 4.2, UI delete events only applied to GraphNode and not GraphElement objects.
-    // This creates an issue with Knots as they are based on GraphElement.
-    // This will make sure a follow-up signal removes the selected knots.
-    if (!_godot_version.at_least(4, 3)) {
-        if (p_event.is_valid() && p_event->is_action_pressed("ui_graph_delete", true) && p_event->is_pressed()) {
-            PackedStringArray knot_names;
-            for_each<OrchestratorEditorGraphNodeKnot>([&] (auto* knot) { knot_names.push_back(knot->get_name()); });
-            emit_signal("delete_nodes_request", knot_names);
-        }
-    }
-
     const Ref<InputEventMouseButton> mb = p_event;
     if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_RIGHT) {
         Dictionary hovered_connection = get_closest_connection_at_point(mb->get_position());
@@ -2233,21 +2265,56 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
         }
     }
 
+    // Intercept Shift+Delete before the parent processes ui_graph_delete, which would
+    // remove nodes without giving us the chance to dissolve reroutes first.
+    const Ref<InputEventKey> early_key = p_event;
+    if (early_key.is_valid() && early_key->is_pressed() && !early_key->is_echo()
+            && early_key->get_keycode() == KEY_DELETE && early_key->is_shift_pressed()) {
+        _dissolve_selected_reroutes();
+        accept_event();
+        return;
+    }
+
     // There is a bug where if the mouse hovers a connection and a node concurrently,
     // the connection color is changed, even when the mouse is inside the node.
     GraphEdit::_gui_input(p_event);
 
     const Ref<InputEventMouse> mouse = p_event;
-    if (mouse.is_valid() && !_is_point_inside_node(mouse->get_position())) {
+    if (mouse.is_valid()) {
+        const bool inside_node = _is_point_inside_node(mouse->get_position());
         const Ref<InputEventMouseMotion> mm = p_event;
         if (mm.is_valid()) {
-            _hovered_connection = get_closest_connection_at_point(mm->get_position());
-            if (!_hovered_connection.is_empty())
-                _show_drag_hint(_knot_editor->get_hint_message());
-
+            if (!inside_node) {
+                _hovered_connection = get_closest_connection_at_point(mm->get_position());
+                if (!_hovered_connection.is_empty()) {
+                    _show_drag_hint("Use Ctrl + Left Click (LMB) to insert a reroute node on the connection.");
+                }
+            } else {
+                for (int i = 0; i < get_child_count(); i++) {
+                    OrchestratorEditorGraphNodeReroute* reroute = cast_to<OrchestratorEditorGraphNodeReroute>(get_child(i));
+                    if (reroute && reroute->is_selected() && reroute->get_rect().has_point(mm->get_position())) {
+                        String hint = "Use Delete to remove the reroute and disconnect both sides.";
+                        const int reroute_id = reroute->get_id();
+                        int in_count = 0, out_count = 0;
+                        for (const OScriptConnection& C : _graph->get_orchestration()->get_connections()) {
+                            if (C.to_node == static_cast<uint64_t>(reroute_id)) {
+                                in_count++;
+                            } else if (C.from_node == static_cast<uint64_t>(reroute_id)) {
+                                out_count++;
+                            }
+                        }
+                        if (in_count == 1 && out_count == 1) {
+                            hint += "\nUse Shift+Delete to dissolve the reroute and keep the connection.";
+                        }
+                        _show_drag_hint(hint);
+                        break;
+                    }
+                }
+            }
         }
 
-        if (_knot_editor->is_create_knot_keybind(p_event) && !_hovered_connection.is_empty()) {
+        if (!inside_node && mb.is_valid() && mb->is_pressed() && mb->get_modifiers_mask().has_flag(KEY_MASK_CTRL)
+                && mb->get_button_index() == MOUSE_BUTTON_LEFT && !_hovered_connection.is_empty()) {
             _create_connection_reroute(_hovered_connection, mouse->get_position());
         }
     }
@@ -2269,13 +2336,9 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
                 const float distance = is_snapping_enabled() ? get_snapping_distance() : 1;
                 const Vector2 amount = E.value * distance;
 
-                for_each<GraphElement>([&] (GraphElement* element) {
-                    if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(element)) {
-                        node->set_position_offset(node->get_position_offset() + amount);
-                        node->_node->set_position(node->get_position_offset());
-                    } else if (OrchestratorEditorGraphNodeKnot* knot = cast_to<OrchestratorEditorGraphNodeKnot>(element)) {
-                        knot->set_position_offset(knot->get_position_offset() + amount);
-                    }
+                for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
+                    node->set_position_offset(node->get_position_offset() + amount);
+                    node->_node->set_position(node->get_position_offset());
                 }, true);
 
                 accept_event();
@@ -2493,54 +2556,37 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
 }
 
 PackedVector2Array OrchestratorEditorGraphPanel::_get_connection_line(const Vector2& p_from_position, const Vector2& p_to_position) const {
+    const Vector2 from_adjusted = p_from_position;
+    const Vector2 to_adjusted = p_to_position;
 
-    // Create array of points from the from position to the to position, including all existing knots
-    PackedVector2Array points;
-    points.push_back(p_from_position);
+    int source_node_id = -1, source_node_port = -1;
+    int target_node_id = -1, target_node_port = -1;
+    _get_graph_node_and_port(from_adjusted, source_node_id, source_node_port);
+    _get_graph_node_and_port(to_adjusted, target_node_id, target_node_port);
 
-    // Godot 4.2 does not provide the from/to positions affected by the zoom when called
-    // Godot 4.3 provides the values pre-multiplied by the zoom
-    Vector2 p_from_adjusted = p_from_position * (_godot_version.at_least(4, 3) ? 1.0 : get_zoom());
-    Vector2 p_to_adjusted = p_to_position * (_godot_version.at_least(4, 3) ? 1.0 : get_zoom());
+    const bool source_is_reroute = source_node_id != -1
+        && cast_to<OrchestratorEditorGraphNodeReroute>(find_child(itos(source_node_id), false, false));
+    const bool target_is_reroute = target_node_id != -1
+        && cast_to<OrchestratorEditorGraphNodeReroute>(find_child(itos(target_node_id), false, false));
 
-    int source_node_id = -1;
-    int source_node_port = -1;
-    int target_node_id = -1;
-    int target_node_port = -1;
+    // Suppress curvature between two reroute nodes so the wire runs straight, matching
+    // the original knot behavior where only the first and last segments were curved.
+    const float curvature = (source_is_reroute && target_is_reroute) ? 0.0f : get_connection_lines_curvature();
 
-    _get_graph_node_and_port(p_from_adjusted, source_node_id, source_node_port);
-    _get_graph_node_and_port(p_to_adjusted, target_node_id, target_node_port);
-
-    if (source_node_port != -1 && target_node_port != -1) {
-        Connection connection;
-        connection.from_node = source_node_id;
-        connection.from_port = source_node_port;
-        connection.to_node = target_node_id;
-        connection.to_port = target_node_port;
-
-        PackedVector2Array knot_points = _knot_editor->get_knots_for_connection(connection.id);
-        if (_godot_version.at_least(4, 3)) {
-            for (int i = 0; i < knot_points.size(); i++) {
-                knot_points[i] = knot_points[i] * get_zoom();
-            }
-        }
-
-        points.append_array(knot_points);
+    float xdiff = p_from_position.x - p_to_position.x;
+    float cp_offset = xdiff * curvature;
+    if (xdiff < 0) {
+        cp_offset *= -1;
     }
 
-    points.push_back(p_to_position);
+    Ref<Curve2D> curve;
+    curve.instantiate();
+    curve->add_point(p_from_position);
+    curve->set_point_out(0, Vector2(cp_offset, 0));
+    curve->add_point(p_to_position);
+    curve->set_point_in(1, Vector2(-cp_offset, 0));
 
-    PackedVector2Array curve_points;
-    const float curvature = get_connection_lines_curvature();
-    for (const Ref<Curve2D>& curve : _knot_editor->get_curves_for_points(points, curvature)) {
-        if (curvature > 0) {
-            curve_points.append_array(curve->tessellate(5, 2.0));
-        } else {
-            curve_points.append_array(curve->tessellate(1));
-        }
-    }
-
-    return curve_points;
+    return curvature > 0 ? curve->tessellate(5, 2.0) : curve->tessellate(1);
 }
 
 bool OrchestratorEditorGraphPanel::_is_node_hover_valid(const StringName& p_from_node, int32_t p_from_port,
@@ -2615,13 +2661,8 @@ void OrchestratorEditorGraphPanel::set_graph(const Ref<OrchestrationGraph>& p_gr
     _graph->connect("node_added", callable_mp_this(_node_added));
     _graph->connect("node_removed", callable_mp_this(_node_removed));
     _graph->connect(CoreStringName(changed), callable_mp_this(_graph_changed));
-    _graph->connect("connection_knots_removed", callable_mp(_knot_editor, &KnotHelper::remove_knots_for_connection));
 
     if (!reload) {
-        // Setup events with KnotEditor now that a graph has been set
-        _knot_editor->connect("refresh_connections_requested", callable_mp_this(_refresh_panel_connections_with_model));
-        _knot_editor->connect(CoreStringName(changed), callable_mp_this(_knots_changed));
-
         // When model triggers link/unlink, makes sure the UI updates
         // Great use case is when changing a variable type where a connection is no longer valid
         _graph->get_orchestration()->connect("connections_changed", callable_mp_this(_refresh_panel_connections_with_model));
@@ -2637,9 +2678,6 @@ void OrchestratorEditorGraphPanel::reloaded_from_file() {
 }
 
 void OrchestratorEditorGraphPanel::idle_timeout() {
-    if (_knot_editor) {
-        _knot_editor->flush_knot_cache(_graph);
-    }
 }
 
 Control* OrchestratorEditorGraphPanel::get_menu_control() const {
@@ -2988,23 +3026,6 @@ void OrchestratorEditorGraphPanel::straighten_connection(OrchestratorEditorGraph
     connection.to_node = target_node->get_id();
     connection.to_port = target_node->get_pin_port(p_target);
 
-    if (_knot_editor) {
-        const Guid knot_guid = _knot_editor->get_knot_guid(connection.id, 0);
-        if (knot_guid.is_valid()) {
-            // If the connection has a knot, the first knot will be aligned instead of the target node.
-            const Vector<OrchestratorEditorGraphNodeKnot*> knots = get_all<OrchestratorEditorGraphNodeKnot>(false);
-            for (OrchestratorEditorGraphNodeKnot* knot : knots) {
-                if (knot->get_guid() == knot_guid) {
-                    Vector2 offset = knot->get_position_offset();
-                    offset.y = source_pin_position.y;
-                    knot->set_position_offset(offset);
-                    break;
-                }
-            }
-            return;
-        }
-    }
-
     target_node_position.y += source_pin_position.y - target_pin_position.y;
     target_node->_node->set_position(target_node_position);
 }
@@ -3122,9 +3143,6 @@ void OrchestratorEditorGraphPanel::_bind_methods() {
 }
 
 OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
-    _knot_editor = memnew(KnotHelper(_godot_version));
-    add_child(_knot_editor);
-
     _markers = memnew(OrchestratorEditorGraphMarkers);
     _markers->initialize(this);
 
@@ -3196,6 +3214,12 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     set_snapping_enabled(ORCHESTRATOR_GET("ui/graph/grid_snapping_enabled", true));
     set_right_disconnects(true);
     set_show_zoom_label(true);
+
+    // Slot type 2 = ANY reroute: allow connecting to both execution (0) and data (1) ports
+    add_valid_connection_type(2, 0);
+    add_valid_connection_type(2, 1);
+    add_valid_connection_type(0, 2);
+    add_valid_connection_type(1, 2);
 
     OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_settings_changed));
     EI->get_editor_settings()->connect("settings_changed", callable_mp_this(_settings_changed));
