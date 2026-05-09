@@ -14,12 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/input_action_picker_pin.h"
+#include "editor/graph/pins/input_action_picker_value_editor.h"
 
 #include "common/macros.h"
 #include "editor/editor.h"
 
-void OrchestratorEditorGraphPinInputActionPicker::_update_action_items() {
+void OrchestratorEditorGraphPinValueEditorInputActionPicker::_update_action_items() {
     clear();
 
     const OrchestratorEditor* editor = OrchestratorEditor::get_singleton();
@@ -30,18 +30,14 @@ void OrchestratorEditorGraphPinInputActionPicker::_update_action_items() {
     }
 }
 
-Control* OrchestratorEditorGraphPinInputActionPicker::_create_default_value_widget() {
-    Control* control = OrchestratorEditorGraphPinOptionPicker::_create_default_value_widget();
+void OrchestratorEditorGraphPinValueEditorInputActionPicker::configure(const PropertyInfo& p_property) {
+    OrchestratorEditorGraphPinValueEditorOptionPicker::configure(p_property);
 
-    set_tooltip_text("Actions defined in Project Settings: Input Map");
+    set_control_tooltip("Actions defined in Project Settings: Input Map");
 
-    // By linking to the OrchestratorEditor, it compares the existing action cache values with the most
-    // recent ProjectSettings changed event, and if there are no input map changes, this signal isn't
-    // fired, which helps keep the redraw/update noise in the edited graph minimized.
+    // The OrchestratorEditor compares the existing action cache values with the most recent ProjectSettings
+    // changed event. If there are no changes, this signal isn't fired, which keeps redraw/update noise minimal.
     OrchestratorEditor::get_singleton()->connect("input_action_cache_updated", callable_mp_this(_update_action_items));
 
-    // Prepopulate the option list
     _update_action_items();
-
-    return control;
 }

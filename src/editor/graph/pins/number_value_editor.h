@@ -16,25 +16,28 @@
 //
 #pragma once
 
-#include "editor/graph/graph_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
 #include <godot_cpp/classes/line_edit.hpp>
 
-/// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>LineEdit</code>
-/// that provides entering either an integer or float value.
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditor</code> that wraps a <code>LineEdit</code>
+/// that is used to provide a numeric value of either an Integer or Float data type.
 ///
-class OrchestratorEditorGraphPinNumber : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinNumber, OrchestratorEditorGraphPin);
+class OrchestratorEditorGraphPinValueEditorNumber : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorNumber, OrchestratorEditorGraphPinValueEditor);
 
     LineEdit* _control = nullptr;
     Variant _rollback_value;
+    Variant::Type _type = Variant::NIL;
+
+    void _commit();
 
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    void _update_control_value(const Variant& p_value) override;
-    Variant _read_control_value() override;
-    Control* _create_default_value_widget() override;
-    //~ End OrchestratorEditorGraphPin Interface
+public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };

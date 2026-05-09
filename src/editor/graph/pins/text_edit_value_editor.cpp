@@ -14,23 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/text_edit_pin.h"
+#include "editor/graph/pins/text_edit_value_editor.h"
 
 #include "common/callable_lambda.h"
+#include "common/macros.h"
 #include "core/godot/scene_string_names.h"
 
-void OrchestratorEditorGraphPinTextEdit::_update_control_value(const Variant& p_value) {
-    const String text = p_value;
-    if (_control->get_text() != text) {
-        _control->set_text(p_value);
+void OrchestratorEditorGraphPinValueEditorTextEdit::configure(const PropertyInfo& p_property) {
+    if (_control) {
+        return;
     }
-}
 
-Variant OrchestratorEditorGraphPinTextEdit::_read_control_value() {
-    return _control->get_text();
-}
-
-Control* OrchestratorEditorGraphPinTextEdit::_create_default_value_widget() {
     _control = memnew(TextEdit);
     _control->set_placeholder("No value...");
     _control->set_h_size_flags(SIZE_EXPAND);
@@ -40,7 +34,20 @@ Control* OrchestratorEditorGraphPinTextEdit::_create_default_value_widget() {
     _control->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
     _control->set_line_wrapping_mode(TextEdit::LINE_WRAPPING_BOUNDARY);
     _control->set_fit_content_height_enabled(true);
-    _control->connect(SceneStringName(text_changed), callable_mp_lambda(this, [&] { _default_value_changed(); }));
+    add_child(_control);
 
-    return _control;
+    _control->connect(SceneStringName(text_changed), callable_mp_lambda(this, [this] {
+        _emit_value_changed(_control->get_text());
+    }));
+}
+
+void OrchestratorEditorGraphPinValueEditorTextEdit::set_value(const Variant& p_value) {
+    GUARD_NULL(_control);
+
+    const String text = p_value;
+    if (_control->get_text() != text) {
+        _control->set_block_signals(true);
+        _control->set_text(text);
+        _control->set_block_signals(false);
+    }
 }

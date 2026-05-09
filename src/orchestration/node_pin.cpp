@@ -16,6 +16,7 @@
 //
 #include "orchestration/node_pin.h"
 
+#include "common/dictionary_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
@@ -63,6 +64,20 @@ Ref<OScriptNodePin> OScriptNodePin::create(OScriptNode* p_owning_node, const Pro
     }
 
     return pin;
+}
+
+void OScriptNodePin::_recompute_override_flags() {
+    _override_flags = 0;
+    if (PropertyUtils::is_enum(_type_override)) {
+        _override_flags.set_flag(ENUM);
+    } else if (PropertyUtils::is_bitfield(_type_override)) {
+        _override_flags.set_flag(BITFIELD);
+    }
+    if (_type_override.hint == PROPERTY_HINT_FILE) {
+        _override_flags.set_flag(FILE);
+    } else if (_type_override.hint == PROPERTY_HINT_MULTILINE_TEXT) {
+        _override_flags.set_flag(MULTILINE);
+    }
 }
 
 void OScriptNodePin::_clear_flag(Flags p_flag) {
@@ -123,6 +138,20 @@ bool OScriptNodePin::_load(const Dictionary& p_data) {
         _property.usage = p_data["usage"];
     }
 
+    if (p_data.has("type_override")) {
+        _type_override = DictionaryUtils::to_property(p_data["type_override"]);
+        _has_type_override = true;
+
+        _recompute_override_flags();
+
+        // Patch generated default for files saved before the override-gdv fix
+        if (_generated_default_value.get_type() == Variant::NIL) {
+            _generated_default_value = (_type_override.type == Variant::OBJECT && !_type_override.class_name.is_empty())
+                ? Variant()
+                : VariantUtils::make_default(_type_override.type);
+        }
+    }
+
     return true;
 }
 
@@ -175,6 +204,10 @@ Dictionary OScriptNodePin::_save() {
 
     if (_property.usage != PROPERTY_USAGE_DEFAULT) {
         data["usage"] = _property.usage;
+    }
+
+    if (_has_type_override) {
+        data["type_override"] = DictionaryUtils::from_property(_type_override, true);
     }
 
     return data;
@@ -265,6 +298,34 @@ void OScriptNodePin::set_type(Variant::Type p_type) {
             _generated_default_value = _target_class.is_empty() ? VariantUtils::make_default(_property.type) : Variant();
         }
 
+        emit_changed();
+    }
+}
+
+const PropertyInfo& OScriptNodePin::get_effective_property() const {
+    return _has_type_override ? _type_override : _property;
+}
+
+void OScriptNodePin::set_type_override(const PropertyInfo& p_override) {
+    _has_type_override = true;
+    _type_override = p_override;
+    _default_value = Variant();
+    _generated_default_value = (p_override.type == Variant::OBJECT && !p_override.class_name.is_empty())
+        ? Variant()
+        : VariantUtils::make_default(p_override.type);
+
+    _recompute_override_flags();
+
+    emit_changed();
+}
+
+void OScriptNodePin::clear_type_override() {
+    if (_has_type_override) {
+        _has_type_override = false;
+        _type_override = PropertyInfo();
+        _default_value = Variant();
+        _generated_default_value = VariantUtils::make_default(_property.type);
+        _override_flags = 0;
         emit_changed();
     }
 }
@@ -433,17 +494,26 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
         return false;
     }
 
+    // Any pin (with or without type override) continues to accept all data connections;
+    // the override only affects the value editor and display, not connection compatibility.
+    if (PropertyUtils::is_variant(_property) || PropertyUtils::is_variant(p_pin->_property)) {
+        return true;
+    }
+
+    const PropertyInfo& effective_this = _property;
+    const PropertyInfo& effective_source = p_pin->_property;
+
     // Any pin can connect to a Boolean input pin.
-    if (_property.type == Variant::BOOL) {
+    if (effective_this.type == Variant::BOOL) {
         return true;
     }
 
     // Types match
-    if (_property.type == p_pin->get_type()) {
+    if (effective_this.type == effective_source.type) {
         // Certain properties specify more than one class type separated by commas.
         // For example, CanvasItem materials which can be ShaderMaterial,CanvasItemMaterial
-        const PackedStringArray source_classes = p_pin->get_property_info().class_name.split(",", false);
-        const PackedStringArray target_classes = _property.class_name.split(",", false);
+        const PackedStringArray source_classes = effective_source.class_name.split(",", false);
+        const PackedStringArray target_classes = effective_this.class_name.split(",", false);
         if (!target_classes.is_empty() && !source_classes.is_empty()) {
             for (const String& source_class : source_classes) {
                 for (const String& target_class : target_classes) {
@@ -461,9 +531,9 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
             }
 
             return false;
-        } else if (_property.class_name.is_empty() && !source_classes.is_empty()) {
+        } else if (effective_this.class_name.is_empty() && !source_classes.is_empty()) {
             // If the source is a derived object type of the target, that's fine
-            if (_property.type == Variant::OBJECT) {
+            if (effective_this.type == Variant::OBJECT) {
                 return true;
             }
 
@@ -477,29 +547,28 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
     }
 
     // Coercion is allowed here
-    if (_property.type == Variant::STRING) {
+    if (effective_this.type == Variant::STRING) {
         // File targets should only accept string sources
-        if (_property.hint == PROPERTY_HINT_FILE) {
-            if (!(p_pin->get_type() == Variant::STRING || PropertyUtils::is_variant(p_pin->get_property_info()))) {
+        if (effective_this.hint == PROPERTY_HINT_FILE) {
+            if (!(effective_source.type == Variant::STRING || PropertyUtils::is_variant(effective_source))) {
                 return false;
             }
         }
         return true;
     }
 
-    if (_property.type == Variant::STRING_NAME && p_pin->get_property_info().type == Variant::STRING) {
+    if (effective_this.type == Variant::STRING_NAME && effective_source.type == Variant::STRING) {
         return true;
     }
 
-    // Numeric conversions allows
-    if (_property.type == Variant::INT || _property.type == Variant::FLOAT) {
-        if (p_pin->get_type() == Variant::INT || p_pin->get_type() == Variant::FLOAT) {
+    // Numeric conversions allowed
+    if (effective_this.type == Variant::INT || effective_this.type == Variant::FLOAT) {
+        if (effective_source.type == Variant::INT || effective_source.type == Variant::FLOAT) {
             return true;
         }
     }
 
-    // Allow any-to-specific or specific-to-any
-    if (PropertyUtils::is_variant(_property) || PropertyUtils::is_variant(p_pin->get_property_info())) {
+    if (PropertyUtils::is_variant(effective_this) || PropertyUtils::is_variant(effective_source)) {
         return true;
     }
 
@@ -537,6 +606,11 @@ void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin) {
     // An execution output pin can only have a single outgoing connection
     if (source_pin->is_execution()) {
         source_pin->unlink_all();
+    }
+
+    // Clear any type override on an Any input pin when a connection is established
+    if (PropertyUtils::is_variant(target_pin->_property)) {
+        target_pin->clear_type_override();
     }
 
     bool intermediate_required = false;
@@ -770,7 +844,8 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback) con
 }
 
 PackedStringArray OScriptNodePin::get_suggestions() {
-    return get_owning_node()->get_suggestions(this);
+    OScriptNode* node = get_owning_node();
+    return node ? node->get_suggestions(this) : PackedStringArray();
 }
 
 bool OScriptNodePin::is_target_self() const {

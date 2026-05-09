@@ -81,12 +81,12 @@ void OrchestratorEditorGraphNodeReroute::_create_pin_widgets() {
     slot_area->set_mouse_filter(MOUSE_FILTER_IGNORE);
     add_child(slot_area);
 
-    OrchestratorEditorGraphPin* left_pin = OrchestratorEditorGraphPinFactory::create_pin_widget(get_graph_node()->find_pin(0, PD_Input));
+    OrchestratorEditorGraphPin* left_pin = OrchestratorEditorGraphPin::create(get_graph_node()->find_pin(0, PD_Input));
     left_pin->set_graph_node(this);
     left_pin->hide();
     slot_area->add_child(left_pin);
 
-    OrchestratorEditorGraphPin* right_pin = OrchestratorEditorGraphPinFactory::create_pin_widget(get_graph_node()->find_pin(0, PD_Output));
+    OrchestratorEditorGraphPin* right_pin = OrchestratorEditorGraphPin::create(get_graph_node()->find_pin(0, PD_Output));
     right_pin->set_graph_node(this);
     right_pin->hide();
     slot_area->add_child(right_pin);

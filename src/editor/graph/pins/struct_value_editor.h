@@ -16,34 +16,37 @@
 //
 #pragma once
 
-#include "editor/graph/graph_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
-/// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping struct-like Godot variant
-/// data types, like Vector2, Quaternion, and Projection, which are types that are composed of two
-/// or more smaller struct-like or primitive data types.
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditor</code> wrapping a Godot struct-like
+/// variant data type, such as Vector2, Quaternion, and Projection. These types are composed
+/// of two or more smaller struct or primitive data types.
 ///
-class OrchestratorEditorGraphPinStruct : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinStruct, OrchestratorEditorGraphPin);
+class OrchestratorEditorGraphPinValueEditorStruct : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorStruct, OrchestratorEditorGraphPinValueEditor);
 
     Vector<LineEdit*> _controls;
+    PropertyInfo _property;
 
     static int _get_grid_columns_for_type(Variant::Type p_type);
     static bool _is_property_excluded(Variant::Type p_type, const PropertyInfo& p_property);
     static PackedStringArray _get_property_paths(Variant::Type p_type);
 
-    void _update_control_value_part(const String& p_path, int p_index, const Variant& p_value);
-    void _read_control_value_part(const String& p_path, int p_index, Variant& r_value);
+    void _update_control_part(const String& p_path, int p_index, const Variant& p_value);
+    void _read_control_part(const String& p_path, int p_index, Variant& r_value);
+
+    void _commit();
 
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    bool _is_default_value_below_label() const override { return true; }
-    void _update_control_value(const Variant& p_value) override;
-    Variant _read_control_value() override;
-    Control* _create_default_value_widget() override;
-    //~ End OrchestratorEditorGraphPin Interface
+public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    bool is_below_label() const override { return true; }
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };

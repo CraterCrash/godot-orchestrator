@@ -14,11 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/node_path_pin.h"
+#include "editor/graph/pins/node_path_value_editor.h"
 
 #include "common/macros.h"
 #include "common/string_utils.h"
-#include "editor/graph/graph_node.h"
 #include "editor/gui/dialogs_helper.h"
 #include "editor/property_selector.h"
 #include "editor/scene_node_selector.h"
@@ -29,12 +28,12 @@
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 
-Vector<OrchestratorEditorGraphPinNodePath::DependencyDescriptor> OrchestratorEditorGraphPinNodePath::_descriptors;
+Vector<OrchestratorEditorGraphPinValueEditorNodePath::DependencyDescriptor> OrchestratorEditorGraphPinValueEditorNodePath::_descriptors;
 
-OrchestratorEditorGraphPinNodePath::DependencyDescriptor* OrchestratorEditorGraphPinNodePath::_resolve_descriptor() {
+OrchestratorEditorGraphPinValueEditorNodePath::DependencyDescriptor* OrchestratorEditorGraphPinValueEditorNodePath::_resolve_descriptor() {
     // Note: The parent type's pin is not yet set, so don't use any parent methods here
-    ERR_FAIL_COND_V(!_owning_pin.is_valid(), nullptr);
-    OScriptNode* owning_node = _owning_pin->get_owning_node();
+    ERR_FAIL_COND_V(!_pin.is_valid(), nullptr);
+    OScriptNode* owning_node = _pin->get_owning_node();
 
     if (OScriptNodeCallMemberFunction* cmf = cast_to<OScriptNodeCallMemberFunction>(owning_node)) {
         const String target_class = cmf->get_target_class();
@@ -47,7 +46,7 @@ OrchestratorEditorGraphPinNodePath::DependencyDescriptor* OrchestratorEditorGrap
             if (!method.name.match(descriptor.method_name)) {
                 continue;
             }
-            if (!_owning_pin->get_pin_name().match(descriptor.method_argument_name)) {
+            if (!_pin->get_pin_name().match(descriptor.method_argument_name)) {
                 continue;
             }
             return &descriptor;
@@ -69,11 +68,11 @@ OrchestratorEditorGraphPinNodePath::DependencyDescriptor* OrchestratorEditorGrap
     return nullptr;
 }
 
-void OrchestratorEditorGraphPinNodePath::_configure_descriptor(DependencyDescriptor* p_descriptor) {
+void OrchestratorEditorGraphPinValueEditorNodePath::_configure_descriptor(DependencyDescriptor* p_descriptor) {
     _descriptor = p_descriptor;
 
     if (_descriptor) {
-        OScriptNode* owning_node = _owning_pin->get_owning_node();
+        OScriptNode* owning_node = _pin->get_owning_node();
         const Ref<OScriptNodePin> dep_pin = owning_node->find_pin(_descriptor->dependency_pin_name, PD_Input);
         if (dep_pin.is_valid() && !dep_pin->has_any_connections()) {
             _set_button_state(true);
@@ -83,18 +82,18 @@ void OrchestratorEditorGraphPinNodePath::_configure_descriptor(DependencyDescrip
     }
 }
 
-bool OrchestratorEditorGraphPinNodePath::_is_only_node_selection_required() const {
+bool OrchestratorEditorGraphPinValueEditorNodePath::_is_only_node_selection_required() const {
     return !_descriptor || (_descriptor && !_descriptor->is_node_and_property_selection); // NOLINT
 }
 
-Ref<OrchestrationGraphPin> OrchestratorEditorGraphPinNodePath::_get_dependency_object_pin() {
-    if (!_descriptor || _owning_pin.is_null()) {
+Ref<OrchestrationGraphPin> OrchestratorEditorGraphPinValueEditorNodePath::_get_dependency_object_pin() {
+    if (!_descriptor || _pin.is_null()) {
         return {};
     }
-    return _owning_pin->get_owning_node()->find_pin(_descriptor->dependency_pin_name, PD_Input);
+    return _pin->get_owning_node()->find_pin(_descriptor->dependency_pin_name, PD_Input);
 }
 
-void OrchestratorEditorGraphPinNodePath::_set_button_state(bool p_disabled, bool p_reset) {
+void OrchestratorEditorGraphPinValueEditorNodePath::_set_button_state(bool p_disabled, bool p_reset) {
     _set_button_disabled(p_disabled);
 
     const String tooltip = p_disabled
@@ -105,14 +104,15 @@ void OrchestratorEditorGraphPinNodePath::_set_button_state(bool p_disabled, bool
     _set_button_tooltip(tooltip);
 
     if (p_reset) {
-        _set_default_value(Variant());
+        _emit_value_changed(Variant());
+        set_value(Variant());
     }
 }
 
-void OrchestratorEditorGraphPinNodePath::_pin_connected(int p_type, int p_index) {
-    ERR_FAIL_COND(!_owning_pin.is_valid());
+void OrchestratorEditorGraphPinValueEditorNodePath::_pin_connected(int p_type, int p_index) {
+    ERR_FAIL_COND(!_pin.is_valid());
 
-    OScriptNode* node = _owning_pin->get_owning_node();
+    OScriptNode* node = _pin->get_owning_node();
     ERR_FAIL_NULL(node);
 
     const Ref<OScriptNodePin> pin = node->find_pin(p_index, static_cast<EPinDirection>(p_type));
@@ -121,10 +121,10 @@ void OrchestratorEditorGraphPinNodePath::_pin_connected(int p_type, int p_index)
     }
 }
 
-void OrchestratorEditorGraphPinNodePath::_pin_disconnected(int p_type, int p_index) {
-    ERR_FAIL_COND(!_owning_pin.is_valid());
+void OrchestratorEditorGraphPinValueEditorNodePath::_pin_disconnected(int p_type, int p_index) {
+    ERR_FAIL_COND(!_pin.is_valid());
 
-    OScriptNode* node = _owning_pin->get_owning_node();
+    OScriptNode* node = _pin->get_owning_node();
     ERR_FAIL_NULL(node);
 
     const Ref<OScriptNodePin> pin = node->find_pin(p_index, static_cast<EPinDirection>(p_type));
@@ -133,13 +133,13 @@ void OrchestratorEditorGraphPinNodePath::_pin_disconnected(int p_type, int p_ind
     }
 }
 
-void OrchestratorEditorGraphPinNodePath::_open_node_selector() {
+void OrchestratorEditorGraphPinValueEditorNodePath::_open_node_selector() {
     // Resolve the selected node
     // When Godot's implementation eventually supports this (https://github.com/godotengine/godot/pull/94323),
     // then we can use the default Godot API
     Node* selected = nullptr;
 
-    const NodePath path = _read_control_value();
+    const NodePath path = _get_button_value();
     if (!path.is_empty()) {
         if (Node* root = get_tree()->get_edited_scene_root()) {
             selected = root->get_node_or_null(path);
@@ -153,7 +153,7 @@ void OrchestratorEditorGraphPinNodePath::_open_node_selector() {
     EI->popup_dialog_centered_clamped(_node_selector, Size2(350, 700) * EDSCALE);
 }
 
-void OrchestratorEditorGraphPinNodePath::_node_selected(const NodePath& p_path) {
+void OrchestratorEditorGraphPinValueEditorNodePath::_node_selected(const NodePath& p_path) {
     if (p_path.is_empty()) {
         // Nothing should be done, leave unchanged.
         _node_selector->queue_free();
@@ -172,7 +172,7 @@ void OrchestratorEditorGraphPinNodePath::_node_selected(const NodePath& p_path) 
         return;
     }
 
-    String value = _read_control_value();
+    String value = _get_button_value();
     if (!value.is_empty() && value.contains(":")) {
         value = value.substr(value.find(":") + 1);
     } else {
@@ -183,7 +183,7 @@ void OrchestratorEditorGraphPinNodePath::_node_selected(const NodePath& p_path) 
     _open_property_selector(node, value);
 }
 
-void OrchestratorEditorGraphPinNodePath::_open_property_selector(Object* p_object, const String& p_selected) {
+void OrchestratorEditorGraphPinValueEditorNodePath::_open_property_selector(Object* p_object, const String& p_selected) {
     String value = p_selected;
 
     if (p_object == nullptr) {
@@ -212,7 +212,7 @@ void OrchestratorEditorGraphPinNodePath::_open_property_selector(Object* p_objec
 
         p_object = target->get_target();
 
-        value = _read_control_value();
+        value = _get_button_value();
         if (!value.is_empty() && value.begins_with(":")) {
             value = value.substr(1);
         }
@@ -225,11 +225,11 @@ void OrchestratorEditorGraphPinNodePath::_open_property_selector(Object* p_objec
     _property_selector->select_property_from_instance(p_object, value);
 }
 
-void OrchestratorEditorGraphPinNodePath::_property_selected(const String& p_property) {
+void OrchestratorEditorGraphPinValueEditorNodePath::_property_selected(const String& p_property) {
     _handle_selector_button_response(vformat("%s:%s", _node_path, p_property));
 }
 
-void OrchestratorEditorGraphPinNodePath::_handle_selector_button_pressed() {
+void OrchestratorEditorGraphPinValueEditorNodePath::_handle_selector_button_pressed() {
     _node_path = "";
 
     if (!_descriptor || _descriptor->is_node_and_property_selection) {
@@ -239,26 +239,22 @@ void OrchestratorEditorGraphPinNodePath::_handle_selector_button_pressed() {
     }
 }
 
-void OrchestratorEditorGraphPinNodePath::set_pin(const Ref<OrchestrationGraphPin>& p_pin) {
-    _owning_pin = p_pin;
-
+void OrchestratorEditorGraphPinValueEditorNodePath::set_pin_ref(const Ref<OrchestrationGraphPin>& p_pin) {
+    _pin = p_pin;
     // This needs to be resolved before setting parent pin type
     _descriptor = _resolve_descriptor();
-    parent_type::set_pin(p_pin);
-
     // Now configure the descriptor behavior
     _configure_descriptor(_descriptor);
 }
 
-void OrchestratorEditorGraphPinNodePath::_bind_methods() {
+void OrchestratorEditorGraphPinValueEditorNodePath::_bind_methods() {
     // Method Overrides
     _descriptors.push_back({ "Tween", "tween_property", "property", "", "object", true, false });
     _descriptors.push_back({ "AnimationMixer", "set_root_motion_track", "path", "", "", false, true, true });
-
     // Property Overrides
     _descriptors.push_back({ "AnimationMixer", "", "", "root_motion_track", "", false, true, true });
 }
 
-OrchestratorEditorGraphPinNodePath::OrchestratorEditorGraphPinNodePath() {
+OrchestratorEditorGraphPinValueEditorNodePath::OrchestratorEditorGraphPinValueEditorNodePath() {
     set_default_text("Assign...");
 }

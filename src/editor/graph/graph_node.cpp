@@ -27,7 +27,6 @@
 #include "editor/editor.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/graph_pin.h"
-#include "editor/graph/graph_pin_factory.h"
 #include "orchestration/nodes/editable_pin_node.h"
 #include "orchestration/nodes/self.h"
 #include "orchestration/nodes/type_cast.h"
@@ -149,7 +148,7 @@ void OrchestratorEditorGraphNode::_create_pin_widgets()
         slot.row = row;
 
         if (slot_index < inputs.size()) {
-            slot.left = OrchestratorEditorGraphPinFactory::create_pin_widget(inputs[slot_index]);
+            slot.left = OrchestratorEditorGraphPin::create(inputs[slot_index]);
             if (slot.left) {
                 slot.left->set_graph_node(this);
                 row->add_child(slot.left);
@@ -157,7 +156,7 @@ void OrchestratorEditorGraphNode::_create_pin_widgets()
         }
 
         if (slot_index < outputs.size()) {
-            slot.right = OrchestratorEditorGraphPinFactory::create_pin_widget(outputs[slot_index]);
+            slot.right = OrchestratorEditorGraphPin::create(outputs[slot_index]);
             if (slot.right) {
                 slot.right->set_graph_node(this);
                 row->add_child(slot.right);

@@ -16,17 +16,24 @@
 //
 #pragma once
 
-#include "editor/graph/pins/option_picker_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
-class OrchestratorEditorGraphPinInputActionPicker : public OrchestratorEditorGraphPinOptionPicker {
-    GDCLASS(OrchestratorEditorGraphPinInputActionPicker, OrchestratorEditorGraphPinOptionPicker);
+#include <godot_cpp/classes/text_edit.hpp>
 
-    void _update_action_items();
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditor</code> wrapping a Godot
+/// <code>TextEdit</code> control.
+class OrchestratorEditorGraphPinValueEditorTextEdit : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorTextEdit, OrchestratorEditorGraphPinValueEditor);
+
+    TextEdit* _control = nullptr;
 
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    Control* _create_default_value_widget() override;
-    //~ End OrchestratorEditorGraphPin interface
+public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    bool is_below_label() const override { return true; }
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };

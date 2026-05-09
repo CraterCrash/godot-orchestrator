@@ -14,19 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#pragma once
+#include "editor/graph/pins/pin_value_editor.h"
 
-#include "editor/graph/graph_pin.h"
+void OrchestratorEditorGraphPinValueEditor::_emit_value_changed(const Variant& p_value) {
+    emit_signal("value_changed", p_value);
+}
 
-/// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping an <code>Object</code> pin.
-///
-class OrchestratorEditorGraphPinObject : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinObject, OrchestratorEditorGraphPin);
-
-protected:
-    static void _bind_methods() { }
-
-    //~ Begin OrchestratorEditorGraphPin Interface
-    String _get_label_text() override;
-    //~ End OrchestratorEditorGraphPin Interface
-};
+void OrchestratorEditorGraphPinValueEditor::_bind_methods() {
+    ADD_SIGNAL(MethodInfo("value_changed", PropertyInfo(Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT)));
+    ADD_SIGNAL(MethodInfo("layout_changed"));
+}

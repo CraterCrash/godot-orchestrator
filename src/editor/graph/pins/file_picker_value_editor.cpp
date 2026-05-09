@@ -14,14 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/file_picker_pin.h"
+#include "editor/graph/pins/file_picker_value_editor.h"
 
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/gui/file_dialog.h"
 
-void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
+void OrchestratorEditorGraphPinValueEditorFilePicker::_handle_selector_button_pressed() {
     _dialog = memnew(OrchestratorFileDialog);
     _dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
     _dialog->set_hide_on_ok(true);
@@ -31,14 +31,13 @@ void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
         _dialog->set_filters(_file_type_filters);
     }
 
-    _dialog->connect("file_selected", callable_mp_lambda(this, [&](const String& v) { _handle_selector_button_response(v); }));
+    _dialog->connect("file_selected", callable_mp_lambda(this, [this](const String& v) { _handle_selector_button_response(v); }));
     _dialog->connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
 
     add_child(_dialog);
-
     _dialog->popup_file_dialog();
 }
 
-OrchestratorEditorGraphPinFilePicker::OrchestratorEditorGraphPinFilePicker() {
+OrchestratorEditorGraphPinValueEditorFilePicker::OrchestratorEditorGraphPinValueEditorFilePicker() {
     set_default_text("Assign...");
 }

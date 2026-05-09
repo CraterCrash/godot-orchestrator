@@ -16,16 +16,18 @@
 //
 #pragma once
 
-#include "editor/graph/graph_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
 #include <godot_cpp/classes/line_edit.hpp>
+#include <godot_cpp/classes/popup_menu.hpp>
 
-/// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>LineEdit</code>
-/// that provides and provides an optional list of suggestions.
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditor</code> wrapping a <code>LineEdit</code>.
+/// This provides users with the ability to specify a string value, based on an optional list of suggestions.
 ///
-class OrchestratorEditorGraphPinLineEdit : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinLineEdit, OrchestratorEditorGraphPin);
+class OrchestratorEditorGraphPinValueEditorLineEdit : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorLineEdit, OrchestratorEditorGraphPinValueEditor);
 
+    Ref<OrchestrationGraphPin> _pin;
     LineEdit* _control = nullptr;
     PopupMenu* _popup = nullptr;
 
@@ -36,9 +38,10 @@ class OrchestratorEditorGraphPinLineEdit : public OrchestratorEditorGraphPin {
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    void _update_control_value(const Variant& p_value) override;
-    Variant _read_control_value() override;
-    Control* _create_default_value_widget() override;
-    //~ End OrchestratorEditorGraphPin Interface
+public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    void set_pin_ref(const Ref<OrchestrationGraphPin>& p_pin) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };
