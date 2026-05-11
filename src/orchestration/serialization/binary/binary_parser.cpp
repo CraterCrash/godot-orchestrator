@@ -1070,6 +1070,7 @@ Variant OrchestrationBinaryParser::load(const String& p_path) {
 
     Ref<Orchestration> orchestration = _resource;
     if (orchestration.is_valid()) {
+        orchestration->_version = _version;
         orchestration->_script_path = p_path;
         orchestration->post_initialize();
     }
