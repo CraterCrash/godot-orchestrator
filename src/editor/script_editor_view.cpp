@@ -950,7 +950,7 @@ void OrchestratorScriptGraphEditorView::add_callback(const String& p_function, c
         options.context.method = method;
         options.position = editor->get_scroll_offset() + (editor->get_size() / 2.0);
 
-        OrchestratorEditorGraphNode* node = editor->spawn_node<OScriptNodeEvent>(options);
+        OrchestratorEditorGraphNode* node = editor->spawn_node<OScriptNodeEvent>(options).node;
         callable_mp(editor, &OrchestratorEditorGraphPanel::center_node).bind(node).call_deferred();
     }
 }
