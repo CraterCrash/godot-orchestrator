@@ -189,6 +189,7 @@ protected:
     void _detach_node_from_frame(const StringName& p_node_name);
     void _save_frame_attachments(OrchestratorEditorGraphFrame* p_frame);
     void _restore_frame_attachments();
+    void _spawn_frame();
 
 private:
 
