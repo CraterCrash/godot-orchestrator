@@ -17,8 +17,10 @@
 #pragma once
 
 #include "editor/graph/graph_node.h"
+#include "editor/graph/nodes/comment_graph_frame.h"
 
 class OrchestratorEditorGraphNodeFactory {
 public:
+    static OrchestratorEditorGraphFrame* try_create_frame(const Ref<OrchestrationGraphNode>& p_node);
     static OrchestratorEditorGraphNode* create_node(const Ref<OrchestrationGraphNode>& p_node);
 };
