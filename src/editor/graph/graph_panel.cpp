@@ -1460,6 +1460,38 @@ void OrchestratorEditorGraphPanel::_restore_frame_attachments() {
     });
 }
 
+void OrchestratorEditorGraphPanel::_spawn_frame() {
+
+    OScriptNodeInitContext context;
+    const Vector2 offset = (get_scroll_offset() + get_local_mouse_position()) / get_zoom();
+    const Ref<OScriptNodeComment> comment = _graph->create_node<OScriptNodeComment>(context, offset);
+
+    if (comment.is_valid()) {
+        comment->set_title_text("New Comment");
+
+        _set_edited(true);
+        emit_signal("nodes_changed");
+
+        if (OrchestratorEditorGraphFrame* frame = find_frame(itos(comment->get_id()))) {
+            const Vector<OrchestratorEditorGraphNode*> selected = get_selected<OrchestratorEditorGraphNode>();
+            if (!selected.is_empty()) {
+                comment->set_autoshrink_enabled(true);
+
+                for (OrchestratorEditorGraphNode* node : selected) {
+                    if (!get_element_frame(node->get_name())) {
+                        attach_graph_element_to_frame(node->get_name(), frame->get_name());
+                        node->set_selected(false);
+                    }
+                }
+
+                frame->update_placeholder(true);
+            }
+
+            frame->set_selected(true);
+        }
+    }
+}
+
 OrchestratorEditorGraphPin* OrchestratorEditorGraphPanel::_resolve_pin_from_handle(const PinHandle& p_handle, bool p_input) {
     if (OrchestratorEditorGraphNode* node = find_node(p_handle.node_id)) {
         const int32_t pin_slot = node->get_port_slot(p_handle.pin_port, p_input ? PD_Input : PD_Output);
@@ -2345,11 +2377,18 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
     // Intercept Shift+Delete before the parent processes ui_graph_delete, which would
     // remove nodes without giving us the chance to dissolve reroutes first.
     const Ref<InputEventKey> early_key = p_event;
-    if (early_key.is_valid() && early_key->is_pressed() && !early_key->is_echo()
-            && early_key->get_keycode() == KEY_DELETE && early_key->is_shift_pressed()) {
-        _dissolve_selected_reroutes();
-        accept_event();
-        return;
+    if (early_key.is_valid() && early_key->is_pressed() && !early_key->is_echo()) {
+        if (early_key->get_keycode() == KEY_DELETE && early_key->is_shift_pressed()) {
+            _dissolve_selected_reroutes();
+            accept_event();
+            return;
+        }
+
+        if (early_key->get_keycode() == KEY_C) {
+            _spawn_frame();
+            accept_event();
+            return;
+        }
     }
 
     // There is a bug where if the mouse hovers a connection and a node concurrently,
