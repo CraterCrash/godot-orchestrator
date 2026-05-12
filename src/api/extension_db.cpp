@@ -16,6 +16,7 @@
 //
 #include "api/extension_db.h"
 
+#include "common/dictionary_utils.h"
 #include "core/godot/gdextension_compat.h"
 
 #include <godot_cpp/classes/json.hpp>
@@ -643,6 +644,14 @@ bool ExtensionDB::get_class_method_info(const StringName& p_class_name, const St
     }
 
     if (ClassDB::class_has_method(p_class_name, p_method_name, p_no_inheritance)) {
+        const TypedArray<Dictionary> clazz_methods = ClassDB::class_get_method_list(p_class_name, p_no_inheritance);
+        for (int i = 0; i < clazz_methods.size(); i++) {
+            const Dictionary& method = clazz_methods[i];
+            if (p_method_name.match(method["name"])) {
+                r_info = DictionaryUtils::to_method(method);
+                return true;
+            }
+        }
         ERR_PRINT(vformat("Bug: ExtensionDB failed to locate %s.%s, but ClassDB says it exists.", p_class_name, p_method_name));
     }
 
