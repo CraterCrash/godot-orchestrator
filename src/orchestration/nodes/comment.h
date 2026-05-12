@@ -22,21 +22,27 @@
 class OScriptNodeComment : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeComment, OScriptNode);
 
-    String _comments;
     String _title = "Comment";
-    String _icon;
-    bool _align_center = false;
-    Color _background_color = Color(0.6, 0.6, 0.6, 0.05);
-    Color _text_color = Color(1.0, 1.0, 1.0, 1.0);
-    int _font_size = 0;
+    bool _title_center_aligned = false;
+
+    String _icon_path;
+
+    Color _tint_color = Color(0.6, 0.6, 0.6, 0.05);
+    bool _tint_color_enabled = true;
+
+    String _comments;
+    Color _comments_color = Color(1.0, 1.0, 1.0, 1.0);
+    int _comments_font_size = 0;
+
+    bool _autoshink_enabled = true;
+    PackedInt64Array _attached_nodes;
 
 protected:
-    static void _bind_methods() { }
+    static void _bind_methods();
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo> *r_list) const;
-    bool _get(const StringName &p_name, Variant &r_value) const;
-    bool _set(const StringName &p_name, const Variant &p_value);
+    void _validate_property(PropertyInfo& p_property) const;
     //~ End Wrapped Interface
 
 public:
@@ -47,19 +53,36 @@ public:
     String get_icon() const override;
     //~ End OScriptNodeInterface
 
-    /// Return whether the title of the comment should be center aligned
-    /// @return true if the title should be aligned center, false to align to the left
-    bool is_title_center_aligned() const { return _align_center; }
+    String get_title_text() const { return _title; }
+    void set_title_text(const String& p_title);
 
-    /// Get the comment node's background color
-    /// @return the background color
-    Color get_background_color() const { return _background_color; }
+    String get_icon_path() const { return _icon_path; }
+    void set_icon_path(const String& p_icon_path);
 
-    /// Get the comment text's color
-    /// @return the text color
-    Color get_text_color() const { return _text_color; }
+    bool is_title_text_center_aligned() const { return _title_center_aligned; }
+    void set_title_text_center_aligned(bool p_enabled);
 
-    /// Get the comment text's font size
-    /// @return the font size, 0 means use the default size
-    int get_font_size() const { return _font_size; }
+    bool is_tint_color_enabled() const { return _tint_color_enabled; }
+    void set_tint_color_enabled(bool p_enabled);
+
+    Color get_tint_color() const { return _tint_color; }
+    void set_tint_color(const Color& p_tint_color);
+
+    String get_comments_text() const { return _comments; }
+    void set_comments_text(const String& p_comments);
+
+    Color get_comments_text_color() const { return _comments_color; }
+    void set_comments_text_color(const Color& p_comments_color);
+
+    int get_comments_text_font_size() const { return _comments_font_size; }
+    void set_comments_text_font_size(int p_comments_font_size);
+
+    bool is_autoshrink_enabled() const { return _autoshink_enabled; }
+    void set_autoshrink_enabled(bool p_enabled);
+
+    PackedInt64Array get_attached_nodes() const { return _attached_nodes; }
+    void set_attached_nodes(const PackedInt64Array& p_nodes);
+
+    void attach_node(const Ref<OScriptNode>& p_node);
+    void detach_node(const Ref<OScriptNode>& p_node);
 };
