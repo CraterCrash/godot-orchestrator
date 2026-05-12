@@ -67,6 +67,8 @@ public:
     int add_item(const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);
     int add_icon_item(const String& p_icon_name, const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);
 
+    int add_check_item(const String& p_label, const Callable& p_callable, bool p_checked, bool p_disabled = false);
+
     void set_item_disabled(int p_id, bool p_disabled);
     void set_item_tooltip(int p_id, const String& p_tooltip_text);
 

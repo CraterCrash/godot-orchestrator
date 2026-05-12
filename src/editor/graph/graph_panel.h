@@ -35,6 +35,8 @@ using namespace godot;
 
 /// Forward declarations
 class OrchestratorEditorActionDefinition;
+class OrchestratorEditorGraphComment;
+class OrchestratorEditorGraphFrame;
 class OrchestratorEditorGraphMarkers;
 
 /// A graph panel is a widget that allows the placement of pins that contain ports (aka pins) that provide a
@@ -54,6 +56,18 @@ public:
         Vector2 position;
         bool select_on_spawn = false;
         bool center_on_spawn = false;
+    };
+
+    struct NodeSpawnResult {
+        GraphElement* element = nullptr;
+        OrchestratorEditorGraphNode* node = nullptr;
+        OrchestratorEditorGraphFrame* frame = nullptr;
+
+        bool is_valid() const { return element != nullptr; }
+        bool is_node() const { return node != nullptr; }
+        bool is_frame() const { return frame != nullptr; }
+
+        explicit operator bool() const { return element != nullptr; }
     };
 
 private:
@@ -120,8 +134,6 @@ private:
     bool _panel_refresh_pending = false;
     bool _panel_connections_refresh_pending = false;
 
-    bool _box_selection;
-    Vector2 _box_selection_from;
 
     Vector2 _menu_position;
 
@@ -166,6 +178,19 @@ protected:
     void _node_resized(OrchestratorEditorGraphNode* p_node);
     void _node_resize_end(const Vector2& p_size, OrchestratorEditorGraphNode* p_node);
     //~ End OrchestratorEditorGraphNode Signals
+
+    //~ Begin OrchestratorEditorGraphFrame Signals
+    void _connect_graph_frame_signals(OrchestratorEditorGraphFrame* p_frame);
+    void _disconnect_graph_frame_signals(OrchestratorEditorGraphFrame* p_frame);
+    void _show_frame_context_menu(OrchestratorEditorGraphFrame* p_frame, const Vector2& p_position);
+    //~ End OrchestratorEditorGraphFrame Signals
+
+    void _graph_elements_linked_to_frame_request(const Array& p_elements, const StringName& p_frame_name);
+    void _detach_node_from_frame(const StringName& p_node_name);
+    void _save_frame_attachments(OrchestratorEditorGraphFrame* p_frame);
+    void _restore_frame_attachments();
+
+private:
 
     //~ Begin OrchestratorEditorGraphPin Signals
     void _show_pin_context_menu(OrchestratorEditorGraphPin* p_pin, const Vector2& p_position);
@@ -233,7 +258,6 @@ protected:
     virtual void _queue_panel_refresh();
     virtual void _queue_panel_connections_refresh();
 
-    void _update_box_selection_state(const Ref<InputEvent>& p_event);
 
     void _drop_data_files(const String& p_node_type, const Array& p_files, const Vector2& p_at_position);
     void _drop_data_property(const Dictionary& p_property, const Vector2& p_at_position, const String& p_path, bool p_setter);
@@ -300,9 +324,11 @@ public:
 
     OrchestratorEditorGraphNode* find_node(int p_id);
     OrchestratorEditorGraphNode* find_node(const StringName& p_name);
+    OrchestratorEditorGraphFrame* find_frame(const StringName& p_name);
 
     void remove_node(OrchestratorEditorGraphNode* p_node, bool p_confirm = true);
     void remove_nodes(const TypedArray<OrchestratorEditorGraphNode>& p_nodes, bool p_confirm = true);
+    void remove_frame(OrchestratorEditorGraphFrame* p_frame, bool p_confirm = true);
 
     void clear_selections();
     void select_nodes(const PackedInt64Array& p_ids);
@@ -320,13 +346,14 @@ public:
     void straighten_all_connections(OrchestratorEditorGraphPin* p_pin);
     void straighten_connection(OrchestratorEditorGraphPin* p_source, OrchestratorEditorGraphPin* p_target);
 
+    template <typename T> T* find(const StringName& p_name);
     template <typename T, typename P> Vector<T*> predicate_find(P&& p_predicate);
     template <typename T, typename F> void for_each(F&& p_function, bool p_selected = false);
     template <typename T> Vector<T*> get_selected();
     template <typename T> Vector<T*> get_all(bool p_only_selected);
 
-    template <typename NodeType> OrchestratorEditorGraphNode* spawn_node(NodeSpawnOptions& p_options);
-    OrchestratorEditorGraphNode* spawn_node(const NodeSpawnOptions& p_options);
+    template <typename NodeType> NodeSpawnResult spawn_node(NodeSpawnOptions& p_options);
+    NodeSpawnResult spawn_node(const NodeSpawnOptions& p_options);
 
     // Editor State API
     Variant get_edit_state() const;
@@ -337,6 +364,11 @@ public:
 };
 
 using NodeSpawnOptions = OrchestratorEditorGraphPanel::NodeSpawnOptions;
+
+template <typename T>
+_FORCE_INLINE_ T* OrchestratorEditorGraphPanel::find(const StringName& p_name) {
+    return cast_to<T>(find_child(p_name, false, false));
+}
 
 template <typename T, typename P>
 _FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::predicate_find(P&& p_predicate) {
@@ -386,7 +418,7 @@ _FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_all(bool p_only_sele
 }
 
 template <typename NodeType>
-_FORCE_INLINE_ OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_node(NodeSpawnOptions& p_options) {
+_FORCE_INLINE_ OrchestratorEditorGraphPanel::NodeSpawnResult OrchestratorEditorGraphPanel::spawn_node(NodeSpawnOptions& p_options) {
     p_options.node_class = NodeType::get_class_static();
     return spawn_node(p_options);
 }

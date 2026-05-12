@@ -38,7 +38,7 @@
 #include "editor/graph/graph_node_factory.h"
 #include "editor/graph/graph_panel_styler.h"
 #include "editor/graph/graph_pin.h"
-#include "editor/graph/nodes/comment_graph_node.h"
+#include "editor/graph/nodes/comment_graph_frame.h"
 #include "editor/graph/nodes/reroute_graph_node.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/dialogs_helper.h"
@@ -52,6 +52,7 @@
 #include <godot_cpp/classes/curve2d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/graph_frame.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
@@ -66,18 +67,20 @@
 #include <godot_cpp/classes/tween.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 
-#define IS_COMMENT(n) cast_to<OrchestratorEditorGraphNodeComment>(n) != nullptr
-
 using Connection = OScriptConnection;
 
 void OrchestratorEditorGraphPanel::_child_entered_tree(Node* p_node) {
-    if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(p_node)) {
+    if (OrchestratorEditorGraphFrame* frame = cast_to<OrchestratorEditorGraphFrame>(p_node)) {
+        _connect_graph_frame_signals(frame);
+    } else if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(p_node)) {
         _connect_graph_node_signals(node);
     }
 }
 
 void OrchestratorEditorGraphPanel::_child_exiting_tree(Node* p_node) {
-    if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(p_node)) {
+    if (OrchestratorEditorGraphFrame* frame = cast_to<OrchestratorEditorGraphFrame>(p_node)) {
+        _disconnect_graph_frame_signals(frame);
+    } else if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(p_node)) {
         _disconnect_graph_node_signals(node);
     }
 }
@@ -148,8 +151,13 @@ void OrchestratorEditorGraphPanel::_node_selected(Node* p_node) {
 }
 
 void OrchestratorEditorGraphPanel::_node_deselected(Node* p_node) {
-    // Clear inspector
-    EI->inspect_object(nullptr);
+    // Only clear the inspector when nothing remains selected. Clearing unconditionally
+    // races with the new node's selection: Godot selects the incoming node first, then
+    // deselects the old one, so an unconditional clear wipes out the inspector that
+    // the new node's _on_selected just populated.
+    if (get_selected<GraphElement>().is_empty()) {
+        EI->inspect_object(nullptr);
+    }
 }
 
 template <typename T>
@@ -174,7 +182,9 @@ void OrchestratorEditorGraphPanel::_delete_nodes_request(const PackedStringArray
             continue;
         }
 
-        if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(element)) {
+        if (OrchestratorEditorGraphFrame* frame = cast_to<OrchestratorEditorGraphFrame>(element)) {
+            remove_frame(frame, false);
+        } else if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(element)) {
             node_set.insert(node);
         }
     }
@@ -456,6 +466,11 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     }
 
     menu->add_separator("Organization");
+
+    GraphFrame* parent_frame = get_element_frame(p_node->get_name());
+    if (parent_frame != nullptr) {
+        menu->add_item("Detach from Frame", callable_mp_this(_detach_node_from_frame).bind(p_node->get_name()));
+    }
 
     const bool can_expand = cast_to<OScriptNodeCallScriptFunction>(script_node.ptr()) != nullptr;
     menu->add_item("Expand Node", callable_mp_this(_expand_node).bind(p_node), !can_expand);
@@ -859,7 +874,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
     options.context.method = function->get_method_info();
     options.position = selected_node_area.get_center();
 
-    OrchestratorEditorGraphNode* call_function = spawn_node(options);
+    OrchestratorEditorGraphNode* call_function = spawn_node(options).node;
 
     int call_input_index = 1;
     int input_index = 1;
@@ -1027,8 +1042,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         options.context.method = node->get_method_info();
         options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
 
-        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
-        if (call_parent) {
+        if (spawn_node(options)) {
             _set_edited(true);
         }
     } else if (const Ref<OScriptNodeFunctionEntry>& node = graph_node; node.is_valid()) {
@@ -1037,8 +1051,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         options.context.method = node->get_function()->get_method_info();
         options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
 
-        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
-        if (call_parent) {
+        if (spawn_node(options)) {
             _set_edited(true);
         }
     } else if (const Ref<OScriptNodeCallMemberFunction>& node = graph_node; node.is_valid()) {
@@ -1055,8 +1068,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         options.context.class_name = parent_class_name;
         options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
 
-        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
-        if (call_parent) {
+        if (spawn_node(options)) {
             _set_edited(true);
         }
     } else if (const Ref<OScriptNodeEvent>& node = graph_node; node.is_valid()) {
@@ -1074,8 +1086,7 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
         options.context.class_name = parent_class_name;
         options.position = p_node->get_position_offset() + Vector2(0, p_node->get_graph_rect().get_size().y + 10);
 
-        const OrchestratorEditorGraphNode* call_parent = spawn_node(options);
-        if (call_parent) {
+        if (spawn_node(options)) {
             _set_edited(true);
         }
     }
@@ -1285,12 +1296,12 @@ void OrchestratorEditorGraphPanel::_promote_pin_to_variable(OrchestratorEditorGr
         _graph->get_orchestration()->mark_dirty();
 
         if (is_input) {
-            OrchestratorEditorGraphNode* node = spawn_node<OScriptNodeVariableGet>(options);
+            OrchestratorEditorGraphNode* node = spawn_node<OScriptNodeVariableGet>(options).node;
             if (node) {
                 link(node->get_output_pin(0), p_pin);
             }
         } else {
-            OrchestratorEditorGraphNode* node = spawn_node<OScriptNodeVariableSet>(options);
+            OrchestratorEditorGraphNode* node = spawn_node<OScriptNodeVariableSet>(options).node;
             if (node) {
                 link(node->get_input_pin(1), p_pin);
             }
@@ -1344,6 +1355,108 @@ void OrchestratorEditorGraphPanel::_disconnect_graph_node_signals(OrchestratorEd
     p_node->disconnect("resize_end", callable_mp_this(_node_resize_end).bind(p_node));
 
     _disconnect_graph_node_pin_signals(p_node);
+}
+
+void OrchestratorEditorGraphPanel::_connect_graph_frame_signals(OrchestratorEditorGraphFrame* p_frame) {
+    GUARD_NULL(p_frame);
+    p_frame->connect("context_menu_requested", callable_mp_this(_show_frame_context_menu));
+    p_frame->connect("changed", callable_mp_this(_set_edited).bind(true));
+}
+
+void OrchestratorEditorGraphPanel::_disconnect_graph_frame_signals(OrchestratorEditorGraphFrame* p_frame) {
+    GUARD_NULL(p_frame);
+    p_frame->disconnect("context_menu_requested", callable_mp_this(_show_frame_context_menu));
+    p_frame->disconnect("changed", callable_mp_this(_set_edited).bind(true));
+}
+
+void OrchestratorEditorGraphPanel::_show_frame_context_menu(OrchestratorEditorGraphFrame* p_frame, const Vector2& p_position) {
+    ERR_FAIL_NULL_MSG(p_frame, "Cannot create context menu for an invalid frame.");
+    accept_event();
+
+    p_frame->set_selected(true);
+
+    OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
+    menu->set_auto_destroy(true);
+    add_child(menu);
+
+    menu->add_separator("Frame Actions");
+    menu->add_icon_item("Remove", "Delete", callable_mp_this(remove_frame).bind(p_frame, true), false, KEY_DELETE);
+    menu->add_icon_item("ActionCopy", "Copy", callable_mp_this(_copy_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_C));
+    menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_duplicate_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_D));
+    p_frame->build_context_menu(menu);
+
+    GraphFrame* parent_frame = get_element_frame(p_frame->get_name());
+    if (parent_frame != nullptr) {
+        menu->add_separator();
+        menu->add_item("Detach from Frame", callable_mp_this(_detach_node_from_frame).bind(p_frame->get_name()));
+    }
+
+    menu->set_position(p_frame->get_screen_position() + p_position * get_zoom());
+    menu->popup();
+}
+
+void OrchestratorEditorGraphPanel::_graph_elements_linked_to_frame_request(const Array& p_elements, const StringName& p_frame_name) {
+    if (OrchestratorEditorGraphFrame* frame = find_frame(p_frame_name)) {
+        for (int i = 0; i < p_elements.size(); i++) {
+            const StringName element_name = p_elements[i];
+            UtilityFunctions::print("Attaching element ", element_name, " to ", p_frame_name);
+            attach_graph_element_to_frame(element_name, p_frame_name);
+        }
+
+        _save_frame_attachments(frame);
+        _set_edited(true);
+    }
+}
+
+void OrchestratorEditorGraphPanel::_detach_node_from_frame(const StringName& p_node_name) {
+    if (GraphFrame* parent_frame = get_element_frame(p_node_name)) {
+        const StringName frame_name = parent_frame->get_name();
+        detach_graph_element_from_frame(p_node_name);
+
+        if (OrchestratorEditorGraphFrame* frame = cast_to<OrchestratorEditorGraphFrame>(parent_frame)) {
+            _save_frame_attachments(frame);
+        }
+
+        _set_edited(true);
+    }
+}
+
+void OrchestratorEditorGraphPanel::_save_frame_attachments(OrchestratorEditorGraphFrame* p_frame) {
+    GUARD_NULL(p_frame);
+
+    const Ref<OScriptNodeComment> comment = p_frame->get_comment();
+    if (comment.is_null()) {
+        return;
+    }
+
+    const TypedArray<StringName> attached = get_attached_nodes_of_frame(p_frame->get_name());
+    PackedInt64Array ids;
+    for (int i = 0; i < attached.size(); i++) {
+        const StringName name = attached[i];
+        if (name.is_valid_int()) {
+            ids.push_back(name.to_int());
+        }
+    }
+
+    comment->set_attached_nodes(ids);
+    p_frame->update_placeholder(ids.size() > 0);
+}
+
+void OrchestratorEditorGraphPanel::_restore_frame_attachments() {
+    for_each<OrchestratorEditorGraphFrame>([&](OrchestratorEditorGraphFrame* frame) {
+        const Ref<OScriptNodeComment> comment = frame->get_comment();
+        if (comment.is_null()) {
+            return;
+        }
+
+        const PackedInt64Array attached_ids = comment->get_attached_nodes();
+        for (int i = 0; i < attached_ids.size(); i++) {
+            const StringName node_name = itos(attached_ids[i]);
+            attach_graph_element_to_frame(node_name, frame->get_name());
+        }
+
+        frame->update_placeholder(attached_ids.size() > 0);
+    });
 }
 
 OrchestratorEditorGraphPin* OrchestratorEditorGraphPanel::_resolve_pin_from_handle(const PinHandle& p_handle, bool p_input) {
@@ -1836,6 +1949,13 @@ void OrchestratorEditorGraphPanel::_update_center_status() {
 }
 
 void OrchestratorEditorGraphPanel::_add_node_to_panel(const Ref<OrchestrationGraphNode>& p_node) {
+    if (OrchestratorEditorGraphFrame* frame = OrchestratorEditorGraphNodeFactory::try_create_frame(p_node)) {
+        frame->set_name(itos(p_node->get_id()));
+        add_child(frame);
+        frame->set_node(p_node);
+        return;
+    }
+
     OrchestratorEditorGraphNode* graph_node = OrchestratorEditorGraphNodeFactory::create_node(p_node);
     ERR_FAIL_COND_MSG(!graph_node, "Failed to create graph node for node id " + itos(p_node->get_id()));
 
@@ -1874,6 +1994,8 @@ void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
         Error err = connect_node(itos(E.from_node), E.from_port, itos(E.to_node), E.to_port);
         ERR_CONTINUE_MSG(err != OK, "Failed to create graph connection for connection id " + itos(E.id));
     }
+
+    _restore_frame_attachments();
 
     // Queue up a revalidation sequence
     emit_signal("validate_script");
@@ -1914,50 +2036,6 @@ void OrchestratorEditorGraphPanel::_queue_panel_connections_refresh() {
     }
 }
 
-void OrchestratorEditorGraphPanel::_update_box_selection_state(const Ref<InputEvent>& p_event) {
-    Ref<InputEventMouseButton> mb = p_event;
-    if (mb.is_valid()) {
-        if (mb->get_button_index() == MOUSE_BUTTON_LEFT && mb->is_pressed()) {
-            // Check whether the left click triggers box reselection
-            // While GraphEdit manages this internally, the information is not directly made available
-            // to derived implementations, and this information is needed to ignore selecting specific
-            // custom graph elements, like GraphEdit does for GraphFrame objects in 4.3+.
-            GraphElement* element = nullptr;
-            for (int i = 0; i < get_child_count(); i++) {
-                if (GraphElement* child = cast_to<GraphElement>(get_child(i))) {
-                    const Rect2 area(Point2(), child->get_size());
-                    const Vector2 point = (mb->get_position() - child->get_position()) / get_zoom();
-                    if (area.has_point(point) && IS_COMMENT(child) && child->_has_point(point)) {
-                        element = child;
-                        break;
-                    }
-                }
-            }
-
-            if (!element) {
-                _box_selection = true;
-                _box_selection_from = mb->get_position();
-            }
-        }
-
-        if (mb->get_button_index() == MOUSE_BUTTON_LEFT && !mb->is_pressed() && _box_selection) {
-            _box_selection = false;
-        }
-    }
-
-    const Ref<InputEventMouseMotion> mm = p_event;
-    if (mm.is_valid() && _box_selection) {
-        const Vector2 select_to = mm->get_position();
-        const Rect2 select_area = Rect2(_box_selection_from.min(select_to), (_box_selection_from - select_to).abs());
-
-        for_each<GraphElement>([&] (GraphElement* element) {
-            if (IS_COMMENT(element) && !select_area.encloses(element->get_rect())) {
-                element->call_deferred("set_selected", false);
-            }
-        });
-    }
-}
-
 void OrchestratorEditorGraphPanel::_drop_data_files(const String& p_node_type, const Array& p_files, const Vector2& p_at_position) {
     Vector2 position = p_at_position;
 
@@ -1967,9 +2045,9 @@ void OrchestratorEditorGraphPanel::_drop_data_files(const String& p_node_type, c
         options.context.resource_path = p_files[i];
         options.position = position;
 
-        OrchestratorEditorGraphNode* spawned_node = spawn_node(options);
-        if (spawned_node) {
-            position.y += spawned_node->get_size().height + 10;
+        GraphElement* element = spawn_node(options).element;
+        if (element) {
+            position.y += element->get_size().height + 10;
         }
     }
 }
@@ -2048,9 +2126,8 @@ void OrchestratorEditorGraphPanel::_get_graph_node_and_port(const Vector2& p_pos
 
 bool OrchestratorEditorGraphPanel::_is_point_inside_node(const Vector2& p_point) const {
     for (int i = 0; i < get_child_count(); i++) {
-        GraphNode* node = cast_to<GraphNode>(get_child(i));
-        OrchestratorEditorGraphNodeComment* comment = cast_to<OrchestratorEditorGraphNodeComment>(node);
-        if (!comment && node && node->get_rect().has_point(p_point)) {
+        GraphElement* element = cast_to<GraphElement>(get_child(i));
+        if (element != nullptr && cast_to<GraphFrame>(element) == nullptr && element->get_rect().has_point(p_point)) {
             return true;
         }
     }
@@ -2092,7 +2169,7 @@ void OrchestratorEditorGraphPanel::_create_connection_reroute(const Dictionary& 
     NodeSpawnOptions options;
     options.node_class = OScriptNodeReroute::get_class_static();
     options.position = graph_position;
-    OrchestratorEditorGraphNode* reroute_graph_node = spawn_node(options);
+    OrchestratorEditorGraphNode* reroute_graph_node = spawn_node(options).node;
     ERR_FAIL_NULL_MSG(reroute_graph_node, "Failed to spawn reroute node.");
 
     // Connect: original source TO reroute input TO reroute output TO original target
@@ -2177,7 +2254,7 @@ void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_funct
             options.context.user_data = DictionaryUtils::of({{ "type", Variant::CALLABLE }, { "constructor_args", arguments }});
             options.position = p_at_position;
 
-            OrchestratorEditorGraphNode* compose_node = spawn_node(options);
+            OrchestratorEditorGraphNode* compose_node = spawn_node(options).node;
             if (compose_node) {
                 compose_node->get_input_pin(1)->_pin->set_default_value(method.name);
 
@@ -2185,7 +2262,7 @@ void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_funct
                 options.context.user_data.reset();
                 options.position = options.position - Vector2(200, 0);
 
-                OrchestratorEditorGraphNode* self = spawn_node(options);
+                OrchestratorEditorGraphNode* self = spawn_node(options).node;
                 if (self) {
                     link(self->get_output_pin(0), compose_node->get_input_pin(0));
                 }
@@ -2276,8 +2353,6 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
             _create_connection_reroute(_hovered_connection, mouse->get_position());
         }
     }
-
-    _update_box_selection_state(p_event);
 
     const Ref<InputEventKey> key = p_event;
     if (key.is_valid() && key->is_pressed()) {
@@ -2401,9 +2476,9 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
             options.context.class_name = StringUtils::default_if_empty(global_name, dropped_node->get_class());
             options.position = spawn_position;
 
-            OrchestratorEditorGraphNode* spawned = spawn_node(options);
-            if (spawned) {
-                spawn_position.y += spawned->get_size().height + 10;
+            GraphElement* element = spawn_node(options).element;
+            if (element) {
+                spawn_position.y += element->get_size().height + 10;
             }
         }
     } else if (drop_type == "files") {
@@ -2872,12 +2947,42 @@ void OrchestratorEditorGraphPanel::remove_nodes(const TypedArray<OrchestratorEdi
     }
 }
 
+void OrchestratorEditorGraphPanel::remove_frame(OrchestratorEditorGraphFrame* p_frame, bool p_confirm) {
+    if (p_confirm && _is_delete_confirmation_enabled()) {
+        ORCHESTRATOR_CONFIRM("Do you wish to delete this frame?", callable_mp_this(remove_frame).bind(p_frame, false));
+    }
+
+    if (p_frame->is_selected()) {
+        p_frame->set_selected(false);
+    }
+
+    p_frame->queue_free();
+
+    const Ref<OScriptNodeComment> comment = p_frame->get_comment();
+    if (comment.is_valid()) {
+        _graph->get_orchestration()->remove_node(comment->get_id());
+    }
+
+    if (!_pending_nodes_changed_event) {
+        _set_edited(true);
+        _pending_nodes_changed_event = true;
+        callable_mp_lambda(this, [&] {
+            _pending_nodes_changed_event = false;
+            emit_signal("nodes_changed");
+        }).call_deferred();
+    }
+}
+
 OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::find_node(int p_id) {
-    return cast_to<OrchestratorEditorGraphNode>(find_child(itos(p_id), false, false));
+    return find<OrchestratorEditorGraphNode>(itos(p_id));
 }
 
 OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::find_node(const StringName& p_name) {
-    return cast_to<OrchestratorEditorGraphNode>(find_child(p_name, false, false));
+    return find<OrchestratorEditorGraphNode>(p_name);
+}
+
+OrchestratorEditorGraphFrame* OrchestratorEditorGraphPanel::find_frame(const StringName& p_name) {
+    return find<OrchestratorEditorGraphFrame>(p_name);
 }
 
 void OrchestratorEditorGraphPanel::clear_selections() {
@@ -2987,39 +3092,45 @@ void OrchestratorEditorGraphPanel::straighten_connection(OrchestratorEditorGraph
     target_node->_node->set_position(target_node_position);
 }
 
-OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::spawn_node(const NodeSpawnOptions& p_options) {
-    ERR_FAIL_COND_V_MSG(p_options.node_class.is_empty(), nullptr, "No node class specified, cannot spawn node");
-    ERR_FAIL_COND_V_MSG(!_graph.is_valid(), nullptr, "Cannot spawn into an invalid graph");
+OrchestratorEditorGraphPanel::NodeSpawnResult OrchestratorEditorGraphPanel::spawn_node(const NodeSpawnOptions& p_options) {
+    ERR_FAIL_COND_V_MSG(p_options.node_class.is_empty(), {}, "No node class specified, cannot spawn node");
+    ERR_FAIL_COND_V_MSG(!_graph.is_valid(), {}, "Cannot spawn into an invalid graph");
 
     const OScriptNodeInitContext& context = p_options.context;
     const Vector2& position = p_options.position;
 
     const Ref<OScriptNode> spawned_node = _graph->create_node(p_options.node_class, context, position);
-    ERR_FAIL_COND_V_MSG(!spawned_node.is_valid(), nullptr, "Failed to spawn node");
+    ERR_FAIL_COND_V_MSG(!spawned_node.is_valid(), {}, "Failed to spawn node");
 
     _set_edited(true);
     emit_signal("nodes_changed");
 
-    OrchestratorEditorGraphNode* spawned_graph_node = find_node(spawned_node->get_id());
-    ERR_FAIL_NULL_V_MSG(spawned_graph_node, nullptr, "Failed to find the spawned graph node");
+    GraphElement* element = cast_to<GraphElement>(find_child(itos(spawned_node->get_id()), false, false));
+    ERR_FAIL_NULL_V_MSG(element, {}, "Failed to find spawned graph element");
+
+    NodeSpawnResult result;
+    result.element = element;
+    result.node = cast_to<OrchestratorEditorGraphNode>(element);
+    result.frame = cast_to<OrchestratorEditorGraphFrame>(element);
 
     if (p_options.select_on_spawn) {
-        spawned_graph_node->set_selected(true);
+        element->set_selected(true);
     }
 
-    if (p_options.center_on_spawn) {
-        callable_mp_this(center_node).bind(spawned_graph_node).call_deferred();
+    if (result.node) {
+        if (p_options.center_on_spawn) {
+            callable_mp_this(center_node).bind(result.node).call_deferred();
+        }
+        if (p_options.drag_pin) {
+            // When dragging from a pin, this indicates that autowiring should happen, but this needs to be done
+            // as part of the next frame. This allows the caller to get a reference to the spawned node so it
+            // can continue to perform any additional operations without having to deal with async operations
+            // with the autowire dialog window.
+            callable_mp_this(_queue_autowire).bind(result.node, p_options.drag_pin).call_deferred();
+        }
     }
 
-    if (p_options.drag_pin && spawned_graph_node) {
-        // When dragging from a pin, this indicates that autowiring should happen, but this needs to be done
-        // as part of the next frame. This allows the caller to get a reference to the spawned node so it
-        // can continue to perform any additional operations without having to deal with async operations
-        // with the autowire dialog window.
-        callable_mp_this(_queue_autowire).bind(spawned_graph_node, p_options.drag_pin).call_deferred();
-    }
-
-    return spawned_graph_node;
+    return result;
 }
 
 Variant OrchestratorEditorGraphPanel::get_edit_state() const {
@@ -3221,6 +3332,7 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     connect("begin_node_move", callable_mp_this(_begin_node_move));
     connect("end_node_move", callable_mp_this(_end_node_move));
     connect("scroll_offset_changed", callable_mp_this(_scroll_offset_changed));
+    connect("graph_elements_linked_to_frame_request", callable_mp_this(_graph_elements_linked_to_frame_request));
 }
 
 OrchestratorEditorGraphPanel::~OrchestratorEditorGraphPanel() {
