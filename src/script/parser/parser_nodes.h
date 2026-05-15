@@ -358,6 +358,7 @@ namespace OScriptParserNodes
             OP_BIT_XOR,
             OP_LOGIC_AND,
             OP_LOGIC_OR,
+            OP_LOGIC_XOR,
             OP_CONTENT_TEST,
             OP_COMP_EQUAL,
             OP_COMP_NOT_EQUAL,
