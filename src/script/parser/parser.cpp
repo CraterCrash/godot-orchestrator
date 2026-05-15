@@ -612,6 +612,9 @@ OScriptParser::BinaryOpNode* OScriptParser::create_binary_op(VariantOperators::C
         case VariantOperators::OP_OR:
             binary_op_node->operation = BinaryOpNode::OP_LOGIC_OR;
             break;
+        case VariantOperators::OP_XOR:
+            binary_op_node->operation = BinaryOpNode::OP_LOGIC_XOR;
+            break;
         case VariantOperators::OP_IN:
             binary_op_node->operation = BinaryOpNode::OP_CONTENT_TEST;
             break;
