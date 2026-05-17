@@ -29,7 +29,7 @@
 #include "editor/graph/graph_markers.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel.h"
-#include "editor/graph/nodes/comment_graph_node.h"
+#include "editor/graph/nodes/comment_graph_frame.h"
 #include "editor/graph/nodes/reroute_graph_node.h"
 #include "editor/graph/pins/pins.h"
 #include "editor/gui/about_dialog.h"
@@ -127,7 +127,7 @@ void register_editor_types() {
 
     // Graph Node Type
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNode)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeComment)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphFrame)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeReroute)
 
     // Graph Pin Types

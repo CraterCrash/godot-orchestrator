@@ -199,6 +199,49 @@ void OScriptGraph::_upgrade(uint32_t p_old_version, uint32_t p_new_version) {
 
         _knots.clear();
     }
+
+    if (p_old_version < 4 && !_nodes.is_empty()) {
+        // Do a single pass over the nodes to collect nodes
+        Vector<Ref<OScriptNodeComment>> comments;
+        for (int node_id : _nodes) {
+            const Ref<OScriptNodeComment> comment = _orchestration->get_node(node_id);
+            if (comment.is_valid()) {
+                comments.push_back(comment);
+            }
+        }
+
+        // Do a second pass, comparing of the node is overlapping any comment.
+        // Given there is likely more non-comments than comments, this should be most efficient.
+        for (int node_id : _nodes) {
+            const Ref<OScriptNode> node = _orchestration->get_node(node_id);
+            if (node.is_valid()) {
+                if (const Ref<OScriptNodeComment>& comment = node; comment.is_valid()) {
+                    continue;
+                }
+
+                const Rect2 node_rect(node->get_position(), node->get_size());
+                for (const Ref<OScriptNodeComment>& comment : comments) {
+                    const Rect2 comment_rect(comment->get_position(), comment->get_size());
+                    if (comment_rect.intersects(node_rect)) {
+                        comment->attach_node(node);
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (Ref<OScriptNodeComment>& comment : comments) {
+            comment->set_block_signals(true);
+            Rect2 rect(comment->get_position(), comment->get_size());
+            for (int node_id : comment->get_attached_nodes()) {
+                const Ref<OScriptNode> node = _orchestration->get_node(node_id);
+                rect = rect.merge(Rect2(node->get_position(), node->get_size()));
+            }
+            comment->set_size(rect.grow(20).size);
+            comment->set_autoshrink_enabled(true);
+            comment->set_block_signals(false);
+        }
+    }
 }
 
 Orchestration* OScriptGraph::get_orchestration() const {
