@@ -14,24 +14,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/checkbox_pin.h"
+#include "editor/graph/pins/checkbox_value_editor.h"
 
 #include "common/callable_lambda.h"
+#include "common/macros.h"
 #include "core/godot/scene_string_names.h"
 
-void OrchestratorEditorGraphPinCheckbox::_update_control_value(const Variant& p_value) {
-    _control->set_pressed(p_value);
-}
+void OrchestratorEditorGraphPinValueEditorCheckbox::configure(const PropertyInfo& p_property) {
+    if (_control) {
+        return;
+    }
 
-Variant OrchestratorEditorGraphPinCheckbox::_read_control_value() {
-    return _control->is_pressed();
-}
-
-Control* OrchestratorEditorGraphPinCheckbox::_create_default_value_widget() {
     _control = memnew(CheckBox);
     _control->set_focus_mode(FOCUS_NONE);
     _control->set_h_size_flags(SIZE_EXPAND_FILL);
-    _control->connect(SceneStringName(toggled), callable_mp_lambda(this, [&] (const bool&) { _default_value_changed(); }));
+    _control->connect(SceneStringName(toggled), callable_mp_lambda(this, [this](const bool&) {
+        _emit_value_changed(_control->is_pressed());
+    }));
+    add_child(_control);
+}
 
-    return _control;
+void OrchestratorEditorGraphPinValueEditorCheckbox::set_value(const Variant& p_value) {
+    GUARD_NULL(_control);
+
+    _control->set_block_signals(true);
+    _control->set_pressed(p_value.operator bool());
+    _control->set_block_signals(false);
 }

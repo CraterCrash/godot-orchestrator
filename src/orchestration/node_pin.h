@@ -90,11 +90,14 @@ public:
 
 private:
     PropertyInfo _property;                    //! Pin's property details
+    PropertyInfo _type_override;               //! Visual-only type override for Any pins
+    bool _has_type_override = false;           //! Whether a type override is active
     String _target_class;                      //! The target class associated with the pin
     Variant _default_value;                    //! The default value
     Variant _generated_default_value;          //! Generated default value
     EPinDirection _direction = PD_Input;       //! The direction
     BitField<Flags> _flags = 0;                //! Pin flags
+    BitField<Flags> _override_flags = 0;      //! Flags derived from the active type override
     String _label;                             //! A custom label name
     OScriptNode* _owning_node = nullptr;       //! The node that owns this pin
     bool _set_type_resets_default = false;     //! Whether changing the type resets the default value
@@ -106,11 +109,7 @@ private:
 protected:
     static void _bind_methods();
 
-    /// Creates a pin for the specified node.
-    /// @param p_owning_node the owning node
-    /// @param p_property the property info for the pin
-    /// @return the script pin reference
-    static Ref<OScriptNodePin> create(OScriptNode* p_owning_node, const PropertyInfo& p_property);
+    /// Clears a specific flag on the pin
 
     /// Clears a specific flag on the pin
     /// @param p_flag the flag to clear
@@ -131,6 +130,12 @@ public:
 
     /// Perform pin post initialization
     virtual void post_initialize();
+
+    /// Creates a pin for the specified node.
+    /// @param p_owning_node the owning node
+    /// @param p_property the property info for the pin
+    /// @return the script pin reference
+    static Ref<OScriptNodePin> create(OScriptNode* p_owning_node, const PropertyInfo& p_property);
 
     /// Helper method to create a pin for the specified node
     /// @param p_owning_node the node that owns this pin
@@ -156,6 +161,21 @@ public:
     /// Get the pin's property info
     /// @return an immutable property info that describes the pin
     const PropertyInfo& get_property_info() const { return _property; }
+
+    /// Return whether this pin has an active type override.
+    /// @return true if a type override is set, false otherwise
+    bool has_type_override() const { return _has_type_override; }
+
+    /// Get the active type override. Only meaningful when has_type_override() is true.
+    /// @return the override property info
+    const PropertyInfo& get_type_override() const { return _type_override; }
+
+    /// Set the type override for this pin. Clears the stored default value.
+    /// @param p_override the PropertyInfo describing the override type
+    void set_type_override(const PropertyInfo& p_override);
+
+    /// Clear the type override, reverting to the original type behavior.
+    void clear_type_override();
 
     /// Get the pin's name
     /// @return the pin's name
@@ -321,19 +341,19 @@ public:
 
     /// Return whether this pin acts as a file selection pin.
     /// @return true if the pin should be rendered as a file selector
-    _FORCE_INLINE_ bool is_file() const { return _flags.has_flag(FILE); }
+    _FORCE_INLINE_ bool is_file() const { return _has_type_override ? _override_flags.has_flag(FILE) : _flags.has_flag(FILE); }
 
     /// Return whether this pin acts as an enumeration
     /// @return true if this pin is an enumeration, false otherwise
-    _FORCE_INLINE_ bool is_enum() const { return _flags.has_flag(ENUM); }
+    _FORCE_INLINE_ bool is_enum() const { return _has_type_override ? _override_flags.has_flag(ENUM) : _flags.has_flag(ENUM); }
 
     /// Return whether this pin acts as a bitfield
-    /// @return true if this pin is an enumeration, false otherwise
-    _FORCE_INLINE_ bool is_bitfield() const { return _flags.has_flag(BITFIELD); }
+    /// @return true if this pin is a bitfield, false otherwise
+    _FORCE_INLINE_ bool is_bitfield() const { return _has_type_override ? _override_flags.has_flag(BITFIELD) : _flags.has_flag(BITFIELD); }
 
     /// Return whether this pin is rendered as multi-lined text.
     /// @return true if this is a multi-lined text pin, false otherwise
-    _FORCE_INLINE_ bool is_multiline_text() const { return _flags.has_flag(MULTILINE); }
+    _FORCE_INLINE_ bool is_multiline_text() const { return _has_type_override ? _override_flags.has_flag(MULTILINE) : _flags.has_flag(MULTILINE); }
 
     /// Return whether to default field is ignored and unused (not rendered)
     /// @return true if the default field is ignored/unused, false otherwise

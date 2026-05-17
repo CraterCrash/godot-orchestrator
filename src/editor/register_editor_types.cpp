@@ -29,9 +29,10 @@
 #include "editor/graph/graph_markers.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel.h"
+#include "editor/graph/graph_pin.h"
 #include "editor/graph/nodes/comment_graph_node.h"
+#include "editor/graph/pins/value_editors.h"
 #include "editor/graph/nodes/reroute_graph_node.h"
-#include "editor/graph/pins/pins.h"
 #include "editor/gui/about_dialog.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/editor_log_event_router.h"
@@ -130,23 +131,23 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeComment)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeReroute)
 
-    // Graph Pin Types
+    // Graph Pin Container and Value Editors
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPin)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinButtonBase)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinBitfield)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinOptionPicker)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinCheckbox)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinColorPicker)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinEnum)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinExec)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinFilePicker)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinInputActionPicker)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinLineEdit)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinNodePath)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinNumber)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinObject)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinTextEdit)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinStruct)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditor)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorAny)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorButtonBase)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorBitfield)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorCheckbox)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorColorPicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorEnum)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorFilePicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorLineEdit)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorNodePath)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorNumber)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorOptionPicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorInputActionPicker)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorStruct)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinValueEditorTextEdit)
 
     // Add plugin to the editor
     EditorPlugins::add_by_type<OrchestratorPlugin>();

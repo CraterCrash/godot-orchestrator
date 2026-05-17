@@ -30,6 +30,7 @@ using namespace godot;
 class OrchestratorEditorContextMenu;
 class OrchestratorEditorGraphNode;
 class OrchestratorEditorGraphPanel;
+class OrchestratorEditorGraphPinValueEditor;
 
 struct OrchestratorEditorGraphPinSlotInfo {
     bool enabled = false;
@@ -61,7 +62,8 @@ class OrchestratorEditorGraphPin : public VBoxContainer {
 
     TextureRect* _icon = nullptr;
     Label* _label = nullptr;
-    Control* _default_value = nullptr;
+    OrchestratorEditorGraphPinValueEditor* _editor = nullptr;
+    HBoxContainer* _layout_container = nullptr;
 
 protected:
     static void _bind_methods();
@@ -70,25 +72,24 @@ protected:
     void _notification(int p_what);
     //~ End Wrapped Interface
 
-    PackedStringArray _get_pin_suggestions() const;
-
     virtual String _get_pin_color_name() const;
 
-    void _default_value_changed();
-
-    Variant _get_default_value();
-    void _set_default_value(const Variant& p_value);
-
-    virtual Variant _read_control_value() { return {}; }
-    void _update_control();
-    virtual void _update_control_value(const Variant& p_value) { }
+    void _pin_editor_value_changed(const Variant& p_value);
+    void _pin_editor_layout_changed();
+    PropertyInfo _effective_property_info() const;
+    void _update_icon_texture();
+    virtual void _update_control();
 
     void _create_pin_layout();
-    virtual bool _is_default_value_below_label() const { return false; }
-    virtual Control* _create_default_value_widget() { return nullptr; }
+    virtual void _on_pin_layout_created() { }
 
     virtual String _get_label_text();
     virtual String _get_tooltip_text();
+    virtual String _get_icon_type_name() const;
+
+    const Ref<OrchestrationGraphPin>& _get_pin() const { return _pin; }
+    HBoxContainer* _get_layout_container() const { return _layout_container; }
+    TextureRect* _get_icon() const { return _icon; }
 
 public:
     //~ Begin Control Interface
@@ -115,6 +116,8 @@ public:
     OrchestratorEditorGraphPinSlotInfo get_slot_info() const;
 
     const PropertyInfo& get_property_info() const;
+
+    static OrchestratorEditorGraphPin* create(const Ref<OrchestrationGraphPin>& p_pin);
 
     void set_default_value_control_visible(bool p_visible);
     void set_icon_visible(bool p_visible);

@@ -429,6 +429,8 @@ float OrchestratorEditorSearchDialog::_calculate_score(const Ref<SearchItem>& p_
 }
 
 void OrchestratorEditorSearchDialog::_cleanup() {
+    PROJECT_SET("dialog_bounds", "create_new_node", Rect2(get_position(), get_size()));
+
     _favorite_list.clear();
 
     if (_favorites) {

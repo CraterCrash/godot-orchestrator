@@ -140,8 +140,15 @@ void OScriptNode::post_placed_new_node() {
 
 void OScriptNode::rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins, const Vector<Ref<OScriptNodePin>>&  p_new_pins) {
     for (const Ref<OScriptNodePin>& old : p_old_pins) {
+        Ref<OScriptNodePin> newPin = find_pin(old->get_pin_name(), old->get_direction());
+
+        // Transfer type override first (for any pin, input or output).
+        // Must happen before default value transfer because set_type_override clears _default_value.
+        if (newPin.is_valid() && old->has_type_override()) {
+            newPin->set_type_override(old->get_type_override());
+        }
+
         if (old->is_input()) {
-            Ref<OScriptNodePin> newPin = find_pin(old->get_pin_name(), old->get_direction());
             if (newPin.is_valid()) {
                 // If new pin has a default value set that isn't the default, skip.
                 if (newPin->get_default_value().get_type() != Variant::NIL

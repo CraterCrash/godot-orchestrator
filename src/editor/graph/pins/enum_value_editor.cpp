@@ -14,28 +14,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/enum_pin.h"
+#include "editor/graph/pins/enum_value_editor.h"
 
 #include "common/macros.h"
 #include "core/godot/object/enum_resolver.h"
 #include "core/godot/scene_string_names.h"
-#include "script/script_server.h"
 
-void OrchestratorEditorGraphPinEnum::_item_selected(int p_index) {
+void OrchestratorEditorGraphPinValueEditorEnum::_item_selected(int p_index) {
     _selected_index = p_index;
     _button->release_focus();
 
-    _default_value_changed();
+    if (_selected_index >= 0 && _selected_index < _button->get_item_count()) {
+        _emit_value_changed(_button->get_item_metadata(_selected_index));
+    }
 }
 
-void OrchestratorEditorGraphPinEnum::_update_control_value(const Variant& p_value) {
+void OrchestratorEditorGraphPinValueEditorEnum::configure(const PropertyInfo& p_property) {
+    if (_button) {
+        return;
+    }
+
+    _property = p_property;
+
+    _button = memnew(OptionButton);
+    _button->connect(SceneStringName(item_selected), callable_mp_this(_item_selected));
+    add_child(_button);
+}
+
+void OrchestratorEditorGraphPinValueEditorEnum::set_value(const Variant& p_value) {
+    GUARD_NULL(_button);
+
     using EnumItem = EnumResolver::EnumItem;
 
-    // Force deselection of any values
+    _button->set_block_signals(true);
     _button->select(-1);
 
     if (!_generated) {
-        const List<EnumItem>& items = EnumResolver::resolve(get_property_info());
+        const List<EnumItem>& items = EnumResolver::resolve(_property);
         for (const EnumItem& item : items) {
             const Variant item_value = item.value;
             const int32_t index = _button->get_item_count();
@@ -51,7 +66,7 @@ void OrchestratorEditorGraphPinEnum::_update_control_value(const Variant& p_valu
         for (int index = 0; index < _button->get_item_count(); index++) {
             if (_button->get_item_metadata(index) == p_value) {
                 _button->select(index);
-                return;
+                break;
             }
         }
     }
@@ -59,19 +74,7 @@ void OrchestratorEditorGraphPinEnum::_update_control_value(const Variant& p_valu
     if (_button->get_item_count() > 0 && _button->get_selected_id() == -1) {
         _button->select(0);
     }
+
+    _selected_index = _button->get_selected();
+    _button->set_block_signals(false);
 }
-
-Variant OrchestratorEditorGraphPinEnum::_read_control_value() {
-    if (_selected_index >= 0 && _selected_index < _button->get_item_count()) {
-        return _button->get_item_metadata(_selected_index);
-    }
-    return Variant();
-}
-
-Control* OrchestratorEditorGraphPinEnum::_create_default_value_widget() {
-    _button = memnew(OptionButton);
-    _button->connect(SceneStringName(item_selected), callable_mp_this(_item_selected));
-
-    return _button;
-}
-

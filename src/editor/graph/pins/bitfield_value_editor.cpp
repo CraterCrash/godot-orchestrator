@@ -14,10 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/bitfield_pin.h"
+#include "editor/graph/pins/bitfield_value_editor.h"
 
 #include "api/extension_db.h"
-#include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/string_utils.h"
 #include "core/godot/object/bitfield_resolver.h"
@@ -27,10 +26,10 @@
 #include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/popup_panel.hpp>
 
-void OrchestratorEditorGraphPinBitfield::_update_checkboxes(bool p_state, const CheckBox* p_box_control) {
+void OrchestratorEditorGraphPinValueEditorBitfield::_update_checkboxes(bool p_state, const CheckBox* p_box_control) {
     ERR_FAIL_NULL(p_box_control);
-    const int64_t item_value = p_box_control->get_meta("bitmask_value", 0);
 
+    const int64_t item_value = p_box_control->get_meta("bitmask_value", 0);
     const int64_t button_value = _get_button_value();
     const int64_t new_value = p_state ? button_value | item_value : button_value & ~item_value;
 
@@ -50,7 +49,7 @@ void OrchestratorEditorGraphPinBitfield::_update_checkboxes(bool p_state, const 
     _handle_selector_button_response(new_value);
 }
 
-void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
+void OrchestratorEditorGraphPinValueEditorBitfield::_handle_selector_button_pressed() {
     using BitfieldItem = BitfieldResolver::BitfieldItem;
 
     const int64_t default_value = _get_button_value();
@@ -66,7 +65,7 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
     container->set_columns(1);
     popup->add_child(container);
 
-    const List<BitfieldItem> items = BitfieldResolver::resolve(get_property_info());
+    const List<BitfieldItem> items = BitfieldResolver::resolve(_property);
 
     // Create a map of all multivalued bitfield items
     // These will be appended at the end of the widget after a separator.
@@ -96,7 +95,6 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
             check->set_text(StringUtils::join(" / ", names));
             check->set_meta("bitmask_value", item.value);
             check->connect(SceneStringName(toggled), callable_mp_this(_update_checkboxes).bind(check));
-
             container->add_child(check);
         }
     }
@@ -109,7 +107,6 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
             check->set_text(E.value.friendly_name);
             check->set_meta("bitmask_value", E.value.value);
             check->connect(SceneStringName(toggled), callable_mp_this(_update_checkboxes).bind(check));
-
             container->add_child(check);
         }
     }
@@ -122,4 +119,9 @@ void OrchestratorEditorGraphPinBitfield::_handle_selector_button_pressed() {
 
     popup->set_position(pos);
     popup->popup();
+}
+
+void OrchestratorEditorGraphPinValueEditorBitfield::configure(const PropertyInfo& p_property) {
+    _property = p_property;
+    OrchestratorEditorGraphPinValueEditorButtonBase::configure(p_property);
 }
