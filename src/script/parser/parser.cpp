@@ -3055,8 +3055,7 @@ OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVari
     IdentifierNode* type_name = alloc_node<IdentifierNode>();
     type_name->name = p_variable->get_variable_type_name();
 
-    TypeNode* type = alloc_node<TypeNode>();
-    type->type_chain.push_back(type_name);
+    TypeNode* type = build_type(p_variable->get_info());
 
     VariableNode* node = alloc_node<VariableNode>();
     node->identifier = identifier;

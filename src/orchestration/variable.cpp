@@ -331,8 +331,9 @@ void OScriptVariable::set_classification(const String& p_classification) {
 
         ClassificationParser parser;
         if (parser.parse(_classification)) {
-            if (parser.is_default_value_converted()) {
-                _convert_default_value(parser.get_property().type);
+            const Variant::Type new_type = parser.get_property().type;
+            if (_default_value.get_type() != Variant::NIL && _default_value.get_type() != new_type) {
+                _convert_default_value(new_type);
             }
         }
 
