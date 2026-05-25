@@ -3226,6 +3226,8 @@ OScriptParser::TypeNode* OScriptParser::build_type(const PropertyInfo& p_propert
                 IdentifierNode* element = build_identifier(part);
                 type->type_chain.push_back(element);
             }
+        } else {
+            type->type_chain.push_back(build_identifier(p_property.class_name));
         }
     } else if (p_property.type == Variant::ARRAY && p_property.hint == PROPERTY_HINT_ARRAY_TYPE) {
         // Typed Array
