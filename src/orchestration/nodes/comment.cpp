@@ -141,8 +141,11 @@ void OScriptNodeComment::attach_node(const Ref<OScriptNode>& p_node) {
 }
 
 void OScriptNodeComment::detach_node(const Ref<OScriptNode>& p_node) {
-    if (p_node.is_valid() && _attached_nodes.has(p_node->get_id())) {
-        _attached_nodes.erase(p_node->get_id());
+    if (p_node.is_valid()) {
+        const int64_t index = _attached_nodes.find(p_node->get_id());
+        if (index != -1) {
+            _attached_nodes.remove_at(index);
+        }
     }
 }
 
