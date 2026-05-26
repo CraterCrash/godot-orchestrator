@@ -226,12 +226,6 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
     static String WARNING_BUTTON_NAME = "ScriptWarningButton";
     static String ERROR_BUTTON_NAME   = "ScriptErrorButton";
 
-    for (const Ref<OScriptNode>& node : _script->get_orchestration()->get_nodes()) {
-        if (node.is_valid() && node->is_type<OScriptNodeSelf>()) {
-            node->reconstruct_node();
-        }
-    }
-
     for (int i = 0; i < _tab_container->get_child_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
 
@@ -249,13 +243,13 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
         const String global_name = _script->get_orchestration()->get_global_name();
         if (!global_name.is_empty()) {
             button->set_text(vformat("%s Extends %s", global_name, script_type));
-            button->set_button_icon(SceneUtils::get_class_icon(global_name));
+            button->set_button_icon(_script->get_orchestration()->get_icon());
         } else if (script_type.begins_with("res://")) {
             button->set_text(vformat("Extends %s", script_type));
             button->set_button_icon(SceneUtils::get_class_icon(_script->get_native()->get_name()));
         } else {
             button->set_text(vformat("Extends %s", script_type));
-            button->set_button_icon(SceneUtils::get_class_icon(script_type));
+            button->set_button_icon(_script->get_orchestration()->get_icon());
         }
 
         button->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
