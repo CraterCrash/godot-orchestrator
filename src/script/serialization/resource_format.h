@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#pragma ocne
+#pragma once
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/resource_format_loader.hpp>
