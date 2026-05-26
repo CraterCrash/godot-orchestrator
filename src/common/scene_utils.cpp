@@ -17,6 +17,7 @@
 #include "scene_utils.h"
 
 #include "common/macros.h"
+#include "core/godot/io/resource_uid.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -24,7 +25,6 @@
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -79,7 +79,7 @@ namespace SceneUtils {
     Ref<Texture2D> get_icon(const String& p_name) {
         String name;
         if (p_name.begins_with("uid://")) {
-            name = ResourceUID::uid_to_path(p_name);
+            name = GDE::ResourceUID::uid_to_path(p_name);
         } else if (p_name.begins_with("res://")) {
             name = p_name;
         } else {
