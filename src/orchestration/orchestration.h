@@ -23,6 +23,7 @@
 #include "orchestration/signals.h"
 #include "orchestration/variable.h"
 
+#include <godot_cpp/classes/texture2d.hpp>
 #include <godot_cpp/templates/rb_set.hpp>
 
 using namespace godot;
@@ -123,6 +124,8 @@ protected:
         return ids;
     }
 
+    void _update_all_self_nodes();
+
 public:
     /// Get the orchestration type
     /// @return the orchestration type
@@ -131,6 +134,10 @@ public:
     /// Get the path to the orchestration resource
     /// @return the file path
     String get_orchestration_path() const;
+
+    /// Gets the instance class type of the script
+    /// @returns <code>global_name</code> if set, otherwise <code>base_type</code>.
+    StringName get_instance_class_type() const;
 
     /// Get the base type of the orchestration
     /// @return base class type of the orchestration
@@ -163,6 +170,14 @@ public:
     /// Get the icon associated with the script class
     /// @param p_path the script class icon
     void set_icon_path(const String& p_path);
+
+    /// Gets the icon texture for the class
+    /// @return the icon texture
+    Ref<Texture2D> get_icon() const;
+
+    /// Gets the icon name for the class
+    /// @return the icon name
+    String get_icon_name() const;
 
     /// Get the script's brief description
     /// @return the brief description

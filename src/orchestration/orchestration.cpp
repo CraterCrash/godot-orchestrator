@@ -19,6 +19,8 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/name_utils.h"
+#include "common/scene_utils.h"
+#include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "orchestration/nodes.h"
 #include "orchestration/serialization/format.h"
@@ -235,11 +237,23 @@ void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_
     emit_signal("connections_changed");
 }
 
+void Orchestration::_update_all_self_nodes() {
+    for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
+        if (E.value.is_valid() && E.value->is_type<OScriptNodeSelf>()) {
+            E.value->reconstruct_node();
+        }
+    }
+}
+
 String Orchestration::get_orchestration_path() const {
     if (_self) {
         return _self->get_path();
     }
     return {};
+}
+
+StringName Orchestration::get_instance_class_type() const {
+    return StringUtils::default_if_empty(_global_name, _base_type);
 }
 
 StringName Orchestration::get_base_type() const {
@@ -249,6 +263,8 @@ StringName Orchestration::get_base_type() const {
 void Orchestration::set_base_type(const StringName& p_base_type) {
     if (!_base_type.match(p_base_type)) {
         _base_type = p_base_type;
+
+        _update_all_self_nodes();
 
         emit_signal("base_type_changed");
         set_edited(true);
@@ -273,6 +289,9 @@ StringName Orchestration::get_global_name() const {
 void Orchestration::set_global_name(const StringName& p_global_name) {
     if (_global_name != p_global_name) {
         _global_name = p_global_name;
+
+        _update_all_self_nodes();
+
         set_edited(true);
     }
 }
@@ -284,8 +303,29 @@ String Orchestration::get_icon_path() const {
 void Orchestration::set_icon_path(const String& p_path) {
     if (_icon_path != p_path) {
         _icon_path = p_path;
+
+        _update_all_self_nodes();
+
         set_edited(true);
     }
+}
+
+Ref<Texture2D> Orchestration::get_icon() const {
+    #ifdef TOOLS_ENABLED
+    if (!_global_name.is_empty() && !_icon_path.is_empty()) {
+        return SceneUtils::get_icon(_icon_path);
+    }
+    return SceneUtils::get_editor_icon(_base_type);
+    #else
+    return {};
+    #endif
+}
+
+String Orchestration::get_icon_name() const {
+    if (!_global_name.is_empty() && !_icon_path.is_empty()) {
+        return _icon_path;
+    }
+    return _base_type;
 }
 
 String Orchestration::get_brief_description() const {

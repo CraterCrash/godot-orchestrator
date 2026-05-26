@@ -63,11 +63,7 @@ void OScriptNodeSelf::post_placed_new_node() {
 }
 
 void OScriptNodeSelf::allocate_default_pins() {
-    if (get_orchestration()->get_global_name().is_empty()) {
-        create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_base_type()));
-    } else {
-        create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_global_name()));
-    }
+    create_pin(PD_Output, PT_Data, PropertyUtils::make_object("self", get_orchestration()->get_instance_class_type()));
 }
 
 String OScriptNodeSelf::get_tooltip_text() const {
@@ -84,10 +80,7 @@ String OScriptNodeSelf::get_help_topic() const {
 
 String OScriptNodeSelf::get_icon() const {
     if (get_orchestration()) {
-        if (!get_orchestration()->get_icon_path().is_empty()) {
-            return get_orchestration()->get_icon_path();
-        }
-        return get_orchestration()->get_base_type();
+        return get_orchestration()->get_icon_name();
     }
     return super::get_icon();
 }

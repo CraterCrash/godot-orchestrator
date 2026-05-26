@@ -24,6 +24,7 @@
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -76,7 +77,15 @@ namespace SceneUtils {
     }
 
     Ref<Texture2D> get_icon(const String& p_name) {
-        return ResourceLoader::get_singleton()->load(vformat(get_icon_path(p_name)));
+        String name;
+        if (p_name.begins_with("uid://")) {
+            name = ResourceUID::uid_to_path(p_name);
+        } else if (p_name.begins_with("res://")) {
+            name = p_name;
+        } else {
+            name = get_icon_path(p_name);
+        }
+        return ResourceLoader::get_singleton()->load(name);
     }
 
     Ref<Texture2D> get_editor_icon(const String& p_icon_name) {
