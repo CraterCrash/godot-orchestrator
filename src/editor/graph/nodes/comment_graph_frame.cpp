@@ -21,6 +21,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/io/resource_uid.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/graph/graph_panel.h"
@@ -33,7 +34,6 @@
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/popup_panel.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 
 void OrchestratorEditorGraphFrame::_frame_selected() {
@@ -334,7 +334,7 @@ void OrchestratorEditorGraphFrame::_update_from_model() {
         if (theme_cache.icon_name.begins_with("res://")) {
             icon = ResourceLoader::get_singleton()->load(theme_cache.icon_name);
         } else if (theme_cache.icon_name.begins_with("uid://")) {
-            icon = ResourceLoader::get_singleton()->load(ResourceUID::uid_to_path(theme_cache.icon_name));
+            icon = ResourceLoader::get_singleton()->load(GDE::ResourceUID::uid_to_path(theme_cache.icon_name));
         } else {
             icon = SceneUtils::get_editor_icon(theme_cache.icon_name);
         }
