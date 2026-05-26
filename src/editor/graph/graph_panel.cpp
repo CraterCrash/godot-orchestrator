@@ -1399,7 +1399,6 @@ void OrchestratorEditorGraphPanel::_graph_elements_linked_to_frame_request(const
     if (OrchestratorEditorGraphFrame* frame = find_frame(p_frame_name)) {
         for (int i = 0; i < p_elements.size(); i++) {
             const StringName element_name = p_elements[i];
-            UtilityFunctions::print("Attaching element ", element_name, " to ", p_frame_name);
             attach_graph_element_to_frame(element_name, p_frame_name);
         }
 
@@ -1611,7 +1610,7 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position) {
 }
 
 void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action) {
-    ERR_FAIL_COND_MSG(!p_action.is_valid(), "Cannot execute the action, it is invaild.");
+    ERR_FAIL_COND_MSG(!p_action.is_valid(), "Cannot execute the action, it is invalid.");
 
     const Vector2 spawn_position = _menu_position;
 
@@ -2994,6 +2993,8 @@ void OrchestratorEditorGraphPanel::remove_frame(OrchestratorEditorGraphFrame* p_
     if (p_frame->is_selected()) {
         p_frame->set_selected(false);
     }
+
+    _detach_node_from_frame(p_frame->get_name());
 
     p_frame->queue_free();
 
