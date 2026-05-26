@@ -26,6 +26,7 @@
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/classes/text_edit.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
 using namespace godot;
@@ -78,6 +79,8 @@ class OrchestratorEditorGraphFrame : public GraphFrame {
 
     void _frame_title_text_changed(const String& p_text);
     void _change_frame_title();
+    void _open_change_comment_text();
+    void _comment_text_changed(TextEdit* p_editor);
     void _show_tint_color_picker();
 
     float _compute_top_margin() const;
