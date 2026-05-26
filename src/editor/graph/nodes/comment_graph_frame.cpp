@@ -152,12 +152,34 @@ void OrchestratorEditorGraphFrame::_change_frame_title() {
     LineEdit* edit = memnew(LineEdit);
     edit->set_expand_to_text_length_enabled(true);
     edit->set_select_all_on_focus(true);
+    edit->set_text(_comment->get_title_text());
     edit->connect(SceneStringName(text_changed), callable_mp_this(_frame_title_text_changed));
     edit->connect(SceneStringName(text_submitted), callable_mp_this(_frame_title_text_changed));
     vbox->add_child(edit);
 
     _show_popup_at_mouse(vbox);
     edit->grab_focus();
+}
+
+void OrchestratorEditorGraphFrame::_open_change_comment_text() {
+    TextEdit* editor = memnew(TextEdit);
+    editor->connect(SceneStringName(text_changed), callable_mp_this(_comment_text_changed).bind(editor));
+    editor->set_line_wrapping_mode(TextEdit::LineWrappingMode::LINE_WRAPPING_BOUNDARY);
+
+    AcceptDialog* dialog = memnew(AcceptDialog);
+    dialog->add_child(editor);
+    dialog->set_title("Edit Comment Text");
+    dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+    get_titlebar_hbox()->add_child(dialog);
+
+    dialog->popup_centered_clamped(Size2(1000, 900) * EDSCALE, 0.8);
+    editor->set_text(_comment->get_comments_text());
+    editor->grab_focus();
+}
+
+void OrchestratorEditorGraphFrame::_comment_text_changed(TextEdit* p_editor) {
+    _comment->set_comments_text(p_editor->get_text());
 }
 
 void OrchestratorEditorGraphFrame::_show_tint_color_picker() {
@@ -377,6 +399,7 @@ void OrchestratorEditorGraphFrame::_gui_input(const Ref<InputEvent>& p_event) {
 void OrchestratorEditorGraphFrame::build_context_menu(OrchestratorEditorContextMenu* p_menu) {
     p_menu->add_separator();
     p_menu->add_item("Set Frame Title", callable_mp_this(_change_frame_title), false);
+    p_menu->add_item("Set Comment Text", callable_mp_this(_open_change_comment_text), false);
     p_menu->add_check_item("Enable Auto Shrink", callable_mp_this(_toggle_autoshrink), is_autoshrink_enabled());
     p_menu->add_check_item("Enable Tint Color", callable_mp_this(_toggle_tint), is_tint_color_enabled());
     if (is_tint_color_enabled()) {
