@@ -26,6 +26,8 @@
 #include "editor/graph/graph_panel.h"
 #include "editor/gui/context_menu.h"
 #include "orchestration/nodes/reroute.h"
+#include "orchestration/nodes/self.h"
+#include "orchestration/orchestration.h"
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 
@@ -87,11 +89,19 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
     container->add_child(_label);
 
     if (!_pin->is_execution()) {
-        const String type_name = _pin->get_pin_type_name();
+
+        Ref<Texture2D> type_icon;
+        if (_pin->get_owning_node()->is_type<OScriptNodeSelf>()) {
+            // Hack for when a named script transitions from unnamed to named before save
+            type_icon = _pin->get_owning_node()->get_orchestration()->get_icon();
+        } else {
+            type_icon = SceneUtils::get_class_icon(_pin->get_pin_type_name());
+        }
+
         const int icon_width = SceneUtils::get_editor_class_icon_size();
 
         _icon = memnew(TextureRect);
-        _icon->set_texture(SceneUtils::get_class_icon(type_name));
+        _icon->set_texture(type_icon);
         _icon->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
         _icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
         _icon->set_custom_minimum_size(Vector2i(icon_width, icon_width));
