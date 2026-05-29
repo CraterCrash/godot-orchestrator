@@ -745,16 +745,15 @@ void OScriptParser::clear() {
     bind_handlers();
 }
 
-void OScriptParser::push_error(const String &p_message, const Node *p_origin) {
+void OScriptParser::push_error(const String& p_message, const Node* p_origin) {
     // TODO: Improve error reporting by pointing at source code.
     // TODO: Errors might point at more than one place at once (e.g. show previous declaration).
+    push_error(p_message, p_origin ? p_origin->script_node_id : -1);
+}
+
+void OScriptParser::push_error(const String& p_message, int p_node_id) {
     panic_mode = true;
-    // TODO: Improve positional information.
-    if (p_origin == nullptr) {
-        errors.push_back({ p_message, -1 });
-    } else {
-        errors.push_back({ p_message, p_origin->script_node_id });
-    }
+    errors.push_back({ p_message, p_node_id });
 }
 
 #ifdef DEBUG_ENABLED
@@ -1532,11 +1531,19 @@ OScriptParser::ExpressionNode* OScriptParser::build_dialogue_choice(const Ref<OS
 
 void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, const Ref<OScriptNodePin>& p_target_pin, SuiteNode* p_suite) {
     Ref<OScriptNodePin> target_pin = p_target_pin;
+    HashSet<NodeId> visited;
 
     while (target_pin.is_valid()) {
         const Ref<OScriptNode> target_node = target_pin->get_owning_node();
+        const NodeId target_node_id = target_node->get_id();
 
-        const OScriptNodePinId target_id = { target_node->get_id(), target_pin->get_pin_index() };
+        if (visited.has(target_node_id) || _build_in_progress.has(target_node_id)) {
+            push_error("Node is part of a control-flow cycle and cannot be compiled.", target_node_id);
+            return;
+        }
+        visited.insert(target_node_id);
+
+        const OScriptNodePinId target_id = { target_node_id, target_pin->get_pin_index() };
 
         if (use_node_convergence && !convergence_stack.is_empty()) {
             const OScriptNodePinId& converge_id = convergence_stack.back()->get();
@@ -1558,7 +1565,9 @@ void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, co
             convergence_stack.push_back(convergence_pin);
         }
 
+        _build_in_progress.insert(target_node_id);
         const StatementResult result = build_statement(target_node);
+        _build_in_progress.erase(target_node_id);
 
         if (use_node_convergence && convergence_pin.node >= 0) {
             convergence_stack.pop_back();
@@ -3158,7 +3167,11 @@ OScriptParser::FunctionNode* OScriptParser::build_function(const Ref<OScriptFunc
     // Perform function graph pre-pass analysis
     OScriptFunctionAnalyzer analyzer;
     function_info = analyzer.analyze_function(p_function);
-    // UtilityFunctions::print(function_info.to_string());
+    if (analyzer.has_errors()) {
+        for (const OScriptFunctionAnalyzer::AnalyzerError& error : analyzer.get_errors()) {
+            push_error(error.message, error.node);
+        }
+    }
 
     bool has_body = false;
     Ref<OScriptNodePin> source_pin;
@@ -3197,6 +3210,7 @@ OScriptParser::FunctionNode* OScriptParser::build_function(const Ref<OScriptFunc
         }
 
         // Parse body
+        _build_in_progress.clear();
         const String suite_name = vformat("Function %s", p_function->get_function_name());
         function_node->body = build_suite(suite_name, source_pin, body);
     } else {

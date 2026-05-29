@@ -165,6 +165,7 @@ private:
 
     HashMap<StringName, StatementHandler> _statement_handlers;
     HashMap<StringName, ExpressionHandler> _expression_handlers;
+    HashSet<NodeId> _build_in_progress;
 
     template <class T, auto handler>
     void register_statement_handler() {
@@ -280,7 +281,8 @@ private:
 
     void clear();
 
-    void push_error(const String &p_message, const Node *p_origin = nullptr);
+    void push_error(const String& p_message, const Node* p_origin = nullptr);
+    void push_error(const String& p_message, int p_node_id);
     #ifdef DEBUG_ENABLED
     void push_warning(const Node *p_source, OScriptWarning::Code p_code, const Vector<String> &p_symbols);
     template <typename... Symbols>
