@@ -511,8 +511,7 @@ OScriptNodePinSet OScriptFunctionAnalyzer::_get_all_reachable_pins(Context& p_co
     return reachable;
 }
 
-void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>& p_node, OScriptNodePinSet& p_dependencies) {
-    // Recursively collect all nodes this node depends on via data pins
+void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>& p_node, OScriptNodePinSet& p_dependencies, DataDependencyContext& p_context) {
     for (const Ref<OScriptNodePin>& input : p_node->find_pins(PD_Input)) {
         if (input.is_valid() && !input->is_execution() && input->has_any_connections()) {
             const Ref<OScriptNodePin> source_pin = input->get_resolved_connection();
@@ -520,14 +519,23 @@ void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>&
                 continue;
             }
             const Ref<OScriptNode> source_node = source_pin->get_owning_node();
-            p_dependencies.insert({ source_node->get_id(), input->get_pin_index() });
-            _collect_data_dependencies(source_node, p_dependencies);
+            const NodeId source_id = source_node->get_id();
+            if (p_context.in_stack.has(source_id)) {
+                errors.push_back({ source_id, vformat("Node %d is part of a data-pin cycle.", source_id) });
+                continue;
+            }
+            if (!p_context.visited.has(source_id)) {
+                p_context.visited.insert(source_id);
+                p_context.in_stack.insert(source_id);
+                p_dependencies.insert({ source_id, input->get_pin_index() });
+                _collect_data_dependencies(source_node, p_dependencies, p_context);
+                p_context.in_stack.erase(source_id);
+            }
         }
     }
 }
 
-void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>& p_node, HashSet<NodeId>& p_dependencies) {
-    // Recursively collect all nodes this node depends on via data pins
+void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>& p_node, HashSet<NodeId>& p_dependencies, DataDependencyContext& p_context) {
     for (const Ref<OScriptNodePin>& input : p_node->find_pins(PD_Input)) {
         if (input.is_valid() && !input->is_execution() && input->has_any_connections()) {
             const Ref<OScriptNodePin> source_pin = input->get_resolved_connection();
@@ -535,8 +543,17 @@ void OScriptFunctionAnalyzer::_collect_data_dependencies(const Ref<OScriptNode>&
                 continue;
             }
             const Ref<OScriptNode> source_node = source_pin->get_owning_node();
-            p_dependencies.insert(source_node->get_id());
-            _collect_data_dependencies(source_node, p_dependencies);
+            const NodeId source_id = source_node->get_id();
+            if (p_context.in_stack.has(source_id)) {
+                errors.push_back({ source_id, vformat("Node %d is part of a data-pin cycle.", source_id) });
+                continue;
+            }
+            if (!p_dependencies.has(source_id)) {
+                p_dependencies.insert(source_id);
+                p_context.in_stack.insert(source_id);
+                _collect_data_dependencies(source_node, p_dependencies, p_context);
+                p_context.in_stack.erase(source_id);
+            }
         }
     }
 }
@@ -618,7 +635,8 @@ void OScriptFunctionAnalyzer::_analyze_combined(Context& p_context) {
         visit_types(current);
 
         // --- _analyze_data_dependencies ---
-        _collect_data_dependencies(current, info.node_data_dependencies[node_id]);
+        DataDependencyContext dep_ctx;
+        _collect_data_dependencies(current, info.node_data_dependencies[node_id], dep_ctx);
         if (info.node_data_dependencies[node_id].size() > 0) {
             info.has_data_dependencies[node_id] = true;
         }
@@ -765,7 +783,8 @@ void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
 
                         info.loop_break_sources[loop_id].insert({ input_node->get_id(), input->get_pin_index() });
                         // Also collect all data dependencies of the break source
-                        _collect_data_dependencies(input_node, info.loop_break_sources[loop_id]);
+                        DataDependencyContext data_context;
+                        _collect_data_dependencies(input_node, info.loop_break_sources[loop_id], data_context);
                     }
                 }
             }
@@ -780,9 +799,6 @@ void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
 }
 
 void OScriptFunctionAnalyzer::_validate(const Context& p_context) {
-    warnings.clear();
-    errors.clear();
-
     const String function_name = p_context.function->get_function_name();
     const OScriptFunctionInfo& info = p_context.info;
 
@@ -810,6 +826,9 @@ void OScriptFunctionAnalyzer::_validate(const Context& p_context) {
 }
 
 OScriptFunctionInfo OScriptFunctionAnalyzer::analyze_function(const Ref<OScriptFunction>& p_function) {
+    warnings.clear();
+    errors.clear();
+
     // Setup analysis context
     Context context;
     context.function = p_function;
