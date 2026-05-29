@@ -189,8 +189,14 @@ private:
     static void _find_merge_point_by_pin(Context& p_context, NodeId p_divergence_node_id);
     static HashSet<NodeId> _get_all_reachable_nodes(Context& p_context, NodeId p_from_node_id);
     static OScriptNodePinSet _get_all_reachable_pins(Context& p_context, const OScriptNodePinId& p_id);
-    void _collect_data_dependencies(const Ref<OScriptNode>& p_node, OScriptNodePinSet& p_dependencies);
-    void _collect_data_dependencies(const Ref<OScriptNode>& p_node, HashSet<NodeId>& p_dependencies);
+
+    struct DataDependencyContext {
+        HashSet<NodeId> visited;
+        HashSet<NodeId> in_stack;
+    };
+
+    void _collect_data_dependencies(const Ref<OScriptNode>& p_node, OScriptNodePinSet& p_dependencies, DataDependencyContext& p_context);
+    void _collect_data_dependencies(const Ref<OScriptNode>& p_node, HashSet<NodeId>& p_dependencies, DataDependencyContext& p_context);
 
     static void _collect_graph_nodes(Context& p_context);
     void _analyze_combined(Context& p_context);
