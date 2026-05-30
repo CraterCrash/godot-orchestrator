@@ -2383,7 +2383,7 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
             return;
         }
 
-        if (early_key->get_keycode() == KEY_C) {
+        if (early_key->get_key_label_with_modifiers() == KEY_C) {
             _spawn_frame();
             accept_event();
             return;
