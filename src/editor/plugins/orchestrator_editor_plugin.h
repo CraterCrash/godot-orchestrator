@@ -66,9 +66,9 @@ class OrchestratorPlugin : public EditorPlugin {
 
     template <typename Base>
     void _unregister_plugin() {
-        for (const Ref<Base>& plugin : PluginTraits<Base>::storage(this)) {
+        for (Ref<Base>& plugin : PluginTraits<Base>::storage(this)) {
             PluginTraits<Base>::remove(this, plugin);
-            plugin->unreference();
+            plugin.unref();
         }
         PluginTraits<Base>::storage(this).clear();
     }
