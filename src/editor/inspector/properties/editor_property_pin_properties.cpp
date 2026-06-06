@@ -50,8 +50,7 @@ void OrchestratorEditorPropertyPinProperties::_rename_property(const String& p_n
 }
 
 void OrchestratorEditorPropertyPinProperties::_remove_property(int p_index) {
-    _properties.remove_at(p_index);
-    _set_properties();
+    emit_signal("remove", p_index);
 }
 
 void OrchestratorEditorPropertyPinProperties::_argument_type_selected(int p_index) {
@@ -322,4 +321,5 @@ void OrchestratorEditorPropertyPinProperties::_notification(int p_what) {
 void OrchestratorEditorPropertyPinProperties::_bind_methods() {
     ADD_SIGNAL(MethodInfo("move_up", PropertyInfo(Variant::INT, "index")));
     ADD_SIGNAL(MethodInfo("move_down", PropertyInfo(Variant::INT, "index")));
+    ADD_SIGNAL(MethodInfo("remove", PropertyInfo(Variant::INT, "index")));
 }
