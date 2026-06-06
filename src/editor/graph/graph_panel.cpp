@@ -336,7 +336,7 @@ void OrchestratorEditorGraphPanel::_update_panel_hint() {
             Ref<StyleBoxFlat> sbf = sb;
             if (sbf.is_valid()) {
                 sbf = sbf->duplicate(true);
-                sbf->set_bg_color(ORCHESTRATOR_GET("ui/graph/tool_script_background_color", Color(1,1,0,.1)));
+                sbf->set_bg_color(ORCHESTRATOR_GET("theme/tool_scripts/background_color", Color(1,1,0,.1)));
                 add_theme_stylebox_override("panel", sbf);
             }
         }
@@ -1536,7 +1536,7 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
     menu->set_suffix("graph_editor");
-    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("ui/actions_menu/close_on_focus_lost", false));
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("editor/actions_menu/close_on_focus_lost", false));
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(true);
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
@@ -1605,7 +1605,7 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position) {
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
     menu->set_suffix("graph_editor");
-    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("ui/actions_menu/close_on_focus_lost", false));
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("editor/actions_menu/close_on_focus_lost", false));
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(true);
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
@@ -1788,16 +1788,16 @@ void OrchestratorEditorGraphPanel::_settings_changed() {
 
     _update_panel_hint();
 
-    set_minimap_enabled(ORCHESTRATOR_GET("ui/graph/show_minimap", false));
-    set_show_arrange_button(ORCHESTRATOR_GET("ui/graph/show_arrange_button", false));
+    set_minimap_enabled(ORCHESTRATOR_GET("editor/graph/show_minimap", false));
+    set_show_arrange_button(ORCHESTRATOR_GET("editor/graph/show_arrange_button", false));
 
-    _show_overlay_action_tooltips = ORCHESTRATOR_GET("ui/graph/show_overlay_action_tooltips", true);
-    _disconnect_control_flow_when_dragged = ORCHESTRATOR_GET("ui/graph/disconnect_control_flow_when_dragged", true);
-    _show_advanced_tooltips= ORCHESTRATOR_GET("ui/graph/show_advanced_tooltips", false);
+    _show_overlay_action_tooltips = ORCHESTRATOR_GET("editor/graph/show_overlay_action_tooltips", true);
+    _disconnect_control_flow_when_dragged = ORCHESTRATOR_GET("editor/graph/disconnect_control_flow_when_dragged", true);
+    _show_advanced_tooltips= ORCHESTRATOR_GET("editor/graph/show_advanced_tooltips", false);
 
     bool node_update_required = false;
-    node_update_required |= ORCHESTRATOR_GET_TRACK(_show_type_icons, "ui/nodes/show_type_icons", true);
-    node_update_required |= ORCHESTRATOR_GET_TRACK(_resizable_by_default, "ui/nodes/resizable_by_default", true);
+    node_update_required |= ORCHESTRATOR_GET_TRACK(_show_type_icons, "editor/graph_nodes/show_type_icons", true);
+    node_update_required |= ORCHESTRATOR_GET_TRACK(_resizable_by_default, "editor/graph_nodes/resizable_by_default", true);
 
     if (_graph.is_valid()) {
         // While we iterate each node, each call checks the current state against the settings values
@@ -1832,7 +1832,7 @@ void OrchestratorEditorGraphPanel::_show_drag_hint(const String& p_hint_text) co
 }
 
 bool OrchestratorEditorGraphPanel::_is_delete_confirmation_enabled() {
-    return ORCHESTRATOR_GET("ui/graph/confirm_on_delete", true);
+    return ORCHESTRATOR_GET("editor/graph/confirm_on_delete", true);
 }
 
 bool OrchestratorEditorGraphPanel::_can_duplicate_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog) {
@@ -1887,7 +1887,7 @@ void OrchestratorEditorGraphPanel::_queue_autowire(OrchestratorEditorGraphNode* 
     }
 
     // At this point no auto-resolution could be made, show the dialog if enabled
-    const bool autowire_dialog_enabled = ORCHESTRATOR_GET("ui/graph/show_autowire_selection_dialog", true);
+    const bool autowire_dialog_enabled = ORCHESTRATOR_GET("editor/graph/show_autowire_selection_dialog", true);
     if (!autowire_dialog_enabled) {
         return;
     }
@@ -2129,7 +2129,7 @@ bool OrchestratorEditorGraphPanel::_is_in_port_hotzone(const Vector2& p_pos, con
     const int32_t port_hotzone_outer_extent = get_theme_constant("port_hotzone_outer_extent");
     const int32_t port_hotzone_inner_extent = get_theme_constant("port_hotzone_inner_extent");
 
-    const String hotzone_percent = ORCHESTRATOR_GET("ui/nodes/connection_hotzone_scale", "100%");
+    const String hotzone_percent = ORCHESTRATOR_GET("editor/graph_nodes/connection_hotzone_scale", "100%");
     const Vector2i port_size = p_port_size * (hotzone_percent.replace("%", "").to_float() / 100.0);
 
     const Rect2 hotzone = Rect2(
@@ -2852,7 +2852,7 @@ void OrchestratorEditorGraphPanel::show_override_function_action_menu(const Call
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
     menu->set_suffix("graph_editor_overrides");
-    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("ui/actions_menu/close_on_focus_lost", false));
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("editor/actions_menu/close_on_focus_lost", false));
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(false);
     if (p_callback.is_valid()) {
@@ -3306,7 +3306,7 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
 
     // New dots-based grid style was introduced in Godot 4.3.
     // Introduces a new drop-down option for selecting the specific grid pattern
-    const String grid_pattern = ORCHESTRATOR_GET("ui/graph/grid_pattern", "Lines");
+    const String grid_pattern = ORCHESTRATOR_GET("editor/graph/grid_pattern", "Lines");
     const int selected = grid_pattern == "Lines" ? 0 : 1;
     _grid_pattern = memnew(OptionButton);
     _grid_pattern->add_item("Lines");
@@ -3324,10 +3324,10 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     get_menu_hbox()->add_child(sep);
     get_menu_hbox()->move_child(sep, 6);
 
-    set_minimap_enabled(ORCHESTRATOR_GET("ui/graph/show_minimap", false));
-    set_show_arrange_button(ORCHESTRATOR_GET("ui/graph/show_arrange_button", false));
-    set_show_grid(ORCHESTRATOR_GET("ui/graph/grid_enabled", true));
-    set_snapping_enabled(ORCHESTRATOR_GET("ui/graph/grid_snapping_enabled", true));
+    set_minimap_enabled(ORCHESTRATOR_GET("editor/graph/show_minimap", false));
+    set_show_arrange_button(ORCHESTRATOR_GET("editor/graph/show_arrange_button", false));
+    set_show_grid(ORCHESTRATOR_GET("editor/graph/grid_enabled", true));
+    set_snapping_enabled(ORCHESTRATOR_GET("editor/graph/grid_snapping_enabled", true));
     set_right_disconnects(true);
     set_show_zoom_label(true);
 

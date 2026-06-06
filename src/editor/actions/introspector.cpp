@@ -335,7 +335,7 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
         const Ref<OScriptNodeEvent> event_node = _get_or_create_node_template<OScriptNodeEvent>(true);
         const Ref<OScriptNodeCallMemberFunction> func_node = _get_or_create_node_template<OScriptNodeCallMemberFunction>();
 
-        const bool prefer_properties_over_methods = ORCHESTRATOR_GET("ui/actions_menu/prefer_properties_over_methods", false);
+        const bool prefer_properties_over_methods = ORCHESTRATOR_GET("editor/actions_menu/prefer_properties_over_methods", false);
 
         for (int i = 0; i < p_methods.size(); i++) {
             MethodInfo method = DictionaryUtils::to_method(p_methods[i]);
