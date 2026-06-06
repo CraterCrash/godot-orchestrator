@@ -30,6 +30,12 @@ void OrchestratorEditorInspectorPluginFunction::_move_down(int p_index, const Re
     _swap(p_index, 2, 1, p_function);
 }
 
+void OrchestratorEditorInspectorPluginFunction::_remove_argument(int p_index, const Ref<OScriptFunction>& p_function) {
+    if (p_function.is_valid()) {
+        p_function->remove_argument(p_index);
+    }
+}
+
 void OrchestratorEditorInspectorPluginFunction::_swap(int p_index, int p_pin_offset, int p_argument_offset, const Ref<OScriptFunction>& p_function) {
     for (const Ref<OScriptGraph>& graph : p_function->get_orchestration()->get_graphs()) {
         for (const Ref<OScriptNode>& node : graph->get_nodes()) {
@@ -88,6 +94,7 @@ bool OrchestratorEditorInspectorPluginFunction::_parse_property(Object* p_object
         inputs->setup(true);
         inputs->connect("move_up", callable_mp_this(_move_up).bind(function));
         inputs->connect("move_down", callable_mp_this(_move_down).bind(function));
+        inputs->connect("remove", callable_mp_this(_remove_argument).bind(function));
         add_property_editor(p_name, inputs, true);
         return true;
     }
