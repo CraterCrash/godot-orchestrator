@@ -862,7 +862,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _favorites->connect(SceneStringName(item_selected), callable_mp_this(_favorite_selected));
     _favorites->connect(SceneStringName(item_activated), callable_mp_this(_favorite_activated));
     _favorites->add_theme_constant_override("draw_guides", 1);
-
+    SceneUtils::set_theme_type_variation(_favorites, "ItemList");
     SceneUtils::add_margin_child(fav_vbox, "Favorites:", _favorites, true);
 
     _recents = memnew(ItemList);
@@ -871,7 +871,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _recents->connect(SceneStringName(item_selected), callable_mp_this(_recent_selected));
     _recents->connect(SceneStringName(item_activated), callable_mp_this(_recent_activated));
     _recents->add_theme_constant_override("draw_guides", 1);
-
+    SceneUtils::set_theme_type_variation(_recents, "ItemList");
     SceneUtils::add_margin_child(recents_vbox, "Recent:", _recents, true);
 
     VBoxContainer* vbox = memnew(VBoxContainer);
@@ -929,7 +929,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _results->connect(SceneStringName(item_activated), callable_mp_this(_confirmed));
     _results->connect("cell_selected", callable_mp_this(_item_selected));
     _results->connect("nothing_selected", callable_mp_this(_nothing_selected));
-
+    SceneUtils::set_theme_type_variation(_results, "Tree");
     SceneUtils::add_margin_child(vbox, "Matches:", _results, true);
 
     _help = memnew(OrchestratorEditorActionHelp);

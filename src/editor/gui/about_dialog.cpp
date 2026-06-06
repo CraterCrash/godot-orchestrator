@@ -18,6 +18,7 @@
 
 #include "authors.gen.h"
 #include "common/macros.h"
+#include "common/scene_utils.h"
 #include "common/version.h"
 #include "core/godot/scene_string_names.h"
 #include "donors.gen.h"
@@ -44,6 +45,7 @@ ScrollContainer* OrchestratorAboutDialog::_populate_list(const String &p_name, c
     ScrollContainer* sc = memnew(ScrollContainer);
     sc->set_name(p_name);
     sc->set_v_size_flags(Control::SIZE_EXPAND);
+    SceneUtils::set_theme_type_variation(sc, "ScrollContainer");
 
     VBoxContainer *vbc = memnew(VBoxContainer);
     vbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);

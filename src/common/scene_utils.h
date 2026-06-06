@@ -129,6 +129,9 @@ namespace SceneUtils {
     // taken from VBoxContainer in the engine
     MarginContainer* add_margin_child(Node* p_parent, const String& p_label, Control* p_control, bool p_expand = false);
 
+    String get_theme_type(const String& p_base_type);
+    void set_theme_type_variation(Control* p_control, const String& p_base_type);
+
     template<typename T>
     T* find_parent_of_type(const Node* p_node) {
         Node* current = const_cast<Node*>(p_node);
