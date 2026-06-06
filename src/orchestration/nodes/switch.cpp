@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/property_utils.h"
+#include "core/godot/object/enum_resolver.h"
 
 void OScriptNodeSwitch::_get_property_list(List<PropertyInfo> *r_list) const {
     r_list->push_back(PropertyInfo(Variant::INT, "cases", PROPERTY_HINT_RANGE, "0,32", PROPERTY_USAGE_STORAGE));
@@ -372,15 +373,16 @@ void OScriptNodeSwitchEnum::post_initialize() {
 
 void OScriptNodeSwitchEnum::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"))->set_label("value_is:");
-    create_pin(PD_Input, PT_Data, PropertyUtils::make_enum_class("value", _enum_name));
 
-    const EnumInfo& ei = ExtensionDB::get_global_enum(_enum_name);
-    for (const EnumValue& ev : ei.values) {
-        if (!ev.friendly_name.is_empty()) {
-            Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("case_" + itos(ev.value) + "_out"));
-            out->set_label(ev.friendly_name, false);
-            out->set_generated_default_value(ev.value);
-        }
+    const PropertyInfo property = PropertyUtils::make_enum_class("value", _enum_name);
+    create_pin(PD_Input, PT_Data, property);
+
+    for (const EnumResolver::EnumItem& item : EnumResolver::resolve(property)) {
+        const PropertyInfo enum_property = PropertyUtils::make_exec("case_" + itos(item.value) + "_out");
+
+        const Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Execution, enum_property);
+        out->set_label(item.friendly_name, false);
+        out->set_generated_default_value(item.value);
     }
 }
 
