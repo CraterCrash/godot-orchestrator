@@ -19,9 +19,10 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
-#include "orchestration/orchestration.h"
+#include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/function_entry.h"
 #include "orchestration/nodes/function_result.h"
+#include "orchestration/orchestration.h"
 
 void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const {
     r_list->push_back(PropertyInfo(Variant::STRING, "guid", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
@@ -367,6 +368,26 @@ void OScriptFunction::set_has_return_value(bool p_has_return_value) {
 void OScriptFunction::set_description(const String& p_description) {
     if (_description != p_description) {
         _description = p_description;
+        emit_changed();
+    }
+}
+
+void OScriptFunction::remove_argument(int p_index) {
+    if (_orchestration && is_user_defined()) {
+        // Unlink connections
+        for (const Ref<OScriptNode>& node : _orchestration->get_nodes()) {
+            const Ref<OScriptNodeCallScriptFunction> call_func = node;
+            if (call_func.is_valid() && call_func->get_function() == this) {
+                const Ref<OScriptNodePin> argument_pin = node->find_pin(p_index + 1, PD_Input);
+                if (argument_pin.is_valid()) {
+                    argument_pin->unlink_all();
+                }
+
+            }
+        }
+
+        _method.arguments.remove_at(p_index);
+
         emit_changed();
     }
 }

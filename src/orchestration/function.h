@@ -199,4 +199,7 @@ public:
     /// @param p_description a description of the function
     void set_description(const String& p_description);
 
+    /// Removes the specified argument from the function signature
+    /// @param p_index argument index
+    void remove_argument(int p_index);
 };
