@@ -2725,13 +2725,13 @@ bool OrchestratorEditorGraphPanel::_is_in_input_hotzone(Object* p_in_node, int32
         return false;
     }
 
-    const Ref<Texture2D> icon = node->get_slot_custom_icon_left(p_in_port);
+    const int slot_index = node->get_input_port_slot(p_in_port);
+    const Ref<Texture2D> icon = node->get_slot_custom_icon_left(slot_index);
     if (!icon.is_valid()) {
         return false;
     }
 
     Vector2i port_size = Vector2i(icon->get_width(), icon->get_height());
-    int slot_index = node->get_input_port_slot(p_in_port);
     Control* child = cast_to<Control>(node->get_child(slot_index, false));
     port_size.height = MAX(port_size.height, child ? child->get_size().y : 0);
 
@@ -2746,13 +2746,13 @@ bool OrchestratorEditorGraphPanel::_is_in_output_hotzone(Object* p_in_node, int3
         return false;
     }
 
-    const Ref<Texture2D> icon = node->get_slot_custom_icon_right(p_in_port);
+    const int slot_index = node->get_output_port_slot(p_in_port);
+    const Ref<Texture2D> icon = node->get_slot_custom_icon_right(slot_index);
     if (!icon.is_valid()) {
         return false;
     }
 
     Vector2i port_size = Vector2i(icon->get_width(), icon->get_height());
-    int slot_index = node->get_output_port_slot(p_in_port);
     Control* child = cast_to<Control>(node->get_child(slot_index, false));
     port_size.height = MAX(port_size.height, child ? child->get_size().y : 0);
 
