@@ -39,34 +39,48 @@ Vector<ScoredAction> OrchestratorEditorActionFilterEngine::filter_actions(
 
     Vector<ScoredAction> result;
     for (const Ref<OrchestratorEditorActionDefinition>& action : p_actions) {
-        const bool use_context = p_context.context_sensitive;
-
-        bool passed = true;
-        if (action->selectable) {
-            for (const Ref<OrchestratorEditorActionFilterRule>& rule : _rules) {
-                if (!use_context && rule->is_context_sensitive()) {
-                    continue;
-                }
-
-                if (!rule->matches(action, p_context)) {
-                    passed = false;
-                    break;
-                }
-            }
-        }
-
-        if (passed) {
-            // add other filters
-            result.push_back({ action, 1.f });
-        }
-    }
-
-    for (int i = 0; i < result.size(); i++) {
-        for (const Ref<OrchestratorEditorActionFilterRule>& rule : _rules) {
-            result.write[i].score += rule->score(result[i].action, p_context);
+        float score = 1.f;
+        if (filter_action(action, p_context, score)) {
+            result.push_back({ action, score });
         }
     }
 
     return result;
+}
+
+bool OrchestratorEditorActionFilterEngine::filter_action(
+    const Ref<OrchestratorEditorActionDefinition>& p_action,
+    const FilterContext& p_context,
+    float& r_score) {
+
+    // Sanity check
+    if (!p_action.is_valid()) {
+        r_score = 0.f;
+        return false;
+    }
+
+    const bool use_context = p_context.context_sensitive;
+
+    // Only selectable actions are filtered out; categories always pass so the tree
+    // structure can be rebuilt around whatever leaves survive.
+    if (p_action->selectable) {
+        for (const Ref<OrchestratorEditorActionFilterRule>& rule : _rules) {
+            if (!use_context && rule->is_context_sensitive()) {
+                continue;
+            }
+
+            if (!rule->matches(p_action, p_context)) {
+                return false;
+            }
+        }
+    }
+
+    float score = 1.f;
+    for (const Ref<OrchestratorEditorActionFilterRule>& rule : _rules) {
+        score += rule->score(p_action, p_context);
+    }
+
+    r_score = score;
+    return true;
 }
 

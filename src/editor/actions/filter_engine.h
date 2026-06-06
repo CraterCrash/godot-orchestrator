@@ -57,4 +57,18 @@ public:
     Vector<ScoredAction> filter_actions(
         const Vector<Ref<OrchestratorEditorActionDefinition>>& p_actions,
         const FilterContext& p_context);
+
+    /// Filters and scores a single action against the supplied context.
+    ///
+    /// This is the incremental building-block used by time-sliced consumers that process the action set
+    /// one entry at a time across multiple frames.
+    ///
+    /// @param p_action the action to evaluate
+    /// @param p_context the filter context
+    /// @param r_score set to the computed score when the action passes
+    /// @return true if the action passes all applicable rules, false otherwise
+    bool filter_action(
+        const Ref<OrchestratorEditorActionDefinition>& p_action,
+        const FilterContext& p_context,
+        float& r_score);
 };
