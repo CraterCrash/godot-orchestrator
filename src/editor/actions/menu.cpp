@@ -31,11 +31,273 @@
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
-#include <godot_cpp/classes/scene_tree.hpp>
-#include <godot_cpp/classes/scene_tree_timer.hpp>
+#include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
 #include <godot_cpp/classes/worker_thread_pool.hpp>
+
+namespace {
+    // Per-frame work budget for the search runner. A 60Hz frame is ~16ms; spending up
+    // to ~8ms here keeps results filling quickly while leaving the UI responsive. The
+    // build updates the tree in place (rather than clearing and rebuilding it), so even
+    // when a search spans several frames the tree is never shown empty -- it refines
+    // progressively instead of flickering.
+    constexpr uint64_t SEARCH_TIME_SLICE_USEC = 8000;
+
+    // Orders stale category items so the deepest are removed first. Combined with
+    // removing leaves before any category, this guarantees each item is childless when
+    // it is detached, so it can be pooled cleanly.
+    struct SweepCategoryDepthDescending {
+        _FORCE_INLINE_ bool operator()(TreeItem* p_a, TreeItem* p_b) const {
+            return String(p_a->get_metadata(0)).count("/") > String(p_b->get_metadata(0)).count("/");
+        }
+    };
+}
+
+void OrchestratorEditorActionMenu::TreeItemCache::clear() {
+    for (const KeyValue<String, TreeItem*>& E : items) {
+        memdelete(E.value);
+    }
+    items.clear();
+}
+
+String OrchestratorEditorActionMenu::Runner::_cache_key(TreeItem* p_item) const {
+    const Variant metadata = p_item->get_metadata(0);
+    if (metadata.get_type() == Variant::OBJECT) {
+        const Ref<OrchestratorEditorActionDefinition> action = metadata;
+        if (action.is_valid()) {
+            return LEAF + action->category + "/" + action->name;
+        }
+    }
+
+    // Category items store their cumulative path as metadata.
+    return CATEGORY + String(metadata);
+}
+
+TreeItem* OrchestratorEditorActionMenu::Runner::_obtain(TreeItem* p_parent, const String& p_parent_path, const String& p_key, bool& r_created) {
+    HashMap<String, TreeItem*>& displayed = _menu->_displayed;
+    HashMap<String, TreeItem*>& pool = _menu->_tree_cache.items;
+
+    r_created = false;
+    TreeItem* item = nullptr;
+
+    if (displayed.has(p_key)) {
+        // Already attached from a previous run: keep it in place.
+        item = displayed[p_key];
+    } else if (pool.has(p_key)) {
+        // Re-attach a pooled item; cheaper than recreating it and reloading its icon.
+        item = pool[p_key];
+        pool.erase(p_key);
+        p_parent->add_child(item);
+        displayed[p_key] = item;
+    } else {
+        // Brand new item.
+        item = _menu->_results->create_item(p_parent);
+        displayed[p_key] = item;
+        r_created = true;
+    }
+
+    // Keep children in source order without disturbing items that are already correctly placed.
+    // In other words, position this item immediately after the previous sibling we placed under the parent.
+    // When narrowing, surviving items are already in order, so these checks short-circuit and nothing moves.
+    // This avoids any tree flickering.
+    TreeItem* prev = _last_child.has(p_parent_path) ? _last_child[p_parent_path] : nullptr;
+    if (!prev) {
+        TreeItem* first = p_parent->get_first_child();
+        if (first != item) {
+            item->move_before(first);
+        }
+    } else if (prev->get_next() != item) {
+        item->move_after(prev);
+    }
+
+    _last_child[p_parent_path] = item;
+    _seen.insert(p_key);
+    return item;
+}
+
+TreeItem* OrchestratorEditorActionMenu::Runner::_ensure_category(const String& p_path) {
+    if (p_path.is_empty()) {
+        return _root;
+    }
+
+    // Apply expected collapse state to each category, so they're initially rendered correctly.
+    // Otherwise, categories would briefly render as expanded (the default) across frames, and
+    // then be collapsed in _finish_search when the search query is empty, producing a flicker.
+    //
+    // Non-empty query: Always expand results
+    // Empty query: Always collapse results
+    const bool collapse = _query.is_empty() ? _menu->_start_collapsed : false;
+
+    const PackedStringArray segments = p_path.split("/");
+    String cumulative;
+    TreeItem* parent = _root;
+
+    for (int i = 0; i < segments.size(); i++) {
+        const String parent_path = cumulative;  // path of the parent (empty == root)
+        if (i > 0) {
+            cumulative += "/";
+        }
+        cumulative += segments[i];
+
+        if (_category_items.has(cumulative)) {
+            parent = _category_items[cumulative];
+            continue;
+        }
+
+        bool created = false;
+        TreeItem* item = _obtain(parent, parent_path, CATEGORY + cumulative, created);
+        if (created) {
+            item->set_text(0, segments[i]);
+            item->set_selectable(0, false);
+            item->set_metadata(0, cumulative);
+
+            if (_menu->_category_definitions.has(cumulative)) {
+                const Ref<OrchestratorEditorActionDefinition>& definition = _menu->_category_definitions[cumulative];
+                if (!definition->icon.is_empty()) {
+                    item->set_icon(0, _menu->_get_cached_icon(definition->icon));
+                }
+            }
+        }
+
+        // Reused items carry a stale collapse state, so set it unconditionally.
+        item->set_collapsed(collapse);
+
+        _category_items[cumulative] = item;
+        parent = item;
+    }
+
+    return parent;
+}
+
+void OrchestratorEditorActionMenu::Runner::_add_leaf(const Ref<OrchestratorEditorActionDefinition>& p_leaf, float p_score) {
+    TreeItem* parent = _ensure_category(p_leaf->category);
+
+    bool created = false;
+    TreeItem* item = _obtain(parent, p_leaf->category, LEAF + p_leaf->category + "/" + p_leaf->name, created);
+    if (created) {
+        item->set_text(0, p_leaf->no_capitalize ? p_leaf->name : p_leaf->name.capitalize());
+        item->set_selectable(0, p_leaf->selectable);
+
+        if (!p_leaf->icon.is_empty()) {
+            item->set_icon(0, _menu->_get_cached_icon(p_leaf->icon));
+        }
+
+        item->set_metadata(0, p_leaf);
+
+        if (p_leaf->flags & OrchestratorEditorActionDefinition::FLAG_EXPERIMENTAL) {
+            item->add_button(0, SceneUtils::get_editor_icon("NodeWarning"));
+            item->set_button_tooltip_text(0, 0, "This is marked as experimental.");
+        }
+    }
+
+    const float score = _query.is_empty() ? 0.f : p_score;
+    if (score > _best_score) {
+        _best_score = score;
+        _best_match = item;
+    }
+}
+
+void OrchestratorEditorActionMenu::Runner::_collect_sweep() {
+    // Anything still displayed but not touched this run no longer matches and must be removed.
+    // Detaches leaves first, then categories deepest-first, so every removed item is childless when detached.
+    // This allows returning items to the pool cleanly.
+    //
+    // Items are NOT erased from _displayed here. The actual detach/erase/pool happens together, per item, in P2.
+    // Otherwise, a sweep interrupted by a keystroke would leave items erased from _displayed yet still attached.
+    // These become invisible to every future runner, so they are never reused ore removed.
+    Vector<TreeItem*> categories;
+
+    for (const KeyValue<String, TreeItem*>& E : _menu->_displayed) {
+        if (_seen.has(E.key)) {
+            continue;
+        }
+
+        if (E.key.begins_with(LEAF)) {
+            _sweep.push_back(E.value);
+        } else {
+            categories.push_back(E.value);
+        }
+    }
+
+    categories.sort_custom<SweepCategoryDepthDescending>();
+    for (TreeItem* category : categories) {
+        _sweep.push_back(category);
+    }
+}
+
+bool OrchestratorEditorActionMenu::Runner::work(uint64_t p_time_slice_usec) {
+    if (_done) {
+        return true;
+    }
+
+    if (!_initialized) {
+        // Reuse the existing root and update its contents in place; the tree is never
+        // cleared, so it is never shown empty mid-build.
+        TreeItem* root = _menu->_results->get_root();
+        _root = root ? root : _menu->_results->create_item();
+        _root->set_selectable(0, false);
+        _initialized = true;
+    }
+
+    const uint64_t until = Time::get_singleton()->get_ticks_usec() + p_time_slice_usec;
+
+    // Phase 1: filter the source, adding or keeping (in place) every matching item.
+    while (!_build_done && _cursor < _source.size()) {
+        const Ref<OrchestratorEditorActionDefinition>& action = _source[_cursor++];
+
+        float score = 1.f;
+        if (_menu->_filter_engine->filter_action(action, _context, score)) {
+            // Track every match so a subsequent narrowed query can re-scan just these.
+            _filtered.push_back(action);
+
+            if (action->selectable) {
+                _add_leaf(action, score);
+            }
+        }
+
+        if (Time::get_singleton()->get_ticks_usec() > until) {
+            return false;
+        }
+    }
+
+    if (!_build_done) {
+        _build_done = true;
+        _collect_sweep();
+    }
+
+    // Phase 2: remove items that no longer match, pooling them for later reuse. Erase,
+    // detach and pool together so the state stays consistent if a keystroke interrupts.
+    while (_sweep_cursor < _sweep.size()) {
+        TreeItem* item = _sweep[_sweep_cursor++];
+        const String key = _cache_key(item);
+
+        if (TreeItem* parent = item->get_parent()) {
+            parent->remove_child(item);
+        }
+        _menu->_displayed.erase(key);
+        _menu->_tree_cache.items.insert(key, item);
+
+        if (Time::get_singleton()->get_ticks_usec() > until) {
+            return false;
+        }
+    }
+
+    _done = true;
+    return true;
+}
+
+OrchestratorEditorActionMenu::Runner::Runner(
+        OrchestratorEditorActionMenu* p_menu,
+        const Vector<Ref<OrchestratorEditorActionDefinition>>& p_source,
+        const String& p_query)
+    : _menu(p_menu)
+    , _source(p_source)
+    , _query(p_query) {
+    _context.context_sensitive = true;
+    _context.query = _query;
+    _context._filter_action_type = -1;
+}
 
 bool OrchestratorEditorActionMenu::_is_favorite(const Variant& p_value, int& r_index) {
     const Ref<OrchestratorEditorActionDefinition> action = p_value;
@@ -114,6 +376,7 @@ void OrchestratorEditorActionMenu::_item_selected() {
         _select_item(item, false);
     }
 }
+
 void OrchestratorEditorActionMenu::_nothing_selected() {
     get_ok_button()->set_disabled(true);
 }
@@ -178,12 +441,27 @@ void OrchestratorEditorActionMenu::_visibility_changed() {
     if (!is_visible()) {
         PROJECT_SET("Orchestrator", "action_menu_bounds", Rect2(get_position(), get_size()));
 
+        // Stop and discard any in-flight search before tearing down the tree.
+        set_process(false);
+        if (_runner) {
+            memdelete(_runner);
+            _runner = nullptr;
+        }
+
         // Reset dialog state
         _favorites->clear();
         _recents->clear();
         _search_box->clear();
         _results->clear();
         _favorite_button->set_pressed(false);
+
+        // _results->clear() freed every attached item, so the displayed map now holds
+        // dangling pointers; drop them (no free needed here).
+        _displayed.clear();
+
+        // Free items still pooled in the cache
+        // These are detached from the tree, so _results->clear() called above does not reclaim them.
+        _tree_cache.clear();
     } else {
         _load_user_data();
 
@@ -269,34 +547,6 @@ void OrchestratorEditorActionMenu::_recent_activated(int p_index) {
     _confirmed();
 }
 
-struct ActionSortByCategoryAndName {
-    _FORCE_INLINE_ bool operator()(const Ref<OrchestratorEditorActionDefinition>& a, const Ref<OrchestratorEditorActionDefinition>& b) const {
-        const String a_name = a->category.is_empty() ? a->name : (a->category + "/" + a->name);
-        const String b_name = b->category.is_empty() ? b->name : (b->category + "/" + b->name);
-
-        const int a_priority = _get_priority(a_name);
-        const int b_priority = _get_priority(b_name);
-        if (a_priority != b_priority) {
-            return a_priority < b_priority;
-        }
-
-        return a_name.naturalnocasecmp_to(b_name) < 0;
-    }
-
-private:
-    _FORCE_INLINE_ static int _get_priority(const String& p_name) {
-        if (p_name == "Project/") {
-            return 0;
-        }
-        else if (p_name == "@OScript/") {
-            return 1;
-        }
-        else {
-            return 100;
-        }
-    }
-};
-
 TreeItem* OrchestratorEditorActionMenu::_find_first_selectable(TreeItem* p_item) {
     if (!p_item) {
         return nullptr;
@@ -318,24 +568,6 @@ TreeItem* OrchestratorEditorActionMenu::_find_first_selectable(TreeItem* p_item)
     return nullptr;
 }
 
-void OrchestratorEditorActionMenu::_prune_empty_categories(TreeItem* p_item) {
-    if (!p_item || p_item->is_selectable(0) || p_item->get_first_child()) {
-        return;
-    }
-
-    TreeItem* parent = p_item->get_parent();
-    if (parent) {
-        parent->remove_child(p_item);
-    } else if (p_item == p_item->get_tree()->get_root()->get_first_child()) {
-        p_item->get_tree()->get_root()->remove_child(p_item);
-    }
-
-    memdelete(p_item);
-
-    // Recurse up
-    _prune_empty_categories(parent);
-}
-
 void OrchestratorEditorActionMenu::_update_search() {
     // When the dialog first opens, the action list is sorted in a background thread.
     // If this method is called for any reason before sorting concludes, we skip it.
@@ -347,115 +579,32 @@ void OrchestratorEditorActionMenu::_update_search() {
 
     const String query = _search_box->get_text();
 
-    FilterContext context;
-    context.context_sensitive = true;
-    context.query = query;
-    context._filter_action_type = -1;
-
+    // Narrowing optimization: when the new query simply extends the previous (completed)
+    // query, every result for the new query is necessarily a subset of the previous
+    // results, so we only need to re-scan those rather than the full action set.
     const Vector<Ref<OrchestratorEditorActionDefinition>>& source =
         (!_last_query.is_empty() && query.begins_with(_last_query))
         ? _last_filtered_actions
         : _sorted_actions;
 
-    Vector<ScoredAction> filtered_actions = _filter_engine->filter_actions(source, context);
-
-    _last_query = query;
-    _last_filtered_actions.clear();
-    for (const ScoredAction& sa : filtered_actions) {
-        _last_filtered_actions.push_back(sa.action);
+    // Replace any in-flight runner; this silently discards its remaining work. The
+    // partially built tree it left behind is reclaimed into the cache by the new runner.
+    if (_runner) {
+        memdelete(_runner);
     }
+    _runner = memnew(Runner(this, source, query));
 
-    _results->clear();
-    TreeItem* root = _results->create_item();
-    root->set_selectable(0, false);
+    // Drive the runner from NOTIFICATION_PROCESS so no single frame blocks the UI.
+    set_process(true);
+}
 
-    // Hide the tree while we populate.
-    // When adding lots of items with TreeItem::set_icon, there are lots of redraws
-    // that get triggered, adding up to several seconds of latency.
-    _results->hide();
+void OrchestratorEditorActionMenu::_finish_search() {
+    // Commit the completed snapshot so the next keystroke can narrow against it.
+    _last_query = _runner->get_query();
+    _last_filtered_actions = _runner->get_filtered();
 
-    HashMap<String, TreeItem*> category_items;
-    Vector<ScoredAction> leaf_items;
-
-    // Pass 1: Collect leaf nodes, category structure is pre-built in _category_definitions
-    for (const ScoredAction& scored_action : filtered_actions) {
-        if (scored_action.action->selectable) {
-            leaf_items.push_back(scored_action);
-        }
-    }
-
-    // Pass 2: Create all category tree items using pre-built sorted keys
-    const String separator = "/";
-    for (const String& path : _sorted_category_keys) {
-        const Ref<OrchestratorEditorActionDefinition>& category = _category_definitions[path];
-        const PackedStringArray segments = path.split(separator);
-
-        String cumulative_path;
-        TreeItem* parent = root;
-
-        for (int i = 0; i < segments.size(); i++) {
-            if (i > 0) {
-                cumulative_path += separator;
-            }
-            cumulative_path += segments[i];
-
-            if (!category_items.has(cumulative_path)) {
-                TreeItem* item = _results->create_item(parent);
-                item->set_text(0, segments[i]);
-                item->set_selectable(0, false);
-
-                if (i == segments.size() - 1 && !category->icon.is_empty()) {
-                    item->set_icon(0, _get_cached_icon(category->icon));
-                }
-
-                category_items[cumulative_path] = item;
-            }
-
-            parent = category_items[cumulative_path];
-        }
-    }
-
-    // Pass 3: Add selectable action items and track best match
-    TreeItem* best_match = nullptr;
-    float best_score = -1;
-    for (const ScoredAction& scored_action : leaf_items) {
-        const Ref<OrchestratorEditorActionDefinition>& leaf = scored_action.action;
-        const String& path = leaf->category;
-
-        TreeItem* parent = category_items.has(path) ? category_items[path] : root;
-
-        TreeItem* item = _results->create_item(parent);
-        item->set_text(0, leaf->no_capitalize ? leaf->name : leaf->name.capitalize());
-        item->set_selectable(0, leaf->selectable);
-
-        if (!leaf->icon.is_empty()) {
-            item->set_icon(0, _get_cached_icon(leaf->icon));
-        }
-
-        item->set_metadata(0, leaf);
-
-        if (leaf->flags & OrchestratorEditorActionDefinition::FLAG_EXPERIMENTAL) {
-            item->add_button(0, SceneUtils::get_editor_icon("NodeWarning"));
-            item->set_button_tooltip_text(0, 0, "This is marked as experimental.");
-        }
-
-        float score = query.is_empty() ? 0.f : scored_action.score;
-        if (score > best_score) {
-            best_score = score;
-            best_match = item;
-        }
-    }
-
-    // Pass 4: Prune all unused categories
-    for (const KeyValue<String, TreeItem*>& E : category_items) {
-        TreeItem* item = E.value;
-        if (!item->is_selectable(0) && item->get_first_child() == nullptr) {
-            _prune_empty_categories(item);
-        }
-    }
-
-    // The results are hidden during population
-    _results->show();
+    const String query = _last_query;
+    TreeItem* best_match = _runner->get_best_match();
 
     if (!query.is_empty() && best_match) {
         _results->set_selected(best_match, 0);
@@ -467,7 +616,7 @@ void OrchestratorEditorActionMenu::_update_search() {
             _results->set_selected(first_selectable, 0);
         }
         if (_results->get_root()) {
-            _results->scroll_to_item(root);
+            _results->scroll_to_item(_results->get_root());
         }
 
         _toggle_collapsed(_start_collapsed);
@@ -669,6 +818,20 @@ void OrchestratorEditorActionMenu::popup(const Vector2& p_position,
     EI->popup_dialog(this, _last_size);
 }
 
+void OrchestratorEditorActionMenu::_notification(int p_what) {
+    if (p_what == NOTIFICATION_PROCESS) {
+        if (!_runner) {
+            set_process(false);
+            return;
+        }
+
+        if (_runner->work(SEARCH_TIME_SLICE_USEC)) {
+            _finish_search();
+            set_process(false);
+        }
+    }
+}
+
 void OrchestratorEditorActionMenu::_bind_methods() {
     ADD_SIGNAL(MethodInfo("action_selected", PropertyInfo(Variant::OBJECT, "action")));
 }
@@ -787,4 +950,15 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     if (_last_size == Rect2()) {
         _last_size = PROJECT_GET("dialog_bounds", "create_new_node", Rect2());
     }
+}
+
+OrchestratorEditorActionMenu::~OrchestratorEditorActionMenu() {
+    if (_runner) {
+        memdelete(_runner);
+        _runner = nullptr;
+    }
+
+    // Any items still pooled in the cache are detached from the tree and must be freed
+    // explicitly; the tree only owns the items currently attached to it.
+    _tree_cache.clear();
 }
