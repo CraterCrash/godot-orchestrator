@@ -84,6 +84,8 @@ namespace VariantUtils {
                 return "Packed Vector2 Array";
             case Variant::PACKED_VECTOR3_ARRAY:
                 return "Packed Vector3 Array";
+            case Variant::PACKED_VECTOR4_ARRAY:
+                return "Packed Vector4 Array";
             case Variant::PACKED_COLOR_ARRAY:
                 return "Packed Color Array";
             default: {

@@ -439,7 +439,7 @@ struct OScriptUtilityFunctionsDefinitions
         DEBUG_VALIDATE_ARG_TYPE(1, Variant::STRING);
         DEBUG_VALIDATE_ARG_TYPE(2, Variant::DICTIONARY);
 
-        static String default_scene = ORCHESTRATOR_GET("settings/dialogue/default_message_scene", "");
+        static String default_scene = ORCHESTRATOR_GET("runtime/dialogue/default_message_scene", "");
 
         String scene_path = *p_args[1];
         if (scene_path.is_empty()) {

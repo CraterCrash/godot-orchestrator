@@ -89,10 +89,10 @@ void OrchestratorEditorGraphFrame::_update_theme() {
 
     _theme_updating = true;
 
-    const int corner_radius = ORCHESTRATOR_GET("ui/nodes/border_radius", 4);
-    const int border_width = ORCHESTRATOR_GET("ui/nodes/border_width", 2);
-    const Color border_color = ORCHESTRATOR_GET("ui/nodes/border_color", Color(0, 0, 0));
-    const Color select_border_color = ORCHESTRATOR_GET("ui/nodes/border_selected_color", Color(0.68f, 0.44f, 0.09f));
+    const int corner_radius = ORCHESTRATOR_GET("theme/nodes/border_radius", 4);
+    const int border_width = ORCHESTRATOR_GET("theme/nodes/border_width", 2);
+    const Color border_color = ORCHESTRATOR_GET("theme/nodes/border_color", Color(0, 0, 0));
+    const Color select_border_color = ORCHESTRATOR_GET("theme/nodes/selected_border_color", Color(0.68f, 0.44f, 0.09f));
 
     // Duplicate the default GraphFrame StyleBoxes so that we can mutate expand_margin without
     // affecting the shared editor theme resources.

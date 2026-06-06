@@ -36,6 +36,7 @@
 #include "editor/gui/window_wrapper.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/connections_dock.h"
+#include "editor/theme/theme_manager.h"
 #include "editor/updater/updater.h"
 #include "script/language.h"
 #include "script/script.h"
@@ -1543,10 +1544,6 @@ void OrchestratorEditor::_update_input_actions_cache() {
     }
 }
 
-Ref<OrchestratorEditorGraphNodeThemeCache> OrchestratorEditor::get_theme_cache() const {
-    return _theme_cache;
-}
-
 bool OrchestratorEditor::toggle_scripts_panel() {
     _scripts_vbox->set_visible(!_scripts_vbox->is_visible());
     PROJECT_SET("Orchestrator", "file_list_visibility", _scripts_vbox->is_visible());
@@ -2353,14 +2350,13 @@ void OrchestratorEditor::_notification(int p_what) {
             break;
         }
         case NOTIFICATION_ENTER_TREE: {
-            _theme_cache.instantiate();
-
             _apply_editor_settings();
             [[fallthrough]];
         }
         case NOTIFICATION_TRANSLATION_CHANGED:
         case NOTIFICATION_LAYOUT_DIRECTION_CHANGED:
         case NOTIFICATION_THEME_CHANGED: {
+            _theme_manager->theme_changed();
             _tab_container->add_theme_stylebox_override(SceneStringName(panel), get_theme_stylebox("ScriptEditor", "EditorStyles"));
 
             _calculate_script_name_button_size();
@@ -2424,6 +2420,11 @@ void OrchestratorEditor::_bind_methods() {
 OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapper) {
     _window_wrapper = p_window_wrapper;
     _editor = this;
+
+    _theme_manager = memnew(OrchestratorEditorThemeManager);
+    _theme_manager->connect("theme_rebuilt", callable_mp_lambda(this, [this] {
+        set_theme(_theme_manager->get_theme());
+    }));
 
     add_child(memnew(OrchestratorEditorActionRegistry));
     add_child(memnew(OrchestratorEditorConnectionsDock));
@@ -2680,4 +2681,8 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
 
     _log_router = memnew(OrchestratorEditorLogEventRouter);
     add_child(_log_router);
+}
+
+OrchestratorEditor::~OrchestratorEditor() {
+    memdelete(_theme_manager);
 }

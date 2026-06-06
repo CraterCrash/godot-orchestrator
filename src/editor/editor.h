@@ -16,8 +16,6 @@
 //
 #pragma once
 
-#include "editor/graph/graph_node_theme_cache.h"
-
 #include <godot_cpp/classes/config_file.hpp>
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
@@ -42,6 +40,7 @@ using namespace godot;
 
 /// Forward declarations
 class OrchestratorEditorLogEventRouter;
+class OrchestratorEditorThemeManager;
 class OrchestratorGettingStarted;
 class OrchestratorEditorCache;
 class OrchestratorEditorView;
@@ -115,12 +114,12 @@ private:
     static OrchestratorEditor* _editor;
 
     OrchestratorEditorLogEventRouter* _log_router = nullptr;
+    OrchestratorEditorThemeManager* _theme_manager = nullptr;
     OrchestratorWindowWrapper* _window_wrapper = nullptr;
     OrchestratorGettingStarted* _getting_started = nullptr;
     OrchestratorFileDialog* _file_dialog = nullptr;
     OrchestratorUpdaterButton* _updater = nullptr;
     Ref<ConfigFile> _editor_cache;
-    Ref<OrchestratorEditorGraphNodeThemeCache> _theme_cache;
 
     HBoxContainer* _script_name_button_hbox = nullptr;
     Control* _script_name_button_left_spacer = nullptr;
@@ -279,8 +278,6 @@ protected:
 public:
     static OrchestratorEditor* get_singleton() { return _editor; }
 
-    Ref<OrchestratorEditorGraphNodeThemeCache> get_theme_cache() const;
-
     bool toggle_scripts_panel();
     bool is_scripts_panel_toggled();
     void toggle_components_panel();
@@ -356,5 +353,5 @@ public:
     void set_extra_layout_value(const String& p_key, const Variant& p_value);
 
     explicit OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapper);
-    ~OrchestratorEditor() override = default;
+    ~OrchestratorEditor() override;
 };

@@ -16,33 +16,42 @@
 //
 #pragma once
 
-#include <godot_cpp/classes/ref_counted.hpp>
-#include <godot_cpp/classes/style_box.hpp>
-#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/classes/theme.hpp>
 
 using namespace godot;
 
-/// A cache that maintains common graph node theme state for all node types.
-/// This allows for storing a set of lookups from ThemeDB by object, and reused by <code>GraphNode</code> instances.
-class OrchestratorEditorGraphNodeThemeCache : public RefCounted {
-    GDCLASS(OrchestratorEditorGraphNodeThemeCache, RefCounted);
+/// Class that is responsible for building the Orchestrator plugin's theme.
+class OrchestratorEditorThemeBuilder : public Object {
+    GDCLASS(OrchestratorEditorThemeBuilder, Object);
 
-    using StyleBoxMap = HashMap<StringName, Ref<StyleBox>>;
-    HashMap<StringName, StyleBoxMap> _cache;
+    struct ThemeParams {
+        String theme;
+        float border_radius;
+        float border_width;
+        Color border_color;
+        Color selected_border_color;
+        Color background_color;
+    };
+
+    Ref<Theme> _theme;
+    bool _rebuilding = false;
+
+    ThemeParams _read_theme_params() const;
+
+    void _build_graph_styles(const Ref<Theme>& p_theme, const ThemeParams& p_params);
+
+    void _rebuild_theme();
 
 protected:
     static void _bind_methods();
 
-    //~ Begin Signal Handlers
-    void _settings_changed();
-    //~ End Signal Handlers
-
-public:
     //~ Begin Wrapped Interface
     void _notification(int p_what);
     //~ End Wrapped Interface
 
-    void add_theme_stylebox(const StringName& p_name, const String& p_type_name, const Ref<StyleBox>& p_stylebox);
-    Ref<StyleBox> get_theme_stylebox(const StringName& p_name, const String& p_type_name);
+public:
+    Ref<Theme> get_theme() const { return _theme; }
 
+    void queue_rebuild();
 };
