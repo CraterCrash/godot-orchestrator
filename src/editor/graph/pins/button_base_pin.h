@@ -39,6 +39,10 @@ class OrchestratorEditorGraphPinButtonBase : public OrchestratorEditorGraphPin {
 protected:
     static void _bind_methods() { }
 
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
+
     //~ Begin OrchestratorEditorGraphPin Interface
     void _update_control_value(const Variant& p_value) override;
     Variant _read_control_value() override;

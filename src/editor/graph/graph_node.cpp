@@ -83,6 +83,10 @@ Ref<Texture2D> OrchestratorEditorGraphNode::_get_titlebar_icon() {
 }
 
 void OrchestratorEditorGraphNode::_update_titlebar() {
+    if (!_node.is_valid()) {
+        return;
+    }
+
     HBoxContainer* hbox = get_titlebar_hbox();
 
     Ref<Texture2D> icon = _get_titlebar_icon();
@@ -98,12 +102,20 @@ void OrchestratorEditorGraphNode::_update_titlebar() {
         hbox->move_child(icon_rect, 0);
     }
 
+    const Color title_color = get_theme_color("title_color", vformat("OEGraphNode_%s", _node->get_node_title_color_name()));
+
     if (icon_rect) {
         if (icon.is_valid()) {
             icon_rect->set_texture(icon);
+            icon_rect->set_modulate(title_color);
         } else {
             icon_rect->queue_free();
         }
+    }
+
+    Label* label = cast_to<Label>(hbox->find_child("*Label*", false, false));
+    if (label) {
+        label->add_theme_color_override("font_color", title_color);
     }
 
     set_title(_node->get_node_title());
@@ -288,16 +300,7 @@ void OrchestratorEditorGraphNode::_add_indicator(const String& p_icon_name, cons
 }
 
 void OrchestratorEditorGraphNode::_update_styles() {
-    const Ref<OrchestratorEditorGraphNodeThemeCache> cache = OrchestratorEditor::get_singleton()->get_theme_cache();
-    ERR_FAIL_COND_MSG(!cache.is_valid(), "Cannot apply graph themes, theme cache is invalid");;
 
-    const String type_name = vformat("GraphNode_%s", _node->get_node_title_color_name());
-    begin_bulk_theme_override();
-    add_theme_stylebox_override(SceneStringName(panel), cache->get_theme_stylebox(SceneStringName(panel), "GraphNode"));
-    add_theme_stylebox_override("panel_selected", cache->get_theme_stylebox("panel_selected", "GraphNode"));
-    add_theme_stylebox_override("titlebar", cache->get_theme_stylebox("titlebar", type_name));
-    add_theme_stylebox_override("titlebar_selected", cache->get_theme_stylebox("titlebar_selected", type_name));
-    end_bulk_theme_override();
 }
 
 String OrchestratorEditorGraphNode::_get_tooltip_text() {
@@ -324,7 +327,7 @@ String OrchestratorEditorGraphNode::_get_tooltip_text() {
     tooltip_text += "\nClass: " + class_name;
     tooltip_text += "\nFlags: " + itos(_node->get_flags());
 
-    const bool advanced_tooltips = ORCHESTRATOR_GET("ui/graph/show_advanced_tooltips", false);
+    const bool advanced_tooltips = ORCHESTRATOR_GET("editor/graph/show_advanced_tooltips", false);
     if (advanced_tooltips) {
         tooltip_text += "\n";
         tooltip_text += "\nUI Instance: " + itos(get_instance_id());
@@ -375,8 +378,9 @@ void OrchestratorEditorGraphNode::set_node(const Ref<OrchestrationGraphNode>& p_
     ERR_FAIL_COND_MSG(!p_node.is_valid(), "Trying to create an OrchestratorEditorGraphNode with an invalid model");
 
     _node = p_node;
-    _node->connect(CoreStringName(changed), callable_mp_this(update));
+    set_theme_type_variation(vformat("OEGraphNode_%s", _node->get_node_title_color_name()));
 
+    _node->connect(CoreStringName(changed), callable_mp_this(update));
     // Serves to handle toggling pin default value visibility when pins are connected/disconnected
     _node->connect("pin_connected", callable_mp_this(_pin_connection_status_changed).bind(true));
     _node->connect("pin_disconnected", callable_mp_this(_pin_connection_status_changed).bind(false));
@@ -647,7 +651,7 @@ void OrchestratorEditorGraphNode::update() {
         return;
     }
 
-    if (ORCHESTRATOR_GET("ui/nodes/resize_to_content", false)) {
+    if (ORCHESTRATOR_GET("editor/graph_nodes/resize_to_content", false)) {
         _resize_to_content();
     }
 
@@ -681,6 +685,7 @@ void OrchestratorEditorGraphNode::redraw_connections() {
             if (get_slot_color_left(slot.slot) != slot_info.color) {
                 set_slot_color_left(slot.slot, slot_info.color);
             }
+            set_slot_custom_icon_left(slot.slot, slot_info.enabled ? SceneUtils::get_editor_icon(slot_info.icon) : Ref<Texture2D>());
         }
 
         if (slot.right) {
@@ -691,6 +696,7 @@ void OrchestratorEditorGraphNode::redraw_connections() {
             if (get_slot_color_right(slot.slot) != slot_info.color) {
                 set_slot_color_right(slot.slot, slot_info.color);
             }
+            set_slot_custom_icon_right(slot.slot, slot_info.enabled ? SceneUtils::get_editor_icon(slot_info.icon) : Ref<Texture2D>());
         }
     }
 }
@@ -710,6 +716,19 @@ void OrchestratorEditorGraphNode::notify_breakpoints_changed() {
 }
 
 void OrchestratorEditorGraphNode::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_THEME_CHANGED: {
+            if (_node.is_valid()) {
+                _update_titlebar();
+                // Indicator icons are fetched from the editor theme; rebuild them so they
+                // re-fetch against the new theme instead of keeping stale textures.
+                SAFE_REMOVE_CHILDREN(_indicators_hbox);
+                _create_indicators();
+            }
+            redraw_connections();
+            break;
+        }
+    }
 }
 
 void OrchestratorEditorGraphNode::_bind_methods() {

@@ -167,7 +167,7 @@ OScriptNodePrintStringOverlay::OScriptNodePrintStringOverlay() {
     VBoxContainer* container = memnew(VBoxContainer);
     add_child(container);
 
-    const String scale_percent = ORCHESTRATOR_GET("settings/runtime/print_string_scale", "100%");
+    const String scale_percent = ORCHESTRATOR_GET("runtime/print_string/overlay_scale", "100%");
     const float scale = static_cast<float>(scale_percent.replace("%", "").to_float() / 100.0f);
     set_scale(Vector2(scale, scale));
 }

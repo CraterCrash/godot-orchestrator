@@ -56,11 +56,15 @@
 #include "editor/scene_node_selector.h"
 #include "editor/script_components_container.h"
 #include "editor/script_editor_view.h"
+#include "editor/theme/theme_builder.h"
+#include "editor/theme/theme_manager.h"
 #include "editor/updater/updater.h"
 
 void register_editor_types() {
     // Plugin bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorPlugin)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorThemeManager)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorThemeBuilder)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorDebuggerPlugin)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorExportPlugin)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginFunction)
@@ -68,7 +72,6 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginTypeCast)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginOrchestration)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphNodeThemeCache)
 
     // Editor bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorLogEventRouter)

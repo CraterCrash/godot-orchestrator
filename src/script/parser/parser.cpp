@@ -3839,7 +3839,7 @@ Variant::Type OScriptParser::get_builtin_type(const StringName &p_type) {
 }
 
 OScriptParser::OScriptParser() {
-    use_node_convergence = ORCHESTRATOR_GET("settings/runtime/use_node_convergence", true);
+    use_node_convergence = ORCHESTRATOR_GET("debug/settings/use_node_convergence", true);
 
     bind_handlers();
 

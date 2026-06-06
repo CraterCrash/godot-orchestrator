@@ -1232,8 +1232,8 @@ void OrchestratorScriptComponentsContainer::_scene_changed(Node* p_node) {
 }
 
 void OrchestratorScriptComponentsContainer::_project_settings_changed() {
-    bool use_friendly_graph_names = ORCHESTRATOR_GET("ui/components_panel/show_graph_friendly_names", true);
-    bool use_friendly_function_names = ORCHESTRATOR_GET("ui/components_panel/show_function_friendly_names", true);
+    bool use_friendly_graph_names = ORCHESTRATOR_GET("editor/components_panel/show_graph_friendly_names", true);
+    bool use_friendly_function_names = ORCHESTRATOR_GET("editor/components_panel/show_function_friendly_names", true);
 
     bool components_require_update =
         (use_friendly_function_names != _use_function_friendly_names)

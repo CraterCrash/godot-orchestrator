@@ -16,8 +16,6 @@
 //
 #pragma once
 
-#include <vector>
-
 #include <godot_cpp/classes/project_settings.hpp>
 
 using namespace godot;
@@ -25,9 +23,6 @@ using namespace godot;
 class OrchestratorSettings : public Object {
     GDCLASS(OrchestratorSettings, Object);
 
-    static void _bind_methods() {}
-
-public:
     struct Setting {
         PropertyInfo info;
         Variant value;
@@ -35,27 +30,30 @@ public:
         explicit Setting(const PropertyInfo& p_info, const Variant& p_value) : info(p_info), value(p_value) {}
     };
 
-private:
     static OrchestratorSettings* _singleton;
-    std::vector<Setting> _removed;
-    std::vector<Setting> _settings;
+    PackedStringArray _registered_names;
     int _builtin_order = 1000;
+
+    String _current_theme;
+    bool _applying_preset = false;
+
+    void _project_settings_changed();
+
+    void _apply_color_theme_preset(const String& p_theme);
+
+    Variant _define(const String& p_name, const Variant& p_default, bool p_restart_if_changed = false, bool p_ignore_in_docs = false, bool p_basic = false, bool p_internal = false);
+    Variant _define(const PropertyInfo& p_property, const Variant& p_default, bool p_restart_if_changed = false, bool p_ignore_in_docs = false, bool p_basic = false, bool p_internal = false);
+
+    void _rename(const String& p_old_name, const String& p_new_name);
 
     static String _make_key(const String& p_key);
 
-    /// Register deprecated settings
-    void _register_deprecated_settings();
-
-    /// Register current usable settings
-    void _register_settings();
-
-    /// Initializes the default settings
-    /// This is useful when starting the plugin for the first time to seed the project settings
     void _initialize_settings();
+    void _rename_settings();
+    void _remove_deprecated_settings();
 
-    /// Performs any update operations on the settings
-    /// This handles any migration of settings from an older version to the current version.
-    void _update_default_settings();
+protected:
+    static void _bind_methods();
 
 public:
     static OrchestratorSettings* get_singleton() { return _singleton; }
@@ -63,43 +61,18 @@ public:
     static void create();
     static void destroy();
 
-    /// Check whether the specified setting exists
-    /// @param p_key the setting to lookup
-    /// @return true if the setting exists, false otherwise
     bool has_setting(const String& p_key) const;
-
-    /// Get the value of setting
-    /// @param p_key the setting key to find
-    /// @param p_default_value the default value to use if key does not exist
-    /// @return the found value or the specified default
     Variant get_setting(const String& p_key, const Variant& p_default_value = Variant());
-
-    /// Set the value of a setting
-    /// @param p_key the setting key to set
-    /// @param p_value the value to set
     void set_setting(const String& p_key, const Variant& p_value);
 
-    /// Get all currently defined action favorites.
-    /// @return A <code>PackedStringArray</code> of all action category favorites.
     PackedStringArray get_action_favorites();
-
-    /// Add an action category favorite.
-    /// @param p_action_name the action category to be added
     void add_action_favorite(const String& p_action_name);
-
-    /// Removes an action category favorite.
-    /// @param p_action_name the action category to be removed
     void remove_action_favorite(const String& p_action_name);
 
-    /// Return whether to notify about pre-releases
-    /// @return true to notify about pre-releases, false otherwise
     bool is_notify_about_prereleases();
-
-    /// Set whether to notify pre-release builds
-    /// @param p_notify_prerelease_builds true to notify about pre-releases, false for only stable releases
     void set_notify_prerelease_builds(bool p_notify_prerelease_builds);
 
-    const std::vector<Setting>& get_settings() const { return _settings; }
+    const PackedStringArray& get_settings_name_list() const { return _registered_names; }
 
     OrchestratorSettings();
     ~OrchestratorSettings() override;
