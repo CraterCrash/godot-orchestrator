@@ -34,43 +34,49 @@ OrchestratorEditorActionRegistry* OrchestratorEditorActionRegistry::_singleton =
 void OrchestratorEditorActionRegistry::_rebuild_base_actions() {
     _building = true;
 
-    // Performs the building of immutable actions in a background thread
-    // This should prevent the UI from blocking during editor loads
+    // The background thread handles all thread-safe work.
+    // Script-loading (global classes, static script methods) is deferred to the main
+    // thread via _complete_on_main_thread to avoid ResourceLoader deadlocks.
     WorkerThreadPool::get_singleton()->add_task(callable_mp_lambda(this, [&] {
         if (_immutable_actions.is_empty()) {
             _build_actions();
         }
-        _global_script_classes_updated();
         _autoloads_updated();
 
-        OrchestratorEditorActionSet combined;
-        for (const Ref<Action>& action : _immutable_actions) {
-            combined.insert(action);
-        }
-
-        for (const Ref<Action>& action : _global_class_actions) {
-            combined.insert(action);
-        }
-
-        for (const Ref<Action>& action : _autoload_actions) {
-            combined.insert(action);
-        }
-
-        _base_actions = combined;
-        _building = false;
+        callable_mp_this(_complete_on_main_thread).call_deferred();
     }));
+}
+
+void OrchestratorEditorActionRegistry::_complete_on_main_thread() {
+    // Runs on the main thread: safe to load scripts via ResourceLoader.
+    _global_script_classes_updated();
+
+    OrchestratorEditorIntrospector::generate_actions_from_static_script_methods(_immutable_actions);
+
+    OrchestratorEditorActionSet combined;
+    for (const Ref<Action>& action : _immutable_actions) {
+        combined.insert(action);
+    }
+    for (const Ref<Action>& action : _global_class_actions) {
+        combined.insert(action);
+    }
+    for (const Ref<Action>& action : _autoload_actions) {
+        combined.insert(action);
+    }
+
+    _base_actions = combined;
+    _building = false;
 }
 
 void OrchestratorEditorActionRegistry::_build_actions() {
     // Immutable actions are ones that will never be overwritten
     _immutable_actions.clear();
 
-    // These are all the immutable actions
+    // These are all the immutable actions (no ResourceLoader calls = thread-safe)
     OrchestratorEditorIntrospector::generate_actions_from_script_nodes(_immutable_actions);
     OrchestratorEditorIntrospector::generate_actions_from_variant_types(_immutable_actions);
     OrchestratorEditorIntrospector::generate_actions_from_builtin_functions(_immutable_actions);
     OrchestratorEditorIntrospector::generate_actions_from_native_classes(_immutable_actions);
-    OrchestratorEditorIntrospector::generate_actions_from_static_script_methods(_immutable_actions);
 }
 
 void OrchestratorEditorActionRegistry::_global_script_classes_updated() {

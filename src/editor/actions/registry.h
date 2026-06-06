@@ -54,6 +54,7 @@ class OrchestratorEditorActionRegistry : public Node {
     Timer* _project_settings_update_timer = nullptr;
 
     void _rebuild_base_actions();
+    void _complete_on_main_thread();
 
     void _build_actions();
     void _global_script_classes_updated();
