@@ -412,6 +412,25 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
         }
     }
 
+    PackedStringArray class_enums;
+    if (global_class.name.is_empty()) {
+        class_enums = ClassDB::class_get_enum_list(p_class_name, true);
+    } else {
+        class_enums = global_class.get_enum_list();
+    }
+    
+    for (const String& class_enum : class_enums) {
+        r_actions.insert(
+            _script_node_builder<OScriptNodeSwitchEnum>(
+                "Flow Control/Switch On",
+                vformat("Switch on %s.%s", p_class_name, class_enum),
+                DictionaryUtils::of({ { "enum", vformat("%s.%s", p_class_name, class_enum) } }))
+            .executions(true)
+            .tooltip(vformat("Performs a switch/match based on the input value for a '%s.%s' enum.", p_class_name, class_enum))
+            .no_capitalize(true)
+            .build());
+    }
+
     _register_static_methods(p_class_name, p_class_name, static_methods_category, r_actions);
 }
 
