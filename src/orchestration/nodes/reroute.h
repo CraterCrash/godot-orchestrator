@@ -67,7 +67,7 @@ public:
     bool is_reroute() const override { return true; }
     String get_node_title() const override { return ""; }
     String get_tooltip_text() const override;
-    String get_node_title_color_name() const override { return "flow_control"; }
+    String get_node_title_color_name() const override { return "reroute"; }
     bool can_user_delete_node() const override { return true; }
     bool can_inspect_node_properties() const override { return false; }
     //~ End OScriptNode Interface

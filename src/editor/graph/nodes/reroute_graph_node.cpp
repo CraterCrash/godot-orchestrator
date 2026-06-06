@@ -20,13 +20,11 @@
 #include "common/scene_utils.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
-#include "editor/graph/graph_node_theme_cache.h"
 #include "editor/graph/graph_pin.h"
 #include "editor/graph/graph_pin_factory.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
-#include <godot_cpp/classes/style_box_empty.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/tween.hpp>
 
@@ -43,9 +41,6 @@ void OrchestratorEditorGraphNodeReroute::_draw_port(int32_t p_slot_index, const 
 }
 
 void OrchestratorEditorGraphNodeReroute::_update_styles() {
-    const Ref<OrchestratorEditorGraphNodeThemeCache> cache = OrchestratorEditor::get_singleton()->get_theme_cache();
-    ERR_FAIL_COND_MSG(!cache.is_valid(), "Cannot apply reroute styles, theme cache is invalid.");
-
     for (int i = 0; i < get_titlebar_hbox()->get_child_count(); i++) {
         Control* control = cast_to<Control>(get_titlebar_hbox()->get_child(i));
         if (control) {
@@ -53,24 +48,8 @@ void OrchestratorEditorGraphNodeReroute::_update_styles() {
         }
     }
 
-    Ref<StyleBox> panel_style = memnew(StyleBoxEmpty);
-    panel_style->set_content_margin_all(-1);
-
-    Ref<StyleBox> titlebar_style = panel_style->duplicate();
-    titlebar_style->set_content_margin_all(16 * EDSCALE);
-
-    const Size2 size = Size2(32, 32) * EDSCALE;
     set_custom_minimum_size(Size2(0,0));
     set_size(Vector2());
-
-    begin_bulk_theme_override();
-    add_theme_stylebox_override(SceneStringName(panel), panel_style);
-    add_theme_stylebox_override("panel_selected", panel_style);
-    add_theme_stylebox_override("titlebar", titlebar_style);
-    add_theme_stylebox_override("titlebar_selected", titlebar_style);
-    add_theme_stylebox_override("slot", panel_style->duplicate());
-    add_theme_constant_override("port_h_offset", size.width / 2);
-    end_bulk_theme_override();
 }
 
 void OrchestratorEditorGraphNodeReroute::_create_pin_widgets() {
