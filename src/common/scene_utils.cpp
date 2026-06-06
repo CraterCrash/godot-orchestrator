@@ -21,6 +21,7 @@
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -277,5 +278,38 @@ namespace SceneUtils {
         }
 
         return mc;
+    }
+
+    String get_theme_type(const String& p_base_type) {
+        #if GODOT_VERSION >= 0x040600
+        const String style = EI->get_editor_settings()->get_setting("interface/theme/style");
+        if (style == "Modern") {
+            if (p_base_type == "ItemList") {
+                return "ItemListSecondary";
+            } else if (p_base_type == "Tree") {
+                return "TreeSecondary";
+            } else if (p_base_type == "ScrollContainer") {
+                return "ScrollContainerSecondary";
+            }
+        }
+        #endif
+        return p_base_type;
+    }
+
+    void set_theme_type_variation(Control* p_control, const String& p_base_type) {
+        #if GODOT_VERSION >= 0x040600
+        if (p_control) {
+            const String style = EI->get_editor_settings()->get_setting("interface/theme/style");
+            if (style == "Modern") {
+                if (p_base_type == "ItemList") {
+                    p_control->set_theme_type_variation("ItemListSecondary");
+                } else if (p_base_type == "Tree") {
+                    p_control->set_theme_type_variation("TreeSecondary");
+                } else if (p_base_type == "ScrollContainer") {
+                    p_control->set_theme_type_variation("ScrollContainerSecondary");
+                }
+            }
+        }
+        #endif
     }
 }

@@ -550,6 +550,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             _favorites->connect("cell_selected", callable_mp_this(_favorite_selected));
             _favorites->connect(SceneStringName(item_activated), callable_mp_this(_favorite_activated));
             _favorites->add_theme_constant_override("draw_guides", 1);
+            SceneUtils::set_theme_type_variation(_favorites, "Tree");
             SceneUtils::add_margin_child(fav_vbox, "Favorites:", _favorites, true);
 
             VBoxContainer* rec_vbox = memnew(VBoxContainer);
@@ -564,6 +565,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             _recent->connect(SceneStringName(item_selected), callable_mp_this(_history_selected));
             _recent->connect(SceneStringName(item_activated), callable_mp_this(_history_activated));
             _recent->add_theme_constant_override("draw_guides", 1);
+            SceneUtils::set_theme_type_variation(_recent, "ItemList");
             SceneUtils::add_margin_child(rec_vbox, "Recent:", _recent, true);
 
             VBoxContainer* vbox = memnew(VBoxContainer);
@@ -604,6 +606,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             // set_auto_translate_mode
             _search_options->connect(SceneStringName(item_activated), callable_mp_this(_confirmed));
             _search_options->connect("cell_selected", callable_mp_this(_item_selected));
+            SceneUtils::set_theme_type_variation(_search_options, "Tree");
             SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);
 
             _help_bit = memnew(OrchestratorEditorSearchHelpBit);
