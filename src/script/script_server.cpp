@@ -25,10 +25,27 @@
 bool ScriptServer::_reload_scripts_on_save = false;
 
 Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) {
-    if (ResourceLoader::get_singleton()->has_cached(path)) {
-        return ResourceLoader::get_singleton()->load(path);
+    ResourceLoader* loader = ResourceLoader::get_singleton();
+
+    if (loader->has_cached(path)) {
+        return loader->load(path);
     }
-    return ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+
+    // When called from a background thread, delegate the load to the main thread
+    // via load_threaded_request and wait for it to complete.
+    if (loader->load_threaded_request(path, "", ResourceLoader::CACHE_MODE_IGNORE) == OK) {
+        ResourceLoader::ThreadLoadStatus status;
+        do {
+            status = loader->load_threaded_get_status(path);
+        } while (status == ResourceLoader::THREAD_LOAD_IN_PROGRESS);
+
+        if (status == ResourceLoader::THREAD_LOAD_LOADED) {
+            return loader->load_threaded_get(path);
+        }
+        return {};
+    }
+
+    return loader->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
 }
 
 TypedArray<Dictionary> ScriptServer::GlobalClass::get_property_list() const {
