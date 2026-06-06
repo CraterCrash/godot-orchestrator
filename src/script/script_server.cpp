@@ -105,6 +105,22 @@ PackedStringArray ScriptServer::GlobalClass::get_integer_constant_list() const {
     return names;
 }
 
+PackedStringArray ScriptServer::GlobalClass::get_enum_list() const {
+    PackedStringArray names;
+    const Dictionary constants_map = get_constants_list();
+    if (!constants_map.is_empty()) {
+        const Array& keys = constants_map.keys();
+        for (int i= 0; i < keys.size(); i++) {
+            // Check and skip enums
+            const Variant& value = constants_map[keys[i]];
+            if (value.get_type() == Variant::DICTIONARY) {
+                names.append(keys[i]);
+            }
+        }
+    }
+    return names;
+}
+
 int64_t ScriptServer::GlobalClass::get_integer_constant(const StringName& p_constant_name) const {
     const Dictionary constants_map = get_constants_list();
     if (!constants_map.is_empty()) {
