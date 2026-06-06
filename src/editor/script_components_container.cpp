@@ -1109,9 +1109,13 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
         {
             // There is no way to set the size of the image on the button, so we must rescale
             Ref<Texture2D> class_icon = SceneUtils::get_class_icon(variable->get_variable_type_name());
-            const Ref<Image> image = class_icon->get_image();
-            image->resize(SceneUtils::get_editor_class_icon_size(), SceneUtils::get_editor_class_icon_size());
-            class_icon = ImageTexture::create_from_image(image);
+            if (class_icon.is_valid()) {
+                const Ref<Image> image = class_icon->get_image();
+                image->resize(SceneUtils::get_editor_class_icon_size(), SceneUtils::get_editor_class_icon_size());
+                class_icon = ImageTexture::create_from_image(image);
+            } else {
+                class_icon = SceneUtils::get_editor_icon("FileBroken");
+            }
 
             int32_t index = item->get_button_count(0);
             item->add_button(0, class_icon, 2);
