@@ -2459,9 +2459,9 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _script_list->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
     _script_list->set_custom_minimum_size(Size2(100, 60) * EDSCALE);
     _script_list->set_v_size_flags(SIZE_EXPAND_FILL);
-    _script_list->set_theme_type_variation("ItemListSecondary");
     _script_list->set_allow_rmb_select(true);
     _script_list->connect("item_clicked", callable_mp_this(_script_list_clicked), CONNECT_DEFERRED);
+    SceneUtils::set_theme_type_variation(_script_list, "ItemList");
     _scripts_vbox->add_child(_script_list);
     SET_DRAG_FORWARDING_GCD(_script_list, OrchestratorEditor)
 
