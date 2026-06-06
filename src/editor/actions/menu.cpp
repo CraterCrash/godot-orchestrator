@@ -808,7 +808,7 @@ void OrchestratorEditorActionMenu::popup(const Vector2& p_position,
         _last_size.set_size(_default_rect.get_size());
     }
 
-    bool center_at_mouse = ORCHESTRATOR_GET("ui/actions_menu/center_on_mouse", true);
+    bool center_at_mouse = ORCHESTRATOR_GET("editor/actions_menu/center_on_mouse", true);
     if (center_at_mouse) {
         _last_size.set_position(p_position - (_last_size.get_size() / 2.0));
     } else {

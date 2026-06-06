@@ -37,12 +37,12 @@ PackedStringArray OrchestratorEditorGraphPin::_get_pin_suggestions() const {
 }
 
 String OrchestratorEditorGraphPin::_get_pin_color_name() const {
-    static String COLOR_ANY = "ui/connection_colors/any";
+    static String COLOR_ANY = "theme/connection_colors/any";
 
     ERR_FAIL_COND_V(!_pin.is_valid(), COLOR_ANY);
 
     const String type_name = VariantUtils::get_friendly_type_name(_pin->get_type(), true).to_lower();
-    return vformat("ui/connection_colors/%s", type_name);
+    return vformat("theme/connection_colors/%s", type_name);
 }
 
 void OrchestratorEditorGraphPin::_default_value_changed() {
@@ -107,7 +107,7 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
         _icon->set_custom_minimum_size(Vector2i(icon_width, icon_width));
         _icon->set_visible(false);
 
-        if (ORCHESTRATOR_GET("ui/nodes/show_type_icons", true)) {
+        if (ORCHESTRATOR_GET("editor/graph_nodes/show_type_icons", true)) {
             set_icon_visible(true);
         }
 
@@ -160,7 +160,7 @@ String OrchestratorEditorGraphPin::_get_tooltip_text() {
         tooltip_text += "\nClass: " + _pin->get_property_info().class_name;
     }
 
-    const bool advanced_tooltips = ORCHESTRATOR_GET("ui/graph/show_advanced_tooltips", false);
+    const bool advanced_tooltips = ORCHESTRATOR_GET("editor/graph/show_advanced_tooltips", false);
     if (advanced_tooltips) {
         const PropertyInfo property = _pin->get_property_info();
         tooltip_text += "\n\n";
@@ -299,9 +299,29 @@ void OrchestratorEditorGraphPin::set_show_advanced_tooltips(bool p_show_advanced
 }
 
 void OrchestratorEditorGraphPin::_notification(int p_what) {
-    if (p_what == NOTIFICATION_READY && _dirty) {
-        _update_control();
-        _dirty = false;
+    switch (p_what) {
+        case NOTIFICATION_READY: {
+            if (_dirty) {
+                _update_control();
+                _dirty = false;
+            }
+            break;
+        }
+        case NOTIFICATION_THEME_CHANGED: {
+            if (_icon && _pin.is_valid()) {
+                Ref<Texture2D> type_icon;
+                if (_pin->get_owning_node()->is_type<OScriptNodeSelf>()) {
+                    type_icon = _pin->get_owning_node()->get_orchestration()->get_icon();
+                } else {
+                    type_icon = SceneUtils::get_class_icon(_pin->get_pin_type_name());
+                }
+                _icon->set_texture(type_icon);
+            }
+            if (_label) {
+                _label->add_theme_color_override("font_color", get_theme_color("font_color", "GraphNode"));
+            }
+            break;
+        }
     }
 }
 

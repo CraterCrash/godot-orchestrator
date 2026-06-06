@@ -23,6 +23,13 @@
 
 #include <godot_cpp/classes/h_box_container.hpp>
 
+void OrchestratorEditorGraphPinButtonBase::_notification(int p_what) {
+    OrchestratorEditorGraphPin::_notification(p_what);
+    if (p_what == NOTIFICATION_THEME_CHANGED && _clear_button) {
+        _clear_button->set_button_icon(SceneUtils::get_editor_icon("Reload"));
+    }
+}
+
 void OrchestratorEditorGraphPinButtonBase::_clear_button_pressed() {
     _set_default_value(_clear_default);
     _update_control_value(_get_default_value());

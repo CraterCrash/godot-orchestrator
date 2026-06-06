@@ -119,9 +119,9 @@ String OScriptLanguage::_get_name() const {
 void OScriptLanguage::_init() {
     _template_registry = memnew(OScriptTemplateRegistry);
 
-    _debug_max_call_stack = ORCHESTRATOR_GET("settings/runtime/max_call_stack", 1024);
-    track_call_stack = ORCHESTRATOR_GET("settings/runtime/always_track_call_stacks", false);
-    track_locals = ORCHESTRATOR_GET("settings/runtime/always_track_local_variables", false);
+    _debug_max_call_stack = ORCHESTRATOR_GET("debug/settings/max_call_stack", 1024);
+    track_call_stack = ORCHESTRATOR_GET("debug/settings/always_track_call_stacks", false);
+    track_locals = ORCHESTRATOR_GET("debug/settings/always_track_local_variables", false);
     _call_stack = nullptr;
 
     #if DEBUG_ENABLED
