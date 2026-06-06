@@ -63,6 +63,10 @@ public:
         /// @return all the defined constants
         PackedStringArray get_integer_constant_list() const;
 
+        /// Gets all defined enumerations in the global class
+        /// @return all the defined enumerations
+        PackedStringArray get_enum_list() const;
+
         /// Gets the constant value
         /// @param p_constant_name
         /// @return the constant value
