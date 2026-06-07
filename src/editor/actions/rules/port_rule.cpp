@@ -103,11 +103,11 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
 
     // Match operator input/outputs
     // Operators do not have
-    if (p_action->inputs.has_value() && !_output) {
+    if (p_action->inputs.has_value() && _output) {
         return p_action->inputs.value().has(_type);
     }
 
-    if (p_action->outputs.has_value() && _output) {
+    if (p_action->outputs.has_value() && !_output) {
         return p_action->outputs.value().has(_type);
     }
 

@@ -655,38 +655,66 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
     r_actions.insert(_script_node_builder<OScriptNodeSingletonConstant>("Constants", "Singleton Constant").build());
 
     // Data
-    r_actions.insert(_script_node_builder<OScriptNodeArrayGet>("Types/Array/Operators", "Get at Index", array_data).build());
-    r_actions.insert(_script_node_builder<OScriptNodeArraySet>("Types/Array/Operators", "Set at Index", array_data).build());
-    r_actions.insert(_script_node_builder<OScriptNodeArrayFind>("Types/Array", "Find Array Element").build());
-    r_actions.insert(_script_node_builder<OScriptNodeArrayClear>("Types/Array", "Clear Array").build());
-    r_actions.insert(_script_node_builder<OScriptNodeArrayAppend>("Types/Array", "Append Arrays").build());
-    r_actions.insert(_script_node_builder<OScriptNodeArrayAddElement>("Types/Array", "Add Element").build());
-    r_actions.insert(_script_node_builder<OScriptNodeArrayRemoveElement>("Types/Array", "Remove Element").build());
-    r_actions.insert(_script_node_builder<OScriptNodeArrayRemoveIndex>("Types/Array", "Remove Element by Index").build());
-    r_actions.insert(_script_node_builder<OScriptNodeMakeArray>("Types/Array", "Make Array").build());
-    r_actions.insert(_script_node_builder<OScriptNodeMakeDictionary>("Types/Dictionary", "Make Dictionary").build());
-    r_actions.insert(_script_node_builder<OScriptNodeDictionarySet>("Types/Dictionary", "Set").build());
+    r_actions.insert(_script_node_builder<OScriptNodeArrayGet>("Types/Array/Operators", "Get at Index", array_data)
+        .inputs(Variant::ARRAY, Variant::INT).outputs(Variant::NIL).build());
+    r_actions.insert(_script_node_builder<OScriptNodeArraySet>("Types/Array/Operators", "Set at Index", array_data)
+        .inputs(Variant::ARRAY, Variant::INT, Variant::NIL, Variant::BOOL).outputs(Variant::ARRAY).build());
+    r_actions.insert(_script_node_builder<OScriptNodeArrayFind>("Types/Array", "Find Array Element")
+        .inputs(Variant::ARRAY, Variant::NIL).outputs(Variant::ARRAY, Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeArrayClear>("Types/Array", "Clear Array")
+        .inputs(Variant::ARRAY).outputs(Variant::ARRAY).build());
+    r_actions.insert(_script_node_builder<OScriptNodeArrayAppend>("Types/Array", "Append Arrays")
+        .inputs(Variant::ARRAY).outputs(Variant::ARRAY).build());
+    r_actions.insert(_script_node_builder<OScriptNodeArrayAddElement>("Types/Array", "Add Element")
+        .inputs(Variant::ARRAY, Variant::NIL).outputs(Variant::NIL, Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeArrayRemoveElement>("Types/Array", "Remove Element")
+        .inputs(Variant::ARRAY, Variant::NIL).outputs(Variant::ARRAY, Variant::BOOL).build());
+    r_actions.insert(_script_node_builder<OScriptNodeArrayRemoveIndex>("Types/Array", "Remove Element by Index")
+        .inputs(Variant::ARRAY, Variant::INT).outputs(Variant::ARRAY).build());
+    r_actions.insert(_script_node_builder<OScriptNodeMakeArray>("Types/Array", "Make Array")
+        .outputs(Variant::ARRAY).build());
+    r_actions.insert(_script_node_builder<OScriptNodeMakeDictionary>("Types/Dictionary", "Make Dictionary")
+        .outputs(Variant::DICTIONARY).build());
+    r_actions.insert(_script_node_builder<OScriptNodeDictionarySet>("Types/Dictionary", "Set")
+        .inputs(Variant::DICTIONARY, Variant::NIL).outputs(Variant::DICTIONARY, Variant::BOOL, Variant::NIL).build());
 
     // Dialogue
-    r_actions.insert(_script_node_builder<OScriptNodeDialogueMessage>("Dialogue", "Show Message").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeDialogueChoice>("Dialogue", "Show Message Choice").build());
+    r_actions.insert(_script_node_builder<OScriptNodeDialogueMessage>("Dialogue", "Show Message")
+        .executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeDialogueChoice>("Dialogue", "Show Message Choice")
+        .inputs(Variant::STRING, Variant::BOOL).build());
 
     // Flow Control
-    r_actions.insert(_script_node_builder<OScriptNodeBranch>("Flow Control", "Branch").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeChance>("Flow Control", "Chance").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeDelay>("Flow Control", "Delay").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeForEach>("Flow Control", "For Each", without_break).executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeForEach>("Flow Control", "For Each With Break", with_break).executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeForLoop>("Flow Control", "For Loop", without_break).executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeForLoop>("Flow Control", "For Loop With Break", with_break).executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeRandom>("Flow Control", "Random").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeSelect>("Flow Control", "Select").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeSequence>("Flow Control", "Sequence").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeSwitch>("Flow Control", "Switch").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeSwitchInteger>("Flow Control", "Switch on Integer").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeSwitchString>("Flow Control", "Switch on String").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeTypeCast>("Flow Control", "Type Cast").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeWhile>("Flow Control", "While").executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeBranch>("Flow Control", "Branch")
+        .executions(true).inputs(Variant::BOOL).build());
+    r_actions.insert(_script_node_builder<OScriptNodeChance>("Flow Control", "Chance")
+        .executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeDelay>("Flow Control", "Delay")
+        .executions(true).inputs(Variant::FLOAT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeForEach>("Flow Control", "For Each", without_break)
+        .executions(true).inputs(Variant::ARRAY).outputs(Variant::NIL, Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeForEach>("Flow Control", "For Each With Break", with_break)
+        .executions(true).inputs(Variant::ARRAY).outputs(Variant::NIL, Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeForLoop>("Flow Control", "For Loop", without_break)
+        .executions(true).inputs(Variant::INT).outputs(Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeForLoop>("Flow Control", "For Loop With Break", with_break)
+        .executions(true).inputs(Variant::INT).outputs(Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeRandom>("Flow Control", "Random")
+        .executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSelect>("Flow Control", "Select")
+        .executions(true).inputs(Variant::BOOL, Variant::NIL).outputs(Variant::NIL).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSequence>("Flow Control", "Sequence")
+        .executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSwitch>("Flow Control", "Switch")
+        .executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSwitchInteger>("Flow Control", "Switch on Integer")
+        .executions(true).inputs(Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSwitchString>("Flow Control", "Switch on String")
+        .executions(true).inputs(Variant::STRING).build());
+    r_actions.insert(_script_node_builder<OScriptNodeTypeCast>("Flow Control", "Type Cast")
+        .executions(true).inputs(Variant::NIL).outputs(Variant::NIL).build());
+    r_actions.insert(_script_node_builder<OScriptNodeWhile>("Flow Control", "While")
+        .executions(true).build());
 
     // Switch on Enums
     // todo: this isn't sorting properly
@@ -698,6 +726,7 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
                 vformat("Switch on %s", info.name),
                 DictionaryUtils::of({ { "enum" , info.name } }))
             .executions(true)
+            .inputs(Variant::INT)
             .tooltip(vformat("Performs a switch/match based on the input value for a '%s' enum.", info.name))
             .build());
     }
@@ -713,27 +742,39 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
     r_actions.insert(_script_node_builder<OScriptNodeInputAction>("Input", "Input Action").build());
 
     // Memory
-    r_actions.insert(_script_node_builder<OScriptNodeNew>("Memory", "New Object").build());
-    r_actions.insert(_script_node_builder<OScriptNodeFree>("Memory", "Free Object").build());
+    r_actions.insert(_script_node_builder<OScriptNodeNew>("Memory", "New Object")
+        .outputs(Variant::OBJECT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeFree>("Memory", "Free Object")
+        .inputs(Variant::NIL).build());
 
     // Resources
-    r_actions.insert(_script_node_builder<OScriptNodePreload>("Resource", "Preload Resource").build());
-    r_actions.insert(_script_node_builder<OScriptNodeResourcePath>("Resource", "Get Resource Path").build());
+    r_actions.insert(_script_node_builder<OScriptNodePreload>("Resource", "Preload Resource")
+        .outputs(Variant::OBJECT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeResourcePath>("Resource", "Get Resource Path")
+        .outputs(Variant::STRING).build());
 
     // Scene
-    r_actions.insert(_script_node_builder<OScriptNodeInstantiateScene>("Scene", "Instantiate Scene").executions(true).build());
-    r_actions.insert(_script_node_builder<OScriptNodeSceneNode>("Scene", "Get Scene Node").build());
-    r_actions.insert(_script_node_builder<OScriptNodeSceneTree>("Scene", "Get Scene Tree").build());
-    r_actions.insert(_script_node_builder<OScriptNodeSelf>("Scene", "Get Self").build());
+    r_actions.insert(_script_node_builder<OScriptNodeInstantiateScene>("Scene", "Instantiate Scene")
+        .executions(true).inputs(Variant::STRING).outputs(Variant::OBJECT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSceneNode>("Scene", "Get Scene Node")
+        .outputs(Variant::OBJECT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSceneTree>("Scene", "Get Scene Tree")
+        .outputs(Variant::OBJECT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeSelf>("Scene", "Get Self")
+        .outputs(Variant::OBJECT).build());
 
     // Signals
-    r_actions.insert(_script_node_builder<OScriptNodeAwaitSignal>("Signals", "Await Signal").executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeAwaitSignal>("Signals", "Await Signal")
+        .executions(true).inputs(Variant::OBJECT, Variant::STRING).build());
 
     // Utilities
     r_actions.insert(_script_node_builder<OScriptNodeComment>("Utilities", "Add Comment").build());
-    r_actions.insert(_script_node_builder<OScriptNodeAutoload>("Utilities", "Get an Autoload").build());
-    r_actions.insert(_script_node_builder<OScriptNodeEngineSingleton>("Utilities", "Get an Engine Singleton").build());
-    r_actions.insert(_script_node_builder<OScriptNodePrintString>("Utilities", "Print String").executions(true).build());
+    r_actions.insert(_script_node_builder<OScriptNodeAutoload>("Utilities", "Get an Autoload")
+        .outputs(Variant::OBJECT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeEngineSingleton>("Utilities", "Get an Engine Singleton")
+        .outputs(Variant::OBJECT).build());
+    r_actions.insert(_script_node_builder<OScriptNodePrintString>("Utilities", "Print String")
+        .executions(true).inputs(Variant::STRING, Variant::BOOL, Variant::COLOR, Variant::FLOAT).build());
 
     // Variable Assignment
     const Dictionary local_object = DictionaryUtils::of({ { "type", Variant::OBJECT } });
@@ -748,6 +789,7 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
         r_actions.insert(_script_node_builder<OScriptNodeEngineSingleton>("Singleton", name, data)
             .no_capitalize(true)
             .tooltip("Obtain a reference to the " + name + " singleton.")
+            .outputs(Variant::OBJECT)
             .build());
     }
 

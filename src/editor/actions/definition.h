@@ -134,6 +134,19 @@ public:
     OrchestratorEditorActionBuilder(const String& p_category);
     OrchestratorEditorActionBuilder(const String& p_category, const String& p_name);
 
+    template<typename... Args>
+    OrchestratorEditorActionBuilder& inputs(const Args... p_args) {
+        Vector<Variant::Type> types;
+        (types.push_back(p_args), ...);
+        return inputs(types);
+    }
+
+    template<typename... Args>
+    OrchestratorEditorActionBuilder& outputs(const Args... p_args) {
+        Vector<Variant::Type> types;
+        (types.push_back(p_args), ...);
+        return outputs(types);
+    }
 };
 
 struct OrchestratorEditorActionDefinitionHasher {
