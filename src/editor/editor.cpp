@@ -1566,6 +1566,10 @@ void OrchestratorEditor::toggle_components_panel() { // NOLINT
     ProjectSettings::get_singleton()->emit_signal("settings_changed");
 }
 
+bool OrchestratorEditor::is_components_panel_toggled() {
+    return PROJECT_GET("Orchestrator", "component_panel_visibility", true);
+}
+
 void OrchestratorEditor::apply_scripts() {
     for (int i = 0; i < _tab_container->get_tab_count(); i++) {
         OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i));

@@ -221,15 +221,39 @@ void OrchestratorScriptGraphEditorView::_update_editor_post_reload() {
 }
 
 void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
+    static String TOGGLE_FILE_BUTTON_NAME = "ToggleFileListButton";
+    static String TOGGLE_COMPONENTS_BUTTON_NAME = "ToggleComponentsButton";
     static String DETAILS_BUTTON_NAME = "ScriptDetailsButton";
     static String WARN_ERROR_SEP = "ScriptWarnErrorSep";
     static String WARNING_BUTTON_NAME = "ScriptWarningButton";
     static String ERROR_BUTTON_NAME   = "ScriptErrorButton";
+    static String SPACER = "Spacer";
 
     for (int i = 0; i < _tab_container->get_child_count(); i++) {
         OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i);
 
-        Button* button = cast_to<Button>(tab_panel->get_menu_control()->find_child(DETAILS_BUTTON_NAME, false, false));
+        Button* button = cast_to<Button>(tab_panel->get_menu_control()->find_child(TOGGLE_FILE_BUTTON_NAME, false, false));
+        if (!button) {
+            button = memnew(Button);
+            button->set_name(TOGGLE_FILE_BUTTON_NAME);
+            button->set_theme_type_variation("FlatButton");
+            button->set_focus_mode(FOCUS_NONE);
+            button->set_tooltip_text("Toggles orchestration file list");
+            button->connect(SceneStringName(pressed), callable_mp_lambda(this, [this] {
+                OrchestratorEditor::get_singleton()->toggle_scripts_panel();
+                _update_editor_script_buttons();
+            }));
+            tab_panel->get_menu_control()->add_child(button);
+            tab_panel->get_menu_control()->move_child(button, 0);
+            VSeparator* separator = memnew(VSeparator);
+            tab_panel->get_menu_control()->add_child(separator);
+            tab_panel->get_menu_control()->move_child(separator, 1);
+        }
+
+        const bool file_list_visible = OrchestratorEditor::get_singleton()->is_scripts_panel_toggled();
+        button->set_button_icon(SceneUtils::get_editor_icon(file_list_visible ? "Back" : "Forward"));
+
+        button = cast_to<Button>(tab_panel->get_menu_control()->find_child(DETAILS_BUTTON_NAME, false, false));
         if (!button) {
             button = memnew(Button);
             button->set_name(DETAILS_BUTTON_NAME);
@@ -294,6 +318,32 @@ void OrchestratorScriptGraphEditorView::_update_editor_script_buttons() {
         button->set_text(vformat("%d", _errors.size()));
 
         sep->set_visible(_errors.size() > 0 || _warnings.size() > 0);
+
+        Control* spacer = cast_to<Control>(tab_panel->get_menu_control()->find_child(SPACER, false, false));
+        if (!spacer) {
+            spacer = memnew(Control);
+            spacer->set_name(SPACER);
+            spacer->set_h_size_flags(SIZE_EXPAND_FILL);
+            tab_panel->get_menu_control()->add_child(spacer);
+        }
+
+        button = cast_to<Button>(tab_panel->get_menu_control()->find_child(TOGGLE_COMPONENTS_BUTTON_NAME, false, false));
+        if (!button) {
+            button = memnew(Button);
+            button->set_name(TOGGLE_COMPONENTS_BUTTON_NAME);
+            button->set_button_icon(SceneUtils::get_editor_icon("Back"));
+            button->set_theme_type_variation("FlatButton");
+            button->set_focus_mode(FOCUS_NONE);
+            button->set_tooltip_text("Toggles component panel");
+            button->connect(SceneStringName(pressed), callable_mp_lambda(this, [this] {
+                OrchestratorEditor::get_singleton()->toggle_components_panel();
+                _update_editor_script_buttons();
+            }));
+            tab_panel->get_menu_control()->add_child(button);
+        }
+
+        const bool components_visible = OrchestratorEditor::get_singleton()->is_components_panel_toggled();
+        button->set_button_icon(SceneUtils::get_editor_icon(components_visible ? "Forward" : "Back"));
     }
 
 }
