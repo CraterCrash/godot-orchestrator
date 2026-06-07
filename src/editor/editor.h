@@ -284,6 +284,7 @@ public:
     bool toggle_scripts_panel();
     bool is_scripts_panel_toggled();
     void toggle_components_panel();
+    bool is_components_panel_toggled();
 
     void apply_scripts();
     void reload_scripts(bool p_refresh_only = false);
