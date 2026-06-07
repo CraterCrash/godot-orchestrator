@@ -826,12 +826,11 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 GET_VARIANT_PTR(dst, 2);
 
                 bool valid = true;
-                #ifdef DEBUG_ENABLED
+
                 Variant ret;
                 Variant::evaluate(op, *a, *b, ret, valid);
-                #else
-                Variant::evaluate(op, *a, *b, *dst, valid);
-                #endif
+                *dst = ret;
+
                 #ifdef DEBUG_ENABLED
                 if (!valid) {
                     if (ret.get_type() == Variant::STRING) {
@@ -844,7 +843,6 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     }
                     OPCODE_BREAK;
                 }
-                *dst = ret;
                 #endif
 
                 ip += 5;
