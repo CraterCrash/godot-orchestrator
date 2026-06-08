@@ -17,6 +17,7 @@
 #include "core/godot/object/script_language.h"
 
 #include "common/dictionary_utils.h"
+#include "common/method_utils.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/script_extension.hpp>
@@ -67,12 +68,8 @@ bool GDE::Script::has_method(const Ref<godot::Script>& p_script, const StringNam
         // todo:
         //  a bug in Godot prevents calling Ref<Script>::has_method, because this will delegate
         //  to Object::has_method and never calls the underlying ScriptExtension::has_method.
-        //  To avoid this issue, we directly cast to OScript.
-        Ref<ScriptExtension> script_extension = p_script;
-        if (script_extension.is_valid()) {
-            return script_extension->_has_method(p_name);
-        }
-        return p_script->has_method(p_name);
+        //  for now we need to just use get_method_info :(
+        return !MethodUtils::is_empty(get_method_info(p_script, p_name));
     }
     return false;
 }
