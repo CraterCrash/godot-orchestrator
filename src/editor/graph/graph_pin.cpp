@@ -121,10 +121,8 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
     }
 
     if (!_pin->is_execution() && !_pin->is_default_ignored()) {
-        const bool is_any = PropertyUtils::is_variant(_pin->get_property_info());
-
         // Create a value editor for input pins, or for output any-pins (pencil button).
-        if (_pin->is_input() || is_any) {
+        if (_pin->is_input()) {
             _editor = OrchestratorEditorGraphPinFactory::create_value_editor(_pin);
         }
 
