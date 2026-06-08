@@ -377,12 +377,21 @@ void OrchestratorEditorComponentView::_notification(int p_what) {
         case NOTIFICATION_THEME_CHANGED: {
             Ref<Theme> theme = EI->get_editor_theme();
             if (theme.is_valid() && _panel) {
-                Ref<StyleBoxFlat> style_box = theme->get_stylebox(SceneStringName(panel), "ItemList");
-                if (style_box.is_valid()) {
-                    style_box = style_box->duplicate();
-                    style_box->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
-                    style_box->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
-                    _panel->add_theme_stylebox_override(SceneStringName(panel), style_box);
+                Ref<StyleBoxFlat> sb = theme->get_stylebox(SceneStringName(panel), "ItemList");
+                if (sb.is_valid()) {
+                    sb = sb->duplicate();
+                    sb->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+                    sb->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+                    _panel->add_theme_stylebox_override(SceneStringName(panel), sb);
+                }
+            }
+            if (theme.is_valid() && _tree) {
+                Ref<StyleBoxFlat> sb = theme->get_stylebox(SceneStringName(panel), "Tree");
+                if (sb.is_valid()) {
+                    sb = sb->duplicate();
+                    sb->set_corner_radius(CORNER_TOP_LEFT, 0);
+                    sb->set_corner_radius(CORNER_TOP_RIGHT, 0);
+                    _tree->add_theme_stylebox_override(SceneStringName(panel), sb);
                 }
             }
             break;
