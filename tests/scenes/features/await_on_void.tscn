@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bt26bj1ynq68p"]
+
+[ext_resource type="Script" uid="uid://dlgpodhuood0i" path="res://scenes/features/await_on_void.torch" id="1_pe3dj"]
+
+[node name="AwaitOnVoid" type="Node" unique_id=792725062]
+script = ExtResource("1_pe3dj")

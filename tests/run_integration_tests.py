@@ -68,6 +68,14 @@ def validate_output(source, result, elapsed):
     expected = "\n".join(lines[1:]).strip()
 
     if directive == "OSCRIPT_TEST_PASS":
+        stderr = result.stderr.strip()
+        if stderr:
+            print(f"FAIL: ({elapsed:.2f}s)")
+            print("")
+            print(f"Expected empty stderr, but got:\n----------\n{stderr}")
+            print("")
+            exit_code = 1
+            return
         actual = result.stdout.strip()
     elif directive == "OSCRIPT_TEST_FAILURE":
         actual = result.stderr.strip()
