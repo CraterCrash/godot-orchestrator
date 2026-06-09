@@ -24,6 +24,7 @@
 #include "common/settings.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/editor/settings/editor_settings.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/editor_component_view.h"
@@ -157,19 +158,41 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
             const bool can_be_renamed = graph->get_flags().has_flag(OScriptGraph::GF_RENAMABLE);
             const bool can_be_removed = graph->get_flags().has_flag(OScriptGraph::GF_DELETABLE);
 
-            menu->add_item("Open Graph", callable_mp_this(_open_graph).bind(graph->get_graph_name()), false, KEY_ENTER);
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_graphs, p_item), !can_be_renamed, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), !can_be_removed, KEY_DELETE);
+            menu->add_shortcut(
+                ED_GET_SHORTCUT("orchestrator_component_panel/open_graph"),
+                callable_mp_this(_open_graph).bind(graph->get_graph_name()),
+                false);
+            menu->add_icon_shortcut(
+                "Rename",
+                ED_GET_SHORTCUT("orchestrator_component_panel/rename_graph"),
+                RENAME_ITEM(_graphs, p_item),
+                !can_be_renamed);
+            menu->add_icon_shortcut(
+                "Remove",
+                ED_GET_SHORTCUT("orchestrator_component_panel/remove_graph"),
+                callable_mp_this(_component_remove_item).bind(p_item, true),
+                !can_be_removed);
 
             break;
         }
         case EVENT_GRAPH_FUNCTION: {
             const String function_name = p_item->get_meta("__name", "");
 
-            menu->add_item("Focus", callable_mp_this(_component_focus_item).bind(p_item), false, KEY_ENTER);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_shortcut(
+                ED_GET_SHORTCUT("orchestrator_component_panel/goto_event"),
+                callable_mp_this(_component_focus_item).bind(p_item),
+                false);
+            menu->add_icon_shortcut(
+                "Remove",
+                ED_GET_SHORTCUT("orchestrator_component_panel/remove_event"),
+                callable_mp_this(_component_remove_item).bind(p_item, true),
+                false);
+
             if (p_item->get_meta("__slot", false)) {
-                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", callable_mp_this(_disconnect_slot_item).bind(p_item));
+                const int32_t id = menu->add_icon_shortcut(
+                    "Unlinked",
+                    ED_GET_SHORTCUT("orchestrator_component_panel/disconnect_signal"),
+                    callable_mp_this(_disconnect_slot_item).bind(p_item));
                 menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
             }
 
@@ -178,28 +201,67 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
         case SCRIPT_FUNCTION: {
             const Ref<OScriptFunction> func = _get_orchestration()->find_function(p_item->get_meta("__name", ""));
 
-            menu->add_item("Open In Graph", callable_mp_this(_open_graph).bind(func->get_function_name()), false, KEY_ENTER);
-            menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_component_duplicate_item).bind(p_item, DictionaryUtils::of({{ "include_code", "true" }})));
-            menu->add_icon_item("Duplicate", "Duplicate (no_code)", callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_functions, p_item), false, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_shortcut(
+                ED_GET_SHORTCUT("orchestrator_component_panel/open_function_graph"),
+                callable_mp_this(_open_graph).bind(func->get_function_name()),
+                false);
+            menu->add_icon_shortcut(
+                "Duplicate",
+                ED_GET_SHORTCUT("orchestrator_component_panel/duplicate_function"),
+                callable_mp_this(_component_duplicate_item).bind(p_item, DictionaryUtils::of({{ "include_code", "true" }})));
+            menu->add_icon_shortcut(
+                "Duplicate",
+                ED_GET_SHORTCUT("orchestrator_component_panel/duplicate_function_no_code"),
+                callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
+            menu->add_icon_shortcut(
+                "Rename",
+                ED_GET_SHORTCUT("orchestrator_component_panel/rename_function"),
+                RENAME_ITEM(_functions, p_item),
+                false);
+            menu->add_icon_shortcut(
+                "Remove",
+                ED_GET_SHORTCUT("orchestrator_component_panel/remove_function"),
+                callable_mp_this(_component_remove_item).bind(p_item, true),
+                false);
 
             if (p_item->get_meta("__slot", false)) {
-                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", callable_mp_this(_disconnect_slot_item).bind(p_item));
+                const int32_t id = menu->add_icon_shortcut(
+                    "Unlinked",
+                    ED_GET_SHORTCUT("orchestrator_component_panel/disconnect_signal"),
+                    callable_mp_this(_disconnect_slot_item).bind(p_item));
                 menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
             }
 
             break;
         }
         case SCRIPT_VARIABLE: {
-            menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_variables, p_item), false, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_icon_shortcut(
+                "Duplicate",
+                ED_GET_SHORTCUT("orchestrator_component_panel/duplicate_variable"),
+                callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
+            menu->add_icon_shortcut(
+                "Rename",
+                ED_GET_SHORTCUT("orchestrator_component_panel/rename_variable"),
+                RENAME_ITEM(_variables, p_item),
+                false);
+            menu->add_icon_shortcut(
+                "Remove",
+                ED_GET_SHORTCUT("orchestrator_component_panel/remove_variable"),
+                callable_mp_this(_component_remove_item).bind(p_item, true),
+                false);
             break;
         }
         case SCRIPT_SIGNAL: {
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_signals, p_item), false, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_icon_shortcut(
+                "Rename",
+                ED_GET_SHORTCUT("orchestrator_component_panel/rename_signal"),
+                RENAME_ITEM(_signals, p_item),
+                false);
+            menu->add_icon_shortcut(
+                "Remove",
+                ED_GET_SHORTCUT("orchestrator_component_panel/remove_signal"),
+                callable_mp_this(_component_remove_item).bind(p_item, true),
+                false);
             break;
         }
         default: {
@@ -219,13 +281,24 @@ void OrchestratorScriptComponentsContainer::_component_item_gui_input(TreeItem* 
 
     const Ref<InputEventKey> key = p_event;
     if (key.is_valid() && key->is_pressed() && !key->is_echo()) {
-        switch (key->get_keycode()) {
-            case KEY_F2: {
-                bool can_be_renamed = p_item->get_meta("__can_be_renamed", true);
-                if (!can_be_renamed) {
-                    return;
-                }
+        const bool is_rename = ED_IS_SHORTCUT("orchestrator_component_panel/rename_graph", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/rename_function", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/rename_variable", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/rename_signal", p_event);
 
+        const bool is_remove = ED_IS_SHORTCUT("orchestrator_component_panel/remove_graph", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/remove_event", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/remove_function", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/remove_variable", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/remove_signal", p_event);
+
+        const bool is_goto = ED_IS_SHORTCUT("orchestrator_component_panel/open_graph", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/open_function_graph", p_event) ||
+            ED_IS_SHORTCUT("orchestrator_component_panel/goto_event", p_event);
+
+        if (is_rename) {
+            bool can_be_renamed = p_item->get_meta("__can_be_renamed", true);
+            if (can_be_renamed) {
                 // As we do not know the view, we need to fetch it
                 Node* node = p_item->get_tree()->get_parent();
                 OrchestratorEditorComponentView* view = cast_to<OrchestratorEditorComponentView>(node);
@@ -233,26 +306,28 @@ void OrchestratorScriptComponentsContainer::_component_item_gui_input(TreeItem* 
                     view->rename_tree_item(p_item, callable_mp_this(_component_rename_item));
                     accept_event();
                 }
-                break;
             }
-            case KEY_DELETE: {
-                const bool can_be_removed = p_item->get_meta("__can_be_removed", true);
-                if (!can_be_removed) {
-                    return;
-                }
-
+        } else if (is_remove) {
+            const bool can_be_removed = p_item->get_meta("__can_be_removed", true);
+            if (can_be_removed) {
                 _component_remove_item(p_item);
                 accept_event();
-                break;
             }
-            case KEY_ENTER: {
-                _component_item_activated(nullptr, p_item);
-                accept_event();
-                break;
-            }
-            default: {
-                break;
-            }
+        } else if (is_goto) {
+            _component_focus_item(p_item);
+            accept_event();
+        } else if (ED_IS_SHORTCUT("orchestrator_component_panel/disconnect_signal", p_event)) {
+            _disconnect_slot_item(p_item);
+            accept_event();
+        } else if (ED_IS_SHORTCUT("orchestrator_component_panel/duplicate_function", p_event)) {
+            _component_duplicate_item(p_item, DictionaryUtils::of({{ "include_code", "true" }}));
+            accept_event();
+        } else if (ED_IS_SHORTCUT("orchestrator_component_panel/duplicate_function_no_code", p_event)) {
+            _component_duplicate_item(p_item, Dictionary());
+            accept_event();
+        } else if (ED_IS_SHORTCUT("orchestrator_component_panel/duplicate_variable", p_event)) {
+            _component_duplicate_item(p_item, Dictionary());
+            accept_event();
         }
     }
 }
