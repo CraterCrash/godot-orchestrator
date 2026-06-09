@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bmj7s22fd2hvk"]
+
+[ext_resource type="Script" uid="uid://b0a17u0b8jny1" path="res://scenes/features/typed_array_init_with_untyped_in_literal.torch" id="1_qqlv0"]
+
+[node name="TypedArrayInitWithUntypedInLiteral" type="Node" unique_id=816899153]
+script = ExtResource("1_qqlv0")

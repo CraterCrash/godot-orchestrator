@@ -54,14 +54,29 @@ class OrchestratorEditorGraphPin : public VBoxContainer {
 
     GDCLASS(OrchestratorEditorGraphPin, VBoxContainer);
 
+    struct IconCache {
+        HBoxContainer* container = nullptr;
+        TextureRect* primary = nullptr;
+        TextureRect* element = nullptr;
+        TextureRect* key = nullptr;
+        TextureRect* value = nullptr;
+
+        void clear();
+
+    } icon_cache;
+
     Ref<OrchestrationGraphPin> _pin;
     OrchestratorEditorGraphNode* _node = nullptr;
     int _index = -1;
     bool _dirty = false;
 
-    TextureRect* _icon = nullptr;
+    Control* _icon = nullptr;
     Label* _label = nullptr;
     Control* _default_value = nullptr;
+
+    Vector2i _get_icon_scaled_size(const Ref<Texture2D>& p_icon, int p_editor_icon_size) const;
+    void _update_icon_control();
+    Control* _create_icon_cache();
 
 protected:
     static void _bind_methods();
@@ -93,6 +108,7 @@ protected:
 public:
     //~ Begin Control Interface
     void _gui_input(const Ref<InputEvent>& p_event) override;
+    Object* _make_custom_tooltip(const String& p_for_text) const override;
     //~ End Control Interface
 
     OrchestratorEditorGraphPanel* get_graph();

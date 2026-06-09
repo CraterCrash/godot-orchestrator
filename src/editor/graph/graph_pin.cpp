@@ -23,13 +23,181 @@
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "core/godot/core_string_names.h"
+#include "core/godot/object/type_resolver.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/gui/context_menu.h"
 #include "orchestration/nodes/reroute.h"
 #include "orchestration/nodes/self.h"
 #include "orchestration/orchestration.h"
 
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/style_box_empty.hpp>
+
+void OrchestratorEditorGraphPin::IconCache::clear() {
+    if (container) {
+        container->queue_free();
+        container = nullptr;
+        primary = nullptr;
+        element = nullptr;
+        key = nullptr;
+        value = nullptr;
+    }
+}
+
+Vector2i OrchestratorEditorGraphPin::_get_icon_scaled_size(const Ref<Texture2D>& p_icon, int p_editor_icon_size) const {
+    // Preserve the texture's aspect ratio so non-square icons (e.g. 16x13) are not skewed.
+    // Scale so the largest dimension equals icon_width and let the smaller dimension follow.
+    Vector2i icon_size = Vector2i(p_editor_icon_size, p_editor_icon_size);
+    if (p_icon.is_valid()) {
+        const Size2 texture_size = p_icon->get_size();
+        const float largest = MAX(texture_size.x, texture_size.y);
+        if (largest > 0) {
+            const float scale = p_editor_icon_size / largest;
+            icon_size = Vector2i(Math::round(texture_size.x * scale), Math::round(texture_size.y * scale));
+        }
+    }
+    return icon_size;
+}
+
+void OrchestratorEditorGraphPin::_update_icon_control() {
+    const int icon_width = SceneUtils::get_editor_class_icon_size();
+
+    if (icon_cache.primary) {
+        Ref<Texture2D> type_icon;
+        if (_pin->get_owning_node()->is_type<OScriptNodeSelf>()) {
+            // Hack for when a named script transitions from unnamed to named before save
+            type_icon = _pin->get_owning_node()->get_orchestration()->get_icon();
+        } else {
+            type_icon = SceneUtils::get_class_icon(_pin->get_pin_type_name());
+        }
+
+        icon_cache.primary->set_texture(type_icon);
+        icon_cache.primary->set_custom_minimum_size(_get_icon_scaled_size(type_icon, icon_width));
+    }
+
+    const PropertyInfo property = _pin->get_property_info();
+
+    if (property.type == Variant::ARRAY && property.hint == PROPERTY_HINT_ARRAY_TYPE) {
+        const Ref<Texture2D> element_icon = SceneUtils::get_class_icon(property.hint_string);
+        if (icon_cache.element && element_icon.is_valid()) {
+            icon_cache.element->set_texture(element_icon);
+            icon_cache.element->set_custom_minimum_size(_get_icon_scaled_size(element_icon, icon_width));
+        }
+    }
+
+    if (property.type == Variant::DICTIONARY && property.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
+        const PackedStringArray hints = property.hint_string.split(";");
+
+        const Ref<Texture2D> key_icon = SceneUtils::get_class_icon(hints[0]);
+        if (icon_cache.key && key_icon.is_valid()) {
+            icon_cache.key->set_texture(key_icon);
+            icon_cache.key->set_custom_minimum_size(_get_icon_scaled_size(key_icon, icon_width));
+        }
+
+        const Ref<Texture2D> value_icon = SceneUtils::get_class_icon(hints[1]);
+        if (icon_cache.value && value_icon.is_valid()) {
+            icon_cache.value->set_texture(value_icon);
+            icon_cache.value->set_custom_minimum_size(_get_icon_scaled_size(value_icon, icon_width));
+        }
+    }
+}
+
+Control* OrchestratorEditorGraphPin::_create_icon_cache() {
+    // Clear the container if it's asked to be recreated and exists.
+    // This should free all the child nodes
+    if (icon_cache.container) {
+        icon_cache.container->queue_free();
+    }
+
+    icon_cache.container = memnew(HBoxContainer);
+    icon_cache.container->add_theme_constant_override("separation", 0);
+    icon_cache.container->set_visible(false);
+
+    icon_cache.primary = memnew(TextureRect);
+    icon_cache.primary->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+    icon_cache.primary->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+    icon_cache.primary->set_visible(true);
+    icon_cache.container->add_child(icon_cache.primary);
+
+    const PropertyInfo property = _pin->get_property_info();
+    if (property.type == Variant::ARRAY && property.hint == PROPERTY_HINT_ARRAY_TYPE) {
+        Ref<StyleBoxEmpty> left_empty = memnew(StyleBoxEmpty);
+        left_empty->set_content_margin_all(4);
+        left_empty->set_content_margin(SIDE_RIGHT, 0);
+
+        Label* lbracket = memnew(Label);
+        lbracket->set_text("[");
+        lbracket->set_clip_text(false);
+        lbracket->add_theme_font_size_override("font_size", 15);
+        lbracket->add_theme_stylebox_override("normal", left_empty);
+        icon_cache.container->add_child(lbracket);
+
+        icon_cache.element = memnew(TextureRect);
+        icon_cache.element->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+        icon_cache.element->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        icon_cache.element->set_visible(true);
+        icon_cache.container->add_child(icon_cache.element);
+
+        Ref<StyleBoxEmpty> right_empty = memnew(StyleBoxEmpty);
+        right_empty->set_content_margin_all(4);
+        right_empty->set_content_margin(SIDE_LEFT, 0);
+
+        Label* rbracket = memnew(Label);
+        rbracket->set_text("]");
+        rbracket->set_clip_text(false);
+        rbracket->add_theme_font_size_override("font_size", 15);
+        rbracket->add_theme_stylebox_override("normal", right_empty);
+        rbracket->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
+        icon_cache.container->add_child(rbracket);
+    }
+
+    if (property.type == Variant::DICTIONARY && property.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
+        Ref<StyleBoxEmpty> left_empty = memnew(StyleBoxEmpty);
+        left_empty->set_content_margin_all(4);
+        left_empty->set_content_margin(SIDE_RIGHT, 0);
+
+        Label* lbracket = memnew(Label);
+        lbracket->set_text("[");
+        lbracket->set_clip_text(false);
+        lbracket->add_theme_font_size_override("font_size", 15);
+        lbracket->add_theme_stylebox_override("normal", left_empty);
+        icon_cache.container->add_child(lbracket);
+
+        icon_cache.key = memnew(TextureRect);
+        icon_cache.key->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+        icon_cache.key->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        icon_cache.key->set_visible(true);
+        icon_cache.container->add_child(icon_cache.key);
+
+        Control* c = memnew(Control);
+        c->set_custom_minimum_size(Size2(8, 0) * EDSCALE);
+        icon_cache.container->add_child(c);
+
+        icon_cache.value = memnew(TextureRect);
+        icon_cache.value->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+        icon_cache.value->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        icon_cache.value->set_visible(true);
+        icon_cache.container->add_child(icon_cache.value);
+
+        Ref<StyleBoxEmpty> right_empty = memnew(StyleBoxEmpty);
+        right_empty->set_content_margin_all(4);
+        right_empty->set_content_margin(SIDE_LEFT, 0);
+
+        Label* rbracket = memnew(Label);
+        rbracket->set_text("]");
+        rbracket->set_clip_text(false);
+        rbracket->add_theme_font_size_override("font_size", 15);
+        rbracket->add_theme_stylebox_override("normal", right_empty);
+        rbracket->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
+        icon_cache.container->add_child(rbracket);
+    }
+
+    // Updates icons
+    _update_icon_control();
+
+    return icon_cache.container;
+}
 
 PackedStringArray OrchestratorEditorGraphPin::_get_pin_suggestions() const {
     ERR_FAIL_COND_V(!_pin.is_valid(), {});
@@ -86,36 +254,36 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
     _label->set_v_size_flags(SIZE_SHRINK_CENTER);
     _label->set_text(_get_label_text());
     _label->set_custom_minimum_size(_label->get_text().is_empty() ? Vector2(10, 0) : Vector2());
-    container->add_child(_label);
+
+    if (_pin->is_input()) {
+        Ref<StyleBoxEmpty> empty_sb = memnew(StyleBoxEmpty);
+        empty_sb->set_content_margin_all(4);
+        empty_sb->set_content_margin(SIDE_RIGHT, 8);
+        _label->add_theme_stylebox_override("normal", empty_sb);
+    } else {
+        Ref<StyleBoxEmpty> empty_sb = memnew(StyleBoxEmpty);
+        empty_sb->set_content_margin_all(4);
+        empty_sb->set_content_margin(SIDE_LEFT, 8);
+        _label->add_theme_stylebox_override("normal", empty_sb);
+    }
 
     if (!_pin->is_execution()) {
-
-        Ref<Texture2D> type_icon;
-        if (_pin->get_owning_node()->is_type<OScriptNodeSelf>()) {
-            // Hack for when a named script transitions from unnamed to named before save
-            type_icon = _pin->get_owning_node()->get_orchestration()->get_icon();
-        } else {
-            type_icon = SceneUtils::get_class_icon(_pin->get_pin_type_name());
-        }
-
-        const int icon_width = SceneUtils::get_editor_class_icon_size();
-
-        _icon = memnew(TextureRect);
-        _icon->set_texture(type_icon);
-        _icon->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
-        _icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
-        _icon->set_custom_minimum_size(Vector2i(icon_width, icon_width));
-        _icon->set_visible(false);
+        _icon = _create_icon_cache();
 
         if (ORCHESTRATOR_GET("editor/graph_nodes/show_type_icons", true)) {
             set_icon_visible(true);
         }
+    }
 
-        container->add_child(_icon);
-
-        // For input pins, icon shows on the left of the text
-        if (_pin->is_input()) {
-            container->move_child(_icon, 0);
+    if (_pin->is_input()) {
+        if (_icon) {
+            container->add_child(_icon);
+        }
+        container->add_child(_label);
+    } else {
+        container->add_child(_label);
+        if (_icon) {
+            container->add_child(_icon);
         }
     }
 
@@ -153,8 +321,18 @@ String OrchestratorEditorGraphPin::_get_tooltip_text() {
         return "";
     }
 
+    const PropertyInfo property = _pin->get_property_info();
+
     String tooltip_text = StringUtils::default_if_empty(_pin->get_label(), _pin->get_pin_name()).capitalize();
-    tooltip_text += "\n" + VariantUtils::get_friendly_type_name(_pin->get_type(), true).capitalize();
+    tooltip_text += "\n" + VariantUtils::get_friendly_type_name(property.type, true).capitalize();
+
+    if (property.type == Variant::ARRAY && property.hint == PROPERTY_HINT_ARRAY_TYPE) {
+        tooltip_text += "\nElement: " + property.hint_string;
+    } else if (property.type == Variant::DICTIONARY && property.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
+        const PackedStringArray hints = property.hint_string.split(";");
+        tooltip_text += "\nKey: " + hints[0] + "\nValue: " + hints[1];
+    }
+
 
     if (!_pin->get_property_info().class_name.is_empty()) {
         tooltip_text += "\nClass: " + _pin->get_property_info().class_name;
@@ -185,6 +363,49 @@ void OrchestratorEditorGraphPin::_gui_input(const Ref<InputEvent>& p_event) {
     if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_RIGHT) {
         emit_signal("context_menu_requested", this, mb->get_position());
     }
+}
+
+Object* OrchestratorEditorGraphPin::_make_custom_tooltip(const String& p_for_text) const {
+    MarginContainer* mc = memnew(MarginContainer);
+    mc->add_theme_constant_override("margin_left", 10);
+    mc->add_theme_constant_override("margin_top", 10);
+    mc->add_theme_constant_override("margin_right", 10);
+    mc->add_theme_constant_override("margin_bottom", 10);
+
+    HBoxContainer* hbox = memnew(HBoxContainer);
+    mc->add_child(hbox);
+
+    Control* icon = cast_to<Control>(_icon->duplicate());
+    if (icon) {
+        icon->set_v_size_flags(SIZE_SHRINK_BEGIN);
+        icon->set_visible(true);
+
+        const float texture_size = 32.0 * EDSCALE;
+        const TypedArray<Node> textures = icon->find_children("*", TextureRect::get_class_static(), true, false);
+        for (int i = 0; i < textures.size(); i++) {
+            TextureRect* texture = cast_to<TextureRect>(textures[i]);
+            if (texture) {
+                texture->set_custom_minimum_size(_get_icon_scaled_size(texture->get_texture(), texture_size));
+            }
+        }
+
+        const float label_size = 30.0 * EDSCALE;
+        const TypedArray<Node> labels = icon->find_children("*", Label::get_class_static(), true, false);
+        for (int i = 0; i < labels.size(); i++) {
+            Label* label = cast_to<Label>(labels[i]);
+            if (label) {
+                label->add_theme_font_size_override("font_size", label_size);
+            }
+        }
+
+        hbox->add_child(icon);
+    }
+
+    Label* label = memnew(Label);
+    label->set_text(p_for_text);
+    hbox->add_child(label);
+
+    return mc;
 }
 
 OrchestratorEditorGraphPanel* OrchestratorEditorGraphPin::get_graph() {
@@ -308,15 +529,7 @@ void OrchestratorEditorGraphPin::_notification(int p_what) {
             break;
         }
         case NOTIFICATION_THEME_CHANGED: {
-            if (_icon && _pin.is_valid()) {
-                Ref<Texture2D> type_icon;
-                if (_pin->get_owning_node()->is_type<OScriptNodeSelf>()) {
-                    type_icon = _pin->get_owning_node()->get_orchestration()->get_icon();
-                } else {
-                    type_icon = SceneUtils::get_class_icon(_pin->get_pin_type_name());
-                }
-                _icon->set_texture(type_icon);
-            }
+            _update_icon_control();
             if (_label) {
                 _label->add_theme_color_override("font_color", get_theme_color("font_color", "GraphNode"));
             }
