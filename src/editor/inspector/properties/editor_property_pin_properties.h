@@ -28,6 +28,7 @@ using namespace godot;
 
 /// Forward declarations
 class OrchestratorSelectTypeSearchDialog;
+class OrchestratorEditorTypeSelector;
 
 /// An EditorProperty implementation that works with a TypedArray<Dictionary> collection of
 /// zero or more PropertyInfo objects, allowing the user to set the name and type of each property.
@@ -38,11 +39,10 @@ class OrchestratorEditorPropertyPinProperties : public EditorProperty {
     /// Each slot is mapped to a specific PropertyInfo object by index.
     struct Slot {
         LineEdit* name = nullptr;                //! Property name
-        Button* type = nullptr;                  //! Property type
+        OrchestratorEditorTypeSelector* selector = nullptr;
         HBoxContainer* button_group = nullptr;   //! Button group
     };
 
-    OrchestratorSelectTypeSearchDialog* _dialog = nullptr;   //! Dialog for selecting property types
     MarginContainer* _margin = nullptr;                      //! Margin container for the widgets
     GridContainer* _container = nullptr;                     //! Grid container for all controls
     Button* _add_button = nullptr;                           //! Button for adding a new property
@@ -60,12 +60,10 @@ protected:
     //~ End Wrapped Interface
 
     //~ Begin Signal Handlers
+    void _selector_type_changed(const Dictionary& p_property, int p_index);
     void _add_property();
     void _rename_property(const String& p_name, int p_index);
     void _remove_property(int p_index);
-    void _argument_type_selected(int p_index);
-    void _show_type_selection(int p_index, const String& p_value);
-    void _cleanup_selection();
     void _move_up(int p_index);
     void _move_down(int p_index);
     //~ End Signal Handlers

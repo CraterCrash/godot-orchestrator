@@ -1,0 +1,1131 @@
+[orchestration type="OScript" load_steps=57 format=4 uid="uid://brn3adbqglcbf"]
+
+[obj type="OScriptFunction" id="OScriptFunction_7x18o"]
+guid = "405ABDC3-4DB9-443E-9256-E74AF2D4C260"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_ei45a"]
+function_id = "405ABDC3-4DB9-443E-9256-E74AF2D4C260"
+id = 0
+size = Vector2(29, 41)
+position = Vector2(-740, 560)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_4ux3v"]
+variable_name = &"ints"
+id = 1
+size = Vector2(29, 41)
+position = Vector2(40, 420)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "ints",
+"dv": [],
+"hint": 31,
+"hint_string": "int"
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_r1wix"]
+variable_name = &"ints"
+id = 2
+size = Vector2(29, 41)
+position = Vector2(40, 500)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "ints",
+"dv": [],
+"hint": 31,
+"hint_string": "int"
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_4glre"]
+op = 6
+code = &"+"
+name = &"Addition"
+left_type = 28
+left_type_name = &"Array"
+right_type = 28
+right_type_name = &"Array"
+return_type = 28
+id = 3
+size = Vector2(29, 41)
+position = Vector2(220, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"result",
+"type": 28,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_s6vja"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 4
+size = Vector2(29, 41)
+position = Vector2(580, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_yiong"]
+function_name = &"get_typed_builtin"
+target_type = 28
+flags = 522
+method = {
+"name": &"get_typed_builtin",
+"return": {
+"type": 2
+},
+"flags": 5
+}
+chain = false
+id = 5
+size = Vector2(29, 41)
+position = Vector2(580, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 28,
+"flags": 2058,
+"label": "Array"
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_8wh7s"]
+variable_name = &"ints_concatenated"
+id = 6
+size = Vector2(29, 41)
+position = Vector2(220, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ints_concatenated",
+"type": 28,
+"flags": 2050,
+"dv": [],
+"hint": 31,
+"hint_string": "int"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 1026,
+"dv": [],
+"hint": 31,
+"hint_string": "int"
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_c6cmu"]
+variable_name = &"strings"
+id = 7
+size = Vector2(29, 41)
+position = Vector2(820, 420)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "strings",
+"dv": [],
+"hint": 31,
+"hint_string": "String"
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_osu7n"]
+variable_name = &"strings"
+id = 8
+size = Vector2(29, 41)
+position = Vector2(820, 500)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "strings",
+"dv": [],
+"hint": 31,
+"hint_string": "String"
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_lig0p"]
+op = 6
+code = &"+"
+name = &"Addition"
+left_type = 28
+left_type_name = &"Array"
+right_type = 28
+right_type_name = &"Array"
+return_type = 28
+id = 9
+size = Vector2(29, 41)
+position = Vector2(1000, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"result",
+"type": 28,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_eo20s"]
+variable_name = &"strings_concatenated"
+id = 10
+size = Vector2(29, 41)
+position = Vector2(1000, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"strings_concatenated",
+"type": 28,
+"flags": 2050,
+"dv": [],
+"hint": 31,
+"hint_string": "String"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 1026,
+"dv": [],
+"hint": 31,
+"hint_string": "String"
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_x67b4"]
+function_name = &"get_typed_builtin"
+target_type = 28
+flags = 522
+method = {
+"name": &"get_typed_builtin",
+"return": {
+"type": 2
+},
+"flags": 5
+}
+chain = false
+id = 11
+size = Vector2(29, 41)
+position = Vector2(1380, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 28,
+"flags": 2058,
+"label": "Array"
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_0tyrh"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 12
+size = Vector2(29, 41)
+position = Vector2(1380, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_lig0p"]
+variable_name = &"strings"
+id = 13
+size = Vector2(29, 41)
+position = Vector2(1600, 500)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "strings",
+"dv": [],
+"hint": 31,
+"hint_string": "String"
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_eo20s"]
+op = 6
+code = &"+"
+name = &"Addition"
+left_type = 28
+left_type_name = &"Array"
+right_type = 28
+right_type_name = &"Array"
+return_type = 28
+id = 14
+size = Vector2(29, 41)
+position = Vector2(1780, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"result",
+"type": 28,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_x67b4"]
+variable_name = &"ints"
+id = 15
+size = Vector2(29, 41)
+position = Vector2(1600, 420)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "ints",
+"dv": [],
+"hint": 31,
+"hint_string": "int"
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_0tyrh"]
+variable_name = &"untyped_concatenated"
+id = 16
+size = Vector2(29, 41)
+position = Vector2(1780, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"untyped_concatenated",
+"type": 28,
+"flags": 2050,
+"dv": []
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 1026,
+"dv": []
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_wf4ky"]
+function_name = &"get_typed_builtin"
+target_type = 28
+flags = 522
+method = {
+"name": &"get_typed_builtin",
+"return": {
+"type": 2
+},
+"flags": 5
+}
+chain = false
+id = 17
+size = Vector2(29, 41)
+position = Vector2(2100, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 28,
+"flags": 2058,
+"label": "Array"
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_radjy"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 18
+size = Vector2(29, 41)
+position = Vector2(2100, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_c6cmu"]
+variable_name = &"const_ints_concatenated"
+id = 19
+size = Vector2(29, 41)
+position = Vector2(2520, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"const_ints_concatenated",
+"type": 28,
+"flags": 2050,
+"dv": [],
+"hint": 31,
+"hint_string": "int"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 1026,
+"dv": [],
+"hint": 31,
+"hint_string": "int"
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_eo20s"]
+variable_name = &"const_ints"
+id = 20
+size = Vector2(29, 41)
+position = Vector2(2320, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "const_ints",
+"hint": 31,
+"hint_string": "int"
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_0tyrh"]
+variable_name = &"const_ints"
+id = 21
+size = Vector2(29, 41)
+position = Vector2(2320, 520)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "const_ints",
+"hint": 31,
+"hint_string": "int"
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_wf4ky"]
+op = 6
+code = &"+"
+name = &"Addition"
+left_type = 28
+left_type_name = &"Array"
+right_type = 28
+right_type_name = &"Array"
+return_type = 28
+id = 22
+size = Vector2(29, 41)
+position = Vector2(2520, 460)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"result",
+"type": 28,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_radjy"]
+function_name = &"get_typed_builtin"
+target_type = 28
+flags = 522
+method = {
+"name": &"get_typed_builtin",
+"return": {
+"type": 2
+},
+"flags": 5
+}
+chain = false
+id = 23
+size = Vector2(29, 41)
+position = Vector2(2920, 440)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 28,
+"flags": 2058,
+"label": "Array"
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_xqkso"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 24
+size = Vector2(29, 41)
+position = Vector2(2920, 300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeSequence" id="OScriptNodeSequence_c6cmu"]
+steps = 3
+id = 25
+size = Vector2(29, 41)
+position = Vector2(-500, 560)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"then_0",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"then_1",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"then_2",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_wf4ky"]
+variable_name = &"objects"
+id = 26
+size = Vector2(29, 41)
+position = Vector2(40, 700)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "objects",
+"dv": [],
+"hint": 31,
+"hint_string": "Object"
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_radjy"]
+variable_name = &"objects"
+id = 27
+size = Vector2(29, 41)
+position = Vector2(40, 780)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "objects",
+"dv": [],
+"hint": 31,
+"hint_string": "Object"
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_xqkso"]
+op = 6
+code = &"+"
+name = &"Addition"
+left_type = 28
+left_type_name = &"Array"
+right_type = 28
+right_type_name = &"Array"
+return_type = 28
+id = 28
+size = Vector2(29, 41)
+position = Vector2(220, 720)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"result",
+"type": 28,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_ca0ks"]
+variable_name = &"objects_concatenated"
+id = 29
+size = Vector2(29, 41)
+position = Vector2(220, 600)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"objects_concatenated",
+"type": 28,
+"flags": 2050,
+"dv": [],
+"hint": 31,
+"hint_string": "Object"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 1026,
+"dv": [],
+"hint": 31,
+"hint_string": "Object"
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_7cw2o"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 31
+size = Vector2(29, 41)
+position = Vector2(580, 600)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_c6cmu"]
+function_name = &"get_typed_class_name"
+target_type = 28
+flags = 522
+method = {
+"name": &"get_typed_class_name",
+"return": {
+"type": 21
+},
+"flags": 5
+}
+chain = false
+id = 32
+size = Vector2(29, 41)
+position = Vector2(580, 740)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 28,
+"flags": 2058,
+"label": "Array"
+}, {
+"pin_name": &"return_value",
+"type": 21,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_4mx3o"]
+variable_name = &"examples"
+id = 33
+size = Vector2(29, 41)
+position = Vector2(-140, 1180)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "examples",
+"hint": 31,
+"hint_string": "TypedArrayConcatenationExample"
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_88w4o"]
+variable_name = &"examples"
+id = 34
+size = Vector2(29, 41)
+position = Vector2(-140, 1300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 2050,
+"label": "examples",
+"hint": 31,
+"hint_string": "TypedArrayConcatenationExample"
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_4nq5t"]
+op = 6
+code = &"+"
+name = &"Addition"
+left_type = 28
+left_type_name = &"Array"
+right_type = 28
+right_type_name = &"Array"
+return_type = 28
+id = 35
+size = Vector2(29, 41)
+position = Vector2(80, 1220)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 28,
+"flags": 2
+}, {
+"pin_name": &"result",
+"type": 28,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_xl0wu"]
+variable_name = &"examples_concatenated"
+id = 36
+size = Vector2(29, 41)
+position = Vector2(80, 1100)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"examples_concatenated",
+"type": 28,
+"flags": 2050,
+"hint": 31,
+"hint_string": "TypedArrayConcatenationExample"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 28,
+"dir": 1,
+"flags": 1026,
+"hint": 31,
+"hint_string": "TypedArrayConcatenationExample"
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_x4qyh"]
+function_name = &"get_typed_script"
+target_type = 28
+flags = 522
+method = {
+"name": &"get_typed_script",
+"return": {
+"usage": 131078
+},
+"flags": 5
+}
+chain = false
+id = 37
+size = Vector2(29, 41)
+position = Vector2(440, 1180)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 28,
+"flags": 2058,
+"label": "Array"
+}, {
+"pin_name": &"return_value",
+"dir": 1,
+"flags": 1026,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_0k3wi"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 38
+size = Vector2(29, 41)
+position = Vector2(800, 1100)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeResourcePath" id="OScriptNodeResourcePath_c6cmu"]
+path = "res://scenes/features/typed_array_concatenation_example.torch"
+id = 39
+size = Vector2(29, 41)
+position = Vector2(80, 1340)
+pin_data = Array[Dictionary]([{
+"pin_name": &"path",
+"type": 4,
+"dir": 1,
+"flags": 2050,
+"label": "res://scenes/features/typed_array_concatenation_example.torch",
+"dv": ""
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_osu7n"]
+function_name = &"load"
+method = {
+"name": &"load",
+"return": {
+"type": 24,
+"class_name": &"Resource",
+"hint": 17,
+"hint_string": "Resource"
+},
+"args": [{
+"name": &"path",
+"type": 4
+}]
+}
+id = 40
+size = Vector2(29, 41)
+position = Vector2(640, 1300)
+pin_data = Array[Dictionary]([{
+"pin_name": &"path",
+"type": 4,
+"flags": 2
+}, {
+"pin_name": &"return_value",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"label": "Resource",
+"target_class": "Resource",
+"hint": 17,
+"hint_string": "Resource"
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_lig0p"]
+function_name = &"is_same"
+method = {
+"name": &"is_same",
+"return": {
+"type": 1
+},
+"args": [{
+"name": &"a",
+"usage": 131078
+}, {
+"name": &"b",
+"usage": 131078
+}]
+}
+id = 41
+size = Vector2(29, 41)
+position = Vector2(640, 1180)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"flags": 2,
+"usage": 131078
+}, {
+"pin_name": &"b",
+"flags": 2,
+"usage": 131078
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeComment" id="OScriptNodeComment_c6cmu"]
+title = "TODO"
+background_color = Color(0.9607843160629272, 0.125490203499794, 0.14901961386203766, 0.05098039284348488)
+comments = "GDScript vs Orchestrator Difference
+
+In GDScript, this can be expressed by simply writing:
+  examples_concatenated.get_typed_script() == TypedArrayConcatenatedExample
+
+Unfortunately this requires that we use `is_same` along with a script load.
+This works, but its overly verbose, and highlights the need to improve the operator node."
+attached_nodes = PackedInt64Array(41, 40, 39, 37, 36, 38, 35)
+id = 42
+size = Vector2(913, 568)
+position = Vector2(40, 880)
+
+[obj type="OScriptVariable" id="OScriptVariable_lnixc"]
+name = "const_ints"
+category = "Default"
+constant = true
+info = {
+"name": &"const_ints",
+"type": 28,
+"hint": 31,
+"hint_string": "int"
+}
+default_value = [1, 2, 3]
+
+[obj type="OScriptVariable" id="OScriptVariable_2ityq"]
+name = "ints"
+category = "Default"
+info = {
+"name": &"ints",
+"type": 28,
+"hint": 31,
+"hint_string": "int"
+}
+default_value = [1, 2, 3]
+
+[obj type="OScriptVariable" id="OScriptVariable_84038"]
+name = "strings"
+category = "Default"
+info = {
+"name": &"strings",
+"type": 28,
+"hint": 31,
+"hint_string": "String"
+}
+default_value = Array[String](["4", "5", "6"])
+
+[obj type="OScriptVariable" id="OScriptVariable_1e22q"]
+name = "ints_concatenated"
+category = "Default"
+info = {
+"name": &"ints_concatenated",
+"type": 28,
+"hint": 31,
+"hint_string": "int"
+}
+default_value = []
+
+[obj type="OScriptVariable" id="OScriptVariable_wf4ky"]
+name = "strings_concatenated"
+category = "Default"
+info = {
+"name": &"strings_concatenated",
+"type": 28,
+"hint": 31,
+"hint_string": "String"
+}
+default_value = Array[String]([])
+
+[obj type="OScriptVariable" id="OScriptVariable_xqkso"]
+name = "untyped_concatenated"
+category = "Default"
+info = {
+"name": &"untyped_concatenated",
+"type": 28
+}
+default_value = []
+
+[obj type="OScriptVariable" id="OScriptVariable_ca0ks"]
+name = "const_ints_concatenated"
+category = "Default"
+info = {
+"name": &"const_ints_concatenated",
+"type": 28,
+"hint": 31,
+"hint_string": "int"
+}
+default_value = []
+
+[obj type="OScriptVariable" id="OScriptVariable_yxk1s"]
+name = "objects"
+category = "Default"
+info = {
+"name": &"objects",
+"type": 28,
+"hint": 31,
+"hint_string": "Object"
+}
+default_value = []
+
+[obj type="OScriptVariable" id="OScriptVariable_doisc"]
+name = "objects_concatenated"
+category = "Default"
+info = {
+"name": &"objects_concatenated",
+"type": 28,
+"hint": 31,
+"hint_string": "Object"
+}
+default_value = []
+
+[obj type="OScriptVariable" id="OScriptVariable_7x18o"]
+name = "examples"
+category = "Default"
+info = {
+"name": &"examples",
+"type": 28,
+"hint": 31,
+"hint_string": "TypedArrayConcatenationExample"
+}
+default_value = []
+
+[obj type="OScriptVariable" id="OScriptVariable_c0gsq"]
+name = "examples_concatenated"
+category = "Default"
+info = {
+"name": &"examples_concatenated",
+"type": 28,
+"hint": 31,
+"hint_string": "TypedArrayConcatenationExample"
+}
+default_value = []
+
+[obj type="OScriptVariable" id="OScriptVariable_c6cmu"]
+name = "x"
+category = "Default"
+info = {
+"name": &"x",
+"type": 27,
+"hint": 38,
+"hint_string": "Utils;Variant"
+}
+default_value = {}
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_lnixc"), SubResource("OScriptVariable_2ityq"), SubResource("OScriptVariable_84038"), SubResource("OScriptVariable_1e22q"), SubResource("OScriptVariable_wf4ky"), SubResource("OScriptVariable_xqkso"), SubResource("OScriptVariable_ca0ks"), SubResource("OScriptVariable_yxk1s"), SubResource("OScriptVariable_doisc"), SubResource("OScriptVariable_7x18o"), SubResource("OScriptVariable_c0gsq"), SubResource("OScriptVariable_c6cmu")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_7x18o")])
+connections = Array[int]([1, 0, 3, 0, 6, 0, 4, 0, 6, 1, 5, 0, 25, 0, 6, 0, 7, 0, 9, 0, 4, 0, 10, 0, 10, 1, 11, 0, 10, 0, 12, 0, 15, 0, 14, 0, 12, 0, 16, 0, 16, 1, 17, 0, 16, 0, 18, 0, 18, 0, 19, 0, 20, 0, 22, 0, 19, 1, 23, 0, 19, 0, 24, 0, 0, 0, 25, 0, 26, 0, 28, 0, 25, 1, 29, 0, 29, 0, 31, 0, 29, 1, 32, 0, 33, 0, 35, 0, 25, 2, 36, 0, 36, 1, 37, 0, 36, 0, 38, 0, 39, 0, 40, 0, 37, 0, 41, 0, 2, 0, 3, 1, 5, 0, 4, 1, 3, 0, 6, 1, 8, 0, 9, 1, 9, 0, 10, 1, 11, 0, 12, 1, 13, 0, 14, 1, 14, 0, 16, 1, 17, 0, 18, 1, 22, 0, 19, 1, 21, 0, 22, 1, 23, 0, 24, 1, 27, 0, 28, 1, 28, 0, 29, 1, 32, 0, 31, 1, 34, 0, 35, 1, 35, 0, 36, 1, 41, 0, 38, 1, 40, 0, 41, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_ei45a"), SubResource("OScriptNodeVariableGet_4ux3v"), SubResource("OScriptNodeVariableGet_r1wix"), SubResource("OScriptNodeOperator_4glre"), SubResource("OScriptNodeCallBuiltinFunction_s6vja"), SubResource("OScriptNodeCallMemberFunction_yiong"), SubResource("OScriptNodeVariableSet_8wh7s"), SubResource("OScriptNodeVariableGet_c6cmu"), SubResource("OScriptNodeVariableGet_osu7n"), SubResource("OScriptNodeOperator_lig0p"), SubResource("OScriptNodeVariableSet_eo20s"), SubResource("OScriptNodeCallMemberFunction_x67b4"), SubResource("OScriptNodeCallBuiltinFunction_0tyrh"), SubResource("OScriptNodeVariableGet_lig0p"), SubResource("OScriptNodeOperator_eo20s"), SubResource("OScriptNodeVariableGet_x67b4"), SubResource("OScriptNodeVariableSet_0tyrh"), SubResource("OScriptNodeCallMemberFunction_wf4ky"), SubResource("OScriptNodeCallBuiltinFunction_radjy"), SubResource("OScriptNodeVariableSet_c6cmu"), SubResource("OScriptNodeVariableGet_eo20s"), SubResource("OScriptNodeVariableGet_0tyrh"), SubResource("OScriptNodeOperator_wf4ky"), SubResource("OScriptNodeCallMemberFunction_radjy"), SubResource("OScriptNodeCallBuiltinFunction_xqkso"), SubResource("OScriptNodeSequence_c6cmu"), SubResource("OScriptNodeVariableGet_wf4ky"), SubResource("OScriptNodeVariableGet_radjy"), SubResource("OScriptNodeOperator_xqkso"), SubResource("OScriptNodeVariableSet_ca0ks"), SubResource("OScriptNodeCallBuiltinFunction_7cw2o"), SubResource("OScriptNodeCallMemberFunction_c6cmu"), SubResource("OScriptNodeVariableGet_4mx3o"), SubResource("OScriptNodeVariableGet_88w4o"), SubResource("OScriptNodeOperator_4nq5t"), SubResource("OScriptNodeVariableSet_xl0wu"), SubResource("OScriptNodeCallMemberFunction_x4qyh"), SubResource("OScriptNodeCallBuiltinFunction_0k3wi"), SubResource("OScriptNodeResourcePath_c6cmu"), SubResource("OScriptNodeCallBuiltinFunction_osu7n"), SubResource("OScriptNodeCallBuiltinFunction_lig0p"), SubResource("OScriptNodeComment_c6cmu")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

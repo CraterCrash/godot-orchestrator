@@ -1263,15 +1263,6 @@ bool OrchestratorEditorGraphPanel::_can_promote_pin_to_variable(OrchestratorEdit
 }
 
 void OrchestratorEditorGraphPanel::_promote_pin_to_variable(OrchestratorEditorGraphPin* p_pin) {
-    // todo:
-    //  For enum pins, like Switch On Direction, promotion sets the variable type properly but
-    //  the default values are not correctly sourced. This is because it gets set with a
-    //  classification of "class_enum:ClockDirection" when it should be "enum:ClockDirection".
-    //  .
-    //  In addition, size_flags_horizontal on promotion sets the classification to "bitfield:"
-    //  which means the variable declaration is broken, too. It should have been set to
-    //  "class_bitfield:Control.SizeFlags" for the inspector to render properly.
-
     ERR_FAIL_NULL_MSG(p_pin, "Cannot promote pin to a variable with an invalid pin reference");
     ERR_FAIL_COND_MSG(!_can_promote_pin_to_variable(p_pin), "Pin is not eligible for promotion to variable");
 
@@ -1291,12 +1282,8 @@ void OrchestratorEditorGraphPanel::_promote_pin_to_variable(OrchestratorEditorGr
         options.context.variable_name = variable->get_variable_name();
         options.position = pin_position + Vector2(250, 0) * (is_input ? -1 : 1);
 
-        ClassificationParser parser;
-        if (parser.parse(p_pin->get_property_info())) {
-            variable->set_classification(parser.get_classification());
-        }
-
         variable->set_info(p_pin->get_property_info());
+
         variable->set_default_value(p_pin->_pin->get_effective_default_value());
 
         variable->emit_changed();
@@ -2125,8 +2112,6 @@ void OrchestratorEditorGraphPanel::_drop_data_files_as_exported_variables(const 
 
         variable->set_exported(true);
         variable->set_info(property);
-        variable->set_classification("class:" + res->get_class());
-
         emit_signal("nodes_changed");
 
         _set_edited(true);
@@ -2653,7 +2638,7 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
             menu->add_item("Get " + variable_name, callable_mp_this(_drop_data_variable)
                 .bind(variable_name, spawn_position, false, false));
 
-            if (variable->get_variable_type() == Variant::OBJECT) {
+            if (variable->get_info().type == Variant::OBJECT) {
                 menu->add_item("Get " + variable_name + " with validation",
                     callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, true, false));
             }

@@ -1,0 +1,11 @@
+[orchestration type="OScript" script_class="TypedArrayConcatenationExample" load_steps=2 format=4 uid="uid://xj6q4fklvg0c"]
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[resource]
+base_type = &"RefCounted"
+class_name = &"TypedArrayConcatenationExample"
+brief_description = "Empty template suitable for all Objects"
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

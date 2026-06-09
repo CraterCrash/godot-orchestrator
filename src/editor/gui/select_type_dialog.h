@@ -35,11 +35,7 @@ class OrchestratorSelectTypeSearchDialog : public OrchestratorEditorSearchDialog
         FT_RESOURCES = 7
     };
 
-    /// Forward declaration
-    struct SearchItemSortPath;
-
     HashSet<StringName> _exclusions;                  //! Set of types to be excluded
-    Vector<String> _variant_type_names;               //! All valid variant type names
     bool _is_base_type_node = false;                  //! Specifies if base type is a Node
     bool _allow_abstract_types = false;               //! Allow selecting abstract types
     String _base_type;                                //! The base type
@@ -48,25 +44,34 @@ class OrchestratorSelectTypeSearchDialog : public OrchestratorEditorSearchDialog
     String _data_suffix;                              //! Specifies the data suffix for history/favorite tracking
     String _title;                                    //! The desired title
 
-    /// Creates the class hierarchy path, i.e. "Parent/Child/GrandChild"
-    /// @param p_class the class
-    /// @return the path
-    String _create_class_hierarchy_path(const String& p_class);
+    PropertyInfo _string_to_property(const String& p_value) const;
+    String _property_to_string(const PropertyInfo& p_property) const;
+    String _decode_property_line(const String& p_value) const;
 
-    /// Gets the class hierarchy for the specified class.
-    /// The results are ordered from eldest ancestor to the given class.
-    /// @param p_class the class to get the hierarchy for
-    /// @return the class hierarchy
+    String _get_icon_name(const String& p_name, const String& p_fallback = String());
+
+    String _create_class_hierarchy_path(const String& p_class);
     PackedStringArray _get_class_hierarchy(const String& p_class);
 
-    /// Get the class hierarchy search items
-    /// @param p_class the class
-    /// @param r_cache the search item cache
-    /// @param p_root the root search item
-    Vector<Ref<SearchItem>> _get_class_hierarchy_search_items(const String& p_class, HashMap<String, Ref<SearchItem>>& r_cache, const Ref<SearchItem>& p_root);
+    void _build_basic_type_items(Vector<Ref<SearchItem>>& r_items, const Ref<SearchItem>& p_parent);
+    void _build_object_type_items(Vector<Ref<SearchItem>>& r_items, const Ref<SearchItem>& p_parent);
+    void _build_class_children(const String& p_class_name, const Ref<SearchItem>& p_parent, const HashMap<String, PackedStringArray>& p_children_by_parent, Vector<Ref<SearchItem>>& r_items);
+    void _build_global_enumeration_items(Vector<Ref<SearchItem>>& r_items, Ref<SearchItem>& r_parent, const Ref<SearchItem>& p_root);
+    void _build_global_bitfield_items(Vector<Ref<SearchItem>>& r_items, Ref<SearchItem>& r_parent, const Ref<SearchItem>& p_root);
+
+    static Ref<SearchItem> _make_item(
+        const String& p_name,
+        const String& p_text,
+        const String& p_path,
+        const Ref<SearchItem>& p_parent,
+        const PropertyInfo&& p_property,
+        const String& p_icon = String(),
+        bool p_selectable = true);
+
+    Ref<SearchItem> _get_search_item_by_property(const PropertyInfo& p_property) const;
 
 protected:
-    void static _bind_methods() { }
+    void static _bind_methods();
 
     //~ Begin OrchestratorEditorSearchDialog Interface
     bool _is_preferred(const String& p_type) const override;
@@ -89,23 +94,16 @@ public:
     void popup_create(bool p_dont_clear, bool p_replace_mode, const String& p_current_type, const String& p_current_name) override;
     //~ End OrchestratorEditorSearchDialog Interface
 
-    /// Get the selected type from the dialog
-    /// @return the selected type
-    String get_selected_type() const;
+    PropertyInfo get_selected() const;
 
-    /// Sets the base type for the objects in the search dialog
-    /// @param p_base_type
     void set_base_type(const String& p_base_type);
-
-    /// Sets the data suffix for history and favorite tracking
-    /// @param p_data_suffix the data file suffix
+    String get_base_type() const { return _base_type; }
     void set_data_suffix(const String& p_data_suffix) { _data_suffix = p_data_suffix; }
-
-    /// Sets whether abstract types should be selectable
-    /// @param p_allow_abstract_types true to allow selecting abstract types
+    String get_data_suffix() const { return _data_suffix; }
     void set_allow_abstract_types(bool p_allow_abstract_types) { _allow_abstract_types = p_allow_abstract_types; }
-
-    /// Sets the dialog's title
-    /// @param p_title the title to be used
+    bool is_allow_abstract_types() const { return _allow_abstract_types; }
     void set_popup_title(const String& p_title) { _title = p_title; }
+    String get_popup_title() const { return _title; }
+    void set_exclusions(const HashSet<StringName>& p_exclusions) { _exclusions = p_exclusions; }
+    HashSet<StringName> get_exclusions() const { return _exclusions; }
 };

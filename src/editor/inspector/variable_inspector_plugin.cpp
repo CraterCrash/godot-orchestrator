@@ -17,10 +17,37 @@
 #include "editor/inspector/variable_inspector_plugin.h"
 
 #include "common/macros.h"
-#include "editor/inspector/properties/editor_property_variable_classification.h"
+#include "editor/inspector/properties/editor_property_type.h"
 #include "orchestration/variable.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
+
+class OScriptVariableConstraintProvider : public OrchestratorEditorTypeConstraintProvider {
+    Ref<OScriptVariable> _variable;
+
+public:
+    bool is_key_locked() const override {
+        if (_variable.is_valid()) {
+            const Variant value = _variable->get_default_value();
+            if (value.get_type() == Variant::DICTIONARY) {
+                const Dictionary& dict = value;
+                return !dict.is_empty();
+            }
+        }
+        return false;
+    }
+
+    bool is_value_locked() const override {
+        return is_key_locked();
+    }
+
+    PackedStringArray get_exclusions() const override {
+        return {};
+    }
+
+    explicit OScriptVariableConstraintProvider(const Ref<OScriptVariable>& p_variable)
+        : _variable(p_variable) {}
+};
 
 bool OrchestratorEditorInspectorPluginVariable::_can_handle(Object* p_object) const {
     return p_object && p_object->get_class() == OScriptVariable::get_class_static();
@@ -34,25 +61,13 @@ bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object
         return false;
     }
 
-    if (p_name.match("classification")) {
-        OrchestratorEditorPropertyVariableClassification* editor = memnew(OrchestratorEditorPropertyVariableClassification);
-        _classification = editor;
+    if (p_name.match("info")) {
+        OrchestratorEditorPropertyType* editor = memnew(OrchestratorEditorPropertyType);
+        editor->setup("variable_type", true);
+        editor->set_constraint_provider(std::make_unique<OScriptVariableConstraintProvider>(variable));
         add_property_editor(p_name, editor, true, "Variable Type");
         return true;
     }
 
     return false;
-}
-
-void OrchestratorEditorInspectorPluginVariable::edit_classification(Object* p_object) {
-    Ref<OScriptVariable> variable = cast_to<OScriptVariable>(p_object);
-    if (variable.is_null()) {
-        return;
-    }
-
-    // This is done to clear and reset the editor interface
-    EI->edit_node(nullptr);
-    EI->edit_resource(variable);
-
-    _classification->edit();
 }

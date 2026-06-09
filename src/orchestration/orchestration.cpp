@@ -388,11 +388,6 @@ void Orchestration::set_edited(bool p_edited) {
 }
 
 void Orchestration::post_initialize() {
-    // Initialize variables
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _variables) {
-        E.value->post_initialize();
-    }
-
     // Initialize nodes
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
         E.value->post_initialize();
@@ -1097,7 +1092,6 @@ Ref<OScriptVariable> Orchestration::create_variable(const StringName& p_name, Va
     variable->_info = property;
     variable->_default_value = VariantUtils::make_default(property.type);
     variable->_category = "Default";
-    variable->_classification = "type:" + Variant::get_type_name(property.type);
     variable->_info.type = property.type;
     variable->_info.hint = PROPERTY_HINT_NONE;
     variable->_info.hint_string = "";
@@ -1119,7 +1113,7 @@ Ref<OScriptVariable> Orchestration::duplicate_variable(const StringName& p_name)
 
     String new_name = NameUtils::create_unique_name(p_name, get_variable_names());
 
-    Ref<OScriptVariable> new_variable = create_variable(new_name, old_variable->get_variable_type());
+    Ref<OScriptVariable> new_variable = create_variable(new_name, old_variable->get_info().type);
     ERR_FAIL_COND_V_MSG(!new_variable.is_valid(), {}, "Failed to create a new variable with name: " + new_name);
     new_variable->copy_persistent_state(old_variable);
 
@@ -1207,10 +1201,7 @@ Ref<OScriptVariable> Orchestration::promote_to_variable(const Ref<OScriptNodePin
 
     Ref<OScriptVariable> variable = create_variable(name);
     if (variable.is_valid()) {
-        ClassificationParser parser;
-        if (parser.parse(p_pin->get_property_info())) {
-            variable->set_classification(parser.get_classification());
-        }
+        variable->set_info(p_pin->get_property_info());
         variable->set_default_value(p_pin->get_effective_default_value());
 
         variable->emit_changed();

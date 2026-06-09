@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b5ha6v4iso3u5"]
+
+[ext_resource type="Script" uid="uid://dt1344vhwuksj" path="res://scenes/features/typed_dictionary_implicit_cast_param.torch" id="1_luh3j"]
+
+[node name="TypedDictionaryImplicitCastParam" type="Node" unique_id=322415163]
+script = ExtResource("1_luh3j")

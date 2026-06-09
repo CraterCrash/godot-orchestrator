@@ -20,14 +20,9 @@
 
 using namespace godot;
 
-/// Forward declarations
-class OrchestratorEditorPropertyVariableClassification;
-
 /// An EditorInspectorPlugin that handles selecting the variable type for OScriptVariable objects
 class OrchestratorEditorInspectorPluginVariable : public EditorInspectorPlugin {
     GDCLASS(OrchestratorEditorInspectorPluginVariable, EditorInspectorPlugin);
-
-    mutable OrchestratorEditorPropertyVariableClassification* _classification = nullptr;
 
 protected:
     static void _bind_methods() { }
@@ -37,8 +32,4 @@ public:
     bool _can_handle(Object* p_object) const override;
     bool _parse_property(Object* p_object, Variant::Type p_type, const String& p_name, PropertyHint p_hint, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage, bool p_wide) override;
     //~ End EditorInspectorPlugin Interface
-
-    /// Allows external callers to edit the currently active variable's classification
-    /// @param p_object the object to edit
-    void edit_classification(Object* p_object);
 };

@@ -17,10 +17,23 @@
 #include "orchestration/variable.h"
 
 #include "api/extension_db.h"
+#include "common/dictionary_utils.h"
 #include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "script/script_server.h"
+
+class ClassificationParser {
+protected:
+    PropertyInfo _property;
+    String _classification;
+    bool _convert_default_value = false;
+
+public:
+    bool parse(const String& p_classification);
+    PropertyInfo get_property() const { return _property; }
+    bool is_default_value_converted() const { return _convert_default_value; }
+};
 
 bool ClassificationParser::parse(const String& p_classification) {
     _classification = p_classification;
@@ -142,31 +155,14 @@ bool ClassificationParser::parse(const String& p_classification) {
     return true;
 }
 
-bool ClassificationParser::parse(const PropertyInfo& p_property) {
-    _property = p_property;
-
-    // Reset classification
-    _classification = "";
-
-    if (PropertyUtils::is_class_enum(_property)) {
-        // Class enum type
-        _classification = vformat("class_enum:%s", _property.class_name);
-    } else if (PropertyUtils::is_class_bitfield(_property)) {
-        // Class bitfield type
-        _classification = vformat("class_bitfield:%s", _property.class_name);
-    } else if (PropertyUtils::is_enum(_property)) {
-        // Enum
-        _classification = vformat("enum:%s", _property.class_name);
-    } else if (PropertyUtils::is_bitfield(_property)) {
-        // Bitfield
-        _classification = vformat("bitfield:%s", _property.class_name);
-    } else if (PropertyUtils::is_class(_property)) {
-        // Class
-        _classification = vformat("class:%s", _property.class_name);
-    } else {
-        // Basic type
-        _classification = vformat("type:%s", Variant::get_type_name(_property.type));
+static bool parse_classification(const String& p_value, PropertyInfo& r_property, bool& r_convert) {
+    ClassificationParser parser;
+    if (!parser.parse(p_value)) {
+        return false;
     }
+
+    r_property = parser.get_property();
+    r_convert = parser.is_default_value_converted();
 
     return true;
 }
@@ -174,26 +170,117 @@ bool ClassificationParser::parse(const PropertyInfo& p_property) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// OScriptVariable
 
+void OScriptVariable::_get_property_list(List<PropertyInfo>* r_properties) const {
+    r_properties->push_back(PropertyInfo(Variant::STRING, "classification", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE));
+    r_properties->push_back(PropertyInfo(Variant::INT, "type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE));
+}
+
+bool OScriptVariable::_set(const StringName& p_name, const Variant& p_value) {
+    if (p_name.match("classification")) {
+
+        PropertyInfo property;
+        bool converted;
+        if (parse_classification(p_value, property, converted)) {
+            if (converted) {
+                _convert_default_value(property.type);
+            }
+        }
+
+        _info.type = property.type;
+        _info.hint = property.hint;
+        _info.hint_string = property.hint_string;
+        _info.class_name = property.class_name;
+        _info.usage = property.usage | PROPERTY_USAGE_SCRIPT_VARIABLE;
+
+        notify_property_list_changed();
+        emit_changed();
+        return true;
+
+    } else if (p_name.match("type")) {
+        Variant::Type value = VariantUtils::to_type(p_value);
+        if (_info.type != value) {
+            _info.type = value;
+
+            if (_default_value.get_type() != _info.type) {
+                set_default_value(VariantUtils::make_default(_info.type));
+            }
+
+            emit_changed();
+            notify_property_list_changed();
+        }
+        return true;
+    }
+    return false;
+}
+
 void OScriptVariable::_validate_property(PropertyInfo& p_property) const {
     if (p_property.name.match("default_value")) {
+        if (PropertyUtils::is_variant(_info)) {
+            p_property.usage |= PROPERTY_USAGE_READ_ONLY;
+            return;
+        }
+
+        if (_info.type == Variant::ARRAY) {
+            if (_info.hint == PROPERTY_HINT_ARRAY_TYPE) {
+                // Array[type]
+                if (ClassDB::is_parent_class(_info.hint_string, "Object")) {
+                    p_property.usage |= PROPERTY_USAGE_READ_ONLY;
+                }
+
+                p_property.type = _info.type;
+                p_property.hint = _info.hint;
+                p_property.hint_string = _info.hint_string;
+                p_property.class_name = _info.class_name;
+                return;
+            }
+        }
+
+        if (_info.type == Variant::DICTIONARY) {
+            if (_info.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
+                // Dictionary[key, value]
+                for (const String& type : _info.hint_string.split(";", true)) {
+                    if (ClassDB::is_parent_class(type, "Object")) {
+                        p_property.usage |= PROPERTY_USAGE_READ_ONLY;
+                        break;
+                    }
+                }
+
+                p_property.type = _info.type;
+                p_property.hint = _info.hint;
+                p_property.hint_string = _info.hint_string;
+                p_property.class_name = _info.class_name;
+                return;
+            }
+        }
+
+        if (ClassDB::is_parent_class(_info.class_name, "Node")) {
+            p_property.usage |= PROPERTY_USAGE_READ_ONLY;
+            return;
+        }
+
+        if (ClassDB::is_parent_class(_info.class_name, "Resource")) {
+            p_property.type = _info.type;
+            p_property.class_name = _info.class_name;
+            p_property.hint = _info.hint;
+            p_property.hint_string = _info.hint_string;
+            p_property.usage = _info.usage;
+            return;
+        }
+
+        if (ClassDB::is_parent_class(_info.class_name, "Object")) {
+            p_property.usage |= PROPERTY_USAGE_READ_ONLY;
+            return;
+        }
+
         p_property.type = _info.type;
         p_property.class_name = _info.class_name;
         p_property.hint = _info.hint;
         p_property.hint_string = _info.hint_string;
-        p_property.usage = _info.hint == PROPERTY_HINT_NODE_TYPE
-            ? PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_SCRIPT_VARIABLE
-            : _info.usage;
-    } else if (p_property.name.match("value_list")) {
-        if (_classification.begins_with("custom_")) {
-            const bool is_enum = (_info.hint & PROPERTY_HINT_ENUM) || (_info.usage & PROPERTY_USAGE_CLASS_IS_ENUM);
-            const bool is_bitfield = (_info.hint & PROPERTY_HINT_FLAGS) || (_info.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD);
-            p_property.usage = (is_enum || is_bitfield) ? PROPERTY_USAGE_DEFAULT : PROPERTY_USAGE_NO_EDITOR;
-        }
-        else {
-            p_property.usage = PROPERTY_USAGE_NO_EDITOR;
-        }
+        p_property.usage = _info.usage;
+        p_property.usage &= ~PROPERTY_USAGE_READ_ONLY;
+
     } else if (p_property.name.match("exported")) {
-        if (_exportable) {
+        if (is_exportable()) {
             p_property.usage &= ~PROPERTY_USAGE_READ_ONLY;
         } else {
             p_property.usage |= PROPERTY_USAGE_READ_ONLY;
@@ -202,7 +289,7 @@ void OScriptVariable::_validate_property(PropertyInfo& p_property) const {
 }
 
 bool OScriptVariable::_property_can_revert(const StringName& p_name) const {
-    static Array properties = Array::make("name", "category", "exported", "classification", "default_value", "description", "constant");
+    static Array properties = Array::make("name", "category", "exported", "default_value", "description", "constant", "info");
     return properties.has(p_name);
 }
 
@@ -216,9 +303,6 @@ bool OScriptVariable::_property_get_revert(const StringName& p_name, Variant& r_
     } else if (p_name.match("exported")) {
         r_property = false;
         return true;
-    } else if (p_name.match("classification")) {
-        r_property = "type:bool";
-        return true;
     } else if (p_name.match("default_value")) {
         r_property = VariantUtils::make_default(_info.type);
         return true;
@@ -228,84 +312,61 @@ bool OScriptVariable::_property_get_revert(const StringName& p_name, Variant& r_
     } else if (p_name.match("constant")) {
         r_property = false;
         return true;
+    } else if (p_name.match("info")) {
+        r_property = DictionaryUtils::from_property(PropertyUtils::make_variant(_info.name), true);
+        return true;
     }
     return false;
 }
 
-bool OScriptVariable::_is_exportable_type(const PropertyInfo& p_property) const {
-    // Constants cannot be exported
-    if (_constant) {
-        return false;
-    }
+void OScriptVariable::_set_property_info(const Dictionary& p_property) {
+    set_info(DictionaryUtils::to_property(p_property));
+}
 
-    switch (p_property.type) {
-        // These are all not exportable
-        case Variant::CALLABLE:
-        case Variant::SIGNAL:
-        case Variant::RID:
-            return false;
-
-        // Object has specific circumstances depending on hint string
-        case Variant::OBJECT: {
-            if (!p_property.class_name.is_empty()) {
-                if (ScriptServer::is_global_class(p_property.class_name)) {
-                    const String native_class = ScriptServer::get_global_class_native_base(p_property.class_name);
-                    return ClassDB::is_parent_class(native_class, "Node")
-                        || ClassDB::is_parent_class(native_class, "Resource");
-                }
-
-                return ClassDB::is_parent_class(p_property.class_name, "Node")
-                    || ClassDB::is_parent_class(p_property.class_name, "Resource");
-            }
-
-            if (p_property.hint_string.is_empty()) {
-                return false;
-            }
-
-            if (!ClassDB::is_parent_class(p_property.hint_string, "Node")
-                    && !ClassDB::is_parent_class(p_property.hint_string, "Resource")) {
-                return false;
-            }
-
-            break;
-        }
-
-        default:
-            break;
-    }
-    return true;
+Dictionary OScriptVariable::_get_property_info() const {
+    return DictionaryUtils::from_property(_info, true);
 }
 
 bool OScriptVariable::_convert_default_value(Variant::Type p_new_type) {
+    if (p_new_type == Variant::ARRAY) {
+        if (!_info.hint_string.is_empty()) {
+            Array default_value;
+            if (_info.hint_string == "String") {
+                default_value.set_typed(Variant::STRING, "", Variant());
+                set_default_value(default_value);
+                return true;
+            }
+        }
+    }
+
     set_default_value(VariantUtils::convert(get_default_value(), p_new_type));
     return true;
-}
-
-OScriptVariable::OScriptVariable() {
-    _info.type = Variant::NIL;
-}
-
-void OScriptVariable::post_initialize() {
-    if (_classification.is_empty()) {
-        // Prepares the OScriptVariable for the variable system v2 using classifications
-        _exportable = _is_exportable_type(_info);
-        _classification = vformat("type:%s", Variant::get_type_name(_info.type));
-    }
 }
 
 Orchestration* OScriptVariable::get_orchestration() const {
     return _orchestration;
 }
 
-void OScriptVariable::set_info(const PropertyInfo& p_info) {
-    const StringName name = _info.name;
-    _info = p_info;
-    _info.name = name;
+const PropertyInfo& OScriptVariable::get_info() const {
+    return _info;
+}
+
+void OScriptVariable::set_info(const PropertyInfo& p_property) {
+    _info.type = p_property.type;
+    _info.class_name = p_property.class_name;
+    _info.hint = p_property.hint;
+    _info.hint_string = p_property.hint_string;
+    _info.usage = p_property.usage;
+
+    _convert_default_value(_info.type);
 
     notify_property_list_changed();
     emit_changed();
 }
 
+PropertyInfo OScriptVariable::get_export_info() const {
+    return get_info();
+}
 
 void OScriptVariable::set_variable_name(const String& p_name) {
     if (!_info.name.match(p_name)) {
@@ -322,52 +383,6 @@ void OScriptVariable::set_category(const String& p_category) {
     if (!_category.match(p_category)) {
         _category = p_category;
         emit_changed();
-    }
-}
-
-void OScriptVariable::set_classification(const String& p_classification) {
-    if (!_classification.match(p_classification)) {
-        _classification = p_classification;
-
-        ClassificationParser parser;
-        if (parser.parse(_classification)) {
-            const Variant::Type new_type = parser.get_property().type;
-            if (_default_value.get_type() != Variant::NIL && _default_value.get_type() != new_type) {
-                _convert_default_value(new_type);
-            }
-        }
-
-        const PropertyInfo property = parser.get_property();
-        _info.type = property.type;
-        _info.hint = property.hint;
-        _info.hint_string = property.hint_string;
-        _info.class_name = property.class_name;
-        _info.usage = property.usage | PROPERTY_USAGE_SCRIPT_VARIABLE;
-
-        _exportable = _is_exportable_type(_info);
-
-        notify_property_list_changed();
-        emit_changed();
-    }
-}
-
-void OScriptVariable::set_custom_value_list(const String& p_value_list) {
-    if (!_value_list.match(p_value_list)) {
-        _value_list = p_value_list;
-        emit_changed();
-    }
-}
-
-void OScriptVariable::set_variable_type(const Variant::Type p_type) {
-    if (_info.type != p_type) {
-        _info.type = p_type;
-
-        if (_default_value.get_type() != _info.type) {
-            set_default_value(VariantUtils::make_default(_info.type));
-        }
-
-        emit_changed();
-        notify_property_list_changed();
     }
 }
 
@@ -389,10 +404,57 @@ void OScriptVariable::set_exported(bool p_exported) {
     }
 }
 
+bool OScriptVariable::is_exportable() const {
+    // Constants cannot be exported
+    if (_constant) {
+        return false;
+    }
+
+    switch (_info.type) {
+        // These are all not exportable
+        case Variant::CALLABLE:
+        case Variant::SIGNAL:
+        case Variant::RID:
+            return false;
+
+            // Object has specific circumstances depending on hint string
+        case Variant::OBJECT: {
+            if (!_info.class_name.is_empty()) {
+                if (ScriptServer::is_global_class(_info.class_name)) {
+                    const String native_class = ScriptServer::get_global_class_native_base(_info.class_name);
+                    return ClassDB::is_parent_class(native_class, "Node")
+                        || ClassDB::is_parent_class(native_class, "Resource");
+                }
+
+                return ClassDB::is_parent_class(_info.class_name, "Node")
+                    || ClassDB::is_parent_class(_info.class_name, "Resource");
+            }
+
+            if (_info.hint_string.is_empty()) {
+                return false;
+            }
+
+            if (!ClassDB::is_parent_class(_info.hint_string, "Node")
+                    && !ClassDB::is_parent_class(_info.hint_string, "Resource")) {
+                return false;
+                    }
+
+            break;
+        }
+
+        default:
+            break;
+    }
+    return true;
+}
+
 void OScriptVariable::set_default_value(const Variant& p_default_value) {
     if (_default_value != p_default_value) {
         _default_value = p_default_value;
         emit_changed();
+
+        // This is required so that variable value type is refreshed in inspector
+        notify_property_list_changed();
     }
 }
 
@@ -400,10 +462,8 @@ void OScriptVariable::set_constant(bool p_constant) {
     if (_constant != p_constant) {
         _constant = p_constant;
 
-        _exportable = _is_exportable_type(_info);
-        if (!_exportable && _constant) {
-            _exported = false;
-        }
+        // Constants cannot be exported
+        _exported = _constant ? false : _exported;
 
         notify_property_list_changed();
         emit_changed();
@@ -413,22 +473,30 @@ void OScriptVariable::set_constant(bool p_constant) {
 void OScriptVariable::copy_persistent_state(const Ref<OScriptVariable>& p_other) {
     if (p_other.is_valid()) {
         _category = p_other->_category;
-        _classification = p_other->_classification;
         _constant = p_other->_constant;
         _default_value = p_other->_default_value;
         _description = p_other->_description;
-        _exportable = p_other->_exportable;
         _exported = p_other->_exported;
-        _type_category = p_other->_type_category;
-        _type_subcategory = p_other->_type_subcategory;
-        _value_list = p_other->_value_list;
 
         set_info(p_other->_info);
     }
 }
 
-void OScriptVariable::_bind_methods()
-{
+String OScriptVariable::decode_property(const String& p_value) {
+    if (p_value.begins_with("{")) {
+        return p_value;
+    }
+
+    PropertyInfo property;
+    bool converted = false;
+    if (!parse_classification(p_value, property, converted)) {
+        return "";
+    }
+
+    return UtilityFunctions::var_to_str(DictionaryUtils::from_property(property)).replace("\n", " ");
+}
+
+void OScriptVariable::_bind_methods() {
     // This is read-only to avoid name changes in the inspector, which creates cache issues with the owning script
     ClassDB::bind_method(D_METHOD("set_variable_name", "name"), &OScriptVariable::set_variable_name);
     ClassDB::bind_method(D_METHOD("get_variable_name"), &OScriptVariable::get_variable_name);
@@ -446,24 +514,19 @@ void OScriptVariable::_bind_methods()
     ClassDB::bind_method(D_METHOD("is_exported"), &OScriptVariable::is_exported);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "exported"), "set_exported", "is_exported");
 
-    ClassDB::bind_method(D_METHOD("set_classification", "classification"), &OScriptVariable::set_classification);
-    ClassDB::bind_method(D_METHOD("get_classification"), &OScriptVariable::get_classification);
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "classification"), "set_classification", "get_classification");
-
-    const String types = VariantUtils::to_enum_list();
-    ClassDB::bind_method(D_METHOD("set_variable_type", "type"), &OScriptVariable::set_variable_type);
-    ClassDB::bind_method(D_METHOD("get_variable_type"), &OScriptVariable::get_variable_type);
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "type", PROPERTY_HINT_ENUM, types, PROPERTY_USAGE_STORAGE), "set_variable_type", "get_variable_type");
+    ClassDB::bind_method(D_METHOD("set_property_info", "property"), &OScriptVariable::_set_property_info);
+    ClassDB::bind_method(D_METHOD("get_property_info"), &OScriptVariable::_get_property_info);
+    ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "info"), "set_property_info", "get_property_info");
 
     ClassDB::bind_method(D_METHOD("set_default_value", "value"), &OScriptVariable::set_default_value);
     ClassDB::bind_method(D_METHOD("get_default_value"), &OScriptVariable::get_default_value);
     ADD_PROPERTY(PropertyInfo(Variant::NIL, "default_value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT), "set_default_value", "get_default_value");
 
-    ClassDB::bind_method(D_METHOD("set_custom_value_list", "value_list"), &OScriptVariable::set_custom_value_list);
-    ClassDB::bind_method(D_METHOD("get_custom_value_list"), &OScriptVariable::get_custom_value_list);
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "value_list", PROPERTY_HINT_MULTILINE_TEXT), "set_custom_value_list", "get_custom_value_list");
-
     ClassDB::bind_method(D_METHOD("set_description", "description"), &OScriptVariable::set_description);
     ClassDB::bind_method(D_METHOD("get_description"), &OScriptVariable::get_description);
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT), "set_description", "get_description");
+}
+
+OScriptVariable::OScriptVariable() {
+    _info.type = Variant::NIL;
 }

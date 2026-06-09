@@ -34,63 +34,6 @@
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
 
-void OrchestratorEditorSearchHelpBit::_add_text(const String& p_bbcode) {
-    _help_bit->append_text(p_bbcode);
-}
-
-void OrchestratorEditorSearchHelpBit::_meta_clicked() {
-    // no-op
-}
-
-void OrchestratorEditorSearchHelpBit::set_disabled(bool p_disabled) {
-    _help_bit->set_modulate(Color(1, 1, 1, p_disabled ? 0.5f : 1.0f));
-}
-
-void OrchestratorEditorSearchHelpBit::set_text(const String& p_text) {
-    _text = p_text;
-    _help_bit->clear();
-    _add_text(_text);
-}
-
-void OrchestratorEditorSearchHelpBit::_notification(int p_what) {
-    switch (p_what) {
-        case NOTIFICATION_ENTER_TREE: {
-            _help_bit = memnew(RichTextLabel);
-            _help_bit->set_fit_content(true);
-            _help_bit->set_use_bbcode(true);
-
-            add_child(_help_bit);
-            set_custom_minimum_size(Size2(0, 50));
-
-            _help_bit->connect("meta_clicked", callable_mp_this(_meta_clicked));
-            break;
-        }
-        case NOTIFICATION_THEME_CHANGED: {
-            if (_help_bit) {
-                _help_bit->clear();
-                _help_bit->add_theme_color_override("selection_color", get_theme_color("selection_color", "EditorHelp"));
-
-                _add_text(_text);
-
-                _help_bit->reset_size();
-            }
-            break;
-        }
-        case NOTIFICATION_EXIT_TREE: {
-            if (_help_bit->is_connected("meta_clicked", callable_mp_this(_meta_clicked))) {
-                _help_bit->disconnect("meta_clicked", callable_mp_this(_meta_clicked));
-            }
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// OrchestratorEditorSearchDialog
-
 void OrchestratorEditorSearchDialog::_favorite_selected() {
     TreeItem* item = _favorites->get_selected();
     if (!item) {
@@ -569,7 +512,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             SceneUtils::add_margin_child(rec_vbox, "Recent:", _recent, true);
 
             VBoxContainer* vbox = memnew(VBoxContainer);
-            vbox->set_custom_minimum_size(Size2(300, 0));
+            vbox->set_custom_minimum_size(Size2(300, 0) * EDSCALE);
             vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
             hsplit_container->add_child(vbox);
 

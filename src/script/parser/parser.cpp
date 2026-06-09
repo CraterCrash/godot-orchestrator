@@ -1753,7 +1753,7 @@ OScriptParser::StatementResult OScriptParser::build_variable_get_validated(const
     }
 
     BinaryOpNode* is_object = alloc_node<BinaryOpNode>();
-    is_object->left_operand = create_literal(variable->get_variable_type());
+    is_object->left_operand = create_literal(variable->get_info().type);
     is_object->right_operand = create_literal(Variant::OBJECT);
     is_object->operation = BinaryOpNode::OP_COMP_EQUAL;
     is_object->variant_op = Variant::OP_EQUAL;
@@ -3087,11 +3087,9 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
 
     for (const Ref<OScriptVariable>& variable : p_orchestration->get_variables()) {
         if (variable->is_constant()) {
-            ConstantNode* constant = build_constant_variable(variable);
-            clazz->add_member(constant);
+            clazz->add_member(build_constant_variable(variable));
         } else {
-            VariableNode* node = build_variable(variable);
-            clazz->add_member(node);
+            clazz->add_member(build_variable(variable));
         }
     }
 
@@ -3132,65 +3130,65 @@ OScriptParser::ClassNode* OScriptParser::build_class(Orchestration* p_orchestrat
 }
 
 OScriptParser::ConstantNode* OScriptParser::build_constant_variable(const Ref<OScriptVariable>& p_variable) {
+    if (!p_variable->is_constant()) {
+        push_error("Expected constant variable definition");
+        return alloc_node<ConstantNode>();
+    }
+
     ConstantNode* constant = alloc_node<ConstantNode>();
     constant->identifier = build_identifier(p_variable->get_variable_name());
+    constant->datatype_specifier = build_type(p_variable->get_info());
 
     if (p_variable->get_default_value().get_type() == Variant::NIL) {
         push_error("Expected constant to be assigned an initial value");
-        return constant;
+    } else {
+        constant->initializer = create_expression(p_variable->get_default_value());
     }
 
-    constant->initializer = create_expression(p_variable->get_default_value());
-
-    IdentifierNode* type_name = alloc_node<IdentifierNode>();
-    type_name->name = p_variable->get_variable_type_name();
-
-    TypeNode* type = alloc_node<TypeNode>();
-    type->type_chain.push_back(type_name);
-
-    constant->datatype_specifier = type;
+    #ifdef TOOLS_ENABLED
+    if (!p_variable->get_description().is_empty()) {
+        constant->doc_data.description = p_variable->get_description();
+    }
+    #endif
 
     return constant;
 }
 
 OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVariable>& p_variable) {
-    IdentifierNode* identifier = build_identifier(p_variable->get_variable_name());
+    if (p_variable->is_constant()) {
+        push_error("Expected non-constant variable definition");
+        return alloc_node<VariableNode>();
+    }
 
-    IdentifierNode* type_name = alloc_node<IdentifierNode>();
-    type_name->name = p_variable->get_variable_type_name();
-
-    TypeNode* type = build_type(p_variable->get_info());
-
-    VariableNode* node = alloc_node<VariableNode>();
-    node->identifier = identifier;
-    node->export_info = p_variable->get_info();
-    node->export_info.usage &= ~PROPERTY_USAGE_SCRIPT_VARIABLE;
-    node->datatype_specifier = type;
+    VariableNode* variable = alloc_node<VariableNode>();
+    variable->identifier = build_identifier(p_variable->get_variable_name());
+    variable->export_info = p_variable->get_export_info();
+    variable->export_info.usage &= ~PROPERTY_USAGE_SCRIPT_VARIABLE;
+    variable->datatype_specifier = build_type(p_variable->get_info());
 
     if (p_variable->is_exported()) {
-         AnnotationNode* annotation = memnew(AnnotationNode);
-         annotation->name = "@export";
-         annotation->info = &valid_annotations[annotation->name];
-         annotation->applies_to(AnnotationInfo::TargetKind::VARIABLE);
-         node->annotations.push_back(annotation);
+        AnnotationNode* annotation = memnew(AnnotationNode);
+        annotation->name = "@export";
+        annotation->info = &valid_annotations[annotation->name];
+
+        if (annotation->applies_to(AnnotationInfo::TargetKind::VARIABLE)) {
+            variable->annotations.push_back(annotation);
+        }
     }
 
     if (p_variable->get_default_value().get_type() != Variant::NIL) {
         ExpressionNode* default_value = create_expression(p_variable->get_default_value());
-        if (p_variable->is_constant()) {
-            default_value->is_constant = true;
-        }
-        node->initializer = default_value;
-        node->assignments++;
+        variable->initializer = default_value;
+        variable->assignments++;
     }
 
     #ifdef TOOLS_ENABLED
     if (!p_variable->get_description().is_empty()) {
-        node->doc_data.description = p_variable->get_description();
+        variable->doc_data.description = p_variable->get_description();
     }
     #endif
 
-    return node;
+    return variable;
 }
 
 OScriptParser::SignalNode* OScriptParser::build_signal(const Ref<OScriptSignal>& p_signal) {
@@ -3339,11 +3337,15 @@ OScriptParser::TypeNode* OScriptParser::build_type(const PropertyInfo& p_propert
         }
     } else if (p_property.type == Variant::ARRAY && p_property.hint == PROPERTY_HINT_ARRAY_TYPE) {
         // Typed Array
+        type->type_chain.push_back(build_identifier(Variant::get_type_name(Variant::ARRAY)));
+
         TypeNode* element = alloc_node<TypeNode>();
         element->type_chain.push_back(build_identifier(p_property.hint_string));
         type->container_types.push_back(element);
     } else if (p_property.type == Variant::DICTIONARY && p_property.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
         // Typed Dictionary
+        type->type_chain.push_back(build_identifier(Variant::get_type_name(Variant::DICTIONARY)));
+
         const PackedStringArray parts = p_property.hint_string.split(";", false);
         for (const String& part : parts) {
             TypeNode* container_type = alloc_node<TypeNode>();
