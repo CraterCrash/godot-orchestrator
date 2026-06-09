@@ -28,6 +28,7 @@
 #include "editor/graph/graph_panel.h"
 #include "editor/graph/graph_pin.h"
 #include "editor/graph/graph_pin_factory.h"
+#include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/editable_pin_node.h"
 #include "orchestration/nodes/self.h"
 #include "orchestration/nodes/type_cast.h"
@@ -249,6 +250,11 @@ void OrchestratorEditorGraphNode::_add_pin_requested() {
 void OrchestratorEditorGraphNode::_create_indicators() {
     if (get_graph()->is_bookmarked(this)) {
         _add_indicator("Anchor", "This node is bookmarked");
+    }
+
+    const Ref<OScriptNodeCallFunction> call_func = _node;
+    if (call_func.is_valid() && call_func->is_awaited()) {
+        _add_indicator("Timer", "Awaits for the node as a coroutine.");
     }
 
     if (_node->get_flags().has_flag(OrchestrationGraphNode::DEVELOPMENT_ONLY)) {

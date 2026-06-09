@@ -466,6 +466,14 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
         menu->add_item("Add Option Pin", callable_mp_this(_add_node_pin).bind(p_node));
     }
 
+    if (call_function.is_valid()) {
+        menu->add_separator("Settings");
+        menu->add_check_item("Await Function", callable_mp_lambda(this, [this, call_function]() {
+            call_function->set_awaited(!call_function->is_awaited());
+            _set_edited(true);
+        }), call_function->is_awaited(), false);
+    }
+
     menu->add_separator("Organization");
 
     GraphFrame* parent_frame = get_element_frame(p_node->get_name());
