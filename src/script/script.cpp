@@ -626,6 +626,17 @@ void* OScript::_instance_create(Object* p_object) const {
         }
     }
 
+    // `_new` creates the instance up-front so constructor args reach `_init` (GH-1431),
+    // then calls `set_script`, which routes back here. Reuse that instance rather than
+    // creating a second one, which would invoke `_init` again (with no args).
+    {
+        MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+        HashMap<Object*, OScriptInstanceBase*>::Iterator it = instance_script_instances.find(p_object);
+        if (it && !it->value->is_placeholder()) {
+            return it->value->get_instance_info();
+        }
+    }
+
     GDExtensionCallError err;
     OScriptInstance* instance = _create_instance(nullptr, 0, p_object, err);
     return instance ? instance->get_instance_info() : nullptr;
