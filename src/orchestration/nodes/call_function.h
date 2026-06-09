@@ -58,6 +58,7 @@ protected:
     int _vararg_count = 0;                               //! Variable argument count
     bool _chain = false;                                 //! If the node should chain function calls
     bool _chainable = false;                             //! Whether the node is chainable
+    bool _await = false;                                 //! Whether function is awaited by the runtime
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -126,6 +127,9 @@ public:
     //~ End OScriptEditablePinNode Interface
 
     bool is_chained() const { return _chain; }
+
+    bool is_awaited() const { return _await; }
+    void set_awaited(bool p_awaited);
 
     /// Get the Godot method object.
     /// @return the available Godot MethodInfo
@@ -299,6 +303,7 @@ class OScriptNodeCallStaticFunction : public OScriptNode {
     StringName _class_name;
     StringName _method_name;
     MethodInfo _method;
+    bool _await = false;
 
 protected:
     static void _bind_methods() { }
@@ -325,4 +330,7 @@ public:
     StringName get_target_class_name() const { return _class_name; }
     StringName get_target_method_name() const { return _method_name; }
     MethodInfo get_target_method() const { return _method; }
+
+    bool is_awaited() const { return _await; }
+    void set_awaited(bool p_awaited);
 };
