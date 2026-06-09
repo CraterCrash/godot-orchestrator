@@ -68,7 +68,8 @@ namespace SceneUtils {
     }
 
     bool has_editor_icon(const String& p_icon_name) {
-        return EI->get_editor_main_screen()->has_theme_icon(p_icon_name);
+        return EI->get_editor_main_screen()->has_theme_icon(p_icon_name) ||
+            EI->get_editor_main_screen()->has_theme_icon(p_icon_name, "EditorIcons");
     }
 
     Color get_editor_color(const String& p_color_name, const String& p_category) {

@@ -22,10 +22,22 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/variant_utils.h"
+#include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/gui/select_type_dialog.h"
+#include "editor/inspector/properties/type_selector.h"
 
 #include <godot_cpp/classes/v_box_container.hpp>
+
+void OrchestratorEditorPropertyPinProperties::_selector_type_changed(const Dictionary& p_property, int p_index) {
+    const PropertyInfo property = DictionaryUtils::to_property(p_property);
+    _properties.write[p_index].type = property.type;
+    _properties.write[p_index].class_name = property.class_name;
+    _properties.write[p_index].hint = property.hint;
+    _properties.write[p_index].hint_string = property.hint_string;
+    _properties.write[p_index].usage = property.usage;
+    _set_properties();
+}
 
 void OrchestratorEditorPropertyPinProperties::_add_property() {
     PackedStringArray existing_names;
@@ -51,72 +63,6 @@ void OrchestratorEditorPropertyPinProperties::_rename_property(const String& p_n
 
 void OrchestratorEditorPropertyPinProperties::_remove_property(int p_index) {
     emit_signal("remove", p_index);
-}
-
-void OrchestratorEditorPropertyPinProperties::_argument_type_selected(int p_index) {
-    // The dialog outputs selected values in encoded formats:
-    //  type:<basic_type>
-    //  class:<class_name>
-    //  enum:<enum_name>
-    //  bitfield:<bitfield_name>
-    //  class_enum:<class_name>.<enum_name>
-    //  class_bitfield:<class_name>.<bitfield_name>
-
-    const String selected_type = _dialog->get_selected_type();
-    if (!selected_type.contains(":")) {
-        return;
-    }
-
-    const PackedStringArray parts = selected_type.split(":");
-
-    const String& classification = parts[0];
-    if (classification.match("type")) {
-        for (int i = 0; i < Variant::VARIANT_MAX; i++) {
-            Variant::Type type = VariantUtils::to_type(i);
-            if (Variant::get_type_name(type).match(parts[1])) {
-                uint32_t usage = PROPERTY_USAGE_DEFAULT;
-                if (type == Variant::NIL) {
-                    usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
-                }
-
-                _properties.write[p_index].type = type;
-                _properties.write[p_index].class_name = "";
-                _properties.write[p_index].usage = usage;
-                break;
-            }
-        }
-    } else if (classification.match("class")) {
-        _properties.write[p_index].type = Variant::OBJECT;
-        _properties.write[p_index].class_name = parts[1];
-        _properties.write[p_index].usage = PROPERTY_USAGE_DEFAULT;
-    } else if (classification.match("enum") || classification.match("class_enum")) {
-        _properties.write[p_index].type = Variant::INT;
-        _properties.write[p_index].class_name = parts[1];
-        _properties.write[p_index].usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_ENUM;
-    } else if (classification.match("bitfield") || classification.match("class_bitfield")) {
-        _properties.write[p_index].type = Variant::INT;
-        _properties.write[p_index].class_name = parts[1];
-        _properties.write[p_index].usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_CLASS_IS_BITFIELD;
-    }
-
-    _cleanup_selection();
-    _set_properties();
-}
-
-void OrchestratorEditorPropertyPinProperties::_show_type_selection(int p_index, const String& p_value) {
-    _dialog = memnew(OrchestratorSelectTypeSearchDialog);
-    _dialog->set_data_suffix("inspector_property_container");
-    _dialog->set_popup_title(_args ? "Select argument type" : "Select return type");
-    _dialog->connect("selected", callable_mp_this(_argument_type_selected).bind(p_index));
-    _dialog->connect("closed", callable_mp_this(_cleanup_selection));
-    add_child(_dialog);
-
-    _dialog->popup_create(true, true, p_value, p_value);
-}
-
-void OrchestratorEditorPropertyPinProperties::_cleanup_selection() {
-    _dialog->queue_free();
-    _dialog = nullptr;
 }
 
 void OrchestratorEditorPropertyPinProperties::_move_up(int p_index) {
@@ -203,14 +149,11 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
             new_slot.name->set_editable(!is_read_only());
             add_focusable(new_slot.name);
 
-            new_slot.type = memnew(Button);
-            new_slot.type->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
-            new_slot.type->set_custom_minimum_size(Vector2(100, 0));
-            new_slot.type->set_tooltip_text(_args ? "Set argument type" : "Set return type");
-            new_slot.type->add_theme_constant_override("icon_max_width", SceneUtils::get_editor_class_icon_size());
-            new_slot.type->connect(SceneStringName(pressed), callable_mp_this(_show_type_selection).bind(index, friendly_type_name));
-            new_slot.type->set_disabled(is_read_only());
-            add_focusable(new_slot.type);
+            new_slot.selector = memnew(OrchestratorEditorTypeSelector);
+            new_slot.selector->setup("inspector_property_container", true);
+            new_slot.selector->set_property(property);
+            new_slot.selector->connect(CoreStringName(changed), callable_mp_this(_selector_type_changed).bind(index));
+            new_slot.selector->set_read_only(is_read_only());
 
             new_slot.button_group = memnew(HBoxContainer);
 
@@ -232,6 +175,9 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
             move_up->set_tooltip_text(_args ? "Move this argument up" : "Move this return value up");
             move_up->set_disabled(true);
             move_up->connect(SceneStringName(pressed), callable_mp_this(_move_up).bind(index));
+            if (!_allow_rearrange) {
+                move_up->hide();
+            }
             new_slot.button_group->add_child(move_up);
 
             Button* move_down = memnew(Button);
@@ -239,10 +185,13 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
             move_down->set_tooltip_text(_args ? "Move this argument down" : "Move this return value down");
             move_down->set_disabled(true);
             move_down->connect(SceneStringName(pressed), callable_mp_this(_move_down).bind(index));
+            if (!_allow_rearrange) {
+                move_down->hide();
+            }
             new_slot.button_group->add_child(move_down);
 
             _container->add_child(new_slot.name);
-            _container->add_child(new_slot.type);
+            _container->add_child(new_slot.selector);
             _container->add_child(new_slot.button_group);
 
             _slots.push_back(new_slot);
@@ -259,9 +208,6 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
         else {
             _slots[index].name->set_text(property.name);
         }
-
-        _slots[index].type->set_text(friendly_type_name);
-        _slots[index].type->set_button_icon(SceneUtils::get_class_icon(PropertyUtils::get_property_type_name(property)));
 
         _update_pass_by_details(index, property);
     }

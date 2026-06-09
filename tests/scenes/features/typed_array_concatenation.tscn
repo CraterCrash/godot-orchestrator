@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dyhn1xm0pafg2"]
+
+[ext_resource type="Script" uid="uid://brn3adbqglcbf" path="res://scenes/features/typed_array_concatenation.torch" id="1_c6cmu"]
+
+[node name="TypedArrayConcatenation" type="Node" unique_id=1355678052]
+script = ExtResource("1_c6cmu")
