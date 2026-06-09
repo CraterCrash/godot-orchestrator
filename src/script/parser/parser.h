@@ -264,6 +264,7 @@ private:
     CallNode* create_func_call(ExpressionNode* p_base, const StringName& p_function); // object-based function
     CallNode* create_func_call(const StringName& p_base, const StringName& p_function); // object-based function by name
     CallNode* create_func_call(const StringName& p_function); // free function or script call
+    Node* await_func_call(CallNode* p_call, const MethodInfo& method, const Ref<OScriptNode>& p_node);
     IfNode* create_if(ExpressionNode* p_condition, const Ref<OScriptNodePin>& p_true_pin, const Ref<OScriptNodePin>& p_false_pin);
     BinaryOpNode* create_binary_op(VariantOperators::Code p_operator, ExpressionNode* p_lhs, ExpressionNode* p_rhs);
 

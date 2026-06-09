@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "common/method_utils.h"
 #include "common/string_utils.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/object/class_db.h"
@@ -1955,8 +1956,11 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					if (ret->get_type() == Variant::NIL) {
 						if (base_type == Variant::OBJECT) {
 							if (base_obj) {
-								MethodBind *method = ClassDB::get_method(base_class, *methodname);
-								if (*methodname == CoreStringName(free_) || (method && !method->has_return())) {
+							    MethodInfo minfo;
+                                bool has_method = GDE::ClassDB::get_method_info(base_class, *methodname, minfo, true);
+								// MethodBind *method = ClassDB::get_method(base_class, *methodname);
+							    // if (*methodname == CoreStringName(free_) || (method && !method->has_return())) {
+								if (*methodname == CoreStringName(free_) || (has_method && !MethodUtils::has_return_value(minfo))) {
 									error_text = R"(Trying to get a return value of a method that returns "void")";
 									OPCODE_BREAK;
 								}

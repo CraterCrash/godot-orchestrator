@@ -49,6 +49,8 @@ void OScriptNodeCallFunction::_get_property_list(List<PropertyInfo>* r_list) con
     if (_chainable) {
         r_list->push_back(PropertyInfo(Variant::BOOL, "chain"));
     }
+
+    r_list->push_back(PropertyInfo(Variant::BOOL, "await"));
 }
 
 bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) const {
@@ -75,6 +77,9 @@ bool OScriptNodeCallFunction::_get(const StringName& p_name, Variant& r_value) c
         return true;
     } else if (p_name.match("chain")) {
         r_value = _chain;
+        return true;
+    } else if (p_name.match("await")) {
+        r_value = _await;
         return true;
     }
     return false;
@@ -110,6 +115,9 @@ bool OScriptNodeCallFunction::_set(const StringName& p_name, const Variant& p_va
             }
         }
         _notify_pins_changed();
+        return true;
+    } else if (p_name.match("await")) {
+        _await = p_value;
         return true;
     }
     return false;
@@ -309,6 +317,13 @@ void OScriptNodeCallFunction::remove_dynamic_pin(const Ref<OScriptNodePin>& p_pi
 
         _vararg_count--;
         reconstruct_node();
+    }
+}
+
+void OScriptNodeCallFunction::set_awaited(bool p_awaited) {
+    if (_await != p_awaited) {
+        _await = p_awaited;
+        emit_changed();
     }
 }
 
@@ -795,6 +810,7 @@ void OScriptNodeCallStaticFunction::_get_property_list(List<PropertyInfo>* r_lis
         r_list->push_back(PropertyInfo(Variant::STRING, "function_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     }
     r_list->push_back(PropertyInfo(Variant::DICTIONARY, "method", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::BOOL, "await"));
 }
 
 bool OScriptNodeCallStaticFunction::_get(const StringName& p_name, Variant& r_value) const {
@@ -806,6 +822,9 @@ bool OScriptNodeCallStaticFunction::_get(const StringName& p_name, Variant& r_va
         return true;
     } else if (p_name.match("method")) {
         r_value = DictionaryUtils::from_method(_method);
+        return true;
+    } else if (p_name.match("await")) {
+        r_value = _await;
         return true;
     }
     return false;
@@ -820,6 +839,9 @@ bool OScriptNodeCallStaticFunction::_set(const StringName& p_name, const Variant
         return true;
     } else if (p_name.match("method")) {
         _method = DictionaryUtils::to_method(p_value);
+        return true;
+    } else if (p_name.match("await")) {
+        _await = p_value;
         return true;
     }
     return false;
@@ -890,4 +912,11 @@ void OScriptNodeCallStaticFunction::initialize(const OScriptNodeInitContext& p_c
     _method = p_context.method.value();
 
     super::initialize(p_context);
+}
+
+void OScriptNodeCallStaticFunction::set_awaited(bool p_awaited) {
+    if (_await != p_awaited) {
+        _await = p_awaited;
+        emit_changed();
+    }
 }

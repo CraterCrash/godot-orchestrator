@@ -504,6 +504,25 @@ OScriptParser::CallNode* OScriptParser::create_func_call(const StringName& p_fun
     return call_node;
 }
 
+OScriptParser::Node* OScriptParser::await_func_call(CallNode* p_call, const MethodInfo& method, const Ref<OScriptNode>& p_node) {
+    AwaitNode* await = alloc_node<AwaitNode>();
+    await->to_await = p_call;
+    await->script_node_id = p_node->get_id();
+    set_coroutine();
+
+    Node* statement = await;
+    if (MethodUtils::has_return_value(method)) {
+        for (const Ref<OScriptNodePin>& output : p_node->find_pins(PD_Output)) {
+            if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
+                statement = create_local(create_unique_name(output), await);
+                break;
+            }
+        }
+    }
+
+    return statement;
+}
+
 OScriptParser::IfNode* OScriptParser::create_if(ExpressionNode* p_condition, const Ref<OScriptNodePin>& p_true_pin, const Ref<OScriptNodePin>& p_false_pin) {
     // Branch based on nullness.
     IfNode* if_node = alloc_node<IfNode>();
@@ -1398,6 +1417,15 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
         bind_call_func_args(call_node, script_func);
     }
 
+    if (p_node->is_awaited()) {
+        AwaitNode* await = alloc_node<AwaitNode>();
+        await->to_await = call_node;
+        await->script_node_id = p_node->get_id();
+        set_coroutine();
+
+        return await;
+    }
+
     return call_node;
 }
 
@@ -1895,6 +1923,21 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
     bind_call_func_args(call_node, p_script_node, argument_offset);
     call_node->script_node_id = p_script_node->get_id();
 
+    if (p_script_node->is_awaited()) {
+        AwaitNode* await = alloc_node<AwaitNode>();
+        await->to_await = call_node;
+        await->script_node_id = p_script_node->get_id();
+        set_coroutine();
+
+        Node* statement = await;
+        if (has_return_value && result_pin.is_valid() && result_pin->has_any_connections()) {
+            statement = create_local(create_cached_variable_name(result_pin));
+        }
+
+        add_statement(statement);
+        return create_statement_result(p_script_node, 0);
+    }
+
     if (has_return_value && result_pin.is_valid() && result_pin->has_any_connections()) {
         const String result_name = create_cached_variable_name(result_pin);
         create_local_and_push(result_name, call_node);
@@ -1933,6 +1976,11 @@ OScriptParser::StatementResult OScriptParser::build_call_builtin_function(const 
     call_node->script_node_id = p_script_node->get_id();
     bind_call_func_args(call_node, p_script_node);
 
+    if (p_script_node->is_awaited()) {
+        add_statement(await_func_call(call_node, method, p_script_node));
+        return p_script_node->has_execution_pins() ? create_statement_result(p_script_node, 0) : create_stop_result();
+    }
+
     Node* statement = call_node;
     if (MethodUtils::has_return_value(method)) {
         for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
@@ -1961,6 +2009,11 @@ OScriptParser::StatementResult OScriptParser::build_call_script_function(const R
     }
 
     bind_call_func_args(call_node, p_script_node, pin_offset);
+
+    if (p_script_node->is_awaited()) {
+        add_statement(await_func_call(call_node, function->get_method_info(), p_script_node));
+        return create_statement_result(p_script_node, 0);
+    }
 
     Node* statement = call_node;
     if (MethodUtils::has_return_value(function->get_method_info())) {
@@ -1991,6 +2044,11 @@ OScriptParser::StatementResult OScriptParser::build_call_static_function(const R
 
     bind_call_func_args(call_node, p_script_node, pin_offset);
 
+    if (p_script_node->is_awaited()) {
+        add_statement(await_func_call(call_node, method, p_script_node));
+        return create_statement_result(p_script_node, 0);
+    }
+
     Node* statement = call_node;
     if (MethodUtils::has_return_value(method)) {
         for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
@@ -2014,6 +2072,11 @@ OScriptParser::StatementResult OScriptParser::build_call_super(const Ref<OScript
 
         bind_call_func_args(call_node, p_script_node);
 
+        if (p_script_node->is_awaited()) {
+            add_statement(await_func_call(call_node, method, p_script_node));
+            return create_statement_result(p_script_node, 0);
+        }
+
         Node* statement = call_node;
         if (MethodUtils::has_return_value(method)) {
             for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
@@ -2036,6 +2099,11 @@ OScriptParser::StatementResult OScriptParser::build_call_super(const Ref<OScript
         call_node->script_node_id = p_script_node->get_id();
 
         bind_call_func_args(call_node, p_script_node);
+
+        if (p_script_node->is_awaited()) {
+            add_statement(await_func_call(call_node, method, p_script_node));
+            return create_statement_result(p_script_node, 0);
+        }
 
         Node* statement = call_node;
         if (MethodUtils::has_return_value(method)) {
