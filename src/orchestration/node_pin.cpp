@@ -477,6 +477,61 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
     }
 
     // Coercion is allowed here
+
+    // Implicit conversion from PackedArray variant to Array[Variant] (typed array)
+    if (_property.type == Variant::ARRAY && _property.hint == PROPERTY_HINT_ARRAY_TYPE) {
+        switch (p_pin->get_property_info().type) {
+            case Variant::PACKED_BYTE_ARRAY:
+            case Variant::PACKED_INT32_ARRAY:
+            case Variant::PACKED_INT64_ARRAY: {
+                if (_property.hint_string == "int") {
+                    return true;
+                }
+                break;
+            }
+            case Variant::PACKED_FLOAT32_ARRAY:
+            case Variant::PACKED_FLOAT64_ARRAY: {
+                if (_property.hint_string == "float") {
+                    return true;
+                }
+                break;
+            }
+            case Variant::PACKED_STRING_ARRAY: {
+                if (_property.hint_string == "String") {
+                    return true;
+                }
+                break;
+            }
+            case Variant::PACKED_VECTOR2_ARRAY: {
+                if (_property.hint_string == "Vector2") {
+                    return true;
+                }
+                break;
+            }
+            case Variant::PACKED_VECTOR3_ARRAY: {
+                if (_property.hint_string == "Vector3") {
+                    return true;
+                }
+                break;
+            }
+            case Variant::PACKED_COLOR_ARRAY: {
+                if (_property.hint_string == "Color") {
+                    return true;
+                }
+                break;
+            }
+            case Variant::PACKED_VECTOR4_ARRAY: {
+                if (_property.hint_string == "Vector4") {
+                    return true;
+                }
+                break;
+            }
+            default: {
+                // no-op
+            }
+        }
+    }
+
     if (_property.type == Variant::STRING) {
         // File targets should only accept string sources
         if (_property.hint == PROPERTY_HINT_FILE) {

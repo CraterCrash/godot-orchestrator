@@ -16,40 +16,18 @@
 //
 #pragma once
 
+#include "editor/gui/search/help.h"
+
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/item_list.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
-#include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/option_button.hpp>
-#include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/tree.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
-
-/// Simple implementation of a RichTextLabel widget that can display help about selected items
-class OrchestratorEditorSearchHelpBit : public MarginContainer {
-    GDCLASS(OrchestratorEditorSearchHelpBit, MarginContainer);
-
-    RichTextLabel* _help_bit = nullptr;
-    String _text;
-
-    void _add_text(const String& p_bbcode);
-    void _meta_clicked();
-
-protected:
-    static void _bind_methods() { }
-
-public:
-    //~ Begin Wrapped Interface
-    void _notification(int p_what);
-    //~ End Wrapped Interface
-
-    void set_disabled(bool p_disabled);
-    void set_text(const String& p_text);
-};
 
 /// Represents an item in the search dialog, which can be extended
 class OrchestratorEditorSearchDialogItem : public RefCounted {
@@ -68,6 +46,7 @@ public:
     bool disabled = false;                           //! Whether the item is shaded as disabled
     bool collapsed = true;                           //! Whether the item should initially be collapsed
     Ref<OrchestratorEditorSearchDialogItem> parent;  //! The parent item, if applicable
+    PropertyInfo property;
 };
 
 /// Base class for Orchestrator's search dialogs
