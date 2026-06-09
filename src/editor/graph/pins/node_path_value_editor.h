@@ -16,16 +16,17 @@
 //
 #pragma once
 
-#include "editor/graph/pins/button_base_pin.h"
+#include "editor/graph/pins/button_base_value_editor.h"
 #include "orchestration/node_pin.h"
 
 class OrchestratorSceneNodeSelector;
 class OrchestratorPropertySelector;
 
-/// An implementation of <code>OrchestratorEditorGraphPinButtonBase</code> select a <code>NodePath</code>
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditorButtonBase</code> that allows for
+/// selecting a <code>NodePath</code> in the current edited scene.
 ///
-class OrchestratorEditorGraphPinNodePath : public OrchestratorEditorGraphPinButtonBase {
-    GDCLASS(OrchestratorEditorGraphPinNodePath, OrchestratorEditorGraphPinButtonBase);
+class OrchestratorEditorGraphPinValueEditorNodePath : public OrchestratorEditorGraphPinValueEditorButtonBase {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorNodePath, OrchestratorEditorGraphPinValueEditorButtonBase);
 
     struct DependencyDescriptor {
         String class_name;
@@ -40,7 +41,7 @@ class OrchestratorEditorGraphPinNodePath : public OrchestratorEditorGraphPinButt
 
     static Vector<DependencyDescriptor> _descriptors;
 
-    Ref<OrchestrationGraphPin> _owning_pin;
+    Ref<OrchestrationGraphPin> _pin;
     OrchestratorPropertySelector* _property_selector = nullptr;
     OrchestratorSceneNodeSelector* _node_selector = nullptr;
     DependencyDescriptor* _descriptor = nullptr;
@@ -65,15 +66,14 @@ class OrchestratorEditorGraphPinNodePath : public OrchestratorEditorGraphPinButt
 protected:
     static void _bind_methods();
 
-    //~ Begin OrchestratorEditorGraphPinButtonBase Interface
+    //~ Begin OrchestratorEditorGraphPinValueEditorButtonBase Interface
     void _handle_selector_button_pressed() override;
-    //~ End OrchestratorEditorGraphPinButtonBase Interface
-
-    //~ Begin OrchestratorEditorGraphPin Interface
-    void set_pin(const Ref<OrchestrationGraphPin>& p_pin) override;
-    //~ End OrchestratorEditorGraphPin Interface
+    //~ End OrchestratorEditorGraphPinValueEditorButtonBase Interface
 
 public:
+    OrchestratorEditorGraphPinValueEditorNodePath();
 
-    OrchestratorEditorGraphPinNodePath();
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    void set_pin_ref(const Ref<OrchestrationGraphPin>& p_pin) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };

@@ -16,24 +16,24 @@
 //
 #pragma once
 
-#include "editor/graph/graph_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
 #include <godot_cpp/classes/color_picker_button.hpp>
 
-/// An implementation of <code>OrchestratorEditorGraphPin</code> wrapping a <code>ColorPicker</code>
-/// that provides selecting a <code>Color</code> value for color-based pins.
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditor</code> that wraps a Godot
+/// <code>ColorPickerButton</code>, allowing the user to select a <code>Color</code> value.
 ///
-class OrchestratorEditorGraphPinColorPicker : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinColorPicker, OrchestratorEditorGraphPin);
+class OrchestratorEditorGraphPinValueEditorColorPicker : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorColorPicker, OrchestratorEditorGraphPinValueEditor);
 
     ColorPickerButton* _control = nullptr;
 
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    void _update_control_value(const Variant& p_value) override;
-    Variant _read_control_value() override;
-    Control* _create_default_value_widget() override;
-    //~ End OrchestratorEditorGraphPin Interface
+public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };

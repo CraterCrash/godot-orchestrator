@@ -16,20 +16,24 @@
 //
 #pragma once
 
-#include "editor/graph/graph_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
-/// An implementation of <code>OrchestratorEditorGraphPin</code> execution pins.
+#include <godot_cpp/classes/check_box.hpp>
+
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditor</code> that wraps a Godot <code>CheckBox</code>
+/// that allows a user to specify a boolean true/false value.
 ///
-/// An execution pin is one that manages control flow between the graph, and these typically
-/// do not have labels, but most importantly any type or default value widgets.
-///
-class OrchestratorEditorGraphPinExec : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinExec, OrchestratorEditorGraphPin);
+class OrchestratorEditorGraphPinValueEditorCheckbox : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorCheckbox, OrchestratorEditorGraphPinValueEditor);
+
+    CheckBox* _control = nullptr;
 
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    String _get_pin_color_name() const override;
-    //~ End OrchestratorEditorGraphPin Interface
+public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };

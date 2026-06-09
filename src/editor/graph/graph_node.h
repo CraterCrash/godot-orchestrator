@@ -151,6 +151,7 @@ public:
 
     virtual void notify_connections_changed();
     virtual void notify_pin_default_value_changed(OrchestratorEditorGraphPin* p_pin) {}
+    virtual void notify_pin_layout_changed() { _resize_to_content(); }
     virtual void notify_bookmarks_changed();
     virtual void notify_breakpoints_changed();
 

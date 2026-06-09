@@ -16,16 +16,16 @@
 //
 #pragma once
 
-#include "editor/graph/graph_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
 #include <godot_cpp/classes/button.hpp>
 
-/// An abstract implementation of <code>OrchestratorEditorGraphPin</code> that displays a button
-/// with text derived from an external source, with a secondary button to reset the value when the
-/// value does not equal its default.
+/// An abstract implementation of <code>OrchestratorEditorGraphPinValueEditor</code> that displays a
+/// button with text derived from an external source, with a secondary button to reset the value when
+/// the value does not equal its default.
 ///
-class OrchestratorEditorGraphPinButtonBase : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinButtonBase, OrchestratorEditorGraphPin);
+class OrchestratorEditorGraphPinValueEditorButtonBase : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorButtonBase, OrchestratorEditorGraphPinValueEditor);
 
     Button* _clear_button = nullptr;
     Button* _selector_button = nullptr;
@@ -39,15 +39,9 @@ class OrchestratorEditorGraphPinButtonBase : public OrchestratorEditorGraphPin {
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    void _update_control_value(const Variant& p_value) override;
-    Variant _read_control_value() override;
-    Control* _create_default_value_widget() override;
-    //~ End OrchestratorEditorGraphPin Interface
-
-    void _set_button_visible(bool p_visible) { _selector_button->set_visible(p_visible); }
-    void _set_button_disabled(bool p_disabled) { _selector_button->set_disabled(p_disabled); }
-    void _set_button_tooltip(const String& p_tooltip) { _selector_button->set_tooltip_text(p_tooltip); }
+    void _set_button_visible(bool p_visible);
+    void _set_button_disabled(bool p_disabled);
+    void _set_button_tooltip(const String& p_tooltip);
 
     Variant _get_button_value() const { return _button_value; }
     const Button* _get_selector_button() const { return _selector_button; }
@@ -56,7 +50,11 @@ protected:
     virtual void _handle_selector_button_pressed() { }
 
 public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
+
     void set_default_text(const String& p_default_text) { _default_text = p_default_text; }
     void set_clear_button_default_value(const Variant& p_clear_default) { _clear_default = p_clear_default; }
-
 };

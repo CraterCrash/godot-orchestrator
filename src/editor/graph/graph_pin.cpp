@@ -23,7 +23,11 @@
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 #include "core/godot/core_string_names.h"
+#include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel.h"
+#include "editor/graph/graph_pin_factory.h"
+#include "editor/graph/pins/any_value_editor.h"
+#include "editor/graph/pins/pin_value_editor.h"
 #include "editor/gui/context_menu.h"
 #include "orchestration/nodes/reroute.h"
 #include "orchestration/nodes/self.h"
@@ -31,33 +35,18 @@
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 
-PackedStringArray OrchestratorEditorGraphPin::_get_pin_suggestions() const {
-    ERR_FAIL_COND_V(!_pin.is_valid(), {});
-    return _pin->get_suggestions();
-}
-
 String OrchestratorEditorGraphPin::_get_pin_color_name() const {
     static String COLOR_ANY = "ui/connection_colors/any";
 
     ERR_FAIL_COND_V(!_pin.is_valid(), COLOR_ANY);
 
-    const String type_name = VariantUtils::get_friendly_type_name(_pin->get_type(), true).to_lower();
+    if (_pin->is_execution()) {
+        return "ui/connection_colors/execution";
+    }
+
+    const PropertyInfo& info = _pin->get_effective_property();
+    const String type_name = VariantUtils::get_friendly_type_name(info.type, true).to_lower();
     return vformat("ui/connection_colors/%s", type_name);
-}
-
-void OrchestratorEditorGraphPin::_default_value_changed() {
-    // Subclasses call this function to synchronize the UI widget value to the Pin
-    const Variant default_value = _read_control_value();
-    _set_default_value(default_value);
-}
-
-Variant OrchestratorEditorGraphPin::_get_default_value() {
-    return _pin->get_effective_default_value();
-}
-
-void OrchestratorEditorGraphPin::_set_default_value(const Variant& p_value) {
-    emit_signal("default_value_changed", this, p_value);
-    _node->notify_pin_default_value_changed(this);
 }
 
 void OrchestratorEditorGraphPin::_update_control() {
@@ -67,17 +56,30 @@ void OrchestratorEditorGraphPin::_update_control() {
     }
 
     set_tooltip_text(_get_tooltip_text());
+    _update_icon_texture();
 
-    if (_default_value && _pin.is_valid()) {
-        _update_control_value(_pin->get_effective_default_value());
+    if (_editor && _pin.is_valid()) {
+        // Re-configure for any-pin type override changes
+        if (PropertyUtils::is_variant(_pin->get_property_info())) {
+            _editor->configure(_effective_property_info());
+        }
+        if (_pin->is_input()) {
+            _editor->set_value(_pin->get_effective_default_value());
+        }
+        _editor->set_linked(is_linked());
+    }
+
+    // Refresh slot color after any type override change
+    if (OrchestratorEditorGraphNode* node = get_graph_node()) {
+        node->redraw_connections();
     }
 }
 
 void OrchestratorEditorGraphPin::_create_pin_layout() {
-    HBoxContainer* container = memnew(HBoxContainer);
-    container->set_h_size_flags(_pin->is_input() ? SIZE_SHRINK_BEGIN : SIZE_SHRINK_END);
-    container->set_v_size_flags(SIZE_EXPAND_FILL);
-    add_child(container);
+    _layout_container = memnew(HBoxContainer);
+    _layout_container->set_h_size_flags(_pin->is_input() ? SIZE_SHRINK_BEGIN : SIZE_SHRINK_END);
+    _layout_container->set_v_size_flags(SIZE_EXPAND_FILL);
+    add_child(_layout_container);
 
     _label = memnew(Label);
     _label->set_horizontal_alignment(_pin->is_input() ? HORIZONTAL_ALIGNMENT_LEFT : HORIZONTAL_ALIGNMENT_RIGHT);
@@ -86,7 +88,7 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
     _label->set_v_size_flags(SIZE_SHRINK_CENTER);
     _label->set_text(_get_label_text());
     _label->set_custom_minimum_size(_label->get_text().is_empty() ? Vector2(10, 0) : Vector2());
-    container->add_child(_label);
+    _layout_container->add_child(_label);
 
     if (!_pin->is_execution()) {
 
@@ -95,7 +97,7 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
             // Hack for when a named script transitions from unnamed to named before save
             type_icon = _pin->get_owning_node()->get_orchestration()->get_icon();
         } else {
-            type_icon = SceneUtils::get_class_icon(_pin->get_pin_type_name());
+            type_icon = SceneUtils::get_class_icon(_get_icon_type_name());
         }
 
         const int icon_width = SceneUtils::get_editor_class_icon_size();
@@ -111,32 +113,53 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
             set_icon_visible(true);
         }
 
-        container->add_child(_icon);
+        _layout_container->add_child(_icon);
 
-        // For input pins, icon shows on the left of the text
         if (_pin->is_input()) {
-            container->move_child(_icon, 0);
+            _layout_container->move_child(_icon, 0);
         }
     }
 
-    if (!_pin->is_execution() && !_pin->is_default_ignored() && _pin->is_input()) {
-        _default_value = _create_default_value_widget();
-        if (_default_value) {
-            _default_value->set_visible(!is_linked());
+    if (!_pin->is_execution() && !_pin->is_default_ignored()) {
+        // Create a value editor for input pins, or for output any-pins (pencil button).
+        if (_pin->is_input()) {
+            _editor = OrchestratorEditorGraphPinFactory::create_value_editor(_pin);
+        }
 
-            // For multiline input, the default value widget is rendered on the second row of
-            // the VBoxContainer, which is this class; otherwise, it's appended to the right
-            // inside the HBoxContainer on the first row of this class.
-            if (_is_default_value_below_label()) {
-                add_child(_default_value);
+        if (_editor) {
+            _editor->set_pin_ref(_pin);
+            _editor->configure(_effective_property_info());
+            if (_pin->is_input()) {
+                _editor->set_value(_pin->get_effective_default_value());
+            }
+            _editor->set_linked(is_linked());
+            _editor->connect("value_changed", callable_mp_this(_pin_editor_value_changed));
+            _editor->connect("layout_changed", callable_mp_this(_pin_editor_layout_changed));
+
+            if (_editor->is_below_label()) {
+                add_child(_editor);
+            } else if (_editor->prefers_leading_placement()) {
+                _layout_container->add_child(_editor);
+                _layout_container->move_child(_editor, 0);
             } else {
-                container->add_child(_default_value);
+                _layout_container->add_child(_editor);
             }
         }
     }
+
+    _on_pin_layout_created();
+}
+
+String OrchestratorEditorGraphPin::_get_icon_type_name() const {
+    return PropertyUtils::get_property_type_name(_pin->get_effective_property());
 }
 
 String OrchestratorEditorGraphPin::_get_label_text() {
+    // Object pins with a self-target show "[Self]"
+    if (_pin->get_type() == Variant::OBJECT && is_target_self()) {
+        return "[Self]";
+    }
+
     if (_pin->is_label_visible()) {
         String text = StringUtils::default_if_empty(_pin->get_label(), _pin->get_pin_name());
         if (_pin->use_pretty_labels()) {
@@ -154,15 +177,20 @@ String OrchestratorEditorGraphPin::_get_tooltip_text() {
     }
 
     String tooltip_text = StringUtils::default_if_empty(_pin->get_label(), _pin->get_pin_name()).capitalize();
-    tooltip_text += "\n" + VariantUtils::get_friendly_type_name(_pin->get_type(), true).capitalize();
 
-    if (!_pin->get_property_info().class_name.is_empty()) {
-        tooltip_text += "\nClass: " + _pin->get_property_info().class_name;
+    const PropertyInfo property = _pin->get_effective_property();
+    tooltip_text += "\n" + VariantUtils::get_friendly_type_name(property.type, true).capitalize();
+
+    if (_pin->has_type_override()) {
+        tooltip_text += " (Variant Override)";
+    }
+
+    if (!property.class_name.is_empty()) {
+        tooltip_text += "\nClass: " + property.class_name;
     }
 
     const bool advanced_tooltips = ORCHESTRATOR_GET("ui/graph/show_advanced_tooltips", false);
     if (advanced_tooltips) {
-        const PropertyInfo property = _pin->get_property_info();
         tooltip_text += "\n\n";
         tooltip_text += "Property Name: " + property.name + "\n";
         tooltip_text += "Property Type: " + itos(property.type) + " - " + _pin->get_pin_type_name() + "\n";
@@ -179,12 +207,62 @@ String OrchestratorEditorGraphPin::_get_tooltip_text() {
     return tooltip_text;
 }
 
+void OrchestratorEditorGraphPin::_pin_editor_value_changed(const Variant& p_value) {
+    emit_signal("default_value_changed", this, p_value);
+    if (_node) {
+        _node->notify_pin_default_value_changed(this);
+    }
+}
+
+void OrchestratorEditorGraphPin::_pin_editor_layout_changed() {
+    if (_node) {
+        _node->notify_pin_layout_changed();
+    }
+}
+
+PropertyInfo OrchestratorEditorGraphPin::_effective_property_info() const {
+    return _pin->get_effective_property();
+}
+
+void OrchestratorEditorGraphPin::_update_icon_texture() {
+    GUARD_NULL(_icon);
+    _icon->set_texture(SceneUtils::get_class_icon(_get_icon_type_name()));
+}
+
 void OrchestratorEditorGraphPin::_gui_input(const Ref<InputEvent>& p_event) {
     // The OrchestratorEditorGraphPanel reacts to this if subscribed
     const Ref<InputEventMouseButton> mb = p_event;
     if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_RIGHT) {
         emit_signal("context_menu_requested", this, mb->get_position());
     }
+}
+
+Object* OrchestratorEditorGraphPin::_make_custom_tooltip(const String& p_for_text) const {
+    if (p_for_text.is_empty()) {
+        return nullptr;
+    }
+
+    MarginContainer* mc = memnew(MarginContainer);
+    mc->add_theme_constant_override("margin_top", 10);
+    mc->add_theme_constant_override("margin_left", 10);
+    mc->add_theme_constant_override("margin_right", 10);
+    mc->add_theme_constant_override("margin_bottom", 10);
+
+    TextureRect* icon = memnew(TextureRect);
+    icon->set_texture(SceneUtils::get_editor_icon(_get_icon_type_name()));
+    icon->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+    icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT);
+    icon->set_custom_minimum_size(Size2(32, 32));
+
+    HBoxContainer* hbox = memnew(HBoxContainer);
+    hbox->add_child(icon);
+
+    Label* l = memnew(Label);
+    l->set_text(p_for_text);
+    hbox->add_child(l);
+
+    mc->add_child(hbox);
+    return mc;
 }
 
 OrchestratorEditorGraphPanel* OrchestratorEditorGraphPin::get_graph() {
@@ -282,8 +360,8 @@ const PropertyInfo& OrchestratorEditorGraphPin::get_property_info() const {
 }
 
 void OrchestratorEditorGraphPin::set_default_value_control_visible(bool p_visible) {
-    GUARD_NULL(_default_value);
-    _default_value->set_visible(p_visible);
+    GUARD_NULL(_editor);
+    _editor->set_visible(p_visible);
 }
 
 void OrchestratorEditorGraphPin::set_icon_visible(bool p_visible) {
@@ -308,6 +386,13 @@ void OrchestratorEditorGraphPin::_notification(int p_what) {
 void OrchestratorEditorGraphPin::_bind_methods() {
     ADD_SIGNAL(MethodInfo("context_menu_requested", PropertyInfo(Variant::OBJECT, "pin"), PropertyInfo(Variant::VECTOR2, "position")));
     ADD_SIGNAL(MethodInfo("default_value_changed", PropertyInfo(Variant::OBJECT, "pin"), PropertyInfo(Variant::NIL, "value")));
+}
+
+OrchestratorEditorGraphPin* OrchestratorEditorGraphPin::create(const Ref<OrchestrationGraphPin>& p_pin) {
+    ERR_FAIL_COND_V_MSG(!p_pin.is_valid(), nullptr, "Cannot create pin widget for an invalid pin model");
+    OrchestratorEditorGraphPin* pin = memnew(OrchestratorEditorGraphPin);
+    pin->set_pin(p_pin);
+    return pin;
 }
 
 OrchestratorEditorGraphPin::OrchestratorEditorGraphPin() {

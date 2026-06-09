@@ -16,31 +16,31 @@
 //
 #pragma once
 
-#include "editor/graph/graph_pin.h"
+#include "editor/graph/pins/pin_value_editor.h"
 
 #include <godot_cpp/classes/option_button.hpp>
 
-/// An implementation of <code>OrchestratorEditorGraphPin</code> for enum data types.
+/// An implementation of <code>OrchestratorEditorGraphPinValueEditor</code> allowing for selection enum values.
 ///
-/// An enumeration is a data type that is represented by human-readable values that map to
-/// exactly one value in a set of predefined mappings.
+/// An enumeration is a data type that is represented by human-readable values that map to exactly
+/// one value in a set of predefined name-to-integer mappings.
 ///
-class OrchestratorEditorGraphPinEnum : public OrchestratorEditorGraphPin {
-    GDCLASS(OrchestratorEditorGraphPinEnum, OrchestratorEditorGraphPin);
+class OrchestratorEditorGraphPinValueEditorEnum : public OrchestratorEditorGraphPinValueEditor {
+    GDCLASS(OrchestratorEditorGraphPinValueEditorEnum, OrchestratorEditorGraphPinValueEditor);
 
-    OptionButton* _button;
-    int _selected_index;
+    OptionButton* _button = nullptr;
+    int _selected_index = -1;
     bool _generated = false;
+    PropertyInfo _property;
 
     void _item_selected(int p_index);
 
 protected:
     static void _bind_methods() { }
 
-    //~ Begin OrchestratorEditorGraphPin Interface
-    bool _is_default_value_below_label() const override { return true; }
-    void _update_control_value(const Variant& p_value) override;
-    Variant _read_control_value() override;
-    Control* _create_default_value_widget() override;
-    //~ End OrchestratorEditorGraphPin Interface
+public:
+    //~ Begin OrchestratorEditorGraphPinValueEditor Interface
+    void configure(const PropertyInfo& p_property) override;
+    void set_value(const Variant& p_value) override;
+    //~ End OrchestratorEditorGraphPinValueEditor Interface
 };

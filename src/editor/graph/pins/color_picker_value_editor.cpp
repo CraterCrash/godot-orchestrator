@@ -14,28 +14,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/color_picker_pin.h"
+#include "editor/graph/pins/color_picker_value_editor.h"
 
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 
-void OrchestratorEditorGraphPinColorPicker::_update_control_value(const Variant& p_value) {
-    _control->set_pick_color(p_value);
-}
+void OrchestratorEditorGraphPinValueEditorColorPicker::configure(const PropertyInfo& p_property) {
+    if (_control) {
+        return;
+    }
 
-Variant OrchestratorEditorGraphPinColorPicker::_read_control_value() {
-    return _control->get_pick_color();
-}
-
-Control* OrchestratorEditorGraphPinColorPicker::_create_default_value_widget() {
     _control = memnew(ColorPickerButton);
     _control->set_focus_mode(FOCUS_NONE);
     _control->set_h_size_flags(SIZE_SHRINK_BEGIN);
     _control->set_v_size_flags(SIZE_SHRINK_CENTER);
     _control->set_custom_minimum_size(Vector2(24, 24) * EDSCALE);
-    _control->connect("color_changed", callable_mp_lambda(this, [&] (const Color&) { _default_value_changed(); }));
+    _control->connect("color_changed", callable_mp_lambda(this, [this](const Color& c) { _emit_value_changed(c); }));
+    add_child(_control);
+}
 
-    return _control;
+void OrchestratorEditorGraphPinValueEditorColorPicker::set_value(const Variant& p_value) {
+    GUARD_NULL(_control);
+
+    _control->set_block_signals(true);
+    _control->set_pick_color(p_value);
+    _control->set_block_signals(false);
 }
