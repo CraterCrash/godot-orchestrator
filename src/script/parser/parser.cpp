@@ -2941,16 +2941,27 @@ OScriptParser::StatementResult OScriptParser::build_free_object(const Ref<OScrip
         const StringName class_name = _src_pin.is_valid() ? _src_pin->get_property_info().class_name : StringName();
 
         bool is_node = false;
+        bool is_refcounted = false;
         if (ScriptServer::is_global_class(class_name)) {
             const StringName native_base = ScriptServer::get_global_class_native_base(class_name);
             is_node = ClassDB::is_parent_class(native_base, "Node");
+            is_refcounted = ClassDB::is_parent_class(native_base, "RefCounted");
         } else {
             is_node = ClassDB::is_parent_class(class_name, "Node");
+            is_refcounted = ClassDB::is_parent_class(class_name, "RefCounted");
         }
 
-        CallNode* free_object = create_func_call(resolve_input(object_pin), is_node ? "queue_free" : "free");
-        free_object->script_node_id = p_script_node->get_id();
-        add_statement(free_object);
+        if (is_refcounted) {
+            AssignmentNode* assign = alloc_node<AssignmentNode>();
+            assign->assignee = resolve_input(object_pin);
+            assign->assigned_value = create_literal(Variant());
+            assign->script_node_id = p_script_node->get_id();
+            add_statement(assign);
+        } else {
+            CallNode* free_object = create_func_call(resolve_input(object_pin), is_node ? "queue_free" : "free");
+            free_object->script_node_id = p_script_node->get_id();
+            add_statement(free_object);
+        }
     }
 
     return create_statement_result(p_script_node, 0);
