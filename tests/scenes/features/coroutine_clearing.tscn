@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://0diaa4bmouk7"]
+
+[ext_resource type="Script" uid="uid://dsmq32hl5d64u" path="res://scenes/features/coroutine_clearing.torch" id="1_nri5q"]
+
+[node name="CoroutineClearing" type="Node" unique_id=56456334]
+script = ExtResource("1_nri5q")

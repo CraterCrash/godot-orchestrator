@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bwkj61rkcgfad"]
+
+[ext_resource type="Script" uid="uid://bv2d7lcokofvw" path="res://scenes/features/await_without_coroutine.torch" id="1_hbp3i"]
+
+[node name="AwaitWithoutCoroutine" type="Node" unique_id=1945666591]
+script = ExtResource("1_hbp3i")
