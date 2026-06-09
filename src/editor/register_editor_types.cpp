@@ -45,7 +45,8 @@
 #include "editor/inspector/properties/editor_property_class_name.h"
 #include "editor/inspector/properties/editor_property_extends.h"
 #include "editor/inspector/properties/editor_property_pin_properties.h"
-#include "editor/inspector/properties/editor_property_variable_classification.h"
+#include "editor/inspector/properties/editor_property_type.h"
+#include "editor/inspector/properties/type_selector.h"
 #include "editor/inspector/signal_inspector_plugin.h"
 #include "editor/inspector/type_cast_inspector_plugin.h"
 #include "editor/inspector/variable_inspector_plugin.h"
@@ -74,10 +75,11 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginOrchestration)
 
     // Editor bits
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorTypeSelector)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorLogEventRouter)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyType)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyClassName)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyPinProperties)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyVariableClassification)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyExtends)
     GDREGISTER_INTERNAL_CLASS(OrchestratorFileDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialogItem)

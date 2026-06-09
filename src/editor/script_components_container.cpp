@@ -30,7 +30,7 @@
 #include "editor/graph/graph_panel.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/dialogs_helper.h"
-#include "editor/inspector/variable_inspector_plugin.h"
+#include "editor/inspector/properties/type_selector.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/connections_dock.h"
 #include "editor/scene/script_connections.h"
@@ -353,24 +353,26 @@ void OrchestratorScriptComponentsContainer::_component_item_button_clicked(Node*
 
             // p_id == 1 -> warning
             if (p_column == 0 && p_id == 2) {
+                Tree* tree = p_item->get_tree();
+                const Rect2 cell_rect = tree->get_item_area_rect(p_item, p_column);
+                const Rect2 xformed = tree->get_global_transform().xform(cell_rect);
+                const Rect2i screen_rect = Rect2i(Vector2i(xformed.position.x, xformed.position.y + xformed.size.y), Vector2i(cell_rect.size));
 
-                const Ref<OrchestratorEditorInspectorPluginVariable> plugin =
-                        OrchestratorPlugin::get_singleton()->get_plugin<OrchestratorEditorInspectorPluginVariable>();
-                if (plugin.is_null()) {
-                    return;
-                }
+                AcceptDialog* dialog = memnew(AcceptDialog);
+                dialog->set_title("Change Type: " + variable->get_variable_name());
+                dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
+                dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+                add_child(dialog);
 
-                const GodotVersionInfo version;
-                if (version.at_least(4, 7)) {
-                    if (!_make_inspector_dock_visible()) {
-                        return;
-                    }
-                    callable_mp_lambda(this, [plugin, variable] {
-                        plugin->edit_classification(variable.ptr());
-                    }).call_deferred();
-                } else {
-                    plugin->edit_classification(variable.ptr());
-                }
+                OrchestratorEditorTypeSelector* selector = memnew(OrchestratorEditorTypeSelector);
+                selector->set_property(variable->get_info());
+                selector->setup("variable_type", true);
+                selector->connect(CoreStringName(changed), callable_mp_lambda(this, [variable, selector](const Dictionary& value) {
+                    variable->set_info(DictionaryUtils::to_property(value));
+                    selector->set_property(DictionaryUtils::to_property(value));
+                }));
+                dialog->add_child(selector);
+                dialog->popup_on_parent(screen_rect);
 
             } else if (p_column == 0 && p_id == 3) {
                 variable->set_exported(!variable->is_exported());

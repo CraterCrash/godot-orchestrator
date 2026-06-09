@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c8f27k2wsxmch"]
+
+[ext_resource type="Script" uid="uid://bmftuv0pjqoty" path="res://scenes/features/typed_dictionary_init_with_untyped_in_literal.torch" id="1_py3gb"]
+
+[node name="TypedDictionaryInitWithUntypedInLiteral" type="Node" unique_id=1959537273]
+script = ExtResource("1_py3gb")
