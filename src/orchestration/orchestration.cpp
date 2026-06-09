@@ -315,7 +315,7 @@ Ref<Texture2D> Orchestration::get_icon() const {
     if (!_global_name.is_empty() && !_icon_path.is_empty()) {
         return SceneUtils::get_icon(_icon_path);
     }
-    return SceneUtils::get_editor_icon(_base_type);
+    return SceneUtils::get_class_icon(_base_type);
     #else
     return {};
     #endif
