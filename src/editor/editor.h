@@ -125,6 +125,7 @@ private:
     Control* _script_name_button_left_spacer = nullptr;
     Control* _script_name_button_right_spacer = nullptr;
     Button* _script_name_button = nullptr;
+    Button* _help_search_button = nullptr;
     int _script_name_width = 0;
 
     Window* _about_dialog = nullptr;
@@ -178,6 +179,7 @@ protected:
     void _set_script_create_dialog_language(const String& p_language_name);
 
     void _prepare_file_menu();
+    void _prepare_help_menu();
     void _file_menu_closed();
 
     void _file_dialog_action(const String& p_file);

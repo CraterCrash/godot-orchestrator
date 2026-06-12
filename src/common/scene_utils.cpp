@@ -24,6 +24,8 @@
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
+#include <godot_cpp/classes/image.hpp>
+#include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -311,5 +313,27 @@ namespace SceneUtils {
             }
         }
         #endif
+    }
+
+    Ref<Texture2D> get_sized_icon(const Ref<Texture2D>& p_icon, int p_size) {
+        if (p_icon.is_null()) {
+            return p_icon;
+        }
+
+        const Ref<Image> img = p_icon->get_image();
+        const int width = img->get_width();
+        const int height = img->get_height();
+        if (width == p_size && height == p_size) {
+            return p_icon;
+        }
+
+        const float scale = MIN(static_cast<float>(p_size) / width, static_cast<float>(p_size) / height);
+        const int scaled_width = MAX(1, static_cast<int>(width * scale));
+        const int scaled_height = MAX(1, static_cast<int>(height * scale));
+
+        Ref<Image> scaled = img->duplicate();
+        scaled->resize(scaled_width, scaled_height, Image::INTERPOLATE_LANCZOS);
+
+        return ImageTexture::create_from_image(scaled);
     }
 }
