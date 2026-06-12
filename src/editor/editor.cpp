@@ -106,6 +106,22 @@ void OrchestratorEditor::_prepare_file_menu() {
     menu->set_item_disabled(menu->get_item_index(FILE_CLOSE_ALL), res.is_null());
 }
 
+void OrchestratorEditor::_prepare_help_menu() {
+    PopupMenu* menu = _help_menu->get_popup();
+    menu->clear();
+
+    const Ref<Texture2D> external_link_icon = SceneUtils::get_editor_icon("ExternalLink");
+
+    menu->add_icon_item(external_link_icon, "Online Documentation", HELP_ONLINE_DOCUMENTATION);
+    menu->add_icon_item(external_link_icon, "Community", HELP_COMMUNITY);
+    menu->add_separator();
+    menu->add_icon_item(external_link_icon, "Report a Bug", HELP_GITHUB_ISSUES);
+    menu->add_icon_item(external_link_icon, "Suggest a Feature", HELP_GITHUB_FEATURE);
+    menu->add_separator();
+    menu->add_item("About " VERSION_NAME, HELP_ABOUT);
+    menu->add_icon_item(SceneUtils::get_editor_icon("Heart"), "Support " VERSION_NAME, HELP_SUPPORT);
+}
+
 void OrchestratorEditor::_file_menu_closed() {
     PopupMenu* menu = _file_menu->get_popup();
 
@@ -404,6 +420,9 @@ void OrchestratorEditor::_close_tab(int p_idx, bool p_save, bool p_history_back)
 
     if (_tab_container->get_tab_count() == 0) {
         _show_getting_started();
+
+        _script_name_button->set_text("");
+        _calculate_script_name_button_size();
     }
 }
 
@@ -2363,6 +2382,7 @@ void OrchestratorEditor::_notification(int p_what) {
 
             _site_search->set_button_icon(SceneUtils::get_editor_icon("ExternalLink"));
             _filter_scripts->set_right_icon(SceneUtils::get_editor_icon("Search"));
+            _help_search_button->set_button_icon(SceneUtils::get_editor_icon("HelpSearch"));
 
             _recent_history->reset_size();
 
@@ -2543,16 +2563,8 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _help_menu->set_text("Help");
     _help_menu->set_switch_on_hover(true);
     _help_menu->set_shortcut_context(this);
-    _help_menu->get_popup()->clear();
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Online Documentation", HELP_ONLINE_DOCUMENTATION);
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Community", HELP_COMMUNITY);
-    _help_menu->get_popup()->add_separator();
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Report a Bug", HELP_GITHUB_ISSUES);
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("ExternalLink"), "Suggest a Feature", HELP_GITHUB_FEATURE);
-    _help_menu->get_popup()->add_separator();
-    _help_menu->get_popup()->add_item("About " VERSION_NAME, HELP_ABOUT);
-    _help_menu->get_popup()->add_icon_item(SceneUtils::get_editor_icon("Heart"), "Support " VERSION_NAME, HELP_SUPPORT);
     _help_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
+    _help_menu->get_popup()->connect("about_to_popup", callable_mp_this(_prepare_help_menu));
     _menu_hb->add_child(_help_menu);
 
     _script_name_button_hbox = memnew(HBoxContainer);
@@ -2584,13 +2596,12 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _site_search->connect(SceneStringName(pressed), callable_mp_this(_menu_option).bind(HELP_ONLINE_DOCUMENTATION));
     _menu_hb->add_child(_site_search);
 
-    Button* help_search = memnew(Button);
-    help_search->set_flat(true);
-    help_search->set_focus_mode(FOCUS_NONE);
-    help_search->set_text("Search Help");
-    help_search->set_button_icon(SceneUtils::get_editor_icon("HelpSearch"));
-    help_search->connect(SceneStringName(pressed), callable_mp_this(_help_search).bind(""));
-    _menu_hb->add_child(help_search);
+    _help_search_button = memnew(Button);
+    _help_search_button->set_flat(true);
+    _help_search_button->set_focus_mode(FOCUS_NONE);
+    _help_search_button->set_text("Search Help");
+    _help_search_button->connect(SceneStringName(pressed), callable_mp_this(_help_search).bind(""));
+    _menu_hb->add_child(_help_search_button);
 
     _menu_hb->add_child(memnew(VSeparator));
 

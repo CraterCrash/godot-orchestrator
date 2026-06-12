@@ -40,10 +40,8 @@
 
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/image.hpp>
-#include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
-#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
@@ -1110,16 +1108,12 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
             // There is no way to set the size of the image on the button, so we must rescale
             Ref<Texture2D> class_icon = SceneUtils::get_class_icon(variable->get_variable_type_name());
             if (class_icon.is_valid()) {
-                const Ref<Image> image = class_icon->get_image();
-                image->resize(SceneUtils::get_editor_class_icon_size(), SceneUtils::get_editor_class_icon_size());
-                class_icon = ImageTexture::create_from_image(image);
+                class_icon = SceneUtils::get_sized_icon(class_icon, SceneUtils::get_editor_class_icon_size());
             } else {
                 class_icon = SceneUtils::get_editor_icon("FileBroken");
             }
 
-            int32_t index = item->get_button_count(0);
-            item->add_button(0, class_icon, 2);
-            item->set_button_tooltip_text(0, index, "Change variable type");
+            item->add_button(0, class_icon, 2, false, "Change variable type");
         }
 
         if (!variable->get_description().is_empty()) {
@@ -1304,6 +1298,16 @@ void OrchestratorScriptComponentsContainer::notify_graph_opened(OrchestratorEdit
     p_graph->connect("edit_function_requested", callable_mp_this(_find_and_edit_function));
 }
 
+void OrchestratorScriptComponentsContainer::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_THEME_CHANGED: {
+            _add_function_override->set_button_icon(SceneUtils::get_editor_icon("Override"));
+            _update_components();
+            break;
+        }
+    }
+}
+
 void OrchestratorScriptComponentsContainer::_bind_methods() {
     ADD_SIGNAL(MethodInfo("open_graph_requested", PropertyInfo(Variant::STRING, "graph_name")));
     ADD_SIGNAL(MethodInfo("close_graph_requested", PropertyInfo(Variant::STRING, "graph_name")));
@@ -1340,17 +1344,17 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
         "event graphs to better help organize event logic."));
     components->add_child(_graphs);
 
-    Button* add_function_override = memnew(Button);
-    add_function_override->set_focus_mode(FOCUS_NONE);
-    add_function_override->set_button_icon(SceneUtils::get_editor_icon("Override"));
-    add_function_override->set_tooltip_text("Override a Godot virtual function");
-    add_function_override->connect(SceneStringName(pressed), callable_mp_signal_lambda("add_function_override_requested"));
+    _add_function_override = memnew(Button);
+    _add_function_override->set_focus_mode(FOCUS_NONE);
+    _add_function_override->set_button_icon(SceneUtils::get_editor_icon("Override"));
+    _add_function_override->set_tooltip_text("Override a Godot virtual function");
+    _add_function_override->connect(SceneStringName(pressed), callable_mp_signal_lambda("add_function_override_requested"));
 
     _functions = memnew(OrchestratorEditorComponentView);
     _functions->set_title("Functions");
     _functions->set_tree_drag_forward(callable_mp_this(_component_item_dragged));
     _functions->set_tree_gui_handler(callable_mp_this(_component_item_gui_input));
-    _functions->add_button(add_function_override);
+    _functions->add_button(_add_function_override);
     _functions->connect("add_requested", callable_mp_this(_component_add_item).bind(SCRIPT_FUNCTION));
     _functions->connect("context_menu_requested", callable_mp_this(_component_show_context_menu));
     _functions->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
