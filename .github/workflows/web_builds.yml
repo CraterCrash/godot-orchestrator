@@ -15,6 +15,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: Editor w/o threads (target=editor, threads=no)
+            artifact-name: web-nothreads-editor
+            cache-name: web-nothreads-editor
+            preset: web-nothreads-editor
+
+          - name: Editor w/ threads (target=editor, threads=yes)
+            artifact-name: web-threads-editor
+            cache-name: web-threads-editor
+            preset: web-threads-editor
+
           - name: Template w/o threads (target=template_release, threads=no)
             artifact-name: web-nothreads-release
             cache-name: web-nothreads-release

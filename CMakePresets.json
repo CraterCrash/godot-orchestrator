@@ -151,6 +151,23 @@
       }
     },
     {
+      "name": "web-nothreads-editor",
+      "inherits": ["default-editor", "web-default"],
+      "description": "Builds Orchestrator for WebAssembly using editor and no threads.",
+      "cacheVariables": {
+        "GODOTCPP_THREADS": "FALSE"
+      }
+    },
+    {
+      "name": "web-threads-editor",
+      "inherits": ["default-editor", "web-default"],
+      "description": "Builds Orchestrator for WebAssembly using editor and threads.",
+      "cacheVariables": {
+        "GODOTCPP_THREADS": "TRUE",
+        "CMAKE_SHARED_LINKER_FLAGS": "-s SIDE_MODULE=1 -s USE_PTHREADS=1"
+      }
+    },
+    {
       "name": "web-nothreads-release",
       "inherits": ["default-release", "web-default"],
       "description": "Builds Orchestrator for WebAssembly using template_release and no threads.",
