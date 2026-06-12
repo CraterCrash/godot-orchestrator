@@ -16,6 +16,8 @@
 //
 #pragma once
 
+#include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 
 using namespace godot;
@@ -23,6 +25,11 @@ using namespace godot;
 /// Simple landing page that is shown when the user has no open orchestrations
 class OrchestratorGettingStarted : public VBoxContainer {
     GDCLASS(OrchestratorGettingStarted, VBoxContainer);
+
+    Button* _create_script = nullptr;
+    Button* _open_script = nullptr;
+    Button* _open_docs = nullptr;
+    Label* _plugin_version = nullptr;
 
     //~ Begin Signal Handlers
     void _create_new() { emit_signal("create_requested"); }
@@ -36,4 +43,7 @@ protected:
     //~ Begin Wrapped Interface
     void _notification(int p_what);
     //~ End Wrapped Interface
+
+public:
+    OrchestratorGettingStarted();
 };

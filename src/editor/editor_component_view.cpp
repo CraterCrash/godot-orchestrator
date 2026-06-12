@@ -375,6 +375,9 @@ TreeItem* OrchestratorEditorComponentView::find_item(const String& p_name) {
 void OrchestratorEditorComponentView::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_THEME_CHANGED: {
+            _add_button->set_button_icon(SceneUtils::get_editor_icon("Add"));
+            _update_collapse_button();
+
             Ref<Theme> theme = EI->get_editor_theme();
             if (theme.is_valid() && _panel) {
                 Ref<StyleBoxFlat> sb = theme->get_stylebox(SceneStringName(panel), "ItemList");
@@ -385,6 +388,7 @@ void OrchestratorEditorComponentView::_notification(int p_what) {
                     _panel->add_theme_stylebox_override(SceneStringName(panel), sb);
                 }
             }
+
             if (theme.is_valid() && _tree) {
                 Ref<StyleBoxFlat> sb = theme->get_stylebox(SceneStringName(panel), "Tree");
                 if (sb.is_valid()) {
@@ -453,6 +457,7 @@ OrchestratorEditorComponentView::OrchestratorEditorComponentView() {
     _tree->set_h_size_flags(SIZE_EXPAND_FILL);
     _tree->set_v_size_flags(SIZE_FILL);
     _tree->set_hide_root(true);
+    _tree->add_theme_constant_override("icon_max_size", SceneUtils::get_editor_class_icon_size());
     _tree->connect("item_collapsed", callable_mp_this(_tree_item_collapsed));
     _tree->connect("item_mouse_selected", callable_mp_this(_tree_item_mouse_selected));
     _tree->connect(SceneStringName(item_selected), callable_mp_this(_tree_item_selected));

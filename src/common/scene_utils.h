@@ -141,4 +141,6 @@ namespace SceneUtils {
         }
         return nullptr;
     }
+
+    Ref<Texture2D> get_sized_icon(const Ref<Texture2D>& p_icon, int p_size);
 }

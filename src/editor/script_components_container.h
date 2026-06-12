@@ -19,6 +19,7 @@
 #include "orchestration/orchestration.h"
 #include "script/script.h"
 
+#include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/tree_item.hpp>
 
@@ -70,6 +71,7 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
     OrchestratorEditorComponentView* _macros = nullptr;
     OrchestratorEditorComponentView* _variables = nullptr;
     OrchestratorEditorComponentView* _signals = nullptr;
+    Button* _add_function_override = nullptr;
 
     bool _use_graph_friendly_names = false;
     bool _use_function_friendly_names = false;
@@ -122,6 +124,10 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
 
 protected:
     static void _bind_methods();
+
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
 
 public:
 
