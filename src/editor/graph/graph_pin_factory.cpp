@@ -34,6 +34,7 @@ OrchestratorEditorGraphPin* OrchestratorEditorGraphPinFactory::_create_pin_widge
     if (p_pin->is_file()) {
         OrchestratorEditorGraphPinFilePicker* file_picker = memnew(OrchestratorEditorGraphPinFilePicker);
         file_picker->set_filters(Array::make(p_pin->get_file_types()));
+        file_picker->set_clear_button_default_value(p_pin->get_generated_default_value());
 
         if (Object::cast_to<OScriptNodeDialogueMessage>(p_pin->get_owning_node())) {
             file_picker->set_default_text("Default Scene");
