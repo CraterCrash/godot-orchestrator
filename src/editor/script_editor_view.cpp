@@ -1126,6 +1126,18 @@ void OrchestratorScriptGraphEditorView::_notification(int p_what) {
             if (is_visible_in_tree()) {
                 _update_warnings();
                 _update_errors();
+
+                for (int i = 0; i < _tab_container->get_tab_count(); i++) {
+                    if (OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(i)) {
+                        const Ref<OrchestrationGraph> graph = _script->get_orchestration()->get_graph(tab_panel->get_name());
+                        if (graph.is_valid()) {
+                            const Ref<Texture2D> tab_icon = graph->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION)
+                                ? SceneUtils::get_editor_icon("MemberMethod")
+                                : SceneUtils::get_editor_icon("ClassList");
+                            _tab_container->set_tab_icon(i, tab_icon);
+                        }
+                    }
+                }
             }
             break;
         }
