@@ -29,6 +29,9 @@ class OrchestratorEditorGraphPinFilePicker : public OrchestratorEditorGraphPinBu
     OrchestratorFileDialog* _dialog = nullptr;
     PackedStringArray _file_type_filters;
 
+    void _selection_selected(const String& p_value);
+    void _selection_canceled();
+
 protected:
     static void _bind_methods() { }
 
