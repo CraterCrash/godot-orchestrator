@@ -112,6 +112,10 @@ String OScriptNodeTypeCast::get_tooltip_text() const {
     }
 }
 
+PackedStringArray OScriptNodeTypeCast::get_keywords() const {
+    return Array::make("is", "type", "cast", "instanceof", "check");
+}
+
 String OScriptNodeTypeCast::get_node_title() const {
     return vformat("Cast To %s", _get_target_type());
 }

@@ -47,6 +47,7 @@ public:
     void post_node_autowired(const Ref<OScriptNode>& p_node, EPinDirection p_direction) override;
     void allocate_default_pins() override;
     String get_tooltip_text() const override;
+    PackedStringArray get_keywords() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "type_cast"; }
     String get_icon() const override;
