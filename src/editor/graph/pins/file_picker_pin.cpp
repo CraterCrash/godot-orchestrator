@@ -16,10 +16,25 @@
 //
 #include "editor/graph/pins/file_picker_pin.h"
 
-#include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/gui/file_dialog.h"
+
+void OrchestratorEditorGraphPinFilePicker::_selection_selected(const String& p_value) {
+    _handle_selector_button_response(p_value);
+
+    if (_dialog) {
+        _dialog->queue_free();
+        _dialog = nullptr;
+    }
+}
+
+void OrchestratorEditorGraphPinFilePicker::_selection_canceled() {
+    if (_dialog) {
+        _dialog->queue_free();
+        _dialog = nullptr;
+    }
+}
 
 void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
     _dialog = memnew(OrchestratorFileDialog);
@@ -31,8 +46,8 @@ void OrchestratorEditorGraphPinFilePicker::_handle_selector_button_pressed() {
         _dialog->set_filters(_file_type_filters);
     }
 
-    _dialog->connect("file_selected", callable_mp_lambda(this, [&](const String& v) { _handle_selector_button_response(v); }));
-    _dialog->connect(SceneStringName(canceled), callable_mp_cast(this, Node, queue_free));
+    _dialog->connect("file_selected", callable_mp_this(_selection_selected));
+    _dialog->connect(SceneStringName(canceled), callable_mp_this(_selection_canceled));
 
     add_child(_dialog);
 
