@@ -14,6 +14,9 @@ linux.debug.arm64 = "res://addons/orchestrator/orchestrator.linux.arm64.editor.s
 macos = "res://addons/orchestrator/orchestrator.macos.universal.release.dylib"
 macos.debug = "res://addons/orchestrator/orchestrator.macos.universal.editor.dylib"
 
+ios = "res://addons/orchestrator/orchestrator.ios.xcframework"
+ios.debug = "res://addons/orchestrator/orchestrator.ios.xcframework"
+
 windows.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.release.dll"
 windows.debug.x86_64 = "res://addons/orchestrator/orchestrator.windows.64.editor.dll"
 
