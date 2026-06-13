@@ -2397,8 +2397,10 @@ OScriptParser::StatementResult OScriptParser::build_chance(const Ref<OScriptNode
 }
 
 OScriptParser::StatementResult OScriptParser::build_delay(const Ref<OScriptNodeDelay>& p_script_node) {
-    // get_tree().create_timer(<duration>)
-    CallNode* call_create_timer = create_func_call(create_func_call("get_tree"), "create_timer");
+    // Using get_tree() here can result in null problems when the node may not be inside the tree yet.
+    // By relying on Engine, we get access to the SceneTree object to create the timer always.
+    // Engine.get_main_loop().create_timer(<duration>)
+    CallNode* call_create_timer = create_func_call(create_func_call(build_identifier("Engine"), "get_main_loop"), "create_timer");
     call_create_timer->arguments.push_back(create_literal(p_script_node->get_duration()));
     call_create_timer->script_node_id = p_script_node->get_id();
 
