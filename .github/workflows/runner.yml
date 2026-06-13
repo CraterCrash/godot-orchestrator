@@ -31,6 +31,10 @@ jobs:
     name: 🍎 macOS
     uses: ./.github/workflows/macos_builds.yml
 
+  ios-build:
+    name: 🍏 iOS
+    uses: ./.github/workflows/ios_builds.yml
+
   windows-build:
     name: 🪟 Windows
     uses: ./.github/workflows/windows_builds.yml
