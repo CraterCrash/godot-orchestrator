@@ -531,7 +531,7 @@ void (*type_init_function_table[])(Variant*) = {
 #define BASE_CALLP_HELPER(p_base, p_method, p_args, p_arg_count, r_ret, r_error) \
     if (p_base->get_type() == Variant::OBJECT) { \
         Object* object = base->operator Object*(); \
-        if (*p_method != CoreStringName(new_) && object->get_class() == OScript::get_class_static()) { \
+        if (*p_method != CoreStringName(new_) && object && object->get_class() == OScript::get_class_static()) { \
             r_ret = static_cast<OScript*>(object)->callp(*p_method, p_args, p_arg_count, r_error); \
         } else { \
             p_base->callp(*p_method, p_args, p_arg_count, r_ret, r_error); \
