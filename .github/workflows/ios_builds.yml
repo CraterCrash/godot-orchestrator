@@ -1,0 +1,116 @@
+name: 🍏 iOS Builds
+on:
+  workflow_call:
+
+jobs:
+  build-macos:
+    runs-on: macos-26
+    name: ${{ matrix.name }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Template (target=template_release)
+            artifact-name: ios-release
+            cache-name: ios-release
+            preset: ios-release
+          - name: Simulator arm64 (target=template_release)
+            artifact-name: ios-simulator-release
+            cache-name: ios-simulator-release
+            preset: ios-simulator-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install Ninja (MacOS)
+        shell: sh
+        run: |
+          if ! brew list ninja &>/dev/null; then
+            brew install ninja
+          fi
+      - name: Build
+        uses: ./.github/actions/orchestrator-build
+        with:
+          artifact-name: ${{ matrix.artifact-name }}
+          cache-name: ${{ matrix.cache-name }}
+          preset-name: ${{ matrix.preset }}
+
+  combine-ios:
+    runs-on: macos-26
+    name: Combine iOS xcframework
+    needs: build-macos          # waits for BOTH matrix legs to finish
+    steps:
+      - name: Download demo (device)
+        uses: actions/download-artifact@v7
+        with:
+          name: godot-orchestrator-demo-ios-release
+          path: demo-device
+
+      - name: Download demo (simulator)
+        uses: actions/download-artifact@v7
+        with:
+          name: godot-orchestrator-demo-ios-simulator-release
+          path: demo-sim
+
+      - name: Download plugin (device)
+        uses: actions/download-artifact@v7
+        with:
+          name: godot-orchestrator-plugin-ios-release
+          path: plugin-device
+
+      - name: Download plugin (simulator)
+        uses: actions/download-artifact@v7
+        with:
+          name: godot-orchestrator-plugin-ios-simulator-release
+          path: plugin-sim
+
+      - name: Build combined trees
+        run: |
+          set -euo pipefail
+          DYLIB="addons/orchestrator/orchestrator.ios.universal.release.dylib"
+          for kind in demo plugin; do
+            # Device (arm64) + arm64 simulator only. x86_64 simulator is intentionally
+            # omitted: Apple Silicon can no longer run x86_64 simulators and Intel Macs
+            # are EOL, so it would be dead weight. See godot#118161 for the engine-side
+            # simulator situation.
+            xcodebuild -create-xcframework \
+              -library "${kind}-device/${DYLIB}" \
+              -library "${kind}-sim/${DYLIB}" \
+              -output "orchestrator.ios.xcframework"
+
+            rm -rf "${kind}-combined"
+            cp -R "${kind}-device" "${kind}-combined"
+            rm "${kind}-combined/${DYLIB}"
+            cp -R "orchestrator.ios.xcframework" "${kind}-combined/addons/orchestrator/"
+            rm -rf "orchestrator.ios.xcframework"
+          done
+
+      - name: Delete intermediate simulator artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            godot-orchestrator-demo-ios-simulator-release
+            godot-orchestrator-demo-ios-release
+            godot-orchestrator-plugin-ios-simulator-release
+            godot-orchestrator-plugin-ios-release
+          failOnError: false
+
+      - name: Upload combined demo
+        uses: actions/upload-artifact@v7
+        with:
+          name: godot-orchestrator-demo-ios-release
+          overwrite: true
+          path: demo-combined
+          retention-days: 1
+
+      - name: Upload combined plugin
+        uses: actions/upload-artifact@v7
+        with:
+          name: godot-orchestrator-plugin-ios-release
+          overwrite: true
+          path: plugin-combined
+          retention-days: 1

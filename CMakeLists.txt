@@ -99,7 +99,10 @@ IF (WIN32)
 ENDIF ()
 
 # MacOS universal binary support
-IF (APPLE)
+# Only force this for desktop macOS; on iOS the toolchain selects the
+# architecture (and x86_64 is not a valid iOS device arch), so leaving this
+# in place would clobber the toolchain's CMAKE_OSX_ARCHITECTURES.
+IF (APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for OSX" FORCE)
 ENDIF ()
 

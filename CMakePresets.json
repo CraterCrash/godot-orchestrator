@@ -90,6 +90,36 @@
       "description": "Builds Orchestrator for macOS using editor."
     },
     {
+      "name": "ios-default",
+      "inherits": "default",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/godot-cpp/cmake/ios.toolchain.cmake",
+        "PLATFORM": "OS64"
+      }
+    },
+    {
+      "name": "ios-release",
+      "inherits": ["default-release", "ios-default"],
+      "description": "Builds Orchestrator for iOS using template_release."
+    },
+    {
+      "name": "ios-simulator-release",
+      "inherits": ["default-release", "ios-default"],
+      "description": "Builds Orchestrator for the iOS simulator (arm64).",
+      "cacheVariables": {
+        "PLATFORM": "SIMULATORARM64"
+      }
+    },
+    {
+      "name": "ios-editor",
+      "inherits": ["default-editor", "ios-default"],
+      "description": "Builds Orchestrator for iOS using editor."
+    },
+    {
       "name": "android-default",
       "inherits": "default",
       "hidden": true,
