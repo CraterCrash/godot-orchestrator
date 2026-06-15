@@ -69,6 +69,10 @@ public:
 
     int add_check_item(const String& p_label, const Callable& p_callable, bool p_checked, bool p_disabled = false);
 
+    int add_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled = false);
+    int add_check_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_checked, bool p_disabled = false);
+    int add_icon_shortcut(const String& p_icon_name, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled = false);
+
     void set_item_disabled(int p_id, bool p_disabled);
     void set_item_tooltip(int p_id, const String& p_tooltip_text);
 

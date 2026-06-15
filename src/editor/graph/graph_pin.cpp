@@ -205,12 +205,12 @@ PackedStringArray OrchestratorEditorGraphPin::_get_pin_suggestions() const {
 }
 
 String OrchestratorEditorGraphPin::_get_pin_color_name() const {
-    static String COLOR_ANY = "theme/connection_colors/any";
+    static String COLOR_ANY = "interface/theme/connection_colors/any";
 
     ERR_FAIL_COND_V(!_pin.is_valid(), COLOR_ANY);
 
-    const String type_name = VariantUtils::get_friendly_type_name(_pin->get_type(), true).to_lower();
-    return vformat("theme/connection_colors/%s", type_name);
+    const String type_name = VariantUtils::get_friendly_type_name(_pin->get_type(), true).to_lower().replace(" ", "_");
+    return vformat("interface/theme/connection_colors/%s", type_name);
 }
 
 void OrchestratorEditorGraphPin::_default_value_changed() {
@@ -270,7 +270,7 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
     if (!_pin->is_execution()) {
         _icon = _create_icon_cache();
 
-        if (ORCHESTRATOR_GET("editor/graph_nodes/show_type_icons", true)) {
+        if (ORCHESTRATOR_GET("interface/editor/graph_nodes/show_type_icons", true)) {
             set_icon_visible(true);
         }
     }
@@ -338,7 +338,7 @@ String OrchestratorEditorGraphPin::_get_tooltip_text() {
         tooltip_text += "\nClass: " + _pin->get_property_info().class_name;
     }
 
-    const bool advanced_tooltips = ORCHESTRATOR_GET("editor/graph/show_advanced_tooltips", false);
+    const bool advanced_tooltips = ORCHESTRATOR_GET("interface/editor/graph/show_advanced_tooltips", false);
     if (advanced_tooltips) {
         const PropertyInfo property = _pin->get_property_info();
         tooltip_text += "\n\n";

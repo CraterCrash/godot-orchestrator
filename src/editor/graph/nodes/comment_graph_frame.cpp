@@ -26,6 +26,7 @@
 #include "editor/editor.h"
 #include "editor/graph/graph_panel.h"
 #include "editor/gui/context_menu.h"
+#include "editor/settings/editor_settings.h"
 #include "orchestration/orchestration.h"
 
 #include <godot_cpp/classes/color_picker.hpp>
@@ -89,10 +90,10 @@ void OrchestratorEditorGraphFrame::_update_theme() {
 
     _theme_updating = true;
 
-    const int corner_radius = ORCHESTRATOR_GET("theme/nodes/border_radius", 4);
-    const int border_width = ORCHESTRATOR_GET("theme/nodes/border_width", 2);
-    const Color border_color = ORCHESTRATOR_GET("theme/nodes/border_color", Color(0, 0, 0));
-    const Color select_border_color = ORCHESTRATOR_GET("theme/nodes/selected_border_color", Color(0.68f, 0.44f, 0.09f));
+    const int corner_radius = ORCHESTRATOR_GET("interface/theme/nodes/border_radius", 4);
+    const int border_width = ORCHESTRATOR_GET("interface/theme/nodes/border_width", 2);
+    const Color border_color = ORCHESTRATOR_GET("interface/theme/nodes/border_color", Color(0, 0, 0));
+    const Color select_border_color = ORCHESTRATOR_GET("interface/theme/nodes/selected_border_color", Color(0.68f, 0.44f, 0.09f));
 
     // Duplicate the default GraphFrame StyleBoxes so that we can mutate expand_margin without
     // affecting the shared editor theme resources.
@@ -398,12 +399,12 @@ void OrchestratorEditorGraphFrame::_gui_input(const Ref<InputEvent>& p_event) {
 
 void OrchestratorEditorGraphFrame::build_context_menu(OrchestratorEditorContextMenu* p_menu) {
     p_menu->add_separator();
-    p_menu->add_item("Set Frame Title", callable_mp_this(_change_frame_title), false);
-    p_menu->add_item("Set Comment Text", callable_mp_this(_open_change_comment_text), false);
-    p_menu->add_check_item("Enable Auto Shrink", callable_mp_this(_toggle_autoshrink), is_autoshrink_enabled());
-    p_menu->add_check_item("Enable Tint Color", callable_mp_this(_toggle_tint), is_tint_color_enabled());
+    p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_frame_title"), callable_mp_this(_change_frame_title), false);
+    p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_comment_text"), callable_mp_this(_open_change_comment_text), false);
+    p_menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/frame/enable_auto_shrink"), callable_mp_this(_toggle_autoshrink), is_autoshrink_enabled());
+    p_menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/frame/enable_tint_color"), callable_mp_this(_toggle_tint), is_tint_color_enabled());
     if (is_tint_color_enabled()) {
-        p_menu->add_item("Set Tint Color", callable_mp_this(_show_tint_color_picker));
+        p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_tint_color"), callable_mp_this(_show_tint_color_picker));
     }
 }
 

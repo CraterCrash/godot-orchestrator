@@ -28,12 +28,12 @@
 
 OrchestratorEditorThemeBuilder::ThemeParams OrchestratorEditorThemeBuilder::_read_theme_params() const {
     return {
-        ORCHESTRATOR_GET("theme/color_theme", "Default"),
-        ORCHESTRATOR_GET("theme/nodes/border_radius", 4),
-        ORCHESTRATOR_GET("theme/nodes/border_width", 2),
-        ORCHESTRATOR_GET("theme/nodes/border_color", Color(0, 0, 0)),
-        ORCHESTRATOR_GET("theme/nodes/selected_border_color", Color(0.68f, 0.44f, 0.09f)),
-        ORCHESTRATOR_GET("theme/nodes/background_color", Color::html("#191d23"))
+        ORCHESTRATOR_GET("interface/theme/color_theme", "Default"),
+        ORCHESTRATOR_GET("interface/theme/nodes/border_radius", 4),
+        ORCHESTRATOR_GET("interface/theme/nodes/border_width", 2),
+        ORCHESTRATOR_GET("interface/theme/nodes/border_color", Color(0, 0, 0)),
+        ORCHESTRATOR_GET("interface/theme/nodes/selected_border_color", Color(0.68f, 0.44f, 0.09f)),
+        ORCHESTRATOR_GET("interface/theme/nodes/background_color", Color::html("#191d23"))
     };
 }
 
@@ -67,7 +67,7 @@ void OrchestratorEditorThemeBuilder::_build_graph_styles(const Ref<Theme>& p_the
     // Colored GraphNode variations
     const PackedStringArray settings = OrchestratorSettings::get_singleton()->get_settings_name_list();
     for (const String& setting : settings) {
-        if (!setting.begins_with("orchestrator/theme/node_colors")) {
+        if (!setting.begins_with("orchestrator/interface/theme/node_colors")) {
             continue;
         }
 

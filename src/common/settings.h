@@ -17,22 +17,25 @@
 #pragma once
 
 #include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
 class OrchestratorSettings : public Object {
     GDCLASS(OrchestratorSettings, Object);
 
-    struct Setting {
-        PropertyInfo info;
-        Variant value;
-
-        explicit Setting(const PropertyInfo& p_info, const Variant& p_value) : info(p_info), value(p_value) {}
-    };
-
     static OrchestratorSettings* _singleton;
-    PackedStringArray _registered_names;
-    int _builtin_order = 1000;
+
+    /// The registered settings, keyed by their *logical* name (without the "orchestrator/" storage
+    /// prefix). This is the single source of truth for the set of Orchestrator settings: it backs the
+    /// Orchestrator settings dialog (so the settings render even though they are internal in
+    /// ProjectSettings, and thus hidden from the native Project Settings dialog) and the name list.
+    Vector<PropertyInfo> _editor_properties;
+    HashMap<String, String> _editor_property_descriptions;
+
+    int _builtin_order = (1 << 16) + 1;
 
     String _current_theme;
     bool _applying_preset = false;
@@ -41,7 +44,7 @@ class OrchestratorSettings : public Object {
 
     void _apply_color_theme_preset(const String& p_theme);
 
-    Variant _define(const String& p_name, const Variant& p_default, bool p_restart_if_changed = false, bool p_ignore_in_docs = false, bool p_basic = false, bool p_internal = false);
+    Variant _define(const String& p_name, const Variant& p_default, bool p_restart_if_changed = false, bool p_ignore_in_docs = false, bool p_basic = false, bool p_internal = false, const PropertyInfo* p_property_info = nullptr);
     Variant _define(const PropertyInfo& p_property, const Variant& p_default, bool p_restart_if_changed = false, bool p_ignore_in_docs = false, bool p_basic = false, bool p_internal = false);
 
     void _rename(const String& p_old_name, const String& p_new_name);
@@ -55,6 +58,14 @@ class OrchestratorSettings : public Object {
 protected:
     static void _bind_methods();
 
+    //~ Begin Wrapped Interface
+    void _get_property_list(List<PropertyInfo>* r_list) const;
+    bool _set(const StringName& p_name, const Variant& p_value);
+    bool _get(const StringName& p_name, Variant& r_value) const;
+    bool _property_can_revert(const StringName& p_name) const;
+    bool _property_get_revert(const StringName& p_name, Variant& r_value) const;
+    //~ End Wrapped Interface
+
 public:
     static OrchestratorSettings* get_singleton() { return _singleton; }
 
@@ -65,20 +76,19 @@ public:
     Variant get_setting(const String& p_key, const Variant& p_default_value = Variant());
     void set_setting(const String& p_key, const Variant& p_value);
 
-    PackedStringArray get_action_favorites();
-    void add_action_favorite(const String& p_action_name);
-    void remove_action_favorite(const String& p_action_name);
-
     bool is_notify_about_prereleases();
     void set_notify_prerelease_builds(bool p_notify_prerelease_builds);
 
-    const PackedStringArray& get_settings_name_list() const { return _registered_names; }
+    PackedStringArray get_settings_name_list() const;
+
+    String get_property_description(const String& p_property);
 
     OrchestratorSettings();
     ~OrchestratorSettings() override;
 };
 
 #define ORCHESTRATOR_GET(x, y) OrchestratorSettings::get_singleton()->get_setting(x, y)
+#define ORCHESTRATOR_GET_ENUM(t, x, y) static_cast<t>(static_cast<int>(ORCHESTRATOR_GET(x, y)))
 
 template <typename T>
 _FORCE_INLINE_ bool ORCHESTRATOR_GET_TRACK(T& r_field, const String& p_key, T p_default) {

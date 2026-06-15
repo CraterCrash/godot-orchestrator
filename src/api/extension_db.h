@@ -18,6 +18,7 @@
 
 #include "common/variant_operators.h"
 
+#include <godot_cpp/classes/xml_parser.hpp>
 #include <godot_cpp/core/method_bind.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
@@ -138,6 +139,7 @@ namespace godot {
         HashMap<StringName, FunctionInfo> utility_functions;
 
         HashMap<StringName, ClassInfo> classes;
+        HashMap<String, String> setting_descriptions;
 
         // Lazily-built, per-class (own, no-inheritance) native property names, sourced from live
         // ClassDB. Properties are the only member kind ClassDB cannot answer with a cheap boolean,
@@ -161,6 +163,10 @@ namespace godot {
 
         void _decompress_and_load(); // NOLINT - generated dynamically
         void _load(const PackedByteArray& p_data);
+
+        void _decompress_and_load_docs(); // NOLINT - generated dynamically
+        void _load_docs(const PackedByteArray& p_dta);
+        Error _parse_docs(const Ref<XMLParser>& p_parser);
 
         void _load_builtin_types(const Dictionary& p_data);
         void _load_global_enumerations(const Dictionary& p_data);
@@ -205,6 +211,8 @@ namespace godot {
         // declared anywhere in p_class_name's native inheritance chain. Method/signal/constant/enum
         // resolve through cheap live ClassDB booleans; only property names are cached (see above).
         static bool is_shadowing_class_member(const StringName& p_class_name, const String& p_name);
+
+        static const HashMap<String, String>& get_setting_descriptions() { return _singleton->setting_descriptions; }
 
         ExtensionDB();
         ~ExtensionDB();

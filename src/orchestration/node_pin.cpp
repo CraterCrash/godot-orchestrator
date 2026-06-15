@@ -606,7 +606,7 @@ void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin) {
 
     Ref<OScriptNode> intermediate;
 
-    bool use_coercion_nodes = OrchestratorSettings::get_singleton()->get_setting("editor/graph_nodes/show_conversion_nodes");
+    bool use_coercion_nodes = OrchestratorSettings::get_singleton()->get_setting("interface/editor/graph_nodes/show_conversion_nodes");
     if (intermediate_required && use_coercion_nodes) {
         Ref<OScriptGraph> owning_graph = orchestration->find_graph(get_owning_node());
         ERR_FAIL_COND_MSG(!owning_graph.is_valid(), "Failed to locate owning graph, connection link failed.");

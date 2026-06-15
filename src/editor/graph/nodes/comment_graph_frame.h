@@ -38,6 +38,8 @@ class OrchestratorEditorGraphPanel;
 /// native class to supply auto-shrink, tint, attach/detach behavior out of the box.
 ///
 class OrchestratorEditorGraphFrame : public GraphFrame {
+    friend class OrchestratorEditorGraphPanel;
+
     GDCLASS(OrchestratorEditorGraphFrame, GraphFrame);
 
     struct ThemeCache {

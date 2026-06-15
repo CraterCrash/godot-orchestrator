@@ -89,6 +89,49 @@ int OrchestratorEditorContextMenu::add_check_item(const String& p_label, const C
     return id;
 }
 
+int OrchestratorEditorContextMenu::add_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled) {
+    _menu->add_shortcut(p_shortcut);
+
+    int id = _menu->get_item_id(_menu->get_item_count() - 1);
+    _callables[id] = p_callable;
+
+    if (p_disabled) {
+        set_item_disabled(id, p_disabled);
+    }
+
+    return id;
+}
+
+int OrchestratorEditorContextMenu::add_check_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_checked, bool p_disabled) {
+    _menu->add_check_shortcut(p_shortcut);
+
+    int id = _menu->get_item_id(_menu->get_item_count() - 1);
+    _callables[id] = p_callable;
+
+    if (p_checked) {
+        _menu->set_item_checked(_menu->get_item_count() - 1, p_checked);
+    }
+
+    if (p_disabled) {
+        set_item_disabled(id, p_disabled);
+    }
+
+    return id;
+}
+
+int OrchestratorEditorContextMenu::add_icon_shortcut(const String& p_icon_name, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled) {
+    _menu->add_icon_shortcut(SceneUtils::get_editor_icon(p_icon_name), p_shortcut);
+
+    int id = _menu->get_item_id(_menu->get_item_count() - 1);
+    _callables[id] = p_callable;
+
+    if (p_disabled) {
+        set_item_disabled(id, p_disabled);
+    }
+
+    return id;
+}
+
 void OrchestratorEditorContextMenu::set_item_disabled(int p_id, bool p_disabled) {
     _menu->set_item_disabled(p_id, p_disabled);
 }
