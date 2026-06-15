@@ -16,7 +16,7 @@
 //
 #pragma once
 
-#include "editor/gui/search/help.h"
+#include "editor/doc/editor_help.h"
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -87,7 +87,7 @@ protected:
     Vector<Ref<SearchItem>> _search_items;                  //! List of searchable items
     Vector<FilterOption> _filter;                           //! List of filter options
     HashMap<String, TreeItem*> _search_options_hierarchy;   //! Hierarchy of created search items
-    OrchestratorEditorSearchHelpBit* _help_bit = nullptr;   //! Reference to the help bit
+    OrchestratorEditorHelpBit* _help_bit = nullptr;         //! Reference to the help bit
 
     //~ Begin Wrapped Interface
     void _notification(int p_what);

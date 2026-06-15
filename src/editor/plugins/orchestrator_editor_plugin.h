@@ -81,6 +81,8 @@ class OrchestratorPlugin : public EditorPlugin {
     void _register_plugins();
     void _unregister_plugins();
 
+    void _register_shortcuts();
+
     bool _is_plugin_just_installed() const;
 
     void _add_plugin_icon_to_editor_theme();

@@ -16,24 +16,24 @@
 //
 #pragma once
 
-#include <godot_cpp/classes/rich_text_label.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
+#include <godot_cpp/classes/accept_dialog.hpp>
+#include <godot_cpp/classes/input_event.hpp>
+#include <godot_cpp/classes/tab_container.hpp>
+#include <godot_cpp/classes/tree.hpp>
 
 using namespace godot;
 
-class OrchestratorEditorSearchHelpBit : public VBoxContainer {
-    GDCLASS(OrchestratorEditorSearchHelpBit, VBoxContainer);
+/// The host dialog class that holds all the Orchestrator settings tabs
+class OrchestratorEditorSettingsDialog : public AcceptDialog {
+    GDCLASS(OrchestratorEditorSettingsDialog, AcceptDialog);
 
-    float _content_min_height = 0.0;
-    float _content_max_height = 0.0;
+    TabContainer* _tabs = nullptr;
 
-    RichTextLabel* _title = nullptr;
-    RichTextLabel* _help = nullptr;
-    String _text;
-    bool _disabled = false;
-
-    void _meta_clicked();
-    void _add_text(const String& p_bbcode_text);
+    //~ Begin Signal Handlers
+    void _confirmed();
+    void _canceled();
+    void _editor_restart();
+    //~ End Signal Handlers
 
 protected:
     static void _bind_methods();
@@ -43,12 +43,11 @@ protected:
     //~ End Wrapped Interface
 
 public:
-    void set_title(const String& p_title);
-    void set_text(const String& p_text);
-    void set_disabled(bool p_disabled);
+    //~ Begin Node Interface
+    void _shortcut_input(const Ref<InputEvent>& p_event) override;
+    //~ End Node Interface
 
-    void set_content_help_limits(float p_min, float p_max);
-    void update_content_height();
+    void popup_edit_settings();
 
-    OrchestratorEditorSearchHelpBit();
+    OrchestratorEditorSettingsDialog();
 };

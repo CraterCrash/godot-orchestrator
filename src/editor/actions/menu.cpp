@@ -22,9 +22,8 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "core/godot/scene_string_names.h"
-#include "godot_cpp/templates/hash_map.hpp"
-#include "help.h"
-#include "introspector.h"
+#include "editor/actions/definition.h"
+#include "editor/actions/introspector.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
@@ -35,6 +34,7 @@
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_split_container.hpp>
 #include <godot_cpp/classes/worker_thread_pool.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 
 namespace {
     // Per-frame work budget for the search runner. A 60Hz frame is ~16ms; spending up
@@ -808,7 +808,7 @@ void OrchestratorEditorActionMenu::popup(const Vector2& p_position,
         _last_size.set_size(_default_rect.get_size());
     }
 
-    bool center_at_mouse = ORCHESTRATOR_GET("editor/actions_menu/center_on_mouse", true);
+    bool center_at_mouse = ORCHESTRATOR_GET("interface/editor/actions_menu/center_on_mouse", true);
     if (center_at_mouse) {
         _last_size.set_position(p_position - (_last_size.get_size() / 2.0));
     } else {
@@ -932,7 +932,7 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     SceneUtils::set_theme_type_variation(_results, "Tree");
     SceneUtils::add_margin_child(vbox, "Matches:", _results, true);
 
-    _help = memnew(OrchestratorEditorActionHelp);
+    _help = memnew(OrchestratorEditorHelpBit);
     _help->set_content_help_limits(80 * EDSCALE, 80 * EDSCALE);
     SceneUtils::add_margin_child(vbox, "Description:", _help);
 

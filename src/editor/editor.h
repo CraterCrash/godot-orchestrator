@@ -20,6 +20,7 @@
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/h_split_container.hpp>
+#include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/item_list.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
@@ -73,6 +74,7 @@ private:
         FILE_SAVE,
         FILE_SAVE_AS,
         FILE_SAVE_ALL,
+        FILE_SETTINGS,
         FILE_SOFT_RELOAD_TOOL_SCRIPT,
         FILE_COPY_PATH,
         FILE_COPY_UID,
@@ -82,6 +84,7 @@ private:
         FILE_CLOSE_OTHERS,
         FILE_TOGGLE_LEFT_PANEL,
         FILE_TOGGLE_RIGHT_PANEL,
+        FILE_CLEAR_RECENT_HISTORY,
         HELP_ABOUT,
         HELP_ONLINE_DOCUMENTATION,
         HELP_COMMUNITY,
@@ -189,6 +192,7 @@ protected:
 
     void _show_getting_started();
     void _show_tabs();
+    void _show_settings();
 
     void _close_current_tab(bool p_save = true, bool p_history_back = true);
     void _close_tab(int p_idx, bool p_save = true, bool p_history_back = true);
@@ -231,6 +235,7 @@ protected:
     void _add_recent_script(const String& p_path);
     void _update_recent_scripts();
     void _open_recent_script(int p_index);
+    void _clear_recent_scripts();
 
     void _autosave_scripts();
     void _update_autosave_timer();
@@ -278,6 +283,10 @@ protected:
     OrchestratorEditor() = default;
 
 public:
+    //~ Begin Control Interface
+    void _shortcut_input(const Ref<InputEvent>& p_event) override;
+    //~ End Control Interface
+
     static OrchestratorEditor* get_singleton() { return _editor; }
 
     bool toggle_scripts_panel();

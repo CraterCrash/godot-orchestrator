@@ -14,8 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/exec_pin.h"
+#include "common/os_utils.h"
 
-String OrchestratorEditorGraphPinExec::_get_pin_color_name() const {
-    return "interface/theme/connection_colors/execution";
+#include <godot_cpp/classes/os.hpp>
+
+using namespace godot;
+
+namespace OSUtils {
+    bool prefer_meta_over_ctrl() {
+        OS* os = OS::get_singleton();
+        return os->has_feature("macos") || os->has_feature("web_macos") || os->has_feature("web_ios");
+    }
 }

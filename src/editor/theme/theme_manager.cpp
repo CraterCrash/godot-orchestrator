@@ -34,13 +34,13 @@ bool OrchestratorEditorThemeManager::_has_user_color_overrides() const {
     for (const String& key : OrchestratorSettings::get_singleton()->get_settings_name_list()) {
         // Only check keys that _apply_preset manages, anything else (data connection, colors, etc.)
         // is user-owned and must not trigger the auto-Custom flip.
-        const bool is_node_color = key.begins_with("orchestrator/theme/node_colors/");
-        const bool is_structural = key == "orchestrator/theme/nodes/background_color"
-            || key == "orchestrator/theme/nodes/border_color"
-            || key == "orchestrator/theme/nodes/selected_border_color"
-            || key == "orchestrator/theme/nodes/border_radius"
-            || key == "orchestrator/theme/nodes/border_width";
-        const bool is_exec = key == "orchestrator/theme/connection_colors/execution";
+        const bool is_node_color = key.begins_with("orchestrator/interface/theme/node_colors/");
+        const bool is_structural = key == "orchestrator/interface/theme/nodes/background_color"
+            || key == "orchestrator/interface/theme/nodes/border_color"
+            || key == "orchestrator/interface/theme/nodes/selected_border_color"
+            || key == "orchestrator/interface/theme/nodes/border_radius"
+            || key == "orchestrator/interface/theme/nodes/border_width";
+        const bool is_exec = key == "orchestrator/interface/theme/connection_colors/execution";
 
         if (!is_node_color && !is_structural && !is_exec) {
             continue;
@@ -76,7 +76,7 @@ void OrchestratorEditorThemeManager::_project_settings_changed() {
         return;
     }
 
-    const String theme = ORCHESTRATOR_GET("theme/color_theme", DEFAULT_THEME);
+    const String theme = ORCHESTRATOR_GET("interface/theme/color_theme", DEFAULT_THEME);
     if (theme != _current_theme) {
         _apply_preset(theme, true);
     } else if (theme != CUSTOM_THEME && _has_user_color_overrides() && !_custom_flip_pending) {
@@ -98,7 +98,7 @@ void OrchestratorEditorThemeManager::_deferred_check_custom() {
     }
     if (_has_user_color_overrides()) {
         _applying_preset = true;
-        ProjectSettings::get_singleton()->set("orchestrator/theme/color_theme", CUSTOM_THEME);
+        ProjectSettings::get_singleton()->set("orchestrator/interface/theme/color_theme", CUSTOM_THEME);
         _current_theme = CUSTOM_THEME;
         _applying_preset = false;
     }
@@ -120,12 +120,12 @@ void OrchestratorEditorThemeManager::_apply_preset(const String& p_theme_name, b
         const Color base = SceneUtils::get_editor_color("base_color");
         const bool is_dark = base.get_luminance() < 0.5f;
 
-        _write_preset_color("theme/nodes/selected_border_color", accent, p_full_reset);
-        _write_preset_color("theme/nodes/background_color", is_dark ? base.darkened(0.15f) : base.lightened(0.05f), p_full_reset);
-        _write_preset_color("theme/nodes/border_color", is_dark ? base.darkened(0.35f) : base.darkened(0.15f), p_full_reset);
+        _write_preset_color("interface/theme/nodes/selected_border_color", accent, p_full_reset);
+        _write_preset_color("interface/theme/nodes/background_color", is_dark ? base.darkened(0.15f) : base.lightened(0.05f), p_full_reset);
+        _write_preset_color("interface/theme/nodes/border_color", is_dark ? base.darkened(0.35f) : base.darkened(0.15f), p_full_reset);
 
         if (p_full_reset) {
-            String prefix = "orchestrator/theme/nodes/";
+            String prefix = "orchestrator/interface/theme/nodes/";
             ProjectSettings::get_singleton()->set_initial_value(prefix + "border_radius", 4.0);
             ProjectSettings::get_singleton()->set(prefix + "border_radius", 4.0);
             ProjectSettings::get_singleton()->set_initial_value(prefix + "border_width", 2.0);
@@ -142,24 +142,24 @@ void OrchestratorEditorThemeManager::_apply_preset(const String& p_theme_name, b
         };
 
         static const NodeColorEntry node_colors[] = {
-            { "theme/node_colors/constants_and_literals",      Color(0.27f, 0.39f, 0.20f) },
-            { "theme/node_colors/dialogue",                    Color(0.31f, 0.43f, 0.83f) },
-            { "theme/node_colors/events",                      Color(0.46f, 0.00f, 0.00f) },
-            { "theme/node_colors/flow_control",                Color(0.13f, 0.26f, 0.27f) },
-            { "theme/node_colors/function_call",               Color(0.00f, 0.20f, 0.39f) },
-            { "theme/node_colors/orchestration_function_call", Color(0.00f, 0.31f, 0.60f) },
-            { "theme/node_colors/other_script_function_call",  Color(0.02f, 0.34f, 0.50f) },
-            { "theme/node_colors/pure_function_call",          Color(0.13f, 0.30f, 0.11f) },
-            { "theme/node_colors/function_terminator",         Color(0.29f, 0.00f, 0.50f) },
-            { "theme/node_colors/function_result",             Color(1.00f, 0.64f, 0.40f) },
-            { "theme/node_colors/math_operations",             Color(0.25f, 0.40f, 0.38f) },
-            { "theme/node_colors/memory",                      Color(0.35f, 0.33f, 0.13f) },
-            { "theme/node_colors/properties",                  Color(0.46f, 0.28f, 0.17f) },
-            { "theme/node_colors/resources",                   Color(0.26f, 0.27f, 0.35f) },
-            { "theme/node_colors/scene",                       Color(0.20f, 0.14f, 0.28f) },
-            { "theme/node_colors/signals",                     Color(0.35f, 0.00f, 0.00f) },
-            { "theme/node_colors/variable",                    Color(0.25f, 0.17f, 0.24f) },
-            { "theme/node_colors/type_cast",                   Color(0.00f, 0.22f, 0.20f) },
+            { "interface/theme/node_colors/constants_and_literals",      Color(0.27f, 0.39f, 0.20f) },
+            { "interface/theme/node_colors/dialogue",                    Color(0.31f, 0.43f, 0.83f) },
+            { "interface/theme/node_colors/events",                      Color(0.46f, 0.00f, 0.00f) },
+            { "interface/theme/node_colors/flow_control",                Color(0.13f, 0.26f, 0.27f) },
+            { "interface/theme/node_colors/function_call",               Color(0.00f, 0.20f, 0.39f) },
+            { "interface/theme/node_colors/orchestration_function_call", Color(0.00f, 0.31f, 0.60f) },
+            { "interface/theme/node_colors/other_script_function_call",  Color(0.02f, 0.34f, 0.50f) },
+            { "interface/theme/node_colors/pure_function_call",          Color(0.13f, 0.30f, 0.11f) },
+            { "interface/theme/node_colors/function_terminator",         Color(0.29f, 0.00f, 0.50f) },
+            { "interface/theme/node_colors/function_result",             Color(1.00f, 0.64f, 0.40f) },
+            { "interface/theme/node_colors/math_operations",             Color(0.25f, 0.40f, 0.38f) },
+            { "interface/theme/node_colors/memory",                      Color(0.35f, 0.33f, 0.13f) },
+            { "interface/theme/node_colors/properties",                  Color(0.46f, 0.28f, 0.17f) },
+            { "interface/theme/node_colors/resources",                   Color(0.26f, 0.27f, 0.35f) },
+            { "interface/theme/node_colors/scene",                       Color(0.20f, 0.14f, 0.28f) },
+            { "interface/theme/node_colors/signals",                     Color(0.35f, 0.00f, 0.00f) },
+            { "interface/theme/node_colors/variable",                    Color(0.25f, 0.17f, 0.24f) },
+            { "interface/theme/node_colors/type_cast",                   Color(0.00f, 0.22f, 0.20f) },
         };
 
         for (const NodeColorEntry& entry : node_colors) {
@@ -170,11 +170,11 @@ void OrchestratorEditorThemeManager::_apply_preset(const String& p_theme_name, b
 
         // Comment is always a neutral gray, no hue derivation
         const float gray = is_dark ? 0.35f : 0.65f;
-        _write_preset_color("theme/node_colors/comment", Color(gray, gray, gray), p_full_reset);
+        _write_preset_color("interface/theme/node_colors/comment", Color(gray, gray, gray), p_full_reset);
 
         // Handle execution control flow connections, which are white by default
         const Color font_color = SceneUtils::get_editor_color("font_color");
-        _write_preset_color("theme/connection_colors/execution", font_color, p_full_reset);
+        _write_preset_color("interface/theme/connection_colors/execution", font_color, p_full_reset);
     }
 
     _applying_preset = false;
@@ -214,7 +214,7 @@ void OrchestratorEditorThemeManager::_bind_methods() {
 }
 
 OrchestratorEditorThemeManager::OrchestratorEditorThemeManager() {
-    _current_theme = ORCHESTRATOR_GET("theme/color_theme", DEFAULT_THEME);
+    _current_theme = ORCHESTRATOR_GET("interface/theme/color_theme", DEFAULT_THEME);
     _apply_preset(_current_theme, false);
 
     _builder = memnew(OrchestratorEditorThemeBuilder);

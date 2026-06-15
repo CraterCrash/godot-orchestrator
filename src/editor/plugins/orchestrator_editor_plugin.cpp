@@ -29,6 +29,7 @@
 #include "editor/inspector/type_cast_inspector_plugin.h"
 #include "editor/inspector/variable_inspector_plugin.h"
 #include "editor/script_editor_view.h"
+#include "editor/settings/settings_dialog.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/control.hpp>
@@ -36,8 +37,13 @@
 #if GODOT_VERSION >= 0x040500
 #include <godot_cpp/classes/dpi_texture.hpp>
 #endif
+#include "common/scene_utils.h"
+#include "editor/settings/editor_settings.h"
+
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/scene_tree_timer.hpp>
@@ -85,6 +91,105 @@ void OrchestratorPlugin::_unregister_plugins() {
     _unregister_plugin<EditorDebuggerPlugin>();
     _unregister_plugin<EditorExportPlugin>();
     _unregister_plugin<EditorInspectorPlugin>();
+}
+
+void OrchestratorPlugin::_register_shortcuts() {
+    //~ Begin Top-Level Editor
+    ED_SHORTCUT("editor/new_file", "New Orchestration...", OACCEL_KEY(KEY_MASK_CTRL, KEY_N));
+    ED_SHORTCUT("editor/open_file", "Open...");
+    ED_SHORTCUT("editor/reopen_closed_file", "Reopen Closed Orchestration", OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_SHIFT, KEY_T));
+    ED_SHORTCUT("editor/close_file", "Close", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_W));
+    ED_SHORTCUT("editor/close_all", "Close All");
+    ED_SHORTCUT("editor/close_other_tabs", "Close Other Tabs");
+    ED_SHORTCUT("editor/clear_recent_files", "Clear Recent History");
+    ED_SHORTCUT("editor/save", "Save", OACCEL_KEY(KEY_MASK_ALT | KEY_MASK_CMD_OR_CTRL, KEY_S));
+    ED_SHORTCUT("editor/save_as", "Save As...");
+    ED_SHORTCUT("editor/save_all", "Save All", OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S));
+    ED_SHORTCUT("editor/copy_path", "Copy Orchestration Path");
+    ED_SHORTCUT("editor/copy_uid", "Copy Orchestration UID");
+    ED_SHORTCUT("editor/show_in_file_system", "Show in FileSystem");
+    ED_SHORTCUT("editor/toggle_file_panel", "Toggle Orchestration Panel", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_BACKSLASH));
+    ED_SHORTCUT("editor/toggle_component_panel", "Toggle Component Panel", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_SLASH));
+    ED_SHORTCUT("editor/soft_reload_tool_script", "Soft Reload Tool Script", OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_R));
+    ED_SHORTCUT("editor/run", "Run Tool Script");
+    ED_SHORTCUT("editor/settings", "Settings", OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_SHIFT, KEY_S));
+
+    //~ Begin Graph Editor
+    ED_SHORTCUT("graph_editor/bookmark/toggle", "Toggle Bookmark", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_ALT, KEY_B));
+    ED_SHORTCUT("graph_editor/bookmark/remove_all", "Remove All Bookmarks", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_ALT | KEY_MASK_SHIFT, KEY_B));
+    ED_SHORTCUT("graph_editor/bookmark/goto_next", "Goto Next Bookmark", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_B));
+    ED_SHORTCUT("graph_editor/bookmark/goto_previous", "Goto Previous Bookmark", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT, KEY_B));
+    ED_SHORTCUT("graph_editor/breakpoint/toggle", "Toggle Breakpoint", KEY_F9);
+    ED_SHORTCUT_OVERRIDE("graph_editor/breakpoint/toggle", "macos", OACCEL_KEY(KEY_MASK_META | KEY_MASK_SHIFT, KEY_B));
+    ED_SHORTCUT("graph_editor/breakpoint/remove_all", "Remove All Breakpoints", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT, KEY_F9));
+    ED_SHORTCUT_OVERRIDE("graph_editor/breakpoint/remove_all", "macos", OACCEL_KEY(KEY_MASK_META | KEY_MASK_SHIFT, KEY_B));
+    ED_SHORTCUT("graph_editor/breakpoint/goto_next", "Goto Next Breakpoint", OACCEL_KEY(KEY_MASK_CTRL, KEY_PERIOD));
+    ED_SHORTCUT("graph_editor/breakpoint/goto_previous", "Goto Previous Breakpoint", OACCEL_KEY(KEY_MASK_CTRL, KEY_COMMA));
+    ED_SHORTCUT("graph_editor/breakpoint/disable", "Disable breakpoint");
+    ED_SHORTCUT("graph_editor/breakpoint/enable", "Enable breakpoint");
+    ED_SHORTCUT("graph_editor/goto_node", "Goto Node", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_L));
+
+    ED_SHORTCUT("graph_editor/break_node_links", "Break Node Link(s)");
+
+    ED_SHORTCUT("graph_editor/toggle_resizer", "Toggle Resizer");
+    ED_SHORTCUT("graph_editor/resize_to_content", "Resize to Content");
+    ED_SHORTCUT("graph_editor/refresh_nodes", "Refresh Nodes");
+    ED_SHORTCUT("graph_editor/add_call_parent_function", "Add Call to Parent Function");
+    ED_SHORTCUT("graph_editor/add_option_pin", "Add Option Pin");
+    ED_SHORTCUT("graph_editor/await_function", "Await Function");
+    ED_SHORTCUT("graph_editor/detach_from_frame", "Detach from Frame");
+    ED_SHORTCUT("graph_editor/expand_node", "Expand Node");
+    ED_SHORTCUT("graph_editor/collapse_to_function", "Collapse to Function");
+    ED_SHORTCUT("graph_editor/alignment/align_top", "Align Top");
+    ED_SHORTCUT("graph_editor/alignment/align_middle", "Align Middle");
+    ED_SHORTCUT("graph_editor/alignment/align_bottom", "Align Bottom");
+    ED_SHORTCUT("graph_editor/alignment/align_left", "Align Left");
+    ED_SHORTCUT("graph_editor/alignment/align_center", "Align Center");
+    ED_SHORTCUT("graph_editor/alignment/align_right", "Align Right");
+    ED_SHORTCUT("graph_editor/view_documentation", "View Documentation");
+    ED_SHORTCUT("graph_editor/zoom_in", "Zoom In", KEY_KP_ADD);
+    ED_SHORTCUT("graph_editor/zoom_out", "Zoom Out", KEY_KP_SUBTRACT);
+
+    ED_SHORTCUT("graph_editor/frame/set_frame_title", "Set Frame Title");
+    ED_SHORTCUT("graph_editor/frame/set_comment_text", "Set Comment Text");
+    ED_SHORTCUT("graph_editor/frame/enable_auto_shrink", "Enable Auto Shrink");
+    ED_SHORTCUT("graph_editor/frame/enable_tint_color", "Enable Tint Color");
+    ED_SHORTCUT("graph_editor/frame/set_tint_color", "Set Tint Color");
+
+    OrchestratorEditorSettings* oes = OrchestratorEditorSettings::get_singleton();
+
+    {
+        Ref<InputEventMouseButton> mb;
+        mb.instantiate();
+        mb->set_button_index(MOUSE_BUTTON_LEFT);
+        mb->set_command_or_control_autoremap(true);
+        oes->register_shortcut("graph_editor/reroutes/create_reroute", "Create Reroute Node", mb);
+    }
+    ED_SHORTCUT("graph_editor/reroutes/delete_reroute", "Remove Reroute Node", OACCEL_KEY(KEY_MASK_SHIFT, KEY_DELETE));
+
+    ED_SHORTCUT("graph_editor/create_nodes/branch", "Create Branch", KEY_B);
+    ED_SHORTCUT("graph_editor/create_nodes/comment", "Create Comment", KEY_C);
+    ED_SHORTCUT("graph_editor/create_nodes/delay", "Create Delay", KEY_D);
+    ED_SHORTCUT("graph_editor/create_nodes/sequence", "Create Sequence", KEY_S);
+
+    //~ Begin Components Panel
+    ED_SHORTCUT("graph_components_panel/open", "Open", KEY_ENTER);
+    ED_SHORTCUT("graph_components_panel/focus", "Focus", KEY_ENTER);
+    ED_SHORTCUT("graph_components_panel/rename", "Rename", KEY_F2);
+    ED_SHORTCUT("graph_components_panel/remove", "Remove", KEY_DELETE);
+    ED_SHORTCUT("graph_components_panel/disconnect_signal", "Disconnect", KEY_NONE);
+    ED_SHORTCUT("graph_components_panel/duplicate", "Duplicate", KEY_NONE);
+    ED_SHORTCUT("graph_components_panel/duplicate_without_code", "Duplicate (No Code)", KEY_NONE);
+
+    // Transients
+    // EditorSettings in pre-4.6 does not expose shortcuts for non-customized values
+    // For now, until we drop pre-4.6 support, we explicitly remap as transient bindings
+    oes->register_shortcut("editor/open_search", "Focus Search/Filter Bar", OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_F), true);
+
+    oes->register_shortcut("debugger/step_into", "Step Into", KEY_F11, true);
+    oes->register_shortcut("debugger/step_over", "Step Over", KEY_F10, true);
+    oes->register_shortcut("debugger/break", "Break", KEY_NONE, true);
+    oes->register_shortcut("debugger/continue", "Continue", KEY_F12, true);
 }
 
 bool OrchestratorPlugin::_is_plugin_just_installed() const {
@@ -374,6 +479,7 @@ void OrchestratorPlugin::_notification(int p_what) {
             _plugin = this;
 
             _register_plugins();
+            _register_shortcuts();
 
             _window_wrapper = memnew(OrchestratorWindowWrapper);
             _window_wrapper->set_window_title(vformat("Orchestrator - Godot Engine"));
@@ -414,6 +520,12 @@ void OrchestratorPlugin::_notification(int p_what) {
             } else {
                 _add_plugin_icon_to_editor_theme();
             }
+            break;
+        }
+        case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
+            // Editor settings changed (possibly a native shortcut rebind). Re-sync our transient
+            // shadow shortcuts so menus bound to them reflect the live native bindings.
+            OrchestratorEditorSettings::get_singleton()->refresh_transient_shortcuts();
             break;
         }
         default: {

@@ -327,7 +327,7 @@ String OrchestratorEditorGraphNode::_get_tooltip_text() {
     tooltip_text += "\nClass: " + class_name;
     tooltip_text += "\nFlags: " + itos(_node->get_flags());
 
-    const bool advanced_tooltips = ORCHESTRATOR_GET("editor/graph/show_advanced_tooltips", false);
+    const bool advanced_tooltips = ORCHESTRATOR_GET("interface/editor/graph/show_advanced_tooltips", false);
     if (advanced_tooltips) {
         tooltip_text += "\n";
         tooltip_text += "\nUI Instance: " + itos(get_instance_id());
@@ -651,7 +651,7 @@ void OrchestratorEditorGraphNode::update() {
         return;
     }
 
-    if (ORCHESTRATOR_GET("editor/graph_nodes/resize_to_content", false)) {
+    if (ORCHESTRATOR_GET("interface/editor/graph_nodes/resize_to_content", false)) {
         _resize_to_content();
     }
 
