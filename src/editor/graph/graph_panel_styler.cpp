@@ -23,7 +23,7 @@
 #include "editor/graph/graph_pin.h"
 
 void OrchestratorEditorGraphPanelStyler::_settings_changed() {
-    _highlight_selected_connections = ORCHESTRATOR_GET("editor/graph_nodes/highlight_selected_connections", false);
+    _highlight_selected_connections = ORCHESTRATOR_GET("interface/editor/graph_nodes/highlight_selected_connections", false);
 }
 
 void OrchestratorEditorGraphPanelStyler::_connection_pin_drag_started(OrchestratorEditorGraphPin* p_drag_pin) {

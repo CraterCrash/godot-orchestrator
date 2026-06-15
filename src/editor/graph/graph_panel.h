@@ -210,16 +210,18 @@ private:
 
     void _clear_copy_buffer();
     void _toggle_resizer_for_selected_nodes();
-    void _resize_node_to_content();
+    void _resize_selected_nodes_to_content();
     void _refresh_selected_nodes();
     void _add_node_pin(OrchestratorEditorGraphNode* p_node);
     void _expand_node(OrchestratorEditorGraphNode* p_node);
     void _collapse_selected_nodes_to_function();
     bool _create_new_function(const String& p_name, bool p_has_return = false);
     bool _create_new_function_override(const MethodInfo& p_method);
+    bool _can_call_parent_function(OrchestratorEditorGraphNode* p_node);
     void _create_call_to_parent_function(OrchestratorEditorGraphNode* p_node);
     void _align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment);
     void _set_variable_node_validation(OrchestratorEditorGraphNode* p_node, bool p_validated);
+    void _toggle_await_function(OrchestratorEditorGraphNode* p_node);
 
     void _select_connected_execution_pins(OrchestratorEditorGraphPin* p_pin);
     void _remove_node_pin(OrchestratorEditorGraphPin* p_pin);
@@ -285,6 +287,10 @@ private:
     void _dissolve_selected_reroutes();
 
 public:
+    //~ Begin Node Interface
+    void _shortcut_input(const Ref<InputEvent>& p_event) override;
+    //~ End Node Interface
+
     //~ Begin Control Interface
     void _gui_input(const Ref<InputEvent>& p_event) override;
     bool _can_drop_data(const Vector2& p_at_position, const Variant& p_data) const override;
@@ -360,8 +366,10 @@ public:
     template <typename T, typename P> Vector<T*> predicate_find(P&& p_predicate);
     template <typename T, typename F> void for_each(F&& p_function, bool p_selected = false);
     template <typename T> Vector<T*> get_selected();
+    template <typename T> T* get_hovered_element();
     template <typename T> Vector<T*> get_all(bool p_only_selected);
 
+    template <typename NodeType> NodeSpawnResult spawn_node();
     template <typename NodeType> NodeSpawnResult spawn_node(NodeSpawnOptions& p_options);
     NodeSpawnResult spawn_node(const NodeSpawnOptions& p_options);
 
@@ -416,6 +424,18 @@ _FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_selected() {
 }
 
 template <typename T>
+_FORCE_INLINE_ T* OrchestratorEditorGraphPanel::get_hovered_element() {
+    // Iterate backward to get the top-most element
+    for (int i = get_child_count() - 1; i >= 0; i--) {
+        T* selectable = cast_to<T>(get_child(i));
+        if (selectable && selectable->get_rect().has_point(get_local_mouse_position())) {
+            return selectable;
+        }
+    }
+    return nullptr;
+}
+
+template <typename T>
 _FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_all(bool p_only_selected) {
     Vector<T*> objects;
     for (int i = 0; i < get_child_count(); i++) {
@@ -425,6 +445,14 @@ _FORCE_INLINE_ Vector<T*> OrchestratorEditorGraphPanel::get_all(bool p_only_sele
         }
     }
     return objects;
+}
+
+template <typename NodeType>
+_FORCE_INLINE_ OrchestratorEditorGraphPanel::NodeSpawnResult OrchestratorEditorGraphPanel::spawn_node() {
+    NodeSpawnOptions options;
+    options.node_class = NodeType::get_class_static();
+    options.position = (get_scroll_offset() + get_local_mouse_position()) / get_zoom();
+    return spawn_node(options);
 }
 
 template <typename NodeType>

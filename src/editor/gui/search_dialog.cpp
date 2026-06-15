@@ -552,7 +552,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             SceneUtils::set_theme_type_variation(_search_options, "Tree");
             SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);
 
-            _help_bit = memnew(OrchestratorEditorSearchHelpBit);
+            _help_bit = memnew(OrchestratorEditorHelpBit);
             SceneUtils::add_margin_child(vbox, "Description:", _help_bit);
 
             register_text_enter(_search_box);

@@ -22,6 +22,7 @@
 #include "editor/actions/registry.h"
 #include "editor/actions/rules/override_function_rule.h"
 #include "editor/autowire_connection_dialog.h"
+#include "editor/doc/editor_help.h"
 #include "editor/editor.h"
 #include "editor/export/orchestration_export_plugin.h"
 #include "editor/getting_started.h"
@@ -37,6 +38,7 @@
 #include "editor/gui/editor_log_event_router.h"
 #include "editor/gui/file_dialog.h"
 #include "editor/gui/search_dialog.h"
+#include "editor/gui/sectioned_inspector.h"
 #include "editor/gui/select_class_dialog.h"
 #include "editor/gui/select_type_dialog.h"
 #include "editor/gui/window_wrapper.h"
@@ -57,11 +59,30 @@
 #include "editor/scene_node_selector.h"
 #include "editor/script_components_container.h"
 #include "editor/script_editor_view.h"
+#include "editor/settings/general_tab.h"
+#include "editor/settings/editor_settings.h"
+#include "editor/settings/input_event_configuration_dialog.h"
+#include "editor/settings/settings_dialog.h"
+#include "editor/settings/shortcuts_tab.h"
 #include "editor/theme/theme_builder.h"
 #include "editor/theme/theme_manager.h"
 #include "editor/updater/updater.h"
 
 void register_editor_types() {
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSettings)
+
+    // Plugin Settings
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSettingsDialog)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorHelpBit)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorHelpBitTooltip)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSectionedInspectorFilter)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSectionedInspector)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorEventSearchBar)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInputEventListenerLineEdit)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInputEventConfigurationDialog)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSettingsGeneralTab)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSettingsShortcutsTab)
+
     // Plugin bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorPlugin)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorThemeManager)
@@ -86,14 +107,12 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorSelectClassSearchDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorSelectTypeSearchDialog)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorSearchHelpBit)
     GDREGISTER_INTERNAL_CLASS(OrchestratorAutowireConnectionDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorPropertySelector)
     GDREGISTER_INTERNAL_CLASS(OrchestratorSceneNodeSelector)
 
     // Action components
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionMenu)
-    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionHelp)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionDefinition)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionFilterEngine)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorActionRegistry)
@@ -153,6 +172,12 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinTextEdit)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorGraphPinStruct)
 
+    // Editor-only settings singleton (keybindings, etc.). Created after its class is registered
+    // with ClassDB and before the plugin is added, so the plugin's ENTER_TREE can register shortcuts.
+    // Construction itself is safe here; it only touches EditorInterface when shortcuts are
+    // registered/queried later.
+    OrchestratorEditorSettings::create();
+
     // Add plugin to the editor
     EditorPlugins::add_by_type<OrchestratorPlugin>();
 }
@@ -160,4 +185,6 @@ void register_editor_types() {
 void unregister_editor_types() {
     // Remove plugin from the editor
     EditorPlugins::remove_by_type<OrchestratorPlugin>();
+
+    OrchestratorEditorSettings::destroy();
 }

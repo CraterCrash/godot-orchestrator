@@ -137,8 +137,7 @@ bool OrchestratorSelectClassSearchDialog::_get_search_item_collapse_suggestion(T
 }
 
 void OrchestratorSelectClassSearchDialog::_update_help(const Ref<SearchItem>& p_item) {
-    _help_bit->set_text(vformat("No description available for [b]%s[/b]", p_item->text));
-    _help_bit->set_disabled(true);
+    _help_bit->parse_symbol(vformat("class|%s|", p_item->text));
 }
 
 Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassSearchDialog::_get_search_items() {

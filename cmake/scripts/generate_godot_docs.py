@@ -60,7 +60,10 @@ def make_doc_source(target, source):
 """)
     g.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
     g.write("\n")
+    g.write("#include \"api/extension_db.h\"\n")
+    g.write("\n")
     g.write("#include <godot_cpp/godot.hpp>\n")
+    g.write("#include <godot_cpp/variant/packed_byte_array.hpp>\n")
     g.write("\n")
 
     g.write('static const char *_doc_data_hash = "' + str(hash(buf)) + '";\n')
@@ -75,6 +78,16 @@ def make_doc_source(target, source):
     g.write(
         "static godot::internal::DocDataRegistration _doc_data_registration(_doc_data_hash, _doc_data_uncompressed_size, _doc_data_compressed_size, _doc_data_compressed);\n"
     )
+    g.write("\n")
+
+    g.write("void ExtensionDB::_decompress_and_load_docs() {\n")
+    g.write("\tPackedByteArray compressed;\n")
+    g.write("\tcompressed.resize(_doc_data_compressed_size);\n")
+    g.write("\tmemcpy(compressed.ptrw(), _doc_data_compressed, _doc_data_compressed_size);\n")
+    g.write("\n")
+    g.write("\tPackedByteArray decompressed = compressed.decompress(_doc_data_uncompressed_size, 1);\n")
+    g.write("\t_load_docs(decompressed);\n")
+    g.write("}\n")
     g.write("\n")
 
     g.close()

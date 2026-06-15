@@ -34,6 +34,7 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/connections_dock.h"
 #include "editor/scene/script_connections.h"
+#include "editor/settings/editor_settings.h"
 #include "orchestration/nodes/function_entry.h"
 #include "orchestration/nodes/function_result.h"
 #include "script/script.h"
@@ -155,19 +156,19 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
             const bool can_be_renamed = graph->get_flags().has_flag(OScriptGraph::GF_RENAMABLE);
             const bool can_be_removed = graph->get_flags().has_flag(OScriptGraph::GF_DELETABLE);
 
-            menu->add_item("Open Graph", callable_mp_this(_open_graph).bind(graph->get_graph_name()), false, KEY_ENTER);
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_graphs, p_item), !can_be_renamed, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), !can_be_removed, KEY_DELETE);
+            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/open"), callable_mp_this(_open_graph).bind(graph->get_graph_name()), false);
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_graphs, p_item), !can_be_renamed);
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), !can_be_removed);
 
             break;
         }
         case EVENT_GRAPH_FUNCTION: {
             const String function_name = p_item->get_meta("__name", "");
 
-            menu->add_item("Focus", callable_mp_this(_component_focus_item).bind(p_item), false, KEY_ENTER);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/focus"), callable_mp_this(_component_focus_item).bind(p_item), false);
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
             if (p_item->get_meta("__slot", false)) {
-                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", callable_mp_this(_disconnect_slot_item).bind(p_item));
+                int32_t id = menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("graph_components_panel/disconnect_signal"), callable_mp_this(_disconnect_slot_item).bind(p_item));
                 menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
             }
 
@@ -176,28 +177,28 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
         case SCRIPT_FUNCTION: {
             const Ref<OScriptFunction> func = _get_orchestration()->find_function(p_item->get_meta("__name", ""));
 
-            menu->add_item("Open In Graph", callable_mp_this(_open_graph).bind(func->get_function_name()), false, KEY_ENTER);
-            menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_component_duplicate_item).bind(p_item, DictionaryUtils::of({{ "include_code", "true" }})));
-            menu->add_icon_item("Duplicate", "Duplicate (no_code)", callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_functions, p_item), false, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/open"), callable_mp_this(_open_graph).bind(func->get_function_name()), false);
+            menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, DictionaryUtils::of({{ "include_code", "true" }})));
+            menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate_without_code"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_functions, p_item), false);
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
 
             if (p_item->get_meta("__slot", false)) {
-                int32_t id = menu->add_icon_item("Unlinked", "Disconnect", callable_mp_this(_disconnect_slot_item).bind(p_item));
+                int32_t id = menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("graph_components_panel/disconnect_signal"), callable_mp_this(_disconnect_slot_item).bind(p_item));
                 menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
             }
 
             break;
         }
         case SCRIPT_VARIABLE: {
-            menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_variables, p_item), false, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_variables, p_item), false);
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
             break;
         }
         case SCRIPT_SIGNAL: {
-            menu->add_icon_item("Rename", "Rename", RENAME_ITEM(_signals, p_item), false, KEY_F2);
-            menu->add_icon_item("Remove", "Remove", callable_mp_this(_component_remove_item).bind(p_item, true), false, KEY_DELETE);
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_signals, p_item), false);
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
             break;
         }
         default: {
@@ -215,43 +216,37 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
 void OrchestratorScriptComponentsContainer::_component_item_gui_input(TreeItem* p_item, const Ref<InputEvent>& p_event) {
     ERR_FAIL_NULL(p_item);
 
-    const Ref<InputEventKey> key = p_event;
-    if (key.is_valid() && key->is_pressed() && !key->is_echo()) {
-        switch (key->get_keycode()) {
-            case KEY_F2: {
-                bool can_be_renamed = p_item->get_meta("__can_be_renamed", true);
-                if (!can_be_renamed) {
-                    return;
-                }
-
-                // As we do not know the view, we need to fetch it
-                Node* node = p_item->get_tree()->get_parent();
-                OrchestratorEditorComponentView* view = cast_to<OrchestratorEditorComponentView>(node);
-                if (view) {
-                    view->rename_tree_item(p_item, callable_mp_this(_component_rename_item));
-                    accept_event();
-                }
-                break;
-            }
-            case KEY_DELETE: {
-                const bool can_be_removed = p_item->get_meta("__can_be_removed", true);
-                if (!can_be_removed) {
-                    return;
-                }
-
-                _component_remove_item(p_item);
-                accept_event();
-                break;
-            }
-            case KEY_ENTER: {
-                _component_item_activated(nullptr, p_item);
-                accept_event();
-                break;
-            }
-            default: {
-                break;
-            }
+    if (ED_IS_SHORTCUT("graph_components_panel/rename", p_event)) {
+        bool can_be_renamed = p_item->get_meta("__can_be_renamed", true);
+        if (!can_be_renamed) {
+            return;
         }
+
+        // As we do not know the view, we need to fetch it
+        Node* node = p_item->get_tree()->get_parent();
+        OrchestratorEditorComponentView* view = cast_to<OrchestratorEditorComponentView>(node);
+        if (view) {
+            view->rename_tree_item(p_item, callable_mp_this(_component_rename_item));
+            accept_event();
+        }
+        return;
+    }
+
+    if (ED_IS_SHORTCUT("graph_components_panel/remove", p_event)) {
+        const bool can_be_removed = p_item->get_meta("__can_be_removed", true);
+        if (!can_be_removed) {
+            return;
+        }
+
+        _component_remove_item(p_item);
+        accept_event();
+        return;
+    }
+
+    if (ED_IS_SHORTCUT("graph_components_panel/open", p_event)
+            || ED_IS_SHORTCUT("graph_components_panel/focus", p_event)) {
+        _component_item_activated(nullptr, p_item);
+        accept_event();
     }
 }
 
@@ -362,6 +357,11 @@ void OrchestratorScriptComponentsContainer::_component_item_button_clicked(Node*
                 dialog->set_title("Change Type: " + variable->get_variable_name());
                 dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
                 dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+                dialog->set_flag(Window::FLAG_RESIZE_DISABLED, true);
+                #if GODOT_VERSION >= 0x040500
+                dialog->set_flag(Window::FLAG_MAXIMIZE_DISABLED, true);
+                dialog->set_flag(Window::FLAG_MINIMIZE_DISABLED, true);
+                #endif
                 add_child(dialog);
 
                 OrchestratorEditorTypeSelector* selector = memnew(OrchestratorEditorTypeSelector);
@@ -1228,8 +1228,8 @@ void OrchestratorScriptComponentsContainer::_scene_changed(Node* p_node) {
 }
 
 void OrchestratorScriptComponentsContainer::_project_settings_changed() {
-    bool use_friendly_graph_names = ORCHESTRATOR_GET("editor/components_panel/show_graph_friendly_names", true);
-    bool use_friendly_function_names = ORCHESTRATOR_GET("editor/components_panel/show_function_friendly_names", true);
+    bool use_friendly_graph_names = ORCHESTRATOR_GET("interface/editor/components_panel/show_graph_friendly_names", true);
+    bool use_friendly_function_names = ORCHESTRATOR_GET("interface/editor/components_panel/show_function_friendly_names", true);
 
     bool components_require_update =
         (use_friendly_function_names != _use_function_friendly_names)

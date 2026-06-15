@@ -36,6 +36,8 @@
 #include "editor/gui/window_wrapper.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/connections_dock.h"
+#include "editor/settings/editor_settings.h"
+#include "editor/settings/settings_dialog.h"
 #include "editor/theme/theme_manager.h"
 #include "editor/updater/updater.h"
 #include "script/language.h"
@@ -52,6 +54,8 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_system_dock.hpp>
 #include <godot_cpp/classes/input.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
+#include <godot_cpp/classes/input_event_shortcut.hpp>
 #include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -171,7 +175,7 @@ void OrchestratorEditor::_menu_option(int p_option) {
             const String language_name = OScriptLanguage::get_singleton()->_get_name();
             _set_script_create_dialog_language(language_name);
 
-            const String inherits = ORCHESTRATOR_GET("settings/default_type", "Node");
+            const String inherits = ORCHESTRATOR_GET("editor/settings/default_type", "Node");
             _script_create_dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_KEYBOARD_FOCUS);
             _script_create_dialog->set_title("Create Orchestration");
             _script_create_dialog->config(inherits, "new_script.os", false, false);
@@ -224,6 +228,10 @@ void OrchestratorEditor::_menu_option(int p_option) {
             save_all_scripts();
             break;
         }
+        case FILE_SETTINGS: {
+            _show_settings();
+            break;
+        }
         case FILE_TOGGLE_LEFT_PANEL: {
             toggle_scripts_panel();
             if (current) {
@@ -238,6 +246,10 @@ void OrchestratorEditor::_menu_option(int p_option) {
                 current->update_toggle_components_button();
             }
 
+            break;
+        }
+        case FILE_CLEAR_RECENT_HISTORY: {
+            _clear_recent_scripts();
             break;
         }
         case HELP_ONLINE_DOCUMENTATION: {
@@ -358,6 +370,21 @@ void OrchestratorEditor::_show_tabs() {
     _tab_container->show();
     _tab_container->set_v_size_flags(SIZE_EXPAND_FILL);
     _getting_started->hide();
+}
+
+void OrchestratorEditor::_show_settings() {
+    OrchestratorEditorSettingsDialog* dialog = memnew(OrchestratorEditorSettingsDialog);
+    EI->get_base_control()->add_child(dialog);
+
+    Ref<Theme> theme = EI->get_editor_theme();
+    if (theme.is_valid()) {
+        dialog->add_theme_stylebox_override(SceneStringName(panel),
+            theme->get_stylebox(SceneStringName(panel), "EditorAbout"));
+    }
+
+    dialog->connect("confirmed", callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect("canceled", callable_mp_cast(dialog, Node, queue_free));
+    dialog->popup_edit_settings();
 }
 
 void OrchestratorEditor::_close_current_tab(bool p_save, bool p_history_back) {
@@ -579,14 +606,14 @@ void OrchestratorEditor::_update_script_names() {
 
     HashSet<Ref<Script>> used;
     Node* edited_scene = EI->get_edited_scene_root();
-    if (edited_scene && EDITOR_GET("text_editor/script_list/highlight_scene_scripts")) {
+    if (edited_scene && ORCHESTRATOR_GET("editor/script_list/highlight_scene_scripts", true)) {
         find_scene_scripts(edited_scene, edited_scene, used);
     }
 
     _script_list->clear();
 
-    ScriptSortBy sort_by = EDITOR_GET_ENUM(ScriptSortBy, "text_editor/script_list/sort_scripts_by");
-    ScriptListName display_as = EDITOR_GET_ENUM(ScriptListName, "text_editor/script_list/list_script_names_as");
+    ScriptSortBy sort_by = ORCHESTRATOR_GET_ENUM(ScriptSortBy, "editor/script_list/sort_scripts_by", 0);
+    ScriptListName display_as = ORCHESTRATOR_GET_ENUM(ScriptListName, "editor/script_list/list_script_names_as", 0);
 
     Vector<OrchestratorEditorItemData> data;
     for (int i = 0; i < _tab_container->get_tab_count(); i++) {
@@ -656,7 +683,7 @@ void OrchestratorEditor::_update_script_names() {
         Vector<String> full_script_paths;
         for (int j = 0; j < data.size(); j++) {
             String name = data[j].name.replace("(*)", "");
-            ScriptListName script_display = EDITOR_GET_ENUM(ScriptListName, "text_editor/script_list/list_script_names_as");
+            ScriptListName script_display = ORCHESTRATOR_GET_ENUM(ScriptListName, "editor/script_list/list_script_names_as", 0);
 
             switch (script_display) {
                 case DISPLAY_NAME: {
@@ -804,13 +831,13 @@ void OrchestratorEditor::_make_script_list_context_menu() {
 
     OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(selected));
     if (view) {
-        _context_menu->add_item("Save", FILE_SAVE);
-        _context_menu->add_item("Save As...", FILE_SAVE_AS);
+        _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/save"), FILE_SAVE);
+        _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/save_as"), FILE_SAVE_AS);
     }
 
-    _context_menu->add_item("Close", FILE_CLOSE);
-    _context_menu->add_item("Close All", FILE_CLOSE_ALL);
-    _context_menu->add_item("Close Other Tabs", FILE_CLOSE_OTHERS);
+    _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/close_file"), FILE_CLOSE);
+    _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/close_all"), FILE_CLOSE_ALL);
+    _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/close_other_tabs"), FILE_CLOSE_OTHERS);
     _context_menu->add_separator();
 
     if (view) {
@@ -818,23 +845,23 @@ void OrchestratorEditor::_make_script_list_context_menu() {
         Ref<Script> script = resource;
 
         if (script.is_valid() && script->is_tool()) {
-            _context_menu->add_item("Soft Reload Tool Script");
-            _context_menu->add_item("Run");
+            _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/soft_reload_tool_script"));
+            _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/run"));
             _context_menu->add_separator();
         }
 
-        _context_menu->add_item("Copy Script Path", FILE_COPY_PATH);
+        _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/copy_path"), FILE_COPY_PATH);
         _context_menu->set_item_disabled(-1, resource->get_path().is_empty());
 
         const int64_t uid = ResourceLoader::get_singleton()->get_resource_uid(resource->get_path());
-        _context_menu->add_item("Copy Script UID", FILE_COPY_UID);
+        _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/copy_uid"), FILE_COPY_UID);
         _context_menu->set_item_disabled(-1, uid  == ResourceUID::INVALID_ID);
 
-        _context_menu->add_item("Show in FileSystem", FILE_SHOW_IN_FILESYSTEM);
+        _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/show_in_file_system"), FILE_SHOW_IN_FILESYSTEM);
         _context_menu->add_separator();
     }
 
-    _context_menu->add_item("Toggle Orchestration Panel", FILE_TOGGLE_LEFT_PANEL);
+    _context_menu->add_shortcut(ED_GET_SHORTCUT("editor/toggle_file_panel"), FILE_TOGGLE_LEFT_PANEL);
 
     _context_menu->set_item_disabled(_context_menu->get_item_index(FILE_CLOSE_ALL), _tab_container->get_tab_count() == 0);
     _context_menu->set_item_disabled(_context_menu->get_item_index(FILE_CLOSE_OTHERS), _tab_container->get_tab_count() == 0);
@@ -1111,7 +1138,7 @@ void OrchestratorEditor::_update_recent_scripts() {
     }
 
     _recent_history->add_separator();
-    _recent_history->add_item("Clear Recent History");
+    _recent_history->add_shortcut(ED_GET_SHORTCUT("editor/clear_recent_files"));
 
     _recent_history->set_item_disabled(_recent_history->get_item_id(_recent_history->get_item_count() - 1), recents.is_empty());
     _recent_history->reset_size();
@@ -1119,8 +1146,7 @@ void OrchestratorEditor::_update_recent_scripts() {
 
 void OrchestratorEditor::_open_recent_script(int p_index) {
     if (p_index == _recent_history->get_item_count() - 1) {
-        _set_recent_scripts(Array());
-        callable_mp_this(_update_recent_scripts).call_deferred();
+        _clear_recent_scripts();
         return;
     }
 
@@ -1148,6 +1174,11 @@ void OrchestratorEditor::_open_recent_script(int p_index) {
     _error_dialog->popup_centered();
 }
 
+void OrchestratorEditor::_clear_recent_scripts() {
+    _set_recent_scripts(Array());
+    callable_mp_this(_update_recent_scripts).call_deferred();
+}
+
 void OrchestratorEditor::_autosave_scripts() {
     save_all_scripts();
 }
@@ -1157,7 +1188,7 @@ void OrchestratorEditor::_update_autosave_timer() {
         return;
     }
 
-    float autosave_time = EDITOR_GET("text_editor/behavior/files/autosave_interval_secs");
+    float autosave_time = ORCHESTRATOR_GET("editor/behavior/files/autosave_interval_secs", 0);
     if (autosave_time > 0) {
         _autosave_timer->set_wait_time(autosave_time);
         _autosave_timer->start();
@@ -1176,7 +1207,7 @@ bool OrchestratorEditor::_test_script_times_on_disk(const Ref<Resource>& p_for_s
 
     bool need_ask = false;
     bool need_reload = false;
-    bool use_autoreload = EDITOR_GET("text_editor/behavior/files/auto_reload_scripts_on_external_change");
+    bool use_autoreload = ORCHESTRATOR_GET("editor/behavior/files/auto_reload_scripts_on_external_change", true);
 
     for (int i = 0; i < _tab_container->get_tab_count(); i++) {
         OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i));
@@ -1402,7 +1433,7 @@ void OrchestratorEditor::_apply_editor_settings() {
     _update_autosave_timer();
     _update_script_names();
 
-    ScriptServer::set_reload_scripts_on_save(EDITOR_GET("text_editor/behavior/files/auto_reload_and_parse_scripts_on_save"));
+    ScriptServer::set_reload_scripts_on_save(ORCHESTRATOR_GET("editor/behavior/files/auto_reload_and_parse_scripts_on_save", true));
 
     for (int i = 0; i < _tab_container->get_tab_count(); i++) {
         if (OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i))) {
@@ -1563,6 +1594,28 @@ void OrchestratorEditor::_update_input_actions_cache() {
     if (_input_action_cache != cache) {
         _input_action_cache = cache;
         emit_signal("input_action_cache_updated");
+    }
+}
+
+void OrchestratorEditor::_shortcut_input(const Ref<InputEvent>& p_event) {
+    ERR_FAIL_COND(p_event.is_null());
+
+    Ref<InputEventKey> key = p_event;
+    if ((key.is_valid() && key->is_pressed() && !key->is_echo()) || cast_to<InputEventShortcut>(*p_event)) {
+        bool is_handled = true;
+        if (ED_IS_SHORTCUT("editor/settings", p_event)) {
+            _menu_option(FILE_SETTINGS);
+        } else if (ED_IS_SHORTCUT("editor/reopen_closed_file", p_event)) {
+            _menu_option(FILE_REOPEN_CLOSED);
+        } else if (ED_IS_SHORTCUT("editor/clear_recent_files", p_event)) {
+            _menu_option(FILE_CLEAR_RECENT_HISTORY);
+        } else {
+            is_handled = false;
+        }
+
+        if (is_handled) {
+            accept_event();
+        }
     }
 }
 
@@ -2528,26 +2581,28 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _recent_history->connect(SceneStringName(id_pressed), callable_mp_this(_open_recent_script));
     _file_menu->get_popup()->add_child(_recent_history);
 
-    _file_menu->get_popup()->add_item("New Orchestration...", FILE_NEW, OACCEL_KEY(KEY_MASK_CTRL, KEY_N));
-    _file_menu->get_popup()->add_item("Open...", FILE_OPEN);
-    _file_menu->get_popup()->add_item("Reopen Closed Orchestration", FILE_REOPEN_CLOSED, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_SHIFT, KEY_T));
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/new_file"), FILE_NEW);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/open_file"), FILE_OPEN);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/reopen_closed_file"), FILE_REOPEN_CLOSED);
     _file_menu->get_popup()->add_submenu_node_item("Open Recent", _recent_history, FILE_OPEN_RECENT);
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Save", FILE_SAVE, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_S));
-    _file_menu->get_popup()->add_item("Save As...", FILE_SAVE_AS);
-    _file_menu->get_popup()->add_item("Save All", FILE_SAVE_ALL, OACCEL_KEY(KEY_MASK_SHIFT | KEY_MASK_ALT, KEY_S));
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/save"), FILE_SAVE);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/save_as"), FILE_SAVE_AS);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/save_all"), FILE_SAVE_ALL);
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Soft Reload Tool Script", FILE_SOFT_RELOAD_TOOL_SCRIPT, OACCEL_KEY(KEY_MASK_CTRL | KEY_MASK_ALT, KEY_R));
-    _file_menu->get_popup()->add_item("Copy Orchestration Path", FILE_COPY_PATH);
-    _file_menu->get_popup()->add_item("Copy Orchestration UID", FILE_COPY_UID);
-    _file_menu->get_popup()->add_item("Show in Filesystem", FILE_SHOW_IN_FILESYSTEM);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/settings"), FILE_SETTINGS);
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Close", FILE_CLOSE, OACCEL_KEY(KEY_MASK_CTRL, KEY_W));
-    _file_menu->get_popup()->add_item("Close All", FILE_CLOSE_ALL);
-    _file_menu->get_popup()->add_item("Close Others", FILE_CLOSE_OTHERS);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/soft_reload_tool_script"), FILE_SOFT_RELOAD_TOOL_SCRIPT);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/copy_path"), FILE_COPY_PATH);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/copy_uid"), FILE_COPY_UID);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/show_in_file_system"), FILE_SHOW_IN_FILESYSTEM);
     _file_menu->get_popup()->add_separator();
-    _file_menu->get_popup()->add_item("Toggle Orchestration List", FILE_TOGGLE_LEFT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_BACKSLASH));
-    _file_menu->get_popup()->add_item("Toggle Component Panel", FILE_TOGGLE_RIGHT_PANEL, OACCEL_KEY(KEY_MASK_CTRL, KEY_SLASH));
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/close_file"), FILE_CLOSE);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/close_all"), FILE_CLOSE_ALL);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/close_other_tabs"), FILE_CLOSE_OTHERS);
+    _file_menu->get_popup()->add_separator();
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/toggle_file_panel"), FILE_TOGGLE_LEFT_PANEL);
+    _file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("editor/toggle_component_panel"), FILE_TOGGLE_RIGHT_PANEL);
     _file_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
     _file_menu->get_popup()->connect("about_to_popup", callable_mp_this(_prepare_file_menu));
     _file_menu->get_popup()->connect("popup_hide", callable_mp_this(_file_menu_closed));
