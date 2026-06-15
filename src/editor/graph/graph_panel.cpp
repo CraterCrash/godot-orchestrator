@@ -42,6 +42,7 @@
 #include "editor/graph/nodes/reroute_graph_node.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/dialogs_helper.h"
+#include "editor/settings/editor_settings.h"
 #include "orchestration/graph.h"
 #include "orchestration/nodes.h"
 #include "orchestration/orchestration.h"
@@ -336,7 +337,7 @@ void OrchestratorEditorGraphPanel::_update_panel_hint() {
             Ref<StyleBoxFlat> sbf = sb;
             if (sbf.is_valid()) {
                 sbf = sbf->duplicate(true);
-                sbf->set_bg_color(ORCHESTRATOR_GET("theme/tool_scripts/background_color", Color(1,1,0,.1)));
+                sbf->set_bg_color(ORCHESTRATOR_GET("interface/theme/tool_scripts/background_color", Color(1,1,0,.1)));
                 add_theme_stylebox_override("panel", sbf);
             }
         }
@@ -431,11 +432,11 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     }
 
     const bool can_delete = p_node->can_user_delete_node();
-    menu->add_icon_item("Remove", "Delete", callable_mp_this(remove_selected_nodes).bind(true), !can_delete, KEY_DELETE);
+    menu->add_icon_shortcut("Remove", ED_ACTION_SHORTCUT("ui_graph_delete", "Delete"), callable_mp_this(remove_selected_nodes).bind(true), !can_delete);
 
-    menu->add_icon_item("ActionCut", "Cut", callable_mp_this(_cut_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_X));
-    menu->add_icon_item("ActionCopy", "Copy", callable_mp_this(_copy_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_C));
-    menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_duplicate_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_D));
+    menu->add_icon_shortcut("ActionCut", ED_ACTION_SHORTCUT("ui_cut", "Cut"), callable_mp_this(_cut_nodes_request), false);
+    menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_copy_nodes_request), false);
+    menu->add_icon_shortcut("Duplicate", ED_ACTION_SHORTCUT("ui_graph_duplicate", "Duplicate"), callable_mp_this(_duplicate_nodes_request), false);
 
     if (is_reroute) {
         menu->set_position(p_node->get_screen_position() + p_position * get_zoom());
@@ -443,58 +444,54 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
         return;
     }
 
-    menu->add_icon_item("DistractionFree", "Toggle Resizer", callable_mp_this(_toggle_resizer_for_selected_nodes));
-    menu->add_icon_item("KeepAspect", "Resize to Content", callable_mp_this(_resize_node_to_content));
+    menu->add_icon_shortcut("DistractionFree", ED_GET_SHORTCUT("graph_editor/toggle_resizer"), callable_mp_this(_toggle_resizer_for_selected_nodes));
+    menu->add_icon_shortcut("KeepAspect", ED_GET_SHORTCUT("graph_editor/resize_to_content"), callable_mp_this(_resize_selected_nodes_to_content));
 
     bool has_connections = !get_connected_nodes(p_node).is_empty();
-    menu->add_icon_item("Loop", "Refresh Nodes", callable_mp_this(_refresh_selected_nodes));
-    menu->add_icon_item("Unlinked", "Break Node Link(s)", callable_mp_this(unlink_node_all).bind(p_node), !has_connections);
+    menu->add_icon_shortcut("Loop", ED_GET_SHORTCUT("graph_editor/refresh_nodes"), callable_mp_this(_refresh_selected_nodes));
+    menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("graph_editor/break_node_links"), callable_mp_this(unlink_node_all).bind(p_node), !has_connections);
 
-    const Ref<OScriptNodeCallFunction> call_function = script_node;
-    const Ref<OScriptNodeEvent> event = script_node;
-    const Ref<OScriptNodeFunctionEntry> entry = script_node;
-    if (event.is_valid() || (call_function.is_valid() && call_function->is_override()) || (entry.is_valid() && entry->is_override())) {
-        menu->add_icon_item("Override", "Add Call to Parent Function", callable_mp_this(_create_call_to_parent_function).bind(p_node));
+
+    if (_can_call_parent_function(p_node)) {
+        menu->add_icon_shortcut("Override", ED_GET_SHORTCUT("graph_editor/add_call_parent_function"), callable_mp_this(_create_call_to_parent_function).bind(p_node));
     }
 
     if (!are_multiple_selections) {
-        menu->add_icon_item("Anchor", "Toggle Bookmark", callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_bookmark).bind(p_node));
+        menu->add_icon_shortcut("Anchor", ED_GET_SHORTCUT("graph_editor/bookmark/toggle"), callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_bookmark).bind(p_node));
     }
 
     if (p_node->is_add_pin_button_visible() && !are_multiple_selections) {
-        menu->add_item("Add Option Pin", callable_mp_this(_add_node_pin).bind(p_node));
+        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/add_option_pin"), callable_mp_this(_add_node_pin).bind(p_node));
     }
 
+    const Ref<OScriptNodeCallFunction> call_function = script_node;
     if (call_function.is_valid()) {
         menu->add_separator("Settings");
-        menu->add_check_item("Await Function", callable_mp_lambda(this, [this, call_function]() {
-            call_function->set_awaited(!call_function->is_awaited());
-            _set_edited(true);
-        }), call_function->is_awaited(), false);
+        menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/await_function"), callable_mp_this(_toggle_await_function).bind(p_node), call_function->is_awaited(), false);
     }
 
     menu->add_separator("Organization");
 
     GraphFrame* parent_frame = get_element_frame(p_node->get_name());
     if (parent_frame != nullptr) {
-        menu->add_item("Detach from Frame", callable_mp_this(_detach_node_from_frame).bind(p_node->get_name()));
+        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/detach_from_frame"), callable_mp_this(_detach_node_from_frame).bind(p_node->get_name()));
     }
 
     const bool can_expand = cast_to<OScriptNodeCallScriptFunction>(script_node.ptr()) != nullptr;
-    menu->add_item("Expand Node", callable_mp_this(_expand_node).bind(p_node), !can_expand);
-    menu->add_item("Collapse to Function", callable_mp_this(_collapse_selected_nodes_to_function));
+    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/expand_node"), callable_mp_this(_expand_node).bind(p_node), !can_expand);
+    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/collapse_to_function"), callable_mp_this(_collapse_selected_nodes_to_function));
 
     OrchestratorEditorContextMenu* align = menu->add_submenu("Alignment");
-    align->add_icon_item("ControlAlignTopWide", "Align Top", callable_mp_this(_align_nodes).bind(p_node, ALIGN_TOP));
-    align->add_icon_item("ControlAlignHCenterWide", "Align Middle", callable_mp_this(_align_nodes).bind(p_node, ALIGN_MIDDLE));
-    align->add_icon_item("ControlAlignBottomWide", "Align Bottom", callable_mp_this(_align_nodes).bind(p_node, ALIGN_BOTTOM));
-    align->add_icon_item("ControlAlignLeftWide", "Align Left", callable_mp_this(_align_nodes).bind(p_node, ALIGN_LEFT));
-    align->add_icon_item("ControlAlignVCenterWide", "Align Center", callable_mp_this(_align_nodes).bind(p_node, ALIGN_CENTER));
-    align->add_icon_item("ControlAlignRightWide", "Align Right", callable_mp_this(_align_nodes).bind(p_node, ALIGN_RIGHT));
+    align->add_icon_shortcut("ControlAlignTopWide", ED_GET_SHORTCUT("graph_editor/alignment/align_top"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_TOP));
+    align->add_icon_shortcut("ControlAlignHCenterWide", ED_GET_SHORTCUT("graph_editor/alignment/align_middle"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_MIDDLE));
+    align->add_icon_shortcut("ControlAlignBottomWide", ED_GET_SHORTCUT("graph_editor/alignment/align_bottom"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_BOTTOM));
+    align->add_icon_shortcut("ControlAlignLeftWide", ED_GET_SHORTCUT("graph_editor/alignment/align_left"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_LEFT));
+    align->add_icon_shortcut("ControlAlignVCenterWide", ED_GET_SHORTCUT("graph_editor/alignment/align_center"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_CENTER));
+    align->add_icon_shortcut("ControlAlignRightWide", ED_GET_SHORTCUT("graph_editor/alignment/align_right"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_RIGHT));
 
     if (!are_multiple_selections) {
         menu->add_separator("Breakpoints");
-        menu->add_item("Toggle Breakpoint", callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_breakpoint).bind(p_node), false, KEY_F9);
+        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/breakpoint/toggle"), callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_breakpoint).bind(p_node), false);
 
         const bool has_breakpoints = _markers->has_breakpoint(script_node->get_id());
         const bool has_active_breakpoint = _markers->is_breakpoint_enabled(script_node->get_id());
@@ -504,8 +501,10 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
             callable_mp(_markers, &OrchestratorEditorGraphMarkers::set_breakpoint).bind(p_node, !has_breakpoints));
 
         if (has_breakpoints) {
-            const String label = has_active_breakpoint ? "Disable breakpoint" : "Enable breakpoint";
-            menu->add_item(label,
+            menu->add_shortcut(
+                has_active_breakpoint
+                    ? ED_GET_SHORTCUT("graph_eidtor/breakpoint/disable")
+                    : ED_GET_SHORTCUT("graph_editor/breakpoint/enable"),
                 callable_mp(_markers, &OrchestratorEditorGraphMarkers::set_breakpoint_enabled).bind(p_node, !has_active_breakpoint));
         }
     }
@@ -513,7 +512,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     menu->add_separator("Documentation");
 
     const String view_doc_topic = script_node->get_help_topic();
-    menu->add_icon_item("Help", "View Documentation", callable_mp_this(_view_documentation).bind(view_doc_topic));
+    menu->add_icon_shortcut("Help", ED_GET_SHORTCUT("graph_editor/view_documentation"), callable_mp_this(_view_documentation).bind(view_doc_topic));
 
     const Ref<OScriptNodeVariableGet> variable_get = script_node;
     if (variable_get.is_valid() && variable_get->can_be_validated()) {
@@ -655,7 +654,7 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
     menu->add_separator("Documentation");
 
     const String view_doc_topic = script_node->get_help_topic();
-    menu->add_icon_item("Help", "View Documentation", callable_mp_this(_view_documentation).bind(view_doc_topic));
+    menu->add_icon_shortcut("Help", ED_GET_SHORTCUT("graph_editor/view_documentation"), callable_mp_this(_view_documentation).bind(view_doc_topic));
 
     menu->set_position(p_pin->get_screen_position() + p_position * get_zoom());
     menu->popup();
@@ -711,7 +710,7 @@ void OrchestratorEditorGraphPanel::_toggle_resizer_for_selected_nodes() {
     }
 }
 
-void OrchestratorEditorGraphPanel::_resize_node_to_content() {
+void OrchestratorEditorGraphPanel::_resize_selected_nodes_to_content() {
     for (OrchestratorEditorGraphNode* node : get_selected<OrchestratorEditorGraphNode>()) {
         node->_resize_to_content();
         _set_edited(true);
@@ -1040,7 +1039,32 @@ bool OrchestratorEditorGraphPanel::_create_new_function_override(const MethodInf
     return true;
 }
 
+bool OrchestratorEditorGraphPanel::_can_call_parent_function(OrchestratorEditorGraphNode* p_node) {
+    ERR_FAIL_NULL_V(p_node, false);
+
+    const Ref<OrchestrationGraphNode> node = p_node->get_graph_node();
+    if (node.is_valid()) {
+        if (const Ref<OScriptNodeEvent>& event = node; event.is_valid()) {
+            return true;
+        }
+
+        if (const Ref<OScriptNodeCallFunction>& call_func = node; call_func.is_valid() && call_func->is_override()) {
+            return true;
+        }
+
+        if (const Ref<OScriptNodeFunctionEntry>& entry = node; entry.is_valid() && entry->is_override()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorEditorGraphNode* p_node) {
+    if (!_can_call_parent_function(p_node)) {
+        return;
+    }
+
     const Ref<OrchestrationGraphNode> graph_node = p_node->get_graph_node();
     ERR_FAIL_COND(graph_node.is_null());
 
@@ -1186,6 +1210,16 @@ void OrchestratorEditorGraphPanel::_set_variable_node_validation(OrchestratorEdi
     const Ref<OScriptNodeVariableGet> variable_node = p_node->_node;
     if (variable_node.is_valid()) {
         variable_node->set_validated(p_validated);
+        _set_edited(true);
+    }
+}
+
+void OrchestratorEditorGraphPanel::_toggle_await_function(OrchestratorEditorGraphNode* p_node) {
+    ERR_FAIL_NULL_MSG(p_node, "Cannot toggle function await on an invalid node reference");
+
+    const Ref<OScriptNodeCallFunction> call_function_node = p_node->get_graph_node();
+    if (call_function_node.is_valid()) {
+        call_function_node->set_awaited(!call_function_node->is_awaited());
         _set_edited(true);
     }
 }
@@ -1375,15 +1409,15 @@ void OrchestratorEditorGraphPanel::_show_frame_context_menu(OrchestratorEditorGr
     add_child(menu);
 
     menu->add_separator("Frame Actions");
-    menu->add_icon_item("Remove", "Delete", callable_mp_this(remove_frame).bind(p_frame, true), false, KEY_DELETE);
-    menu->add_icon_item("ActionCopy", "Copy", callable_mp_this(_copy_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_C));
-    menu->add_icon_item("Duplicate", "Duplicate", callable_mp_this(_duplicate_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_D));
+    menu->add_icon_shortcut("Remove", ED_ACTION_SHORTCUT("ui_graph_delete", "Delete"), callable_mp_this(remove_frame).bind(p_frame, true), false);
+    menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_copy_nodes_request), false);
+    menu->add_icon_shortcut("Duplicate", ED_ACTION_SHORTCUT("ui_graph_duplicate", "Duplicate"), callable_mp_this(_duplicate_nodes_request), false);
     p_frame->build_context_menu(menu);
 
     GraphFrame* parent_frame = get_element_frame(p_frame->get_name());
     if (parent_frame != nullptr) {
         menu->add_separator();
-        menu->add_item("Detach from Frame", callable_mp_this(_detach_node_from_frame).bind(p_frame->get_name()));
+        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/detach_from_frame"), callable_mp_this(_detach_node_from_frame).bind(p_frame->get_name()));
     }
 
     menu->set_position(p_frame->get_screen_position() + p_position * get_zoom());
@@ -1523,7 +1557,7 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
     menu->set_suffix("graph_editor");
-    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("editor/actions_menu/close_on_focus_lost", false));
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("interface/editor/actions_menu/close_on_focus_lost", false));
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(true);
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
@@ -1592,7 +1626,7 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position) {
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
     menu->set_suffix("graph_editor");
-    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("editor/actions_menu/close_on_focus_lost", false));
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("interface/editor/actions_menu/close_on_focus_lost", false));
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(true);
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
@@ -1775,16 +1809,16 @@ void OrchestratorEditorGraphPanel::_settings_changed() {
 
     _update_panel_hint();
 
-    set_minimap_enabled(ORCHESTRATOR_GET("editor/graph/show_minimap", false));
-    set_show_arrange_button(ORCHESTRATOR_GET("editor/graph/show_arrange_button", false));
+    set_minimap_enabled(ORCHESTRATOR_GET("interface/editor/graph/show_minimap", false));
+    set_show_arrange_button(ORCHESTRATOR_GET("interface/editor/graph/show_arrange_button", false));
 
-    _show_overlay_action_tooltips = ORCHESTRATOR_GET("editor/graph/show_overlay_action_tooltips", true);
-    _disconnect_control_flow_when_dragged = ORCHESTRATOR_GET("editor/graph/disconnect_control_flow_when_dragged", true);
-    _show_advanced_tooltips= ORCHESTRATOR_GET("editor/graph/show_advanced_tooltips", false);
+    _show_overlay_action_tooltips = ORCHESTRATOR_GET("interface/editor/graph/show_overlay_action_tooltips", true);
+    _disconnect_control_flow_when_dragged = ORCHESTRATOR_GET("interface/editor/graph/disconnect_control_flow_when_dragged", true);
+    _show_advanced_tooltips= ORCHESTRATOR_GET("interface/editor/graph/show_advanced_tooltips", false);
 
     bool node_update_required = false;
-    node_update_required |= ORCHESTRATOR_GET_TRACK(_show_type_icons, "editor/graph_nodes/show_type_icons", true);
-    node_update_required |= ORCHESTRATOR_GET_TRACK(_resizable_by_default, "editor/graph_nodes/resizable_by_default", true);
+    node_update_required |= ORCHESTRATOR_GET_TRACK(_show_type_icons, "interface/editor/graph_nodes/show_type_icons", true);
+    node_update_required |= ORCHESTRATOR_GET_TRACK(_resizable_by_default, "interface/editor/graph_nodes/resizable_by_default", true);
 
     if (_graph.is_valid()) {
         // While we iterate each node, each call checks the current state against the settings values
@@ -1819,7 +1853,7 @@ void OrchestratorEditorGraphPanel::_show_drag_hint(const String& p_hint_text) co
 }
 
 bool OrchestratorEditorGraphPanel::_is_delete_confirmation_enabled() {
-    return ORCHESTRATOR_GET("editor/graph/confirm_on_delete", true);
+    return ORCHESTRATOR_GET("interface/editor/graph/confirm_on_delete", true);
 }
 
 bool OrchestratorEditorGraphPanel::_can_duplicate_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog) {
@@ -1935,7 +1969,7 @@ void OrchestratorEditorGraphPanel::_queue_autowire(OrchestratorEditorGraphNode* 
     }
 
     // At this point no auto-resolution could be made, show the dialog if enabled
-    const bool autowire_dialog_enabled = ORCHESTRATOR_GET("editor/graph/show_autowire_selection_dialog", true);
+    const bool autowire_dialog_enabled = ORCHESTRATOR_GET("interface/editor/graph/show_autowire_selection_dialog", true);
     if (!autowire_dialog_enabled) {
         return;
     }
@@ -2183,7 +2217,7 @@ bool OrchestratorEditorGraphPanel::_is_in_port_hotzone(const Vector2& p_pos, con
     const int32_t port_hotzone_outer_extent = get_theme_constant("port_hotzone_outer_extent");
     const int32_t port_hotzone_inner_extent = get_theme_constant("port_hotzone_inner_extent");
 
-    const String hotzone_percent = ORCHESTRATOR_GET("editor/graph_nodes/connection_hotzone_scale", "100%");
+    const String hotzone_percent = ORCHESTRATOR_GET("interface/editor/graph_nodes/connection_hotzone_scale", "100%");
     const Vector2i port_size = p_port_size * (hotzone_percent.replace("%", "").to_float() / 100.0);
 
     const Rect2 hotzone = Rect2(
@@ -2364,6 +2398,117 @@ void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_funct
     }
 }
 
+void OrchestratorEditorGraphPanel::_shortcut_input(const Ref<InputEvent>& p_event) {
+    ERR_FAIL_COND(p_event.is_null());
+
+    Ref<InputEventKey> key = p_event;
+    if (is_visible_in_tree() && key.is_valid() && key->is_pressed() && !key->is_echo()) {
+
+        // First handle keybinding actions, e.g. spawn nodes, etc.
+        bool handled = true;
+        if (ED_IS_SHORTCUT("graph_editor/create_nodes/branch", key)) {
+            spawn_node<OScriptNodeBranch>();
+        } else if (ED_IS_SHORTCUT("graph_editor/create_nodes/comment", key)) {
+            _spawn_frame();
+        } else if (ED_IS_SHORTCUT("graph_editor/create_nodes/delay", key)) {
+            spawn_node<OScriptNodeDelay>();
+        } else if (ED_IS_SHORTCUT("graph_editor/create_nodes/sequence", key)) {
+            spawn_node<OScriptNodeSequence>();
+        } else if (ED_IS_SHORTCUT("graph_editor/zoom_in", key)) {
+            set_zoom(get_zoom() * get_zoom_step());
+        } else if (ED_IS_SHORTCUT("graph_editor/zoom_out", key)) {
+            set_zoom(get_zoom() / get_zoom_step());
+        } else {
+            handled = false;
+        }
+
+        // Check nodes that require a hovered/anchor node
+        if (!handled) {
+            handled = true;
+            if (OrchestratorEditorGraphNode* hovered_node = get_hovered_element<OrchestratorEditorGraphNode>()) {
+                if (ED_IS_SHORTCUT("graph_editor/break_node_links", p_event)) {
+                    unlink_node_all(hovered_node);
+                } else if (ED_IS_SHORTCUT("graph_editor/add_call_parent_function", p_event)) {
+                    _create_call_to_parent_function(hovered_node);
+                } else if (ED_IS_SHORTCUT("graph_editor/add_option_pin", p_event)) {
+                    _add_node_pin(hovered_node);
+                } else if (ED_IS_SHORTCUT("graph_editor/await_function", p_event)) {
+                    _toggle_await_function(hovered_node);
+                } else if (ED_IS_SHORTCUT("graph_editor/expand_node", p_event)) {
+                    _expand_node(hovered_node);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/align_top", p_event)) {
+                    _align_nodes(hovered_node, ALIGN_TOP);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/align_middle", p_event)) {
+                    _align_nodes(hovered_node, ALIGN_MIDDLE);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/align_bottom", p_event)) {
+                    _align_nodes(hovered_node, ALIGN_BOTTOM);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/align_left", p_event)) {
+                    _align_nodes(hovered_node, ALIGN_LEFT);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/align_center", p_event)) {
+                    _align_nodes(hovered_node, ALIGN_CENTER);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/align_right", p_event)) {
+                    _align_nodes(hovered_node, ALIGN_RIGHT);
+                } else if (ED_IS_SHORTCUT("graph_editor/view_documentation", p_event)) {
+                    _view_documentation(hovered_node->get_graph_node()->get_help_topic());
+                } else {
+                    handled = false;
+                }
+            } else {
+                handled = false;
+            }
+        }
+
+        if (!handled) {
+            handled = true;
+            // First check nodes that require a hovered/anchor node
+            if (OrchestratorEditorGraphFrame* frame = get_hovered_element<OrchestratorEditorGraphFrame>()) {
+                if (ED_IS_SHORTCUT("graph_editor/frame/set_frame_title", p_event)) {
+                    frame->_change_frame_title();
+                } else if (ED_IS_SHORTCUT("graph_editor/frame/set_comment_text", p_event)) {
+                    frame->_open_change_comment_text();
+                } else if (ED_IS_SHORTCUT("graph_editor/frame/enable_auto_shrink", p_event)) {
+                    frame->_toggle_autoshrink();
+                } else if (ED_IS_SHORTCUT("graph_editor/frame/enable_tint_color", p_event)) {
+                    frame->_toggle_tint();
+                } else if (ED_IS_SHORTCUT("graph_editor/frame/set_tint_color", p_event)) {
+                    frame->_show_tint_color_picker();
+                } else {
+                    handled = false;
+                }
+            } else {
+                handled = false;
+            }
+        }
+
+        if (!handled) {
+            // Handle shortcuts that operate on all selected nodes
+            handled = true;
+            if (ED_IS_SHORTCUT("graph_editor/toggle_resizer", p_event)) {
+                _toggle_resizer_for_selected_nodes();
+            } else if (ED_IS_SHORTCUT("graph_editor/resize_to_content", p_event)) {
+                _resize_selected_nodes_to_content();
+            } else if (ED_IS_SHORTCUT("graph_editor/refresh_nodes", p_event)) {
+                _refresh_selected_nodes();
+            } else if (ED_IS_SHORTCUT("graph_editor/detach_from_frame", p_event)) {
+                for (GraphElement* element : get_selected<GraphElement>()) {
+                    if (get_element_frame(element->get_name())) {
+                        _detach_node_from_frame(element->get_name());
+                    }
+                }
+            } else if (ED_IS_SHORTCUT("graph_editor/collapse_to_function", p_event)) {
+                _collapse_selected_nodes_to_function();
+            } else {
+                handled = false;
+            }
+        }
+
+        if (handled) {
+            accept_event();
+        }
+    }
+
+}
+
 void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
     static const HashMap<StringName, Vector2> direction_map = {
         {StringName("ui_left"),  Vector2(-1,  0)},
@@ -2393,18 +2538,12 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
         }
     }
 
-    // Intercept Shift+Delete before the parent processes ui_graph_delete, which would
-    // remove nodes without giving us the chance to dissolve reroutes first.
     const Ref<InputEventKey> early_key = p_event;
     if (early_key.is_valid() && early_key->is_pressed() && !early_key->is_echo()) {
-        if (early_key->get_keycode() == KEY_DELETE && early_key->is_shift_pressed()) {
+        // Intercept Shift+Delete before the parent processes ui_graph_delete, which would
+        // remove nodes without giving us the chance to dissolve reroutes first.
+        if (ED_IS_SHORTCUT("graph_editor/reroutes/delete_reroute", early_key)) {
             _dissolve_selected_reroutes();
-            accept_event();
-            return;
-        }
-
-        if (early_key->get_key_label_with_modifiers() == KEY_C) {
-            _spawn_frame();
             accept_event();
             return;
         }
@@ -2422,48 +2561,60 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
             if (!inside_node) {
                 _hovered_connection = get_closest_connection_at_point(mm->get_position());
                 if (!_hovered_connection.is_empty()) {
-                    _show_drag_hint("Use Ctrl + Left Click (LMB) to insert a reroute node on the connection.");
+                    const Ref<Shortcut> sc = ED_GET_SHORTCUT("graph_editor/reroutes/create_reroute");
+                    if (sc.is_valid() && !sc->get_events().is_empty()) {
+                        _show_drag_hint(vformat("Use %s to insert a reroute node on the connection.", sc->get_as_text()));
+                    }
                 }
             } else {
                 for (int i = 0; i < get_child_count(); i++) {
                     OrchestratorEditorGraphNodeReroute* reroute = cast_to<OrchestratorEditorGraphNodeReroute>(get_child(i));
                     if (reroute && reroute->is_selected() && reroute->get_rect().has_point(mm->get_position())) {
-                        String hint = "Use Delete to remove the reroute and disconnect both sides.";
-                        const int reroute_id = reroute->get_id();
-                        int in_count = 0, out_count = 0;
-                        for (const OScriptConnection& C : _graph->get_orchestration()->get_connections()) {
-                            if (C.to_node == static_cast<uint64_t>(reroute_id)) {
-                                in_count++;
-                            } else if (C.from_node == static_cast<uint64_t>(reroute_id)) {
-                                out_count++;
+                        Ref<Shortcut> sc = ED_GET_ACTION_SHORTCUT("ui_graph_delete");
+                        if (sc.is_valid() && !sc->get_events().is_empty()) {
+                            String hint = vformat("Use %s to remove the reroute and disconnect both sides.", sc->get_as_text());
+
+                            const int reroute_id = reroute->get_id();
+                            int in_count = 0, out_count = 0;
+                            for (const OScriptConnection& C : _graph->get_orchestration()->get_connections()) {
+                                if (C.to_node == static_cast<uint64_t>(reroute_id)) {
+                                    in_count++;
+                                } else if (C.from_node == static_cast<uint64_t>(reroute_id)) {
+                                    out_count++;
+                                }
                             }
+
+                            if (in_count == 1 && out_count == 1) {
+                                sc = ED_GET_SHORTCUT("graph_editor/reroutes/delete_reroute");
+                                if (sc.is_valid() && !sc->get_events().is_empty()) {
+                                    hint += vformat("\nUse %s to dissolve the reroute and keep the connection.", sc->get_as_text());
+                                }
+                            }
+
+                            _show_drag_hint(hint);
                         }
-                        if (in_count == 1 && out_count == 1) {
-                            hint += "\nUse Shift+Delete to dissolve the reroute and keep the connection.";
-                        }
-                        _show_drag_hint(hint);
                         break;
                     }
                 }
             }
         }
 
-        if (!inside_node && mb.is_valid() && mb->is_pressed() && mb->get_modifiers_mask().has_flag(KEY_MASK_CTRL)
-                && mb->get_button_index() == MOUSE_BUTTON_LEFT && !_hovered_connection.is_empty()) {
+        if (!inside_node && ED_IS_SHORTCUT("graph_editor/reroutes/create_reroute", p_event) && !_hovered_connection.is_empty()) {
             _create_connection_reroute(_hovered_connection, mouse->get_position());
         }
     }
 
+    // todo:
+    //  Submitted https://github.com/godotengine/godot/pull/95614
+    //  Can eventually rely on the "cut_nodes_request" signal rather than this approach
+    if (ED_IS_ACTION_SHORTCUT("ui_cut", p_event)) {
+        _cut_nodes_request();
+        accept_event();
+        return;
+    }
+
     const Ref<InputEventKey> key = p_event;
     if (key.is_valid() && key->is_pressed()) {
-        // todo:
-        //  Submitted https://github.com/godotengine/godot/pull/95614
-        //  Can eventually rely on the "cut_nodes_request" signal rather than this approach
-        if (key->is_action("ui_cut", true)) {
-            _cut_nodes_request();
-            accept_event();
-        }
-
         for (const KeyValue<StringName, Vector2>& E : direction_map) {
             if (key->is_action(E.key, true)) {
                 const float distance = is_snapping_enabled() ? get_snapping_distance() : 1;
@@ -2477,14 +2628,6 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
                 accept_event();
                 break;
             }
-        }
-
-        if (key->get_keycode() == KEY_F9) {
-            for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
-                _markers->toggle_breakpoint(node);
-            }, true);
-
-            accept_event();
         }
     }
 }
@@ -2906,7 +3049,7 @@ void OrchestratorEditorGraphPanel::show_override_function_action_menu(const Call
     OrchestratorEditorActionMenu* menu = memnew(OrchestratorEditorActionMenu);
     menu->set_title("Select a graph action");
     menu->set_suffix("graph_editor_overrides");
-    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("editor/actions_menu/close_on_focus_lost", false));
+    menu->set_close_on_focus_lost(ORCHESTRATOR_GET("interface/editor/actions_menu/close_on_focus_lost", false));
     menu->set_show_filter_option(false);
     menu->set_start_collapsed(false);
     if (p_callback.is_valid()) {
@@ -3389,7 +3532,7 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
 
     // New dots-based grid style was introduced in Godot 4.3.
     // Introduces a new drop-down option for selecting the specific grid pattern
-    const String grid_pattern = ORCHESTRATOR_GET("editor/graph/grid_pattern", "Lines");
+    const String grid_pattern = ORCHESTRATOR_GET("interface/editor/graph/grid_pattern", "Lines");
     const int selected = grid_pattern == "Lines" ? 0 : 1;
     _grid_pattern = memnew(OptionButton);
     _grid_pattern->add_item("Lines");
@@ -3407,10 +3550,10 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
     get_menu_hbox()->add_child(sep);
     get_menu_hbox()->move_child(sep, 6);
 
-    set_minimap_enabled(ORCHESTRATOR_GET("editor/graph/show_minimap", false));
-    set_show_arrange_button(ORCHESTRATOR_GET("editor/graph/show_arrange_button", false));
-    set_show_grid(ORCHESTRATOR_GET("editor/graph/grid_enabled", true));
-    set_snapping_enabled(ORCHESTRATOR_GET("editor/graph/grid_snapping_enabled", true));
+    set_minimap_enabled(ORCHESTRATOR_GET("interface/editor/graph/show_minimap", false));
+    set_show_arrange_button(ORCHESTRATOR_GET("interface/editor/graph/show_arrange_button", false));
+    set_show_grid(ORCHESTRATOR_GET("interface/editor/graph/grid_enabled", true));
+    set_snapping_enabled(ORCHESTRATOR_GET("interface/editor/graph/grid_snapping_enabled", true));
     set_right_disconnects(true);
     set_show_zoom_label(true);
 

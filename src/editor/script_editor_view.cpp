@@ -23,6 +23,7 @@
 #include "common/name_utils.h"
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
+#include "common/settings.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
@@ -32,6 +33,7 @@
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "editor/scene/script_connections.h"
 #include "editor/script_components_container.h"
+#include "editor/settings/editor_settings.h"
 #include "orchestration/nodes/event.h"
 #include "orchestration/nodes/self.h"
 #include "script/script.h"
@@ -478,10 +480,10 @@ void OrchestratorScriptGraphEditorView::_update_bookmarks_list() {
     _bookmarks_menu->set_min_size(Vector2());
     _bookmarks_menu->reset_size();
 
-    _bookmarks_menu->add_item("Toggle Bookmark", TOGGLE_BOOKMARK);
-    _bookmarks_menu->add_item("Remove All Bookmarks", REMOVE_BOOKMARKS);
-    _bookmarks_menu->add_item("Goto Next Bookmark", GOTO_NEXT_BOOKMARK);
-    _bookmarks_menu->add_item("Goto Previous Bookmark", GOTO_PREV_BOOKMARK);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/bookmark/toggle"), TOGGLE_BOOKMARK);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/bookmark/remove_all"), REMOVE_BOOKMARKS);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/bookmark/goto_next"), GOTO_NEXT_BOOKMARK);
+    _bookmarks_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/bookmark/goto_previous"), GOTO_PREV_BOOKMARK);
 
     if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
         const Vector<OrchestratorEditorGraphNode*> nodes = active_panel->predicate_find<OrchestratorEditorGraphNode>(
@@ -502,10 +504,10 @@ void OrchestratorScriptGraphEditorView::_update_breakpoints_list() {
     _breakpoints_menu->set_min_size(Vector2());
     _breakpoints_menu->reset_size();
 
-    _breakpoints_menu->add_item("Toggle Breakpoint", TOGGLE_BREAKPOINT);
-    _breakpoints_menu->add_item("Remove All Breakpoints", REMOVE_BREAKPOINTS);
-    _breakpoints_menu->add_item("Goto Next Breakpoint", GOTO_NEXT_BREAKPOINT);
-    _breakpoints_menu->add_item("Goto Previous Breakpoint", GOTO_PREV_BREAKPOINT);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/breakpoint/toggle"), TOGGLE_BREAKPOINT);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/breakpoint/remove_all"), REMOVE_BREAKPOINTS);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/breakpoint/goto_next"), GOTO_NEXT_BREAKPOINT);
+    _breakpoints_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/breakpoint/goto_previous"), GOTO_PREV_BREAKPOINT);
 
     if (OrchestratorEditorGraphPanel* active_panel = _get_active_graph_tab()) {
         const Vector<OrchestratorEditorGraphNode*> nodes = active_panel->predicate_find<OrchestratorEditorGraphNode>(
@@ -528,7 +530,7 @@ void OrchestratorScriptGraphEditorView::_update_debug_menu() {
         PopupMenu* popup = _debug_menu->get_popup();
         popup->set_item_disabled(popup->get_item_index(DEBUG_STEP_INTO), !debugger_active);
         popup->set_item_disabled(popup->get_item_index(DEBUG_STEP_OVER), !debugger_active);
-        popup->set_item_disabled(popup->get_item_index(DEBUG_BREAK), false);
+        popup->set_item_disabled(popup->get_item_index(DEBUG_BREAK), !debugger_active);
         popup->set_item_disabled(popup->get_item_index(DEBUG_CONTINUE), !debugger_active);
     }
 }
@@ -625,7 +627,7 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
 
     _edit_hb->add_child(_goto_menu);
     _goto_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
-    _goto_menu->get_popup()->add_item("Goto Node", SEARCH_LOCATE_NODE, OACCEL_KEY(KEY_MASK_CMD_OR_CTRL, KEY_L));
+    _goto_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("graph_editor/goto_node"), SEARCH_LOCATE_NODE);
 
     _goto_menu->get_popup()->add_separator();
     _goto_menu->get_popup()->add_submenu_node_item("Bookmarks", _bookmarks_menu);
@@ -640,11 +642,11 @@ void OrchestratorScriptGraphEditorView::_enable_editor() {
 
     _edit_hb->add_child(_debug_menu);
     _debug_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp_this(_menu_option));
-    _debug_menu->get_popup()->add_item("Step Into", DEBUG_STEP_INTO, KEY_F11);
-    _debug_menu->get_popup()->add_item("Step Over", DEBUG_STEP_OVER, KEY_F10);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/step_into"), DEBUG_STEP_INTO);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/step_over"), DEBUG_STEP_OVER);
     _debug_menu->get_popup()->add_separator();
-    _debug_menu->get_popup()->add_item("Break", DEBUG_BREAK);
-    _debug_menu->get_popup()->add_item("Continue", DEBUG_CONTINUE, KEY_F12);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/break"), DEBUG_BREAK);
+    _debug_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("debugger/continue"), DEBUG_CONTINUE);
     _debug_menu->connect("about_to_popup", callable_mp_this(_update_debug_menu));
 }
 
@@ -1068,8 +1070,8 @@ void OrchestratorScriptGraphEditorView::validate() {
 }
 
 void OrchestratorScriptGraphEditorView::update_settings() {
-    _idle_time = EDITOR_GET("text_editor/completion/idle_parse_delay");
-    _idle_time_with_errors = EDITOR_GET("text_editor/completion/idle_parse_delay_with_errors_found");
+    _idle_time = ORCHESTRATOR_GET("editor/validation/idle_parse_delay", 1.5);
+    _idle_time_with_errors = ORCHESTRATOR_GET("editor/validation/idle_parse_delay_with_errors_found", 0.5);
 }
 
 void OrchestratorScriptGraphEditorView::ensure_focus() {
