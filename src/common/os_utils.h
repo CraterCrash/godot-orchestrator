@@ -14,8 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "editor/graph/pins/exec_pin.h"
+#pragma once
 
-String OrchestratorEditorGraphPinExec::_get_pin_color_name() const {
-    return "interface/theme/connection_colors/execution";
+namespace OSUtils {
+    /// Whether this platform prefers the Meta/Command key over Control for shortcuts (macOS/iOS web builds).
+    /// Mirrors the engine's <code>OS::prefer_meta_over_ctrl()</code>, which is not exposed.
+    /// Uses runtime feature detection so a single binary behaves  correctly across platforms (notably web).
+    /// @return true if Meta/Command is preferred over Control
+    bool prefer_meta_over_ctrl();
 }

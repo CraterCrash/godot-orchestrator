@@ -17,9 +17,11 @@
 #include "api/extension_db.h"
 
 #include "common/dictionary_utils.h"
+#include "common/settings.h"
 #include "core/godot/gdextension_compat.h"
 
 #include <godot_cpp/classes/json.hpp>
+#include <godot_cpp/classes/xml_parser.hpp>
 
 #define REGISTER_MATH_CONSTANT(m_name, m_type, m_value) {           \
         math_constants[m_name] = { m_name, m_type, m_value };       \
@@ -264,6 +266,77 @@ void ExtensionDB::_load(const PackedByteArray& p_data) {
     _load_global_enumerations(api_data);
     _load_utility_functions(api_data);
     _load_classes(api_data);
+}
+
+void ExtensionDB::_load_docs(const PackedByteArray& p_data) {
+    Ref<XMLParser> parser = memnew(XMLParser);
+
+    Error err = parser->_open_buffer(p_data.ptr(), p_data.size());
+    ERR_FAIL_COND_MSG(err != OK, vformat("Error #%d - Failed to load Orchestrator documentation.", err));
+
+    _parse_docs(parser);
+}
+
+Error ExtensionDB::_parse_docs(const Ref<XMLParser>& p_parser) {
+    if (p_parser.is_null()) {
+        return ERR_INVALID_PARAMETER;
+    }
+
+    Error error = OK;
+    while ((error = p_parser->read()) == OK) {
+        if (p_parser->get_node_type() == XMLParser::NODE_ELEMENT & p_parser->get_node_name() == "?xml") {
+            p_parser->skip_section();
+        }
+        if (p_parser->get_node_type() != XMLParser::NODE_ELEMENT) {
+            continue; //no idea what this may be, but skipping anyway
+        }
+
+        ERR_FAIL_COND_V(p_parser->get_node_name() != "class", ERR_FILE_CORRUPT);
+        ERR_FAIL_COND_V(!p_parser->has_attribute("name"), ERR_FILE_CORRUPT);
+
+        // We are only interested in the OrchestratorSettings class
+        const String name = p_parser->get_named_attribute_value("name");
+
+        HashMap<String, String> property_descriptions;
+
+        while (p_parser->read() == OK) {
+            if (p_parser->get_node_type() == XMLParser::NODE_ELEMENT) {
+                String node_name = p_parser->get_node_name();
+                if (node_name == "members") {
+                    while (p_parser->read() == OK) {
+                        if (p_parser->get_node_type() == XMLParser::NODE_ELEMENT) {
+                            node_name = p_parser->get_node_name();
+                            if (node_name == "member") {
+                                ERR_FAIL_COND_V(!p_parser->has_attribute("name"), ERR_FILE_CORRUPT);
+                                String member_name = p_parser->get_named_attribute_value("name");
+                                String description = "";
+                                if (!p_parser->is_empty()) {
+                                    p_parser->read();
+                                    if (p_parser->get_node_type() == XMLParser::NODE_TEXT) {
+                                        description = p_parser->get_node_data().strip_edges();
+                                    }
+                                }
+                                property_descriptions[member_name] = description;
+                            }
+                        } else if (p_parser->get_node_type() == XMLParser::NODE_ELEMENT_END && p_parser->get_node_name() == "members") {
+                            break; // end of <members>
+                        }
+                    }
+                }
+            }
+            if (p_parser->get_node_type() == XMLParser::NODE_ELEMENT_END && p_parser->get_node_name() == "class") {
+                break; // End of <class>
+            }
+        }
+
+        if (name == OrchestratorSettings::get_class_static()) {
+            setting_descriptions = property_descriptions;
+        }
+
+        property_descriptions.clear();
+    }
+
+    return error;
 }
 
 void ExtensionDB::_load_builtin_types(const Dictionary& p_data) {
@@ -718,6 +791,9 @@ bool ExtensionDB::is_shadowing_class_member(const StringName& p_class_name, cons
 
 ExtensionDB::ExtensionDB() {
     _decompress_and_load();
+    #ifdef TOOLS_ENABLED
+    _decompress_and_load_docs();
+    #endif
 }
 
 ExtensionDB::~ExtensionDB() {

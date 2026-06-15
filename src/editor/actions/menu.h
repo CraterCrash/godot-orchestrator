@@ -17,7 +17,7 @@
 #pragma once
 
 #include "editor/actions/filter_engine.h"
-#include "editor/actions/help.h"
+#include "editor/doc/editor_help.h"
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/item_list.hpp>
@@ -101,7 +101,7 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
 
     Rect2 _default_rect = Rect2(0, 0, 900, 700);
 
-    OrchestratorEditorActionHelp* _help = nullptr;
+    OrchestratorEditorHelpBit* _help = nullptr;
     LineEdit* _search_box = nullptr;
     ItemList* _favorites = nullptr;
     ItemList* _recents = nullptr;

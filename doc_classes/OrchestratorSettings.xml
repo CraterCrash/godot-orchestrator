@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OrchestratorSettings" inherits="Object"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+    <brief_description>
+        Orchestrator's global settings.
+    </brief_description>
+    <members>
+        <member name="editor/settings/default_type" type="String" setter="" getter="" default="&quot;Node&quot;">
+            The default base type assigned to a new Orchestration. This is the type the script extends unless changed.
+        </member>
+        <member name="editor/settings/storage_format" type="String" setter="" getter="" default="&quot;Text&quot;">
+            The default format used when saving Orchestration [Resource]s. [code]Text[/code] is human-readable and version-control friendly; [code]Binary[/code] is more compact.
+        </member>
+        <member name="editor/settings/updates/notify_about_preview_releases" type="bool" setter="" getter="" default="false">
+            When enabled, the updater also reports preview (pre-release) builds in addition to stable releases.
+        </member>
+        <member name="editor/behavior/files/autosave_interval_secs" type="float" setter="" getter="" default="0.0">
+            Interval, in seconds, at which open Orchestrations are automatically saved. Set to [code]0[/code] to disable autosave.
+        </member>
+        <member name="editor/behavior/files/restore_scripts_on_load" type="bool" setter="" getter="" default="true">
+            If [code]true[/code], reopens orchestrations that were open in the last session when the editor is reopened on a given project.
+        </member>
+        <member name="editor/behavior/files/auto_reload_scripts_on_external_change" type="bool" setter="" getter="" default="true">
+            Automatically reload open Orchestrations when their files are changed on disk outside the editor.
+        </member>
+        <member name="editor/behavior/files/auto_reload_and_parse_scripts_on_save" type="bool" setter="" getter="" default="true">
+            Reload and re-parse Orchestrations on save so validation always reflects the latest changes.
+        </member>
+        <member name="editor/script_list/highlight_scene_scripts" type="bool" setter="" getter="" default="true">
+            Highlight, in the script list, Orchestrations attached to the currently edited scene.
+        </member>
+        <member name="editor/script_list/sort_scripts_by" type="int" setter="" getter="" default="0">
+            Determines how the script list is ordered: unsorted, by name, or by path.
+        </member>
+        <member name="editor/script_list/list_script_names_as" type="int" setter="" getter="" default="0">
+            Determines how entries are labeled in the script list: by name, by parent directory and name, or by full path.
+        </member>
+        <member name="editor/validation/idle_parse_delay" type="float" setter="" getter="" default="1.5">
+            Delay, in seconds, after editing stops before an Orchestration is re-parsed for validation.
+        </member>
+        <member name="editor/validation/idle_parse_delay_with_errors_found" type="float" setter="" getter="" default="0.5">
+            Idle re-parse delay used while an Orchestration currently has validation errors; typically shorter for quicker feedback.
+        </member>
+        <member name="interface/editor/actions_menu/center_on_mouse" type="bool" setter="" getter="" default="true">
+            Open the All Actions search menu centered on the mouse cursor.
+        </member>
+        <member name="interface/editor/actions_menu/close_on_focus_lost" type="bool" setter="" getter="" default="false">
+            Automatically close the All Actions search menu when it loses focus.
+        </member>
+        <member name="interface/editor/actions_menu/prefer_properties_over_methods" type="bool" setter="" getter="" default="false">
+            When ranking action search results, prefer property accessors over equivalent getter/setter methods.
+        </member>
+        <member name="interface/editor/components_panel/show_function_friendly_names" type="bool" setter="" getter="" default="true">
+            Display human-friendly names for functions in the components panel instead of their raw identifiers.
+        </member>
+        <member name="interface/editor/components_panel/show_graph_friendly_names" type="bool" setter="" getter="" default="true">
+            Display human-friendly names for graphs in the components panel instead of their raw identifiers.
+        </member>
+        <member name="interface/editor/graph/confirm_on_delete" type="bool" setter="" getter="" default="true">
+            Prompt for confirmation before deleting nodes from a graph.
+        </member>
+        <member name="interface/editor/graph/disconnect_control_flow_when_dragged" type="bool" setter="" getter="" default="true">
+            When dragging a node, automatically break its execution (control flow) connections.
+        </member>
+        <member name="interface/editor/graph/grid_enabled" type="bool" setter="" getter="" default="true">
+            Show the background grid in the graph editor.
+        </member>
+        <member name="interface/editor/graph/grid_pattern" type="String" setter="" getter="" default="&quot;Dots&quot;">
+            The pattern used to draw the graph background grid: [code]Dots[/code] or [code]Lines[/code].
+        </member>
+        <member name="interface/editor/graph/grid_snapping_enabled" type="bool" setter="" getter="" default="true">
+            Snap nodes to the grid when moving them in the graph editor.
+        </member>
+        <member name="interface/editor/graph/show_advanced_tooltips" type="bool" setter="" getter="" default="false">
+            Include advanced, developer-oriented details in graph node and pin tooltips.
+        </member>
+        <member name="interface/editor/graph/show_autowire_selection_dialog" type="bool" setter="" getter="" default="true">
+            When a dragged connection could be autowired in more than one way, show a dialog to choose; otherwise connect automatically.
+        </member>
+        <member name="interface/editor/graph/show_minimap" type="bool" setter="" getter="" default="false">
+            Show the minimap overlay in the graph editor.
+        </member>
+        <member name="interface/editor/graph/show_arrange_button" type="bool" setter="" getter="" default="false">
+            Show the arrange-nodes button in the graph editor toolbar.
+        </member>
+        <member name="interface/editor/graph/show_overlay_action_tooltips" type="bool" setter="" getter="" default="true">
+            Show contextual action hints overlaid on the graph editor.
+        </member>
+        <member name="interface/editor/graph_nodes/connection_hotzone_scale" type="String" setter="" getter="" default="&quot;100%&quot;">
+            Scales the clickable area around pins when making connections, making them easier to target.
+        </member>
+        <member name="interface/editor/graph_nodes/highlight_selected_connections" type="bool" setter="" getter="" default="false">
+            Highlight the connections attached to selected nodes.
+        </member>
+        <member name="interface/editor/graph_nodes/resizable_by_default" type="bool" setter="" getter="" default="false">
+            Make newly created graph nodes resizable by default.
+        </member>
+        <member name="interface/editor/graph_nodes/resize_to_content" type="bool" setter="" getter="" default="false">
+            Automatically size graph nodes to fit their content.
+        </member>
+        <member name="interface/editor/graph_nodes/show_type_icons" type="bool" setter="" getter="" default="true">
+            Show type icons next to pins on graph nodes.
+        </member>
+        <member name="debug/settings/max_call_stack" type="int" setter="" getter="" default="1024">
+            Maximum call-stack depth allowed at runtime before a stack-overflow error is reported.
+        </member>
+        <member name="debug/settings/max_loop_iterations" type="int" setter="" getter="" default="1000000">
+            Maximum number of iterations a loop node may run before execution is aborted, guarding against infinite loops.
+        </member>
+        <member name="debug/settings/always_track_call_stacks" type="bool" setter="" getter="" default="false">
+            Always record call-stack information at runtime, even when the debugger is not attached. May affect performance.
+        </member>
+        <member name="debug/settings/always_track_local_variables" type="bool" setter="" getter="" default="false">
+            Always record local variable values at runtime, even when the debugger is not attached. May affect performance.
+        </member>
+        <member name="debug/settings/use_node_convergence" type="bool" setter="" getter="" default="true">
+            Enable node convergence, allowing multiple execution paths to merge at a single node.
+        </member>
+        <member name="debug/warnings/enable" type="bool" setter="" getter="" default="true">
+            Master toggle for Orchestration validation warnings. When disabled, the individual warnings below are not reported.
+        </member>
+        <member name="debug/warnings/unassigned_variable" type="int" setter="" getter="" default="1">
+            Emitted when a variable is used before being assigned a value.
+        </member>
+        <member name="debug/warnings/unassigned_variable_op_assign" type="int" setter="" getter="" default="1">
+            Emitted when a variable is modified with a compound assignment operator before being initialized.
+        </member>
+        <member name="debug/warnings/unused_variable" type="int" setter="" getter="" default="1">
+            Emitted when a local variable is declared but never used.
+        </member>
+        <member name="debug/warnings/unused_local_constant" type="int" setter="" getter="" default="1">
+            Emitted when a local constant is declared but never used.
+        </member>
+        <member name="debug/warnings/unused_private_class_variable" type="int" setter="" getter="" default="1">
+            Emitted when a class variable is declared but never used.
+        </member>
+        <member name="debug/warnings/unused_parameter" type="int" setter="" getter="" default="1">
+            Emitted when a function parameter is never used.
+        </member>
+        <member name="debug/warnings/unused_signal" type="int" setter="" getter="" default="1">
+            Emitted when a signal is declared but never explicitly used.
+        </member>
+        <member name="debug/warnings/shadowed_variable" type="int" setter="" getter="" default="1">
+            Emitted when a local declaration shadows another declaration in the current class.
+        </member>
+        <member name="debug/warnings/shadowed_variable_base_class" type="int" setter="" getter="" default="1">
+            Emitted when a local declaration shadows a declaration in a base class.
+        </member>
+        <member name="debug/warnings/shadowed_global_identifier" type="int" setter="" getter="" default="1">
+            Emitted when a declaration has the same name as a global type or constant.
+        </member>
+        <member name="debug/warnings/unreachable_code" type="int" setter="" getter="" default="1">
+            Emitted for code that can never be executed, such as statements after a return.
+        </member>
+        <member name="debug/warnings/unreachable_pattern" type="int" setter="" getter="" default="1">
+            Emitted for a match pattern that can never be reached.
+        </member>
+        <member name="debug/warnings/standalone_expression" type="int" setter="" getter="" default="1">
+            Emitted for an expression whose result is discarded and has no effect.
+        </member>
+        <member name="debug/warnings/standalone_ternary" type="int" setter="" getter="" default="1">
+            Emitted for a ternary expression whose result is discarded.
+        </member>
+        <member name="debug/warnings/incompatible_ternary" type="int" setter="" getter="" default="1">
+            Emitted when the two branches of a ternary produce incompatible types.
+        </member>
+        <member name="debug/warnings/untyped_declaration" type="int" setter="" getter="" default="0">
+            Emitted for a declaration that has no static type.
+        </member>
+        <member name="debug/warnings/inferred_declaration" type="int" setter="" getter="" default="0">
+            Emitted for a declaration whose static type is inferred rather than explicit.
+        </member>
+        <member name="debug/warnings/unsafe_property_access" type="int" setter="" getter="" default="0">
+            Emitted when accessing a property that may not exist on the inferred type.
+        </member>
+        <member name="debug/warnings/unsafe_method_access" type="int" setter="" getter="" default="0">
+            Emitted when calling a method that may not exist on the inferred type.
+        </member>
+        <member name="debug/warnings/unsafe_cast" type="int" setter="" getter="" default="0">
+            Emitted for an unsafe cast from [Variant] to a specific type.
+        </member>
+        <member name="debug/warnings/unsafe_call_argument" type="int" setter="" getter="" default="0">
+            Emitted when a supertype is passed where a subtype argument is required.
+        </member>
+        <member name="debug/warnings/unsafe_void_return" type="int" setter="" getter="" default="1">
+            Emitted when a void function returns a call whose void result cannot be guaranteed.
+        </member>
+        <member name="debug/warnings/return_value_discarded" type="int" setter="" getter="" default="0">
+            Emitted when a function's return value is discarded.
+        </member>
+        <member name="debug/warnings/static_called_on_instance" type="int" setter="" getter="" default="1">
+            Emitted when a static function is called from an instance instead of the type.
+        </member>
+        <member name="debug/warnings/missing_tool" type="int" setter="" getter="" default="1">
+            Emitted when a class should be marked as a tool but is not.
+        </member>
+        <member name="debug/warnings/redundant_static_unload" type="int" setter="" getter="" default="1">
+            Emitted for a redundant static-unload annotation.
+        </member>
+        <member name="debug/warnings/redundant_await" type="int" setter="" getter="" default="1">
+            Emitted when awaiting an expression that is not a coroutine or signal.
+        </member>
+        <member name="debug/warnings/missing_await" type="int" setter="" getter="" default="0">
+            Emitted when a coroutine or signal is used without awaiting it.
+        </member>
+        <member name="debug/warnings/assert_always_true" type="int" setter="" getter="" default="1">
+            Emitted when an assert condition is always true.
+        </member>
+        <member name="debug/warnings/assert_always_false" type="int" setter="" getter="" default="1">
+            Emitted when an assert condition is always false.
+        </member>
+        <member name="debug/warnings/integer_division" type="int" setter="" getter="" default="1">
+            Emitted when integer division discards the remainder.
+        </member>
+        <member name="debug/warnings/narrowing_conversion" type="int" setter="" getter="" default="1">
+            Emitted for an implicit float-to-integer narrowing conversion.
+        </member>
+        <member name="debug/warnings/int_as_enum_without_cast" type="int" setter="" getter="" default="1">
+            Emitted when an integer is assigned to an enum without an explicit cast.
+        </member>
+        <member name="debug/warnings/int_as_enum_without_match" type="int" setter="" getter="" default="1">
+            Emitted when casting an integer to an enum with no matching member value.
+        </member>
+        <member name="debug/warnings/enum_variable_without_default" type="int" setter="" getter="" default="1">
+            Emitted when an enum-typed variable has no explicit default value.
+        </member>
+        <member name="debug/warnings/empty_file" type="int" setter="" getter="" default="1">
+            Emitted when a script file is empty.
+        </member>
+        <member name="debug/warnings/deprecated_keyword" type="int" setter="" getter="" default="1">
+            Emitted for use of a deprecated keyword.
+        </member>
+        <member name="debug/warnings/confusable_identifier" type="int" setter="" getter="" default="1">
+            Emitted for identifiers containing misleading or confusable characters.
+        </member>
+        <member name="debug/warnings/confusable_local_declaration" type="int" setter="" getter="" default="1">
+            Emitted when a local declaration shadows one declared later in the block.
+        </member>
+        <member name="debug/warnings/confusable_local_usage" type="int" setter="" getter="" default="1">
+            Emitted when an identifier will be shadowed later in the block.
+        </member>
+        <member name="debug/warnings/confusable_capture_reassignment" type="int" setter="" getter="" default="1">
+            Emitted when reassigning a lambda capture, which does not modify the outer variable.
+        </member>
+        <member name="debug/warnings/inference_on_variant" type="int" setter="" getter="" default="2">
+            Emitted when a type is inferred from a [Variant] value.
+        </member>
+        <member name="debug/warnings/native_method_override" type="int" setter="" getter="" default="2">
+            Emitted when a method overrides a native method.
+        </member>
+        <member name="debug/warnings/get_node_default_without_onready" type="int" setter="" getter="" default="2">
+            Emitted when a get-node default is used on a member that is not marked on-ready.
+        </member>
+        <member name="debug/warnings/onready_with_export" type="int" setter="" getter="" default="2">
+            Emitted when the on-ready and export annotations are used together.
+        </member>
+        <member name="debug/warnings/property_used_as_function" type="int" setter="" getter="" default="1">
+            Emitted when a property is called as if it were a function.
+        </member>
+        <member name="debug/warnings/constant_used_as_function" type="int" setter="" getter="" default="1">
+            Emitted when a constant is used as if it were a function.
+        </member>
+        <member name="debug/warnings/function_used_as_property" type="int" setter="" getter="" default="1">
+            Emitted when a function is accessed as if it were a property.
+        </member>
+        <member name="runtime/dialogue/default_message_scene" type="String" setter="" getter="" default="&quot;res://addons/orchestrator/scenes/dialogue_message.tscn&quot;">
+            The [PackedScene] instantiated to present dialogue messages at runtime.
+        </member>
+        <member name="runtime/print_string/overlay_scale" type="String" setter="" getter="" default="&quot;100%&quot;">
+            Scale applied to the on-screen overlay used by Print String nodes.
+        </member>
+        <member name="interface/theme/color_theme" type="String" setter="" getter="" default="&quot;Default&quot;">
+            The active color theme preset for graph nodes and connections. Choosing [code]Custom[/code] lets the individual colors below take effect.
+        </member>
+        <member name="interface/theme/connection_colors/execution" type="Color" setter="" getter="" default="Color(1, 1, 1, 1)">
+            Color used for execution (control flow) connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/any" type="Color" setter="" getter="" default="Color(0.41, 0.93, 0.74, 1)">
+            Color used for Any value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/boolean" type="Color" setter="" getter="" default="Color(0.55, 0.65, 0.94, 1)">
+            Color used for Boolean value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/integer" type="Color" setter="" getter="" default="Color(0.59, 0.78, 0.94, 1)">
+            Color used for Integer value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/float" type="Color" setter="" getter="" default="Color(0.38, 0.85, 0.96, 1)">
+            Color used for Float value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/string" type="Color" setter="" getter="" default="Color(0.42, 0.65, 0.93, 1)">
+            Color used for String value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/string_name" type="Color" setter="" getter="" default="Color(0.42, 0.65, 0.93, 1)">
+            Color used for StringName value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/rect2" type="Color" setter="" getter="" default="Color(0.95, 0.57, 0.65, 1)">
+            Color used for Rect2 value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/rect2i" type="Color" setter="" getter="" default="Color(0.95, 0.57, 0.65, 1)">
+            Color used for Rect2i value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/vector2" type="Color" setter="" getter="" default="Color(0.74, 0.57, 0.95, 1)">
+            Color used for Vector2 value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/vector2i" type="Color" setter="" getter="" default="Color(0.74, 0.57, 0.95, 1)">
+            Color used for Vector2i value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/vector3" type="Color" setter="" getter="" default="Color(0.84, 0.49, 0.93, 1)">
+            Color used for Vector3 value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/vector3i" type="Color" setter="" getter="" default="Color(0.84, 0.49, 0.93, 1)">
+            Color used for Vector3i value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/vector4" type="Color" setter="" getter="" default="Color(0.84, 0.49, 0.94, 1)">
+            Color used for Vector4 value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/vector4i" type="Color" setter="" getter="" default="Color(0.84, 0.49, 0.94, 1)">
+            Color used for Vector4i value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/transform2d" type="Color" setter="" getter="" default="Color(0.77, 0.83, 0.41, 1)">
+            Color used for Transform2D value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/transform3d" type="Color" setter="" getter="" default="Color(0.96, 0.66, 0.43, 1)">
+            Color used for Transform3D value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/plane" type="Color" setter="" getter="" default="Color(0.97, 0.44, 0.44, 1)">
+            Color used for Plane value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/quaternion" type="Color" setter="" getter="" default="Color(0.93, 0.41, 0.64, 1)">
+            Color used for Quaternion value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/aabb" type="Color" setter="" getter="" default="Color(0.93, 0.47, 0.57, 1)">
+            Color used for AABB value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/basis" type="Color" setter="" getter="" default="Color(0.89, 0.93, 0.41, 1)">
+            Color used for Basis value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/projection" type="Color" setter="" getter="" default="Color(0.302, 0.655, 0.271, 1)">
+            Color used for Projection value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/color" type="Color" setter="" getter="" default="Color(0.62, 1, 0.44, 1)">
+            Color used for Color value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/nodepath" type="Color" setter="" getter="" default="Color(0.51, 0.58, 0.93, 1)">
+            Color used for NodePath value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/rid" type="Color" setter="" getter="" default="Color(0.41, 0.93, 0.6, 1)">
+            Color used for RID value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/object" type="Color" setter="" getter="" default="Color(0.47, 0.95, 0.91, 1)">
+            Color used for Object value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/dictionary" type="Color" setter="" getter="" default="Color(0.47, 0.93, 0.69, 1)">
+            Color used for Dictionary value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/array" type="Color" setter="" getter="" default="Color(0.88, 0.88, 0.88, 1)">
+            Color used for Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/callable" type="Color" setter="" getter="" default="Color(0.47, 0.95, 0.91, 1)">
+            Color used for Callable value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/signal" type="Color" setter="" getter="" default="Color(1, 0, 0, 1)">
+            Color used for Signal value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_byte_array" type="Color" setter="" getter="" default="Color(0.55, 0.65, 0.94, 1)">
+            Color used for PackedByteArray value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_string_array" type="Color" setter="" getter="" default="Color(0.42, 0.65, 0.93, 1)">
+            Color used for PackedStringArray value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_int32_array" type="Color" setter="" getter="" default="Color(0.59, 0.78, 0.94, 1)">
+            Color used for PackedInt32Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_int64_array" type="Color" setter="" getter="" default="Color(0.59, 0.78, 0.94, 1)">
+            Color used for PackedInt64Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_float32_array" type="Color" setter="" getter="" default="Color(0.38, 0.85, 0.96, 1)">
+            Color used for PackedFloat32Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_float64_array" type="Color" setter="" getter="" default="Color(0.38, 0.85, 0.96, 1)">
+            Color used for PackedFloat64Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_vector2_array" type="Color" setter="" getter="" default="Color(0.74, 0.57, 0.95, 1)">
+            Color used for PackedVector2Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_vector3_array" type="Color" setter="" getter="" default="Color(0.84, 0.49, 0.93, 1)">
+            Color used for PackedVector3Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_vector4_array" type="Color" setter="" getter="" default="Color(0.84, 0.49, 0.94, 1)">
+            Color used for PackedVector4Array value connections in the graph.
+        </member>
+        <member name="interface/theme/connection_colors/packed_color_array" type="Color" setter="" getter="" default="Color(0.62, 1, 0.44, 1)">
+            Color used for PackedColorArray value connections in the graph.
+        </member>
+        <member name="interface/theme/nodes/background_color" type="Color" setter="" getter="" default="Color(0.0980392, 0.113725, 0.137255, 1)">
+            Default background color of graph nodes.
+        </member>
+        <member name="interface/theme/nodes/border_color" type="Color" setter="" getter="" default="Color(0.059, 0.067, 0.082, 1)">
+            Default border color of graph nodes.
+        </member>
+        <member name="interface/theme/nodes/selected_border_color" type="Color" setter="" getter="" default="Color(0.68, 0.44, 0.09, 1)">
+            Border color of selected graph nodes.
+        </member>
+        <member name="interface/theme/nodes/border_radius" type="float" setter="" getter="" default="4.0">
+            Corner radius, in pixels, of graph node borders.
+        </member>
+        <member name="interface/theme/nodes/border_width" type="float" setter="" getter="" default="2.0">
+            Thickness, in pixels, of graph node borders.
+        </member>
+        <member name="interface/theme/node_colors/constants_and_literals" type="Color" setter="" getter="" default="Color(0.271, 0.392, 0.2, 1)">
+            Background color for constant and literal value nodes.
+        </member>
+        <member name="interface/theme/node_colors/dialogue" type="Color" setter="" getter="" default="Color(0.318, 0.435, 0.839, 1)">
+            Background color for dialogue nodes.
+        </member>
+        <member name="interface/theme/node_colors/events" type="Color" setter="" getter="" default="Color(0.467, 0, 0, 1)">
+            Background color for event nodes.
+        </member>
+        <member name="interface/theme/node_colors/flow_control" type="Color" setter="" getter="" default="Color(0.132, 0.258, 0.266, 1)">
+            Background color for flow-control nodes (branches, loops, and similar).
+        </member>
+        <member name="interface/theme/node_colors/function_call" type="Color" setter="" getter="" default="Color(0, 0.2, 0.396, 1)">
+            Background color for engine/native function-call nodes.
+        </member>
+        <member name="interface/theme/node_colors/orchestration_function_call" type="Color" setter="" getter="" default="Color(0, 0.316, 0.601, 1)">
+            Background color for calls to functions defined in this Orchestration.
+        </member>
+        <member name="interface/theme/node_colors/other_script_function_call" type="Color" setter="" getter="" default="Color(0.027, 0.341, 0.504, 1)">
+            Background color for calls to functions defined in another script.
+        </member>
+        <member name="interface/theme/node_colors/pure_function_call" type="Color" setter="" getter="" default="Color(0.133, 0.302, 0.114, 1)">
+            Background color for pure (side-effect-free) function-call nodes.
+        </member>
+        <member name="interface/theme/node_colors/function_terminator" type="Color" setter="" getter="" default="Color(0.294, 0, 0.506, 1)">
+            Background color for function entry and exit (terminator) nodes.
+        </member>
+        <member name="interface/theme/node_colors/function_result" type="Color" setter="" getter="" default="Color(1, 0.65, 0.4, 1)">
+            Background color for function result nodes.
+        </member>
+        <member name="interface/theme/node_colors/math_operations" type="Color" setter="" getter="" default="Color(0.259, 0.408, 0.384, 1)">
+            Background color for math operation nodes.
+        </member>
+        <member name="interface/theme/node_colors/memory" type="Color" setter="" getter="" default="Color(0.351, 0.339, 0.133, 1)">
+            Background color for memory nodes, such as instantiate and free.
+        </member>
+        <member name="interface/theme/node_colors/properties" type="Color" setter="" getter="" default="Color(0.467, 0.28, 0.175, 1)">
+            Background color for property get/set nodes.
+        </member>
+        <member name="interface/theme/node_colors/resources" type="Color" setter="" getter="" default="Color(0.263, 0.275, 0.359, 1)">
+            Background color for resource nodes.
+        </member>
+        <member name="interface/theme/node_colors/scene" type="Color" setter="" getter="" default="Color(0.208, 0.141, 0.282, 1)">
+            Background color for scene nodes.
+        </member>
+        <member name="interface/theme/node_colors/signals" type="Color" setter="" getter="" default="Color(0.353, 0, 0, 1)">
+            Background color for signal nodes.
+        </member>
+        <member name="interface/theme/node_colors/variable" type="Color" setter="" getter="" default="Color(0.259, 0.177, 0.249, 1)">
+            Background color for variable get/set nodes.
+        </member>
+        <member name="interface/theme/node_colors/type_cast" type="Color" setter="" getter="" default="Color(0.009, 0.221, 0.203, 1)">
+            Background color for type-cast nodes.
+        </member>
+        <member name="interface/theme/node_colors/comment" type="Color" setter="" getter="" default="Color(0.4, 0.4, 0.4, 1)">
+            Background color for comment nodes.
+        </member>
+        <member name="interface/theme/tool_scripts/background_color" type="Color" setter="" getter="" default="Color(1, 1, 0, 0.1)">
+            Background tint applied to graph nodes in tool (editor-run) Orchestrations.
+        </member>
+    </members>
+</class>

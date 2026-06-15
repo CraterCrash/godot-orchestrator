@@ -368,14 +368,11 @@ bool OrchestratorSelectTypeSearchDialog::_get_search_item_collapse_suggestion(Tr
 
 void OrchestratorSelectTypeSearchDialog::_update_help(const Ref<SearchItem>& p_item) {
     const PropertyInfo property = p_item->property;
-    if (!property.class_name.is_empty()) {
-        _help_bit->set_title(property.class_name);
-    } else {
-        _help_bit->set_title(VariantUtils::get_friendly_type_name(property.type, true));
-    }
+    const String symbol = property.class_name.is_empty()
+        ? vformat("type|%s|", VariantUtils::get_friendly_type_name(property.type, true))
+        : vformat("class|%s|", property.class_name);
 
-    _help_bit->set_text(vformat("No description available for [b]%s[/b].", p_item->text));
-    _help_bit->set_disabled(true);
+    _help_bit->parse_symbol(symbol);
 }
 
 Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_search_items() {

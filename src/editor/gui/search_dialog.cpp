@@ -549,7 +549,7 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             _search_options->connect("cell_selected", callable_mp_this(_item_selected));
             SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);
 
-            _help_bit = memnew(OrchestratorEditorSearchHelpBit);
+            _help_bit = memnew(OrchestratorEditorHelpBit);
             SceneUtils::add_margin_child(vbox, "Description:", _help_bit);
 
             register_text_enter(_search_box);

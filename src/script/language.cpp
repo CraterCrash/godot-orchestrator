@@ -131,7 +131,7 @@ void OScriptLanguage::_init() {
     track_locals = track_locals || EngineDebugger::get_singleton()->is_active();
     #endif
 
-    const String storage_format = ORCHESTRATOR_GET("settings/storage_format", "Text");
+    const String storage_format = ORCHESTRATOR_GET("editor/settings/storage_format", "Text");
     if (storage_format.match("Binary")) {
         _extension = ORCHESTRATOR_SCRIPT_EXTENSION;
     }
@@ -317,7 +317,7 @@ Object* OScriptLanguage::_create_script() const {
 
     Ref<Orchestration> orchestration;
     orchestration.instantiate();
-    orchestration->set_base_type(ORCHESTRATOR_GET("settings/default_type", "Node"));
+    orchestration->set_base_type(ORCHESTRATOR_GET("editor/settings/default_type", "Node"));
     orchestration->create_graph("EventGraph", OScriptGraph::GF_EVENT);
 
     orchestration->_self = script;
