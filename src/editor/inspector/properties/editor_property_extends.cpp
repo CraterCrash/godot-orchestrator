@@ -130,7 +130,7 @@ void OrchestratorEditorPropertyExtends::_notification(int p_what) {
 
             _dialog = memnew(OrchestratorSelectClassSearchDialog);
             _dialog->set_data_suffix("extends");
-            _dialog->connect("confirmed", callable_mp_this(_extends_class_selected));
+            _dialog->connect("selected", callable_mp_this(_extends_class_selected));
             add_child(_dialog);
 
             update_property();
