@@ -431,7 +431,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     }
 
     const bool can_delete = p_node->can_user_delete_node();
-    menu->add_icon_item("Remove", "Delete", callable_mp_this(remove_node).bind(p_node, true ), !can_delete, KEY_DELETE);
+    menu->add_icon_item("Remove", "Delete", callable_mp_this(remove_selected_nodes).bind(true), !can_delete, KEY_DELETE);
 
     menu->add_icon_item("ActionCut", "Cut", callable_mp_this(_cut_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_X));
     menu->add_icon_item("ActionCopy", "Copy", callable_mp_this(_copy_nodes_request), false, OACCEL_KEY(KEY_MASK_CTRL, KEY_C));
@@ -2974,6 +2974,21 @@ void OrchestratorEditorGraphPanel::remove_nodes(const TypedArray<OrchestratorEdi
 
     for (int i = 0; i < p_nodes.size(); i++) {
         OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(p_nodes[i]);
+        if (node && node->can_user_delete_node()) {
+            remove_node(node, false);
+        }
+    }
+}
+
+void OrchestratorEditorGraphPanel::remove_selected_nodes(bool p_confirm) {
+    Vector<OrchestratorEditorGraphNode*> selected_nodes = get_selected<OrchestratorEditorGraphNode>();
+    if (p_confirm && _is_delete_confirmation_enabled()) {
+        ORCHESTRATOR_CONFIRM(vformat("Do you wish to delete %d node(s)?", selected_nodes.size()),
+            callable_mp_this(remove_nodes).bind(false));
+    }
+
+    for (int i = 0; i < selected_nodes.size(); i++) {
+        OrchestratorEditorGraphNode* node = selected_nodes[i];
         if (node && node->can_user_delete_node()) {
             remove_node(node, false);
         }
