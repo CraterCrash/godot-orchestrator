@@ -832,12 +832,21 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
             .build());
 
         if (!type.properties.is_empty()) {
+            Vector<Variant::Type> property_types;
+            for (int i = 0; i < type.properties.size(); i++) {
+                if (!property_types.has(type.properties[i].type)) {
+                    property_types.push_back(type.properties[i].type);
+                }
+            }
+
             if (OScriptNodeCompose::is_supported(type.type)) {
                 r_actions.insert(
                     _script_node_builder<OScriptNodeCompose>(
                         category,
                         vformat("Make %s", type_name),
                         type_dict)
+                    .inputs(property_types)
+                    .outputs(type.type)
                     .build());
             }
 
@@ -848,6 +857,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                     vformat("Break %s into RGBA", type_name),
                     DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_RGBA } }))
                 .no_capitalize(true)
+                .inputs(type.type)
+                .outputs(Variant::FLOAT)
                 .build());
 
                 r_actions.insert(
@@ -856,6 +867,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                         vformat("Break %s into RGBA8", type_name),
                         DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_RGBA8 } }))
                     .no_capitalize(true)
+                    .inputs(type.type)
+                    .outputs(Variant::FLOAT)
                     .build());
 
                 r_actions.insert(
@@ -864,6 +877,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                         vformat("Break %s into HSV", type_name),
                         DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_HSV } }))
                     .no_capitalize(true)
+                    .inputs(type.type)
+                    .outputs(Variant::FLOAT)
                     .build());
 
                 r_actions.insert(
@@ -872,6 +887,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                         vformat("Break %s into OK HSL", type_name),
                         DictionaryUtils::of({ { "type", type.type }, { "sub_type", OScriptNodeDecompose::ST_COLOR_OK_HSL } }))
                     .no_capitalize(true)
+                    .inputs(type.type)
+                    .outputs(Variant::FLOAT)
                     .build());
             } else {
                 r_actions.insert(
@@ -879,6 +896,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                     category,
                     vformat("Break %s", type_name),
                     type_dict)
+                .inputs(type.type)
+                .outputs(property_types)
                 .build());
             }
         }
@@ -890,7 +909,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                         continue;
                     }
 
-                    Vector<String> argument_types;
+                    Vector<String> argument_type_names;
+                    Vector<Variant::Type> argument_types;
                     Array arguments;
                     for (const PropertyInfo& argument : info.arguments) {
                         String argument_name;
@@ -899,11 +919,14 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                         } else {
                             argument_name = argument.name.capitalize();
                         }
-                        argument_types.push_back(argument_name);
+                        argument_type_names.push_back(argument_name);
                         arguments.push_back(DictionaryUtils::from_property(argument));
+                        if (!argument_types.has(argument.type)) {
+                            argument_types.push_back(argument.type);
+                        }
                     }
 
-                    const String args = StringUtils::join(" and ", argument_types);
+                    const String args = StringUtils::join(" and ", argument_type_names);
                     const Dictionary ctor_dict = DictionaryUtils::of(
                         { { "type", type.type }, { "constructor_args", arguments } });
 
@@ -912,6 +935,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                             category,
                             vformat("Make %s From %s", type_name, args),
                             ctor_dict)
+                        .inputs(argument_types)
+                        .outputs(type.type)
                         .build());
                 }
             }
