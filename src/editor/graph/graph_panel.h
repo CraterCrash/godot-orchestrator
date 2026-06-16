@@ -330,6 +330,7 @@ public:
 
     void remove_node(OrchestratorEditorGraphNode* p_node, bool p_confirm = true);
     void remove_nodes(const TypedArray<OrchestratorEditorGraphNode>& p_nodes, bool p_confirm = true);
+    void remove_selected_nodes(bool p_confirm = true);
     void remove_frame(OrchestratorEditorGraphFrame* p_frame, bool p_confirm = true);
 
     void clear_selections();
