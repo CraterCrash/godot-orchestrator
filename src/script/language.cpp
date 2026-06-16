@@ -723,23 +723,7 @@ PackedStringArray OScriptLanguage::_get_recognized_extensions() const {
 }
 
 TypedArray<Dictionary> OScriptLanguage::_get_public_functions() const {
-    TypedArray<Dictionary> results;
-    for (const StringName& function : OScriptUtilityFunctions::get_function_list()) {
-        const MethodInfo method = OScriptUtilityFunctions::get_function_info(function);
-        results.push_back(DictionaryUtils::from_method(method));
-    }
-
-    {
-        MethodInfo mi;
-        mi.name = "assert";
-        mi.return_val.type = Variant::NIL;
-        mi.arguments.push_back(PropertyInfo(Variant::BOOL, "condition"));
-        mi.arguments.push_back(PropertyInfo(Variant::STRING, "message"));
-        mi.default_arguments.push_back(String());
-        results.push_back(DictionaryUtils::from_method(mi));
-    }
-
-    return results;
+    return OScriptUtilityFunctions::get_public_functions();
 }
 
 Dictionary OScriptLanguage::_get_public_constants() const {

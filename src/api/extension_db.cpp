@@ -516,6 +516,20 @@ void ExtensionDB::_load_classes(const Dictionary& p_data) {
     }
 }
 
+const HashSet<StringName>& ExtensionDB::_get_native_property_names(const StringName& p_class_name) {
+    if (HashMap<StringName, HashSet<StringName>>::Iterator it = _native_property_names.find(p_class_name)) {
+        return it->value;
+    }
+
+    HashSet<StringName>& names = _native_property_names[p_class_name];
+    const TypedArray<Dictionary> properties = ClassDB::class_get_property_list(p_class_name, true);
+    for (uint32_t i = 0; i < properties.size(); i++) {
+        const Dictionary& property = properties[i];
+        names.insert(property.get("name", StringName()));
+    }
+    return names;
+}
+
 void ExtensionDB::create() {
     _singleton = memnew(ExtensionDB);
 }
@@ -676,6 +690,30 @@ MethodBind* ExtensionDB::get_method(const StringName& p_class_name, const String
         clazz = clazz->parent;
     }
     return nullptr;
+}
+
+bool ExtensionDB::is_shadowing_class_member(const StringName& p_class_name, const String& p_name) {
+    const StringName name = p_name;
+
+    // These all have cheap live ClassDB existence checks, so calling across the boundary is fine.
+    if (ClassDB::class_has_method(p_class_name, name)
+        || ClassDB::class_has_signal(p_class_name, name)
+        || ClassDB::class_has_integer_constant(p_class_name, name)
+        || ClassDB::class_has_enum(p_class_name, name)) {
+        return true;
+    }
+
+    // Class properties have no boolean lookup, so these require a full chain pass.
+    // This walks the chain, caches the properties as needed, so any future lookups are cheap.
+    StringName current = p_class_name;
+    while (current != StringName()) {
+        if (_singleton->_get_native_property_names(current).has(name)) {
+            return true;
+        }
+        current = ClassDB::get_parent_class(current);
+    }
+
+    return false;
 }
 
 ExtensionDB::ExtensionDB() {
