@@ -120,7 +120,10 @@ private:
     Timer* _theme_update_timer = nullptr;
     OptionButton* _grid_pattern = nullptr;
     Dictionary _hovered_connection;
+    Dictionary _edit_state;
 
+    bool _initialized = false;
+    bool _restore_scheduled = false;
     bool _in_theme_update = false;
     bool _show_type_icons = true;
     bool _show_advanced_tooltips = false;
@@ -133,6 +136,7 @@ private:
     bool _treat_call_member_as_override = false;
     bool _panel_refresh_pending = false;
     bool _panel_connections_refresh_pending = false;
+    bool _refresh_scheduled = false;
 
 
     Vector2 _menu_position;
@@ -241,6 +245,9 @@ private:
     bool _is_delete_confirmation_enabled();
     bool _can_duplicate_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog = true);
     void _set_scroll_offset_and_zoom(const Vector2& p_scroll_offset, float p_zoom = 1.f, const Callable& p_callback = Callable());
+    void _schedule_restore();
+    void _restore_edit_state();
+    void _schedule_refresh();
 
     void _queue_autowire(OrchestratorEditorGraphNode* p_spawned_node, OrchestratorEditorGraphPin* p_origin_pin);
     OrchestratorEditorGraphPin* _get_autowire_pin(OrchestratorEditorGraphNode* p_spawned_node, OrchestratorEditorGraphPin* p_origin_pin, const Vector<OrchestratorEditorGraphPin*>& p_choices);

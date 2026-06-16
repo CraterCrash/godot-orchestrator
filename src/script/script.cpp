@@ -747,6 +747,18 @@ Error OScript::_reload(bool p_keep_state) {
         }
     }
 
+    #ifdef TOOLS_ENABLED
+    // GDScript-style early-out
+    // If the script is already compiled and valid, and the source on disk is byte-identical to what
+    // was last compiled, there isn't a reason to recompile. This avoids redundant re-analysis calls
+    // when save rewrites unmodified scripts (e.g. a scene save re-saving every attached script,
+    // each of which triggers reload-on-save if enabled).
+    if (p_keep_state && _is_valid() && orchestration.is_valid() && source.hash() == compiled_source_hash) {
+        reloading = false;
+        return OK;
+    }
+    #endif
+
     bool can_run = ScriptServer::is_scripting_enabled() || _is_tool();
 
     #ifdef TOOLS_ENABLED
@@ -917,6 +929,9 @@ Error OScript::_reload(bool p_keep_state) {
         // Update properties in the inspector
         _update_exports();
     }
+
+    // Record the source we just compiled so an identical follow-up reload can be skipped.
+    compiled_source_hash = source.hash();
     #endif
 
     reloading = false;
@@ -1091,6 +1106,7 @@ void OScript::reload_from_file() {
     #ifdef TOOLS_ENABLED
     // Setting this to 0 forces a reload off disk when _reload is called
     source_last_modified_time = 0;
+    compiled_source_hash = 0;
 
     if (get_orchestration().is_valid()) {
         get_orchestration()->set_edited(false);
@@ -1405,6 +1421,10 @@ void OScript::set_source(const OScriptSource& p_source) {
     set_edited(false);
     source_last_modified_time = FileAccess::get_modified_time(path);
     #endif
+}
+
+void OScript::update_last_modified_time() {
+    source_last_modified_time = FileAccess::get_modified_time(path);
 }
 
 Error OScript::load_source_code(const String& p_path) {

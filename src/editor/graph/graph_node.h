@@ -40,6 +40,7 @@ class OrchestratorEditorGraphNode : public GraphNode {
     HBoxContainer* _indicators_hbox = nullptr;
     bool _show_type_icons = true;
     bool _show_advanced_tooltips = false;
+    bool _tooltip_built = false;
 
 protected:
     struct Slot {

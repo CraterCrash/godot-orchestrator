@@ -115,7 +115,7 @@ void OrchestratorEditorGraphNode::_update_titlebar() {
 
     Label* label = cast_to<Label>(hbox->find_child("*Label*", false, false));
     if (label) {
-        label->add_theme_color_override("font_color", title_color);
+        label->set_modulate(title_color);
     }
 
     set_title(_node->get_node_title());
@@ -671,7 +671,9 @@ void OrchestratorEditorGraphNode::update() {
         set_position_offset(_node->get_position());
     }
 
-    set_tooltip_text(SceneUtils::create_wrapped_tooltip_text(_get_tooltip_text()));
+    // When node changes, toggle its tooltip to be rebuilt.
+    // This is deferred until the node's first mouse enter callback
+    _tooltip_built = false;
 }
 
 void OrchestratorEditorGraphNode::redraw_connections() {
@@ -726,6 +728,15 @@ void OrchestratorEditorGraphNode::_notification(int p_what) {
                 _create_indicators();
             }
             redraw_connections();
+            break;
+        }
+        case NOTIFICATION_MOUSE_ENTER: {
+            // Lazily build the wrapped tooltip the first time the node is hovered; this
+            // happens well before the tooltip's hover delay, so it is ready when shown.
+            if (!_tooltip_built && _node.is_valid()) {
+                set_tooltip_text(SceneUtils::create_wrapped_tooltip_text(_get_tooltip_text()));
+                _tooltip_built = true;
+            }
             break;
         }
     }

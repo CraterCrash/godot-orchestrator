@@ -1855,6 +1855,67 @@ void OrchestratorEditorGraphPanel::_set_scroll_offset_and_zoom(const Vector2& p_
     }
 }
 
+void OrchestratorEditorGraphPanel::_schedule_restore() {
+    if (_restore_scheduled || _initialized || _edit_state.is_empty()) {
+        return;
+    }
+    if (!is_inside_tree() || !get_tree()) {
+        return;
+    }
+
+    // Apply on the next frame, after the owning TabContainer has settled on its current
+    // tab and that tab has been laid out. A tab that is only momentarily current during
+    // restoration is no longer visible when this fires and is skipped (see below).
+    _restore_scheduled = true;
+    get_tree()->connect("process_frame", callable_mp_this(_restore_edit_state), CONNECT_ONE_SHOT);
+}
+
+void OrchestratorEditorGraphPanel::_restore_edit_state() {
+    _restore_scheduled = false;
+
+    if (_initialized || _edit_state.is_empty() || !is_visible_in_tree()) {
+        return;
+    }
+
+    const Dictionary state = _edit_state;
+
+    const float zoom = state.get("zoom", 1.0);
+    const Vector2 offset = state.get("viewport_offset", Vector2());
+
+    _set_scroll_offset_and_zoom(offset, zoom);
+
+    set_minimap_enabled(state.get("minimap", false));
+    set_snapping_enabled(state.get("snapping", true));
+
+    _markers->load_state(state);
+
+    set_show_grid(state.get("grid", true));
+
+    const int grid_pattern = state.get("grid_pattern", 0);
+    set_grid_pattern(CAST_INT_TO_ENUM(GridPattern, grid_pattern));
+    _grid_pattern->select(grid_pattern);
+
+    _initialized = true;
+}
+
+void OrchestratorEditorGraphPanel::_schedule_refresh() {
+    if (_refresh_scheduled || !_panel_refresh_pending || !is_inside_tree() || !get_tree()) {
+        return;
+    }
+
+    // Building the graph nodes and connections remain the dominant cost when a layout is restored,
+    // particularly when there are multiple graphs open.
+    //
+    // This defers to the next frame, after the owning TabContainer has settled which tab is current,
+    // then build only the graph that is actually visible (see _refresh_panel_with_model). Any graph
+    // that is hidden, other files or other tabs, remain dirty and build when they're first shown.
+    //
+    // This allows layout load to only pay for the single visible graph instead of all open graphs
+    // across all open script files.
+    _refresh_scheduled = true;
+    get_tree()->connect("process_frame", callable_mp_this(_refresh_panel_with_model), CONNECT_ONE_SHOT);
+}
+
 void OrchestratorEditorGraphPanel::_queue_autowire(OrchestratorEditorGraphNode* p_spawned_node, OrchestratorEditorGraphPin* p_origin_pin) {
     ERR_FAIL_NULL_MSG(p_spawned_node, "Cannot initiate an autowire operation with an invalid node reference");
     ERR_FAIL_NULL_MSG(p_origin_pin, "Cannot initiate an autowire operation with an invalid pin reference");
@@ -2003,6 +2064,14 @@ void OrchestratorEditorGraphPanel::_remove_node_from_panel(const Ref<Orchestrati
 }
 
 void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
+    _refresh_scheduled = false;
+
+    // Only the visible graph builds. A graph scheduled while hidden (another file's tab, a non-active tab)
+    // remains dirty and rebuilds from NOTIFICATION_VISIBILITY_CHANGED notifications when shown.
+    if (!is_visible_in_tree()) {
+        return;
+    }
+
     clear_connections();
 
     for (int i = get_child_count() - 1; i >= 0; i--) {
@@ -2047,10 +2116,8 @@ void OrchestratorEditorGraphPanel::_refresh_panel_connections_with_model() {
 }
 
 void OrchestratorEditorGraphPanel::_queue_panel_refresh() {
-    if (!_panel_refresh_pending) {
-        _panel_refresh_pending = true;
-        callable_mp_this(_refresh_panel_with_model).call_deferred();
-    }
+    _panel_refresh_pending = true;
+    _schedule_refresh();
 }
 
 void OrchestratorEditorGraphPanel::_queue_panel_connections_refresh() {
@@ -3210,6 +3277,12 @@ OrchestratorEditorGraphPanel::NodeSpawnResult OrchestratorEditorGraphPanel::spaw
 }
 
 Variant OrchestratorEditorGraphPanel::get_edit_state() const {
+    // When a cached layout is restored but never applied, this means the tab was never made visible.
+    // In this case, the GraphEdit state cannot be used, so return the cached state verbatim.
+    if (!_initialized && !_edit_state.is_empty()) {
+        return _edit_state;
+    }
+
     PackedStringArray selections;
     for (int i = 0; i < get_child_count(); i++) {
         OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(get_child(i));
@@ -3234,23 +3307,18 @@ Variant OrchestratorEditorGraphPanel::get_edit_state() const {
 }
 
 void OrchestratorEditorGraphPanel::set_edit_state(const Variant& p_state, const Callable& p_completion_callback) {
-    const Dictionary state = p_state;
+    // Cache the state and it will be applied when the panel first becomes visible.
+    // Applying the scroll offset requires the panel to be laid out, which only happens when visible.
+    _edit_state = p_state;
+    _initialized = false;
 
-    const float zoom = state.get("zoom", 1.0);
-    const Vector2 offset = state.get("viewport_offset", Vector2());
+    if (is_visible_in_tree()) {
+        _schedule_restore();
+    }
 
-    _set_scroll_offset_and_zoom(offset, zoom, p_completion_callback);
-
-    set_minimap_enabled(state.get("minimap", false));
-    set_snapping_enabled(state.get("snapping", true));
-
-    _markers->load_state(state);
-
-    set_show_grid(state.get("grid", true));
-
-    const int grid_pattern = state.get("grid_pattern", 0);
-    set_grid_pattern(CAST_INT_TO_ENUM(GridPattern, grid_pattern));
-    _grid_pattern->select(grid_pattern);
+    if (p_completion_callback.is_valid()) {
+        p_completion_callback.call_deferred();
+    }
 }
 
 void OrchestratorEditorGraphPanel::_notification(int p_what) {
@@ -3258,6 +3326,19 @@ void OrchestratorEditorGraphPanel::_notification(int p_what) {
         case NOTIFICATION_THEME_CHANGED: {
             _update_theme_item_cache();
             _update_menu_theme();
+            break;
+        }
+        case NOTIFICATION_VISIBILITY_CHANGED: {
+            if (is_visible_in_tree()) {
+                // Builds the graph nodes and connections if a refresh is pending from while the graph was
+                // not visible. Afterward, the cached layout state is applied.
+                if (_panel_refresh_pending) {
+                    _schedule_refresh();
+                }
+                if (!_initialized) {
+                    _schedule_restore();
+                }
+            }
             break;
         }
         default: {

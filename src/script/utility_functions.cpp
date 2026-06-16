@@ -16,6 +16,7 @@
 //
 #include "script/utility_functions.h"
 
+#include "common/dictionary_utils.h"
 #include "common/settings.h"
 #include "core/godot/variant/variant.h"
 #include "orchestration/nodes/print_string.h"
@@ -525,6 +526,43 @@ struct OScriptUtilityFunctionInfo {
 static HashMap<StringName, OScriptUtilityFunctionInfo> utility_function_table;
 static List<StringName> utility_function_name_table;
 
+// Public function surface (utility functions + `assert`), built once by register_functions() while
+// initialization is single-threaded, and thereafter read-only. Cached in both shapes.
+//
+// The dictionary cache is a pointer rather than a value: TypedArray/Array call into the GDExtension
+// interface in their constructor, which is not bound yet when file-scope globals are constructed at
+// library load. It is allocated in _build_public_functions(), after the interface is available. The
+// HashSet is a plain template container with a trivial default ctor, so it is safe as a global.
+static TypedArray<Dictionary>* public_function_dictionaries = nullptr;
+static HashSet<StringName> public_function_names;
+
+// Describes `assert`, which is a language construct rather than a registered utility function but is
+// still part of the public function surface exposed to tooling and the analyzer's shadow checks.
+static MethodInfo _make_assert_method_info() {
+    MethodInfo mi;
+    mi.name = "assert";
+    mi.return_val.type = Variant::NIL;
+    mi.arguments.push_back(PropertyInfo(Variant::BOOL, "condition"));
+    mi.arguments.push_back(PropertyInfo(Variant::STRING, "message"));
+    mi.default_arguments.push_back(String());
+    return mi;
+}
+
+static void _build_public_functions() {
+    if (!public_function_dictionaries) {
+        public_function_dictionaries = memnew(TypedArray<Dictionary>);
+    }
+
+    for (const StringName& function : utility_function_name_table) {
+        public_function_dictionaries->push_back(DictionaryUtils::from_method(utility_function_table[function].info));
+        public_function_names.insert(function);
+    }
+
+    const MethodInfo assert_info = _make_assert_method_info();
+    public_function_dictionaries->push_back(DictionaryUtils::from_method(assert_info));
+    public_function_names.insert(assert_info.name);
+}
+
 static void _register_function(const StringName& p_name, const MethodInfo& p_method, OScriptUtilityFunctions::FunctionPtr p_function, bool p_is_const, bool p_is_internal) {
     ERR_FAIL_COND(utility_function_table.has(p_name));
 
@@ -581,11 +619,29 @@ void OScriptUtilityFunctions::register_functions() {
     REGISTER_FUNC(_oscript_internal_instantiate_scene, false, PropertyInfo(Variant::OBJECT, "", PROPERTY_HINT_NODE_TYPE, "Node", PROPERTY_USAGE_DEFAULT, "Node"), ARGS( ARG("path", STRING) ), false, varray(), true);
     REGISTER_FUNC(_oscript_internal_print_string, false, RET(NIL), ARGS( ARG("is_tool", BOOL), ARGVAR("text"), ARG("print_to_screen", BOOL), ARG("print_to_log", BOOL), ARG("text_color", COLOR), ARG("duration", FLOAT)), false, varray(), true);
     REGISTER_FUNC(_oscript_internal_show_dialogue, false, RETCLS("Node"), ARGS( ARGVAR("parent"), ARG("scene_path", STRING), ARGVAR("options") ), false, varray(), true);
+
+    // Build the public function surface now, while initialization is single-threaded, so later
+    // (possibly concurrent) accessors are race-free trivial reads. Idempotent via the build guard.
+    _build_public_functions();
 }
 
 void OScriptUtilityFunctions::unregister_functions() {
     utility_function_name_table.clear();
     utility_function_table.clear();
+
+    if (public_function_dictionaries) {
+        memdelete(public_function_dictionaries);
+        public_function_dictionaries = nullptr;
+    }
+    public_function_names.clear();
+}
+
+const TypedArray<Dictionary>& OScriptUtilityFunctions::get_public_functions() {
+    return *public_function_dictionaries;
+}
+
+const HashSet<StringName>& OScriptUtilityFunctions::get_public_function_names() {
+    return public_function_names;
 }
 
 OScriptUtilityFunctions::FunctionPtr OScriptUtilityFunctions::get_function(const StringName& p_function_name) {

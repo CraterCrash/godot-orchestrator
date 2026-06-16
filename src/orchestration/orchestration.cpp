@@ -375,10 +375,11 @@ int Orchestration::get_available_id() const {
 }
 
 void Orchestration::set_edited(bool p_edited) {
-    if (_initialized) {
-        if (_edited != p_edited) {
-            _edited = p_edited;
-        }
+    // Only notify when the edited state actually changes. Emitting `changed` unconditionally caused
+    // every save (which calls set_edited(false) on each open tab to mark it saved) to re-queue a full
+    // script validation for tabs whose edited state never changed.
+    if (_initialized && _edited != p_edited) {
+        _edited = p_edited;
 
         if (_self) {
             _self->emit_changed();
