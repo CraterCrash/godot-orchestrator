@@ -113,7 +113,7 @@ protected:
     OrchestratorEditorGraphPanel* _get_graph_tab(const String& p_name);
     OrchestratorEditorGraphPanel* _get_graph_tab(int p_index);
     OrchestratorEditorGraphPanel* _get_active_graph_tab();
-    OrchestratorEditorGraphPanel* _open_graph_tab(const String& p_name);
+    OrchestratorEditorGraphPanel* _open_graph_tab(const String& p_name, bool p_focus = true);
     void _close_graph_editor(const String& p_name);
     void _focus_graph_tab(OrchestratorEditorGraphPanel* p_tab_panel);
     Dictionary _get_graph_tab_state(OrchestratorEditorGraphPanel* p_tab_panel, bool p_open = true);

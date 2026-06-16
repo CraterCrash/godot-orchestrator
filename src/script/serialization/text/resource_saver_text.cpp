@@ -52,6 +52,10 @@ Error OScriptTextResourceFormatSaver::_save(const Ref<Resource>& p_resource, con
         return err;
     }
 
+    // The in-memory orchestration now matches what is on disk, so record the new modified time to
+    // prevent the reload-on-save below from redundantly re-reading and copy_state-ing the file.
+    script->update_last_modified_time();
+
     if (ScriptServer::is_reload_scripts_on_save()) {
         OScriptLanguage::get_singleton()->_reload_tool_script(p_resource, true);
     }

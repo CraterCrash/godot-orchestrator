@@ -17,7 +17,9 @@
 #pragma once
 
 #include <godot_cpp/core/object.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
 using namespace godot;
 
@@ -31,6 +33,11 @@ public:
     static bool function_exists(const StringName& p_function_name);
     static List<StringName> get_function_list();
     static MethodInfo get_function_info(const StringName& p_function_name);
+
+    // The public function surface (every registered utility function plus the `assert` language
+    // construct), in the two shapes the language needs. Both are built once and cached.
+    static const TypedArray<Dictionary>& get_public_functions();
+    static const HashSet<StringName>& get_public_function_names();
     static int get_function_argument_count(const StringName& p_function_name);
     static bool is_function_constant(const StringName& p_function_name);
     static bool is_function_internal(const StringName& p_function_name);

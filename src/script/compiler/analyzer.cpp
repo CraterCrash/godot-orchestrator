@@ -16,6 +16,7 @@
 //
 #include "script/compiler/analyzer.h"
 
+#include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 #include "common/error_list.h"
 #include "common/method_utils.h"
@@ -6164,13 +6165,9 @@ bool OScriptAnalyzer::is_type_compatible_strict_collections(const OScriptParser:
 void OScriptAnalyzer::is_shadowing(OScriptParser::IdentifierNode* p_identifier, const String& p_context, const bool p_in_local_scope) {
     const StringName &name = p_identifier->name;
 	{
-        const TypedArray<Dictionary> oscript_funcs = OScriptLanguage::get_singleton()->_get_public_functions();
-        for (uint32_t i = 0; i < oscript_funcs.size(); i++) {
-		    const Dictionary& dict = oscript_funcs[i];
-		    if (dict.get("name", "") == name) {
-				parser->push_warning(p_identifier, OScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "built-in function");
-				return;
-			}
+        if (OScriptUtilityFunctions::get_public_function_names().has(name)) {
+			parser->push_warning(p_identifier, OScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "built-in function");
+			return;
 		}
 
         if (GDE::Variant::has_utility_function(name)) {
@@ -6218,6 +6215,13 @@ void OScriptAnalyzer::is_shadowing(OScriptParser::IdentifierNode* p_identifier, 
 	}
 
 	StringName native_base_class = current_class_type.native_type;
+	// If `name` isn't a member anywhere in the native chain it cannot shadow, so skip the precise
+	// per-ancestor walk below entirely; only matching names pay for it. ExtensionDB resolves this
+	// against live ClassDB (cheap booleans for methods/signals/constants/enums, cached property names).
+	if (native_base_class != StringName() &&
+	    !ExtensionDB::is_shadowing_class_member(native_base_class, name)) {
+		return;
+	}
 	while (native_base_class != StringName()) {
 		ERR_FAIL_COND_MSG(!class_exists(native_base_class), "Non-existent native base class.");
 

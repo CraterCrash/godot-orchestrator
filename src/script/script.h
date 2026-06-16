@@ -129,6 +129,10 @@ class OScript : public ScriptExtension {
     #ifdef TOOLS_ENABLED
     bool source_changed_cache = false;
     uint64_t source_last_modified_time = 0;
+    // It may seem like compiled_source_hash duplicates the reason for tracking source_last_modified_time,
+    // but its purpose is to differentiate between time drift and byte-identical content. The latter is
+    // far more reliable to avoid redundant re-compile passes when scripts are reloaded.
+    uint32_t compiled_source_hash = 0;
     HashMap<StringName, MemberInfo> old_static_variables_indices;
     Vector<Variant> old_static_variables;
     void _save_old_static_data();
@@ -252,6 +256,10 @@ public:
     //~ NOTE: These are not exposed to GDExtension, but are added here for compatibility
     ScriptLanguage* get_language() const { return _get_language(); }
     void reload_from_file();
+
+    // Records the current on-disk modified time as the last-known source time. Called right after a
+    // save so the reload-on-save does not redundantly re-read and copy_state the just-written file.
+    void update_last_modified_time();
 
     #ifdef TOOLS_ENABLED
     // This is provided by Script in the engine, but it isn't exposed to GDE

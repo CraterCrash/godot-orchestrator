@@ -1495,6 +1495,9 @@ void OrchestratorEditor::_view_layout_restored(OrchestratorEditorView* p_view) {
     if (_restore_queue.is_empty()) {
         _restoring_layout = false;
         OrchestratorPlugin::get_singleton()->queue_save_layout();
+
+        _update_script_names();
+        _update_selected_editor_menu();
     }
 }
 
