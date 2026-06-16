@@ -106,7 +106,7 @@ OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_get_active_gra
     return _get_graph_tab(_tab_container->get_current_tab());
 }
 
-OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_open_graph_tab(const String& p_name) {
+OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_open_graph_tab(const String& p_name, bool p_focus) {
     OrchestratorEditorGraphPanel* tab_panel = _get_graph_tab(p_name);
     if (!tab_panel) {
         tab_panel = _create_graph_tab(p_name);
@@ -121,7 +121,7 @@ OrchestratorEditorGraphPanel* OrchestratorScriptGraphEditorView::_open_graph_tab
         }
     }
 
-    if (tab_panel) {
+    if (tab_panel && p_focus) {
         _focus_graph_tab(tab_panel);
     }
 
@@ -185,25 +185,29 @@ void OrchestratorScriptGraphEditorView::_close_graph_tab(int p_index) {
 }
 
 void OrchestratorScriptGraphEditorView::_restore_next_tab() {
-    // This handles multi-frame restoration of open tabs.
     if (_restore_tab_list.is_empty()) {
-        emit_signal("view_layout_restored");
+        // Defer the notification so that, during a multi-file layout restore, every view is registered
+        // with the editor before any of them report completion.
+        call_deferred("emit_signal", "view_layout_restored");
         return;
     }
 
-    String graph_name = _restore_tab_list[0];
+    const String graph_name = _restore_tab_list[0];
     _restore_tab_list.erase(graph_name);
 
     const Dictionary graph_states = _editor_state.get("graphs", Dictionary());
     const Dictionary graph_state = graph_states[graph_name];
     if (graph_state.get("open", false)) {
-        if (OrchestratorEditorGraphPanel* tab_panel = _open_graph_tab(graph_name)) {
-            tab_panel->set_edit_state(graph_state, callable_mp_this(_restore_next_tab));
-            return;
+        // The active tab is always last in the last and only is focused so it becomes visible. This
+        // restores its viewport now. The remainder are created hidden and each apply their cached
+        // state lazily the time it its visible. The graph panel caches the state, so a tab that is
+        // never shown still round-trips losslessly.
+        const bool focus = _restore_tab_list.is_empty();
+        if (OrchestratorEditorGraphPanel* tab_panel = _open_graph_tab(graph_name, focus)) {
+            tab_panel->set_edit_state(graph_state, Callable());
         }
     }
 
-    // Always make sure that we call the next restore if there was an issue
     _restore_next_tab();
 }
 
@@ -1171,7 +1175,7 @@ OrchestratorScriptGraphEditorView::OrchestratorScriptGraphEditorView() {
     _graph_split->add_child(_tab_container);
 
     _components = memnew(OrchestratorScriptComponentsContainer);
-    _components->connect("open_graph_requested", callable_mp_this(_open_graph_tab));
+    _components->connect("open_graph_requested", callable_mp_lambda(this, [this](const String& p_name) { _open_graph_tab(p_name); }));
     _components->connect("close_graph_requested", callable_mp_this(_close_graph_editor));
     _components->connect("scroll_to_center", callable_mp_this(_scroll_to_graph_center));
     _components->connect("focus_node", callable_mp_this(_scroll_to_graph_node));

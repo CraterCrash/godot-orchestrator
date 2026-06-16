@@ -20,6 +20,7 @@
 
 #include <godot_cpp/core/method_bind.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 using namespace godot;
@@ -138,6 +139,11 @@ namespace godot {
 
         HashMap<StringName, ClassInfo> classes;
 
+        // Lazily-built, per-class (own, no-inheritance) native property names, sourced from live
+        // ClassDB. Properties are the only member kind ClassDB cannot answer with a cheap boolean,
+        // so they are the only thing is_shadowing_class_member needs to cache.
+        HashMap<StringName, HashSet<StringName>> _native_property_names;
+
         static String _resolve_enum_prefix(const Vector<EnumValue>& p_enum_values);
         static bool _is_enum_values_upper_cased(const EnumInfo& p_enumeration);
         static void _sanitize(EnumInfo& p_enumeration);
@@ -160,6 +166,8 @@ namespace godot {
         void _load_global_enumerations(const Dictionary& p_data);
         void _load_utility_functions(const Dictionary& p_data);
         void _load_classes(const Dictionary& p_data);
+
+        const HashSet<StringName>& _get_native_property_names(const StringName& p_class_name);
 
     public:
         static void create();
@@ -192,6 +200,11 @@ namespace godot {
         static PackedStringArray get_class_static_function_names(const StringName& p_class_name);
         static bool get_class_method_info(const StringName& p_class_name, const StringName& p_method_name, MethodInfo& r_info, bool p_no_inheritance = false);
         static MethodBind* get_method(const StringName& p_class_name, const StringName& p_method_name, MethodInfo* r_info = nullptr);
+
+        // Returns true if p_name matches any method, signal, integer constant, enum, or property
+        // declared anywhere in p_class_name's native inheritance chain. Method/signal/constant/enum
+        // resolve through cheap live ClassDB booleans; only property names are cached (see above).
+        static bool is_shadowing_class_member(const StringName& p_class_name, const String& p_name);
 
         ExtensionDB();
         ~ExtensionDB();
