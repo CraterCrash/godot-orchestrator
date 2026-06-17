@@ -16,6 +16,8 @@
 //
 #pragma once
 
+#include "common/version.h"
+
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 
@@ -33,7 +35,11 @@ class OScriptNodeFactory {
         StringName inherits;
         ScriptNodeInfo* inherits_ptr = nullptr;
         void* class_ptr = nullptr;
+        #if GODOT_VERSION >= 0x040700
+        Ref<OScriptNode> (*creation_func)() = nullptr;
+        #else
         Object* (*creation_func)() = nullptr;
+        #endif
     };
 
     static HashMap<StringName, ScriptNodeInfo> _nodes;
@@ -42,7 +48,11 @@ class OScriptNodeFactory {
     /// @tparam T the node class type
     /// @return the node instance
     template <typename T>
+    #if GODOT_VERSION >= 0x040700
+    static Ref<OScriptNode> creator() { return memnew(T); }
+    #else
     static Object* creator() { return memnew(T); }
+    #endif
 
     /// Registers the class.
     /// Classes should be registered in hierarchical order, parents before children.

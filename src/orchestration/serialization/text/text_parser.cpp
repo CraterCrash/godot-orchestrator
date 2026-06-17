@@ -365,7 +365,11 @@ Error OrchestrationTextParser::_load() {
             }
         }
 
-        MissingResource* missing_resource = nullptr;
+        #if GODOT_VERSION >= 0x040700
+        Ref<MissingResource> missing_resource;
+        #else
+        MissingResource* missing_resource;
+        #endif
 
         if (res.is_null()) {
             Ref<Resource> cache = ResourceCache::get_singleton()->get_ref(path);
@@ -388,7 +392,11 @@ Error OrchestrationTextParser::_load() {
                         missing_resource = memnew(MissingResource);
                         missing_resource->set_original_class(type);
                         missing_resource->set_recording_properties(true);
+                        #if GODOT_VERSION >= 0x040700
+                        obj = missing_resource.ptr();
+                        #else
                         obj = missing_resource;
+                        #endif
                     } else {
                         _error_text = "Cannot create sub resource of type: " + type;
                         _printerr();
@@ -452,7 +460,11 @@ Error OrchestrationTextParser::_load() {
             }
         }
 
+        #if GODOT_VERSION >= 0x040700
+        if (missing_resource.is_valid()) {
+        #else
         if (missing_resource) {
+        #endif
             missing_resource->set_recording_properties(false);
         }
 
@@ -478,7 +490,11 @@ Error OrchestrationTextParser::_load() {
 			_resource = cache;
 		}
 
-		MissingResource *missing_resource = nullptr;
+        #if GODOT_VERSION >= 0x040700
+		Ref<MissingResource> missing_resource;
+        #else
+        MissingResource* missing_resource;
+        #endif
 
 		if (!_resource.is_valid()) {
 		    const StringName type_name = _remap_class_type(_type);
@@ -494,7 +510,11 @@ Error OrchestrationTextParser::_load() {
 					missing_resource = memnew(MissingResource);
 					missing_resource->set_original_class(_type);
 					missing_resource->set_recording_properties(true);
-					obj = missing_resource;
+				    #if GODOT_VERSION >= 0x040700
+					obj = missing_resource.ptr();
+				    #else
+				    obj = missing_resource;
+				    #endif
 				} else {
 					_error_text += "Can't create sub resource of type: " + _type;
 					_printerr();
@@ -553,7 +573,11 @@ Error OrchestrationTextParser::_load() {
 		    *_progress = _resources_current / static_cast<float>(_resources_total);
 		}
 
-		if (missing_resource) {
+        #if GODOT_VERSION >= 0x040700
+		if (missing_resource.is_valid()) {
+		#else
+        if (missing_resource) {
+        #endif
 		    missing_resource->set_recording_properties(false);
 		}
 

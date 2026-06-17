@@ -16,6 +16,7 @@
 //
 #pragma once
 
+#include "common/version.h"
 #include "orchestration/serialization/parser.h"
 
 #include <godot_cpp/classes/file_access.hpp>
@@ -81,7 +82,11 @@ class OrchestrationBinaryParser : public OrchestrationParser {
 
     Error _read_header_block();
     Error _read_resource_metadata(bool p_keep_uuid_paths);
+    #if GODOT_VERSION >= 0x040700
+    Error _load_resource_properties(Ref<Resource>& r_resource, const Ref<MissingResource>& r_missing_resource);
+    #else
     Error _load_resource_properties(Ref<Resource>& r_resource, MissingResource* r_missing_resource);
+    #endif
 
     Error _open(const Ref<FileAccess>& p_file, bool p_no_resources = false, bool p_keep_uuid_paths = false);
     Error _load();

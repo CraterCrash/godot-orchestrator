@@ -135,7 +135,6 @@ public:
     bool _is_using_templates() override { return true; }
     Dictionary _validate(const String& p_script, const String& p_path, bool p_validate_functions, bool p_validate_errors, bool p_validate_warnings, bool p_validate_safe_lines) const override;
     String _validate_path(const String &p_path) const override { return {}; }
-    Object* _create_script() const override;
     // This method is deprecated and not called by the engine
     bool _has_named_classes() const override { return true; }
     bool _supports_builtin_mode() const override { return false; }

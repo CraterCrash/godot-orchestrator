@@ -664,7 +664,11 @@ Error OrchestrationBinaryParser::_read_resource_metadata(bool p_keep_uuid_paths)
     return _file->eof_reached() ? ERR_FILE_CORRUPT : OK;
 }
 
+#if GODOT_VERSION >= 0x040700
+Error OrchestrationBinaryParser::_load_resource_properties(Ref<Resource>& r_resource, const Ref<MissingResource>& r_missing_resource) {
+#else
 Error OrchestrationBinaryParser::_load_resource_properties(Ref<Resource>& r_resource, MissingResource* r_missing_resource) {
+#endif
     uint32_t property_count = _file->get_32();
 
     Dictionary missing_resource_properties;
@@ -681,7 +685,11 @@ Error OrchestrationBinaryParser::_load_resource_properties(Ref<Resource>& r_reso
         _set_resource_property(r_resource, r_missing_resource, name, value, missing_resource_properties);
     }
 
+    #if GODOT_VERSION >= 0x040700
+    if (r_missing_resource.is_valid()) {
+    #else
     if (r_missing_resource) {
+    #endif
         r_missing_resource->set_recording_properties(false);
     }
 
@@ -752,7 +760,11 @@ Error OrchestrationBinaryParser::_load() {
             }
         }
 
-        MissingResource* missing_resource = nullptr;
+        #if GODOT_VERSION >= 0x040700
+        Ref<MissingResource> missing_resource;
+        #else
+        MissingResource* missing_resource;
+        #endif
         if (resource.is_null()) {
 
             const StringName type_name = _remap_class_type(resource_type);
@@ -767,7 +779,11 @@ Error OrchestrationBinaryParser::_load() {
                     missing_resource = memnew(MissingResource);
                     missing_resource->set_original_class(resource_type);
                     missing_resource->set_recording_properties(true);
+                    #if GODOT_VERSION >= 0x040700
+                    object = missing_resource.ptr();
+                    #else
                     object = missing_resource;
+                    #endif
                 } else {
                     ERR_FAIL_V_MSG(ERR_FILE_CORRUPT, _path + ": Resource of unrecognized type in file: " + resource_type);
                 }
