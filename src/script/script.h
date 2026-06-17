@@ -257,11 +257,11 @@ public:
     ScriptLanguage* get_language() const { return _get_language(); }
     void reload_from_file();
 
+    #ifdef TOOLS_ENABLED
     // Records the current on-disk modified time as the last-known source time. Called right after a
     // save so the reload-on-save does not redundantly re-read and copy_state the just-written file.
     void update_last_modified_time();
 
-    #ifdef TOOLS_ENABLED
     // This is provided by Script in the engine, but it isn't exposed to GDE
     PropertyInfo get_class_category() const;
     #endif
