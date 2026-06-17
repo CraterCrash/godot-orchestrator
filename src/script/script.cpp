@@ -1423,9 +1423,11 @@ void OScript::set_source(const OScriptSource& p_source) {
     #endif
 }
 
+#ifdef TOOLS_ENABLED
 void OScript::update_last_modified_time() {
     source_last_modified_time = FileAccess::get_modified_time(path);
 }
+#endif
 
 Error OScript::load_source_code(const String& p_path) {
     if (p_path.is_empty()) {
