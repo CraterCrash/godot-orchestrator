@@ -310,24 +310,6 @@ Dictionary OScriptLanguage::_validate(const String& p_script, const String& p_pa
     return DictionaryUtils::of({{"valid", true}});
 }
 
-Object* OScriptLanguage::_create_script() const {
-    // todo: this does not appear to be called in Godot.
-
-    OScript* script = memnew(OScript);
-
-    Ref<Orchestration> orchestration;
-    orchestration.instantiate();
-    orchestration->set_base_type(ORCHESTRATOR_GET("editor/settings/default_type", "Node"));
-    orchestration->create_graph("EventGraph", OScriptGraph::GF_EVENT);
-
-    orchestration->_self = script;
-    script->orchestration = orchestration;
-
-    orchestration->post_initialize();
-
-    return script;
-}
-
 int32_t OScriptLanguage::_find_function(const String& p_function_name, const String& p_code) const {
     // Locates the function name in the specified code.
     // For visual scripts, can we use this somehow?

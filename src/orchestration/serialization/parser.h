@@ -16,6 +16,8 @@
 //
 #pragma once
 
+#include "common/version.h"
+
 #include <godot_cpp/classes/missing_resource.hpp>
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -30,7 +32,11 @@ class OrchestrationParser {
     };
 
 protected:
+    #if GODOT_VERSION >= 0x040700
+    static void _set_resource_property(Ref<Resource>& r_resource, const Ref<MissingResource>& p_missing_resource, const StringName& p_name, const Variant& p_value, Dictionary& r_missing_properties);
+    #else
     static void _set_resource_property(Ref<Resource>& r_resource, const MissingResource* p_missing_resource, const StringName& p_name, const Variant& p_value, Dictionary& r_missing_properties);
+    #endif
 
     bool _is_creating_missing_resources_if_class_unavailable_enabled() const;
     String _remap_class_type(const String& p_class_name);

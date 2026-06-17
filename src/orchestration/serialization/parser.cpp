@@ -21,7 +21,11 @@
 
 #include <godot_cpp/classes/missing_resource.hpp>
 
+#if GODOT_VERSION >= 0x040700
+void OrchestrationParser::_set_resource_property(Ref<Resource>& r_resource, const Ref<MissingResource>& p_missing_resource, const StringName& p_name, const Variant& p_value, Dictionary& r_missing_properties) {
+#else
 void OrchestrationParser::_set_resource_property(Ref<Resource>& r_resource, const MissingResource* p_missing_resource, const StringName& p_name, const Variant& p_value, Dictionary& r_missing_properties) {
+#endif
     Variant value = p_value;
 
     bool is_valid = true;
