@@ -90,7 +90,7 @@ jobs:
           done
 
       - name: Delete intermediate simulator artifacts
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: |
             godot-orchestrator-demo-ios-simulator-release
