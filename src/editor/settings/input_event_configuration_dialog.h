@@ -125,7 +125,7 @@ class OrchestratorEditorInputEventConfigurationDialog : public ConfirmationDialo
 
     #ifdef MACOS_ENABLED
     String _mods[MOD_MAX] = { "Option", "Shift", "Ctrl", "Command" };
-    #elifdef WINDOWS_ENABLED
+    #elif defined(WINDOWS_ENABLED)
     String _mods[MOD_MAX] = { "Alt", "Shift", "Ctrl", "Windows" };
     #else
     String _mods[MOD_MAX] = { "Alt", "Shift", "Ctrl", "Meta" };
