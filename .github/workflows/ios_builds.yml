@@ -45,25 +45,25 @@ jobs:
     needs: build-macos          # waits for BOTH matrix legs to finish
     steps:
       - name: Download demo (device)
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: godot-orchestrator-demo-ios-release
           path: demo-device
 
       - name: Download demo (simulator)
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: godot-orchestrator-demo-ios-simulator-release
           path: demo-sim
 
       - name: Download plugin (device)
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: godot-orchestrator-plugin-ios-release
           path: plugin-device
 
       - name: Download plugin (simulator)
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: godot-orchestrator-plugin-ios-simulator-release
           path: plugin-sim
