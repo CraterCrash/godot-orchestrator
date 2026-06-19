@@ -284,7 +284,7 @@ Error ExtensionDB::_parse_docs(const Ref<XMLParser>& p_parser) {
 
     Error error = OK;
     while ((error = p_parser->read()) == OK) {
-        if (p_parser->get_node_type() == XMLParser::NODE_ELEMENT & p_parser->get_node_name() == "?xml") {
+        if (p_parser->get_node_type() == XMLParser::NODE_ELEMENT && p_parser->get_node_name() == "?xml") {
             p_parser->skip_section();
         }
         if (p_parser->get_node_type() != XMLParser::NODE_ELEMENT) {
