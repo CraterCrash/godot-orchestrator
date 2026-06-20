@@ -3235,7 +3235,7 @@ void OrchestratorEditorGraphPanel::remove_selected_nodes(bool p_confirm) {
     Vector<OrchestratorEditorGraphNode*> selected_nodes = get_selected<OrchestratorEditorGraphNode>();
     if (p_confirm && _is_delete_confirmation_enabled()) {
         ORCHESTRATOR_CONFIRM(vformat("Do you wish to delete %d node(s)?", selected_nodes.size()),
-            callable_mp_this(remove_nodes).bind(false));
+            callable_mp_this(remove_selected_nodes).bind(false));
     }
 
     for (int i = 0; i < selected_nodes.size(); i++) {
