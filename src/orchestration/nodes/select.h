@@ -46,9 +46,9 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
-    bool can_change_pin_type() override { return true; }
-    void change_pin_types(Variant::Type p_type) override;
-    Vector<Variant::Type> get_possible_pin_types() const override;
+    bool can_change_pin_type(const Ref<OScriptNodePin>& p_pin) const override { return true; }
+    void change_pin_types(const Ref<OScriptNodePin>& p_pin, Variant::Type p_type) override;
+    Vector<Variant::Type> get_possible_pin_types(const Ref<OScriptNodePin>& p_pin) const override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 

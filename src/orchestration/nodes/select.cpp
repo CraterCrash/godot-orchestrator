@@ -77,12 +77,12 @@ String OScriptNodeSelect::get_icon() const {
     return "ClassList";
 }
 
-void OScriptNodeSelect::change_pin_types(Variant::Type p_type) {
+void OScriptNodeSelect::change_pin_types(const Ref<OScriptNodePin>& p_pin, Variant::Type p_type) {
     _type = p_type;
     reconstruct_node();
 }
 
-Vector<Variant::Type> OScriptNodeSelect::get_possible_pin_types() const {
+Vector<Variant::Type> OScriptNodeSelect::get_possible_pin_types(const Ref<OScriptNodePin>& p_pin) const {
     Vector<Variant::Type> types;
     for (int i = 0; i < Variant::VARIANT_MAX; i++) {
         if (i >= int(Variant::RID)) {
