@@ -333,9 +333,12 @@ String OrchestratorEditorGraphPin::_get_tooltip_text() {
         tooltip_text += "\nKey: " + hints[0] + "\nValue: " + hints[1];
     }
 
-
     if (!_pin->get_property_info().class_name.is_empty()) {
         tooltip_text += "\nClass: " + _pin->get_property_info().class_name;
+    }
+
+    if (_pin->get_owning_node()->can_change_pin_type(_pin)) {
+        tooltip_text += "\n\nRight click this pin to convert its type.";
     }
 
     const bool advanced_tooltips = ORCHESTRATOR_GET("interface/editor/graph/show_advanced_tooltips", false);

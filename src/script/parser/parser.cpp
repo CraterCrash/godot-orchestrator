@@ -226,6 +226,7 @@ void OScriptParser::bind_handlers() {
     register_expression_handler<OScriptNodeSingletonConstant,   &OScriptParser::build_constant>();
     register_expression_handler<OScriptNodeTypeConstant,        &OScriptParser::build_constant>();
     register_expression_handler<OScriptNodeOperator,            &OScriptParser::build_operator>();
+    register_expression_handler<OScriptNodePromotableOperator,  &OScriptParser::build_promotable_operator>();
     register_expression_handler<OScriptNodeComposeFrom,         &OScriptParser::build_construct_from>();
     register_expression_handler<OScriptNodeCompose,             &OScriptParser::build_construct>();
     register_expression_handler<OScriptNodeDecompose,           &OScriptParser::build_deconstruct>();
@@ -1270,6 +1271,87 @@ OScriptParser::ExpressionNode* OScriptParser::build_binary_operator(const Ref<OS
     ExpressionNode* lhs = resolve_input(p_node->find_pin(0, PD_Input));
     ExpressionNode* rhs = resolve_input(p_node->find_pin(1, PD_Input));
     return create_binary_op(p_node->get_info().op, lhs, rhs);
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_promotable_operator(const Ref<OScriptNodePromotableOperator>& p_node, const Ref<OScriptNodePin>& p_pin) {
+    ExpressionNode* exp_node;
+    if (p_node->is_unary()) {
+        exp_node = build_promotable_unary_operator(p_node, p_pin);
+    } else {
+        exp_node = build_promotable_binary_operator(p_node, p_pin);
+    }
+
+    if (exp_node) {
+        exp_node->script_node_id = p_node->get_id();
+    }
+
+    return exp_node;
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_promotable_unary_operator(const Ref<OScriptNodePromotableOperator>& p_node, const Ref<OScriptNodePin>& p_pin) {
+    return build_unary_operator_pin(p_node->get_operator(), p_node->get_id(), p_node->find_pin(0, PD_Input));
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_promotable_binary_operator(const Ref<OScriptNodePromotableOperator>& p_node, const Ref<OScriptNodePin>& p_pin) {
+    const Vector<Ref<OScriptNodePin>> inputs = p_node->find_pins(PD_Input);
+    if (inputs.size() < 2) {
+        push_error("Binary operator expects at least two operands", p_node->get_id());
+        return nullptr;
+    }
+
+    if (p_node->is_string_format_using_modulo()) {
+        // With String/StringName format, Godot expects the RHS to be an Array of arguments.
+        ExpressionNode* lhs = resolve_input(inputs[0]);
+        if (inputs.size() == 2 && inputs[1]->get_property_info().type == Variant::ARRAY) {
+            // Special case where we pass the array element as the supplier
+            ExpressionNode* rhs = resolve_input(inputs[1]);
+            return create_binary_op(p_node->get_operator(), lhs, rhs);
+        }
+
+        ArrayNode* rhs = alloc_node<ArrayNode>();
+        for (int i = 1; i < inputs.size(); i++) {
+            rhs->elements.push_back(resolve_input(inputs[i]));
+        }
+        return create_binary_op(p_node->get_operator(), lhs, rhs);
+    }
+
+    // All others use a chain of binary operations
+    ExpressionNode* lhs = resolve_input(inputs[0]);
+    for (int i = 1; i < inputs.size(); i++) {
+        ExpressionNode* rhs = resolve_input(inputs[i]);
+        lhs = create_binary_op(p_node->get_operator(), lhs, rhs);
+    }
+
+    return lhs;
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_unary_operator_pin(VariantOperators::Code p_op, int p_node_id, const Ref<OScriptNodePin>& p_pin) {
+    UnaryOpNode* unary_op_node = alloc_node<UnaryOpNode>();
+    unary_op_node->script_node_id = p_node_id;
+    unary_op_node->operand = resolve_input(p_pin);
+
+    switch (p_op) {
+        case VariantOperators::OP_POSITIVE:
+            unary_op_node->operation = UnaryOpNode::OP_POSITIVE;
+            unary_op_node->variant_op = Variant::Operator::OP_POSITIVE;
+            break;
+        case VariantOperators::OP_NEGATE:
+            unary_op_node->operation = UnaryOpNode::OP_NEGATIVE;
+            unary_op_node->variant_op = Variant::Operator::OP_NEGATE;
+            break;
+        case VariantOperators::OP_BIT_NEGATE:
+            unary_op_node->operation = UnaryOpNode::OP_COMPLEMENT;
+            unary_op_node->variant_op = Variant::Operator::OP_BIT_NEGATE;
+            break;
+        case VariantOperators::OP_NOT:
+            unary_op_node->operation = UnaryOpNode::OP_LOGIC_NOT;
+            unary_op_node->variant_op = Variant::Operator::OP_NOT;
+            break;
+        default:
+            ERR_FAIL_V_MSG(nullptr, "Unsupported unary operator " + itos(p_op));
+    }
+
+    return unary_op_node;
 }
 
 OScriptParser::ExpressionNode* OScriptParser::build_construct_from(const Ref<OScriptNodeComposeFrom>& p_node, const Ref<OScriptNodePin>& p_pin) {
