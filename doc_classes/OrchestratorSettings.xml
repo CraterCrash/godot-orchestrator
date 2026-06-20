@@ -13,6 +13,9 @@
         <member name="editor/settings/updates/notify_about_preview_releases" type="bool" setter="" getter="" default="false">
             When enabled, the updater also reports preview (pre-release) builds in addition to stable releases.
         </member>
+        <member name="editor/behavior/general/enable_type_promotion" type="bool" setter="" getter="" default="true">
+            When set to [code]true[/code], new dynamic and promotable operator nodes are available in the action dialog menu. When set to [code]false[/code], the old non-dynamic operator nodes are available.
+        </member>
         <member name="editor/behavior/files/autosave_interval_secs" type="float" setter="" getter="" default="0.0">
             Interval, in seconds, at which open Orchestrations are automatically saved. Set to [code]0[/code] to disable autosave.
         </member>

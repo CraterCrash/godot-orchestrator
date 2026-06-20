@@ -139,23 +139,32 @@ void OScriptNode::post_placed_new_node() {
 }
 
 void OScriptNode::rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins, const Vector<Ref<OScriptNodePin>>&  p_new_pins) {
+    int position = 0;
+
     for (const Ref<OScriptNodePin>& old : p_old_pins) {
         if (old->is_input()) {
-            Ref<OScriptNodePin> newPin = find_pin(old->get_pin_name(), old->get_direction());
-            if (newPin.is_valid()) {
+            Ref<OScriptNodePin> new_pin;
+            if (rewire_old_pins_by_position()) {
+                new_pin = find_pin(position, old->get_direction());
+            } else {
+                new_pin = find_pin(old->get_pin_name(), old->get_direction());
+            }
+            position++;
+
+            if (new_pin.is_valid()) {
                 // If new pin has a default value set that isn't the default, skip.
-                if (newPin->get_default_value().get_type() != Variant::NIL
-                        && newPin->get_default_value() != newPin->get_generated_default_value()) {
+                if (new_pin->get_default_value().get_type() != Variant::NIL
+                        && new_pin->get_default_value() != new_pin->get_generated_default_value()) {
                     continue;
                 }
 
                 // If the two pins have different generated default values, skip.
-                if (newPin->get_generated_default_value() != old->get_generated_default_value()) {
+                if (new_pin->get_generated_default_value() != old->get_generated_default_value()) {
                     continue;
                 }
 
                 // If the two pins have different types, skip.
-                if (newPin->get_type() != old->get_type()) {
+                if (new_pin->get_type() != old->get_type()) {
                     continue;
                 }
 
@@ -164,7 +173,7 @@ void OScriptNode::rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>&
                     continue;
                 }
 
-                newPin->set_default_value(old->get_default_value());
+                new_pin->set_default_value(old->get_default_value());
             }
         }
     }

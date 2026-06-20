@@ -584,8 +584,8 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
         menu->add_item(label, callable_mp_this(_remove_node_pin).bind(p_pin));
     }
 
-    if (script_node->can_change_pin_type()) {
-        const Vector<Variant::Type> options = script_node->get_possible_pin_types();
+    if (script_node->can_change_pin_type(p_pin->_pin)) {
+        const Vector<Variant::Type> options = script_node->get_possible_pin_types(p_pin->_pin);
         if (!options.is_empty()) {
             OrchestratorEditorContextMenu* submenu = menu->add_submenu("Change Pin Type");
             for (Variant::Type option : options) {
@@ -1281,8 +1281,8 @@ void OrchestratorEditorGraphPanel::_change_node_pin_type(OrchestratorEditorGraph
     ERR_FAIL_NULL_MSG(p_pin, "Cannot change pin type for an invalid pin reference");
 
     const Ref<OrchestrationGraphNode> script_node = p_pin->get_graph_node()->_node;
-    if (script_node.is_valid() && script_node->can_change_pin_type()) {
-        script_node->change_pin_types(VariantUtils::to_type(p_type));
+    if (script_node.is_valid() && script_node->can_change_pin_type(p_pin->_pin)) {
+        script_node->change_pin_types(p_pin->_pin, VariantUtils::to_type(p_type));
         _set_edited(true);
     }
 
