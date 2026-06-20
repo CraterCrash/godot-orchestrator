@@ -208,6 +208,10 @@ public:
     /// @param p_new_pins the new pin state
     virtual void rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins, const Vector<Ref<OScriptNodePin>>& p_new_pins);
 
+    /// Controls whether pins should be rewired by position
+    /// @return true if rewire uses position, false to use name (the default)
+    virtual bool rewire_old_pins_by_position() const { return false; }
+
     /// Recreates the node from its internal state.
     virtual void reconstruct_node();
 
@@ -216,15 +220,15 @@ public:
 
     /// Specifies whether pin types can be changed
     /// @return true if the node's pin context-menu should allow changing type, false otherwise.
-    virtual bool can_change_pin_type() { return false; }
+    virtual bool can_change_pin_type(const Ref<OScriptNodePin>& p_pin) const { return false; }
 
     /// Get the possible pin type names for pins.
     /// @return string array of possible pin types that can be changed to
-    virtual Vector<Variant::Type> get_possible_pin_types() const { return {}; }
+    virtual Vector<Variant::Type> get_possible_pin_types(const Ref<OScriptNodePin>& p_pin) const { return {}; }
 
     /// Changes the pin types for this node.
     /// @param p_type the new pin type
-    virtual void change_pin_types(Variant::Type p_type) { }
+    virtual void change_pin_types(const Ref<OScriptNodePin>& p_pin, Variant::Type p_type) { }
 
     /// Get whether the user can delete this node.
     /// @return true if the node can be deleted, false otherwise

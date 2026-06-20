@@ -264,6 +264,8 @@ void OrchestratorSettings::_initialize_settings() {
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "editor/settings/storage_format", PROPERTY_HINT_ENUM, "Text,Binary"), "Text");
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "editor/settings/updates/notify_about_preview_releases"), false);
 
+    GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::BOOL, "editor/behavior/general/enable_type_promotion"), true);
+
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "editor/behavior/files/autosave_interval_secs"), 0);
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "editor/behavior/files/restore_scripts_on_load"), true);
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "editor/behavior/files/auto_reload_scripts_on_external_change"), true);

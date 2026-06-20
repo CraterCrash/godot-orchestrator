@@ -117,6 +117,7 @@ void register_orchestration_node_types() {
 
     //~ Math
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeOperator)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodePromotableOperator)
 
     //~ Memory
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeNew);
