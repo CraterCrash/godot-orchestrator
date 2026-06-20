@@ -52,7 +52,7 @@ void OrchestratorEditorSettingsGeneralTab::_update_icons() {
     _search_box->set_clear_button_enabled(true);
 
     _restart_close_button->set_button_icon(SceneUtils::get_editor_icon("Close"));
-    _restart_container->add_theme_stylebox_override(SceneStringName(panel), SceneUtils::get_editor_style("Tree"));
+    _restart_container->add_theme_stylebox_override(SceneStringName(panel), SceneUtils::get_editor_stylebox(SceneStringName(panel), "Tree"));
     _restart_icon->set_texture(SceneUtils::get_editor_icon("StatusWarning"));
     _restart_label->add_theme_color_override(SceneStringName(font_color), SceneUtils::get_editor_color("warning_color"));
 }
@@ -134,7 +134,7 @@ OrchestratorEditorSettingsGeneralTab::OrchestratorEditorSettingsGeneralTab() {
     _restart_label->set_text("The editor must be restarted for changes to take effect.");
 
     restart_hbox->add_child(_restart_label);
-    restart_hbox->add_spacer(true);
+    restart_hbox->add_spacer(false);
 
     Button* restart_button = memnew(Button);
     restart_button->set_text("Save & Restart");
