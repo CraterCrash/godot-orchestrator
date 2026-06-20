@@ -49,8 +49,7 @@ void OrchestratorEditorSettingsDialog::_canceled() {
 }
 
 void OrchestratorEditorSettingsDialog::_editor_restart() {
-    // todo: do we emit this or call the restart directly on EditorInterface?
-    emit_signal("restart_requested");
+    EI->restart_editor(true);
 }
 
 void OrchestratorEditorSettingsDialog::_shortcut_input(const Ref<InputEvent>& p_event) {
@@ -117,7 +116,6 @@ void OrchestratorEditorSettingsDialog::_notification(int p_what) {
 }
 
 void OrchestratorEditorSettingsDialog::_bind_methods() {
-    ADD_SIGNAL(MethodInfo("restart_requested"));
 }
 
 OrchestratorEditorSettingsDialog::OrchestratorEditorSettingsDialog() {

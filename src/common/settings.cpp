@@ -156,6 +156,9 @@ Variant OrchestratorSettings::_define(const String& p_name, const Variant& p_def
         if (p_basic) {
             pi.usage |= PROPERTY_USAGE_EDITOR_BASIC_SETTING;
         }
+        if (p_restart_if_changed) {
+            pi.usage |= PROPERTY_USAGE_RESTART_IF_CHANGED;
+        }
         _editor_properties.push_back(pi);
     }
 
@@ -205,6 +208,7 @@ bool OrchestratorSettings::_set(const StringName& p_name, const Variant& p_value
         return false;
     }
     ps->set(key, p_value);
+    ps->save();
     return true;
 }
 
