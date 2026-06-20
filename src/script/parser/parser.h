@@ -328,6 +328,10 @@ private:
     ExpressionNode* build_operator(const Ref<OScriptNodeOperator>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_unary_operator(const Ref<OScriptNodeOperator>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_binary_operator(const Ref<OScriptNodeOperator>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
+    ExpressionNode* build_promotable_operator(const Ref<OScriptNodePromotableOperator>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
+    ExpressionNode* build_promotable_unary_operator(const Ref<OScriptNodePromotableOperator>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
+    ExpressionNode* build_promotable_binary_operator(const Ref<OScriptNodePromotableOperator>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
+    ExpressionNode* build_unary_operator_pin(VariantOperators::Code p_op, int p_node_id, const Ref<OScriptNodePin>& p_pin);
     ExpressionNode* build_construct_from(const Ref<OScriptNodeComposeFrom>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_construct(const Ref<OScriptNodeCompose>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_deconstruct(const Ref<OScriptNodeDecompose>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated

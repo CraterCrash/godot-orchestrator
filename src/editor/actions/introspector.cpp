@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
@@ -807,6 +808,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
 }
 
 void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionSet& r_actions) {
+    const bool enable_type_promotion = ORCHESTRATOR_GET("editor/behavior/general/enable_type_promotion", true);
+
     for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
         // Nothing to show for NIL/Any
         if (type.type == Variant::NIL) {
@@ -967,7 +970,7 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
             }
         }
 
-        if (OScriptNodeOperator::is_supported(type.type)) {
+        if (!enable_type_promotion && OScriptNodeOperator::is_supported(type.type)) {
             const String operator_category = vformat("%s/Operators", category);
             _create_categories_from_path(r_actions, operator_category);
 
@@ -1018,6 +1021,20 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
 
             r_actions.insert(_script_node_builder<OScriptNodeArrayGet>(operator_category, "Get At Index", data).build());
             r_actions.insert(_script_node_builder<OScriptNodeArraySet>(operator_category, "Set At Index", data).build());
+        }
+    }
+
+    if (enable_type_promotion) {
+        for (int i = 0; i < VariantOperators::OP_MAX; i++) {
+            const VariantOperators::Code op = CAST_INT_TO_ENUM(VariantOperators::Code, i);
+            r_actions.insert(
+                _script_node_builder<OScriptNodePromotableOperator>(
+                    "Utilities/Operators",
+                    OScriptNodePromotableOperator::get_operator_name(op),
+                    DictionaryUtils::of({ { "op", op } }))
+                .no_capitalize(true)
+                .tooltip(OScriptNodePromotableOperator::get_operator_tooltip_text(op))
+                .build());
         }
     }
 }
