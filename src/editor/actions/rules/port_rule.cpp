@@ -19,9 +19,11 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
+#include "common/settings.h"
 #include "common/string_utils.h"
 #include "editor/actions/filter_engine.h"
 #include "editor/graph/graph_pin.h"
+#include "orchestration/nodes/operator_node.h"
 #include "script/script_server.h"
 
 bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActionDefinition>& p_action, const FilterContext& p_context) {
@@ -42,6 +44,17 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
     // For example, dragging from a Callable pin provides access to methods like bind.
     if (_type != Variant::VARIANT_MAX && _target_classes.has(p_action->target_class)) {
         return true;
+    }
+
+    if (_enable_type_promotion && p_action->node_class == OScriptNodePromotableOperator::get_class_static()) {
+        if (_type >= Variant::NIL && _type < Variant::VARIANT_MAX) {
+            const BuiltInType builtin_type = ExtensionDB::get_builtin_type(_type);
+            for (const OperatorInfo& oi : builtin_type.operators) {
+                if (oi.left_type == _type || oi.right_type == _type) {
+                    return true;
+                }
+            }
+        }
     }
 
     // Match against method
@@ -117,6 +130,7 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
 void OrchestratorEditorActionPortRule::configure(const OrchestratorEditorGraphPin* p_pin, const Object* p_target) {
     _output = p_pin->get_direction() == PD_Output;
     _execution = p_pin->is_execution();
+    _enable_type_promotion = ORCHESTRATOR_GET("editor/behavior/general/enable_type_promotion", true);
 
     const PropertyInfo& property = p_pin->get_property_info();
     if (property.type != Variant::NIL && property.type != Variant::OBJECT) {

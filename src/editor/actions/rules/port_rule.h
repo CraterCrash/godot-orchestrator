@@ -32,6 +32,7 @@ class OrchestratorEditorActionPortRule : public OrchestratorEditorActionFilterRu
     PackedStringArray _target_classes;
     bool _output = false;
     bool _execution = false;
+    bool _enable_type_promotion = false;
 
 protected:
     static void _bind_methods() { }
