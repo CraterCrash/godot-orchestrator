@@ -92,9 +92,12 @@ protected:
     Variant::Type _get_result_type(Variant::Type p_left, Variant::Type p_right) const;
     Variant::Type _get_result_type() const;
 
+    void _reset_to_variant();
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;
+    void post_placed_new_node() override;
     bool rewire_old_pins_by_position() const override { return true; }
     String get_tooltip_text() const override;
     String get_node_title() const override;
@@ -109,6 +112,7 @@ public:
     PackedStringArray get_keywords() const override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
     void post_reconstruct_node() override;
+    void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
