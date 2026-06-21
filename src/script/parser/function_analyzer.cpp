@@ -782,9 +782,12 @@ void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
                         }
 
                         info.loop_break_sources[loop_id].insert({ input_node->get_id(), input->get_pin_index() });
-                        // Also collect all data dependencies of the break source
+                        // Walk the break source's data inputs solely to surface data-pin cycles (GH-1559).
+                        // The collected deps are discarded: they must not enter loop_break_sources, which the loop-body
+                        // validation checks for execution control flow, and a data dependency lives off this chain.
                         DataDependencyContext data_context;
-                        _collect_data_dependencies(input_node, info.loop_break_sources[loop_id], data_context);
+                        OScriptNodePinSet break_data_dependencies;
+                        _collect_data_dependencies(input_node, break_data_dependencies, data_context);
                     }
                 }
             }
