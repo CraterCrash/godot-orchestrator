@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cfo7ugfuip4rq"]
+
+[ext_resource type="Script" uid="uid://dyi3uxhpgkx81" path="res://scenes/features/for_with_break.torch" id="1_td3ka"]
+
+[node name="ForWithBreak" type="Node" unique_id=750263407]
+script = ExtResource("1_td3ka")
