@@ -1,0 +1,3 @@
+OSCRIPT_TEST_PASS
+["A", "B"]
+["A", "B", <null>, <null>, <null>, "Z"]
