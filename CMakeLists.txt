@@ -146,6 +146,12 @@ TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PUBLIC
         $<$<NOT:${compiler_is_msvc}>:
             -Wno-unused-value
             -Wno-ordered-compare-function-pointers
+            # Emit each function/variable into its own section so the linker can
+            # garbage-collect unreferenced ones at link time (paired with the
+            # -Wl,--gc-sections link option below). See also the matching flags
+            # applied to the godot-cpp target.
+            -ffunction-sections
+            -fdata-sections
             $<${compiler_is_gnu}:
                 -Wno-attributes
                 -Wno-attributes=r1::
@@ -190,6 +196,11 @@ IF (NOT APPLE AND NOT EMSCRIPTEN)
                 -static-libgcc
                 -static-libstdc++
                 -Wl,-R,'$$ORIGIN'
+                # Dead-strip sections not reachable from an exported (dynamic)
+                # symbol. Relies on -ffunction-sections/-fdata-sections being set
+                # on both this target and godot-cpp. Apple already dead-strips via
+                # godot-cpp's AppleClang link options, hence the APPLE guard above.
+                -Wl,--gc-sections
                 $<$<CONFIG:Release>:
                     $<$<PLATFORM_ID:Android>:-s>
                 >
@@ -202,6 +213,16 @@ ENDIF ()
 
 # Dependency linking
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC godot-cpp)
+
+# godot-cpp (the bulk of the final binary, via its full ClassDB bindings) does
+# not compile with per-function/data sections, so the linker can only drop whole
+# unreferenced object files, not individual unused functions. Adding these lets
+# -Wl,--gc-sections prune at function granularity. Skipped on MSVC (whose linker
+# uses /OPT:REF for the same effect, on by default for release) and harmless on
+# Apple (which dead-strips regardless).
+IF (NOT MSVC)
+    TARGET_COMPILE_OPTIONS(godot-cpp PRIVATE -ffunction-sections -fdata-sections)
+ENDIF ()
 
 SET(GDEXTENSION_LIB_PREFIX "")
 
@@ -243,13 +264,12 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
         PREFIX "${GDEXTENSION_LIB_PREFIX}"
         POSITION_INDEPENDENT_CODE ON
-        CMAKE_EXPORT_COMPILE_OPTIMIZATION_RELEASE ON
-        CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON
+        INTERPROCEDURAL_OPTIMIZATION_RELEASE ON
         ARCHIVE_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         LIBRARY_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         RUNTIME_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
-        CMAKE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
-        CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
+        PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
+        COMPILE_PDB_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
         OUTPUT_NAME "${PROJECT_NAME}.${ORCHESTRATOR_PLATFORM}.${ORCHESTRATOR_ARCH}.${ORCHESTRATOR_TARGET}")
 
 IF (EMSCRIPTEN)
