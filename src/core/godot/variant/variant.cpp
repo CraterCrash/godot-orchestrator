@@ -115,9 +115,9 @@ bool GDE::Variant::is_null(const godot::Variant& p_value) {
 bool GDE::Variant::is_read_only(const godot::Variant& p_value) {
     switch (p_value.get_type()) {
         case godot::Variant::ARRAY:
-            return reinterpret_cast<const Array&>(p_value).is_read_only();
+            return VariantInternal::get_array(&p_value)->is_read_only();
         case godot::Variant::DICTIONARY:
-            return reinterpret_cast<const Dictionary&>(p_value).is_read_only();
+            return VariantInternal::get_dictionary(&p_value)->is_read_only();
         default:
             return false;
     }
