@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://doihamy0hgwq6"]
+
+[ext_resource type="Script" uid="uid://dru3eu3hieqim" path="res://scenes/features/arrays.torch" id="1_1pdn4"]
+
+[node name="Arrays" type="Node" unique_id=1325451227]
+script = ExtResource("1_1pdn4")
