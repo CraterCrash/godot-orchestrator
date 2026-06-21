@@ -833,7 +833,7 @@ bool OScriptNodePin::is_target_self() const {
     const bool is_await = get_owning_node()->is_type<OScriptNodeAwait>();
     const bool is_call_function = get_owning_node()->is_type<OScriptNodeCallFunction>();
 
-    if (is_call_function && get_pin_name().match("target")) {
+    if (is_call_function && !get_pin_name().match("target")) {
         return false;
     }
 
