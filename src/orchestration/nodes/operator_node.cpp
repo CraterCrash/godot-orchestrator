@@ -300,14 +300,50 @@ Variant::Type OScriptNodePromotableOperator::_get_result_type(Variant::Type p_le
 }
 
 Variant::Type OScriptNodePromotableOperator::_get_result_type() const {
-    if (!_operands.is_empty()) {
-        Variant::Type left = _operands[0];
-        for (int i = 1; i < _operands.size(); i++) {
-            left = _get_result_type(left, _operands[i]);
+    switch (_op) {
+        // Comparisons
+        case VariantOperators::OP_LESS:
+        case VariantOperators::OP_LESS_EQUAL:
+        case VariantOperators::OP_GREATER:
+        case VariantOperators::OP_GREATER_EQUAL:
+        case VariantOperators::OP_EQUAL:
+        case VariantOperators::OP_NOT_EQUAL:
+        // Logic
+        case VariantOperators::OP_AND:
+        case VariantOperators::OP_OR:
+        case VariantOperators::OP_XOR:
+        case VariantOperators::OP_NOT:
+        // Containment
+        case VariantOperators::OP_IN: {
+            return Variant::BOOL;
         }
-        return left;
+        default: {
+            if (!_operands.is_empty()) {
+                Variant::Type left = _operands[0];
+                for (int i = 1; i < _operands.size(); i++) {
+                    left = _get_result_type(left, _operands[i]);
+                }
+                return left;
+            }
+            return Variant::NIL;
+        }
     }
-    return Variant::NIL;
+}
+
+void OScriptNodePromotableOperator::_reset_to_variant() {
+    for (int i = 0; i < _operands.size(); i++) {
+        _operands.write[i] = Variant::NIL;
+    }
+
+    _result = _get_result_type();
+
+    for (const Ref<OScriptNodePin>& input : find_pins(PD_Input)) {
+        if (input.is_valid() && input->has_any_connections()) {
+            input->unlink_all();
+        }
+    }
+
+    _queue_reconstruct();
 }
 
 void OScriptNodePromotableOperator::allocate_default_pins() {
@@ -340,6 +376,13 @@ void OScriptNodePromotableOperator::allocate_default_pins() {
     create_pin(PD_Output, PT_Data, pi, VariantUtils::make_default(_result))->hide_label();
 
     super::allocate_default_pins();
+}
+
+void OScriptNodePromotableOperator::post_placed_new_node() {
+    if (!is_in_object() && !is_string_format_using_modulo()) {
+        _reset_to_variant();
+    }
+    super::post_placed_new_node();
 }
 
 String OScriptNodePromotableOperator::get_tooltip_text() const {
@@ -529,8 +572,12 @@ void OScriptNodePromotableOperator::change_pin_types(const Ref<OScriptNodePin>& 
     }
 
     if (_operands[0] == Variant::NIL || p_type == Variant::NIL) {
-        for (int i = 0; i < _operands.size(); i++) {
-            _operands.write[i] = p_type;
+        if (p_type == Variant::NIL) {
+            _reset_to_variant();
+        } else {
+            for (int i = 0; i < _operands.size(); i++) {
+                _operands.write[i] = p_type;
+            }
         }
     } else {
         _operands.write[pin_offset] = p_type;
@@ -588,6 +635,14 @@ void OScriptNodePromotableOperator::post_reconstruct_node() {
     }
 
     super::post_reconstruct_node();
+}
+
+void OScriptNodePromotableOperator::on_pin_connected(const Ref<OScriptNodePin>& p_pin) {
+    if (p_pin.is_valid() && p_pin->is_input() && _operands.size() >= 1 && _operands[0] == Variant::NIL) {
+        if (can_change_pin_type(p_pin)) {
+            change_pin_types(p_pin, p_pin->get_connection()->get_property_info().type);
+        }
+    }
 }
 
 bool OScriptNodePromotableOperator::can_add_dynamic_pin() const {
