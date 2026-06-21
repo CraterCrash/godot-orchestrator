@@ -30,6 +30,7 @@ jobs:
       - name: Install Ninja (MacOS)
         shell: sh
         run: |
+          brew trust aws/tap azure/bicep || true
           if ! brew list ninja &>/dev/null; then
             brew install ninja
           fi
