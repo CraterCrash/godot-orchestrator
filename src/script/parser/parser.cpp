@@ -1656,6 +1656,13 @@ void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, co
         const Ref<OScriptNode> target_node = target_pin->get_owning_node();
         const NodeId target_node_id = target_node->get_id();
 
+        // A break pin is a back-edge to the loop being broken out of (always "in progress" while its
+        // body builds), not a control-flow cycle -- handle it before the cycle guard.
+        if (is_break_pin(target_pin)) {
+            emit_loop_break(target_node_id);
+            return;
+        }
+
         if (visited.has(target_node_id) || _build_in_progress.has(target_node_id)) {
             push_error("Node is part of a control-flow cycle and cannot be compiled.", target_node_id);
             return;
@@ -1670,12 +1677,6 @@ void OScriptParser::build_statements(const Ref<OScriptNodePin>& p_source_pin, co
                 // Reached converging node, don't process this
                 return;
             }
-        }
-
-        if (is_break_pin(target_pin)) {
-            // This is a traversal from a pin that links into a loop's break pin.
-            emit_loop_break(target_id.node);
-            return;
         }
 
         OScriptNodePinId convergence_pin = { -1, -1 };
