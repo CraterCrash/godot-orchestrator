@@ -2269,14 +2269,42 @@ OScriptParser::StatementResult OScriptParser::build_while(const Ref<OScriptNodeW
 
 OScriptParser::StatementResult OScriptParser::build_array_set(const Ref<OScriptNodeArraySet>& p_script_node) {
     const Ref<OScriptNodePin> array_pin = p_script_node->find_pin(1, PD_Input);
+    const Ref<OScriptNodePin> index_pin = p_script_node->find_pin(2, PD_Input);
+    const Ref<OScriptNodePin> element_pin = p_script_node->find_pin(3, PD_Input);
+    const Ref<OScriptNodePin> size_to_fit_pin = p_script_node->find_pin(4, PD_Input);
 
     SubscriptNode* subscript_node = alloc_node<SubscriptNode>();
     subscript_node->base = resolve_input(array_pin);
-    subscript_node->index = resolve_input(p_script_node->find_pin(2, PD_Input));
+    subscript_node->index = resolve_input(index_pin);
+
+    const bool resize_connected = size_to_fit_pin.is_valid() && size_to_fit_pin->has_any_connections();
+    const bool resize_default = size_to_fit_pin.is_valid() && !resize_connected && static_cast<bool>(size_to_fit_pin->get_effective_default_value());
+    if (resize_connected || resize_default) {
+        CallNode* call_size = create_func_call(resolve_input(array_pin), "size");
+
+        ExpressionNode* cond = nullptr;
+        BinaryOpNode* size_check = create_binary_op(VariantOperators::OP_GREATER_EQUAL, resolve_input(index_pin), call_size);
+        if (resize_connected) {
+            cond = create_binary_op(VariantOperators::OP_AND, resolve_input(size_to_fit_pin), size_check);
+        } else {
+            cond = size_check;
+        }
+
+        CallNode* call_resize = create_func_call(resolve_input(array_pin), "resize");
+        call_resize->add_argument(create_binary_op(VariantOperators::OP_ADD, resolve_input(index_pin), create_literal(1)));
+
+        SuiteNode* grow_block = alloc_node<SuiteNode>();
+        grow_block->statements.push_back(call_resize);
+
+        IfNode* if_node = alloc_node<IfNode>();
+        if_node->condition = cond;
+        if_node->true_block = grow_block;
+        add_statement(if_node);
+    }
 
     AssignmentNode* assign = alloc_node<AssignmentNode>();
     assign->assignee = subscript_node;
-    assign->assigned_value = resolve_input(p_script_node->find_pin(3, PD_Input));
+    assign->assigned_value = resolve_input(element_pin);
     assign->assignee->script_node_id = p_script_node->get_id();
     assign->assigned_value->script_node_id = p_script_node->get_id();
     add_statement(assign);
