@@ -170,4 +170,12 @@ namespace PropertyUtils {
     /// @p_object the object to read the custom script associated with
     /// @return the custom script, if applicable, or an invalid reference if applicable
     Ref<Script> get_custom_type_script(const Object* p_object);
+
+    /// Get the container element item type information
+    /// For arrays, supply the hint string as-is, for Dictionaries supply the key and value separately.
+    /// @param p_hint hint value
+    /// @param r_builtin the returned built-in type
+    /// @param r_class the returned class name
+    /// @param r_script the returned script
+    void get_element_type(const String& p_hint, Variant::Type& r_builtin, StringName& r_class, Variant& r_script);
 }
