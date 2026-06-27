@@ -48,6 +48,10 @@ static Vector<Ref<OScriptNode>> get_control_flow_successors(const Ref<OScriptNod
     return successors;
 }
 
+static uint64_t pack_edge(NodeId p_source, NodeId p_target) {
+    return (static_cast<uint64_t>(static_cast<uint32_t>(p_source)) << 32) | static_cast<uint32_t>(p_target);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// OScriptFunctionInfo
 
@@ -196,12 +200,47 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
         }
     }
 
-    // Count incoming control flow edges
-    for (const Ref<OScriptNode>& node : all_nodes) {
-        for (const Ref<OScriptNodePin>& input : node->find_pins(PD_Input)) {
-            if (input.is_valid() && input->is_execution()) {
-                node_degrees[node] += input->get_connections().size();
+    // Classifies loop back-edges so the control-flow graph can be ordered as a DAG.
+    // An edge u->v is a back-edge when v is still on the active DFS stack.
+    // These must be excluded in the topographical ordering, counting a back-edge as an incoming
+    // dependency deadlocks Kahn's.
+    HashSet<uint64_t> back_edges;
+    {
+        HashSet<NodeId> on_stack;
+        HashSet<NodeId> visited;
+        std::function<void(const Ref<OScriptNode>&)> classify = [&](const Ref<OScriptNode>& node) {
+            const NodeId id = node->get_id();
+            visited.insert(id);
+            on_stack.insert(id);
+            for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+                if (!node_degrees.has(successor)) {
+                    continue;
+                }
+                const NodeId successor_id = successor->get_id();
+                if (on_stack.has(successor_id)) {
+                    back_edges.insert(pack_edge(id, successor_id));
+                } else if (!visited.has(successor_id)) {
+                    classify(successor);
+                }
             }
+            on_stack.erase(id);
+        };
+        classify(p_context.entry_node);
+    }
+
+    // Count incoming control-flow edges over the forward (non-back) edges only.
+    // Counting via successors (rather than input pins) keeps this symmetric with the back-edge skip
+    // in the dequeue loop below; for an acyclic graph this yields the same in-degrees and the same
+    // order as a plain Kahn pass.
+    for (const Ref<OScriptNode>& node : all_nodes) {
+        for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+            if (!node_degrees.has(successor)) {
+                continue;
+            }
+            if (back_edges.has(pack_edge(node->get_id(), successor->get_id()))) {
+                continue;
+            }
+            node_degrees[successor] += 1;
         }
     }
 
@@ -218,8 +257,14 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
 
         p_context.info.linear_execution_list.push_back(node->get_id());
 
-        // Decrement for successors
+        // Decrement for successors, skipping back-edges (they were never counted above).
         for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+            if (!node_degrees.has(successor)) {
+                continue;
+            }
+            if (back_edges.has(pack_edge(node->get_id(), successor->get_id()))) {
+                continue;
+            }
             node_degrees[successor]--;
             if (node_degrees[successor] == 0) {
                 queue.push_back(successor);
