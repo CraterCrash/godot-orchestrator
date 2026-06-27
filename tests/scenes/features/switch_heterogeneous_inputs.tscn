@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://q0i4kgibqspx"]
+
+[ext_resource type="Script" uid="uid://ccabxp6oaeq1o" path="res://scenes/features/switch_heterogeneous_inputs.torch" id="1_ubl7q"]
+
+[node name="SwitchHeterogeneousInputs" type="Node" unique_id=1135721395]
+script = ExtResource("1_ubl7q")
