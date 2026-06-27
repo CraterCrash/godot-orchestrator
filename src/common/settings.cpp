@@ -321,6 +321,7 @@ void OrchestratorSettings::_initialize_settings() {
 
     // Runtime
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "runtime/dialogue/default_message_scene", PROPERTY_HINT_FILE, "*.tscn,*.scn"), "res://addons/orchestrator/scenes/dialogue_message.tscn");
+    GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "runtime/print_string/layer"), 10);
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "runtime/print_string/overlay_scale", PROPERTY_HINT_ENUM, "75%,100%,125%,150%,175%,200%,225%,250%,275%,300%,325%,350%,375%,400%"), "100%");
 
     // Theme

@@ -18,7 +18,8 @@
 
 #include "orchestration/node.h"
 
-#include <godot_cpp/classes/margin_container.hpp>
+#include <godot_cpp/classes/canvas_layer.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
 
 using namespace godot;
 
@@ -49,12 +50,13 @@ public:
 };
 
 /// The overlay control that is added to the scene
-class OScriptNodePrintStringOverlay : public MarginContainer {
-    GDCLASS(OScriptNodePrintStringOverlay, MarginContainer)
+class OScriptNodePrintStringOverlay : public CanvasLayer {
+    GDCLASS(OScriptNodePrintStringOverlay, CanvasLayer)
 
     static HashMap<Node*, OScriptNodePrintStringOverlay*> _overlays;
 
     bool _is_in_tree = false;
+    VBoxContainer* _container = nullptr;
 
     void _tree_entered();
     void _tree_exiting();
