@@ -253,6 +253,9 @@ public:
     /// Callback to perform operations after the node has been created.
     virtual void post_placed_new_node();
 
+    /// Recalculate and cache pin indices. Idempotent; safe to call repeatedly.
+    void cache_pin_indices() { _cache_pin_indices(); }
+
     /// Callback to perform operations after the node has been autowired.
     /// @param p_other the other, existing node this node was autowired with
     /// @param p_direction the autowire direction

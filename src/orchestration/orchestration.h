@@ -60,6 +60,35 @@ class Orchestration : public Resource {
     friend class OScriptCache;
     friend class OScriptLanguage;
 
+    // Utility struct that maintains the connections and auxillery lookups
+    struct ConnectionCache {
+    private:
+        // All connections
+        RBSet<OScriptConnection> _connections;
+        // Connections [to_node,to_port] to [from_node,from_port]
+        mutable HashMap<uint32_t, Vector<uint32_t>> _input_connections;
+        // Connections [from_node,from_port] to [to_node,to_port]
+        mutable HashMap<uint32_t, Vector<uint32_t>> _output_connections;
+        mutable bool _dirty = false;
+
+        void _rebuild() const;
+
+    public:
+        static uint32_t key(int p_node_id, int p_pin_index);
+        static int node_from_key(uint32_t p_key);
+        static int pin_index_from_key(uint32_t p_key);
+
+        bool has(const OScriptConnection& p_connection) const { return _connections.has(p_connection); }
+
+        void insert(const OScriptConnection& p_connection) { _connections.insert(p_connection); _dirty = true; }
+        void erase(const OScriptConnection& p_connection) { _connections.erase(p_connection); _dirty = true; }
+        void clear() { _connections.clear(); _dirty = true; }
+
+        const RBSet<OScriptConnection>& all() const { return _connections; }
+        const Vector<uint32_t>* inputs(uint32_t p_key) const { _rebuild(); return _input_connections.getptr(p_key); }
+        const Vector<uint32_t>* outputs(uint32_t p_key) const { _rebuild(); return _output_connections.getptr(p_key); }
+    };
+
     OrchestrationType _type;                               //! The orchestration type
     bool _initialized{ false };                            //! Whether the orchestration is initialized
     bool _edited{ false };                                 //! Tracks whether the orchestration has been edited
@@ -67,7 +96,7 @@ class Orchestration : public Resource {
     StringName _base_type;                                 //! The base type of the orchestration
     StringName _global_name;                               //! Global class name for script, e.g. `class_name`
     String _icon_path;                                     //! Path to script's custom icon, e.g. `@icon`
-    RBSet<OScriptConnection> _connections;                 //! The connections between nodes in the orchestration
+    ConnectionCache _connection_cache;                     //! Connections plus a lazily-built adjacency index
     HashMap<int, Ref<OScriptNode>> _nodes;                 //! Map of all nodes within this orchestration
     HashMap<StringName, Ref<OScriptFunction>> _functions;  //! Map of all orchestration functions
     HashMap<StringName, Ref<OScriptVariable>> _variables;  //! Map of all orchestration variables
