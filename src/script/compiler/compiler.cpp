@@ -759,6 +759,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
 
     for (int i = 0; i < p_block->statements.size(); i++) {
         const OScriptParser::Node* s = p_block->statements[i];
+        const auto stamp_provenance = [&] { generator->write_newline(s->script_node_id); };
 
         generator->write_newline(s->script_node_id);
 
@@ -777,6 +778,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
 
 				// Assign to local.
 				// TODO: This can be improved by passing the target to parse_expression().
+                stamp_provenance();
 				generator->write_assign(value, value_expr);
 
 				if (value_expr.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -871,6 +873,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                     return err;
                 }
 
+                stamp_provenance();
                 generator->write_if(cond);
                 if (cond.mode == OScriptBytecodeGenerator::Address::TEMPORARY) {
                     p_context.generator->pop_temporary();
@@ -926,6 +929,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
 						}
 					}
 
+				    stamp_provenance();
 					switch (args.size()) {
 						case 1:
 							generator->write_for_range_assignment(p_context.add_constant(0), args[0], p_context.add_constant(1));
@@ -952,6 +956,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
 						return err;
 					}
 
+				    stamp_provenance();
 					generator->write_for_list_assignment(list);
 
 					if (list.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -990,6 +995,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                     return err;
                 }
 
+                stamp_provenance();
                 generator->write_while(condition);
 
                 if (condition.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -1014,10 +1020,12 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                 break;
             }
             case OScriptParser::Node::BREAK: {
+                stamp_provenance();
                 generator->write_break();
                 break;
             }
             case OScriptParser::Node::CONTINUE: {
+                stamp_provenance();
                 generator->write_continue();
                 break;
             }
@@ -1031,6 +1039,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                     }
                 }
 
+                stamp_provenance();
                 if (node->void_return) {
                     // Always return `null`, even if the expression is a call to a `void` function.
                     generator->write_return(p_context.add_constant(Variant()), false);
@@ -1060,6 +1069,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                         return err;
                     }
                 }
+                stamp_provenance();
                 generator->write_assert(condition, message);
 
                 if (condition.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -1073,6 +1083,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
             }
             case OScriptParser::Node::BREAKPOINT: {
                 #ifdef DEBUG_ENABLED
+                stamp_provenance();
                 generator->write_breakpoint();
                 #endif
                 break;
@@ -1091,6 +1102,7 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                         return err;
                     }
 
+                    stamp_provenance();
                     if (lv->use_conversion_assign) {
                         generator->write_assign_with_conversion(local, src_address);
                     } else {
@@ -1104,12 +1116,14 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
                 } else if (local_type.kind == OScriptDataType::BUILTIN || p_context.generator->is_local_dirty(local)) {
                     // Initialize with default for the type. Built-in types must always be cleared (they cannot be `null`).
                     // Objects and untyped variables are assigned to `null` only if the stack address has been reused and not cleared.
+                    stamp_provenance();
                     p_context.generator->clear_address(local);
                     initialized = true;
                 }
 
                 // Don't check `is_local_dirty()` since the variable must be assigned to `null` **on each iteration**.
                 if (!initialized && p_block->is_in_loop) {
+                    stamp_provenance();
                     p_context.generator->clear_address(local);
                 }
                 break;
@@ -1163,7 +1177,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
     }
 
     OScriptCodeGenerator* generator = p_context.generator;
-    generator->write_newline(p_expression->script_node_id);
+    const auto stamp_provenance = [&] { generator->write_newline(p_expression->script_node_id); };
 
     switch (p_expression->type) {
         case OScriptParser::Node::IDENTIFIER: {
@@ -1197,6 +1211,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			        if (is_class_member_property(p_context, identifier)) {
 			            // Get property.
 			            OScriptCodeGenerator::Address temp = p_context.add_temporary(resolve_type(p_expression->get_datatype(), p_context.script));
+			            stamp_provenance();
 			            generator->write_get_member(temp, identifier);
 			            return temp;
 			        }
@@ -1209,6 +1224,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			                    // Perform getter.
 			                    OScriptCodeGenerator::Address temp = p_context.add_temporary(p_context.script->member_indices[identifier].data_type);
 			                    Vector<OScriptCodeGenerator::Address> args; // No argument needed.
+			                    stamp_provenance();
 			                    generator->write_call_self(temp, p_context.script->member_indices[identifier].getter, args);
 			                    return temp;
 			                } else {
@@ -1235,6 +1251,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			                            base = OScriptCodeGenerator::Address(OScriptCodeGenerator::Address::CLASS);
 			                        }
 
+			                        stamp_provenance();
 			                        generator->write_get_named(temp, identifier, base);
 			                        return temp;
 			                    }
@@ -1259,6 +1276,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			                OScriptCodeGenerator::Address temp = p_context.add_temporary(); // TODO: Get type here.
 			                OScriptCodeGenerator::Address self(OScriptCodeGenerator::Address::SELF);
 
+			                stamp_provenance();
 			                generator->write_get_named(temp, identifier, self);
 			                return temp;
                             }
@@ -1306,6 +1324,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			                    OScriptCodeGenerator::Address temp = p_context.add_temporary(scr->static_variables_indices[identifier].data_type);
 			                    OScriptCodeGenerator::Address class_addr(OScriptCodeGenerator::Address::CLASS);
 			                    Vector<OScriptCodeGenerator::Address> args; // No argument needed.
+			                    stamp_provenance();
 			                    generator->write_call(temp, class_addr, scr->static_variables_indices[identifier].getter, args);
 			                    return temp;
 			                } else {
@@ -1313,6 +1332,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			                    OScriptCodeGenerator::Address temp = p_context.add_temporary(scr->static_variables_indices[identifier].data_type);
 			                    OScriptCodeGenerator::Address _class = p_context.add_constant(scr);
 			                    int index = scr->static_variables_indices[identifier].index;
+			                    stamp_provenance();
 			                    generator->write_get_static_variable(temp, _class, index);
 			                    return temp;
 			                }
@@ -1329,6 +1349,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			            if (OrchestratorProjectSettingsCache::get_singleton()->has_singleton_autoload(identifier)) {
 			                OScriptBytecodeGenerator::Address global = p_context.add_temporary(resolve_type(in->get_datatype(), p_context.script));
 			                int idx = OScriptLanguage::get_singleton()->get_global_map()[identifier];
+			                stamp_provenance();
 			                generator->write_store_global(global, idx);
 			                return global;
 			            } else {
@@ -1377,6 +1398,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			        #ifdef TOOLS_ENABLED
 			        if (OScriptLanguage::get_singleton()->get_named_globals_map().has(identifier)) {
 			            OScriptCodeGenerator::Address global = p_context.add_temporary(); // TODO: Get type.
+			            stamp_provenance();
 			            generator->write_store_named_global(global, identifier);
 			            return global;
 			        }
@@ -1419,6 +1441,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
                 values.push_back(val);
             }
 
+            stamp_provenance();
             if (array_type.has_container_element_type(0)) {
                 generator->write_construct_typed_array(result, array_type.get_container_element_type(0), values);
             } else {
@@ -1471,6 +1494,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
                 elements.push_back(element);
             }
 
+            stamp_provenance();
             if (dict_type.has_container_element_types()) {
                 generator->write_construct_typed_dictionary(result, dict_type.get_container_element_type_or_variant(0), dict_type.get_container_element_type_or_variant(1), elements);
             } else {
@@ -1496,6 +1520,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 
                 OScriptCodeGenerator::Address src = parse_expression(p_context, r_error, cn->operand);
 
+                stamp_provenance();
                 generator->write_cast(result, src, cast_type);
 
                 if (src.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -1528,12 +1553,15 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			}
 
 			if (!call->is_super && call->callee->type == OScriptParser::Node::IDENTIFIER && OScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
+			    stamp_provenance();
 				generator->write_construct(result, OScriptParser::get_builtin_type(call->function_name), arguments);
 			} else if (!call->is_super && call->callee->type == OScriptParser::Node::IDENTIFIER && has_utility_function(call->function_name)) {
 				// Variant utility function.
+			    stamp_provenance();
 				generator->write_call_utility(result, call->function_name, arguments);
 			} else if (!call->is_super && call->callee->type == OScriptParser::Node::IDENTIFIER && OScriptUtilityFunctions::function_exists(call->function_name)) {
 				// GDScript utility function.
+			    stamp_provenance();
 				generator->write_call_oscript_utility(result, call->function_name, arguments);
 			} else {
 				// Regular function.
@@ -1541,10 +1569,12 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 
 				if (call->is_super) {
 					// Super call.
+				    stamp_provenance();
 					generator->write_super_call(result, call->function_name, arguments);
 				} else {
 					if (callee->type == OScriptParser::Node::IDENTIFIER) {
 						// Self function call.
+					    stamp_provenance();
 						if (ClassDB::class_has_method(p_context.script->native->get_name(), call->function_name)) {
 							// Native method, use faster path.
 							OScriptCodeGenerator::Address self;
@@ -1582,11 +1612,13 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 						if (subscript->is_attribute) {
 							// May be static built-in method call.
 							if (!call->is_super && subscript->base->type == OScriptParser::Node::IDENTIFIER && OScriptParser::get_builtin_type(static_cast<OScriptParser::IdentifierNode *>(subscript->base)->name) < Variant::VARIANT_MAX) {
+							    stamp_provenance();
 								generator->write_call_builtin_type_static(result, OScriptParser::get_builtin_type(static_cast<OScriptParser::IdentifierNode *>(subscript->base)->name), subscript->attribute->name, arguments);
 							} else if (!call->is_super && subscript->base->type == OScriptParser::Node::IDENTIFIER && call->function_name != StringName("new") &&
 									static_cast<OScriptParser::IdentifierNode *>(subscript->base)->source == OScriptParser::IdentifierNode::NATIVE_CLASS && !Engine::get_singleton()->has_singleton(static_cast<OScriptParser::IdentifierNode *>(subscript->base)->name)) {
 								// It's a static native method call.
 							    StringName class_name = static_cast<OScriptParser::IdentifierNode *>(subscript->base)->name;
+							    stamp_provenance();
 							    #ifdef ALLOW_VALIDATED_METHOD_CALL
 								MethodBind *method = ClassDB::get_method(class_name, subscript->attribute->name);
 								if (can_use_validate_call(method, arguments)) {
@@ -1604,6 +1636,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 								if (r_error) {
 									return OScriptCodeGenerator::Address();
 								}
+							    stamp_provenance();
 								if (is_awaited) {
 									generator->write_call_async(result, base, call->function_name, arguments);
 								} else if (base.type.kind != OScriptDataType::VARIANT && base.type.kind != OScriptDataType::BUILTIN) {
@@ -1667,6 +1700,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 
 			OScriptCodeGenerator::Address result = p_context.add_temporary(resolve_type(get_node->get_datatype(), p_context.script));
 
+            stamp_provenance();
 			MethodBind *get_node_method = ClassDB::get_method("Node", "get_node");
 			generator->write_call_method_bind_validated(result, OScriptCodeGenerator::Address(OScriptCodeGenerator::Address::SELF), get_node_method, args);
 
@@ -1690,6 +1724,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 				return OScriptCodeGenerator::Address();
 			}
 
+            stamp_provenance();
 			generator->write_await(result, argument);
 
 			if (argument.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -1749,6 +1784,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 				}
 			}
 
+            stamp_provenance();
 			if (named) {
 				generator->write_get_named(result, name, base);
 			} else {
@@ -1774,6 +1810,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 				return OScriptCodeGenerator::Address();
 			}
 
+            stamp_provenance();
 			generator->write_unary_operator(result, unary->variant_op, operand);
 
 			if (operand.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -1791,8 +1828,10 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 				case OScriptParser::BinaryOpNode::OP_LOGIC_AND: {
 					// AND operator with early out on failure.
 					OScriptCodeGenerator::Address left_operand = parse_expression(p_context, r_error, binary->left_operand);
+				    stamp_provenance();
 					generator->write_and_left_operand(left_operand);
 					OScriptCodeGenerator::Address right_operand = parse_expression(p_context, r_error, binary->right_operand);
+				    stamp_provenance();
 					generator->write_and_right_operand(right_operand);
 
 					generator->write_end_and(result);
@@ -1808,8 +1847,10 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 				case OScriptParser::BinaryOpNode::OP_LOGIC_OR: {
 					// OR operator with early out on success.
 					OScriptCodeGenerator::Address left_operand = parse_expression(p_context, r_error, binary->left_operand);
+				    stamp_provenance();
 					generator->write_or_left_operand(left_operand);
 					OScriptCodeGenerator::Address right_operand = parse_expression(p_context, r_error, binary->right_operand);
+				    stamp_provenance();
 					generator->write_or_right_operand(right_operand);
 
 					generator->write_end_or(result);
@@ -1826,6 +1867,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 					OScriptCodeGenerator::Address left_operand = parse_expression(p_context, r_error, binary->left_operand);
 					OScriptCodeGenerator::Address right_operand = parse_expression(p_context, r_error, binary->right_operand);
 
+				    stamp_provenance();
 					generator->write_binary_operator(result, binary->variant_op, left_operand, right_operand);
 
 					if (right_operand.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -1844,12 +1886,14 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			const OScriptParser::TernaryOpNode *ternary = static_cast<const OScriptParser::TernaryOpNode *>(p_expression);
 			OScriptCodeGenerator::Address result = p_context.add_temporary(resolve_type(ternary->get_datatype(), p_context.script));
 
+            stamp_provenance();
 			generator->write_start_ternary(result);
 
 			OScriptCodeGenerator::Address condition = parse_expression(p_context, r_error, ternary->condition);
 			if (r_error) {
 				return OScriptCodeGenerator::Address();
 			}
+            stamp_provenance();
 			generator->write_ternary_condition(condition);
 
 			if (condition.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -1860,6 +1904,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			if (r_error) {
 				return OScriptCodeGenerator::Address();
 			}
+            stamp_provenance();
 			generator->write_ternary_true_expr(true_expr);
 			if (true_expr.mode == OScriptCodeGenerator::Address::TEMPORARY) {
 				generator->pop_temporary();
@@ -1869,6 +1914,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 			if (r_error) {
 				return OScriptCodeGenerator::Address();
 			}
+            stamp_provenance();
 			generator->write_ternary_false_expr(false_expr);
 			if (false_expr.mode == OScriptCodeGenerator::Address::TEMPORARY) {
 				generator->pop_temporary();
@@ -1888,6 +1934,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 				return OScriptCodeGenerator::Address();
 			}
 
+            stamp_provenance();
 			if (test_type.has_type()) {
 				generator->write_type_test(result, operand, test_type);
 			} else {
@@ -1905,6 +1952,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 
 			if (assignment->assignee->type == OScriptParser::Node::SUBSCRIPT) {
 				// SET (chained) MODE!
+			    stamp_provenance();
 				const OScriptParser::SubscriptNode *subscript = static_cast<OScriptParser::SubscriptNode *>(assignment->assignee);
                 #ifdef DEBUG_ENABLED
 				if (subscript->is_attribute && subscript->base->type == OScriptParser::Node::SELF && p_context.script) {
@@ -2189,6 +2237,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 					to_assign = op_result;
 				}
 
+			    stamp_provenance();
 				generator->write_set_member(to_assign, name);
 
 				if (to_assign.mode == OScriptCodeGenerator::Address::TEMPORARY) {
@@ -2278,6 +2327,7 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
 					to_assign = assigned_value;
 				}
 
+			    stamp_provenance();
 				if (has_setter && !is_in_setter) {
 					// Call setter.
 					Vector<OScriptCodeGenerator::Address> args;
@@ -2333,6 +2383,8 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
             }
 
             p_context.script->lambda_info.insert(function, { (int)lambda->captures.size(), lambda->use_self });
+
+            stamp_provenance();
             generator->write_lambda(result, function, captures, lambda->use_self);
 
             for (int i = 0; i < captures.size(); i++) {
