@@ -177,7 +177,7 @@ void OScriptNodeProperty::_upgrade(uint32_t p_version, uint32_t p_current_versio
 
 void OScriptNodeProperty::post_initialize() {
     // Cache property details in node
-    for (const Ref<OScriptNodePin>& pin : find_pins()) {
+    for (const Ref<OScriptNodePin>& pin : get_all_pins()) {
         if (pin->get_pin_name().match(_property.name)) {
             _property = pin->get_property_info();
             break;

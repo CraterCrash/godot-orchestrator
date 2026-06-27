@@ -87,7 +87,8 @@ protected:
     Vector2 _size;                             //! Size of the node
     Vector2 _position;                         //! Position of the node
     BitField<ScriptNodeFlags> _flags;          //! Flags
-    Vector<Ref<OScriptNodePin>> _pins;         //! Pins
+    Vector<Ref<OScriptNodePin>> _input_pins;   //! Input-direction pins
+    Vector<Ref<OScriptNodePin>> _output_pins;  //! Output-direction pins
     bool _reconstruction_queued = false;       //! Tracks if node reconstruction has been queued
     bool _reconstructing = false;              //! Tracks if the node is in reconstruction
     BreakpointFlags _breakpoint_flag;          //! Transient state for breakpoints
@@ -346,18 +347,20 @@ public:
     /// @return the pin reference if found or an invalid reference if the pin is not found
     Ref<OScriptNodePin> find_pin(int p_index, EPinDirection p_direction) const;
 
-    /// Find all lines for a given direction.
-    /// @param p_direction the pin direction, defaults to PD_MAX which returns all pins
+    /// Find all pins for a given direction.
+    /// @param p_direction the pin direction (PD_Input or PD_Output); PD_MAX is not supported
     /// @return vector of pin references for this node
-    Vector<Ref<OScriptNodePin>> find_pins(EPinDirection p_direction = PD_MAX) const;
+    /// @note A direction is required; the returned reference aliases the node's canonical storage for
+    ///       that direction and stays valid until the node's pins change (add/remove/reconstruct).
+    const Vector<Ref<OScriptNodePin>>& find_pins(EPinDirection p_direction) const;
 
     /// Removes the specified pin from this node
     /// @param p_pin the pin to be removed
     bool remove_pin(const Ref<OScriptNodePin>& p_pin);
 
-    /// Get an immutable collection of all node pins.
-    /// @return an immutable collection of node pins
-    const Vector<Ref<OScriptNodePin>>& get_all_pins() const { return _pins; }
+    /// Get a collection of all node pins, input pins followed by output pins.
+    /// @return a newly built collection of all node pins
+    Vector<Ref<OScriptNodePin>> get_all_pins() const;
 
     /// Check whether the node has any connections
     /// @return true if at least one pin is connected, false otherwise
