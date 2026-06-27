@@ -8,6 +8,6 @@ ERROR: Index p_index = 4 is out of bounds (p_instance->size() = 3).
    OScript backtrace (most recent call first):
        [0] _ready (res://scenes/errors/array_bad_index.torch:1)
 ERROR: Invalid access to property or key '4' on a base object of type 'Array'.
-   at: _ready (res://scenes/errors/array_bad_index.torch:1)
+   at: _ready (res://scenes/errors/array_bad_index.torch:11)
    OScript backtrace (most recent call first):
        [0] _ready (res://scenes/errors/array_bad_index.torch:1)
