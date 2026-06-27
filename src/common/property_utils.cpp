@@ -17,9 +17,9 @@
 #include "common/property_utils.h"
 
 #include "common/string_utils.h"
+#include "common/variant_utils.h"
 #include "core/godot/scene_string_names.h"
 #include "script/script_server.h"
-#include "variant_utils.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
