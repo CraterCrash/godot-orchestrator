@@ -22,6 +22,9 @@
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 
+// Uncomment to support warnings
+// #define FUNCTION_ANALYZER_WARNINGS_ENABLED
+
 using namespace godot;
 
 // Forward declarations
@@ -212,8 +215,10 @@ private:
 public:
     OScriptFunctionInfo analyze_function(const Ref<OScriptFunction>& p_function);
 
+    #ifdef FUNCTION_ANALYZER_WARNINGS_ENABLED
     bool has_warnings() const { return !warnings.is_empty(); }
     const List<AnalyzerWarning>& get_warnings() const { return warnings; }
+    #endif
 
     bool has_errors() const { return !errors.is_empty(); }
     const List<AnalyzerError>& get_errors() const { return errors; }
