@@ -103,6 +103,25 @@ def validate_output(source, result, elapsed):
         print("")
         exit_code = 1
 
+def clean_godot_cache():
+    godot_cache = Path(__file__).parent / ".godot"
+    if godot_cache.exists():
+        shutil.rmtree(godot_cache)
+
+def import_project():
+    subprocess.run(
+        [
+            godot_path,
+            "--no-header",
+            "--headless",
+            "--path",
+            Path(__file__).parent,
+            "--import",
+            "--quiet"],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL)
+
 def test_scenes(version):
     global exit_code
     for scene_file in sorted(scenes_dir.rglob("*.tscn")):
@@ -222,6 +241,8 @@ version = get_minimum_godot_version()
 godot_path = download_godot(version)
 
 update_libraries()
+clean_godot_cache()
+import_project()
 test_scenes(version)
 
 
