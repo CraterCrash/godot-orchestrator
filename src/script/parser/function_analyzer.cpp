@@ -859,9 +859,10 @@ void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
 }
 
 void OScriptFunctionAnalyzer::_validate(const Context& p_context) {
-    const String function_name = p_context.function->get_function_name();
     const OScriptFunctionInfo& info = p_context.info;
 
+    #ifdef FUNCTION_ANALYZER_WARNINGS_ENABLED
+    const String function_name = p_context.function->get_function_name();
     if (!info.unreachable_nodes.is_empty()) {
         warnings.push_back({ -1, vformat("Function %s has %d unreachable nodes", function_name, info.unreachable_nodes.size()) });
         for (NodeId node_id : info.unreachable_nodes) {
@@ -875,6 +876,7 @@ void OScriptFunctionAnalyzer::_validate(const Context& p_context) {
             warnings.push_back({ node_id, vformat("Node %d is considered a dead-end", node_id) });
         }
     }
+    #endif
 
     for (const KeyValue<NodeId, OScriptNodePinSet>& E : info.loop_break_sources) {
         for (OScriptNodePinId break_node_id : E.value) {
@@ -886,7 +888,9 @@ void OScriptFunctionAnalyzer::_validate(const Context& p_context) {
 }
 
 OScriptFunctionInfo OScriptFunctionAnalyzer::analyze_function(const Ref<OScriptFunction>& p_function) {
+    #ifdef FUNCTION_ANALYZER_WARNINGS_ENABLED
     warnings.clear();
+    #endif
     errors.clear();
 
     // Setup analysis context
