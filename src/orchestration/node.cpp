@@ -25,7 +25,10 @@
 
 TypedArray<Dictionary> OScriptNode::_get_pin_data() const {
     TypedArray<Dictionary> pins;
-    for (const Ref<OScriptNodePin>& pin : _pins) {
+    for (const Ref<OScriptNodePin>& pin : _input_pins) {
+        pins.push_back(pin->_save());
+    }
+    for (const Ref<OScriptNodePin>& pin : _output_pins) {
         pins.push_back(pin->_save());
     }
     return pins;
@@ -38,7 +41,11 @@ void OScriptNode::_set_pin_data(const TypedArray<Dictionary>& p_pin_data) {
         pin.instantiate();
         pin->set_owning_node(this);
         pin->_load(data);
-        _pins.push_back(pin);
+        if (pin->get_direction() == PD_Input) {
+            _input_pins.push_back(pin);
+        } else {
+            _output_pins.push_back(pin);
+        }
     }
 }
 
@@ -99,7 +106,10 @@ void OScriptNode::pre_remove() {
 }
 
 void OScriptNode::post_initialize() {
-    for (const Ref<OScriptNodePin>& pin : _pins) {
+    for (const Ref<OScriptNodePin>& pin : _input_pins) {
+        pin->post_initialize();
+    }
+    for (const Ref<OScriptNodePin>& pin : _output_pins) {
         pin->post_initialize();
     }
     _cache_pin_indices();
@@ -119,11 +129,12 @@ void OScriptNode::reconstruct_node() {
     // Set reconstruction flag
     _reconstructing = true;
 
-    Vector<Ref<OScriptNodePin>> old_pins = _pins;
-    _pins.clear();
+    Vector<Ref<OScriptNodePin>> old_pins = get_all_pins();
+    _input_pins.clear();
+    _output_pins.clear();
 
     reallocate_pins_during_reconstruction(old_pins);
-    rewire_old_pins_to_new_pins(old_pins, _pins);
+    rewire_old_pins_to_new_pins(old_pins, get_all_pins());
 
     post_reconstruct_node();
 
@@ -203,48 +214,78 @@ Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, EPinType 
         Variant::Type type = p_default_value.get_type() != Variant::NIL ? p_default_value.get_type() : p_property.type;
         pin->set_generated_default_value(VariantUtils::make_default(type));
 
-        _pins.push_back(pin);
+        if (p_direction == PD_Input) {
+            _input_pins.push_back(pin);
+        } else {
+            _output_pins.push_back(pin);
+        }
     }
     return pin;
 }
 
 Ref<OScriptNodePin> OScriptNode::find_pin(const String& p_pin_name, EPinDirection p_direction) const {
-    for (const Ref<OScriptNodePin>& pin : _pins) {
-        if ((p_direction == PD_MAX || pin->get_direction() == p_direction) && pin->get_pin_name().match(p_pin_name)) {
-            return pin;
+    if (p_direction != PD_Output) {
+        for (const Ref<OScriptNodePin>& pin : _input_pins) {
+            if (pin->get_pin_name().match(p_pin_name)) {
+                return pin;
+            }
+        }
+    }
+    if (p_direction != PD_Input) {
+        for (const Ref<OScriptNodePin>& pin : _output_pins) {
+            if (pin->get_pin_name().match(p_pin_name)) {
+                return pin;
+            }
         }
     }
     return {};
 }
 
 Ref<OScriptNodePin> OScriptNode::find_pin(int p_index, EPinDirection p_direction) const {
-    int current_index = 0;
-    for (const Ref<OScriptNodePin>& pin : _pins) {
-        if (p_direction == pin->get_direction()) {
-            if (current_index == p_index) {
-                return pin;
-            }
-            current_index++;
-        }
+    const Vector<Ref<OScriptNodePin>>& pins = p_direction == PD_Input ? _input_pins : _output_pins;
+    if (p_index >= 0 && p_index < pins.size()) {
+        return pins[p_index];
     }
     return {};
 }
 
 bool OScriptNode::remove_pin(const Ref<OScriptNodePin>& p_pin) {
-    if (_pins.has(p_pin)) {
-        _pins.erase(p_pin);
+    if (_input_pins.has(p_pin)) {
+        _input_pins.erase(p_pin);
+        return true;
+    }
+    if (_output_pins.has(p_pin)) {
+        _output_pins.erase(p_pin);
         return true;
     }
     return false;
 }
 
 bool OScriptNode::has_any_connections() const {
-    for (const Ref<OScriptNodePin>& pin : _pins) {
+    for (const Ref<OScriptNodePin>& pin : _input_pins) {
+        if (pin->has_any_connections()) {
+            return true;
+        }
+    }
+    for (const Ref<OScriptNodePin>& pin : _output_pins) {
         if (pin->has_any_connections()) {
             return true;
         }
     }
     return false;
+}
+
+Vector<Ref<OScriptNodePin>> OScriptNode::get_all_pins() const {
+    Vector<Ref<OScriptNodePin>> pins;
+    pins.resize(_input_pins.size() + _output_pins.size());
+    Ref<OScriptNodePin>* dst = pins.ptrw();
+    for (const Ref<OScriptNodePin>& pin : _input_pins) {
+        *dst++ = pin;
+    }
+    for (const Ref<OScriptNodePin>& pin : _output_pins) {
+        *dst++ = pin;
+    }
+    return pins;
 }
 
 Vector<Ref<OScriptNodePin>> OScriptNode::get_eligible_autowire_pins(const Ref<OScriptNodePin>& p_pin) const {
@@ -302,18 +343,9 @@ bool OScriptNode::has_execution_pins() const {
     return false;
 }
 
-Vector<Ref<OScriptNodePin>> OScriptNode::find_pins(EPinDirection p_direction) const {
-    if (p_direction == PD_MAX) {
-        return _pins;
-    }
-
-    Vector<Ref<OScriptNodePin>> pins;
-    for (const auto& _pin : _pins) {
-        if (_pin->get_direction() == p_direction) {
-            pins.push_back(_pin);
-        }
-    }
-    return pins;
+const Vector<Ref<OScriptNodePin>>& OScriptNode::find_pins(EPinDirection p_direction) const {
+    ERR_FAIL_COND_V_MSG(p_direction == PD_MAX, _input_pins, "find_pins requires PD_Input or PD_Output.");
+    return p_direction == PD_Input ? _input_pins : _output_pins;
 }
 
 void OScriptNode::_validate_input_default_values() {
@@ -329,14 +361,14 @@ void OScriptNode::_notify_pins_changed() {
 void OScriptNode::_cache_pin_indices() {
     // Iterate loaded pins and cache indices
     int input_index = 0;
-    int output_index = 0;
-    for (const Ref<OScriptNodePin>& pin : _pins) {
-        if (pin->is_hidden()) {
-            continue;
-        }
-        if (pin->is_input()) {
+    for (const Ref<OScriptNodePin>& pin : _input_pins) {
+        if (!pin->is_hidden()) {
             pin->_cached_pin_index = input_index++;
-        } else {
+        }
+    }
+    int output_index = 0;
+    for (const Ref<OScriptNodePin>& pin : _output_pins) {
+        if (!pin->is_hidden()) {
             pin->_cached_pin_index = output_index++;
         }
     }
