@@ -2719,13 +2719,16 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
         push_error("Unexpected number of input pins must be two or greater.");
         return create_stop_result();
     }
-    else if (input_pins_size == 2) {
-        // No need to scope or treat this as an if block but instead more like a sequence
-        const Ref<OScriptNodePin> true_pin = p_script_node->find_pin(1, PD_Output);
-        if (true_pin.is_valid() && true_pin->has_any_connections()) {
+
+    if (input_pins_size == 2) {
+        // When there are exactly only two input pins, this means the input execution and value pins.
+        // In this situation, there are no match cases, so its safe to treat the node like a sequence
+        // where we execute the "Default" branch followed by the "Done" branch.
+        const Ref<OScriptNodePin> default_pin = p_script_node->find_pin(1, PD_Output);
+        if (default_pin.is_valid() && default_pin->has_any_connections()) {
             ExpressionNode* true_literal = create_literal(true);
             BinaryOpNode* default_cond = create_binary_op(VariantOperators::OP_EQUAL, true_literal, true_literal);
-            IfNode* default_scope = create_if(default_cond, true_pin, nullptr);
+            IfNode* default_scope = create_if(default_cond, default_pin, nullptr);
             true_literal->script_node_id = p_script_node->get_id();
             default_cond->script_node_id = p_script_node->get_id();
             default_scope->script_node_id = p_script_node->get_id();
@@ -2733,58 +2736,49 @@ OScriptParser::StatementResult OScriptParser::build_switch(const Ref<OScriptNode
         }
         return create_statement_result(p_script_node, 0);
     }
-    else {
-        // In this case we always start at input pin index 2 and compare against input pin 1.
-        // This provides for output pin 1 to be treated as the "else" block.
-        const Vector<Ref<OScriptNodePin>> output_pins = p_script_node->find_pins(PD_Output);
-        const uint64_t output_pins_size = output_pins.size();
-        if (input_pins_size != output_pins_size) {
-            // Should never happen
-            push_error("Unexpected difference of input and output pins for switch node.");
-            return create_stop_result();
-        }
 
-        IfNode* base_if = nullptr;
-        IfNode* prev_if = nullptr;
-        for (uint64_t i = 2; i < input_pins_size; i++) {
-            ExpressionNode* lhs = resolve_input(input_pins[1]); // Always value pin
-            ExpressionNode* rhs = resolve_input(input_pins[i]); // Case pin
-            BinaryOpNode* cond = create_binary_op(VariantOperators::OP_EQUAL, lhs, rhs);
-
-            cond->script_node_id = p_script_node->get_id();
-            lhs->script_node_id = p_script_node->get_id();
-            rhs->script_node_id = p_script_node->get_id();
-
-            if (base_if == nullptr) {
-                base_if = create_if(cond, output_pins[i], nullptr);
-                base_if->script_node_id = p_script_node->get_id();
-                prev_if = base_if;
-            } else {
-                // ElseIf
-                SuiteNode* previous_suite = current_suite;
-                SuiteNode* elseif_block = alloc_node<SuiteNode>();
-                elseif_block->parent_function = current_function;
-                elseif_block->parent_block = current_suite;
-                current_suite = elseif_block;
-
-                IfNode* elif_node = create_if(cond, output_pins[i], nullptr);
-                elif_node->script_node_id = p_script_node->get_id();
-                elseif_block->statements.push_back(elif_node);
-                prev_if->false_block = elseif_block;
-
-                current_suite = previous_suite;
-                prev_if = elif_node;
-            }
-        }
-
-        // At the end create a final else block that exists output pin 1
-        SuiteNode* else_suite = build_suite("else block", output_pins[1]);
-        prev_if->false_block = else_suite;
-
-        // Add the base if and continue out output pin 0.
-        add_statement(base_if);
-        return create_statement_result(p_script_node, 0);
+    // Generic switches compare one value against N case targets, routing to the matching case's output.
+    // It will be desugared into a GDScript-like match, exactly like SwitchString / SwitchInteger.
+    //
+    // A base equality binary operation is type-strict at analysis time, comparing constants of differing
+    // types, e.g. an int value against a String type, is rejected with "Invalid operands to operator ==".
+    // The match approach lowers each case to a typeof-guarded comparison in the compiler, so a type
+    // mismatch simply never matches rather than being treated as a compile error.
+    const Vector<Ref<OScriptNodePin>> output_pins = p_script_node->find_pins(PD_Output);
+    const uint64_t output_pins_size = output_pins.size();
+    if (input_pins_size != output_pins_size) {
+        // Should never happen
+        push_error("Unexpected difference of input and output pins for switch node.");
+        return create_stop_result();
     }
+
+    MatchNode* match_node = alloc_node<MatchNode>();
+    match_node->test = resolve_input(input_pins[1]); // Always the value pin
+
+    // Input pins [2..N] are the case values; the aligned output pins [2..N] are their branches.
+    // A case is emitted, even when its output is unconnected preserving the situation that
+    // if there is a value match, the execution stops, rather than falling through to default.
+    for (uint64_t i = 2; i < input_pins_size; i++) {
+        MatchBranchNode* branch = alloc_node<MatchBranchNode>();
+        PatternNode* pattern = alloc_node<PatternNode>();
+        pattern->pattern_type = PatternNode::PT_EXPRESSION;
+        pattern->expression = resolve_input(input_pins[i]);
+
+        branch->patterns.push_back(pattern);
+        match_node->branches.push_back(branch);
+        branch->block = build_suite("switch case block", output_pins[i]);
+    }
+
+    // Output pin 1 is the default; emit it last as the wildcard arm ("_"), which match requires last.
+    MatchBranchNode* default_branch = alloc_node<MatchBranchNode>();
+    PatternNode* default_pattern = alloc_node<PatternNode>();
+    default_pattern->pattern_type = PatternNode::PT_WILDCARD;
+    default_branch->patterns.push_back(default_pattern);
+    match_node->branches.push_back(default_branch);
+    default_branch->block = build_suite("switch default block", output_pins[1]);
+
+    add_statement(match_node);
+    return create_statement_result(p_script_node, 0);
 }
 
 OScriptParser::StatementResult OScriptParser::build_switch_on_string(const Ref<OScriptNodeSwitchString>& p_script_node) {
