@@ -250,6 +250,10 @@ OScriptInstance* OScript::_create_instance(const Variant** p_args, int p_arg_cou
     #endif
 
     si->set_instance_info(GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptInstance::INSTANCE_INFO, si));
+    #if GODOT_VERSION >= 0x040500
+    // GH-1663 Allows for calling script-level functions during `_init`.
+    GDE_INTERFACE(object_set_script_instance)(p_owner->_owner, si->get_instance_info());
+    #endif
     {
         MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
         instances.insert(p_owner);
@@ -626,6 +630,7 @@ void* OScript::_instance_create(Object* p_object) const {
         }
     }
 
+    #if GODOT_VERSION < 0x040500
     // `_new` creates the instance up-front so constructor args reach `_init` (GH-1431),
     // then calls `set_script`, which routes back here. Reuse that instance rather than
     // creating a second one, which would invoke `_init` again (with no args).
@@ -636,6 +641,7 @@ void* OScript::_instance_create(Object* p_object) const {
             return it->value->get_instance_info();
         }
     }
+    #endif
 
     GDExtensionCallError err;
     OScriptInstance* instance = _create_instance(nullptr, 0, p_object, err);
@@ -648,6 +654,10 @@ void* OScript::_placeholder_instance_create(Object* p_object) const {
 
     OScriptPlaceHolderInstance* psi = memnew(OScriptPlaceHolderInstance(Ref<OScript>(this), p_object));
     psi->set_instance_info(GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptPlaceHolderInstance::INSTANCE_INFO, psi));
+    #if GODOT_VERSION >= 0x040500
+    // GH-1663 Allows for calling script-level functions during `_init`.
+    GDE_INTERFACE(object_set_script_instance)(p_object->_owner, psi->get_instance_info());
+    #endif
     {
         MutexLock lock(*_language->lock.ptr());
         instance_script_instances[p_object] = psi;
@@ -1216,12 +1226,16 @@ Variant OScript::_new(const Variant** p_args, GDExtensionInt p_arg_count, GDExte
     }
 
     if (ref.is_valid()) {
+        #if GODOT_VERSION < 0x040500
         ref->set_script(this);
+        #endif
         return ref;
-    } else {
-        owner->set_script(this);
-        return owner;
     }
+
+    #if GODOT_VERSION < 0x040500
+    owner->set_script(this);
+    #endif
+    return owner;
 }
 
 String OScript::get_script_path() const {
