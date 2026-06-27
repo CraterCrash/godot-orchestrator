@@ -698,7 +698,7 @@ void OScriptNodePin::unlink_all(bool p_notify_nodes) {
 }
 
 bool OScriptNodePin::has_any_connections() const {
-    return !get_connections().is_empty();
+    return get_owning_node()->get_orchestration()->has_connections(this);
 }
 
 Vector<Ref<OScriptNodePin>> OScriptNodePin::get_connections() const {
@@ -709,24 +709,14 @@ Ref<OScriptNodePin> OScriptNodePin::get_connection() const {
     if (get_direction() == PD_Input) {
         // Control flow can have multiple inputs while data pins have only one.
         if (_flags.has_flag(DATA)) {
-            const Vector<Ref<OScriptNodePin>> connections = get_connections();
-            if (connections.size() == 1) {
-                return connections[0];
-            }
-            // No connection
-            return {};
+            return get_owning_node()->get_orchestration()->get_single_connection(this);
         }
         ERR_FAIL_V_MSG({}, "A control flow pin can have multiple connections, use get_connections instead.");
     }
 
     // Control flow pins have only one output while data flow pins can have multiple.
     if (_flags.has_flag(EXECUTION)) {
-        const Vector<Ref<OScriptNodePin>> connections = get_connections();
-        if (connections.size() == 1) {
-            return connections[0];
-        }
-        // No connection
-        return {};
+        return get_owning_node()->get_orchestration()->get_single_connection(this);
     }
 
     ERR_FAIL_V_MSG({}, "A data flow pin can have multiple connections, use get_connections instead.");
