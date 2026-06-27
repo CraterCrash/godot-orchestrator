@@ -35,19 +35,6 @@ static bool is_return_node(const Ref<OScriptNode>& p_node) {
     return p_node->is_type<OScriptNodeFunctionResult>();
 }
 
-static Vector<Ref<OScriptNode>> get_control_flow_successors(const Ref<OScriptNode>& p_node) {
-    Vector<Ref<OScriptNode>> successors;
-    for (const Ref<OScriptNodePin>& output : p_node->find_pins(PD_Output)) {
-        if (output.is_valid() && output->is_execution() && output->has_any_connections()) {
-            const Ref<OScriptNodePin> target = output->get_resolved_connection();
-            if (target.is_valid()) {
-                successors.push_back(target->get_owning_node());
-            }
-        }
-    }
-    return successors;
-}
-
 static uint64_t pack_edge(NodeId p_source, NodeId p_target) {
     return (static_cast<uint64_t>(static_cast<uint32_t>(p_source)) << 32) | static_cast<uint32_t>(p_target);
 }
@@ -188,6 +175,25 @@ Ref<OScriptNode> OScriptFunctionAnalyzer::Context::get_node_by_id(NodeId p_node_
     return {};
 }
 
+const Vector<Ref<OScriptNode>>& OScriptFunctionAnalyzer::Context::get_control_flow_successors(const Ref<OScriptNode>& p_node) {
+    const NodeId id = p_node->get_id();
+    if (const Vector<Ref<OScriptNode>>* cached = control_flow_successors.getptr(id)) {
+        return *cached;
+    }
+
+    // Build directly into the cache slot to avoid an extra copy.
+    Vector<Ref<OScriptNode>>& successors = control_flow_successors[id];
+    for (const Ref<OScriptNodePin>& output : p_node->find_pins(PD_Output)) {
+        if (output.is_valid() && output->is_execution() && output->has_any_connections()) {
+            const Ref<OScriptNodePin> target = output->get_resolved_connection();
+            if (target.is_valid()) {
+                successors.push_back(target->get_owning_node());
+            }
+        }
+    }
+    return successors;
+}
+
 void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
     HashMap<Ref<OScriptNode>, int> node_degrees;
     HashSet<Ref<OScriptNode>> all_nodes;
@@ -212,7 +218,7 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
             const NodeId id = node->get_id();
             visited.insert(id);
             on_stack.insert(id);
-            for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+            for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
                 if (!node_degrees.has(successor)) {
                     continue;
                 }
@@ -233,7 +239,7 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
     // in the dequeue loop below; for an acyclic graph this yields the same in-degrees and the same
     // order as a plain Kahn pass.
     for (const Ref<OScriptNode>& node : all_nodes) {
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+        for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
             if (!node_degrees.has(successor)) {
                 continue;
             }
@@ -258,7 +264,7 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
         p_context.info.linear_execution_list.push_back(node->get_id());
 
         // Decrement for successors, skipping back-edges (they were never counted above).
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+        for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
             if (!node_degrees.has(successor)) {
                 continue;
             }
@@ -340,7 +346,7 @@ void OScriptFunctionAnalyzer::_register_nets(Context& p_context) {
         }
 
         // Traverse control flow
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(current)) {
+        for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(current)) {
             visit(successor);
         }
     };
@@ -355,7 +361,7 @@ void OScriptFunctionAnalyzer::_populate_divergence_paths(Context& p_context, Nod
     }
 
     // Collect all immediate successors (the diverging paths)
-    const Vector<Ref<OScriptNode>> successors = get_control_flow_successors(node);
+    const Vector<Ref<OScriptNode>>& successors = p_context.get_control_flow_successors(node);
     if (successors.size() > 1) {
         for (const Ref<OScriptNode>& successor : successors) {
             p_context.info.divergence_paths[p_divergence_node_id].insert(successor->get_id());
@@ -416,7 +422,7 @@ void OScriptFunctionAnalyzer::_find_merge_point(Context& p_context, NodeId p_div
                 continue;
             }
 
-            for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+            for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
                 const NodeId succ_id = successor->get_id();
                 uint64_t* succ_mask = reach_mask.getptr(succ_id);
                 if (succ_mask) {
@@ -516,7 +522,7 @@ HashSet<NodeId> OScriptFunctionAnalyzer::_get_all_reachable_nodes(Context& p_con
             return;
         }
 
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(node)) {
+        for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
             DFS(successor->get_id());
         }
     };
@@ -752,7 +758,7 @@ void OScriptFunctionAnalyzer::_analyze_combined(Context& p_context) {
         }
 
         // Compute successors once: used by dead-end detection, incoming-edge counting, and recursion.
-        const Vector<Ref<OScriptNode>> successors = get_control_flow_successors(current);
+        const Vector<Ref<OScriptNode>>& successors = p_context.get_control_flow_successors(current);
 
         // --- _detect_control_flow_issues: dead-end detection ---
         if (successors.is_empty() && !is_entry_node(current) && !is_return_node(current)) {
@@ -838,7 +844,7 @@ void OScriptFunctionAnalyzer::_analyze_loop_breaks(Context& p_context) {
             }
         }
 
-        for (const Ref<OScriptNode>& successor : get_control_flow_successors(current)) {
+        for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(current)) {
             visit(successor);
         }
     };

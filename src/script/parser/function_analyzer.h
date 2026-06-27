@@ -173,7 +173,13 @@ private:
         Ref<OScriptNode> entry_node;
         OScriptFunctionInfo info;
 
+        // Memoized control-flow successor adjacency, keyed by node id, for analysis lifetime.
+        // Computing a node's successors walks its output pins and resolves reroute chains, which is
+        // expensive, and the analysis passes query the same nodes repeatedly.
+        HashMap<NodeId, Vector<Ref<OScriptNode>>> control_flow_successors;
+
         Ref<OScriptNode> get_node_by_id(NodeId p_node_id);
+        const Vector<Ref<OScriptNode>>& get_control_flow_successors(const Ref<OScriptNode>& p_node);
         uint64_t get_next_net_id() { return next_net_id++; }
     };
 
