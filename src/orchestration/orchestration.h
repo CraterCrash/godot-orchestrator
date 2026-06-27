@@ -268,6 +268,11 @@ public:
     void disconnect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port);
     Vector<Ref<OScriptNodePin>> get_connections(const OScriptNodePin* p_pin) const;
     void adjust_connections(const OScriptNode* p_node, int p_offset, int p_adjustment, EPinDirection p_dir = PD_MAX);
+    /// Returns whether the pin has at least one connection, without resolving endpoint pins.
+    bool has_connections(const OScriptNodePin* p_pin) const;
+    /// Returns the sole connected pin, or an invalid reference when there are zero or more than one.
+    /// Avoids materializing the full connection vector when callers only need a single endpoint.
+    Ref<OScriptNodePin> get_single_connection(const OScriptNodePin* p_pin) const;
     //~ End Connection Interface
 
     //~ Begin Graph Interface

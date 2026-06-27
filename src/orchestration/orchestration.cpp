@@ -612,6 +612,58 @@ void Orchestration::adjust_connections(const OScriptNode* p_node, int p_offset, 
     emit_signal("connections_changed");
 }
 
+bool Orchestration::has_connections(const OScriptNodePin* p_pin) const {
+    if (!p_pin || p_pin->is_hidden()) {
+        return false;
+    }
+
+    const OScriptNode* node = p_pin->get_owning_node();
+    if (!node) {
+        return false;
+    }
+
+    const uint32_t key = ConnectionCache::key(node->get_id(), p_pin->get_pin_index());
+    const Vector<uint32_t>* others = p_pin->is_input() ? _connection_cache.inputs(key) : _connection_cache.outputs(key);
+    return others != nullptr && !others->is_empty();
+}
+
+Ref<OScriptNodePin> Orchestration::get_single_connection(const OScriptNodePin* p_pin) const {
+    if (!p_pin || p_pin->is_hidden()) {
+        return {};
+    }
+
+    const OScriptNode* node = p_pin->get_owning_node();
+    if (!node) {
+        return {};
+    }
+
+    const bool input = p_pin->is_input();
+    const uint32_t key = ConnectionCache::key(node->get_id(), p_pin->get_pin_index());
+
+    const Vector<uint32_t>* others = input ? _connection_cache.inputs(key) : _connection_cache.outputs(key);
+    if (!others) {
+        return {};
+    }
+
+    const EPinDirection other_dir = input ? PD_Output : PD_Input;
+    Ref<OScriptNodePin> found;
+    int valid = 0;
+    for (uint32_t endpoint : *others) {
+        const Ref<OScriptNode> other = get_node(ConnectionCache::node_from_key(endpoint));
+        if (other.is_valid()) {
+            const Ref<OScriptNodePin> other_pin = other->find_pin(ConnectionCache::pin_index_from_key(endpoint), other_dir);
+            if (other_pin.is_valid()) {
+                // More than one valid endpoint: caller semantics require an invalid result.
+                if (++valid > 1) {
+                    return {};
+                }
+                found = other_pin;
+            }
+        }
+    }
+    return valid == 1 ? found : Ref<OScriptNodePin>();
+}
+
 bool Orchestration::has_graph(const StringName& p_name) const {
     return _graphs.has(p_name);
 }
