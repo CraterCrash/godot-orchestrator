@@ -195,14 +195,16 @@ const Vector<Ref<OScriptNode>>& OScriptFunctionAnalyzer::Context::get_control_fl
 }
 
 void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
-    HashMap<Ref<OScriptNode>, int> node_degrees;
-    HashSet<Ref<OScriptNode>> all_nodes;
+    // In-degree per participating node, keyed by node id.
+    // Both are populated in graph-node order, so the queue is seeded in the same order.
+    HashMap<NodeId, int> node_degrees;
+    Vector<Ref<OScriptNode>> all_nodes;
 
     for (NodeId node_id : p_context.info.graph_nodes) {
         const Ref<OScriptNode> node = p_context.get_node_by_id(node_id);
-        if (node.is_valid() && !node->is_reroute()) {
-            all_nodes.insert(node);
-            node_degrees[node] = 0;
+        if (node.is_valid() && !node->is_reroute() && !node_degrees.has(node_id)) {
+            all_nodes.push_back(node);
+            node_degrees[node_id] = 0;
         }
     }
 
@@ -219,10 +221,10 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
             visited.insert(id);
             on_stack.insert(id);
             for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
-                if (!node_degrees.has(successor)) {
+                const NodeId successor_id = successor->get_id();
+                if (!node_degrees.has(successor_id)) {
                     continue;
                 }
-                const NodeId successor_id = successor->get_id();
                 if (on_stack.has(successor_id)) {
                     back_edges.insert(pack_edge(id, successor_id));
                 } else if (!visited.has(successor_id)) {
@@ -239,20 +241,22 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
     // in the dequeue loop below; for an acyclic graph this yields the same in-degrees and the same
     // order as a plain Kahn pass.
     for (const Ref<OScriptNode>& node : all_nodes) {
+        const NodeId node_id = node->get_id();
         for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
-            if (!node_degrees.has(successor)) {
+            const NodeId successor_id = successor->get_id();
+            if (!node_degrees.has(successor_id)) {
                 continue;
             }
-            if (back_edges.has(pack_edge(node->get_id(), successor->get_id()))) {
+            if (back_edges.has(pack_edge(node_id, successor_id))) {
                 continue;
             }
-            node_degrees[successor] += 1;
+            node_degrees[successor_id] += 1;
         }
     }
 
     List<Ref<OScriptNode>> queue;
     for (const Ref<OScriptNode>& node : all_nodes) {
-        if (node_degrees[node] == 0) {
+        if (node_degrees[node->get_id()] == 0) {
             queue.push_back(node);
         }
     }
@@ -261,18 +265,20 @@ void OScriptFunctionAnalyzer::_build_linear_execution_list(Context& p_context) {
         const Ref<OScriptNode> node = queue.front()->get();
         queue.pop_front();
 
-        p_context.info.linear_execution_list.push_back(node->get_id());
+        const NodeId node_id = node->get_id();
+        p_context.info.linear_execution_list.push_back(node_id);
 
         // Decrement for successors, skipping back-edges (they were never counted above).
         for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
-            if (!node_degrees.has(successor)) {
+            const NodeId successor_id = successor->get_id();
+            if (!node_degrees.has(successor_id)) {
                 continue;
             }
-            if (back_edges.has(pack_edge(node->get_id(), successor->get_id()))) {
+            if (back_edges.has(pack_edge(node_id, successor_id))) {
                 continue;
             }
-            node_degrees[successor]--;
-            if (node_degrees[successor] == 0) {
+            int& degree = node_degrees[successor_id];
+            if (--degree == 0) {
                 queue.push_back(successor);
             }
         }
