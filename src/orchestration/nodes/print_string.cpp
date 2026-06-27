@@ -22,11 +22,11 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/scene_tree_timer.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/window.hpp>
 
 void OScriptNodePrintString::allocate_default_pins() {
@@ -110,10 +110,10 @@ void OScriptNodePrintStringOverlay::add_text(const String& p_text, const String&
         label = memnew(RichTextLabel);
         label->set_fit_content(true);
         label->set_use_bbcode(true);
-        label->set_mouse_filter(MOUSE_FILTER_IGNORE);
-        label->set_h_size_flags(SIZE_EXPAND_FILL);
+        label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+        label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
         label->set_autowrap_mode(TextServer::AUTOWRAP_OFF);
-        get_child(0)->add_child(label);
+        _container->add_child(label);
     }
 
     label->push_color(p_color);
@@ -156,16 +156,21 @@ void OScriptNodePrintStringOverlay::_bind_methods() {
 }
 
 OScriptNodePrintStringOverlay::OScriptNodePrintStringOverlay() {
-    add_theme_constant_override("margin_left", 10);
-    add_theme_constant_override("margin_right", 10);
-    add_theme_constant_override("margin_top", 10);
-    add_theme_constant_override("margin_bottom", 10);
-    set_anchors_preset(PRESET_FULL_RECT);
     set_name("OrchestratorPrintStringOverlay");
-    set_mouse_filter(MOUSE_FILTER_IGNORE);
+    set_layer(ORCHESTRATOR_GET("runtime/print_string/layer", 10));
 
-    VBoxContainer* container = memnew(VBoxContainer);
-    add_child(container);
+    MarginContainer* mc = memnew(MarginContainer);
+    mc->add_theme_constant_override("margin_left", 10);
+    mc->add_theme_constant_override("margin_right", 10);
+    mc->add_theme_constant_override("margin_top", 10);
+    mc->add_theme_constant_override("margin_bottom", 10);
+    mc->set_anchors_preset(Control::PRESET_FULL_RECT);
+    mc->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+    add_child(mc);
+
+    _container = memnew(VBoxContainer);
+    _container->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+    mc->add_child(_container);
 
     const String scale_percent = ORCHESTRATOR_GET("runtime/print_string/overlay_scale", "100%");
     const float scale = static_cast<float>(scale_percent.replace("%", "").to_float() / 100.0f);
