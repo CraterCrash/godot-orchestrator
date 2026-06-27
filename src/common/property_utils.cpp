@@ -18,6 +18,8 @@
 
 #include "common/string_utils.h"
 #include "core/godot/scene_string_names.h"
+#include "script/script_server.h"
+#include "variant_utils.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
@@ -161,5 +163,36 @@ namespace PropertyUtils {
 
         custom_script = ResourceUID::get_singleton()->get_id_path(id);
         return ResourceLoader::get_singleton()->load(custom_script);
+    }
+
+    void get_element_type(const String& p_name, Variant::Type& r_builtin, StringName& r_class, Variant& r_script) {
+        r_builtin = Variant::NIL;
+        r_class = StringName();
+        r_script = Variant();
+
+        if (p_name.is_empty()) {
+            return;
+        }
+
+        if (ScriptServer::is_global_class(p_name)) {
+            r_builtin = Variant::OBJECT;
+            r_class = ScriptServer::get_global_class_native_base(p_name);
+            r_script = ResourceLoader::get_singleton()->load(ScriptServer::get_global_class_path(p_name));
+            return;
+        }
+
+        if (ClassDB::is_parent_class(p_name, Object::get_class_static()) || ScriptServer::is_global_class(p_name)) {
+            r_builtin = Variant::OBJECT;
+            r_class = p_name;
+            return;
+        }
+
+        for (int i = 0; i < Variant::VARIANT_MAX; i++) {
+            const Variant::Type type = VariantUtils::to_type(i);
+            if (Variant::get_type_name(type) == p_name) {
+                r_builtin = type;
+                return;
+            }
+        }
     }
 }
