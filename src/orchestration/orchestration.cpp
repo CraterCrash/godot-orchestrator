@@ -31,6 +31,37 @@
 
 #include <godot_cpp/classes/os.hpp>
 
+void Orchestration::ConnectionCache::_rebuild() const {
+    if (!_dirty) {
+        return;
+    }
+
+    _input_connections.clear();
+    _output_connections.clear();
+
+    for (const OScriptConnection& E : _connections) {
+        const uint32_t from = key(E.from_node, E.from_port);
+        const uint32_t to = key(E.to_node, E.to_port);
+        _output_connections[from].push_back(to);
+        _input_connections[to].push_back(from);
+    }
+
+    _dirty = false;
+}
+
+uint32_t Orchestration::ConnectionCache::key(int p_node_id, int p_pin_index) {
+    DEV_ASSERT(p_pin_index <= 0xFF);
+    return (static_cast<uint32_t>(p_node_id) << 8) | static_cast<uint32_t>(p_pin_index);
+}
+
+int Orchestration::ConnectionCache::node_from_key(uint32_t p_key) {
+    return static_cast<int>(p_key >> 8);
+}
+
+int Orchestration::ConnectionCache::pin_index_from_key(uint32_t p_key) {
+    return static_cast<int>(p_key & 0xFF);
+}
+
 TypedArray<OScriptNode> Orchestration::_get_nodes_internal() const {
     Array r_out;
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes)
@@ -50,7 +81,7 @@ void Orchestration::_set_nodes_internal(const TypedArray<OScriptNode>& p_nodes) 
 
 TypedArray<int> Orchestration::_get_connections_internal() const {
     Array connections;
-    for (const OScriptConnection& E : _connections) {
+    for (const OScriptConnection& E : _connection_cache.all()) {
         connections.push_back(E.from_node);
         connections.push_back(E.from_port);
         connections.push_back(E.to_node);
@@ -60,7 +91,7 @@ TypedArray<int> Orchestration::_get_connections_internal() const {
 }
 
 void Orchestration::_set_connections_internal(const TypedArray<int>& p_connections) {
-    _connections.clear();
+    _connection_cache.clear();
     for (int i = 0; i < p_connections.size(); i += 4) {
         OScriptConnection connection;
         connection.from_node = p_connections[i];
@@ -68,7 +99,7 @@ void Orchestration::_set_connections_internal(const TypedArray<int>& p_connectio
         connection.to_node = p_connections[i + 2];
         connection.to_port = p_connections[i + 3];
 
-        _connections.insert(connection);
+        _connection_cache.insert(connection);
     }
 }
 
@@ -154,7 +185,7 @@ void Orchestration::_fix_orphans() {
         }
 
         // If a node is orphaned but a connection exists to re-add it back to the graph, do it
-        for (const OScriptConnection& C : _connections) {
+        for (const OScriptConnection& C : _connection_cache.all()) {
             if (C.is_linked_to(E.key)) {
                 for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs) {
                     if (G.value->has_node(C.to_node) || G.value->has_node(C.from_node)) {
@@ -182,7 +213,7 @@ void Orchestration::_fix_orphans() {
 
     {
         RBSet<OScriptConnection> removals;
-        for (const OScriptConnection& C : _connections) {
+        for (const OScriptConnection& C : _connection_cache.all()) {
             if (!_nodes.has(C.from_node) || !_nodes.has(C.to_node)) {
                 removals.insert(C);
             }
@@ -195,7 +226,7 @@ void Orchestration::_fix_orphans() {
 
             WARN_PRINT(vformat("Removing orphan connection for " + C.to_string() + ", either the source or target node no longer exists." + extra));
 
-            _connections.erase(C);
+            _connection_cache.erase(C);
         }
     }
 }
@@ -209,8 +240,8 @@ void Orchestration::_connect_nodes(int p_source_id, int p_source_port, int p_tar
     connection.to_node = p_target_id;
     connection.to_port = p_target_port;
 
-    ERR_FAIL_COND_MSG(_connections.has(connection), "A connection already exists: " + connection.to_string());
-    _connections.insert(connection);
+    ERR_FAIL_COND_MSG(_connection_cache.has(connection), "A connection already exists: " + connection.to_string());
+    _connection_cache.insert(connection);
 
     emit_signal("connections_changed");
 }
@@ -224,8 +255,8 @@ void Orchestration::_disconnect_nodes(int p_source_id, int p_source_port, int p_
     connection.to_node = p_target_id;
     connection.to_port = p_target_port;
 
-    ERR_FAIL_COND_MSG(!_connections.has(connection), "Cannot remove non-existant connection: " + connection.to_string());
-    _connections.erase(connection);
+    ERR_FAIL_COND_MSG(!_connection_cache.has(connection), "Cannot remove non-existant connection: " + connection.to_string());
+    _connection_cache.erase(connection);
 
     // Clean-up graph knots for the connection
     for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs) {
@@ -431,6 +462,10 @@ void Orchestration::add_node(const Ref<OScriptGraph>& p_graph, const Ref<OScript
     // Register the node with the script
     _nodes[p_node->get_id()] = p_node;
 
+    // Make sure pin indices are cached before "node_added" is emitted.
+    // The Editor pin-widget construction queries connections, which will report errors on uncached pins.
+    p_node->cache_pin_indices();
+
     // Register the node with the graph
     p_graph->add_node(p_node);
 }
@@ -455,7 +490,7 @@ void Orchestration::remove_node(int p_node_id) {
     }
 
     List<OScriptConnection> removals;
-    for (const OScriptConnection& connection : _connections) {
+    for (const OScriptConnection& connection : _connection_cache.all()) {
         if (connection.is_linked_to(p_node_id)) {
             removals.push_back(connection);
         }
@@ -464,10 +499,9 @@ void Orchestration::remove_node(int p_node_id) {
     if (!removals.is_empty()) {
         ERR_PRINT("Node still has remaining connects, cleaning them up");
         while (!removals.is_empty()) {
-            _connections.erase(removals.front()->get());
+            _connection_cache.erase(removals.front()->get());
             removals.pop_front();
         }
-
     }
 
     for (const KeyValue<StringName, Ref<OScriptGraph>>& E : _graphs) {
@@ -491,7 +525,7 @@ Vector<Ref<OScriptNode>> Orchestration::get_nodes() const {
 }
 
 const RBSet<OScriptConnection>& Orchestration::get_connections() const {
-    return _connections;
+    return _connection_cache.all();
 }
 
 void Orchestration::disconnect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port) {
@@ -499,7 +533,6 @@ void Orchestration::disconnect_nodes(int p_source_id, int p_source_port, int p_t
 }
 
 Vector<Ref<OScriptNodePin>> Orchestration::get_connections(const OScriptNodePin* p_pin) const {
-    // todo: consider caching pin connections in each pin for performance reasons
     if (!p_pin || p_pin->is_hidden()) {
         return {};
     }
@@ -510,25 +543,21 @@ Vector<Ref<OScriptNodePin>> Orchestration::get_connections(const OScriptNodePin*
     }
 
     const bool input = p_pin->is_input();
-    const int node_id = node->get_id();
+    const uint32_t key = ConnectionCache::key(node->get_id(), p_pin->get_pin_index());
 
+    const Vector<uint32_t>* others = input ? _connection_cache.inputs(key) : _connection_cache.outputs(key);
+    if (!others) {
+        return {};
+    }
+
+    const EPinDirection other_dir = input ? PD_Output : PD_Input;
     Vector<Ref<OScriptNodePin>> results;
-    for (const OScriptConnection& E : _connections) {
-        if (input && E.to_node == node_id && E.to_port == p_pin->get_pin_index()) {
-            const Ref<OScriptNode> other = get_node(E.from_node);
-            if (other.is_valid()) {
-                const Ref<OScriptNodePin> other_pin = other->find_pin(E.from_port, PD_Output);
-                if (other_pin.is_valid()) {
-                    results.push_back(other_pin);
-                }
-            }
-        } else if (!input && E.from_node == node_id && E.from_port == p_pin->get_pin_index()) {
-            const Ref<OScriptNode> other = get_node(E.to_node);
-            if (other.is_valid()) {
-                const Ref<OScriptNodePin> other_pin = other->find_pin(E.to_port, PD_Input);
-                if (other_pin.is_valid()) {
-                    results.push_back(other_pin);
-                }
+    for (uint32_t endpoint : *others) {
+        const Ref<OScriptNode> other = get_node(ConnectionCache::node_from_key(endpoint));
+        if (other.is_valid()) {
+            const Ref<OScriptNodePin> other_pin = other->find_pin(ConnectionCache::pin_index_from_key(endpoint), other_dir);
+            if (other_pin.is_valid()) {
+                results.push_back(other_pin);
             }
         }
     }
@@ -552,7 +581,7 @@ void Orchestration::adjust_connections(const OScriptNode* p_node, int p_offset, 
     // script, so instead we'll cache the data-set specific to the mutation and adjust only those. It
     // should, in theory, be overall less impactful to the data structure in large graphs.
     List<ConnectionData> data;
-    for (const OScriptConnection& E : _connections) {
+    for (const OScriptConnection& E : _connection_cache.all()) {
         if (p_dir != PD_Output && E.to_node == p_node->get_id() && E.to_port >= p_offset) {
             ConnectionData cd;
             cd.existing = E;
@@ -572,12 +601,12 @@ void Orchestration::adjust_connections(const OScriptNode* p_node, int p_offset, 
     // Now that the data set has been cached, the next phase must be done in 2 steps
     // First remove the old entries from the RBSet
     for (const ConnectionData& cd : data) {
-        _connections.erase(cd.existing);
+        _connection_cache.erase(cd.existing);
     }
 
     // Next add the new entries to the RBSet
     for (const ConnectionData& cd : data) {
-        _connections.insert(cd.mutated);
+        _connection_cache.insert(cd.mutated);
     }
 
     emit_signal("connections_changed");
