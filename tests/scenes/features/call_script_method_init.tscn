@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ckpsyg035uyt4"]
+
+[ext_resource type="Script" uid="uid://cvq8w7ybqlft7" path="res://scenes/features/call_script_method_init.torch" id="1_vyxxi"]
+
+[node name="CallScriptMethodInit" type="Node" unique_id=1106073478]
+script = ExtResource("1_vyxxi")
