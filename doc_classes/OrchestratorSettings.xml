@@ -268,6 +268,9 @@
         <member name="runtime/dialogue/default_message_scene" type="String" setter="" getter="" default="&quot;res://addons/orchestrator/scenes/dialogue_message.tscn&quot;">
             The [PackedScene] instantiated to present dialogue messages at runtime.
         </member>
+        <member name="runtime/print_string/layer" type="int" setter="" getter="" default="10">
+            Specifies the [CanvasLayer] layer to be applied to the Print String Overlay HuD.
+        </member>
         <member name="runtime/print_string/overlay_scale" type="String" setter="" getter="" default="&quot;100%&quot;">
             Scale applied to the on-screen overlay used by Print String nodes.
         </member>
