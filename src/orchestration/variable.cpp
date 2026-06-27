@@ -328,14 +328,32 @@ Dictionary OScriptVariable::_get_property_info() const {
 }
 
 bool OScriptVariable::_convert_default_value(Variant::Type p_new_type) {
-    if (p_new_type == Variant::ARRAY) {
-        if (!_info.hint_string.is_empty()) {
-            Array default_value;
-            if (_info.hint_string == "String") {
-                default_value.set_typed(Variant::STRING, "", Variant());
-                set_default_value(default_value);
-                return true;
-            }
+    // An Array/Dictionary that is typed must seed a property typed container with element data.
+    // This is necessary so that all information is carried forward to the Inspector/Serializer, etc.
+    if (p_new_type == Variant::ARRAY && _info.hint == PROPERTY_HINT_ARRAY_TYPE && !_info.hint_string.is_empty()) {
+        Variant::Type builtin; StringName class_name; Variant script;
+        PropertyUtils::get_element_type(_info.hint_string, builtin, class_name, script);
+
+        Array default_value;
+        default_value.set_typed(builtin, class_name, script);
+
+        set_default_value(default_value);
+        return true;
+    }
+
+    if (p_new_type == Variant::DICTIONARY && _info.hint == PROPERTY_HINT_DICTIONARY_TYPE && !_info.hint_string.is_empty()) {
+        const PackedStringArray parts = _info.hint_string.split(";", true);
+        if (parts.size() == 2) {
+            Variant::Type key_builtin; StringName key_class_name; Variant key_script;
+            Variant::Type value_builtin; StringName value_class_name; Variant value_script;
+            PropertyUtils::get_element_type(parts[0], key_builtin, key_class_name, key_script);
+            PropertyUtils::get_element_type(parts[1], value_builtin, value_class_name, value_script);
+
+            Dictionary dict;
+            dict.set_typed(key_builtin, key_class_name, key_script, value_builtin, value_class_name, value_script);
+
+            set_default_value(dict);
+            return true;
         }
     }
 
