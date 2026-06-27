@@ -16,7 +16,6 @@
 //
 #pragma once
 
-#include "orchestration/orchestration.h"
 #include "orchestration/nodes.h"
 #include "script/parser/parser_nodes.h"
 #include "script/parser/function_analyzer.h"
@@ -117,11 +116,31 @@ private:
     List<AnnotationNode*> annotation_stack;
     HashMap<String, Ref<OScriptParserRef>> depended_parsers;
 
+    // Provenance tracking for script nodes.
+    // Every node that is allocated using alloc_node() will be stamped with _current_node_id.
+    int _current_node_id = -1;
+
+    // A simple RAII guard that sets _current_node_id for the duration of a build and restores
+    // the previous node id when the scope ends.
+    struct NodeScope {
+        OScriptParser& parser;
+        int previous_node_id;
+
+        NodeScope(OScriptParser& p_parser, int p_node_id)
+            : parser(p_parser), previous_node_id(p_parser._current_node_id) {
+            parser._current_node_id = p_node_id;
+        }
+        ~NodeScope() {
+            parser._current_node_id = previous_node_id;
+        }
+    };
+
     Node* node_list_head = nullptr;
 
     template <typename T>
     T* alloc_node() {
         T* node = memnew(T);
+        node->script_node_id = _current_node_id;
         node->next = node_list_head;
         node_list_head = node;
         return node;
@@ -314,7 +333,6 @@ private:
     ExpressionNode* build_expression(const Ref<OScriptNode>& p_node, int p_input_index);
     ExpressionNode* build_expression(const Ref<OScriptNodePin>& p_target, const Ref<OScriptNode>& p_source_node, const Ref<OScriptNodePin>& p_source_pin);
     ExpressionNode* build_literal(const Ref<OScriptNodePin>& p_pin); // vars validated
-    ExpressionNode* build_literal(const Variant& p_value, int p_node_id); // vars validated
     IdentifierNode* build_identifier(const StringName& p_name, SuiteNode* p_override_suite = nullptr); // vars validated
     ExpressionNode* build_self(const Ref<OScriptNodeSelf>& p_self, const Ref<OScriptNodePin>& p_pin); // var validated
     ExpressionNode* build_variable_get(const Ref<OScriptNodeVariableGet>& p_node, const Ref<OScriptNodePin>& p_pin); // var validated
