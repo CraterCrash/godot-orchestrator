@@ -64,6 +64,12 @@ public:
     /// @param p_current the current property choice
     void select_property_from_instance(Object* p_instance, const String& p_current = "");
 
+    /// Set property from a class/base type, enumerating properties via <code>ClassDB</code>.
+    /// Useful when no live instance is available, e.g. the object is supplied by a variable.
+    /// @param p_base_type the class name to enumerate properties from
+    /// @param p_current the current property choice
+    void select_property_from_base_type(const String& p_base_type, const String& p_current = "");
+
     /// Set the type filter
     /// @param p_type_filter the types to filter
     void set_type_filter(const Vector<Variant::Type>& p_type_filter);
