@@ -99,6 +99,11 @@ void OrchestratorPropertySelector::_update_search() {
         for (int i = 0; i < list.size(); i++) {
             props.push_back(DictionaryUtils::to_property(list[i]));
         }
+    } else if (!_base_type.is_empty()) {
+        TypedArray<Dictionary> list = ClassDB::class_get_property_list(_base_type);
+        for (int i = 0; i < list.size(); i++) {
+            props.push_back(DictionaryUtils::to_property(list[i]));
+        }
     }
 
     TreeItem* category = nullptr;
@@ -165,6 +170,21 @@ void OrchestratorPropertySelector::select_property_from_instance(Object* p_insta
     _type = Variant::NIL;
     _script = ObjectID();
     _instance = p_instance;
+
+    popup_centered_ratio(0.6);
+
+    _search_box->set_text("");
+    _search_box->grab_focus();
+
+    _update_search();
+}
+
+void OrchestratorPropertySelector::select_property_from_base_type(const String& p_base_type, const String& p_current) {
+    _base_type = p_base_type;
+    _selected = p_current;
+    _type = Variant::NIL;
+    _script = ObjectID();
+    _instance = nullptr;
 
     popup_centered_ratio(0.6);
 
