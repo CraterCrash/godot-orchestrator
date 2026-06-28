@@ -785,15 +785,25 @@ Error OScriptCompiler::parse_block(CompilerContext& p_context, const OScriptPars
 					p_context.generator->pop_temporary();
 				}
 
-				// Then, let's save the type of the value in the stack too, so we can reuse for later comparisons.
-				OScriptDataType typeof_type;
-				typeof_type.kind = OScriptDataType::BUILTIN;
-				typeof_type.builtin_type = Variant::INT;
-				OScriptCodeGenerator::Address type = p_context.add_local("@match_type", typeof_type);
+                // Cache the value type so it can be used for comparisons.
+                // When the value's type is statically matched (hard builtin), the typeof computation
+                // can be determined at compile-time as a constant, so that the per-execution cost of
+                // a typeof utility call can be optimized out, resulting in substantially increasing
+                // the performance of switch nodes.
+				OScriptCodeGenerator::Address type;
+				const OScriptParser::DataType match_value_type = match->test->get_datatype();
+				if (match_value_type.is_hard_type() && match_value_type.kind == OScriptParser::DataType::BUILTIN && match_value_type.builtin_type != Variant::NIL) {
+					type = p_context.add_constant(match_value_type.builtin_type);
+				} else {
+					OScriptDataType typeof_type;
+					typeof_type.kind = OScriptDataType::BUILTIN;
+					typeof_type.builtin_type = Variant::INT;
+					type = p_context.add_local("@match_type", typeof_type);
 
-				Vector<OScriptCodeGenerator::Address> typeof_args;
-				typeof_args.push_back(value);
-				generator->write_call_utility(type, "typeof", typeof_args);
+					Vector<OScriptCodeGenerator::Address> typeof_args;
+					typeof_args.push_back(value);
+					generator->write_call_utility(type, "typeof", typeof_args);
+				}
 
 				// Now we can actually start testing.
 				// For each branch.
