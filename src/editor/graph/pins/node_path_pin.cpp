@@ -185,6 +185,7 @@ void OrchestratorEditorGraphPinNodePath::_node_selected(const NodePath& p_path) 
 
 void OrchestratorEditorGraphPinNodePath::_open_property_selector(Object* p_object, const String& p_selected) {
     String value = p_selected;
+    String base_type;
 
     if (p_object == nullptr) {
         const Ref<OrchestrationGraphPin> pin = _get_dependency_object_pin();
@@ -199,18 +200,24 @@ void OrchestratorEditorGraphPinNodePath::_open_property_selector(Object* p_objec
         }
 
         const Ref<OScriptTargetObject> target = connection->resolve_target();
-        if (!target.is_valid() || !target->has_target()) {
-            // In the event that the self node cannot be resolved, inform user about the edited scene needing to
-            // include the reference to the node with the Orchestration for this lookup to resolve correctly.
-            if (cast_to<OScriptNodeSelf>(connection->get_owning_node())) {
-                OrchestratorEditorDialogs::error(
-                    "This orchestration is not attached to any node in the current edited\n"
-                    "scene, so the reference cannot be resolved and no properties selected.");
+        if (target.is_valid() && target->has_target()) {
+            p_object = target->get_target();
+        } else {
+            // No live instance can be resolved (e.g. the object pin is fed by a variable or a
+            // function result). Fall back to the connection's statically-known class so the
+            // property list can still be enumerated from ClassDB.
+            base_type = connection->get_target_class();
+            if (base_type.is_empty()) {
+                // In the event that the self node cannot be resolved, inform user about the edited scene needing to
+                // include the reference to the node with the Orchestration for this lookup to resolve correctly.
+                if (cast_to<OScriptNodeSelf>(connection->get_owning_node())) {
+                    OrchestratorEditorDialogs::error(
+                        "This orchestration is not attached to any node in the current edited\n"
+                        "scene, so the reference cannot be resolved and no properties selected.");
+                }
+                return;
             }
-            return;
         }
-
-        p_object = target->get_target();
 
         value = _read_control_value();
         if (!value.is_empty() && value.begins_with(":")) {
@@ -222,7 +229,11 @@ void OrchestratorEditorGraphPinNodePath::_open_property_selector(Object* p_objec
     _property_selector->connect("selected", callable_mp_this(_property_selected));
     add_child(_property_selector);
 
-    _property_selector->select_property_from_instance(p_object, value);
+    if (p_object) {
+        _property_selector->select_property_from_instance(p_object, value);
+    } else {
+        _property_selector->select_property_from_base_type(base_type, value);
+    }
 }
 
 void OrchestratorEditorGraphPinNodePath::_property_selected(const String& p_property) {
