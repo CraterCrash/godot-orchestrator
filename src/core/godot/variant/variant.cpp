@@ -208,6 +208,27 @@ GDE::Variant::Type GDE::Variant::get_operator_return_type(godot::Variant::Operat
     ERR_FAIL_INDEX_V(p_operator, godot::Variant::OP_MAX, godot::Variant::NIL);
     ERR_FAIL_INDEX_V(p_left, godot::Variant::VARIANT_MAX, godot::Variant::NIL);
 
+    // Comparison and logical operators always yield a boolean, regardless of operand types.
+    // ExtensionDB only catalogs the builtin math/container types, so operand types it doesn't
+    // track (notably OBJECT and NIL) have no operator rows to scan; short-circuit them.
+    // Mirrors OScriptNodePromotableOperator::_get_result_type().
+    switch (p_operator) {
+        case godot::Variant::OP_EQUAL:
+        case godot::Variant::OP_NOT_EQUAL:
+        case godot::Variant::OP_LESS:
+        case godot::Variant::OP_LESS_EQUAL:
+        case godot::Variant::OP_GREATER:
+        case godot::Variant::OP_GREATER_EQUAL:
+        case godot::Variant::OP_AND:
+        case godot::Variant::OP_OR:
+        case godot::Variant::OP_XOR:
+        case godot::Variant::OP_NOT:
+        case godot::Variant::OP_IN:
+            return godot::Variant::BOOL;
+        default:
+            break;
+    }
+
     const BuiltInType built_in_type = ExtensionDB::get_builtin_type(p_left);
     for (const OperatorInfo& info : built_in_type.operators) {
         if (info.left_type == p_left && info.right_type == p_right && VariantOperators::to_engine(info.op) == p_operator) {
@@ -215,7 +236,7 @@ GDE::Variant::Type GDE::Variant::get_operator_return_type(godot::Variant::Operat
         }
     }
 
-    ERR_FAIL_V_MSG(godot::Variant::NIL, "Failed to resolve return type for operator mapping");
+    return godot::Variant::NIL;
 }
 
 GDExtensionPtrOperatorEvaluator GDE::Variant::get_validated_operator_evaluator(godot::Variant::Operator p_operator, Type p_left, Type p_right) {
