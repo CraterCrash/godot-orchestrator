@@ -72,17 +72,34 @@ runs:
         # Explicitly disable job statistics summary
         job-summary: ""
 
-    - name: Set ccache compression level
+    - name: Configure ccache
       shell: bash
       run: |
         ccache --set-config=compression_level=9
         ccache --set-config=max_size=500M
+        # Hashing hardening so identical compiles reuse across runs. Without these,
+        # ccache's stock defaults treat each run as a fresh compile on platforms where
+        # the toolchain is reinstalled per-run (e.g. the Android NDK via setup-ndk),
+        # because compiler_check defaults to the binary's mtime. That yields ~0% hits,
+        # so every run re-stores the full generated binding set and the cache balloons
+        # to max_size. Hash the compiler's contents (not mtime) and relativize paths.
+        ccache --set-config=compiler_check=content
+        ccache --set-config=base_dir="${{ github.workspace }}"
+        ccache --set-config=hash_dir=false
+        ccache --set-config=sloppiness=time_macros,include_file_mtime,include_file_ctime,locale,pch_defines
+        # Zero the counters so the post-build stats reflect only this run.
+        ccache -z
 
     - name: Build
       shell: sh
       run: |
         cmake --preset ${{ inputs.preset-name }} -S '${{ github.workspace }}'
         cmake --build '${{ github.workspace }}/build/${{ inputs.preset-name }}' --target orchestrator -j 18
+
+    - name: ccache stats
+      if: always()
+      shell: bash
+      run: ccache -s -v
 
     - name: Prune old caches
       if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && steps.restore-cache.outputs.cache-hit != 'true'
