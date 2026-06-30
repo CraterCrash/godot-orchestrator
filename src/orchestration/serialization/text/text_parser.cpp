@@ -379,7 +379,7 @@ Error OrchestrationTextParser::_load() {
             } else {
 
                 const StringName type_name = _remap_class_type(type);
-                if (!GDE::ClassDB::is_class_exposed(type_name)) {
+                if (!GDE::ClassDB::can_instantiate(type_name)) {
                     _error_text = "Class " + type + " is not available";
                     _printerr();
                     return ERR_FILE_CORRUPT;
@@ -498,7 +498,7 @@ Error OrchestrationTextParser::_load() {
 
 		if (!_resource.is_valid()) {
 		    const StringName type_name = _remap_class_type(_type);
-		    if (!GDE::ClassDB::is_class_exposed(type_name)) {
+		    if (!GDE::ClassDB::can_instantiate(type_name)) {
 		        _error_text += "Class " + _type + " is not available";
 		        _printerr();
 		        return ERR_FILE_CORRUPT;

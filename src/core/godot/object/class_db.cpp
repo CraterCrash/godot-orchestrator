@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -26,14 +27,26 @@
 using namespace godot;
 using GClassDB = godot::ClassDB;
 
+bool GDE::ClassDB::can_instantiate(const godot::StringName& p_class_name) {
+    // This intentionally mirrors the Godot ClassDB call to pre-condition when a bad class name
+    // is supplied to avoid an output error message.
+    if (!GClassDB::class_exists(p_class_name)) {
+        if (!ScriptServer::is_global_class(p_class_name)) {
+            return false;
+        }
+    }
+    return GClassDB::can_instantiate(p_class_name);
+}
+
 bool GDE::ClassDB::is_abstract(const StringName& p_class_name) {
     // todo: this is just a workaround for now - this needs to be exposed
     return !GClassDB::can_instantiate(p_class_name);
 }
 
 bool GDE::ClassDB::is_class_exposed(const StringName& p_class_name) {
-    // todo: is there a better way to check this?
-    return GClassDB::get_class_list().has(p_class_name);
+    // todo: today ClassDB::is_class_exposed is not available to scripting
+    // So the closest we can do is check if the class exists.
+    return GClassDB::class_exists(p_class_name);
 }
 
 StringName GDE::ClassDB::get_parent_class_nocheck(const StringName& p_class_name) {
