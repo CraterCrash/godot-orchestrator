@@ -756,7 +756,7 @@ Error OrchestrationBinaryParser::_load() {
         if (resource.is_null()) {
 
             const StringName type_name = _remap_class_type(resource_type);
-            if (!GDE::ClassDB::is_class_exposed(type_name)) {
+            if (!GDE::ClassDB::can_instantiate(type_name)) {
                 ERR_FAIL_V_MSG(ERR_FILE_CORRUPT, _path + ": Class " + resource_type + " is not available");
             }
 
