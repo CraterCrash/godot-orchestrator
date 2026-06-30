@@ -406,6 +406,16 @@ int Orchestration::get_available_id() const {
 }
 
 void Orchestration::set_edited(bool p_edited) {
+    if (p_edited) {
+        // Arm the one-shot source-changed cache on every mutation, even when the orchestration is
+        // already dirty. The `changed` signal below is intentionally deduped, but the export/parse
+        // cache must invalidate on each change to mirror GDScript's source_changed_cache semantics
+        // (otherwise the editor re-parses the base script on every export refresh).
+        if (Ref<OScript> script = as_script(); script.is_valid()) {
+            script->mark_source_changed();
+        }
+    }
+
     // Only notify when the edited state actually changes. Emitting `changed` unconditionally caused
     // every save (which calls set_edited(false) on each open tab to mark it saved) to re-queue a full
     // script validation for tabs whose edited state never changed.

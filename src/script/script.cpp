@@ -331,7 +331,7 @@ bool OScript::_update_exports_placeholder(bool* r_err, bool p_recursive_call, OS
     base_caches.append(this);
 
     bool changed = p_base_exports_changed;
-    if (source_changed_cache || (get_orchestration().is_valid() && get_orchestration()->is_edited())) {
+    if (source_changed_cache) {
         source_changed_cache = false;
         changed = true;
 
@@ -1423,6 +1423,12 @@ void OScript::set_edited(bool p_edited) {
     if (orchestration.is_valid()) {
         orchestration->set_edited(p_edited);
     }
+}
+
+void OScript::mark_source_changed() {
+    #ifdef TOOLS_ENABLED
+    source_changed_cache = true;
+    #endif
 }
 
 void OScript::set_source(const OScriptSource& p_source) {
