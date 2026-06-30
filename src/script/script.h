@@ -313,6 +313,10 @@ public:
 
     void set_edited(bool p_edited);
 
+    /// Arms the one-shot source-changed cache so the next export/parse refresh re-parses.
+    /// Called on every orchestration mutation; mirrors GDScript's source_changed_cache semantics.
+    void mark_source_changed();
+
     void set_source(const OScriptSource& p_source);
     Error load_source_code(const String& p_path);
 
