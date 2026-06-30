@@ -23,6 +23,7 @@ namespace GDE {
     struct ClassDB {
         ClassDB() = delete;
 
+        static bool can_instantiate(const godot::StringName& p_class_name);
         static bool is_abstract(const godot::StringName& p_class_name);
         static bool is_class_exposed(const godot::StringName& p_class_name);
         static godot::StringName get_parent_class_nocheck(const godot::StringName& p_class_name);
