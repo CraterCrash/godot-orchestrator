@@ -20,11 +20,12 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "common/version.h"
-#include "orchestration/orchestration.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/emit_signal.h"
 #include "orchestration/nodes/event.h"
+#include "orchestration/nodes/operator_node.h"
 #include "orchestration/nodes/variables.h"
+#include "orchestration/orchestration.h"
 
 OrchestratorEditorGraphClipboard::Buffer OrchestratorEditorGraphClipboard::_buffer;
 
@@ -243,6 +244,14 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
         }
     }
 
+    // Pass 8 - Restore pin types if pasted PromotableOperator nodes have connections
+    for (const CopyItem& item : _buffer.nodes) {
+        const int new_node_id = connection_remap[item.node->get_id()];
+        const Ref<OrchestrationGraphNode> new_node = p_target->get_orchestration()->get_node(new_node_id);
+        const Ref<OrchestrationGraphNode> old_node = item.node->get_orchestration()->get_node(item.node->get_id());
+        OScriptNodePromotableOperator::copy_pin_types(old_node, new_node);
+    }
+
     return result;
 }
 
@@ -266,6 +275,15 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             uint64_t target_node = connection_remap[C.to_node];
             p_graph->link(source_node, C.from_port, target_node, C.to_port);
         }
+    }
+
+    // Makes sure that if a PromotableOperator node has any connections that are duplicated, the pin types
+    // from the original node are restored.
+    for (OrchestratorEditorGraphNode* node : p_nodes) {
+        const int new_node_id = connection_remap[node->get_id()];
+        const Ref<OrchestrationGraphNode> new_node = p_graph->get_orchestration()->get_node(new_node_id);
+        const Ref<OrchestrationGraphNode> old_node = p_graph->get_orchestration()->get_node(node->get_id());
+        OScriptNodePromotableOperator::copy_pin_types(old_node, new_node);
     }
 
     return result;
