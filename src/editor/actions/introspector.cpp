@@ -831,7 +831,7 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
             _script_node_builder<OScriptNodeLocalVariable>(
                 category,
                 vformat("Local %s Variable", type_name), type_dict)
-            //.graph_type(GraphType::GRAPH_MACRO)
+            .graph_type(GraphType::GRAPH_MACRO)
             .build());
 
         if (!type.properties.is_empty()) {
