@@ -779,6 +779,15 @@ void OrchestratorEditorGraphPanel::_expand_node(OrchestratorEditorGraphNode* p_n
                 _graph->link(connection_remap[C.from_node], C.from_port, connection_remap[C.to_node], C.to_port);
             }
         }
+
+        // Makes sure that if a PromotableOperator node has any connections that are duplicated, the pin types
+        // from the original node are restored.
+        for (int old_node_id : nodes_to_duplicate) {
+            const int new_node_id = connection_remap[old_node_id];
+            const Ref<OrchestrationGraphNode> new_node = _graph->get_orchestration()->get_node(new_node_id);
+            const Ref<OrchestrationGraphNode> old_node = _graph->get_orchestration()->get_node(old_node_id);
+            OScriptNodePromotableOperator::copy_pin_types(old_node, new_node);
+        }
     }
 
     remove_node(p_node, false);
@@ -873,7 +882,15 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
     // Reapply connections in new graph
     for (uint64_t connection_id : connections) {
         const Connection C(connection_id);
-        target_graph->link(C.from_node, C.from_port, C.to_node, C.to_port);
+        const Ref<OrchestrationGraphNode> source_node = target_graph->get_node(C.from_node);
+        const Ref<OrchestrationGraphNode> target_node = target_graph->get_node(C.to_node);
+        if (source_node.is_valid() && target_node.is_valid()) {
+            const Ref<OrchestrationGraphPin> source_pin = source_node->find_pin(C.from_port, PD_Output);
+            const Ref<OrchestrationGraphPin> target_pin = target_node->find_pin(C.to_port, PD_Input);
+            if (source_pin.is_valid() && target_pin.is_valid()) {
+                source_pin->link(target_pin);
+            }
+        }
     }
 
     // Spawn the call functino node in the source graph
@@ -974,7 +991,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
             }
         }
 
-        const Ref<OrchestrationGraphPin> result_exec = result->find_pin(0, PD_Output);
+        const Ref<OrchestrationGraphPin> result_exec = result->find_pin(0, PD_Input);
         if (result_exec.is_valid() && !result_exec->has_any_connections()) {
             const Ref<OrchestrationGraphNode> entry = function->get_owning_node();
             const Ref<OrchestrationGraphPin> entry_exec = entry->find_pin(0, PD_Output);
