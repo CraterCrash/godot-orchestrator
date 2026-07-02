@@ -71,6 +71,7 @@ bool OScriptNodeEvent::is_event_method(const MethodInfo& p_method) {
         array.push_back("_physics_process");
         array.push_back("_process");
         array.push_back("_ready");
+        array.push_back("_shortcut_input");
         array.push_back("_unhandled_input");
         array.push_back("_unhandled_key_input");
         return array;
