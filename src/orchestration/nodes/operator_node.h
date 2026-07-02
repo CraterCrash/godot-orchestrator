@@ -134,4 +134,5 @@ public:
     static String get_operator_lexical_code(VariantOperators::Code p_operator);
     static String get_operator_tooltip_text(VariantOperators::Code p_operator);
 
+    static void copy_pin_types(const Ref<OrchestrationGraphNode>& p_source, const Ref<OrchestrationGraphNode>& p_target);
 };

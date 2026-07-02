@@ -811,6 +811,23 @@ String OScriptNodePromotableOperator::get_operator_tooltip_text(VariantOperators
     }
 }
 
+void OScriptNodePromotableOperator::copy_pin_types(const Ref<OrchestrationGraphNode>& p_source, const Ref<OrchestrationGraphNode>& p_target) {
+    if (p_source.is_null() || p_target.is_null() || !p_target->has_any_connections()) {
+        return;
+    }
+
+    const Ref<OScriptNodePromotableOperator> promotable_operator = p_target;
+    if (promotable_operator.is_null()) {
+        return;
+    }
+
+    for (const Ref<OrchestrationGraphPin>& pin : promotable_operator->get_all_pins()) {
+        if (const Ref<OrchestrationGraphPin>& source_pin = p_source->find_pin(pin->get_pin_name(), pin->get_direction()); source_pin.is_valid()) {
+            promotable_operator->change_pin_types(pin, source_pin->get_type());
+        }
+    }
+}
+
 void OScriptNodePromotableOperator::_bind_methods() {
 
 }
