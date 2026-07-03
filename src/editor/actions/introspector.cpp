@@ -1075,7 +1075,13 @@ void OrchestratorEditorIntrospector::generate_actions_from_autoloads(ActionSet& 
 
 void OrchestratorEditorIntrospector::generate_actions_from_native_classes(ActionSet& r_actions) {
     for (const String& class_name : ClassDB::get_class_list()) {
-        generate_actions_from_class(class_name, r_actions);
+        _get_actions_for_class(
+            class_name,
+            class_name,
+            ClassDB::class_get_method_list(class_name, true),
+            ClassDB::class_get_property_list(class_name, true),
+            ClassDB::class_get_signal_list(class_name, true),
+            r_actions);
     }
 }
 
