@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [2.5.stable](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.5.stable) - 2026-07-03
+
+- [836702d3](http://github.com/CraterCrash/godot-orchestrator/commit/836702d3328503c06caea801937680def2e835b4) - GH-1694 Use main thread script loading on main thread
+- [849951ca](http://github.com/CraterCrash/godot-orchestrator/commit/849951ca027ee54a325a783c3736f80f5fc21726) - GH-1694 Add integration test to GitHub CI
+- [80e3e6be](http://github.com/CraterCrash/godot-orchestrator/commit/80e3e6bebe2e5d94da1827e957a28a1a967365d1) - GH-1694 Avoid crash in OScriptLanguage get_global_map index-accessor
+- [4540b5b0](http://github.com/CraterCrash/godot-orchestrator/commit/4540b5b083e20572524a351f8942ec68668af165) - GH-1694 Improve test harness
+- [0fab1ac2](http://github.com/CraterCrash/godot-orchestrator/commit/0fab1ac299abcf1be196b9e35e621af27d7b5d7a) - GH-1694 Fix editor crash when doing a headless import
+- [fad749ee](http://github.com/CraterCrash/godot-orchestrator/commit/fad749ee87b600c506f4f5cf208dd720b6d333fc) - GH-1689 Fix collapse to function / expand node behavior
+- [e60fa319](http://github.com/CraterCrash/godot-orchestrator/commit/e60fa3190532a245d86fa08edf5cbb2b90db092f) - GH-1688 Treat `_shortcut_input` as an event node type
+- [926b1976](http://github.com/CraterCrash/godot-orchestrator/commit/926b197638d04335d1c8e7d343cdb46ad6d45988) - GH-1687 Do not include local variable nodes in event graphs
+- [4ca15d9e](http://github.com/CraterCrash/godot-orchestrator/commit/4ca15d9e40c26b67b0ac91712223d1a90ab8da4a) - GH-1684 Improve save performance
+ 
 ## [2.5.rc2](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.5.rc2) - 2026-06-29
 
 - [8ec26a27](http://github.com/CraterCrash/godot-orchestrator/commit/8ec26a27e262698f233f34847b3cba833af4fd66) - GH-1672 Improve the performance of switch nodes
