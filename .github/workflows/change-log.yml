@@ -17,6 +17,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # Full history + tags so changelog-generator can diff base-ref..head-ref
+          # without deepening the clone (which triggers "shallow file has changed").
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Generate changes
         id: changelog
