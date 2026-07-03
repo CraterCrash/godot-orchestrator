@@ -29,6 +29,7 @@ import os
 import time
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import urllib.request
@@ -90,17 +91,32 @@ def truncate(text, max_lines=30):
 def parse_version(v):
     return tuple(int(x) for x in v.split(".")[:2])
 
-def is_version_supported(version, scene_file):
+def read_meta(scene_file):
+    """Parse the optional sibling .meta file into a key/value dict.
+    Returns an empty dict when no .meta file exists.
+    """
     meta_file = scene_file.with_suffix(".meta")
     if not meta_file.exists():
-        # If no meta exists, the test is acceptable to run on all versions
-        return True
+        return {}
 
     meta = {}
     for line in meta_file.read_text().splitlines():
+        # Allow full-line comments (starting with #) and blank lines.
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
         if ":" in line:
             key, value = line.split(":", 1)
+            # Allow an inline trailing comment after the value.
+            value = value.split("#", 1)[0]
             meta[key.strip()] = value.strip()
+    return meta
+
+def is_version_supported(version, scene_file):
+    meta = read_meta(scene_file)
+    if not meta:
+        # If no meta exists, the test is acceptable to run on all versions
+        return True
 
     current = parse_version(version)
     if "min_version" in meta and current < parse_version(meta["min_version"]):
@@ -168,7 +184,7 @@ def clean_godot_cache():
         shutil.rmtree(godot_cache)
 
 def import_project():
-    subprocess.run(
+    result = subprocess.run(
         [
             godot_path,
             "--no-header",
@@ -177,11 +193,42 @@ def import_project():
             Path(__file__).parent,
             "--import",
             "--quiet"],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL)
+        capture_output=True,
+        text=True)
+
+    if result.returncode != 0:
+        # A segfault surfaces as a negative return code (e.g. -11 for SIGSEGV).
+        # Surface whatever the binary emitted so the crash can be diagnosed
+        # instead of failing silently on a discarded DEVNULL.
+        signal_name = ""
+        if result.returncode < 0:
+            signal_name = f" ({signal.Signals(-result.returncode).name})"
+        print(f"Project import failed with exit code {result.returncode}"
+              f"{signal_name}", file=sys.stderr)
+        if result.stdout.strip():
+            print("---------- stdout ----------", file=sys.stderr)
+            print(result.stdout.rstrip(), file=sys.stderr)
+        if result.stderr.strip():
+            print("---------- stderr ----------", file=sys.stderr)
+            print(result.stderr.rstrip(), file=sys.stderr)
+        sys.exit(1)
 
 def run_scene(scene_file):
+    meta = read_meta(scene_file)
+
+    # A scene may opt into a fixed timestep so that physics frames are deterministic.
+    # Without --fixed-fps the main loop free-runs against the wall clock, so an unpredictable number of idle
+    # (aka _process) frames elapse before the first physics (_physics_process) tick.
+    # This makes physics lifecycle output impossible to pin down if an .out record needs an explicit order.
+    frame_args = []
+    if "fixed_fps" in meta:
+        frame_args += ["--fixed-fps", meta["fixed_fps"]]
+
+    # Number of main-loop iterations before Godot force-quits.
+    # Defaults to 2.
+    # Physics scenes typically pair this with fixed_fps and quit_after: 1 to capture a single deterministic frame.
+    frame_args += ["--quit-after", meta.get("quit_after", "2")]
+
     start = time.monotonic()
     try:
         result = subprocess.run(
@@ -191,8 +238,7 @@ def run_scene(scene_file):
                 "--headless",
                 "--path",
                 Path(__file__).parent,
-                "--quit-after",
-                "2",
+                *frame_args,
                 "--scene",
                 str(scene_file)],
             capture_output=True,
@@ -317,6 +363,10 @@ def parse_args():
     parser.add_argument(
         "--version", dest="version", default=None,
         help="Godot version to test against (overrides the .gdextension minimum).")
+    parser.add_argument(
+        "--godot-binary", dest="godot_binary", default=None,
+        help="Path to a specific Godot binary to use, bypassing the download "
+             "(also settable via the GODOT_BINARY environment variable).")
     default_jobs = min(os.cpu_count() or 1, MAX_JOBS)
     parser.add_argument(
         "-j", "--jobs", type=int, default=default_jobs,
@@ -330,8 +380,17 @@ def main():
     args = parse_args()
     use_color = sys.stdout.isatty() and not args.no_color
 
-    version = args.version or get_minimum_godot_version()
-    godot_path = download_godot(version)
+    binary = args.godot_binary or os.environ.get("GODOT_BINARY")
+    if binary:
+        godot_path = Path(binary).expanduser()
+        if not godot_path.exists():
+            print(f"Godot binary not found: {godot_path}", file=sys.stderr)
+            sys.exit(1)
+        version = args.version or get_minimum_godot_version()
+        print(f"Using Godot binary {godot_path}")
+    else:
+        version = args.version or get_minimum_godot_version()
+        godot_path = download_godot(version)
 
     update_libraries()
     clean_godot_cache()
