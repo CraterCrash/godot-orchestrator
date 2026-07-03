@@ -32,18 +32,35 @@ Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) {
         return loader->load(path);
     }
 
-    // When called from a background thread, delegate the load to the main thread
-    // via load_threaded_request and wait for it to complete.
-    if (loader->load_threaded_request(path, "", ResourceLoader::CACHE_MODE_IGNORE) == OK) {
-        ResourceLoader::ThreadLoadStatus status;
-        do {
-            status = loader->load_threaded_get_status(path);
-        } while (status == ResourceLoader::THREAD_LOAD_IN_PROGRESS);
+    // When called from the main thread, the script should be loaded synchronously.
+    //
+    // The threaded loader below leaks objects per `preload` call, which shows up as leaked RefCounted
+    // instances at editor exit, whenever a preload-heavy global class is introspected.
+    //
+    // The threaded path below exists only to avoid a ResourceLoader deadlock when called from
+    // a non-main thread, so this limits that to that only case.
+    OS* os = OS::get_singleton();
+    if (os->get_thread_caller_id() != os->get_main_thread_id()) {
+        WARN_PRINT_ONCE(vformat(
+            R"(ScriptServer::GlobalClass::_load_script() reached its off-main-thread fallback for "%s"; )"
+            R"(the threaded loader leaks preload dependencies, move this caller onto the main thread.)",
+            path));
 
-        if (status == ResourceLoader::THREAD_LOAD_LOADED) {
-            return loader->load_threaded_get(path);
+        // When called from a background thread, delegate the load to the main thread
+        // via load_threaded_request and wait for it to complete.
+        if (loader->load_threaded_request(path, "", ResourceLoader::CACHE_MODE_IGNORE) == OK) {
+            ResourceLoader::ThreadLoadStatus status;
+            do {
+                status = loader->load_threaded_get_status(path);
+            } while (status == ResourceLoader::THREAD_LOAD_IN_PROGRESS);
+
+            // Always call load_threaded_get(), even on failure: the threaded loader only
+            // releases the completed task (and any dependencies it already loaded) once the
+            // result is retrieved. Returning without it orphans the task. On failure this
+            // yields an invalid resource, which we normalize to an empty Ref.
+            const Ref<Script> script = loader->load_threaded_get(path);
+            return status == ResourceLoader::THREAD_LOAD_LOADED ? script : Ref<Script>();
         }
-        return {};
     }
 
     return loader->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
