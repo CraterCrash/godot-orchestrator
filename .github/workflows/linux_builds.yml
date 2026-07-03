@@ -48,6 +48,13 @@ jobs:
           cache-name: ${{ matrix.cache-name }}
           preset-name: ${{ matrix.preset }}
 
+      - name: Run integration tests
+        if: matrix.artifact-name == 'linux-editor'
+        shell: bash
+        working-directory: ${{ github.workspace }}/tests
+        run: |
+          python run_integration_tests.py --no-color
+
   build-linux-arm64:
     runs-on: ubuntu-22.04-arm
     name: ${{ matrix.name }}
