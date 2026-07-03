@@ -1,0 +1,5 @@
+# Physics frames only tick once wall-clock time crosses the fixed timestep, so without a fixed fps
+# an unpredictable number _process frames can run before the first _physics_process.
+# These settings pin the timestamp and capture to a single frame.
+fixed_fps: 60   # one physics + one idle step per iteration
+quit_after: 1   # a single deterministic frame
