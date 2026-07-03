@@ -18,6 +18,7 @@
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
@@ -207,11 +208,15 @@ ScriptServer::GlobalClass::GlobalClass(const Dictionary& p_dict) {
 /// ScriptServer
 
 TypedArray<Dictionary> ScriptServer::_get_global_class_list() {
-    // ProjectSettings automatically caches the global class list, so it's safe to recall it.
+    // todo: this can be called from non-main threads, and may not be thread-safe.
     return ProjectSettings::get_singleton()->get_global_class_list();
 }
 
 Dictionary ScriptServer::_get_global_class(const StringName& p_class_name) {
+    if (p_class_name.is_empty()) {
+        return {};
+    }
+
     const TypedArray<Dictionary> list = _get_global_class_list();
     for (uint32_t i = 0; i < list.size(); i++) {
         const Dictionary& entry = list[i];
@@ -223,7 +228,11 @@ Dictionary ScriptServer::_get_global_class(const StringName& p_class_name) {
 }
 
 bool ScriptServer::is_global_class(const StringName& p_class_name) {
-    return !_get_global_class(p_class_name).is_empty();
+    if (p_class_name.is_empty()) {
+        return false;
+    }
+
+    return !ClassDB::class_exists(p_class_name) && !_get_global_class(p_class_name).is_empty();
 }
 
 bool ScriptServer::is_parent_class(const StringName& p_source_class_name, const StringName& p_target_class_name) {

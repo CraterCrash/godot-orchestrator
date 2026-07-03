@@ -34,17 +34,12 @@ OrchestratorEditorActionRegistry* OrchestratorEditorActionRegistry::_singleton =
 void OrchestratorEditorActionRegistry::_rebuild_base_actions() {
     _building = true;
 
-    // The background thread handles all thread-safe work.
-    // Script-loading (global classes, static script methods) is deferred to the main
-    // thread via _complete_on_main_thread to avoid ResourceLoader deadlocks.
-    WorkerThreadPool::get_singleton()->add_task(callable_mp_lambda(this, [&] {
-        if (_immutable_actions.is_empty()) {
-            _build_actions();
-        }
-        _autoloads_updated();
+    if (_immutable_actions.is_empty()) {
+        _build_actions();
+    }
 
-        callable_mp_this(_complete_on_main_thread).call_deferred();
-    }));
+    _autoloads_updated();
+    _complete_on_main_thread();
 }
 
 void OrchestratorEditorActionRegistry::_complete_on_main_thread() {
