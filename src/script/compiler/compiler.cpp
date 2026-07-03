@@ -2926,6 +2926,15 @@ Error OScriptCompiler::prepare_compilation(OScript* p_script, const OScriptParse
         return ERR_BUG;
     }
 
+    // On some engine versions, e.g. Godot 4.4, the global map has not been initialized yet, and this can
+    // lead to errors when trying to get the map entry for a given key during `--import`.
+    //
+    // This gracefully checks and reports a diagnostic without throwing an exception/segfault.
+    if (!OScriptLanguage::get_singleton()->get_global_map().has(base_type.native_type)) {
+        set_error(vformat(R"(OScript bug (please report): Native class "%s" not found.)", base_type.native_type), p_class);
+        return ERR_BUG;
+    }
+
     int native_index = OScriptLanguage::get_singleton()->get_global_map()[base_type.native_type];
     p_script->native = OScriptLanguage::get_singleton()->get_global_array()[native_index];
     if (p_script->native.is_null()) {
