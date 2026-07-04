@@ -250,5 +250,9 @@
   {
     "version": "v2.5.rc2",
     "godot_compatibility": "4.7"
+  },
+  {
+    "version": "v2.5.stable",
+    "godot_compatibility": "4.7"
   }
 ]
