@@ -1452,6 +1452,11 @@ void Orchestration::copy_state(const Ref<Orchestration>& p_other) {
     _set_signals_internal(p_other->_get_signals_internal());
     set_block_signals(false);
 
+    // During the above setters, the model is being replaced with the on-disk snapshot.
+    // In some of these use cases, these setters will temporarily set the edited flag as true, although
+    // since signals are blocked, nothing is emitted to callers. Here we make sure to reset edited.
+    set_edited(false);
+
     // todo:
     //  so this creates a small issue with dependencies in the orchestration.
     //  links such as the OScriptNodeVariable and OScriptVariable objects have already had their signals

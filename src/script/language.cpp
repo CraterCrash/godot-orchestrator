@@ -25,6 +25,9 @@
 #include "core/godot/core_constants.h"
 #include "core/godot/variant/variant.h"
 #include "core/typedefs.h"
+#ifdef TOOLS_ENABLED
+#include "editor/editor.h"
+#endif
 #include "orchestration/nodes/print_string.h"
 #include "orchestration/serialization/text/text_parser.h"
 #include "orchestration/serialization/text/variant_parser.h"
@@ -582,6 +585,20 @@ void OScriptLanguage::_reload_scripts(const Array& p_scripts, bool p_soft_reload
             continue;
         }
 
+        #ifdef TOOLS_ENABLED
+        // Mirror EditorFileSystem::_should_reload_script(): a script open in the editor is reloaded via
+        // the editor's own disk-changed flow (OrchestratorEditor::_test_script_times_on_disk), not the
+        // engine's focus-in filesystem scan. Skip it here so the engine's Script::reload_from_file()
+        // can't clear the unsaved edited flag out from under that flow -- which is exactly how native
+        // scripts stay stable while open in the ScriptEditor.
+        if (const OrchestratorEditor* editor = OrchestratorEditor::get_singleton()) {
+            const Ref<Orchestration> orchestration = script->get_orchestration();
+            if (orchestration.is_valid() && orchestration->is_edited() && editor->get_open_scripts().has(script)) {
+                continue;
+            }
+        }
+        #endif
+
         to_reload.insert(script, HashMap<ObjectID, List<Pair<StringName, Variant>>>());
         if (!p_soft_reload) {
             // Save state and remove script from instance
@@ -598,7 +615,7 @@ void OScriptLanguage::_reload_scripts(const Array& p_scripts, bool p_soft_reload
                 }
             }
 
-            #ifdef DEBUG_ENABLED
+            #ifdef TOOLS_ENABLED
             // Same for placeholders
             while (script->placeholders.size()) {
                 OScriptPlaceHolderInstance* placeholder = *script->placeholders.begin();
