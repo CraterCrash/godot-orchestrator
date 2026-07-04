@@ -38,6 +38,7 @@
 #include <godot_cpp/classes/dpi_texture.hpp>
 #endif
 #include "common/scene_utils.h"
+#include "editor/inspector/new_object_inspector_plugin.h"
 #include "editor/settings/editor_settings.h"
 
 #include <godot_cpp/classes/editor_paths.hpp>
@@ -79,6 +80,7 @@ void OrchestratorPlugin::_register_plugins() {
     _register_plugin<OrchestratorEditorInspectorPluginVariable>();
     _register_plugin<OrchestratorEditorInspectorPluginTypeCast>();
     _register_plugin<OrchestratorEditorInspectorPluginOrchestration>();
+    _register_plugin<OrchestratorEditorInspectorPluginNewObjectNode>();
 
     // Export Plugins
     _register_plugin<OrchestratorEditorExportPlugin>();
