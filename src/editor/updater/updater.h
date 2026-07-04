@@ -131,6 +131,7 @@ class OrchestratorUpdaterVersionPicker : public ConfirmationDialog {
     HTTPRequest* _download = nullptr;
     OptionButton* _release_filter = nullptr;
     CheckBox* _notify_any_release = nullptr;
+    CheckBox* _compatible_only = nullptr;
 
 protected:
     static void _bind_methods();
@@ -148,7 +149,7 @@ protected:
     void _install();
     void _cancel_and_close();
     void _filter_changed(int p_index);
-    void _update_tree(bool p_stable_only = false);
+    void _update_tree(int p_filter = 0);
     void _update_notify_settings();
 
 public:
@@ -172,6 +173,7 @@ class OrchestratorUpdaterButton : public HBoxContainer {
     GDCLASS(OrchestratorUpdaterButton, HBoxContainer);
 
     OrchestratorVersion _plugin_version;
+    OrchestratorVersion _godot_version;
     Vector<OrchestratorRelease> _releases;                      //! Collection of releases
     HashMap<String, OrchestratorReleaseManifest> _manifests;    //! Map of manifests
     OrchestratorUpdaterVersionPicker* _picker = nullptr;        //! Version picker
