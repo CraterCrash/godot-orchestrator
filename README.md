@@ -30,10 +30,9 @@ The following table describes which Orchestrator version you should use based on
 
 | Godot Version | Orchestrator Version   | Development Status                    |
 |---------------|------------------------|---------------------------------------|
-| Godot 4.7.x   | v2.5.x (`main` branch) | Active Development                    |
-| Godot 4.6.x   | v2.4.x (`2.4` branch)  | Bug fixes and Compatible New Features |
-| Godot 4.5.x   | v2.3.x (`2.3` branch)  | Bug fixes only                        |
-| Godot 4.4.x   | v2.2.x (`2.2` branch)  | Bug fixes only                        |
+| Godot 4.8.x   | v2.6.x (`main` branch) | Active Development                    |
+| Godot 4.7.x   | v2.5.x (`2.5` branch)  | Bug fixes and Compatible New Features |
+| Godot 4.6.x   | v2.4.x (`2.4` branch)  | Bug fixes only                        |
 
 **Using the wrong version of Orchestrator with the Godot editor may result in unexpected behavior or crashes.**
 **Additionally, if your Godot version is not listed, it should be assumed the plug-in is not yet 100% compatible.**
@@ -44,11 +43,13 @@ The following Godot versions are no longer supported:
 |---------------|-------------------------------------------|
 | Godot 4.2.x   | 2.0.8.stable (`2.0` branch) on 2026-02-22 |
 | Godot 4.3.x   | 2.1.6.stable (`2.1` branch) on 2026-02-22 |
+| Godot 4.4.x   | 2.2.7.stable (`2.2` branch) on 2026-07-03 |
+| Godot 4.5.x   | 2.3.7.stable (`2.3` branch) on 2026-07-03 |
 
 ## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Features
 
 * A complete visual scripting solution for Godot.
-* Compatible with Godot 4.4+ using Godot GDExtension plug-in technology.
+* Compatible with Godot 4.6+ using Godot GDExtension plug-in technology.
 * Attach an Orchestration Script (OScript) to any Godot scene node just like GDScript or CSharp.
 * Hundreds of nodes in dozens of categories such as Flow Control, Logic, Math, Variables, and more. 
 * Drag-and-drop Editor integration for Scene Nodes, Properties, and Resources.
