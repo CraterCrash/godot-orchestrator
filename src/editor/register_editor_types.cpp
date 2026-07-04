@@ -43,6 +43,7 @@
 #include "editor/gui/select_type_dialog.h"
 #include "editor/gui/window_wrapper.h"
 #include "editor/inspector/function_inspector_plugin.h"
+#include "editor/inspector/new_object_inspector_plugin.h"
 #include "editor/inspector/orchestration_inspector_plugin.h"
 #include "editor/inspector/properties/editor_property_class_name.h"
 #include "editor/inspector/properties/editor_property_extends.h"
@@ -59,8 +60,8 @@
 #include "editor/scene_node_selector.h"
 #include "editor/script_components_container.h"
 #include "editor/script_editor_view.h"
-#include "editor/settings/general_tab.h"
 #include "editor/settings/editor_settings.h"
+#include "editor/settings/general_tab.h"
 #include "editor/settings/input_event_configuration_dialog.h"
 #include "editor/settings/settings_dialog.h"
 #include "editor/settings/shortcuts_tab.h"
@@ -94,6 +95,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginVariable)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginTypeCast)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginOrchestration)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginNewObjectNode)
 
     // Editor bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorTypeSelector)
