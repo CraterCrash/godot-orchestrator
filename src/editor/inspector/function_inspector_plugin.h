@@ -34,6 +34,7 @@ protected:
     void _move_up(int p_index, const Ref<OScriptFunction>& p_function);
     void _move_down(int p_index, const Ref<OScriptFunction>& p_function);
     void _remove_argument(int p_index, const Ref<OScriptFunction>& p_function);
+    void _remove_return_value(int p_index, const Ref<OScriptFunction>& p_function);
     //~ End Function Handlers
 
     /// Swaps two function arguments with one another

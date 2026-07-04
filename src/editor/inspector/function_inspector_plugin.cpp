@@ -36,6 +36,12 @@ void OrchestratorEditorInspectorPluginFunction::_remove_argument(int p_index, co
     }
 }
 
+void OrchestratorEditorInspectorPluginFunction::_remove_return_value(int p_index, const Ref<OScriptFunction>& p_function) {
+    if (p_function.is_valid()) {
+        p_function->set_has_return_value(false);
+    }
+}
+
 void OrchestratorEditorInspectorPluginFunction::_swap(int p_index, int p_pin_offset, int p_argument_offset, const Ref<OScriptFunction>& p_function) {
     for (const Ref<OScriptGraph>& graph : p_function->get_orchestration()->get_graphs()) {
         for (const Ref<OScriptNode>& node : graph->get_nodes()) {
@@ -104,6 +110,7 @@ bool OrchestratorEditorInspectorPluginFunction::_parse_property(Object* p_object
         outputs->set_label("Outputs");
         outputs->set_allow_rearrange(false);
         outputs->setup(false, 1);
+        outputs->connect("remove", callable_mp_this(_remove_return_value).bind(function));
         add_property_editor(p_name, outputs, true);
         return true;
     }
