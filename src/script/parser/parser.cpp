@@ -17,6 +17,7 @@
 #include "script/parser/parser.h"
 
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/method_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
@@ -3803,6 +3804,16 @@ bool OScriptParser::has_class(const ClassNode* p_class) const {
 
     return false;
 }
+
+#ifdef DEBUG_ENABLED
+void OScriptParser::update_project_settings() {
+    is_project_ignoring_warnings = !ORCHESTRATOR_GET("debug/warnings/enable", true).booleanize();
+    for (int i = 0; i < OScriptWarning::WARNING_MAX; i++) {
+        const String setting_path = OScriptWarning::get_setting_path_from_code(CAST_INT_TO_ENUM(OScriptWarning::Code, i));
+        warning_levels[i] = CAST_INT_TO_ENUM(OScriptWarning::WarnLevel, ORCHESTRATOR_GET(setting_path, 0));
+    }
+}
+#endif
 
 // This function is used to determine that a type is "built-in" as opposed to native
 // and custom classes. So `Variant::NIL` and `Variant::OBJECT` are excluded:
