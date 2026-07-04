@@ -66,6 +66,7 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script_editor.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/classes/thread.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 
@@ -1660,7 +1661,11 @@ void OrchestratorEditor::apply_scripts() {
 
 void OrchestratorEditor::reload_scripts(bool p_refresh_only) {
     // Call deferred to make sure it runs on the main thread
-    callable_mp_this(_reload_scripts).call_deferred(p_refresh_only);
+    if (!Thread::is_main_thread()) {
+        callable_mp_this(_reload_scripts).call_deferred(p_refresh_only);
+        return;
+    }
+    _reload_scripts(p_refresh_only);
 }
 
 PackedStringArray OrchestratorEditor::get_unsaved_scripts() const {
