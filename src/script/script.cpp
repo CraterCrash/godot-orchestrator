@@ -558,7 +558,7 @@ TypedArray<Dictionary> OScript::_get_script_signals(bool p_include_base) const {
 }
 
 bool OScript::_editor_can_reload_from_file() {
-    return false;
+    return true;
 }
 
 void OScript::_placeholder_erased(void* p_placeholder) {
