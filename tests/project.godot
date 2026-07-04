@@ -16,8 +16,7 @@ config/icon="res://icon.svg"
 
 [orchestrator]
 
-ui/components_panel/show_graph_friendly_names=false
-ui/components_panel/show_function_friendly_names=false
-ui/graph/grid_pattern="Dots"
-ui/graph/show_advanced_tooltips=true
-ui/nodes/resize_to_content=true
+interface/editor/components_panel/show_function_friendly_names=false
+interface/editor/components_panel/show_graph_friendly_names=false
+interface/editor/graph/show_advanced_tooltips=true
+interface/editor/graph_nodes/resize_to_content=true

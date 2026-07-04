@@ -440,6 +440,7 @@ public:
 
     const List<ParserError>& get_errors() const { return errors; }
     #ifdef DEBUG_ENABLED
+    static void update_project_settings();
     const List<OScriptWarning>& get_warnings() const { return warnings; }
     #endif
 

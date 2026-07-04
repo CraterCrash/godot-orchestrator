@@ -711,10 +711,15 @@ void OrchestratorScriptGraphEditorView::_update_warnings() {
     const Color warning_color = SceneUtils::get_editor_color("warning_color");
     for (const OScriptLanguage::Warning& warning : _warnings) {
         _warnings_panel->push_cell();
-        _warnings_panel->push_meta(warning.node);
-        _warnings_panel->push_color(warning_color);
-        _warnings_panel->add_text(vformat("Node %d - %s: ", warning.node, warning.name));
-        _warnings_panel->pop();
+        if (warning.node != -1) {
+            _warnings_panel->push_meta(warning.node);
+            _warnings_panel->push_color(warning_color);
+            _warnings_panel->add_text(vformat("Node %d - %s: ", warning.node, warning.name));
+            _warnings_panel->pop();
+        } else {
+            _warnings_panel->push_color(warning_color);
+            _warnings_panel->add_text(vformat("Node N/A - %s: ", warning.name));
+        }
         _warnings_panel->pop();
         _warnings_panel->pop();
 
