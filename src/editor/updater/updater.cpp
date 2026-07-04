@@ -40,6 +40,16 @@
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/zip_reader.hpp>
 
+namespace {
+    bool is_notify_about_preview_releases() {
+        return ORCHESTRATOR_GET("editor/settings/updates/notify_about_preview_releases", true);
+    }
+
+    bool is_show_compatible_only() {
+        return ORCHESTRATOR_GET("editor/settings/updates/show_compatible_only", false);
+    }
+}
+
 OrchestratorVersion::Build OrchestratorVersion::Build::parse(const String& p_build) {
     int pos = 0;
     while (pos < p_build.length() && !String::chr(p_build[pos]).is_valid_int()) {
@@ -205,11 +215,6 @@ void OrchestratorUpdaterVersionPicker::_request_download() {
 void OrchestratorUpdaterVersionPicker::_handle_custom_action(const StringName& p_action) {
     if (p_action.match("show_release_notes")) {
         OS::get_singleton()->shell_open(_tree->get_selected()->get_meta("release_url"));
-        // OrchestratorUpdaterReleaseNotesDialog* dialog = memnew(OrchestratorUpdaterReleaseNotesDialog);
-        // dialog->set_text(_tree->get_selected()->get_meta("release_notes"));
-        // dialog->set_exclusive(true);
-        // dialog->set_transient(true);
-        // dialog->popup_exclusive_centered_ratio(this, 0.3);
     }
 }
 
@@ -301,18 +306,32 @@ void OrchestratorUpdaterVersionPicker::_cancel_and_close() {
 }
 
 void OrchestratorUpdaterVersionPicker::_filter_changed(int p_index) {
-    _update_tree(p_index == 1);
+    _update_tree(p_index);
 }
 
-void OrchestratorUpdaterVersionPicker::_update_tree(bool p_stable_only) {
+void OrchestratorUpdaterVersionPicker::_update_tree(int p_filter) {
+    bool stable_only = false;
+    bool compatible_only = false;
+
+    if (p_filter == 1) {
+        stable_only = true;
+    } else if (p_filter == 2) {
+        compatible_only = true;
+    }
+
     _tree->clear();
     _tree->create_item();
     for (const ReleaseItem& release_item : _releases) {
-        if (p_stable_only) {
+        if (stable_only) {
             OrchestratorVersion tag_version = OrchestratorVersion::parse(release_item.release.tag);
             if (!tag_version.build.is_stable()) {
                 continue;
             }
+        }
+
+        const OrchestratorVersion compat_version = OrchestratorVersion::parse(release_item.godot_compatibility);
+        if (compatible_only && !compat_version.is_compatible(_godot_version)) {
+            continue;
         }
 
         int64_t unix_time = Time::get_singleton()->get_unix_time_from_datetime_string(release_item.release.published);
@@ -329,7 +348,6 @@ void OrchestratorUpdaterVersionPicker::_update_tree(bool p_stable_only) {
         const String release_url = StringUtils::default_if_empty(release_item.blog_url, release_item.release.release_url);
         item->set_meta("release_url", release_url);
 
-        const OrchestratorVersion compat_version = OrchestratorVersion::parse(release_item.godot_compatibility);
         if (!compat_version.is_compatible(_godot_version)) {
             item->add_button(0, SceneUtils::get_editor_icon("KeyXScale"), -1, true, "Your Godot version is not compatible");
             item->set_meta("compatible", false);
@@ -346,7 +364,7 @@ void OrchestratorUpdaterVersionPicker::_update_notify_settings() {
 }
 
 void OrchestratorUpdaterVersionPicker::update_tree() {
-    _update_tree(_release_filter->get_selected() == 1);
+    _update_tree(_release_filter->get_selected());
 }
 
 void OrchestratorUpdaterVersionPicker::clear_releases() {
@@ -366,10 +384,15 @@ void OrchestratorUpdaterVersionPicker::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_VISIBILITY_CHANGED: {
             if (is_visible()) {
-                OrchestratorSettings* settings = OrchestratorSettings::get_singleton();
-                _notify_any_release->set_pressed_no_signal(settings->is_notify_about_prereleases());
+                _notify_any_release->set_pressed_no_signal(is_notify_about_preview_releases());
 
-                _update_tree();
+                if (is_show_compatible_only()) {
+                    _release_filter->select(2);
+                } else {
+                    _release_filter->select(0);
+                }
+
+                _update_tree(_release_filter->get_selected());
 
                 _tree->deselect_all();
 
@@ -449,6 +472,7 @@ OrchestratorUpdaterVersionPicker::OrchestratorUpdaterVersionPicker() {
     _release_filter = memnew(OptionButton);
     _release_filter->add_item("All releases");
     _release_filter->add_item("Stable only");
+    _release_filter->add_item("Compatible only");
     SceneUtils::add_margin_child(hbox, "Filter:", _release_filter);
 
     Label* spacer = memnew(Label);
@@ -616,8 +640,8 @@ void OrchestratorUpdaterButton::_update_picker() {
         return;
     }
 
-    OrchestratorSettings* settings=  OrchestratorSettings::get_singleton();
-    const bool notify_pre_releases = settings->is_notify_about_prereleases();
+    const bool notify_pre_releases = is_notify_about_preview_releases();
+    const bool compatible_only = is_show_compatible_only();
 
     _picker->clear_releases();
 
@@ -640,6 +664,11 @@ void OrchestratorUpdaterButton::_update_picker() {
         }
 
         OrchestratorReleaseManifest manifest = _manifests.get(release.tag);
+        OrchestratorVersion godot_compatibility = OrchestratorVersion::parse(manifest.godot_compatibility);
+        if (compatible_only && !godot_compatibility.is_compatible(_godot_version)) {
+            continue;
+        }
+
         _picker->add_release(release, manifest.godot_compatibility, manifest.blog_url);
 
         releases_added = true;
@@ -722,6 +751,13 @@ void OrchestratorUpdaterButton::_notification(int p_what) {
 }
 
 OrchestratorUpdaterButton::OrchestratorUpdaterButton() {
+    GodotVersionInfo gd_version;
+
+    // Generate the editor's current version
+    // Used in compatibility checks
+    _godot_version = OrchestratorVersion::parse(vformat(
+        "v%d.%d.%d", gd_version.major(), gd_version.minor(), gd_version.patch()));
+
     // Generate current plugin version
     // Used in resolving what patches exist
     _plugin_version = OrchestratorVersion::parse(vformat(

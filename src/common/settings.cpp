@@ -262,7 +262,8 @@ void OrchestratorSettings::_initialize_settings() {
     // Settings
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "editor/settings/default_type", PROPERTY_HINT_RESOURCE_TYPE, "Object"), "Node");
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "editor/settings/storage_format", PROPERTY_HINT_ENUM, "Text,Binary"), "Text");
-    GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "editor/settings/updates/notify_about_preview_releases"), false);
+    GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "editor/settings/updates/notify_about_preview_releases"), true);
+    GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "editor/settings/updates/show_compatible_only"), false);
 
     GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::BOOL, "editor/behavior/general/enable_type_promotion"), true);
 
