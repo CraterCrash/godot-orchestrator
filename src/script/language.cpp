@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
+#include "common/macros.h"
 #include "common/resource_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
@@ -161,6 +162,11 @@ void OScriptLanguage::_init() {
     for (const String& singleton_class : Engine::get_singleton()->get_singleton_list()) {
         _add_global(singleton_class, Engine::get_singleton()->get_singleton(singleton_class));
     }
+
+    #ifdef DEBUG_ENABLED
+    OScriptParser::update_project_settings();
+    OCONNECT(ProjectSettings::get_singleton(), "settings_changed", callable_mp_static(&OScriptParser::update_project_settings));
+    #endif
 
     initialized = true;
 }

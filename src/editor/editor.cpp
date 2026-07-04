@@ -1570,6 +1570,13 @@ bool OrchestratorEditor::_is_editor_setting_script_list_visible() const { // NOL
 
 void OrchestratorEditor::_project_settings_changed() {
     _update_input_actions_cache();
+
+    // Needed for when changing debug warning options
+    for (int i = 0; i < _tab_container->get_tab_count(); i++) {
+        if (OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i))) {
+            view->validate();
+        }
+    }
 }
 
 void OrchestratorEditor::_update_input_actions_cache() {

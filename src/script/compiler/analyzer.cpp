@@ -1235,7 +1235,7 @@ bool OScriptAnalyzer::get_function_signature(OScriptParser::Node* p_source, bool
 	    // work in the context of GDExtension because we don't have access to methods bound in the engine.
 	    // So as a workaround, we simply use the "base_native" variable rather than getting the class from
 	    // the MethodBind pointer.
-	    if (r_native_class) {
+	    if (r_native_class && ClassDB::class_has_method(base_native, function_name)) {
 	        *r_native_class = base_native;
 	    }
         #endif // DEBUG_ENABLED
@@ -6192,7 +6192,7 @@ void OScriptAnalyzer::is_shadowing(OScriptParser::IdentifierNode* p_identifier, 
 		if (base_class != nullptr) {
 			if (base_class->has_member(name)) {
 				parser->push_warning(p_identifier, OScriptWarning::SHADOWED_VARIABLE, p_context, p_identifier->name,
-				    base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_script_node_id()));
+				    base_class->get_member(name).get_type_name());
 				return;
 			}
 			base_class = base_class->base_type.class_type;
