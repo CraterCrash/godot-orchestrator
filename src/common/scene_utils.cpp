@@ -17,7 +17,6 @@
 #include "scene_utils.h"
 
 #include "common/macros.h"
-#include "core/godot/io/resource_uid.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -28,6 +27,7 @@
 #include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/theme.hpp>
@@ -83,7 +83,7 @@ namespace SceneUtils {
     Ref<Texture2D> get_icon(const String& p_name) {
         String name;
         if (p_name.begins_with("uid://")) {
-            name = GDE::ResourceUID::uid_to_path(p_name);
+            name = ResourceUID::uid_to_path(p_name);
         } else if (p_name.begins_with("res://")) {
             name = p_name;
         } else {
@@ -297,7 +297,6 @@ namespace SceneUtils {
     }
 
     String get_theme_type(const String& p_base_type) {
-        #if GODOT_VERSION >= 0x040600
         const String style = EI->get_editor_settings()->get_setting("interface/theme/style");
         if (style == "Modern") {
             if (p_base_type == "ItemList") {
@@ -308,12 +307,10 @@ namespace SceneUtils {
                 return "ScrollContainerSecondary";
             }
         }
-        #endif
         return p_base_type;
     }
 
     void set_theme_type_variation(Control* p_control, const String& p_base_type) {
-        #if GODOT_VERSION >= 0x040600
         if (p_control) {
             const String style = EI->get_editor_settings()->get_setting("interface/theme/style");
             if (style == "Modern") {
@@ -326,7 +323,6 @@ namespace SceneUtils {
                 }
             }
         }
-        #endif
     }
 
     Ref<Texture2D> get_sized_icon(const Ref<Texture2D>& p_icon, int p_size) {

@@ -19,7 +19,6 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
-#include "common/version.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/function_entry.h"
 #include "orchestration/nodes/function_result.h"
@@ -396,11 +395,7 @@ void OScriptFunction::remove_argument(int p_index) {
             _orchestration->adjust_connections(entry.ptr(), p_index + 1, -1, PD_Output);
         }
 
-        #if GODOT_VERSION >= 0x040600
         _method.arguments.remove_at(p_index);
-        #else
-        _method.arguments.erase(_method.arguments.begin() + p_index);
-        #endif
 
         emit_changed();
     }

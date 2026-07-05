@@ -16,17 +16,9 @@
 //
 #pragma once
 
-#include "common/version.h"
 #include <godot_cpp/templates/hashfuncs.hpp>
 
 namespace godot {
-    #if GODOT_VERSION < 0x040500
-    template <typename T>
-    struct THashableHasher {
-        static _FORCE_INLINE_ uint32_t hash(const T& hashtable) { return hashtable.hash(); }
-    };
-    #else
     template <typename T>
     using THashableHasher = HashableHasher<T>;
-    #endif
 }

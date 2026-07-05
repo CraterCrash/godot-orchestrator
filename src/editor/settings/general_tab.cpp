@@ -94,10 +94,8 @@ OrchestratorEditorSettingsGeneralTab::OrchestratorEditorSettingsGeneralTab() {
 
     _search_box = memnew(LineEdit);
     _search_box->set_placeholder("Filter Settings");
-    #if GODOT_VERSION >= 0x040500
     _search_box->set_accessibility_name("Filter Settings");
     _search_box->set_virtual_keyboard_show_on_focus(false);
-    #endif
     _search_box->set_clear_button_enabled(true);
     _search_box->set_h_size_flags(SIZE_EXPAND_FILL);
     hbox->add_child(_search_box);
@@ -128,9 +126,7 @@ OrchestratorEditorSettingsGeneralTab::OrchestratorEditorSettingsGeneralTab() {
     restart_hbox->add_child(_restart_icon);
 
     _restart_label = memnew(Label);
-    #if GODOT_VERSION >= 0x040500
     _restart_label->set_focus_mode(FOCUS_ACCESSIBILITY);
-    #endif
     _restart_label->set_text("The editor must be restarted for changes to take effect.");
 
     restart_hbox->add_child(_restart_label);
@@ -142,9 +138,7 @@ OrchestratorEditorSettingsGeneralTab::OrchestratorEditorSettingsGeneralTab() {
     restart_hbox->add_child(restart_button);
 
     _restart_close_button = memnew(Button);
-    #if GODOT_VERSION >= 0x040500
     _restart_close_button->set_accessibility_name("Close");
-    #endif
     _restart_close_button->set_flat(true);
     _restart_close_button->connect(SceneStringName(pressed), callable_mp_this(_editor_restart_close));
     restart_hbox->add_child(_restart_close_button);

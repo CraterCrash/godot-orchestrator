@@ -448,11 +448,7 @@ void OrchestratorEditorActionMenu::_visibility_changed() {
     } else {
         _load_user_data();
 
-        #if GODOT_VERSION >= 0x040600
         callable_mp_cast(_search_box, Control, grab_focus).call_deferred(false);
-        #else
-        callable_mp_cast(_search_box, Control, grab_focus).call_deferred();
-        #endif
 
         _search_box->select_all();
     }

@@ -40,12 +40,7 @@ void OrchestrationSerializer::_decode_and_set_flags(const String& p_path, uint32
 
 bool OrchestrationSerializer::_is_resource_built_in(const Ref<Resource>& p_resource) {
     if (p_resource.is_valid()) {
-        #if GODOT_VERSION >= 0x040500
         return p_resource->is_built_in();
-        #else
-        String path_cache = p_resource->get_path();
-        return path_cache.is_empty() || path_cache.contains("::") || path_cache.begins_with("local://");
-        #endif
     }
     return false;
 }
