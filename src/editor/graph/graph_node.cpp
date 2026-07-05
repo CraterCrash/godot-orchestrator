@@ -266,7 +266,8 @@ void OrchestratorEditorGraphNode::_create_indicators() {
     }
 
     const Ref<OScriptNodeCallFunction> call_func = _node;
-    if (call_func.is_valid() && call_func->is_awaited()) {
+    const Ref<OScriptNodeCallStaticFunction> static_call_func = _node;
+    if ((call_func.is_valid() && call_func->is_awaited()) || static_call_func.is_valid() && static_call_func->is_awaited()) {
         _add_indicator("Timer", "Awaits for the node as a coroutine.");
     }
 

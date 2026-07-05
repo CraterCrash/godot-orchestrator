@@ -118,6 +118,7 @@ bool OScriptNodeCallFunction::_set(const StringName& p_name, const Variant& p_va
         return true;
     } else if (p_name.match("await")) {
         _await = p_value;
+        _notify_pins_changed();
         return true;
     }
     return false;
@@ -842,6 +843,7 @@ bool OScriptNodeCallStaticFunction::_set(const StringName& p_name, const Variant
         return true;
     } else if (p_name.match("await")) {
         _await = p_value;
+        _notify_pins_changed();
         return true;
     }
     return false;
