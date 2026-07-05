@@ -19,7 +19,6 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
-#include "common/version.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/emit_signal.h"
 #include "orchestration/nodes/event.h"
@@ -151,11 +150,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     // Pass 5 - Compute Paste Offset
     Vector2 offset = p_offset;
     if (!_buffer.nodes.is_empty()) {
-        #if GODOT_VERSION >= 0x040500
         offset -= _buffer.nodes.get(0).position;
-        #else
-        offset -= _buffer.nodes[0].position;
-        #endif
     }
 
     if (p_snapping_enabled) {

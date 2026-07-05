@@ -18,9 +18,9 @@
 
 #include "api/extension_db.h"
 #include "common/variant_utils.h"
-#include "core/godot/io/resource_uid.h"
 #include "script/script_server.h"
 
+#include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
 GDE::GodotType GDE::TypeResolver::resolve(const String& p_type_name) {

@@ -40,7 +40,6 @@
 #include "script/script.h"
 
 #include <godot_cpp/classes/editor_settings.hpp>
-#include <godot_cpp/classes/image.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
@@ -362,10 +361,8 @@ void OrchestratorScriptComponentsContainer::_component_item_button_clicked(Node*
                 dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
                 dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
                 dialog->set_flag(Window::FLAG_RESIZE_DISABLED, true);
-                #if GODOT_VERSION >= 0x040500
                 dialog->set_flag(Window::FLAG_MAXIMIZE_DISABLED, true);
                 dialog->set_flag(Window::FLAG_MINIMIZE_DISABLED, true);
-                #endif
                 add_child(dialog);
 
                 OrchestratorEditorTypeSelector* selector = memnew(OrchestratorEditorTypeSelector);
@@ -960,11 +957,7 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
 
     // Always guarantee that "EventGraph" is at the top
     if (graph_names.has("EventGraph")) {
-        #if GODOT_VERSION >= 0x040500
         graph_names.erase("EventGraph");
-        #else
-        graph_names.remove_at(graph_names.find("EventGraph"));
-        #endif
         graph_names.insert(0, "EventGraph");
     }
 

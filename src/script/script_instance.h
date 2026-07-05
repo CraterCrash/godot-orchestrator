@@ -16,7 +16,6 @@
 //
 #pragma once
 
-#include "common/version.h"
 #include "script/compiler/compiled_function.h"
 
 #include <godot_cpp/classes/script_language.hpp>
@@ -47,9 +46,7 @@ protected:
 
     OScriptInstanceBase(const Ref<OScript>& p_script, Object* p_owner);
 
-    #if GODOT_VERSION >= 0x040500
     bool _is_same_script_instance() const;
-    #endif
 
     virtual LocalVector<PropertyInfo> _get_property_list() = 0;
     virtual LocalVector<MethodInfo> _get_method_list() const = 0;

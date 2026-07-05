@@ -17,7 +17,6 @@
 #include "core/godot/config/project_settings_cache.h"
 
 #include "common/macros.h"
-#include "core/godot/io/resource_uid.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
@@ -46,7 +45,7 @@ void OrchestratorProjectSettingsCache::_settings_changed() {
             ai.path = ai.singleton ? path.substr(1) : path;
             if (ai.path.begins_with("uid://")) {
                 ai.uid = ai.path;
-                ai.path = GDE::ResourceUID::uid_to_path(ai.path);
+                ai.path = ResourceUID::uid_to_path(ai.path);
             }
             autoloads[ai.name] = ai;
         }
