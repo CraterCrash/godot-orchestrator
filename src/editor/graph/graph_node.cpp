@@ -32,6 +32,7 @@
 #include "orchestration/nodes/editable_pin_node.h"
 #include "orchestration/nodes/self.h"
 #include "orchestration/nodes/type_cast.h"
+#include "orchestration/orchestration.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
@@ -384,6 +385,11 @@ void OrchestratorEditorGraphNode::set_node(const Ref<OrchestrationGraphNode>& p_
     // Serves to handle toggling pin default value visibility when pins are connected/disconnected
     _node->connect("pin_connected", callable_mp_this(_pin_connection_status_changed).bind(true));
     _node->connect("pin_disconnected", callable_mp_this(_pin_connection_status_changed).bind(false));
+
+    // This propagates pin changes to marking the orchestration as edited
+    _node->connect("pins_changed", callable_mp_lambda(this, [this] {
+        _node->get_orchestration()->set_edited(true);
+    }));
 
     // When the editor is opened in floating mode, the styles need to be applied deferred.
     // This is so the parenting of the editor to the window has been applied before the style lookup occurs
