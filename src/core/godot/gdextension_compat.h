@@ -23,11 +23,7 @@
 /// In Godot 4.6, the GDExtension API namespace changed from 'godot::internal' with all methods prefixed with
 /// 'gdextension_interface' to a new namespace 'godot::gdextension_interface' where the method prefix was
 /// dropped since it's part of the namespace. This macro eases that transition.
-#if GODOT_VERSION >= 0x040600
 #define GDE_INTERFACE(m_func) ::godot::gdextension_interface::m_func
-#else
-#define GDE_INTERFACE(m_func) ::godot::internal::gdextension_interface_##m_func
-#endif
 
 // Utility helper for migration from std::vector to LocalVector use cases
 template <typename T>

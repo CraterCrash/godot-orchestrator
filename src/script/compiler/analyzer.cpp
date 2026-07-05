@@ -6508,16 +6508,9 @@ void OScriptAnalyzer::downgrade_node_type_source(OScriptParser::Node* p_node) {
 
 Ref<OScript> OScriptAnalyzer::get_depended_shallow_script(const String& p_path, Error& r_error) {
     // To keep a local cache of the parser for resolving external nodes later.
-    #if GODOT_VERSION >= 0x040500
     const String path = ResourceUID::ensure_path(p_path);
     parser->get_depended_parser_for(path);
-    Ref<OScript> scr = OScriptCache::get_shallow_script(path, r_error, parser->script_path);
-    #else
-    parser->get_depended_parser_for(p_path);
-    Ref<OScript> scr = OScriptCache::get_shallow_script(p_path, r_error, parser->script_path);
-    #endif
-
-    return scr;
+    return OScriptCache::get_shallow_script(path, r_error, parser->script_path);
 }
 
 Error OScriptAnalyzer::resolve_inheritance() {

@@ -19,7 +19,6 @@
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
-#include "common/version.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/gui/dialogs_helper.h"
@@ -53,9 +52,7 @@ void OrchestratorEditorPropertyExtends::_select_extends_path() {
     dialog->set_hide_on_ok(true);
     dialog->clear_filters();
     dialog->add_filter("*.os,*.torch", "Orchestrations");
-    #if GODOT_VERSION >= 0x040500
     dialog->set_customization_flag_enabled(FileDialog::CUSTOMIZATION_FILE_FILTER, false);
-    #endif
     dialog->connect("canceled", callable_mp_lambda(this, [dialog] { dialog->queue_free(); }));
     dialog->connect("file_selected", callable_mp_this(_extends_path_selected));
     add_child(dialog);

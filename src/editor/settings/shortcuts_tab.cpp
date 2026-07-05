@@ -83,9 +83,7 @@ OrchestratorEditorEventSearchBar::OrchestratorEditorEventSearchBar() {
     _search_by_name = memnew(LineEdit);
     _search_by_name->set_h_size_flags(SIZE_EXPAND_FILL);
     _search_by_name->set_placeholder("Filter by Name");
-    #if GODOT_VERSION >= 0x040500
     _search_by_name->set_accessibility_name("Filter by Name");
-    #endif
     _search_by_name->set_clear_button_enabled(true);
     _search_by_name->connect(SceneStringName(text_changed), callable_mp_this(_value_changed).unbind(1));
     add_child(_search_by_name);
@@ -93,9 +91,7 @@ OrchestratorEditorEventSearchBar::OrchestratorEditorEventSearchBar() {
     _search_by_event = memnew(OrchestratorEditorInputEventListenerLineEdit);
     _search_by_event->set_h_size_flags(SIZE_EXPAND_FILL);
     _search_by_event->set_stretch_ratio(0.75);
-    #if GODOT_VERSION >= 0x040500
     _search_by_event->set_accessibility_name("Action Event");
-    #endif
     _search_by_event->connect("event_changed", callable_mp_this(_event_changed));
     add_child(_search_by_event);
 
@@ -577,9 +573,7 @@ OrchestratorEditorSettingsShortcutsTab::OrchestratorEditorSettingsShortcutsTab()
     add_child(mc);
 
     _shortcuts = memnew(Tree);
-    #if GODOT_VERSION >= 0x040500
     _shortcuts->set_accessibility_name("Shortcuts");
-    #endif
     _shortcuts->set_theme_type_variation("TreeTable");
     _shortcuts->set_columns(2);
     _shortcuts->set_hide_root(true);

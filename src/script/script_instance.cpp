@@ -294,11 +294,9 @@ const OScriptInstanceInfo OScriptInstance::INSTANCE_INFO = [] {
     return result;
 }();
 
-#if GODOT_VERSION >= 0x040500
 bool OScriptInstanceBase::_is_same_script_instance() const {
     return _owner && GDE_INTERFACE(object_get_script_instance)(_owner->_owner, OScriptLanguage::get_singleton()) == this;
 }
-#endif
 
 void OScriptInstanceBase::property_set_fallback(const StringName& p_name, const Variant& p_value, bool* r_valid) {
     if (r_valid) {
@@ -1231,16 +1229,9 @@ void OScriptPlaceHolderInstance::update(const List<PropertyInfo>& p_properties, 
         to_remove.pop_front();
     }
 
-    #if GODOT_VERSION >= 0x040500
     if (_owner && _is_same_script_instance()) {
         _owner->notify_property_list_changed();
     }
-    #else
-    // This may be less efficient on older versions
-    if (_owner) {
-        _owner->notify_property_list_changed();
-    }
-    #endif
 
     _constants.clear();
     _script->get_constants(&_constants);
