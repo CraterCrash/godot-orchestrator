@@ -18,29 +18,26 @@
 
 #include "common/macros.h"
 #include "common/resource_utils.h"
+#include "common/scene_utils.h"
 #include "common/version.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/editor.h"
 #include "editor/export/orchestration_export_plugin.h"
 #include "editor/gui/window_wrapper.h"
 #include "editor/inspector/function_inspector_plugin.h"
+#include "editor/inspector/new_object_inspector_plugin.h"
 #include "editor/inspector/orchestration_inspector_plugin.h"
 #include "editor/inspector/signal_inspector_plugin.h"
 #include "editor/inspector/type_cast_inspector_plugin.h"
 #include "editor/inspector/variable_inspector_plugin.h"
 #include "editor/script_editor_view.h"
+#include "editor/settings/editor_settings.h"
 #include "editor/settings/settings_dialog.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
-#if GODOT_VERSION >= 0x040500
 #include <godot_cpp/classes/dpi_texture.hpp>
-#endif
-#include "common/scene_utils.h"
-#include "editor/inspector/new_object_inspector_plugin.h"
-#include "editor/settings/editor_settings.h"
-
 #include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
@@ -287,12 +284,11 @@ String OrchestratorPlugin::_get_plugin_name() const {
 }
 
 Ref<Texture2D> OrchestratorPlugin::_get_plugin_icon() const {
-    #if GODOT_VERSION >= 0x040500
     Ref<FileAccess> file = FileAccess::open("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg", FileAccess::READ);
     if (file.is_valid()) {
         return DPITexture::create_from_string(file->get_as_text(), EDSCALE);
     }
-    #endif
+
     return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo_16x16.svg");
 }
 

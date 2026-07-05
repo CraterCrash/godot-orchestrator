@@ -27,11 +27,7 @@
 ///
 struct GodotVersionInfo {
 private:
-    #if GODOT_VERSION >= 0x040500
     GDExtensionGodotVersion2 _version;
-    #else
-    GDExtensionGodotVersion _version;
-    #endif
 
 public:
     constexpr uint32_t major() const { return _version.major; }
@@ -51,17 +47,9 @@ public:
     }
 
     explicit GodotVersionInfo() {
-        #if GODOT_VERSION >= 0x040500
         GDE_INTERFACE(get_godot_version2)(&_version);
-        #else
-        GDE_INTERFACE(get_godot_version)(&_version);
-        #endif
     }
 
     // Should only be used in tests, runtime code should use the no-arg constructor
-    #if GODOT_VERSION >= 0x040500
     constexpr GodotVersionInfo(const GDExtensionGodotVersion2& v) : _version(v) {}
-    #else
-    constexpr GodotVersionInfo(const GDExtensionGodotVersion& v) : _version(v) {}
-    #endif
 };

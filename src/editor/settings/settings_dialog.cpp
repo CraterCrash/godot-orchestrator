@@ -121,9 +121,7 @@ void OrchestratorEditorSettingsDialog::_bind_methods() {
 OrchestratorEditorSettingsDialog::OrchestratorEditorSettingsDialog() {
     set_title("Orchestrator Settings");
     set_ok_button_text("Close");
-    #if GODOT_VERSION >= 0x040500
     set_flag(FLAG_MAXIMIZE_DISABLED, false);
-    #endif
 
     _tabs = memnew(TabContainer);
     _tabs->set_theme_type_variation("TabContainerOdd");

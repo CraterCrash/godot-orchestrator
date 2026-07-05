@@ -1243,9 +1243,7 @@ OrchestratorEditorInputEventConfigurationDialog::OrchestratorEditorInputEventCon
     add_child(main_vbox);
 
     _event_as_text = memnew(Label);
-    #if GODOT_VERSION >= 0x040500
     _event_as_text->set_focus_mode(Control::FOCUS_ACCESSIBILITY);
-    #endif
     _event_as_text->set_custom_minimum_size(Size2(500, 0) * EDSCALE);
     _event_as_text->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
     _event_as_text->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
@@ -1269,9 +1267,7 @@ OrchestratorEditorInputEventConfigurationDialog::OrchestratorEditorInputEventCon
 	_input_list_search = memnew(LineEdit);
 	_input_list_search->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	_input_list_search->set_placeholder("Filter Inputs");
-    #if GODOT_VERSION >= 0x040500
 	_input_list_search->set_accessibility_name("Filter Inputs");
-    #endif
 	_input_list_search->set_clear_button_enabled(true);
 	_input_list_search->connect(SceneStringName(text_changed), callable_mp_this(_search_term_updated));
 	manual_vbox->add_child(_input_list_search);
@@ -1283,9 +1279,7 @@ OrchestratorEditorInputEventConfigurationDialog::OrchestratorEditorInputEventCon
 
 	_input_list_tree = memnew(Tree);
 	_input_list_tree->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-    #if GODOT_VERSION >= 0x040600
 	_input_list_tree->set_scroll_hint_mode(Tree::SCROLL_HINT_MODE_BOTH);
-    #endif
 	_input_list_tree->connect("item_activated", callable_mp_this(_input_list_item_activated));
 	_input_list_tree->connect(SceneStringName(item_selected), callable_mp_this(_input_list_item_selected));
 	mc->add_child(_input_list_tree);
@@ -1319,9 +1313,8 @@ OrchestratorEditorInputEventConfigurationDialog::OrchestratorEditorInputEventCon
 		_device_id_option->add_item(OrchestratorEditorInputEventListenerLineEdit::get_device_string(i));
 	}
 	_device_id_option->connect(SceneStringName(item_selected), callable_mp_this(_device_selection_changed));
-    #if GODOT_VERSION >= 0x040500
 	_device_id_option->set_accessibility_name("Device:");
-    #endif
+
 	_set_current_device(OrchestratorEditorInputEventListenerLineEdit::ALL_DEVICES);
 	_device_container->add_child(_device_id_option);
 
@@ -1380,9 +1373,7 @@ OrchestratorEditorInputEventConfigurationDialog::OrchestratorEditorInputEventCon
 	_key_location->add_item(String(), KEY_LOCATION_LEFT);
 	_key_location->add_item(String(), KEY_LOCATION_RIGHT);
 	_key_location->connect(SceneStringName(item_selected), callable_mp_this(_key_location_selected));
-    #if GODOT_VERSION >= 0x040500
 	_key_location->set_accessibility_name("Physical Location");
-    #endif
 
 	_location_container->add_child(_key_location);
 	_additional_options_container->add_child(_location_container);

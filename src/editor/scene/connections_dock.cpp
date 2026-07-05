@@ -122,14 +122,12 @@ void OrchestratorEditorConnectionsDock::_notification(int p_what) {
 
                 _connections_dock = editor_node->find_child("Signals", true, false);
 
-                #if GODOT_VERSION >= 0x040600
                 if (_connections_dock) {
                     // In Godot 4.6, the ConnectionsDock became nested by a SignalsDock where Groups/Signals
                     // were split from one another to be their own independent docks. The connections dock
                     // has matched to the SignalsDock, so go one down to the ConnectionsDock.
                     _connections_dock = _connections_dock->get_child(0);
                 }
-                #endif
 
                 if (_connections_dock) {
                     const TypedArray<Node> tree = _connections_dock->find_children(
