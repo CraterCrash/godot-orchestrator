@@ -466,9 +466,11 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     }
 
     const Ref<OScriptNodeCallFunction> call_function = script_node;
-    if (call_function.is_valid()) {
+    const Ref<OScriptNodeCallStaticFunction> static_call_function = script_node;
+    if (call_function.is_valid() || static_call_function.is_valid()) {
         menu->add_separator("Settings");
-        menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/await_function"), callable_mp_this(_toggle_await_function).bind(p_node), call_function->is_awaited(), false);
+        bool is_awaited = (call_function.is_valid() && call_function->is_awaited()) || (static_call_function.is_valid() && static_call_function->is_awaited());
+        menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/await_function"), callable_mp_this(_toggle_await_function).bind(p_node), is_awaited, false);
     }
 
     menu->add_separator("Organization");
@@ -1236,8 +1238,12 @@ void OrchestratorEditorGraphPanel::_toggle_await_function(OrchestratorEditorGrap
     ERR_FAIL_NULL_MSG(p_node, "Cannot toggle function await on an invalid node reference");
 
     const Ref<OScriptNodeCallFunction> call_function_node = p_node->get_graph_node();
+    const Ref<OScriptNodeCallStaticFunction> static_call_function_node = p_node->get_graph_node();
     if (call_function_node.is_valid()) {
         call_function_node->set_awaited(!call_function_node->is_awaited());
+        _set_edited(true);
+    } else if (static_call_function_node.is_valid()) {
+        static_call_function_node->set_awaited(!static_call_function_node->is_awaited());
         _set_edited(true);
     }
 }
