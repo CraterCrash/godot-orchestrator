@@ -94,6 +94,11 @@ namespace SceneUtils {
     /// @return the wrapped tooltip text
     String create_wrapped_tooltip_text(const String& p_tooltip_text, int p_width = 512);
 
+    /// Get the scene base node (first node with the script attached)
+    /// @param p_script the script
+    /// @return the scene base node or null if not found
+    Node* get_scene_base_node(const Ref<Script>& p_script);
+
     /// Finds the first node with the specified script attached
     /// @param p_script the script instance, should be valid
     /// @param p_node the node being inspected, should not be <code>null</code>

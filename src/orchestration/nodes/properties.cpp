@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/property_utils.h"
+#include "common/scene_utils.h"
 #include "orchestration/orchestration.h"
 #include "script/script_server.h"
 
@@ -26,21 +27,23 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 
 void OScriptNodeProperty::_get_property_list(List<PropertyInfo>* r_list) const {
-    uint32_t usage = PROPERTY_USAGE_STORAGE;
+    uint32_t mode_usage = PROPERTY_USAGE_STORAGE;
+    uint32_t path_usage = PROPERTY_USAGE_STORAGE;
     if (!_node_path.is_empty()) {
-        usage |= PROPERTY_USAGE_EDITOR;
-        usage |= PROPERTY_USAGE_READ_ONLY;
+        mode_usage |= PROPERTY_USAGE_EDITOR;
+        mode_usage |= PROPERTY_USAGE_READ_ONLY;
+        path_usage |= PROPERTY_USAGE_EDITOR;
     }
 
     const String modes = "Self,Instance,Node Path";
-    r_list->push_back(PropertyInfo(Variant::INT, "mode", PROPERTY_HINT_ENUM, modes, usage));
+    r_list->push_back(PropertyInfo(Variant::INT, "mode", PROPERTY_HINT_ENUM, modes, mode_usage));
 
     // todo: deprecated, remove in a future release
     r_list->push_back(PropertyInfo(Variant::STRING, "target_class", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::STRING, "property_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::STRING, "property_hint", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 
-    r_list->push_back(PropertyInfo(Variant::NODE_PATH, "node_path", PROPERTY_HINT_NONE, "", usage));
+    r_list->push_back(PropertyInfo(Variant::NODE_PATH, "node_path", PROPERTY_HINT_NONE, "", path_usage));
 
     // todo:
     // For now we encode property details at the node and pin level, which is wasteful.
@@ -91,9 +94,28 @@ bool OScriptNodeProperty::_set(const StringName& p_name, const Variant& p_value)
         return true;
     } else if (p_name.match("node_path")) {
         _node_path = p_value;
+
+        if (_initialized) {
+            // Make sure that when changed, if it's a unique-named node, we use the unique name
+            if (Node* base_node = _get_scene_base_node()) {
+                if (Node* node = base_node->get_node_or_null(_node_path)) {
+                    if (!_node_path.get_concatenated_names().begins_with("%") && node->is_unique_name_in_owner()) {
+                        _node_path = "%" + node->get_name();
+                    }
+                }
+            }
+        }
+
         return true;
     }
     return false;
+}
+
+Node* OScriptNodeProperty::_get_scene_base_node() const {
+    if (_is_in_editor() && !_node_path.is_empty()) {
+        return SceneUtils::get_scene_base_node(get_orchestration()->get_self());
+    }
+    return nullptr;
 }
 
 bool OScriptNodeProperty::_property_exists(const TypedArray<Dictionary>& p_properties) const {
@@ -212,6 +234,14 @@ String OScriptNodeProperty::get_help_topic() const {
     return super::get_help_topic();
 }
 
+Ref<Resource> OScriptNodeProperty::get_inspect_object() {
+    if (_is_in_editor()) {
+        if (Node* base_node = _get_scene_base_node()) {
+            set_meta("__base_node_relative", base_node);
+        }
+    }
+    return super::get_inspect_object();
+}
 
 void OScriptNodeProperty::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.property, "A property node requires a PropertyInfo");
