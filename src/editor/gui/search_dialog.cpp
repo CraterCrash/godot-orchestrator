@@ -20,6 +20,7 @@
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "core/godot/scene_string_names.h"
+#include "editor/gui/filter_line_edit.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -89,32 +90,6 @@ void OrchestratorEditorSearchDialog::_history_activated(int p_index) {
 
 void OrchestratorEditorSearchDialog::_search_changed(const String& p_text) {
     _update_search();
-}
-
-void OrchestratorEditorSearchDialog::_search_input(const Ref<InputEvent>& p_event) {
-    const Ref<InputEventKey> key = p_event;
-    if (key.is_valid() && key->is_pressed()) {
-        switch (key->get_keycode()) {
-            case KEY_UP:
-            case KEY_DOWN:
-            case KEY_PAGEUP:
-            case KEY_PAGEDOWN: {
-                push_and_accept_event(p_event, _search_box, _search_options);
-                break;
-            }
-            case KEY_SPACE: {
-                TreeItem* item = _search_options->get_selected();
-                if (item) {
-                    item->set_collapsed(!item->is_collapsed());
-                }
-                _search_box->accept_event();
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    }
 }
 
 void OrchestratorEditorSearchDialog::_confirmed() {
@@ -516,11 +491,8 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
             hsplit_container->add_child(vbox);
 
-            _search_box = memnew(LineEdit);
-            _search_box->set_clear_button_enabled(true);
-            _search_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+            _search_box = memnew(OrchestratorEditorFilterLineEdit);
             _search_box->connect(SceneStringName(text_changed), callable_mp_this(_search_changed));
-            _search_box->connect(SceneStringName(gui_input), callable_mp_this(_search_input));
 
             HBoxContainer* search_hbox = memnew(HBoxContainer);
             search_hbox->add_child(_search_box);
@@ -551,6 +523,8 @@ void OrchestratorEditorSearchDialog::_notification(int p_what) {
             _search_options->connect("cell_selected", callable_mp_this(_item_selected));
             SceneUtils::set_theme_type_variation(_search_options, "Tree");
             SceneUtils::add_margin_child(vbox, "Matches:", _search_options, true);
+
+            _search_box->set_forward_control(_search_options);
 
             _help_bit = memnew(OrchestratorEditorHelpBit);
             SceneUtils::add_margin_child(vbox, "Description:", _help_bit);

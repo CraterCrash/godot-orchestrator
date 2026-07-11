@@ -170,6 +170,18 @@ namespace DictionaryUtils {
         }
     };
 
+    List<MethodInfo> to_methods(const TypedArray<Dictionary>& p_array) {
+        List<MethodInfo> methods;
+
+        uint64_t array_size = p_array.size();
+        for (uint64_t i = 0; i < array_size; i++) {
+            const MethodInfo mi = to_method(p_array[i]);
+            methods.push_back(mi);
+        }
+
+        return methods;
+    }
+
     List<PropertyInfo> to_properties(const TypedArray<Dictionary>& p_array, bool p_sorted) {
         List<PropertyInfo> properties;
 

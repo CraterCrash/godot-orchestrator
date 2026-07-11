@@ -21,13 +21,14 @@
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/item_list.hpp>
-#include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/tree.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
+
+class OrchestratorEditorFilterLineEdit;
 
 /// Represents an item in the search dialog, which can be extended
 class OrchestratorEditorSearchDialogItem : public RefCounted {
@@ -60,7 +61,6 @@ class OrchestratorEditorSearchDialog : public ConfirmationDialog {
     void _history_selected(int p_index);
     void _history_activated(int p_index);
     void _search_changed(const String& p_text);
-    void _search_input(const Ref<InputEvent>& p_event);
     void _confirmed();
     void _canceled();
     void _item_selected();
@@ -77,7 +77,7 @@ protected:
         String text;
     };
 
-    LineEdit* _search_box = nullptr;                        //! The user search box
+    OrchestratorEditorFilterLineEdit* _search_box = nullptr;
     ItemList* _recent = nullptr;                            //! List of recently used items
     Tree* _favorites = nullptr;                             //! List of favorite items
     Tree* _search_options = nullptr;                        //! List of search results
