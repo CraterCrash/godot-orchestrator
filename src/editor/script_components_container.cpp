@@ -145,9 +145,7 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
     ERR_FAIL_NULL(p_item);
     ERR_FAIL_COND(!_orchestration.is_valid());
 
-    OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-    menu->set_auto_destroy(true);
-    add_child(menu);
+    OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
     const uint32_t type = p_item->get_meta("__component_type", NONE);
     switch (type) {
@@ -156,49 +154,55 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
             const bool can_be_renamed = graph->get_flags().has_flag(OScriptGraph::GF_RENAMABLE);
             const bool can_be_removed = graph->get_flags().has_flag(OScriptGraph::GF_DELETABLE);
 
-            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/open"), callable_mp_this(_open_graph).bind(graph->get_graph_name()), false);
-            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_graphs, p_item), !can_be_renamed);
-            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), !can_be_removed);
+            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/open"), callable_mp_this(_open_graph).bind(graph->get_graph_name()));
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_graphs, p_item), { .disabled = !can_be_renamed });
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), { .disabled = !can_be_removed });
 
             break;
         }
         case EVENT_GRAPH_FUNCTION: {
             const String function_name = p_item->get_meta("__name", "");
 
-            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/focus"), callable_mp_this(_component_focus_item).bind(p_item), false);
-            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
-            if (p_item->get_meta("__slot", false)) {
-                int32_t id = menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("graph_components_panel/disconnect_signal"), callable_mp_this(_disconnect_slot_item).bind(p_item));
-                menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
-            }
+            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/focus"), callable_mp_this(_component_focus_item).bind(p_item));
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
+            menu->add_icon_shortcut(
+                "Unlinked",
+                ED_GET_SHORTCUT("graph_components_panel/disconnect_signal"),
+                callable_mp_this(_disconnect_slot_item).bind(p_item),
+                {
+                    .visible = p_item->get_meta("__slot", false),
+                    .tooltip = "Disconnect the slot function from the signal."
+                });
 
             break;
         }
         case SCRIPT_FUNCTION: {
             const Ref<OScriptFunction> func = _get_orchestration()->find_function(p_item->get_meta("__name", ""));
 
-            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/open"), callable_mp_this(_open_graph).bind(func->get_function_name()), false);
+            menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/open"), callable_mp_this(_open_graph).bind(func->get_function_name()));
             menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, DictionaryUtils::of({{ "include_code", "true" }})));
             menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate_without_code"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
-            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_functions, p_item), false);
-            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
-
-            if (p_item->get_meta("__slot", false)) {
-                int32_t id = menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("graph_components_panel/disconnect_signal"), callable_mp_this(_disconnect_slot_item).bind(p_item));
-                menu->set_item_tooltip(id, "Disconnect the slot function from the signal.");
-            }
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_functions, p_item));
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
+            menu->add_icon_shortcut(
+                "Unlinked",
+                ED_GET_SHORTCUT("graph_components_panel/disconnect_signal"), callable_mp_this(_disconnect_slot_item).bind(p_item),
+                {
+                    .visible = p_item->get_meta("__slot", false),
+                    .tooltip = "Disconnect the slot function from the signal."
+                });
 
             break;
         }
         case SCRIPT_VARIABLE: {
             menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
-            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_variables, p_item), false);
-            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_variables, p_item));
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
             break;
         }
         case SCRIPT_SIGNAL: {
-            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_signals, p_item), false);
-            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true), false);
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_signals, p_item));
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
             break;
         }
         default: {

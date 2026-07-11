@@ -399,13 +399,11 @@ void OrchestratorEditorGraphFrame::_gui_input(const Ref<InputEvent>& p_event) {
 
 void OrchestratorEditorGraphFrame::build_context_menu(OrchestratorEditorContextMenu* p_menu) {
     p_menu->add_separator();
-    p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_frame_title"), callable_mp_this(_change_frame_title), false);
-    p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_comment_text"), callable_mp_this(_open_change_comment_text), false);
+    p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_frame_title"), callable_mp_this(_change_frame_title));
+    p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_comment_text"), callable_mp_this(_open_change_comment_text));
     p_menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/frame/enable_auto_shrink"), callable_mp_this(_toggle_autoshrink), is_autoshrink_enabled());
     p_menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/frame/enable_tint_color"), callable_mp_this(_toggle_tint), is_tint_color_enabled());
-    if (is_tint_color_enabled()) {
-        p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_tint_color"), callable_mp_this(_show_tint_color_picker));
-    }
+    p_menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/frame/set_tint_color"), callable_mp_this(_show_tint_color_picker), { .visible = is_tint_color_enabled() });
 }
 
 void OrchestratorEditorGraphFrame::set_node(const Ref<OrchestrationGraphNode>& p_node) {
