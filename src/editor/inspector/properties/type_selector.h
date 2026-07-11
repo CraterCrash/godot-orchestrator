@@ -77,6 +77,10 @@ class OrchestratorEditorTypeSelector : public HBoxContainer {
 protected:
     static void _bind_methods();
 
+    //~ Begin Wrapped Interface
+    void _notification(int p_what);
+    //~ End Wrapped Interface
+
 public:
 
     void set_property(const PropertyInfo& p_property);
