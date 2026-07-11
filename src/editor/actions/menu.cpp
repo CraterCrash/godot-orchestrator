@@ -24,6 +24,7 @@
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/definition.h"
 #include "editor/actions/introspector.h"
+#include "editor/gui/filter_line_edit.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
@@ -349,24 +350,6 @@ void OrchestratorEditorActionMenu::_search_submitted(const String& p_text) {
             _search_box->release_focus();
             _search_box->grab_focus();
         }).call_deferred();
-    }
-}
-
-void OrchestratorEditorActionMenu::_search_gui_input(const Ref<InputEvent>& p_event) {
-    const Ref<InputEventKey> key = p_event;
-    if (key.is_valid() && key->is_pressed()) {
-        switch (key->get_keycode()) {
-            case KEY_UP:
-            case KEY_DOWN:
-            case KEY_PAGEUP:
-            case KEY_PAGEDOWN: {
-                push_and_accept_event(p_event, _search_box, _results);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
     }
 }
 
@@ -879,13 +862,8 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
     hsplit->add_child(vbox);
 
-    _search_box = memnew(LineEdit);
-    _search_box->set_clear_button_enabled(true);
-    _search_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-    _search_box->set_right_icon(SceneUtils::get_editor_icon("Search"));
+    _search_box = memnew(OrchestratorEditorFilterLineEdit);
     _search_box->connect(SceneStringName(text_changed), callable_mp_this(_search_changed));
-    _search_box->connect(SceneStringName(gui_input), callable_mp_this(_search_gui_input));
-    // _search_box->connect(SceneStringName(text_submitted), callable_mp_this(_search_submitted));
 
     _favorite_button = memnew(Button);
     _favorite_button->set_toggle_mode(true);
@@ -931,6 +909,8 @@ OrchestratorEditorActionMenu::OrchestratorEditorActionMenu()
     _results->connect("nothing_selected", callable_mp_this(_nothing_selected));
     SceneUtils::set_theme_type_variation(_results, "Tree");
     SceneUtils::add_margin_child(vbox, "Matches:", _results, true);
+
+    _search_box->set_forward_control(_results);
 
     _help = memnew(OrchestratorEditorHelpBit);
     _help->set_content_help_limits(80 * EDSCALE, 80 * EDSCALE);

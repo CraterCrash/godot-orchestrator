@@ -23,11 +23,13 @@
 
 using namespace godot;
 
+class OrchestratorEditorFilterLineEdit;
+
 /// Displays a dialog of the current edited scene, allowing the user to select a specific node.
 class OrchestratorSceneNodeSelector : public ConfirmationDialog {
     GDCLASS(OrchestratorSceneNodeSelector, ConfirmationDialog);
 
-    LineEdit* _filter = nullptr;    //! Filter text input box
+    OrchestratorEditorFilterLineEdit* _filter = nullptr;
     Tree* _tree = nullptr;          //! Tree of scene nodes
     Node* _selected = nullptr;      //! The selected node
     bool _show_all_nodes = false;   //! Whether to show all nodes
@@ -36,7 +38,6 @@ class OrchestratorSceneNodeSelector : public ConfirmationDialog {
     void _close_requested();
     void _confirmed();
     void _filter_changed(const String& p_text);
-    void _filter_gui_input(const Ref<InputEvent>& p_event);
     void _item_activated();
     void _item_selected();
     //~ End Signal Handlers

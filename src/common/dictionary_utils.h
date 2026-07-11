@@ -56,6 +56,11 @@ namespace DictionaryUtils {
     /// @return the constructed dictionary
     Dictionary of(std::initializer_list<std::pair<Variant, Variant>>&& p_values);
 
+    /// Converts a dictionary of methods to a list of MethodInfo objects
+    /// @param p_array the dictionary array
+    /// @return the list of method info objects
+    List<MethodInfo> to_methods(const TypedArray<Dictionary>& p_array);
+
     /// Converts a dictionary of properties to a list of PropertyInfo objects.
     /// @param p_array the dictionary
     /// @param p_sorted whether to sort the properties by name

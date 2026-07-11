@@ -432,6 +432,11 @@ void OrchestratorEditorHelpBit::parse_symbol(const String& p_symbol) {
     _set_content(body);
 }
 
+void OrchestratorEditorHelpBit::set_custom_text(const String& p_type, const String& p_name, const String& p_description) {
+    _set_title(p_name, p_name, p_type, "");
+    _set_content(p_description);
+}
+
 void OrchestratorEditorHelpBit::parse_action(const Ref<OrchestratorEditorActionDefinition>& p_action) {
     _title->clear();
 

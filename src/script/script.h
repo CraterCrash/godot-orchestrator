@@ -324,6 +324,8 @@ public:
     String dump_compiled_state();
     #endif
 
+    TypedArray<Dictionary> get_orchestration_property_list(bool p_no_inheritance = false);
+
     OScript();
     ~OScript() override;
 };

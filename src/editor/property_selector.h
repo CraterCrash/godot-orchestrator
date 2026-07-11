@@ -18,38 +18,46 @@
 
 #include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/line_edit.hpp>
+#include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/tree.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
 using namespace godot;
 
+class OrchestratorEditorFilterLineEdit;
+class OrchestratorEditorHelpBit;
+
 /// Displays a list of properties for a given criteria.
 class OrchestratorPropertySelector : public ConfirmationDialog {
     GDCLASS(OrchestratorPropertySelector, ConfirmationDialog);
 
-    LineEdit* _search_box = nullptr;     //! The filter/search box
-    Tree* _search_options = nullptr;     //! The list of search options
-    String _selected;                    //! The selected property name
-    Variant::Type _type;                 //! The property type to limit
-    String _base_type;                   //! The base type
-    ObjectID _script;                    //! The script's object identifier
-    Object* _instance = nullptr;         //! The object to base the list on
-    Vector<Variant::Type> _type_filter;  //! The type filter
+    OrchestratorEditorFilterLineEdit* _search_box = nullptr;
+    OrchestratorEditorHelpBit* _help_bit = nullptr;
+
+    Tree* _search_options = nullptr;
+
+    bool _properties = false;
+    String _selected;
+    Variant::Type _type;
+    String _base_type;
+    ObjectID _script;
+    Object* _instance = nullptr;
+    bool _virtuals_only = false;
+
+    Vector<Variant::Type> _type_filter;
 
     //~ Begin Signal Handlers
     void _text_changed(const String& p_new_text);
-    void _sbox_input(const Ref<InputEvent>& p_event);
     void _confirmed();
     void _item_selected();
+    void _hide_requested();
     //~ End Signal Handlers
 
-    /// Checks whether the text contains the what
-    /// @param p_text the text to search
-    /// @param p_what what to search
     bool _contains_ignore_case(const String& p_text, const String& p_what) const;
-
-    /// Updates the search options based on the filter
     void _update_search();
+
+    void _create_subproperties(TreeItem* p_parent_item, Variant::Type p_type);
+    void _create_subproperty(TreeItem* p_parent_item, const String& p_name, Variant::Type p_type);
 
 protected:
     static void _bind_methods();
@@ -59,19 +67,17 @@ protected:
     //~ End Wrapped Interface
 
 public:
-    /// Set property from an object instance
-    /// @param p_instance the object instance
-    /// @param p_current the current property choice
+
+    void select_method_from_base_type(const String& p_base, const String& p_current = "", bool p_virtuals_only = false);
+    void select_method_from_script(const Ref<Script>& p_script, const String& p_current = "");
+    void select_method_from_basic_type(Variant::Type p_type, const String& p_current = "");
+    void select_method_from_instance(Object* p_instance, const String& p_current = "");
+
+    void select_property_from_base_type(const String& p_base_type, const String& p_current = "");
+    void select_property_from_script(const Ref<Script>& p_script, const String& p_current = "");
+    void select_property_from_basic_type(Variant::Type p_type, const String& p_current = "");
     void select_property_from_instance(Object* p_instance, const String& p_current = "");
 
-    /// Set property from a class/base type, enumerating properties via <code>ClassDB</code>.
-    /// Useful when no live instance is available, e.g. the object is supplied by a variable.
-    /// @param p_base_type the class name to enumerate properties from
-    /// @param p_current the current property choice
-    void select_property_from_base_type(const String& p_base_type, const String& p_current = "");
-
-    /// Set the type filter
-    /// @param p_type_filter the types to filter
     void set_type_filter(const Vector<Variant::Type>& p_type_filter);
 
     /// Constructs the property selector
