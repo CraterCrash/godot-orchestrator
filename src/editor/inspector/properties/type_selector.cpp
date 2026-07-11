@@ -400,6 +400,20 @@ void OrchestratorEditorTypeSelector::setup(const String& p_cache_suffix, bool p_
     _user_exclusions = p_exclusions;
 }
 
+void OrchestratorEditorTypeSelector::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_VISIBILITY_CHANGED: {
+            if (is_visible_in_tree()) {
+                // Hack to handle popup in component panel
+                if (cast_to<AcceptDialog>(get_parent())) {
+                    _left_type->grab_focus();
+                }
+            }
+            break;
+        }
+    }
+}
+
 void OrchestratorEditorTypeSelector::_bind_methods() {
     ADD_SIGNAL(MethodInfo("changed", PropertyInfo(Variant::DICTIONARY, "property")));
 }
