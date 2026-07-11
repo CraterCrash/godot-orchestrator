@@ -82,3 +82,10 @@
     (target)->get_viewport()->push_input(evt);      \
     (source)->accept_event();                       \
     (source)->grab_focus();
+
+#define push_event(evt, source, target)             \
+    (target)->grab_focus();                         \
+    (target)->get_viewport()->push_input(evt);      \
+    (source)->grab_focus();
+
+#define SNAME(x) StringName((x))
