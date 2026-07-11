@@ -22,6 +22,13 @@
 
 using namespace godot;
 
+struct OrchestratorContextMenuItemOptions {
+    bool visible = true;
+    bool disabled = false;
+    String tooltip;
+    Key accelerator = KEY_NONE;
+};
+
 /// A custom editor control that provides context menu behavior.
 ///
 /// Normally in Godot, to provide context menu behavior, one would use a <code>PopupMenu</code> in an object,
@@ -48,6 +55,8 @@ using namespace godot;
 class OrchestratorEditorContextMenu : public Control {
     GDCLASS(OrchestratorEditorContextMenu, Control);
 
+    using ItemOptions = OrchestratorContextMenuItemOptions;
+
     PopupMenu* _menu;
     HashMap<int, Callable> _callables;
     bool _auto_destroy = false;
@@ -56,6 +65,8 @@ class OrchestratorEditorContextMenu : public Control {
     void _id_pressed(int p_id);
     void _cleanup_menu();
 
+    void _add_epilogue(const Callable& p_callable, const ItemOptions& p_options, bool p_checked = false);
+
 protected:
     static void _bind_methods();
 
@@ -63,18 +74,15 @@ protected:
     explicit OrchestratorEditorContextMenu(bool p_parent);
 
 public:
-    int add_separator(const String& p_label = String());
-    int add_item(const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);
-    int add_icon_item(const String& p_icon_name, const String& p_label, const Callable& p_callable, bool p_disabled = false, Key p_key = KEY_NONE);
+    void add_separator(const String& p_label = String());
 
-    int add_check_item(const String& p_label, const Callable& p_callable, bool p_checked, bool p_disabled = false);
+    void add_item(const String& p_label, const Callable& p_callable, const ItemOptions& p_options = ItemOptions());
+    void add_check_item(const String& p_label, const Callable& p_callable, bool p_checked, const ItemOptions& p_options = ItemOptions());
+    void add_icon_item(const String& p_icon_name, const String& p_label, const Callable& p_callable, const ItemOptions& p_options = ItemOptions());
 
-    int add_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled = false);
-    int add_check_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_checked, bool p_disabled = false);
-    int add_icon_shortcut(const String& p_icon_name, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_disabled = false);
-
-    void set_item_disabled(int p_id, bool p_disabled);
-    void set_item_tooltip(int p_id, const String& p_tooltip_text);
+    void add_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, const ItemOptions& p_options = ItemOptions());
+    void add_check_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_checked, const ItemOptions& p_options = ItemOptions());
+    void add_icon_shortcut(const String& p_icon_name, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, const ItemOptions& p_options = ItemOptions());
 
     OrchestratorEditorContextMenu* add_submenu(const String& p_label);
 
@@ -83,6 +91,8 @@ public:
     void popup();
 
     void set_auto_destroy(bool p_auto_destroy);
+
+    static OrchestratorEditorContextMenu* create(Control* p_parent);
 
     OrchestratorEditorContextMenu();
 };

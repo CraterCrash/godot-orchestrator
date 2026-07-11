@@ -414,9 +414,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     const bool are_multiple_selections = get_selection_count() > 1;
     const bool is_reroute = cast_to<OrchestratorEditorGraphNodeReroute>(p_node);
 
-    OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-    menu->set_auto_destroy(true);
-    add_child(menu);
+    OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
     const Ref<OrchestrationGraphNode> script_node = p_node->_node;
 
@@ -433,11 +431,11 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     }
 
     const bool can_delete = p_node->can_user_delete_node();
-    menu->add_icon_shortcut("Remove", ED_ACTION_SHORTCUT("ui_graph_delete", "Delete"), callable_mp_this(remove_selected_nodes).bind(true), !can_delete);
+    menu->add_icon_shortcut("Remove", ED_ACTION_SHORTCUT("ui_graph_delete", "Delete"), callable_mp_this(remove_selected_nodes).bind(true), { .disabled = !can_delete });
 
-    menu->add_icon_shortcut("ActionCut", ED_ACTION_SHORTCUT("ui_cut", "Cut"), callable_mp_this(_cut_nodes_request), false);
-    menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_copy_nodes_request), false);
-    menu->add_icon_shortcut("Duplicate", ED_ACTION_SHORTCUT("ui_graph_duplicate", "Duplicate"), callable_mp_this(_duplicate_nodes_request), false);
+    menu->add_icon_shortcut("ActionCut", ED_ACTION_SHORTCUT("ui_cut", "Cut"), callable_mp_this(_cut_nodes_request));
+    menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_copy_nodes_request));
+    menu->add_icon_shortcut("Duplicate", ED_ACTION_SHORTCUT("ui_graph_duplicate", "Duplicate"), callable_mp_this(_duplicate_nodes_request));
 
     if (is_reroute) {
         menu->set_position(p_node->get_screen_position() + p_position * get_zoom());
@@ -450,38 +448,26 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
 
     bool has_connections = !get_connected_nodes(p_node).is_empty();
     menu->add_icon_shortcut("Loop", ED_GET_SHORTCUT("graph_editor/refresh_nodes"), callable_mp_this(_refresh_selected_nodes));
-    menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("graph_editor/break_node_links"), callable_mp_this(unlink_node_all).bind(p_node), !has_connections);
-
-
-    if (_can_call_parent_function(p_node)) {
-        menu->add_icon_shortcut("Override", ED_GET_SHORTCUT("graph_editor/add_call_parent_function"), callable_mp_this(_create_call_to_parent_function).bind(p_node));
-    }
-
-    if (!are_multiple_selections) {
-        menu->add_icon_shortcut("Anchor", ED_GET_SHORTCUT("graph_editor/bookmark/toggle"), callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_bookmark).bind(p_node));
-    }
-
-    if (p_node->is_add_pin_button_visible() && !are_multiple_selections) {
-        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/add_option_pin"), callable_mp_this(_add_node_pin).bind(p_node));
-    }
+    menu->add_icon_shortcut("Unlinked", ED_GET_SHORTCUT("graph_editor/break_node_links"), callable_mp_this(unlink_node_all).bind(p_node), { .disabled = !has_connections });
+    menu->add_icon_shortcut("Override", ED_GET_SHORTCUT("graph_editor/add_call_parent_function"), callable_mp_this(_create_call_to_parent_function).bind(p_node), { .visible = _can_call_parent_function(p_node) });
+    menu->add_icon_shortcut("Anchor", ED_GET_SHORTCUT("graph_editor/bookmark/toggle"), callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_bookmark).bind(p_node), { .visible = !are_multiple_selections });
+    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/add_option_pin"), callable_mp_this(_add_node_pin).bind(p_node), { .visible = p_node->is_add_pin_button_visible() && !are_multiple_selections });
 
     const Ref<OScriptNodeCallFunction> call_function = script_node;
     const Ref<OScriptNodeCallStaticFunction> static_call_function = script_node;
     if (call_function.is_valid() || static_call_function.is_valid()) {
         menu->add_separator("Settings");
         bool is_awaited = (call_function.is_valid() && call_function->is_awaited()) || (static_call_function.is_valid() && static_call_function->is_awaited());
-        menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/await_function"), callable_mp_this(_toggle_await_function).bind(p_node), is_awaited, false);
+        menu->add_check_shortcut(ED_GET_SHORTCUT("graph_editor/await_function"), callable_mp_this(_toggle_await_function).bind(p_node), is_awaited);
     }
 
     menu->add_separator("Organization");
 
     GraphFrame* parent_frame = get_element_frame(p_node->get_name());
-    if (parent_frame != nullptr) {
-        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/detach_from_frame"), callable_mp_this(_detach_node_from_frame).bind(p_node->get_name()));
-    }
+    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/detach_from_frame"), callable_mp_this(_detach_node_from_frame).bind(p_node->get_name()), { .visible = parent_frame != nullptr });
 
     const bool can_expand = cast_to<OScriptNodeCallScriptFunction>(script_node.ptr()) != nullptr;
-    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/expand_node"), callable_mp_this(_expand_node).bind(p_node), !can_expand);
+    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/expand_node"), callable_mp_this(_expand_node).bind(p_node), { .disabled = !can_expand });
     menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/collapse_to_function"), callable_mp_this(_collapse_selected_nodes_to_function));
 
     OrchestratorEditorContextMenu* align = menu->add_submenu("Alignment");
@@ -494,7 +480,7 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
 
     if (!are_multiple_selections) {
         menu->add_separator("Breakpoints");
-        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/breakpoint/toggle"), callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_breakpoint).bind(p_node), false);
+        menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/breakpoint/toggle"), callable_mp(_markers, &OrchestratorEditorGraphMarkers::toggle_breakpoint).bind(p_node));
 
         const bool has_breakpoints = _markers->has_breakpoint(script_node->get_id());
         const bool has_active_breakpoint = _markers->is_breakpoint_enabled(script_node->get_id());
@@ -503,13 +489,11 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
             vformat("%s breakpoint", has_breakpoints ? "Remove" : "Add"),
             callable_mp(_markers, &OrchestratorEditorGraphMarkers::set_breakpoint).bind(p_node, !has_breakpoints));
 
-        if (has_breakpoints) {
-            menu->add_shortcut(
-                has_active_breakpoint
-                    ? ED_GET_SHORTCUT("graph_eidtor/breakpoint/disable")
-                    : ED_GET_SHORTCUT("graph_editor/breakpoint/enable"),
-                callable_mp(_markers, &OrchestratorEditorGraphMarkers::set_breakpoint_enabled).bind(p_node, !has_active_breakpoint));
-        }
+        menu->add_shortcut(
+            has_active_breakpoint
+                ? ED_GET_SHORTCUT("graph_eidtor/breakpoint/disable")
+                : ED_GET_SHORTCUT("graph_editor/breakpoint/enable"),
+            callable_mp(_markers, &OrchestratorEditorGraphMarkers::set_breakpoint_enabled).bind(p_node, !has_active_breakpoint), { .visible = has_breakpoints });
     }
 
     menu->add_separator("Documentation");
@@ -564,9 +548,7 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
     OrchestratorEditorGraphNode* owning_node = p_pin->get_graph_node();
     owning_node->set_selected(true);
 
-    OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-    menu->set_auto_destroy(true);
-    add_child(menu);
+    OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
     menu->add_separator("Pin Actions");
 
@@ -616,7 +598,7 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
             callback = callable_mp_this(unlink).bind(p_pin, link);
         }
 
-        menu->add_icon_item("Unlinked", "Break This Link", callback, pin_connections.is_empty());
+        menu->add_icon_item("Unlinked", "Break This Link", callback, { .disabled = pin_connections.is_empty() });
     }
 
     if (!pin_connections.is_empty()) {
@@ -646,13 +628,8 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
         }
     }
 
-    if (_can_promote_pin_to_variable(p_pin)) {
-        menu->add_item("Promote to Variable", callable_mp_this(_promote_pin_to_variable).bind(p_pin));
-    }
-
-    if (!p_pin->is_execution() && pin_connections.is_empty() && p_pin->is_connectable() && p_pin->get_direction() == PD_Input) {
-        menu->add_item("Reset to Default Value", callable_mp_this(_reset_pin_to_generated_default_value).bind(p_pin));
-    }
+    menu->add_item("Promote to Variable", callable_mp_this(_promote_pin_to_variable).bind(p_pin), { .visible = _can_promote_pin_to_variable(p_pin) });
+    menu->add_item("Reset to Default Value", callable_mp_this(_reset_pin_to_generated_default_value).bind(p_pin), { .visible = !p_pin->is_execution() && pin_connections.is_empty() && p_pin->is_connectable() && p_pin->get_direction() == PD_Input });
 
     menu->add_separator("Documentation");
 
@@ -1428,14 +1405,12 @@ void OrchestratorEditorGraphPanel::_show_frame_context_menu(OrchestratorEditorGr
 
     p_frame->set_selected(true);
 
-    OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-    menu->set_auto_destroy(true);
-    add_child(menu);
+    OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
     menu->add_separator("Frame Actions");
-    menu->add_icon_shortcut("Remove", ED_ACTION_SHORTCUT("ui_graph_delete", "Delete"), callable_mp_this(remove_frame).bind(p_frame, true), false);
-    menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_copy_nodes_request), false);
-    menu->add_icon_shortcut("Duplicate", ED_ACTION_SHORTCUT("ui_graph_duplicate", "Duplicate"), callable_mp_this(_duplicate_nodes_request), false);
+    menu->add_icon_shortcut("Remove", ED_ACTION_SHORTCUT("ui_graph_delete", "Delete"), callable_mp_this(remove_frame).bind(p_frame, true));
+    menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_copy_nodes_request));
+    menu->add_icon_shortcut("Duplicate", ED_ACTION_SHORTCUT("ui_graph_duplicate", "Duplicate"), callable_mp_this(_duplicate_nodes_request));
     p_frame->build_context_menu(menu);
 
     GraphFrame* parent_frame = get_element_frame(p_frame->get_name());
@@ -2586,9 +2561,7 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
         if (!hovered_connection.is_empty()) {
             const Vector2 pos = mb->get_position() + get_screen_position();
 
-            OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-            menu->set_auto_destroy(true);
-            add_child(menu);
+            OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
             menu->add_separator("Connection Menu");
             menu->add_item("Disconnect", callable_mp_this(_disconnect_connection).bind(hovered_connection));
@@ -2790,9 +2763,7 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
     } else if (drop_type == "files") {
         const Array& files = data["files"];
 
-        OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-        menu->set_auto_destroy(true);
-        add_child(menu);
+        OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
         menu->add_separator(files.size() == 1 ? vformat("File %s", files[0]) : vformat("%d Files", files.size()));
         menu->add_item("Get Path", callable_mp_this(_drop_data_files).bind(OScriptNodeResourcePath::get_class_static(), files, spawn_position));
@@ -2826,9 +2797,7 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
         StringName property_name = data["property"];
         for (const PropertyInfo& property : DictionaryUtils::to_properties(object->get_property_list())) {
             if (property.name == property_name) {
-                OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-                menu->set_auto_destroy(true);
-                add_child(menu);
+                OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
                 Dictionary prop = DictionaryUtils::from_property(property);
 
@@ -2845,9 +2814,7 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
     } else if (drop_type == "function") {
         const MethodInfo method = DictionaryUtils::to_method(data["functions"]);
 
-        OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-        menu->set_auto_destroy(true);
-        add_child(menu);
+        OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
         menu->add_separator("Function " + method.name);
         menu->add_item("Add Call to Function", callable_mp_this(_drop_data_function).bind(data["functions"], spawn_position, false));
@@ -2872,23 +2839,20 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
         } else if (Input::get_singleton()->is_key_pressed(KEY_SHIFT)) {
             _drop_data_variable(variable_name, spawn_position, false, false);
         } else {
-            OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu);
-            menu->set_auto_destroy(true);
-            add_child(menu);
+            OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
 
             menu->add_separator("Variable " + variable_name);
             menu->add_item("Get " + variable_name, callable_mp_this(_drop_data_variable)
                 .bind(variable_name, spawn_position, false, false));
 
-            if (variable->get_info().type == Variant::OBJECT) {
-                menu->add_item("Get " + variable_name + " with validation",
-                    callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, true, false));
-            }
+            menu->add_item("Get " + variable_name + " with validation",
+                callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, true, false),
+                { .visible = variable->get_info().type == Variant::OBJECT });
 
-            if (!variable->is_constant()) {
-                menu->add_item("Set " + variable_name,
-                    callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, false, true));
-            }
+
+            menu->add_item("Set " + variable_name,
+                callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, false, true),
+                { .visible = !variable->is_constant() });
 
             menu->set_position(popup_position);
             menu->popup();
