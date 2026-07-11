@@ -2810,7 +2810,16 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
         NodePath path;
         if (Node* root = get_tree()->get_edited_scene_root()) {
             if (Node* object_node = cast_to<Node>(object)) {
-                path = root->get_path_to(object_node);
+                if (object_node->is_unique_name_in_owner()) {
+                    path = NodePath("%" + object_node->get_name());
+                } else {
+                    Vector<Node*> attached_nodes;
+                    SceneUtils::find_all_nodes_for_script(root, root, _graph->get_orchestration()->as_script(), attached_nodes);
+                    if (attached_nodes.is_empty()) {
+                        ORCHESTRATOR_ERROR("Cannot drop a node property in a script that is not attached to a node in this scene.");
+                    }
+                    path = attached_nodes[0]->get_path_to(object_node);
+                }
             }
         }
 

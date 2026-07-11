@@ -92,18 +92,7 @@ void OScriptNodeSceneNode::_upgrade(uint32_t p_version, uint32_t p_current_versi
 
 Node* OScriptNodeSceneNode::_get_scene_base_node() const {
     if (_is_in_editor() && !_node_path.is_empty()) {
-        if (SceneTree* st = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())) {
-            if (st->get_edited_scene_root()) {
-                if (Node* root = st->get_edited_scene_root()) {
-                    Vector<Node*> nodes;
-                    const Ref<Script> script = get_orchestration()->get_self();
-                    SceneUtils::find_all_nodes_for_script(root, root, script, nodes);
-                    if (!nodes.is_empty()) {
-                        return nodes[0];
-                    }
-                }
-            }
-        }
+        return SceneUtils::get_scene_base_node(get_orchestration()->get_self());
     }
     return nullptr;
 }

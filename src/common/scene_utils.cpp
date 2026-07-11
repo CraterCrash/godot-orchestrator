@@ -167,6 +167,19 @@ namespace SceneUtils {
         return wrapped;
     }
 
+    Node* get_scene_base_node(const Ref<Script>& p_script) {
+        if (SceneTree* tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())) {
+            if (Node* root = tree->get_edited_scene_root()) {
+                Vector<Node*> nodes;
+                find_all_nodes_for_script(root, root, p_script, nodes);
+                if (!nodes.is_empty()) {
+                    return nodes[0];
+                }
+            }
+        }
+        return nullptr;
+    }
+
     Node* get_node_with_script(const Ref<Script>& p_script, Node* p_node, Node* p_root) {
         // Non-instanced scene children
         if (p_node == p_root || p_node->get_owner() == p_root) {
