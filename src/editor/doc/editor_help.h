@@ -87,6 +87,8 @@ public:
     /// @param p_symbol the documentation symbol to resolve and display.
     void parse_symbol(const String& p_symbol);
 
+    void set_custom_text(const String& p_type, const String& p_name, const String& p_description);
+
     /// Renders help for an action: a category breadcrumb title above the action's tooltip body.
     /// @param p_action the action to display, or an invalid reference to clear.
     void parse_action(const Ref<OrchestratorEditorActionDefinition>& p_action);

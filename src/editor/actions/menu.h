@@ -30,6 +30,8 @@
 
 using namespace godot;
 
+class OrchestratorEditorFilterLineEdit;
+
 /// Displays the action dialog window that provides plug-in users the ability to search
 /// and select actions to be performed by a listener.
 class OrchestratorEditorActionMenu : public ConfirmationDialog {
@@ -102,7 +104,7 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
     Rect2 _default_rect = Rect2(0, 0, 900, 700);
 
     OrchestratorEditorHelpBit* _help = nullptr;
-    LineEdit* _search_box = nullptr;
+    OrchestratorEditorFilterLineEdit* _search_box = nullptr;
     ItemList* _favorites = nullptr;
     ItemList* _recents = nullptr;
     Tree* _results = nullptr;
@@ -136,7 +138,6 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
     void _recent_activated(int p_index);
     void _search_changed(const String& p_text);
     void _search_submitted(const String& p_text);
-    void _search_gui_input(const Ref<InputEvent>& p_event);
     void _item_selected();
     void _nothing_selected();
     void _toggle_favorite();

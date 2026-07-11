@@ -37,6 +37,7 @@
 #include "editor/gui/context_menu.h"
 #include "editor/gui/editor_log_event_router.h"
 #include "editor/gui/file_dialog.h"
+#include "editor/gui/filter_line_edit.h"
 #include "editor/gui/search_dialog.h"
 #include "editor/gui/sectioned_inspector.h"
 #include "editor/gui/select_class_dialog.h"
@@ -98,6 +99,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorInspectorPluginNewObjectNode)
 
     // Editor bits
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorFilterLineEdit)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorTypeSelector)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorLogEventRouter)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyType)

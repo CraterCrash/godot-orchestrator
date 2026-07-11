@@ -1584,6 +1584,36 @@ String OScript::dump_compiled_state() {
 }
 #endif
 
+TypedArray<Dictionary> OScript::get_orchestration_property_list(bool p_no_inheritance) {
+    OScript* sptr = this;
+
+    TypedArray<Dictionary> results;
+
+    List<PropertyInfo> properties;
+    while (sptr) {
+        for (const Ref<OScriptVariable>& E : sptr->get_orchestration()->get_variables()) {
+            properties.push_front(E->get_info());
+        }
+
+        #ifdef TOOLS_ENABLED
+        results.push_back(DictionaryUtils::from_property(sptr->get_class_category()));
+        #endif
+
+        for (const PropertyInfo& E : properties) {
+            results.push_back(DictionaryUtils::from_property(E));
+        }
+
+        if (p_no_inheritance) {
+            break;
+        }
+
+        properties.clear();
+        sptr = sptr->base.ptr();
+    }
+
+    return results; 
+}
+
 void OScript::_bind_methods() {
     ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "new", &OScript::_new, MethodInfo("new"));
 }
