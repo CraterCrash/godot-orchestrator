@@ -57,6 +57,8 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    Node* _get_scene_base_node() const;
+
     /// Checks whether a property exists with the given name in the array
     /// @param p_properties an array of properties
     /// @return true if the property exists, false otherwise
@@ -89,6 +91,7 @@ public:
     String get_icon() const override;
     String get_node_title_color_name() const override { return "properties"; }
     String get_help_topic() const override;
+    Ref<Resource> get_inspect_object() override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 
