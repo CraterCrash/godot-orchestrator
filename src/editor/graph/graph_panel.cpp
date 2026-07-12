@@ -3233,6 +3233,8 @@ void OrchestratorEditorGraphPanel::remove_node(OrchestratorEditorGraphNode* p_no
         p_node->set_selected(false);
     }
 
+    _detach_node_from_frame(p_node->get_name());
+
     p_node->queue_free();
 
     const int node_id = p_node->get_id();
