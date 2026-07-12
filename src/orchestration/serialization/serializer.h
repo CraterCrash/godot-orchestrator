@@ -63,6 +63,8 @@ protected:
     virtual void _find_resources_resource(const Ref<Resource>& p_resource, bool p_main) = 0;
     virtual void _find_resources_resource_properties(const Ref<Resource>& p_resource, bool p_main);
 
+    virtual bool _is_property_serialized(const PropertyInfo& p_property) const;
+
 public:
     virtual PackedStringArray get_recognized_extensions(const Ref<Resource>& p_resource) = 0;
     virtual bool recognize(const Ref<Resource>& p_resource) = 0;

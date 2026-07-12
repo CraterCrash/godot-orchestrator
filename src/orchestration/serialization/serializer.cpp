@@ -165,3 +165,7 @@ void OrchestrationSerializer::_find_resources_resource_properties(const Ref<Reso
 
     _saved_resources.push_back(p_resource);
 }
+
+bool OrchestrationSerializer::_is_property_serialized(const PropertyInfo& p_property) const {
+    return !(p_property.name.match("metadata/_missing_resources") || p_property.name.match("metadata/__base_node_relative"));
+}
