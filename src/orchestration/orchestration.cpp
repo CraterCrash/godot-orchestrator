@@ -431,13 +431,36 @@ void Orchestration::set_edited(bool p_edited) {
 
 void Orchestration::post_initialize() {
     // Initialize nodes
+    Vector<Ref<OScriptNodeComment>> comments;
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
         E.value->post_initialize();
+
+        if (E.value->is_type<OScriptNodeComment>()) {
+            comments.push_back(E.value);
+        }
     }
 
     // Initialize graphs
     for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs) {
         G.value->post_initialize();
+    }
+
+    // Sanitize attached nodes
+    // In 2.5.0 deleting nodes while attached did not clean-up attachments
+    for (const Ref<OScriptNodeComment>& C : comments) {
+        if (C.is_valid()) {
+            PackedInt64Array removals;
+            PackedInt64Array attached = C->get_attached_nodes();
+            for (int node_id : attached) {
+                if (!_nodes.has(node_id)) {
+                    removals.push_back(node_id);
+                }
+            }
+            for (int node_id : removals) {
+                attached.erase(node_id);
+            }
+            C->set_attached_nodes(attached);
+        }
     }
 
     _fix_orphans();
