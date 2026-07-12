@@ -195,6 +195,7 @@ private:
 
     static void _populate_divergence_paths(Context& p_context, NodeId p_divergence_node_id);
     void _find_merge_point(Context& p_context, NodeId p_divergence_node_id);
+    static bool _post_dominates(Context& p_context, NodeId p_divergence_node_id, NodeId p_merge_node_id);
     static void _find_merge_point_by_pin(Context& p_context, NodeId p_divergence_node_id);
     static HashSet<NodeId> _get_all_reachable_nodes(Context& p_context, NodeId p_from_node_id);
     static OScriptNodePinSet _get_all_reachable_pins(Context& p_context, const OScriptNodePinId& p_id);
