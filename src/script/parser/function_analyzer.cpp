@@ -386,7 +386,9 @@ void OScriptFunctionAnalyzer::_find_merge_point(Context& p_context, NodeId p_div
     if (paths.size() == 1) {
         // During later analysis, if the convergence path has only one node, the branch logic could be
         // flattened, particularly in the case of an if/else node path
-        p_context.info.divergence_to_merge_point[p_divergence_node_id] = *paths.begin();
+        if (_post_dominates(p_context, p_divergence_node_id, *paths.begin())) {
+            p_context.info.divergence_to_merge_point[p_divergence_node_id] = *paths.begin();
+        }
         return;
     }
 
@@ -419,7 +421,16 @@ void OScriptFunctionAnalyzer::_find_merge_point(Context& p_context, NodeId p_div
 
             const uint64_t mask = *mask_ptr;
             if (mask == all_bits) {
-                p_context.info.divergence_to_merge_point[p_divergence_node_id] = node_id;
+                // The closest node reachable from every path is only a real convergence point if it
+                // post-dominates the divergence -- i.e. every path from the divergence reaches it before
+                // the function exits.
+                //
+                // A node merely reachable from all paths (e.g. a shared successor that a nested branch
+                // can also bypass to the function end) is not a merge point; hoisting to it would execute
+                // it unconditionally. Leave it unset so each branch emits the shared node independently.
+                if (_post_dominates(p_context, p_divergence_node_id, node_id)) {
+                    p_context.info.divergence_to_merge_point[p_divergence_node_id] = node_id;
+                }
                 return;
             }
 
@@ -467,8 +478,74 @@ void OScriptFunctionAnalyzer::_find_merge_point(Context& p_context, NodeId p_div
     // The merge point is the first common node (closest to the divergence)
     if (common_reachable.size() > 0) {
         NodeId merge_point = *common_reachable.begin();
-        p_context.info.divergence_to_merge_point[p_divergence_node_id] = merge_point;
+        if (_post_dominates(p_context, p_divergence_node_id, merge_point)) {
+            p_context.info.divergence_to_merge_point[p_divergence_node_id] = merge_point;
+        }
     }
+}
+
+bool OScriptFunctionAnalyzer::_post_dominates(Context& p_context, NodeId p_divergence_node_id, NodeId p_merge_node_id) {
+    // A node M post-dominates the divergence D iff every control-flow path leaving D reaches M
+    // before the function exits. We verify this by walking forward from each of D's diverging paths,
+    // treating M as a barrier (paths that reach M have converged, so we stop expanding there). If any
+    // other reachable node has a path to the function exit that bypasses M, then M is not a true
+    // merge point.
+    //
+    // The exit is implicit: it is reached whenever a node has an execution output pin with no
+    // connection (a dangling arm, e.g. a nested Branch whose false pin is unwired) or has no
+    // execution output pins at all (a terminal such as a Return). Such an escape reachable without
+    // passing through M means M does not post-dominate D.
+    //
+    // We seed from the recorded diverging paths (D's immediate successors) rather than from D itself,
+    // so D's own pin layout is never inspected -- loop nodes carry special outputs (loop body,
+    // completed, aborted) that must not be mistaken for escapes.
+    Vector<NodeId> stack;
+    for (NodeId path_start : p_context.info.divergence_paths[p_divergence_node_id]) {
+        stack.push_back(path_start);
+    }
+    HashSet<NodeId> visited;
+
+    while (!stack.is_empty()) {
+        const NodeId node_id = stack[stack.size() - 1];
+        stack.remove_at(stack.size() - 1);
+
+        if (node_id == p_merge_node_id) {
+            // Reached the candidate merge point: this path has converged, do not expand past it.
+            continue;
+        }
+        if (visited.has(node_id)) {
+            continue;
+        }
+        visited.insert(node_id);
+
+        const Ref<OScriptNode> node = p_context.get_node_by_id(node_id);
+        if (!node.is_valid()) {
+            continue;
+        }
+
+        int exec_outputs = 0;
+        int connected_outputs = 0;
+        for (const Ref<OScriptNodePin>& output : node->find_pins(PD_Output)) {
+            if (output.is_valid() && output->is_execution()) {
+                exec_outputs++;
+                if (output->has_any_connections()) {
+                    connected_outputs++;
+                }
+            }
+        }
+
+        // A dangling execution output (or a terminal with none) is a path to the function exit that
+        // bypasses the candidate merge point.
+        if (exec_outputs == 0 || connected_outputs < exec_outputs) {
+            return false;
+        }
+
+        for (const Ref<OScriptNode>& successor : p_context.get_control_flow_successors(node)) {
+            stack.push_back(successor->get_id());
+        }
+    }
+
+    return true;
 }
 
 void OScriptFunctionAnalyzer::_find_merge_point_by_pin(Context& p_context, NodeId p_divergence_node_id) {
