@@ -281,7 +281,7 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
                 continue;
             }
 
-            if (pi.name.match("metadata/_missing_resources")) {
+            if (!_is_property_serialized(pi)) {
                 continue;
             }
 
