@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://uaoha6tp61c0"]
+
+[ext_resource type="Script" uid="uid://d3donuba5460r" path="res://scenes/features/call_script_native_methods.torch" id="1_8funb"]
+
+[node name="CallScriptNativeMethods" type="Node" unique_id=314025926]
+script = ExtResource("1_8funb")
