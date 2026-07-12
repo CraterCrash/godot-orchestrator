@@ -422,12 +422,18 @@ void Orchestration::set_edited(bool p_edited) {
         }
     }
 
-    // Only notify when the edited state actually changes. Emitting `changed` unconditionally caused
-    // every save (which calls set_edited(false) on each open tab to mark it saved) to re-queue a full
-    // script validation for tabs whose edited state never changed.
-    if (_initialized && _edited != p_edited) {
-        _edited = p_edited;
+    if (!_initialized) {
+        return;
+    }
 
+    const bool state_changed = _edited != p_edited;
+    _edited = p_edited;
+
+    // Broadcast `changed` on each edit.
+    // The mark-clean path (set_edited(false) is invoked on every open tab during save) stays deduped
+    // to the actual dirty->clean transition, so saving does not re-queue validation for tabs whose
+    // edited state never changes.
+    if (p_edited || state_changed) {
         if (_self) {
             _self->emit_changed();
         }
