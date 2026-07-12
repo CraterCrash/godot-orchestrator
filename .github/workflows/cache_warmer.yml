@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        branch: [main, '2.4', '2.3', '2.2']
+        branch: [main, '2.5', '2.4']
     steps:
       - name: Trigger workflow on ${{ matrix.branch }}
         run: |
