@@ -32,6 +32,8 @@ import shutil
 import signal
 import subprocess
 import sys
+import time
+import urllib.error
 import urllib.request
 
 from concurrent.futures import ThreadPoolExecutor
@@ -300,13 +302,56 @@ def get_minimum_godot_version():
         raise RuntimeError("Could not find compatibility_minimum in .gdextension file")
     return match.group(1)
 
+def _github_token():
+    return os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+
+def github_api_get(url, max_retries=5):
+    """GET a GitHub API URL as JSON, authenticating when a token is available
+    and backing off on rate-limit (403/429) responses using the reset headers."""
+    headers = {
+        "User-Agent": "godot-test-runner",
+        "Accept": "application/vnd.github+json",
+    }
+    token = _github_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    for attempt in range(max_retries):
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code not in (403, 429) or attempt == max_retries - 1:
+                if e.code in (403, 429) and not token:
+                    raise RuntimeError(
+                        "GitHub API rate limit exceeded. Set GITHUB_TOKEN (or "
+                        "GH_TOKEN) to raise the limit, or pass --godot-binary to "
+                        "skip the download entirely."
+                    ) from e
+                raise
+
+            # Prefer Retry-After, then the rate-limit reset epoch, else backoff.
+            retry_after = e.headers.get("Retry-After")
+            reset = e.headers.get("X-RateLimit-Reset")
+            if retry_after and retry_after.isdigit():
+                wait = int(retry_after)
+            elif reset and reset.isdigit():
+                wait = max(0, int(reset) - int(time.time())) + 1
+            else:
+                wait = 2 ** attempt
+            wait = min(wait, 120)
+            print(f"GitHub API rate-limited (HTTP {e.code}); retrying in {wait}s "
+                  f"(attempt {attempt + 1}/{max_retries})...")
+            time.sleep(wait)
+
+    raise RuntimeError("GitHub API request failed after retries")
+
 def find_latest_godot_release(major_minor):
     page = 1
     while True:
         url = f"https://api.github.com/repos/godotengine/godot-builds/releases?per_page=100&page={page}"
-        req = urllib.request.Request(url, headers={"User-Agent": "godot-test-runner"})
-        with urllib.request.urlopen(req) as r:
-            releases = json.load(r)
+        releases = github_api_get(url)
 
         if not releases:
             break
