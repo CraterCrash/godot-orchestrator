@@ -18,6 +18,7 @@
 
 #include "common/macros.h"
 #include "common/variant_utils.h"
+#include "core/godot/object/enum_resolver.h"
 #include "orchestration/orchestration.h"
 
 #include <godot_cpp/classes/os.hpp>
@@ -213,6 +214,14 @@ Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, EPinType 
 
         Variant::Type type = p_default_value.get_type() != Variant::NIL ? p_default_value.get_type() : p_property.type;
         pin->set_generated_default_value(VariantUtils::make_default(type));
+
+        // For enums when the node spawns in the editor, set its generated default value to the first element
+        if (_is_in_editor() && p_default_value.get_type() == Variant::NIL && pin->is_enum()) {
+            const List<EnumResolver::EnumItem> items = EnumResolver::resolve(p_property);
+            if (!items.is_empty()) {
+                pin->set_generated_default_value(items.front()->get().value);
+            }
+        }
 
         if (p_direction == PD_Input) {
             _input_pins.push_back(pin);
