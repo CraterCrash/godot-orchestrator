@@ -44,6 +44,7 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -942,6 +943,13 @@ Error OScript::_reload(bool p_keep_state) {
 
     // Record the source we just compiled so an identical follow-up reload can be skipped.
     compiled_source_hash = source.hash();
+    #endif
+
+    #ifdef DEV_TOOLS
+    // Dump the compiled disassembly right after a successful validate/compile.
+    if (OS::get_singleton()->get_environment("ORCHESTRATOR_DUMP_DISASSEMBLY") == "1") {
+        print_line(dump_compiled_state());
+    }
     #endif
 
     reloading = false;
