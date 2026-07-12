@@ -52,6 +52,8 @@ jobs:
         if: matrix.artifact-name == 'linux-editor'
         shell: bash
         working-directory: ${{ github.workspace }}/tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python run_integration_tests.py --no-color
 
