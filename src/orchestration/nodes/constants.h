@@ -149,6 +149,8 @@ public:
 class OScriptNodeClassConstantBase : public OScriptNodeConstant {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeClassConstantBase, OScriptNodeConstant);
 
+    String _get_enum_declaring_class(const String& p_class_name, const StringName& p_enum_name) const;
+
 protected:
     static void _bind_methods() { }
 
@@ -221,7 +223,7 @@ protected:
     PackedStringArray _get_class_constant_choices(const String& p_class_name) const override;
     //~ End Wrapped Interface
 
-    PackedStringArray _get_singletons_with_enum_constants() const;
+    PackedStringArray _get_singletons_with_constants() const;
 
 public:
     //~ Begin OScriptNode Interface

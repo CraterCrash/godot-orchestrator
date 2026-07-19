@@ -649,7 +649,6 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
 
     // Constants
     r_actions.insert(_script_node_builder<OScriptNodeGlobalConstant>("Constants", "Global Constant").build());
-    r_actions.insert(_script_node_builder<OScriptNodeGlobalConstant>("Constants", "Global Constant").build());
     r_actions.insert(_script_node_builder<OScriptNodeMathConstant>("Constants", "Math Constant").build());
     r_actions.insert(_script_node_builder<OScriptNodeTypeConstant>("Constants", "Type Constant").build());
     r_actions.insert(_script_node_builder<OScriptNodeClassConstant>("Constants", "Class Constant").build());
