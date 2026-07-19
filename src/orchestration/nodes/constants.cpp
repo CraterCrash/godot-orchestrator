@@ -348,6 +348,17 @@ void OScriptNodeTypeConstant::_bind_methods() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// OScriptNodeClassConstantBase
 
+String OScriptNodeClassConstantBase::_get_enum_declaring_class(const String& p_class_name, const StringName& p_enum_name) const {
+    String class_name = p_class_name;
+    while (!class_name.is_empty()) {
+        if (ClassDB::class_has_enum(class_name, p_enum_name, true)) {
+            return class_name;
+        }
+        class_name = ClassDB::get_parent_class(class_name);
+    }
+    return {};
+}
+
 void OScriptNodeClassConstantBase::_get_property_list(List<PropertyInfo>* r_list) const {
     const PackedStringArray class_names = _get_class_names();
     if (!class_names.is_empty()) {
@@ -357,7 +368,11 @@ void OScriptNodeClassConstantBase::_get_property_list(List<PropertyInfo>* r_list
         r_list->push_back(PropertyInfo(Variant::STRING, "class_name", PROPERTY_HINT_TYPE_STRING, "Object"));
     }
 
-    const String constants = StringUtils::join(",", _get_class_constant_choices(_class_name));
+    // Constant order is registration-dependent, sort for a stable, searchable choice list
+    PackedStringArray constant_names = _get_class_constant_choices(_class_name);
+    constant_names.sort();
+
+    const String constants = StringUtils::join(",", constant_names);
     r_list->push_back(PropertyInfo(Variant::STRING, "constant", PROPERTY_HINT_ENUM, constants));
 }
 
@@ -410,7 +425,12 @@ Ref<OScriptNodePin> OScriptNodeClassConstantBase::_create_constant_pin() {
     } else {
         const StringName enum_name = ClassDB::class_get_integer_constant_enum(_class_name, _constant_name);
         if (!enum_name.is_empty()) {
-            return create_pin(PD_Output, PT_Data, PropertyUtils::make_class_enum("constant", _class_name, enum_name));
+            // The constant may be inherited, so the pin must reference the class that declares the
+            // enum rather than the selected class, otherwise the pair cannot be resolved later.
+            const String class_name = _get_enum_declaring_class(_class_name, enum_name);
+            if (!class_name.is_empty()) {
+                return create_pin(PD_Output, PT_Data, PropertyUtils::make_class_enum("constant", class_name, enum_name));
+            }
         }
     }
     return create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("constant", Variant::INT));
@@ -457,7 +477,7 @@ PackedStringArray OScriptNodeClassConstant::_get_class_constant_choices(const St
     if (ScriptServer::is_global_class(p_class_name)) {
         return ScriptServer::get_global_class(p_class_name).get_integer_constant_list();
     }
-    return ClassDB::class_get_integer_constant_list(_class_name, false);
+    return ClassDB::class_get_integer_constant_list(p_class_name, false);
 }
 
 OScriptNodeClassConstant::OScriptNodeClassConstant() {
@@ -467,33 +487,26 @@ OScriptNodeClassConstant::OScriptNodeClassConstant() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// OScriptNodeSingletonConstant
 
-PackedStringArray OScriptNodeSingletonConstant::_get_singletons_with_enum_constants() const {
+PackedStringArray OScriptNodeSingletonConstant::_get_singletons_with_constants() const {
     // Initialize the singleton list once using static-init
-    static const PackedStringArray singletons_with_enum_constants = [] {
+    static const PackedStringArray singletons_with_constants = [] {
         PackedStringArray array;
         for (const String& singleton : Engine::get_singleton()->get_singleton_list()) {
-            const PackedStringArray enums = ClassDB::class_get_enum_list(singleton, true);
-            if (enums.is_empty()) {
+            // Enum members are also registered as integer constants, so this covers both.
+            if (ClassDB::class_get_integer_constant_list(singleton, true).is_empty()) {
                 continue;
             }
             array.push_back(singleton);
         }
+        array.sort();
         return array;
     }();
 
-    return singletons_with_enum_constants;
+    return singletons_with_constants;
 }
 
 PackedStringArray OScriptNodeSingletonConstant::_get_class_constant_choices(const String& p_class_name) const {
-    PackedStringArray results;
-    const PackedStringArray enum_names = ClassDB::class_get_enum_list(p_class_name, true);
-    for (const String& enum_name : enum_names) {
-        const PackedStringArray constants = ClassDB::class_get_enum_constants(p_class_name, enum_name, true);
-        for (const String& constant : constants) {
-            results.push_back(constant);
-        }
-    }
-    return results;
+    return ClassDB::class_get_integer_constant_list(p_class_name, true);
 }
 
 PackedStringArray OScriptNodeSingletonConstant::_get_class_names() const {
@@ -502,5 +515,5 @@ PackedStringArray OScriptNodeSingletonConstant::_get_class_names() const {
 
 OScriptNodeSingletonConstant::OScriptNodeSingletonConstant() {
     _class_name = "Input"; // Most common choice
-    _singletons = _get_singletons_with_enum_constants();
+    _singletons = _get_singletons_with_constants();
 }
