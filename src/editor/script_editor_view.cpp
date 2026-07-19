@@ -677,6 +677,9 @@ void OrchestratorScriptGraphEditorView::_validate_script() {
         }
     }
 
+    // Purposely hide warnings for now
+    _warnings.clear();
+
     _update_warnings();
     _update_errors();
 
