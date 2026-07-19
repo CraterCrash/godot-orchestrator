@@ -383,8 +383,17 @@ void OScriptFunction::remove_argument(int p_index) {
                 if (argument_pin.is_valid()) {
                     argument_pin->unlink_all();
                 }
-
+                _orchestration->adjust_connections(call_func.ptr(), p_index + 1, -1, PD_Input);
             }
+        }
+
+        const Ref<OScriptNodeFunctionEntry> entry = get_owning_node();
+        if (entry.is_valid()) {
+            const Ref<OScriptNodePin> argument_pin = entry->find_pin(p_index + 1, PD_Output);
+            if (argument_pin.is_valid()) {
+                argument_pin->unlink_all();
+            }
+            _orchestration->adjust_connections(entry.ptr(), p_index + 1, -1, PD_Output);
         }
 
         #if GODOT_VERSION >= 0x040600
