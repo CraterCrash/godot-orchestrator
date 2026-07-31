@@ -228,7 +228,7 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
     const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals, ActionSet& r_actions) {
 
     // Exclude classes that are prefixed with Editor, Orchestrator, and OScript.
-    if (p_class_name.begins_with("Editor") || p_class_name.begins_with("Orchestrator") || p_class_name.begins_with("OScript")) {
+    if (p_class_name.begins_with("Orchestrator") || p_class_name.begins_with("OScript")) {
         return;
     }
 
