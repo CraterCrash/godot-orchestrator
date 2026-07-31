@@ -80,6 +80,8 @@ class OScriptNodePromotableOperator : public OScriptEditablePinNode {
     Vector<Variant::Type> _operands;
     Variant::Type _result = Variant::NIL;
 
+    void _set_operand_types(const Vector<Variant::Type>& p_types);
+
 protected:
     static void _bind_methods();
 

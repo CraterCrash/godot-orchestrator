@@ -249,6 +249,24 @@ bool OScriptNodeOperator::is_operator_supported(const OperatorInfo& p_operator) 
 /// OScriptNodePromotableOperator
 ///
 
+void OScriptNodePromotableOperator::_set_operand_types(const Vector<Variant::Type>& p_types) {
+    bool changed = false;
+    for (int i = 0; i < _operands.size() && i < p_types.size(); i++) {
+        if (_operands[i] != p_types[i]) {
+            _operands.write[i] = p_types[i];
+            changed = true;
+        }
+    }
+
+    if (!changed) {
+        return;
+    }
+
+    _result = _get_result_type();
+
+    reconstruct_node();
+}
+
 void OScriptNodePromotableOperator::_get_property_list(List<PropertyInfo>* r_list) const {
     r_list->push_back(PropertyInfo(Variant::INT, "op", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::PACKED_INT32_ARRAY, "operand_types", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
@@ -816,16 +834,13 @@ void OScriptNodePromotableOperator::copy_pin_types(const Ref<OrchestrationGraphN
         return;
     }
 
-    const Ref<OScriptNodePromotableOperator> promotable_operator = p_target;
-    if (promotable_operator.is_null()) {
+    const Ref<OScriptNodePromotableOperator> source = p_source;
+    const Ref<OScriptNodePromotableOperator> target = p_target;
+    if (source.is_null() || target.is_null()) {
         return;
     }
 
-    for (const Ref<OrchestrationGraphPin>& pin : promotable_operator->get_all_pins()) {
-        if (const Ref<OrchestrationGraphPin>& source_pin = p_source->find_pin(pin->get_pin_name(), pin->get_direction()); source_pin.is_valid()) {
-            promotable_operator->change_pin_types(pin, source_pin->get_type());
-        }
-    }
+    target->_set_operand_types(source->_operands);
 }
 
 void OScriptNodePromotableOperator::_bind_methods() {
