@@ -31,6 +31,18 @@
 
 OrchestratorEditorActionRegistry* OrchestratorEditorActionRegistry::_singleton = nullptr;
 
+void OrchestratorEditorActionRegistry::_project_settings_changed() {
+    if (_project_settings_update_timer != nullptr) {
+        _project_settings_update_timer->start();
+    }
+}
+
+void OrchestratorEditorActionRegistry::_script_classes_updated() {
+    // In the event this signal is called multiple times by the file system in quick succession,
+    // the plugin uses a timer to debounce the calls so that only one rebuild fires.
+    _global_script_class_update_timer->start();
+}
+
 void OrchestratorEditorActionRegistry::_rebuild_base_actions() {
     _building = true;
 
@@ -160,16 +172,8 @@ OrchestratorEditorActionRegistry::OrchestratorEditorActionRegistry()
 
     _rebuild_base_actions();
 
-    EI->get_resource_filesystem()->connect("script_classes_updated", callable_mp_lambda(this, [&] {
-        // In the event this signal is called multiple times by the file system in quick succession,
-        // the plugin uses a timer to debounce the calls so that only one rebuild fires.
-        _global_script_class_update_timer->start();
-    }));
-
-    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_lambda(this, [&] {
-        _project_settings_update_timer->start();
-    }));
-
+    EI->get_resource_filesystem()->connect("script_classes_updated", callable_mp_this(_script_classes_updated));
+    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_project_settings_changed));
     EI->get_resource_filesystem()->connect("resources_reload", callable_mp_this(_resources_reloaded));
 }
 
