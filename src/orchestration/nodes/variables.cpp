@@ -167,15 +167,17 @@ void OScriptNodeVariableGet::allocate_default_pins() {
 }
 
 String OScriptNodeVariableGet::get_tooltip_text() const {
-    if (_variable.is_valid()) {
-        String tooltip_text = vformat("Read the value of variable %s", _variable->get_variable_name());
-        if (!_variable->get_description().is_empty()) {
-            tooltip_text += "\n\nDescription:\n" + _variable->get_description();
-        }
-        return tooltip_text;
+    if (_variable_name.is_empty()) {
+        return "Read the value of a variable";
     }
 
-    return "Read the value of a variable";
+    String tooltip = "Read the value of variable " + _variable_name;
+    if (!_variable.is_valid() || _variable->get_description().strip_edges().is_empty()) {
+        return tooltip;
+    }
+
+    tooltip += "\n\nDescription:\n" + _variable->get_description().strip_edges();
+    return tooltip;
 }
 
 String OScriptNodeVariableGet::get_node_title() const {
@@ -297,15 +299,17 @@ void OScriptNodeVariableSet::allocate_default_pins() {
 }
 
 String OScriptNodeVariableSet::get_tooltip_text() const {
-    if (_variable.is_valid()) {
-        String tooltip_text = vformat("Set the value of variable %s", _variable->get_variable_name());
-        if (!_variable->get_description().is_empty()) {
-            tooltip_text += "\n\nDescription:\n" + _variable->get_description();
-        }
-        return tooltip_text;
+    if (_variable_name.is_empty()) {
+        return "Set the value of a variable";
     }
 
-    return vformat("Set the value of a variable");
+    String tooltip = "Set the value of variable " + _variable_name;
+    if (!_variable.is_valid() || _variable->get_description().is_empty()) {
+        return tooltip;
+    }
+
+    tooltip += "\n\nDescription:\n" + _variable->get_description().strip_edges();
+    return tooltip;
 }
 
 String OScriptNodeVariableSet::get_node_title() const {

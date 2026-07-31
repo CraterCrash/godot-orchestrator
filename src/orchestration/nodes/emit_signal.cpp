@@ -114,11 +114,17 @@ void OScriptNodeEmitSignal::allocate_default_pins() {
 }
 
 String OScriptNodeEmitSignal::get_tooltip_text() const {
-    if (_signal.is_valid()) {
-        return vformat("Emit the signal '%s'", _signal->get_signal_name());
-    } else {
+    if (_signal_name.is_empty()) {
         return "Emits a Godot signal with optional arguments";
     }
+
+    String tooltip = "Emit the signal '" + _signal_name + "'";
+    if (!_signal.is_valid() || _signal->get_description().strip_edges().is_empty()) {
+        return tooltip;
+    }
+
+    tooltip += "\n\nDescription:\n" + _signal->get_description().strip_edges();
+    return tooltip;
 }
 
 String OScriptNodeEmitSignal::get_node_title() const {
