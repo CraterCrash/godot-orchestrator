@@ -14,10 +14,12 @@ jobs:
           - name: Build demo artifact
             pattern: ${{ github.event.repository.name }}-demo-*
             upload-name: ${{ github.event.repository.name }}-demo
+            verify-asset-root: false
 
           - name: Build plug-in artifact
             pattern: ${{ github.event.repository.name }}-plugin-*
             upload-name: ${{ github.event.repository.name }}-plugin
+            verify-asset-root: true
 
     steps:
 
@@ -26,6 +28,32 @@ jobs:
         with:
           pattern: ${{ matrix.pattern }}
           merge-multiple: true
+
+      # Guards the GH-854 fix. The distribution archive must contain at least one entry
+      # alongside `addons/` at its root, otherwise Godot's asset installer offers to strip
+      # `addons/` -- and does so by default when installing from the AssetLib -- landing
+      # the plug-in in `res://orchestrator/` where it cannot load. The marker is generated
+      # by the "Prepare asset root marker" step in .github/actions/orchestrator-build.
+      - name: Verify asset root layout
+        if: matrix.verify-asset-root
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d addons/orchestrator ]; then
+            echo "::error::Distribution archive is missing addons/orchestrator/."
+            exit 1
+          fi
+          if [ ! -f ORCHESTRATOR-README.md ]; then
+            echo "::error::Distribution archive is missing the ORCHESTRATOR-README.md asset root marker (see GH-854)."
+            exit 1
+          fi
+          entries=$(find . -mindepth 1 -maxdepth 1 | wc -l)
+          if [ "$entries" -lt 2 ]; then
+            echo "::error::Distribution archive has a single root entry; Godot's AssetLib would strip it (see GH-854)."
+            find . -mindepth 1 -maxdepth 1
+            exit 1
+          fi
+          echo "Asset root layout OK (${entries} root entries)."
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7

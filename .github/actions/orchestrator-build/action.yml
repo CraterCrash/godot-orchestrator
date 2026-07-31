@@ -117,14 +117,50 @@ runs:
         cp '${{ github.workspace }}/README.md' '${{ github.workspace }}/project/addons/orchestrator/'
         cp '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/project/addons/orchestrator/'
 
-    # Creates a demo archive of this specific build, including only the "project" subfolder
+    # DO NOT REMOVE -- this file is load-bearing, see GH-854.
+    #
+    # Godot's asset installer (EditorAssetInstaller::_check_has_toplevel) enables its
+    # "Ignore asset root" toggle only when every entry in the archive shares a single
+    # common root directory, and the AssetLib download path ticks that toggle by default.
+    # With `addons/` as the sole root, Godot strips it and installs Orchestrator into
+    # `res://orchestrator/`, where the .gdextension library paths no longer resolve.
+    #
+    # Placing any second entry at the archive root makes that check bail out, which
+    # disables the toggle entirely so the root can never be stripped. The file only has
+    # to exist in the archive; the user is free to leave it unchecked when installing.
+    #
+    # It must live under `project/` so that actions/upload-artifact keeps the archive
+    # rooted there. A file outside `project/` would raise the least-common-ancestor to
+    # the workspace and nest everything under a `project/` folder instead.
+    - name: Prepare asset root marker
+      shell: bash
+      run: |
+        cat > '${{ github.workspace }}/project/ORCHESTRATOR-README.md' <<'EOF'
+        # Orchestrator
+
+        Orchestrator was installed into `res://addons/orchestrator/`.
+
+        **This file is safe to delete.** It is not part of the plug-in.
+
+        It is shipped at the root of the distribution archive so that Godot's asset
+        installer cannot strip the `addons/` directory. Without it, installing from the
+        AssetLib places the plug-in in `res://orchestrator/`, where its GDExtension
+        library paths do not resolve and the plug-in silently fails to load.
+
+        See https://github.com/CraterCrash/godot-orchestrator/issues/854
+        EOF
+
+    # Creates a demo archive of this specific build, including only the "project" subfolder.
+    # The demo is a full project, so its archive root already holds several entries and it
+    # is unaffected by GH-854 -- the asset root marker is excluded to keep it clean.
     - name: Upload artifact (Demo)
       uses: actions/upload-artifact@v7
       with:
         name: ${{ github.event.repository.name }}-demo-${{ inputs.artifact-name }}
         retention-days: 1
-        path:
+        path: |
           ${{ github.workspace }}/project/
+          !${{ github.workspace }}/project/ORCHESTRATOR-README.md
 
     # Creates the distribution plugin
     - name: Upload artifact (Plug-in)
