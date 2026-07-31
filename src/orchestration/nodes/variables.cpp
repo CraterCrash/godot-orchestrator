@@ -315,16 +315,20 @@ String OScriptNodeVariableSet::get_node_title() const {
 void OScriptNodeVariableSet::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) {
     super::reallocate_pins_during_reconstruction(p_old_pins);
 
-    // Keep old default value if one was set that differs from the variable's default value
+    // The value pin is named after the variable, so the base class cannot match the old pin to the
+    // new pin by name after its renamed; carry any user-supplied value over positionally instead.
     for (const Ref<OScriptNodePin>& old_pin : p_old_pins) {
-        if (old_pin->is_input() && !old_pin->is_execution()) {
-            if (old_pin->get_effective_default_value() != _variable->get_default_value()) {
-                Ref<OScriptNodePin> value_pin = find_pin(_variable->get_variable_name(), PD_Input);
-                if (value_pin.is_valid() && !value_pin->has_any_connections()) {
-                    value_pin->set_default_value(VariantUtils::convert(old_pin->get_effective_default_value(), value_pin->get_type()));
-                }
-                break;
+        if (!old_pin->is_input() || old_pin->is_execution()) {
+            continue;
+        }
+
+        const Variant user_value = old_pin->get_default_value();
+        if (user_value.get_type() != Variant::NIL) {
+            const Ref<OScriptNodePin> value_pin = find_pin(1, PD_Input);
+            if (value_pin.is_valid() && !value_pin->has_any_connections()) {
+                value_pin->set_default_value(VariantUtils::convert(user_value, value_pin->get_type()));
             }
         }
+        break;
     }
 }
