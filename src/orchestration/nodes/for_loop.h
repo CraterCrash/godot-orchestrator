@@ -50,7 +50,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
-    PackedStringArray get_keywords() const override { return Array::make("for", "loop"); }
+    PackedStringArray get_keywords() const override { return Array::make("for", "loop", "range"); }
     bool is_loop_port(int p_port) const override;
     bool is_loop_break_pin(const Ref<OScriptNodePin>& p_pin) override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
@@ -89,7 +89,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
-    PackedStringArray get_keywords() const override { return Array::make("for", "each", "loop"); }
+    PackedStringArray get_keywords() const override { return Array::make("for", "each", "loop", "range"); }
     bool is_loop_port(int p_port) const override;
     bool is_loop_break_pin(const Ref<OScriptNodePin>& p_pin) override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
