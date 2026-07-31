@@ -115,6 +115,10 @@ IF (compiler_is_msvc)
     SET(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 ENDIF ()
 
+# Correct the alignment of godot-cpp's Variant before godot-cpp is added, so that
+# the shim's include directory is inherited by godot-cpp's targets as well.
+INCLUDE(godot-cpp-variant-alignment)
+
 # Configure godot-cpp - a statically linked library to this project.
 INCLUDE(godot-dev-configuration)
 
