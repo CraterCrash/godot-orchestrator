@@ -1018,9 +1018,6 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
                 int function_id = _get_orchestration()->get_function_node_id(script_graph->get_graph_name());
 
                 const Ref<OScriptFunction> function = _get_orchestration()->find_function(script_graph->get_graph_name());
-                if (function.is_valid()) {
-
-                }
                 if (function.is_valid() && !function->is_connected(CoreStringName(changed), callable_mp_this(_functions_changed))) {
                     function->connect(CoreStringName(changed), callable_mp_this(_functions_changed));
                 }
@@ -1034,6 +1031,11 @@ void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
                 item->set_meta("__component_type", SCRIPT_FUNCTION);
                 item->set_meta("__node_id", function_id);
                 item->set_meta("__override", function.is_valid() ? !function->is_user_defined() : false);
+
+                if (function.is_valid() && !function->get_description().strip_edges().is_empty()) {
+                    const String tooltip = vformat("%s\n\n%s", function->get_function_name(), function->get_description().strip_edges());
+                    item->set_tooltip_text(0, SceneUtils::create_wrapped_tooltip_text(tooltip));
+                }
             }
         }
     }
@@ -1122,8 +1124,8 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
             item->add_button(0, class_icon, 2, false, "Change variable type");
         }
 
-        if (!variable->get_description().is_empty()) {
-            const String tooltip = variable->get_variable_name() + "\n\n" + variable->get_description();
+        if (!variable->get_description().strip_edges().is_empty()) {
+            const String tooltip = vformat("%s\n\n%s", variable->get_variable_name(), variable->get_description().strip_edges());
             item->set_tooltip_text(0, SceneUtils::create_wrapped_tooltip_text(tooltip));
         }
 
@@ -1166,8 +1168,15 @@ void OrchestratorScriptComponentsContainer::_update_signals() {
     const Ref<Texture2D> signal_icon = SceneUtils::get_editor_icon("MemberSignal");
     for (const String& signal_name: signal_names) {
         const Ref<OScriptSignal> signal = _get_orchestration()->get_custom_signal(signal_name);
-        TreeItem* item = _signals->add_tree_item(signal->get_signal_name(), signal_icon);
-        item->set_meta("__component_type", SCRIPT_SIGNAL);
+        if (signal.is_valid()) {
+            TreeItem* item = _signals->add_tree_item(signal->get_signal_name(), signal_icon);
+            item->set_meta("__component_type", SCRIPT_SIGNAL);
+
+            if (!signal->get_description().strip_edges().is_empty()) {
+                String tooltip = vformat("%s\n\n%s", signal->get_signal_name(), signal->get_description().strip_edges());
+                item->set_tooltip_text(0, SceneUtils::create_wrapped_tooltip_text(tooltip));
+            }
+        }
     }
 }
 

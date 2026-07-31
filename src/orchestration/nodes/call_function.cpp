@@ -623,7 +623,13 @@ void OScriptNodeCallScriptFunction::post_placed_new_node() {
 }
 
 String OScriptNodeCallScriptFunction::get_tooltip_text() const {
-    return vformat("Target is %s", get_orchestration()->get_base_type());
+    String tooltip = "Calls the method " + _reference.method.name;
+    if (!_function.is_valid() || _function->get_description().strip_edges().is_empty()) {
+        return tooltip;
+    }
+
+    tooltip += "\n\nDescription:\n" + _function->get_description().strip_edges();
+    return tooltip;
 }
 
 String OScriptNodeCallScriptFunction::get_node_title() const {
