@@ -53,7 +53,7 @@ runs:
     #   3. A partial match for the same cache name and default branch name
     - name: Restore cache
       id: restore-cache
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: ${{ inputs.cache-path }}
         key: ${{ inputs.cache-name }}|${{ github.base_ref || github.ref_name }}|${{ github.sha }}
@@ -102,7 +102,7 @@ runs:
 
     - name: Save cache
       if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && !startsWith(github.ref_name, 'dependabot/')
-      uses: actions/cache/save@v5
+      uses: actions/cache/save@v6
       with:
         path: ${{ inputs.cache-path }}
         key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
