@@ -101,7 +101,7 @@ runs:
             done
 
     - name: Save cache
-      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && !startsWith(github.ref_name, 'dependabot/')
       uses: actions/cache/save@v5
       with:
         path: ${{ inputs.cache-path }}
