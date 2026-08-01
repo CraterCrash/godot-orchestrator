@@ -76,7 +76,7 @@ runs:
       shell: bash
       run: |
         ccache --set-config=compression_level=9
-        ccache --set-config=max_size=500M
+        ccache --set-config=max_size=200M
 
     - name: Build
       shell: sh
