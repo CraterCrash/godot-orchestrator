@@ -25,6 +25,7 @@
 #include "editor/gui/dialogs_helper.h"
 #include "editor/gui/file_dialog.h"
 #include "editor/gui/select_class_dialog.h"
+#include "script/script.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_file_dialog.hpp>
@@ -130,6 +131,8 @@ void OrchestratorEditorPropertyExtends::_notification(int p_what) {
 
             _dialog = memnew(OrchestratorSelectClassSearchDialog);
             _dialog->set_data_suffix("extends");
+            // Prevent extending OScript
+            _dialog->add_class_exclusion(OScript::get_class_static());
             _dialog->connect("selected", callable_mp_this(_extends_class_selected));
             add_child(_dialog);
 
