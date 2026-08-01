@@ -16,10 +16,13 @@
 //
 #pragma once
 
+#include <functional>
 #include <utility>
 
 #include <godot_cpp/core/binder_common.hpp>
+#include <godot_cpp/templates/hashfuncs.hpp>
 #include <godot_cpp/variant/callable_custom.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 namespace callable_internal {
 
@@ -72,16 +75,16 @@ namespace callable_internal {
     template<class Lambda>
     class CallableCustomLambda : public CallableCustom {
         Lambda _lambda;
-        Object* _instance;
+        ObjectID _instance_id;
 
     public:
         //~ Begin CallableCustom Interface
-        uint32_t hash() const override { return (intptr_t) this; }
+        uint32_t hash() const override { return hash_one_uint64((uint64_t) (uintptr_t) this); }
         String get_as_text() const override { return "CallableCustomLambda"; }
-        CompareEqualFunc get_compare_equal_func() const override { return [](const CallableCustom* a, const CallableCustom* b) { return a->hash() == b->hash(); }; }
-        CompareLessFunc get_compare_less_func() const override { return [](const CallableCustom* a, const CallableCustom* b) { return a->hash() < b->hash(); }; }
-        bool is_valid() const override { return _instance != nullptr; }
-        ObjectID get_object() const override { return ObjectID(); }
+        CompareEqualFunc get_compare_equal_func() const override { return [](const CallableCustom* a, const CallableCustom* b) { return a == b; }; }
+        CompareLessFunc get_compare_less_func() const override { return [](const CallableCustom* a, const CallableCustom* b) { return std::less<const CallableCustom*>{}(a, b); }; }
+        bool is_valid() const override { return _instance_id.is_valid() && UtilityFunctions::is_instance_id_valid(_instance_id); }
+        ObjectID get_object() const override { return _instance_id; }
         void call(const Variant** p_args, int p_arg_count, Variant& r_ret, GDExtensionCallError& r_error) const override {
             using traits = function_traits<Lambda>;
             using E = ExpandPack<typename traits::arg_tuple>;
@@ -93,8 +96,12 @@ namespace callable_internal {
         /// @param p_instance the instance the callable is invoked upon
         /// @param p_lambda the lambda function to call
         CallableCustomLambda(Object* p_instance, Lambda&& p_lambda)
-            : _lambda(p_lambda)
-            , _instance(p_instance) {
+            : _lambda(p_lambda) {
+            if (p_instance) {
+                _instance_id = p_instance->get_instance_id();
+            } else {
+                _instance_id = ObjectID();
+            }
         }
     };
 }
