@@ -116,6 +116,33 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
     return items;
 }
 
+bool OrchestratorSelectClassSearchDialog::_is_class_excluded(const String& p_class_name) const {
+    if (_excluded_classes.has(p_class_name)) {
+        return true;
+    }
+
+    if (p_class_name.begins_with(OScript::get_class_static()) || p_class_name.begins_with("Orchestrator")) {
+        if (p_class_name != OScript::get_class_static()) {
+            return true;
+        }
+    }
+
+    if (_base_type == p_class_name) {
+        return true;
+    }
+
+    if (_is_base_type_node && p_class_name.begins_with("Editor")) {
+        return true;
+    }
+
+    // An internal class for the editor
+    if (p_class_name.match("MissingNode") || p_class_name.match("MissingResource")) {
+        return true;
+    }
+
+    return false;
+}
+
 bool OrchestratorSelectClassSearchDialog::_is_preferred(const String& p_item) const {
     if (ClassDB::class_exists(p_item)) {
         return ClassDB::is_parent_class(p_item, _preferred_search_result_type);
@@ -157,24 +184,9 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
 
     // Classes
     for (const String& class_name : ClassDB::get_class_list()) {
-        // Exclude Orchestrator Types
-        if (class_name.begins_with("OScript") || class_name.begins_with("Orchestrator")) {
+        if (_is_class_excluded(class_name)) {
             continue;
         }
-
-        if (_base_type == class_name) {
-            continue;
-        }
-
-        if (_is_base_type_node && class_name.begins_with("Editor")) {
-            continue;
-        }
-
-        // An internal class for the editor
-        if (class_name.match("MissingNode") || class_name.match("MissingResource")) {
-            continue;
-        }
-
         items.append_array(_get_class_hierarchy_search_items(class_name, hierarchy_cache, root));
     }
 
@@ -268,4 +280,10 @@ void OrchestratorSelectClassSearchDialog::set_allow_abstract_types(bool p_allow_
 
 void OrchestratorSelectClassSearchDialog::set_popup_title(const String& p_title) {
     _title = p_title;
+}
+
+void OrchestratorSelectClassSearchDialog::add_class_exclusion(const String& p_class_name) {
+    if (!_excluded_classes.has(p_class_name)) {
+        _excluded_classes.push_back(p_class_name);
+    }
 }

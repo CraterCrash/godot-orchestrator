@@ -24,6 +24,7 @@ project/addons/orchestrator/~orchestrator*.*
 
 # Test files
 project/tests
+project-playground/
 
 # Imported translations (automatically generated from CSV files)
 *.translation

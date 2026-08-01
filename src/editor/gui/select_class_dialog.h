@@ -33,6 +33,7 @@ class OrchestratorSelectClassSearchDialog : public OrchestratorEditorSearchDialo
     String _preferred_search_result_type;
     String _data_suffix;
     String _title;
+    PackedStringArray _excluded_classes;
 
     /// Creates the class hierarchy path, i.e. "Parent/Child/GrandChild"
     /// @param p_class the class name
@@ -50,6 +51,11 @@ class OrchestratorSelectClassSearchDialog : public OrchestratorEditorSearchDialo
     /// @param r_cache the seearch item cache
     /// @param p_root the root search item
     Vector<Ref<SearchItem>> _get_class_hierarchy_search_items(const String& p_class, HashMap<String, Ref<SearchItem>>& r_cache, const Ref<SearchItem>& p_root);
+
+    /// Specifies whether the native class name is excluded
+    /// @param p_class_name the native class name
+    /// @return true to exclude the class, false otherwise
+    bool _is_class_excluded(const String& p_class_name) const;
 
 protected:
     static void _bind_methods() { }
@@ -91,4 +97,7 @@ public:
     /// @param p_title the title to display
     void set_popup_title(const String& p_title);
 
+    /// Adds a class as an exclusion
+    /// @param p_class_name the class name
+    void add_class_exclusion(const String& p_class_name);
 };
