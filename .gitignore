@@ -9,6 +9,7 @@ export_presets.cfg
 
 # Project exports
 project/export/
+project-playground/
 
 # Build files
 project/addons/orchestrator/orchestrator*.dll
