@@ -54,6 +54,8 @@ private:
     void _cascade_type_downstream();
     // Walk the output chain and return the first non-reroute pin, or invalid if none.
     Ref<OScriptNodePin> _resolve_target_pin() const;
+    // Walk the input chain and return the originating non-reroute pin, or invalid if none.
+    Ref<OScriptNodePin> _resolve_source_pin() const;
 
 protected:
     static void _bind_methods();
@@ -63,6 +65,8 @@ public:
     void allocate_default_pins() override;
     void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
     void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
+    StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override;
+    Ref<OScriptTargetObject> resolve_target(const Ref<OScriptNodePin>& p_pin) const override;
     bool is_pure() const override { return false; }
     bool is_reroute() const override { return true; }
     String get_node_title() const override { return ""; }
