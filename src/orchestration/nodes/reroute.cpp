@@ -49,6 +49,23 @@ Ref<OScriptNodePin> OScriptNodeReroute::_resolve_target_pin() const {
     return {};
 }
 
+Ref<OScriptNodePin> OScriptNodeReroute::_resolve_source_pin() const {
+    const Ref<OScriptNodePin> in = find_pin("input", PD_Input);
+    if (!in.is_valid()) {
+        return {};
+    }
+
+    for (const Ref<OScriptNodePin>& connected : in->get_connections()) {
+        OScriptNodeReroute* upstream = cast_to<OScriptNodeReroute>(connected->get_owning_node());
+        if (upstream) {
+            return upstream->_resolve_source_pin();
+        }
+        return connected;
+    }
+
+    return {};
+}
+
 void OScriptNodeReroute::_cascade_resolve_from_target() {
     // Uses Orchestration connections directly.
     // Pin objects on this node may be stale (cleared and not yet repopulated) if the _notify_pins_changed
@@ -128,9 +145,8 @@ void OScriptNodeReroute::allocate_default_pins() {
         make_reroute_pin(PD_Input,  PT_Execution, PropertyUtils::make_exec("input"));
         make_reroute_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("output"));
     } else {
-        // REROUTE_DATA: Derive the data type from the source connected to input port 0
-        // REROUTE_ANY: Leave data_type as NIL and use make_variant so the pin acts as a wildcard
-        Variant::Type data_type = Variant::NIL;
+        PropertyInfo resolved;
+        bool has_resolved = false;
         if (_reroute_type == REROUTE_DATA) {
             // During node reconstruction, the _pins array is cleared so query connections by node ID and port index.
             // Precedence: Try the input (Source) first, its authoritative when connected.
@@ -139,8 +155,9 @@ void OScriptNodeReroute::allocate_default_pins() {
                     const Ref<OScriptNode> src = get_orchestration()->get_node(C.from_node);
                     if (src.is_valid()) {
                         const Ref<OScriptNodePin> src_pin = src->find_pin(C.from_port, PD_Output);
-                        if (src_pin.is_valid()) {
-                            data_type = src_pin->get_type();
+                        if (src_pin.is_valid() && !PropertyUtils::is_nil(src_pin->get_property_info())) {
+                            resolved = src_pin->get_property_info();
+                            has_resolved = true;
                         }
                     }
                     break;
@@ -148,7 +165,7 @@ void OScriptNodeReroute::allocate_default_pins() {
             }
 
             // There was no input source, so walk the output chain to derive the type at the target
-            if (data_type == Variant::NIL) {
+            if (!has_resolved) {
                 int walk_node = _id;
                 while (true) {
                     bool advanced = false;
@@ -167,8 +184,9 @@ void OScriptNodeReroute::allocate_default_pins() {
                             advanced = true;
                         } else {
                             const Ref<OScriptNodePin> dst_pin = dst->find_pin(C.to_port, PD_Input);
-                            if (dst_pin.is_valid()) {
-                                data_type = dst_pin->get_type();
+                            if (dst_pin.is_valid() && !PropertyUtils::is_nil(dst_pin->get_property_info())) {
+                                resolved = dst_pin->get_property_info();
+                                has_resolved = true;
                             }
                         }
                         break;
@@ -181,13 +199,13 @@ void OScriptNodeReroute::allocate_default_pins() {
             }
         }
 
-        if (data_type == Variant::NIL) {
+        if (!has_resolved) {
             // Variant pin: accepts any data type (PROPERTY_USAGE_NIL_IS_VARIANT)
             make_reroute_pin(PD_Input,  PT_Data, PropertyUtils::make_variant("input"));
             make_reroute_pin(PD_Output, PT_Data, PropertyUtils::make_variant("output"));
         } else {
-            make_reroute_pin(PD_Input,  PT_Data, PropertyUtils::make_typed("input",  data_type));
-            make_reroute_pin(PD_Output, PT_Data, PropertyUtils::make_typed("output", data_type));
+            make_reroute_pin(PD_Input,  PT_Data, PropertyUtils::as("input",  resolved));
+            make_reroute_pin(PD_Output, PT_Data, PropertyUtils::as("output", resolved));
         }
     }
 }
@@ -237,6 +255,34 @@ void OScriptNodeReroute::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) {
         // and we use the orchestration-level connections to avoid stale pin objects post rebuild.
         _cascade_resolve_from_target();
     }
+}
+
+StringName OScriptNodeReroute::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const {
+    const Ref<OScriptNodePin> source = _resolve_source_pin();
+    if (source.is_valid()) {
+        const StringName class_name = source->get_owning_node()->resolve_type_class(source);
+        if (!class_name.is_empty()) {
+            return class_name;
+        }
+    }
+
+    if (p_pin.is_valid() && !p_pin->is_execution() && !p_pin->get_target_class().is_empty()) {
+        return p_pin->get_target_class();
+    }
+
+    return super::resolve_type_class(p_pin);
+}
+
+Ref<OScriptTargetObject> OScriptNodeReroute::resolve_target(const Ref<OScriptNodePin>& p_pin) const {
+    const Ref<OScriptNodePin> source = _resolve_source_pin();
+    if (source.is_valid()) {
+        const Ref<OScriptTargetObject> target = source->resolve_target();
+        if (target.is_valid()) {
+            return target;
+        }
+    }
+
+    return super::resolve_target(p_pin);
 }
 
 String OScriptNodeReroute::get_tooltip_text() const {
