@@ -1,8 +1,16 @@
 version: 2
 updates:
   # Maintain dependencies for GitHub Actions
+  #
+  # The '/' entry only covers '.github/workflows' and a root-level action.yml, so each
+  # composite action under '.github/actions' must be listed explicitly. A '/**' glob would
+  # reach them, but it also re-matches the workflow files and opens duplicate pull requests
+  # (dependabot/dependabot-core#10884).
   - package-ecosystem: 'github-actions'
-    directory: '/'
+    directories:
+      - '/'
+      - '/.github/actions/orchestrator-build'
+      - '/.github/actions/setup-emsdk'
     schedule:
       interval: 'daily'
     commit-message:
