@@ -56,4 +56,9 @@ public:
 
     /// Get the function reference
     Ref<OScriptFunction> get_function() const { return _function; }
+
+    /// Rebinds this terminator onto another function, used when a function and its graph are
+    /// copied and the copied terminators still reference the source function.
+    /// @param p_function the function this terminator represents
+    void set_function(const Ref<OScriptFunction>& p_function);
 };

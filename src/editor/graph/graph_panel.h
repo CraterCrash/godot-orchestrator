@@ -137,6 +137,7 @@ private:
     bool _panel_refresh_pending = false;
     bool _panel_connections_refresh_pending = false;
     bool _refresh_scheduled = false;
+    int _pending_center_node_id = -1;
 
 
     Vector2 _menu_position;
