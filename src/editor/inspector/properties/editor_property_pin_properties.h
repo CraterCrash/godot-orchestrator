@@ -51,6 +51,14 @@ class OrchestratorEditorPropertyPinProperties : public EditorProperty {
     int _max_entries = INT_MAX;                              //! Maximum allowed properties
     bool _args = false;                                      //! Represents argument or return value list
     bool _allow_rearrange = false;                           //! Whether move up/down is enabled
+    StringName _focus_property;                              //! Property whose name field should take focus
+
+    /// Focuses and selects the name field of the given slot.
+    /// @param p_index the slot index
+    void _focus_name_field(int p_index);
+
+    /// Focuses the name field of the property queued by a prior add, if any.
+    void _focus_pending_name_field();
 
 protected:
     static void _bind_methods();
