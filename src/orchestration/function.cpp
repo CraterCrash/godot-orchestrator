@@ -117,15 +117,10 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
         _description = p_value;
         result = true;
     } else if (p_name.match("inputs")) {
-        const TypedArray<Dictionary> arguments = p_value;
-        const bool refresh_required = _method.arguments.size() != size_t(arguments.size());
-
+        // The inspector's argument editor adds and removes its own rows, and graph nodes that
+        // reference this function reconstruct from "changed", so a property list refresh here
+        // would only force a full inspector rebuild that discards in-progress edit state.
         set_arguments(p_value);
-
-        if (refresh_required) {
-            notify_property_list_changed();
-        }
-
         return true;
     } else if (p_name.match("outputs")) {
         const TypedArray<Dictionary> results = p_value;

@@ -66,18 +66,16 @@ bool OScriptSignal::_set(const StringName &p_name, const Variant &p_value) {
         return true;
     } else if (p_name.match("inputs")) {
         TypedArray<Dictionary> properties = p_value;
-        const bool refresh_required = _method.arguments.size() != static_cast<size_t>(properties.size());
 
         _method.arguments.resize(properties.size());
         for (int index = 0; index < properties.size(); ++index) {
             _method.arguments[index] = DictionaryUtils::to_property(properties[index]);
         }
 
+        // The inspector's argument editor adds and removes its own rows, and emit signal nodes
+        // reconstruct from "changed", so a property list refresh here would only force a full
+        // inspector rebuild that discards in-progress edit state.
         emit_changed();
-
-        if (refresh_required) {
-            notify_property_list_changed();
-        }
 
         return true;
     }
