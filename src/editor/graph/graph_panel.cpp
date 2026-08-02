@@ -2154,6 +2154,14 @@ void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
     _update_center_status();
 
     _panel_refresh_pending = false;
+
+    // A centering request that arrived before the nodes existed is applied now. This routes back
+    // through center_node_id so the node is centered once its size has settled.
+    if (_pending_center_node_id != -1) {
+        const int node_id = _pending_center_node_id;
+        _pending_center_node_id = -1;
+        callable_mp_this(center_node_id).bind(node_id).call_deferred();
+    }
 }
 
 void OrchestratorEditorGraphPanel::_refresh_panel_connections_with_model() {
@@ -3348,12 +3356,12 @@ void OrchestratorEditorGraphPanel::center_node_id(int p_id) {
         return;
     }
 
-    // This may often be called from a sequence where the graph is first opened
-    // and the graph node instance isn't yet available. In this case, centering
-    // the node must be deferred until the graph is loaded.
-    callable_mp_lambda(this, [p_id, this] {
-        center_node(find_node(p_id));
-    }).call_deferred();
+    // This is often called from a sequence where the graph is first opened and the graph node
+    // instance isn't yet available. The panel builds its nodes from a "process_frame" callback
+    // (see _schedule_refresh), which runs after the deferred calls of the frame that opened the
+    // graph, so the request is held until the build has run rather than deferred a fixed number
+    // of times.
+    _pending_center_node_id = p_id;
 }
 
 void OrchestratorEditorGraphPanel::center_node(OrchestratorEditorGraphNode* p_node) {
