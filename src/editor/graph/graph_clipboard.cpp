@@ -243,8 +243,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     for (const CopyItem& item : _buffer.nodes) {
         const int new_node_id = connection_remap[item.node->get_id()];
         const Ref<OrchestrationGraphNode> new_node = p_target->get_orchestration()->get_node(new_node_id);
-        const Ref<OrchestrationGraphNode> old_node = item.node->get_orchestration()->get_node(item.node->get_id());
-        OScriptNodePromotableOperator::copy_pin_types(old_node, new_node);
+        OScriptNodePromotableOperator::copy_pin_types(item.node, new_node);
     }
 
     return result;
