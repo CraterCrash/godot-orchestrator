@@ -29,6 +29,31 @@
 
 #include <godot_cpp/classes/v_box_container.hpp>
 
+void OrchestratorEditorPropertyPinProperties::_focus_name_field(int p_index) {
+    if (p_index < _slots.size()) {
+        _slots[p_index].name->grab_focus();
+        _slots[p_index].name->select_all();
+    }
+}
+
+void OrchestratorEditorPropertyPinProperties::_focus_pending_name_field() {
+    // Return values use a read-only, fixed name field and are never focused.
+    if (_focus_property.is_empty() || !_args) {
+        return;
+    }
+
+    // Keyed by name rather than index because rearranging reorders the property list.
+    for (int index = 0; index < _properties.size(); ++index) {
+        if (_properties[index].name == _focus_property) {
+            // Deferred because the slot's widgets were only just added to the container.
+            callable_mp_this(_focus_name_field).call_deferred(index);
+            break;
+        }
+    }
+
+    _focus_property = StringName();
+}
+
 void OrchestratorEditorPropertyPinProperties::_selector_type_changed(const Dictionary& p_property, int p_index) {
     const PropertyInfo property = DictionaryUtils::to_property(p_property);
     _properties.write[p_index].type = property.type;
@@ -52,6 +77,8 @@ void OrchestratorEditorPropertyPinProperties::_add_property() {
     property.hint = PROPERTY_HINT_NONE;
 
     _properties.push_back(property);
+
+    _focus_property = property.name;
 
     _set_properties();
 }
@@ -224,6 +251,8 @@ void OrchestratorEditorPropertyPinProperties::_update_property() {
 
     _add_button->set_disabled(_properties.size() == _max_entries || is_read_only());
     _update_move_buttons();
+
+    _focus_pending_name_field();
 }
 
 void OrchestratorEditorPropertyPinProperties::setup(bool p_inputs, int p_max_entries) {
