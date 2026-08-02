@@ -261,7 +261,7 @@ private:
     virtual void _update_center_status();
 
     virtual void _add_node_to_panel(const Ref<OrchestrationGraphNode>& p_node);
-    virtual void _remove_node_from_panel(const Ref<OrchestrationGraphNode>& p_node);
+    virtual void _remove_node_from_panel(int p_node_id);
     virtual void _refresh_panel_with_model();
     virtual void _refresh_panel_connections_with_model();
 

@@ -663,9 +663,18 @@ void OrchestratorEditorGraphPanel::_node_added(int p_node_id) {
 }
 
 void OrchestratorEditorGraphPanel::_node_removed(int p_node_id) {
-    OrchestratorEditorGraphNode* node = find_node(p_node_id);
-    if (node) {
-        remove_node(node, false);
+    if (find_node(p_node_id)) {
+        _remove_node_from_panel(p_node_id);
+
+        // This makes sure that we only ever emit 1 event during bulk node removal
+        if (!_pending_nodes_changed_event) {
+            _set_edited(true);
+            _pending_nodes_changed_event = true;
+            callable_mp_lambda(this, [&] {
+                _pending_nodes_changed_event = false;
+                emit_signal("nodes_changed");
+            }).call_deferred();
+        }
     }
 
     _update_center_status();
@@ -2091,8 +2100,22 @@ void OrchestratorEditorGraphPanel::_add_node_to_panel(const Ref<OrchestrationGra
     graph_node->set_size(p_node->get_size());
 }
 
-void OrchestratorEditorGraphPanel::_remove_node_from_panel(const Ref<OrchestrationGraphNode>& p_node) {
+void OrchestratorEditorGraphPanel::_remove_node_from_panel(int p_node_id) {
+    OrchestratorEditorGraphNode* graph_node = find_node(p_node_id);
+    if (!graph_node) {
+        return;
+    }
 
+    _markers->set_bookmarked(graph_node, false);
+    _markers->set_breakpoint(graph_node, false);
+
+    if (graph_node->is_selected()) {
+        graph_node->set_selected(false);
+    }
+
+    _detach_node_from_frame(graph_node->get_name());
+
+    graph_node->queue_free();
 }
 
 void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
@@ -3186,33 +3209,16 @@ HashSet<OrchestratorEditorGraphPin*> OrchestratorEditorGraphPanel::get_connected
 }
 
 void OrchestratorEditorGraphPanel::remove_node(OrchestratorEditorGraphNode* p_node, bool p_confirm) {
+    ERR_FAIL_NULL(p_node);
+
     if (p_confirm && _is_delete_confirmation_enabled()) {
         ORCHESTRATOR_CONFIRM("Do you wish to delete this node?", callable_mp_this(remove_node).bind(p_node, false));
     }
 
-    _markers->set_bookmarked(p_node, false);
-    _markers->set_breakpoint(p_node, false);
-
-    if (p_node->is_selected()) {
-        p_node->set_selected(false);
-    }
-
-    _detach_node_from_frame(p_node->get_name());
-
-    p_node->queue_free();
-
-    const int node_id = p_node->get_id();
-    _graph->get_orchestration()->remove_node(node_id);
-
-    // This makes sure that we only ever emit 1 event during bulk node removal
-    if (!_pending_nodes_changed_event) {
-        _set_edited(true);
-        _pending_nodes_changed_event = true;
-        callable_mp_lambda(this, [&] {
-            _pending_nodes_changed_event = false;
-            emit_signal("nodes_changed");
-        }).call_deferred();
-    }
+    // Removing the node from the orchestration emits "node_removed", and the panel tears down its
+    // visual node in response, see _node_removed. This method must not touch the visual node itself;
+    // "node_removed" is also emitted when a node merely moves between graphs and remains alive.
+    _graph->get_orchestration()->remove_node(p_node->get_id());
 }
 
 void OrchestratorEditorGraphPanel::remove_nodes(const TypedArray<OrchestratorEditorGraphNode>& p_nodes, bool p_confirm) {
