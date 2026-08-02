@@ -219,6 +219,11 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
 void OrchestratorScriptComponentsContainer::_component_item_gui_input(TreeItem* p_item, const Ref<InputEvent>& p_event) {
     ERR_FAIL_NULL(p_item);
 
+    const Ref<InputEventKey> key = p_event;
+    if (key.is_null() || !key->is_pressed() || key->is_echo()) {
+        return;
+    }
+
     if (ED_IS_SHORTCUT("graph_components_panel/rename", p_event)) {
         bool can_be_renamed = p_item->get_meta("__can_be_renamed", true);
         if (!can_be_renamed) {
