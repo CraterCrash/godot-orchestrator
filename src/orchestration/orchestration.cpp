@@ -170,6 +170,8 @@ void Orchestration::_set_signals_internal(const TypedArray<OScriptSignal>& p_sig
 }
 
 void Orchestration::_fix_orphans() {
+    Vector<int> orphans;
+
     // Iterate nodes and check orphan status
     for (const KeyValue<int, Ref<OScriptNode>>& E : _nodes) {
         bool orphaned = true;
@@ -208,7 +210,11 @@ void Orchestration::_fix_orphans() {
 
         const String path = _self ? _self->get_path() : _script_path;
         WARN_PRINT(vformat("Removed orphan node %d (%s) from script %s.", E.key, E.value->get_class(), path));
-        _nodes.erase(E.key);
+        orphans.push_back(E.key);
+    }
+
+    for (int node_id : orphans) {
+        _nodes.erase(node_id);
     }
 
     {
@@ -220,7 +226,7 @@ void Orchestration::_fix_orphans() {
         }
         for (const OScriptConnection C : removals) {
             String extra = "";
-            if (OS::get_singleton()->has_feature("editor")) {
+            if (_self && OS::get_singleton()->has_feature("editor")) {
                 extra += " Please save orchestration '" + _self->get_path() + "' to apply changes.";
             }
 
@@ -985,6 +991,14 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
     if (!new_function.is_valid()) {
         remove_graph(new_graph->get_graph_name());
         return nullptr;
+    }
+
+    // The duplicated terminators carry the source function's guid, as that is stored state that is
+    // copied verbatim. They must be rebound onto the new function, otherwise the duplicate resolves
+    // back to the source function when the orchestration is reloaded.
+    new_entry->set_function(new_function);
+    if (new_result.is_valid()) {
+        new_result->set_function(new_function);
     }
 
     old_graph->emit_changed();

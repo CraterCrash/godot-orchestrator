@@ -101,3 +101,24 @@ void OScriptNodeFunctionTerminator::post_placed_new_node() {
 Ref<Resource> OScriptNodeFunctionTerminator::get_inspect_object() {
     return _function.is_valid() ? _function : nullptr;
 }
+
+void OScriptNodeFunctionTerminator::set_function(const Ref<OScriptFunction>& p_function) {
+    ERR_FAIL_COND(p_function.is_null());
+
+    if (_function == p_function) {
+        return;
+    }
+
+    if (_function.is_valid() && _is_in_editor()) {
+        ODISCONNECT(_function, "changed", callable_mp_this(_on_function_changed));
+    }
+
+    _function = p_function;
+    _guid = p_function->get_guid();
+
+    if (_is_in_editor()) {
+        OCONNECT(_function, "changed", callable_mp_this(_on_function_changed));
+    }
+
+    reconstruct_node();
+}
