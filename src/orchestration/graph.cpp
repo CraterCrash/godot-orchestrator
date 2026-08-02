@@ -377,8 +377,21 @@ void OScriptGraph::remove_all_nodes() {
 }
 
 void OScriptGraph::move_node_to(const Ref<OScriptNode>& p_node, const Ref<OScriptGraph>& p_target) {
-    remove_node(p_node);
-    _orchestration->add_node(p_target, p_node);
+    ERR_FAIL_COND(p_node.is_null());
+    ERR_FAIL_COND(p_target.is_null());
+
+    if (p_target == this) {
+        return;
+    }
+
+    // Hold a strong reference, p_node may alias a member of an object that observers of
+    // "node_removed" release in response to the removal below.
+    const Ref<OScriptNode> node = p_node;
+
+    // The node remains registered with the orchestration, only its graph membership changes.
+    // Orchestration::add_node cannot be used here as it rejects nodes that are already registered.
+    remove_node(node);
+    p_target->add_node(node);
 }
 
 Ref<OScriptNode> OScriptGraph::copy_node(int p_node_id, bool p_duplicate_resources) {
