@@ -229,9 +229,12 @@ void OrchestratorEditorTypeSelector::_container_type_changed(int p_index) {
 
 void OrchestratorEditorTypeSelector::_left_type_pressed() {
     String title;
+    bool allow_container_types = true;
     switch (_container_type->get_selected()) {
         case NONE: {
             title = "Select Type";
+            // The container dropdown designates array/dictionary types, not the type dialog
+            allow_container_types = false;
             break;
         }
         case ARRAY: {
@@ -244,7 +247,7 @@ void OrchestratorEditorTypeSelector::_left_type_pressed() {
         }
     }
 
-    _open_type_dialog(title, callable_mp_this(_left_type_selected));
+    _open_type_dialog(title, callable_mp_this(_left_type_selected), allow_container_types);
 }
 
 void OrchestratorEditorTypeSelector::_left_type_selected(OrchestratorSelectTypeSearchDialog* p_dialog) {
@@ -282,7 +285,7 @@ void OrchestratorEditorTypeSelector::_left_type_selected(OrchestratorSelectTypeS
 }
 
 void OrchestratorEditorTypeSelector::_right_type_pressed() {
-    _open_type_dialog("Select Dictionary Value Type", callable_mp_this(_right_type_selected));
+    _open_type_dialog("Select Dictionary Value Type", callable_mp_this(_right_type_selected), true);
 }
 
 void OrchestratorEditorTypeSelector::_right_type_selected(OrchestratorSelectTypeSearchDialog* p_dialog) {
@@ -305,10 +308,12 @@ void OrchestratorEditorTypeSelector::_right_type_selected(OrchestratorSelectType
     }
 }
 
-void OrchestratorEditorTypeSelector::_open_type_dialog(const String& p_title, const Callable& p_select_callback) {
+void OrchestratorEditorTypeSelector::_open_type_dialog(const String& p_title, const Callable& p_select_callback, bool p_allow_container_types) {
     HashSet<StringName> exclusions;
-    exclusions.insert("Array");
-    exclusions.insert("Dictionary");
+    if (!p_allow_container_types) {
+        exclusions.insert("Array");
+        exclusions.insert("Dictionary");
+    }
 
     for (const String& user_exclusion : _user_exclusions) {
         exclusions.insert(user_exclusion);
