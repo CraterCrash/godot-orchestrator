@@ -70,6 +70,22 @@ void OScriptNodeLocalVariable::post_initialize() {
     super::post_initialize();
 }
 
+void OScriptNodeLocalVariable::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) {
+    super::reallocate_pins_during_reconstruction(p_old_pins);
+
+    // The variable name is stored as the output pin's label, and pin labels are not carried over
+    // when the node's pins are reallocated.
+    const Ref<OScriptNodePin> variable = find_pin("variable", PD_Output);
+    if (variable.is_valid()) {
+        for (const Ref<OScriptNodePin>& old_pin : p_old_pins) {
+            if (old_pin->is_output() && old_pin->get_pin_name().match("variable")) {
+                variable->set_label(old_pin->get_label());
+                break;
+            }
+        }
+    }
+}
+
 void OScriptNodeLocalVariable::allocate_default_pins() {
     // todo: When local variables ported to function-scoped API, handle complex types like objects, enums, bitfields, etc.
     create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("variable", _type));
