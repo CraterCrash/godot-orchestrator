@@ -269,8 +269,9 @@ private:
     // Variables and locals
     bool has_local_variable(const StringName& p_name) const;
     void add_local_variable(IdentifierNode* p_variable, SuiteNode* p_suite_override = nullptr);
-    VariableNode* create_local(const StringName& p_name, ExpressionNode* p_initializer = nullptr, SuiteNode* p_suite_override = nullptr);
-    VariableNode* create_local_and_push(const StringName& p_name, ExpressionNode* p_initializer = nullptr);
+    void apply_pin_type(VariableNode* p_local, const Ref<OScriptNodePin>& p_pin);
+    VariableNode* create_local(const StringName& p_name, ExpressionNode* p_initializer = nullptr, SuiteNode* p_suite_override = nullptr, const Ref<OScriptNodePin>& p_pin = {});
+    VariableNode* create_local_and_push(const StringName& p_name, ExpressionNode* p_initializer = nullptr, const Ref<OScriptNodePin>& p_pin = {});
 
     // Useful to register that a specific pin will return a cached variable by the given name.
     // This is used for passing objects constructed in earlier passes to later nodes.
