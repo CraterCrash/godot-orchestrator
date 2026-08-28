@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c1759dictofcol"]
+
+[ext_resource type="Script" uid="uid://b1759dictofcol" path="res://scenes/features/typed_dictionary_of_collections.torch" id="1_typed"]
+
+[node name="TypedDictionaryOfCollections" type="Node" unique_id=1759000102]
+script = ExtResource("1_typed")
