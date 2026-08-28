@@ -37,6 +37,7 @@ protected:
 public:
     //~ Begin OScriptNode Interface
     void post_initialize() override;
+    void reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) override;
     void allocate_default_pins() override;
     String get_node_title() const override;
     String get_icon() const override;
