@@ -47,6 +47,12 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
     }
 
     if (_enable_type_promotion && p_action->node_class == OScriptNodePromotableOperator::get_class_static()) {
+        // An untyped port has no type to pair an operator against; the operator adopts its operand
+        // type from a later connection, so every operator remains a valid choice.
+        if (_variant) {
+            return true;
+        }
+
         if (_type >= Variant::NIL && _type < Variant::VARIANT_MAX) {
             const BuiltInType builtin_type = ExtensionDB::get_builtin_type(_type);
             for (const OperatorInfo& oi : builtin_type.operators) {
@@ -133,6 +139,8 @@ void OrchestratorEditorActionPortRule::configure(const OrchestratorEditorGraphPi
     _enable_type_promotion = ORCHESTRATOR_GET("editor/behavior/general/enable_type_promotion", true);
 
     const PropertyInfo& property = p_pin->get_property_info();
+    _variant = PropertyUtils::is_variant(property);
+
     if (property.type != Variant::NIL && property.type != Variant::OBJECT) {
         // Only match against property type
         _type = property.type;
