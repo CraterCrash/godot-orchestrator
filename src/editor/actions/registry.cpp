@@ -105,7 +105,7 @@ OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions() {
     while (_building) {
         OS::get_singleton()->delay_msec(1000);
     }
-    return _base_actions;
+    return OrchestratorEditorActionSet(_base_actions);
 }
 
 OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions(const Ref<Script>& p_script, const Ref<Script>& p_other) {

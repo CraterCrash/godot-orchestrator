@@ -24,6 +24,8 @@
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
+#include <climits>
+
 using namespace godot;
 
 /// Forward declarations
