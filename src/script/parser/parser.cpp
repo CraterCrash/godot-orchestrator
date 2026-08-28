@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
 #include "common/method_utils.h"
+#include "common/property_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "core/godot/object/class_db.h"
@@ -406,7 +407,21 @@ void OScriptParser::add_local_variable(IdentifierNode* p_variable, SuiteNode* p_
     suite->add_local(SuiteNode::Local(p_variable, current_function));
 }
 
-OScriptParser::VariableNode* OScriptParser::create_local(const StringName& p_name, ExpressionNode* p_initializer, SuiteNode* p_suite_override) {
+void OScriptParser::apply_pin_type(VariableNode* p_local, const Ref<OScriptNodePin>& p_pin) {
+    if (p_local == nullptr || !p_pin.is_valid()) {
+        return;
+    }
+
+    // A local that caches a pin's value is declared with that pin's type, the same way a local
+    // variable declaration is. Without a type the analyzer cannot tell a synthesized local apart
+    // from an untyped declaration the user wrote, and reports it as one.
+    // A pin with no type at all builds an empty type, which would declare the local as void.
+    if (!PropertyUtils::is_nil_no_variant(p_pin->get_property_info())) {
+        p_local->datatype_specifier = build_type(p_pin->get_property_info());
+    }
+}
+
+OScriptParser::VariableNode* OScriptParser::create_local(const StringName& p_name, ExpressionNode* p_initializer, SuiteNode* p_suite_override, const Ref<OScriptNodePin>& p_pin) {
     SuiteNode* suite = p_suite_override ? p_suite_override : current_suite;
 
     if (!suite) {
@@ -421,6 +436,8 @@ OScriptParser::VariableNode* OScriptParser::create_local(const StringName& p_nam
     VariableNode* variable = alloc_node<VariableNode>();
     variable->identifier = identifier;
     variable->export_info.name = p_name;
+    apply_pin_type(variable, p_pin);
+
     if (p_initializer != nullptr) {
         variable->initializer = p_initializer;
         variable->assignments++;
@@ -429,8 +446,8 @@ OScriptParser::VariableNode* OScriptParser::create_local(const StringName& p_nam
     return variable;
 }
 
-OScriptParser::VariableNode* OScriptParser::create_local_and_push(const StringName& p_name, ExpressionNode* p_initializer) {
-    VariableNode* variable = create_local(p_name, p_initializer);
+OScriptParser::VariableNode* OScriptParser::create_local_and_push(const StringName& p_name, ExpressionNode* p_initializer, const Ref<OScriptNodePin>& p_pin) {
+    VariableNode* variable = create_local(p_name, p_initializer, nullptr, p_pin);
     add_statement(variable);
 
     return variable;
@@ -515,7 +532,7 @@ OScriptParser::Node* OScriptParser::await_func_call(CallNode* p_call, const Meth
     if (MethodUtils::has_return_value(method)) {
         for (const Ref<OScriptNodePin>& output : p_node->find_pins(PD_Output)) {
             if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
-                statement = create_local(create_unique_name(output), await);
+                statement = create_local(create_unique_name(output), await, nullptr, output);
                 break;
             }
         }
@@ -923,6 +940,8 @@ OScriptParser::ExpressionNode* OScriptParser::resolve_input(const Ref<OScriptNod
         local->identifier = build_identifier(cache_name);
         local->initializer = expression;
         local->export_info.name = cache_name;
+        apply_pin_type(local, source_pin);
+
         current_suite->add_local(local, current_function);
     }
 
@@ -958,7 +977,7 @@ StringName OScriptParser::get_term_name(const Ref<OScriptNodePin>& p_pin) {
         NodeScope scope(*this, source_node->get_id());
         // Build the expression and cache it
         ExpressionNode* expression = build_expression(p_pin, source_node, source_pin);
-        create_local_and_push(variable_name, expression);
+        create_local_and_push(variable_name, expression, source_pin);
     }
 
     return variable_name;
@@ -1965,7 +1984,7 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
 
         Node* statement = await;
         if (has_return_value && result_pin.is_valid() && result_pin->has_any_connections()) {
-            statement = create_local(create_cached_variable_name(result_pin));
+            statement = create_local(create_cached_variable_name(result_pin), nullptr, nullptr, result_pin);
         }
 
         add_statement(statement);
@@ -1974,7 +1993,7 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
 
     if (has_return_value && result_pin.is_valid() && result_pin->has_any_connections()) {
         const String result_name = create_cached_variable_name(result_pin);
-        create_local_and_push(result_name, call_node);
+        create_local_and_push(result_name, call_node, result_pin);
     } else {
         add_statement(call_node);
     }
@@ -2016,7 +2035,7 @@ OScriptParser::StatementResult OScriptParser::build_call_builtin_function(const 
     if (MethodUtils::has_return_value(method)) {
         for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
             if (!output->is_execution() && output->has_any_connections()) {
-                statement = create_local(create_unique_name(output), call_node);
+                statement = create_local(create_unique_name(output), call_node, nullptr, output);
                 break;
             }
         }
@@ -2049,7 +2068,7 @@ OScriptParser::StatementResult OScriptParser::build_call_script_function(const R
     if (MethodUtils::has_return_value(function->get_method_info())) {
         for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
             if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
-                statement = create_local(create_unique_name(output), call_node);
+                statement = create_local(create_unique_name(output), call_node, nullptr, output);
                 break;
             }
         }
@@ -2082,7 +2101,7 @@ OScriptParser::StatementResult OScriptParser::build_call_static_function(const R
     if (MethodUtils::has_return_value(method)) {
         for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
             if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
-                statement = create_local(create_unique_name(output), call_node);
+                statement = create_local(create_unique_name(output), call_node, nullptr, output);
                 break;
             }
         }
@@ -2109,7 +2128,7 @@ OScriptParser::StatementResult OScriptParser::build_call_super(const Ref<OScript
         if (MethodUtils::has_return_value(method)) {
             for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
                 if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
-                    statement = create_local(create_unique_name(output), call_node);
+                    statement = create_local(create_unique_name(output), call_node, nullptr, output);
                     break;
                 }
             }
@@ -2136,7 +2155,7 @@ OScriptParser::StatementResult OScriptParser::build_call_super(const Ref<OScript
         if (MethodUtils::has_return_value(method)) {
             for (const Ref<OScriptNodePin>& output : p_script_node->find_pins(PD_Output)) {
                 if (output.is_valid() && !output->is_execution() && output->has_any_connections()) {
-                    statement = create_local(create_unique_name(output), call_node);
+                    statement = create_local(create_unique_name(output), call_node, nullptr, output);
                     break;
                 }
             }
@@ -2243,7 +2262,7 @@ OScriptParser::StatementResult OScriptParser::build_array_set(const Ref<OScriptN
 
     const Ref<OScriptNodePin> output = p_script_node->find_pin(1, PD_Output);
     if (output.is_valid() && output->has_any_connections()) {
-        create_local_and_push(create_cached_variable_name(output), resolve_input(array_pin));
+        create_local_and_push(create_cached_variable_name(output), resolve_input(array_pin), output);
     }
 
     return create_statement_result(p_script_node, 0);
@@ -2986,7 +3005,7 @@ OScriptParser::StatementResult OScriptParser::build_message_dialogue(const Ref<O
 OScriptParser::StatementResult OScriptParser::build_new_object(const Ref<OScriptNodeNew>& p_script_node) {
     const Ref<OScriptNodePin> value_pin = p_script_node->find_pin(1, PD_Output);
     CallNode* new_object = create_func_call(p_script_node->get_allocated_class_name(), "new");
-    create_local_and_push(create_cached_variable_name(value_pin), new_object);
+    create_local_and_push(create_cached_variable_name(value_pin), new_object, value_pin);
     return create_statement_result(p_script_node, 0);
 }
 
@@ -3264,8 +3283,7 @@ OScriptParser::FunctionNode* OScriptParser::build_function(const Ref<OScriptFunc
             if (var_node.is_valid()) {
                 const Ref<OScriptNodePin> pin = var_node->find_pin(0, PD_Output);
                 if (pin.is_valid()) {
-                    VariableNode* local = create_local(create_cached_variable_name(pin), nullptr, body);
-                    local->datatype_specifier = build_type(pin->get_property_info());
+                    VariableNode* local = create_local(create_cached_variable_name(pin), nullptr, body, pin);
                     local->identifier->script_node_id = local_var.key;
                     local->script_node_id = local_var.key;
                     add_statement(local, body);
