@@ -22,6 +22,7 @@
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/tree_item.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 
 using namespace godot;
 
@@ -77,6 +78,8 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
     bool _use_function_friendly_names = false;
     bool _editing = false;
 
+    HashMap<String, bool> _category_states;
+
     Ref<Orchestration> _get_orchestration();
 
     bool _make_inspector_dock_visible() const;
@@ -111,6 +114,7 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
     void _find_and_edit_variable(const String& p_variable_name);
     void _update_graphs_and_functions();
     void _update_macros();
+    void _save_category_state(TreeItem* p_item);
     void _update_variables();
     void _update_signals();
     void _update_slots();

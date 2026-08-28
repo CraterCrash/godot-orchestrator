@@ -1049,8 +1049,20 @@ void OrchestratorScriptComponentsContainer::_update_macros() {
     _macros->add_tree_empty_item("No macros defined");
 }
 
+void OrchestratorScriptComponentsContainer::_save_category_state(TreeItem* p_item) {
+    // One need to save state for items that have children, currently only variables
+    if (p_item->has_meta("__name") && p_item->get_child_count() > 0) {
+        const String category_name = p_item->get_meta("__name");
+        _category_states[category_name] = p_item->is_collapsed();
+    }
+}
+
 void OrchestratorScriptComponentsContainer::_update_variables() {
     ERR_FAIL_COND_MSG(!_orchestration.is_valid(), "Orchestration is invalid");
+
+    // The panel is rebuilt on any orchestration change, so the collapsed state of the
+    // categories must be remembered and reapplied below.
+    _variables->for_each_item(callable_mp_this(_save_category_state));
 
     _variables->clear_tree();
 
@@ -1080,6 +1092,9 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
     for (const String& category_name : category_names) {
         TreeItem* item = _variables->add_tree_item(category_name);
         if (item) {
+            if (const bool* collapsed = _category_states.getptr(category_name)) {
+                item->set_collapsed(*collapsed);
+            }
             categories[category_name] = item;
         }
     }
