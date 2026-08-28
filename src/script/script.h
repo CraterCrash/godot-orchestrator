@@ -24,10 +24,10 @@
 #include "script/script_source.h"
 
 #include <gdextension_interface.h>
-#include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 
 using namespace godot;
 
@@ -122,7 +122,7 @@ class OScript : public ScriptExtension {
     };
 
     List<UpdatableFuncPtr*> func_ptrs_to_update;
-    Ref<Mutex> func_ptrs_to_update_mutex;
+    Mutex func_ptrs_to_update_mutex;
 
     void _recurse_replace_function_ptrs(const HashMap<OScriptCompiledFunction*, OScriptCompiledFunction*>& p_replacements) const;
 

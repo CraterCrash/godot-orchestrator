@@ -27,7 +27,7 @@
 
 #include <godot_cpp/classes/native_menu.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 
 OScriptParserRef::Status OScriptParserRef::get_status() const {
     return _status;
@@ -144,7 +144,7 @@ OScriptParserRef::~OScriptParserRef() {
 OScriptCache* OScriptCache::_singleton = nullptr;
 
 Mutex& OScriptCache::get_cache_mutex() {
-    return *_singleton->_mutex.ptr();
+    return _singleton->_mutex;
 }
 
 void OScriptCache::create() {
@@ -262,7 +262,7 @@ void OScriptCache::remove_parser(const String& p_path) { // NOLINT
     _singleton->_parser_map.erase(p_path);
 
     // Have to copy while iterating, because parser_inverse_dependencies is modified.
-    HashSet<String> inverse_dependencies = _singleton->_parser_inverse_dependencies[p_path];
+    HashSet<String> inverse_dependencies(_singleton->_parser_inverse_dependencies[p_path]);
     _singleton->_parser_inverse_dependencies.erase(p_path);
     for (const String& dependency_path : inverse_dependencies) {
         remove_parser(dependency_path);
@@ -428,7 +428,7 @@ Error OScriptCache::finish_compiling(const String& p_path) {
     _singleton->_full_cache[p_path] = script;
     _singleton->_shallow_cache.erase(p_path);
 
-    HashSet<String> depends = _singleton->_dependencies[p_path];
+    HashSet<String> depends(_singleton->_dependencies[p_path]);
 
     Error err = OK;
     for (const String &E : depends) {
@@ -501,7 +501,6 @@ void OScriptCache::clear() {
 }
 
 OScriptCache::OScriptCache() {
-    _mutex.instantiate();
 }
 
 OScriptCache::~OScriptCache() {

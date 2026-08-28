@@ -29,7 +29,7 @@
 #include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/time.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 #include <godot_cpp/variant/variant_internal.hpp>
 
 using namespace godot;
@@ -875,9 +875,8 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 // Check if this is the first run, and store the current signature for the optimized path if so.
                 if (unlikely(op_signature == 0)) {
-                    static Ref<Mutex> initializer_mutex;
-                    initializer_mutex.instantiate();
-                    initializer_mutex->lock();
+                    static Mutex initializer_mutex;
+                    initializer_mutex.lock();
 
                     Variant::Type a_type = GDE::Variant::as_type((actual_signature >> 8) & 0xFF);
                     Variant::Type b_type = GDE::Variant::as_type(actual_signature & 0xFF);
@@ -888,7 +887,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                         error_text = "Invalid operands '" + Variant::get_type_name(a->get_type()) + "' and '" +
                             Variant::get_type_name(b->get_type()) + "' in operator '" + GDE::Variant::get_operator_name(op) + "'.";
                         #endif
-                        initializer_mutex->unlock();
+                        initializer_mutex.unlock();
                         OPCODE_BREAK;
                     } else {
                         Variant::Type ret_type = GDE::Variant::get_operator_return_type(op, a_type, b_type);
@@ -905,7 +904,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                         }
                     }
 
-                    initializer_mutex->unlock();
+                    initializer_mutex.unlock();
                 } else if (likely(op_signature == actual_signature)) {
                     // If signatures match, use optimized path
                     Variant::Type ret_type = GDE::Variant::as_type(code_ptr[ip + 6]);
@@ -2627,7 +2626,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					ofs->state.script = _script;
 
 					{
-						MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+						MutexLock lock(OScriptLanguage::get_singleton()->lock);
 						_script->pending_func_states.add(&ofs->scripts_list);
 						if (p_instance) {
 							ofs->state.instance = p_instance;

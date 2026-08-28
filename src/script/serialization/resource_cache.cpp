@@ -58,7 +58,7 @@ void ResourceCache::destroy() {
 }
 
 bool ResourceCache::has_path(const String& p_path) {
-    MutexLock lock(*_path_cache_lock.ptr());
+    MutexLock lock(_path_cache_lock);
 
     Resource** res = _resources.getptr(p_path);
     if (res && (*res)->get_reference_count() == 0) {
@@ -73,7 +73,7 @@ bool ResourceCache::has_path(const String& p_path) {
 
 Ref<Resource> ResourceCache::get_ref(const String& p_path) {
     Ref<Resource> ref;
-    MutexLock lock(*_mutex.ptr());
+    MutexLock lock(_mutex);
 
     Resource** res = _resources.getptr(p_path);
     if (res) {
@@ -90,23 +90,23 @@ Ref<Resource> ResourceCache::get_ref(const String& p_path) {
 }
 
 void ResourceCache::remove_ref(const String& p_path) {
-    MutexLock lock(*_mutex.ptr());
+    MutexLock lock(_mutex);
     _resource_path_cache.erase(p_path);
     _resources.erase(p_path);
 }
 
 void ResourceCache::remove_path_cache(const String& p_path, const String& p_res_path, const String& p_id) {
-    MutexLock lock(*_path_cache_lock.ptr());
+    MutexLock lock(_path_cache_lock);
     _resource_path_cache[p_path].erase(p_res_path);
 }
 
 void ResourceCache::add_path_cache(const String& p_path, const String& p_res_path, const String& p_id) {
-    MutexLock lock(*_path_cache_lock.ptr());
+    MutexLock lock(_path_cache_lock);
     _resource_path_cache[p_path][p_res_path] = p_id;
 }
 
 String ResourceCache::get_id_for_path(const String& p_path, const String& p_res_path) {
-    MutexLock lock(*_path_cache_lock.ptr());
+    MutexLock lock(_path_cache_lock);
     if (_resource_path_cache[p_path].has(p_res_path)) {
         return _resource_path_cache[p_path][p_res_path];
     }
@@ -121,8 +121,6 @@ void ResourceCache::set_id_for_path(const String& p_path, const String& p_res_pa
 }
 
 ResourceCache::ResourceCache() {
-    _mutex.instantiate();
-    _path_cache_lock.instantiate();
 }
 
 ResourceCache::~ResourceCache() {

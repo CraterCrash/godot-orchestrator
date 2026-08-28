@@ -45,7 +45,7 @@
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 
 OScriptLanguage* OScriptLanguage::_singleton = nullptr;
 
@@ -536,7 +536,7 @@ void OScriptLanguage::_reload_all_scripts()
     print_verbose("OScript: Reloading all scripts");
     Array scripts;
     {
-        MutexLock script_lock(*lock.ptr());
+        MutexLock script_lock(lock);
         SelfList<OScript>* elem = _scripts.first();
         while (elem) {
             if (ResourceUtils::is_file(elem->self()->get_path())) {
@@ -566,7 +566,7 @@ void OScriptLanguage::_reload_scripts(const Array& p_scripts, bool p_soft_reload
     #ifdef DEBUG_ENABLED
     List<Ref<OScript>> scripts;
     {
-        MutexLock script_lock(*lock.ptr());
+        MutexLock script_lock(lock);
         SelfList<OScript>* elem = _scripts.first();
         while (elem) {
             if (elem->self()->is_root_script() && !elem->self()->get_path().is_empty()) {
@@ -729,7 +729,7 @@ Dictionary OScriptLanguage::_get_public_constants() const {
 
 void OScriptLanguage::_profiling_start() {
     #ifdef DEBUG_ENABLED
-    MutexLock function_lock(*lock.ptr());
+    MutexLock function_lock(lock);
 
     SelfList<OScriptCompiledFunction> *elem = function_list.first();
     while (elem) {
@@ -752,14 +752,14 @@ void OScriptLanguage::_profiling_start() {
 
 void OScriptLanguage::_profiling_stop() {
     #ifdef DEBUG_ENABLED
-    MutexLock function_lock(*lock.ptr());
+    MutexLock function_lock(lock);
     profiling = false;
     #endif
 }
 
 void OScriptLanguage::_profiling_set_save_native_calls(bool p_enable) {
     #ifdef DEBUG_ENABLED
-    MutexLock function_lock(*lock.ptr());
+    MutexLock function_lock(lock);
     profile_native_calls = p_enable;
     #endif
 }
@@ -768,7 +768,7 @@ int32_t OScriptLanguage::_profiling_get_accumulated_data(ScriptLanguageExtension
     int current = 0;
     #ifdef DEBUG_ENABLED
 
-    MutexLock profile_lock(*lock.ptr());
+    MutexLock profile_lock(lock);
 
     profiling_collate_native_call_data(true);
     SelfList<OScriptCompiledFunction>* elem = function_list.first();
@@ -807,7 +807,7 @@ int32_t OScriptLanguage::_profiling_get_frame_data(ScriptLanguageExtensionProfil
     int current = 0;
 
     #ifdef DEBUG_ENABLED
-    MutexLock profile_lock(*lock.ptr());
+    MutexLock profile_lock(lock);
 
     profiling_collate_native_call_data(false);
     SelfList<OScriptCompiledFunction>* elem = function_list.first();
@@ -849,7 +849,7 @@ int32_t OScriptLanguage::_profiling_get_frame_data(ScriptLanguageExtensionProfil
 void OScriptLanguage::_frame() {
     #ifdef DEBUG_ENABLED
     if (profiling) {
-        MutexLock function_lock(*lock.ptr());
+        MutexLock function_lock(lock);
         SelfList<OScriptCompiledFunction>* elem = function_list.first();
         while (elem) {
             elem->self()->profile.last_frame_call_count = elem->self()->profile.frame_call_count.get();
@@ -1185,7 +1185,7 @@ void OScriptLanguage::profiling_collate_native_call_data(bool p_accumulated) {
 
 Ref<OScript> OScriptLanguage::get_script_by_fully_qualified_name(const String& p_name) {
     {
-        MutexLock script_lock(*lock.ptr());
+        MutexLock script_lock(lock);
         SelfList<OScript>* elem = _scripts.first();
         while (elem) {
             OScript* scr = elem->self();
@@ -1216,7 +1216,7 @@ List<Ref<OScript>> OScriptLanguage::get_scripts() const {
     {
         const PackedStringArray extensions = _get_recognized_extensions();
 
-        MutexLock mutex_lock(*this->lock.ptr());
+        MutexLock mutex_lock(this->lock);
         const SelfList<OScript>* iterator = _scripts.first();
         while (iterator) {
             String path = iterator->self()->get_path();
@@ -1340,7 +1340,7 @@ void OScriptLanguage::destroy() {
 }
 
 OScriptNodePrintStringOverlay* OScriptLanguage::get_or_create_overlay() {
-    MutexLock guard(*lock.ptr());
+    MutexLock guard(lock);
     return OScriptNodePrintStringOverlay::get_or_create_overlay();
 }
 
@@ -1348,8 +1348,6 @@ void OScriptLanguage::_bind_methods() {
 }
 
 OScriptLanguage::OScriptLanguage() {
-    lock.instantiate();
-
     strings._init = StringName("_init");
     strings._static_init = StringName("_static_init");
     strings._notification = StringName("_notification");

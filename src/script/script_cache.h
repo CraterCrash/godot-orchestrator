@@ -83,7 +83,7 @@ class OScriptCache {
     static OScriptCache* _singleton;
     bool _cleared = false;
 
-    Ref<Mutex> _mutex;
+    Mutex _mutex;
     static Mutex& get_cache_mutex();
 
 public:

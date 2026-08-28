@@ -145,7 +145,7 @@ OScriptCodeGenerator::Address OScriptCompiler::CompilerContext::add_constant(con
 }
 
 void OScriptCompiler::CompilerContext::start_block() {
-    HashMap<StringName, OScriptCodeGenerator::Address> old_locals = locals;
+    HashMap<StringName, OScriptCodeGenerator::Address> old_locals(locals);
     locals_stack.push_back(old_locals);
     generator->start_block();
 }
