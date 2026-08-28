@@ -19,6 +19,12 @@
 #include <godot_cpp/templates/hashfuncs.hpp>
 
 namespace godot {
+    // TODO: Fold this into HashMapHasherDefault once C++20 concepts are allowed
+    template <typename T>
+    struct HashableHasher {
+        static _FORCE_INLINE_ uint32_t hash(const T &hashable) { return hashable.hash(); }
+    };
+
     template <typename T>
     using THashableHasher = HashableHasher<T>;
 }

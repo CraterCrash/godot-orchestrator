@@ -49,7 +49,7 @@
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/time.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 
 OScript::UpdatableFuncPtr::UpdatableFuncPtr(OScriptCompiledFunction* p_function) {
     if (p_function == nullptr) {
@@ -60,7 +60,7 @@ OScript::UpdatableFuncPtr::UpdatableFuncPtr(OScriptCompiledFunction* p_function)
     script = ptr->get_script();
     ERR_FAIL_NULL(script);
 
-    MutexLock script_lock(*script->func_ptrs_to_update_mutex.ptr());
+    MutexLock script_lock(script->func_ptrs_to_update_mutex);
     list_element = script->func_ptrs_to_update.push_back(this);
 }
 
@@ -68,7 +68,7 @@ OScript::UpdatableFuncPtr::~UpdatableFuncPtr() {
     ERR_FAIL_NULL(script);
 
     if (list_element) {
-        MutexLock scriptlock(*script->func_ptrs_to_update_mutex.ptr());
+        MutexLock scriptlock(script->func_ptrs_to_update_mutex);
         list_element->erase();
         list_element = nullptr;
     }
@@ -78,7 +78,7 @@ OScript::UpdatableFuncPtr::~UpdatableFuncPtr() {
 /// OScript
 
 void OScript::_recurse_replace_function_ptrs(const HashMap<OScriptCompiledFunction*, OScriptCompiledFunction*>& p_replacements) const {
-    MutexLock lock(*func_ptrs_to_update_mutex.ptr());
+    MutexLock lock(func_ptrs_to_update_mutex);
     for (UpdatableFuncPtr* updatable : func_ptrs_to_update) {
         HashMap<OScriptCompiledFunction*, OScriptCompiledFunction*>::ConstIterator replacement = p_replacements.find(updatable->ptr);
         if (replacement) {
@@ -263,7 +263,7 @@ OScriptInstance* OScript::_create_instance(const Variant** p_args, int p_arg_cou
     // GH-1663 Allows for calling script-level functions during `_init`.
     GDE_INTERFACE(object_set_script_instance)(p_owner->_owner, si->get_instance_info());
     {
-        MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+        MutexLock lock(OScriptLanguage::get_singleton()->lock);
         instances.insert(p_owner);
         instance_script_instances[p_owner] = si;
     }
@@ -277,7 +277,7 @@ OScriptInstance* OScript::_create_instance(const Variant** p_args, int p_arg_cou
         si->_script = Ref<OScript>();
         si->_owner->set_script(Variant());
         {
-            MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+            MutexLock lock(OScriptLanguage::get_singleton()->lock);
             instances.erase(p_owner);
             instance_script_instances.erase(p_owner);
         }
@@ -296,7 +296,7 @@ OScriptInstance* OScript::_create_instance(const Variant** p_args, int p_arg_cou
             si->_script = Ref<OScript>();
             si->_owner->set_script(Variant());
             {
-                MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+                MutexLock lock(OScriptLanguage::get_singleton()->lock);
                 instances.erase(p_owner);
                 instance_script_instances.erase(p_owner);
             }
@@ -461,7 +461,7 @@ void OScript::_update_exports_down(bool p_base_exports_changed) { // NOLINT
         return;
     }
 
-    HashSet<ObjectID> copy = inheritors_cache;
+    HashSet<ObjectID> copy(inheritors_cache);
     for (const ObjectID& E : copy) {
         Object* instance = ObjectDB::get_instance(E);
         OScript* script = cast_to<OScript>(instance);
@@ -652,7 +652,7 @@ void* OScript::_placeholder_instance_create(Object* p_object) const {
     // GH-1663 Allows for calling script-level functions during `_init`.
     GDE_INTERFACE(object_set_script_instance)(p_object->_owner, psi->get_instance_info());
     {
-        MutexLock lock(*_language->lock.ptr());
+        MutexLock lock(_language->lock);
         instance_script_instances[p_object] = psi;
         placeholders.insert(psi);
     }
@@ -668,7 +668,7 @@ void* OScript::_placeholder_instance_create(Object* p_object) const {
 }
 
 bool OScript::_instance_has(Object* p_object) const {
-    MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+    MutexLock lock(OScriptLanguage::get_singleton()->lock);
     return instances.has(p_object);
 }
 
@@ -702,7 +702,7 @@ Error OScript::_reload(bool p_keep_state) {
 
     bool has_instances;
     {
-        MutexLock lock(*_language->lock.ptr());
+        MutexLock lock(_language->lock);
         has_instances = instances.size();
     }
 
@@ -1248,7 +1248,7 @@ void OScript::clear() {
 
     RBSet<OScriptCompiledFunction*> functions_to_clear;
     {
-        MutexLock lock(*func_ptrs_to_update_mutex.ptr());
+        MutexLock lock(func_ptrs_to_update_mutex);
         for (UpdatableFuncPtr* updatable : func_ptrs_to_update) {
             updatable->ptr = nullptr;
         }
@@ -1296,7 +1296,7 @@ void OScript::clear() {
 }
 
 void OScript::cancel_pending_functions(bool p_warn) {
-    MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+    MutexLock lock(OScriptLanguage::get_singleton()->lock);
     while (SelfList<OScriptFunctionState>* E = pending_func_states.first()) {
         // Order matters since clearing the stack may already cause the OScriptFunctionState
         // to be destroyed and thus removed from the list.
@@ -1601,9 +1601,7 @@ OScript::OScript()
     : _language(OScriptLanguage::get_singleton())
     , script_list(this) {
 
-    func_ptrs_to_update_mutex.instantiate();
-
-    MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+    MutexLock lock(OScriptLanguage::get_singleton()->lock);
     OScriptLanguage::get_singleton()->_scripts.add(&script_list);
 }
 
@@ -1612,7 +1610,7 @@ OScript::~OScript() {
         return;
     }
     if (is_print_verbose_enabled()) {
-        MutexLock lock(*func_ptrs_to_update_mutex.ptr());
+        MutexLock lock(func_ptrs_to_update_mutex);
         if (!func_ptrs_to_update.is_empty()) {
             print_line(vformat(
                 "OScript: %d orphaned lambdas becoming invalid at destruction of script '%s'.",
@@ -1622,7 +1620,7 @@ OScript::~OScript() {
     clear();
     cancel_pending_functions(false);
     {
-        MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+        MutexLock lock(OScriptLanguage::get_singleton()->lock);
         script_list.remove_from_list();
     }
 }

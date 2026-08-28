@@ -25,7 +25,3 @@
 #define _ALLOW_DISCARD_ (void)
 #endif
 
-template <typename T, size_t SIZE>
-constexpr size_t std_size(const T(&)[SIZE]) {
-    return SIZE;
-}

@@ -105,5 +105,5 @@ public:
     void set_popup_title(const String& p_title) { _title = p_title; }
     String get_popup_title() const { return _title; }
     void set_exclusions(const HashSet<StringName>& p_exclusions) { _exclusions = p_exclusions; }
-    HashSet<StringName> get_exclusions() const { return _exclusions; }
+    HashSet<StringName> get_exclusions() const { return HashSet<StringName>(_exclusions); }
 };

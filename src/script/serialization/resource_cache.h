@@ -17,9 +17,9 @@
 #pragma once
 
 #include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 
 using namespace godot;
 
@@ -39,8 +39,8 @@ class ResourceCache
     };
 
 protected:
-    Ref<Mutex> _mutex;                                              //! Mutex for the resource cache
-    Ref<Mutex> _path_cache_lock;                                    //! Mutex for the resource path cache
+    Mutex _mutex;                                                   //! Mutex for the resource cache
+    Mutex _path_cache_lock;                                         //! Mutex for the resource path cache
     HashMap<String, Resource*> _resources;                          //! Map of resources
     HashMap<String, HashMap<String, String>> _resource_path_cache;  //! Map of resource path to resource IDs
 

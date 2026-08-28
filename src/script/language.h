@@ -20,10 +20,10 @@
 #include "script/compiler/compiled_function.h"
 #include "script/serialization/format_defs.h"
 
-#include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 #include <godot_cpp/templates/self_list.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string_name.hpp>
@@ -89,7 +89,7 @@ class OScriptLanguage : public ScriptLanguageExtension {
     void _add_global(const StringName& p_name, const Variant& p_value);
     void _remove_global(const StringName& p_name);
 
-    Ref<Mutex> lock;
+    Mutex lock;
 
     SelfList<OScript>::List _scripts;
     SelfList<OScriptCompiledFunction>::List function_list;

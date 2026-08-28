@@ -21,7 +21,7 @@
 #include "script/language.h"
 #include "script/script.h"
 
-#include <godot_cpp/core/mutex_lock.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 
 bool OScriptDataType::is_type(const Variant& p_variant, bool p_allow_implicit_conversion) const {
     switch (kind) {
@@ -320,7 +320,7 @@ OScriptCompiledFunction::OScriptCompiledFunction() {
     name = "<anonymous>";
     #ifdef DEBUG_ENABLED
     {
-        MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+        MutexLock lock(OScriptLanguage::get_singleton()->lock);
         OScriptLanguage::get_singleton()->function_list.add(&function_list);
     }
     #endif
@@ -336,7 +336,7 @@ OScriptCompiledFunction::~OScriptCompiledFunction() {
     return_type.script_type_ref = Ref<Script>();
 
     #ifdef DEBUG_ENABLED
-    MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+    MutexLock lock(OScriptLanguage::get_singleton()->lock);
     OScriptLanguage::get_singleton()->function_list.remove(&function_list);
     #endif
 }
@@ -381,7 +381,7 @@ bool OScriptFunctionState::is_valid(bool p_extended_check) const {
     }
 
     if (p_extended_check) {
-        MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+        MutexLock lock(OScriptLanguage::get_singleton()->lock);
         if (!scripts_list.in_list()) {
             return false;
         }
@@ -396,7 +396,7 @@ bool OScriptFunctionState::is_valid(bool p_extended_check) const {
 Variant OScriptFunctionState::resume(const Variant& p_arg) {
     ERR_FAIL_NULL_V(function, Variant());
     {
-        MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+        MutexLock lock(OScriptLanguage::get_singleton()->lock);
         if (!scripts_list.in_list()) {
             #ifdef DEBUG_ENABLED
             ERR_FAIL_V_MSG(Variant(), "Resumed function '" + state.function_name
@@ -467,7 +467,7 @@ OScriptFunctionState::OScriptFunctionState() : scripts_list(this), instances_lis
 }
 
 OScriptFunctionState::~OScriptFunctionState() {
-    MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+    MutexLock lock(OScriptLanguage::get_singleton()->lock);
     scripts_list.remove_from_list();
     instances_list.remove_from_list();
     _clear_stack();
