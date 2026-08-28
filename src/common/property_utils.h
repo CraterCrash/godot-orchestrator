@@ -60,8 +60,10 @@ namespace PropertyUtils {
 
     /// Makes a simple typed property.
     ///
-    /// @note This should not be used to make complex types such as objects, enums, or bitfields, nor
-    /// to construct properties that represent various hinted types such as files or multilined text.
+    /// @note This should not be used to make complex types such as enums or bitfields, nor to
+    /// construct properties that represent various hinted types such as files or multilined text.
+    /// An <code>OBJECT</code> type creates an untyped <code>Object</code> property; use
+    /// <code>make_object</code> instead when the class is known.
     /// @param p_name the property pin name
     /// @param p_type the basic type
     /// @param p_variant_on_nil whether the property should be a variant if the type is NIL
