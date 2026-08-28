@@ -92,6 +92,7 @@ protected:
     //~ End Wrapped Interface
 
     Variant::Type _get_result_type(Variant::Type p_left, Variant::Type p_right) const;
+    Variant::Type _get_result_type(const Vector<Variant::Type>& p_operands) const;
     Variant::Type _get_result_type() const;
 
     void _reset_to_variant();
@@ -115,6 +116,7 @@ public:
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
     void post_reconstruct_node() override;
     void on_pin_connected(const Ref<OScriptNodePin>& p_pin) override;
+    void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface
@@ -127,6 +129,9 @@ public:
     bool is_unary() const;
     bool is_string_format_using_modulo() const;
     bool is_in_object() const;
+
+    bool can_accept_type(Variant::Type p_type) const;
+
     VariantOperators::Code get_operator() const { return _op; }
 
     static bool is_supported(Variant::Type p_type);

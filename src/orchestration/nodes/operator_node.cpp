@@ -317,7 +317,7 @@ Variant::Type OScriptNodePromotableOperator::_get_result_type(Variant::Type p_le
     return Variant::NIL; // inconsistent
 }
 
-Variant::Type OScriptNodePromotableOperator::_get_result_type() const {
+Variant::Type OScriptNodePromotableOperator::_get_result_type(const Vector<Variant::Type>& p_operands) const {
     switch (_op) {
         // Comparisons
         case VariantOperators::OP_LESS:
@@ -336,16 +336,20 @@ Variant::Type OScriptNodePromotableOperator::_get_result_type() const {
             return Variant::BOOL;
         }
         default: {
-            if (!_operands.is_empty()) {
-                Variant::Type left = _operands[0];
-                for (int i = 1; i < _operands.size(); i++) {
-                    left = _get_result_type(left, _operands[i]);
+            if (!p_operands.is_empty()) {
+                Variant::Type left = p_operands[0];
+                for (int i = 1; i < p_operands.size(); i++) {
+                    left = _get_result_type(left, p_operands[i]);
                 }
                 return left;
             }
             return Variant::NIL;
         }
     }
+}
+
+Variant::Type OScriptNodePromotableOperator::_get_result_type() const {
+    return _get_result_type(_operands);
 }
 
 void OScriptNodePromotableOperator::_reset_to_variant() {
@@ -658,9 +662,39 @@ void OScriptNodePromotableOperator::post_reconstruct_node() {
 void OScriptNodePromotableOperator::on_pin_connected(const Ref<OScriptNodePin>& p_pin) {
     if (p_pin.is_valid() && p_pin->is_input() && _operands.size() >= 1 && _operands[0] == Variant::NIL) {
         if (can_change_pin_type(p_pin)) {
-            change_pin_types(p_pin, p_pin->get_connection()->get_property_info().type);
+            const Ref<OScriptNodePin> source = p_pin->get_connection();
+            const Variant::Type type = source.is_valid() ? source->get_property_info().type : Variant::NIL;
+
+            // An untyped source carries no type to promote to, so the operands stay untyped and the
+            // node remains promotable. The operand type is then resolved at runtime.
+            if (type != Variant::NIL) {
+                change_pin_types(p_pin, type);
+            }
         }
     }
+}
+
+void OScriptNodePromotableOperator::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) {
+    // The operator adopts its type from the first operand connection, so when the last one is
+    // removed the node reverts to being promotable rather than staying locked to that type.
+    // Operators placed with fixed operand types are left alone, as is done when they are placed.
+    if (p_pin.is_valid() && p_pin->is_input() && !_operands.is_empty() && _operands[0] != Variant::NIL) {
+        if (!is_in_object() && !is_string_format_using_modulo()) {
+            bool connected = false;
+            for (const Ref<OScriptNodePin>& input : find_pins(PD_Input)) {
+                if (input.is_valid() && input->has_any_connections()) {
+                    connected = true;
+                    break;
+                }
+            }
+
+            if (!connected) {
+                _reset_to_variant();
+            }
+        }
+    }
+
+    super::on_pin_disconnected(p_pin);
 }
 
 bool OScriptNodePromotableOperator::can_add_dynamic_pin() const {
@@ -739,6 +773,38 @@ bool OScriptNodePromotableOperator::is_string_format_using_modulo() const {
 
 bool OScriptNodePromotableOperator::is_in_object() const {
     return _op == VariantOperators::OP_IN && _operands.size() == 2 && _operands[1] == Variant::OBJECT;
+}
+
+bool OScriptNodePromotableOperator::can_accept_type(Variant::Type p_type) const {
+    // Only untyped operands adopt the type of an incoming connection. Once the operands are
+    // concrete, what the pins accept is governed by the pin types themselves.
+    if (_operands.is_empty() || _operands[0] != Variant::NIL) {
+        return true;
+    }
+
+    // An untyped source promotes nothing, the operator stays untyped.
+    if (p_type == Variant::NIL) {
+        return true;
+    }
+
+    // A unary operator has no operand pairing to fold, so the type itself has to declare it.
+    if (is_unary()) {
+        for (const OperatorInfo& oi : ExtensionDB::get_builtin_type(p_type).operators) {
+            if (oi.op == _op) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // The connection promotes every untyped operand, so the operator must yield a result for that
+    // type. Objects, for example, only produce a result for comparisons and containment.
+    Vector<Variant::Type> operands = _operands;
+    for (int i = 0; i < operands.size(); i++) {
+        operands.write[i] = p_type;
+    }
+
+    return _get_result_type(operands) != Variant::NIL;
 }
 
 bool OScriptNodePromotableOperator::is_supported(Variant::Type p_type) {

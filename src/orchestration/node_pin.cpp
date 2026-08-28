@@ -21,6 +21,7 @@
 #include "common/settings.h"
 #include "common/variant_utils.h"
 #include "orchestration/nodes.h"
+#include "orchestration/nodes/operator_node.h"
 #include "orchestration/nodes/reroute.h"
 #include "orchestration/orchestration.h"
 #include "script/script_server.h"
@@ -420,6 +421,15 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
         const OScriptNodeReroute* reroute = cast_to<OScriptNodeReroute>(owner);
         if (reroute && reroute->get_reroute_type() == OScriptNodeReroute::REROUTE_ANY) {
             return true;
+        }
+    }
+
+    // Untyped operators adopt the type of the first connection made to one of their operands, so a
+    // type the operator has no result for is blocked here. The editor then reports it like any other
+    // incompatible connection instead of the operator adopting a type it cannot be compiled with.
+    if (const OScriptNodePromotableOperator* op = cast_to<OScriptNodePromotableOperator>(owner)) {
+        if (!op->can_accept_type(p_pin->get_type())) {
+            return false;
         }
     }
 
