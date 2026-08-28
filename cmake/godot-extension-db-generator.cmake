@@ -20,7 +20,16 @@ FIND_PACKAGE( Python3 REQUIRED COMPONENTS Interpreter )
 
 FUNCTION( GENERATE_GODOT_EXTENSION_DB )
     SET(EXTENSIONDB_CPP_FILE_BASE "${CMAKE_BINARY_DIR}/_generated")
-    SET(EXTENSIONDB_FILE "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/gdextension/extension_api.json")
+
+    # godot-cpp 10.0 ships one extension_api per supported Godot version and selects it via
+    # GODOTCPP_API_VERSION; the unversioned extension_api.json it used to carry is gone.
+    STRING(REPLACE "." "-" EXTENSIONDB_API_SUFFIX "${GODOTCPP_API_VERSION}")
+    SET(EXTENSIONDB_FILE "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/gdextension/extension_api-${EXTENSIONDB_API_SUFFIX}.json")
+    IF (NOT EXISTS "${EXTENSIONDB_FILE}")
+        # godot-cpp revisions pinned on the maintenance branches still carry the unversioned file.
+        SET(EXTENSIONDB_FILE "${CMAKE_CURRENT_SOURCE_DIR}/extern/godot-cpp/gdextension/extension_api.json")
+    ENDIF()
+
     EXECUTE_PROCESS(
             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/generate_godot_api.py ${EXTENSIONDB_FILE} ${EXTENSIONDB_CPP_FILE_BASE}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

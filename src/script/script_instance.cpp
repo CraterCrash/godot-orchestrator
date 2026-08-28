@@ -28,8 +28,8 @@
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 
 namespace MemoryUtils {
     template <typename T>
@@ -959,7 +959,7 @@ OScriptInstance::OScriptInstance(const Ref<OScript>& p_script, Object* p_owner)
 }
 
 OScriptInstance::~OScriptInstance() {
-    MutexLock lock(*OScriptLanguage::get_singleton()->lock.ptr());
+    MutexLock lock(OScriptLanguage::get_singleton()->lock);
     while (SelfList<OScriptFunctionState>* E = _pending_func_states.first()) {
         // Order matters since clearing the stack may already cause the OScriptFunctionState to
         // be destroyed and thus removed from the list.

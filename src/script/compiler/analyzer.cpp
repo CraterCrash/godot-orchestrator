@@ -41,6 +41,8 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 
+#include <climits>
+
 #define UNNAMED_ENUM "<anonymous enum>"
 #define ENUM_SEPARATOR "."
 
@@ -3316,7 +3318,7 @@ void OScriptAnalyzer::resolve_pending_lambda_bodies() {
     OScriptParser::LambdaNode* previous_lambda = current_lambda;
     bool previous_static_context = static_context;
 
-    List<OScriptParser::LambdaNode*> lambdas = pending_body_resolution_lambdas;
+    List<OScriptParser::LambdaNode*> lambdas(pending_body_resolution_lambdas);
     pending_body_resolution_lambdas.clear();
 
     for (OScriptParser::LambdaNode* lambda : lambdas) {

@@ -252,15 +252,15 @@ void ExtensionDB::_load(const PackedByteArray& p_data) {
     REGISTER_OPERATOR("in", "In", VariantOperators::OP_IN);
 
     REGISTER_MATH_CONSTANT("One", Variant::FLOAT, 1.0);
-    REGISTER_MATH_CONSTANT("PI", Variant::FLOAT, Math_PI);
-    REGISTER_MATH_CONSTANT("PI/2", Variant::FLOAT, Math_PI * 0.5);
-    REGISTER_MATH_CONSTANT("LN(2)", Variant::FLOAT, Math_LN2);
-    REGISTER_MATH_CONSTANT("TAU", Variant::FLOAT, Math_TAU);
-    REGISTER_MATH_CONSTANT("E", Variant::FLOAT, Math_E);
-    REGISTER_MATH_CONSTANT("Sqrt1/2", Variant::FLOAT, Math_SQRT12);
-    REGISTER_MATH_CONSTANT("Sqrt2", Variant::FLOAT, Math_SQRT2);
-    REGISTER_MATH_CONSTANT("INF", Variant::FLOAT, Math_INF);
-    REGISTER_MATH_CONSTANT("NAN", Variant::FLOAT, Math_NAN);
+    REGISTER_MATH_CONSTANT("PI", Variant::FLOAT, Math::PI);
+    REGISTER_MATH_CONSTANT("PI/2", Variant::FLOAT, Math::PI * 0.5);
+    REGISTER_MATH_CONSTANT("LN(2)", Variant::FLOAT, Math::LN2);
+    REGISTER_MATH_CONSTANT("TAU", Variant::FLOAT, Math::TAU);
+    REGISTER_MATH_CONSTANT("E", Variant::FLOAT, Math::E);
+    REGISTER_MATH_CONSTANT("Sqrt1/2", Variant::FLOAT, Math::SQRT12);
+    REGISTER_MATH_CONSTANT("Sqrt2", Variant::FLOAT, Math::SQRT2);
+    REGISTER_MATH_CONSTANT("INF", Variant::FLOAT, Math::INF);
+    REGISTER_MATH_CONSTANT("NAN", Variant::FLOAT, Math::NaN);
 
     _load_builtin_types(api_data);
     _load_global_enumerations(api_data);

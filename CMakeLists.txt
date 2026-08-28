@@ -30,6 +30,9 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_COLOR_DIAGNOSTICS ON)
 SET(CMAKE_MESSAGE_LOG_LEVEL STATUS)
 
+# Each branch must specify it's Godot API version binding
+SET(GODOTCPP_API_VERSION "4.6")
+
 # Get the current repository Git commit hash
 # This is used when creating the data from VERSION to show the commit hash in the about box
 FIND_PACKAGE(Git QUIET)
