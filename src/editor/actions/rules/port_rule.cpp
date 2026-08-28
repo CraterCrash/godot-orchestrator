@@ -140,19 +140,22 @@ void OrchestratorEditorActionPortRule::configure(const OrchestratorEditorGraphPi
     }
     else {
         _type = Variant::VARIANT_MAX;
-        if (!property.class_name.is_empty()) {
-            if (ScriptServer::is_global_class(property.class_name)) {
-                _target_classes = ScriptServer::get_class_hierarchy(property.class_name, true);
-            }
-            else if (p_target) {
-                String class_name = p_target->get_class();
-                while (!class_name.is_empty()) {
-                    _target_classes.push_back(class_name);
-                    class_name = ClassDB::get_parent_class(class_name);
-                }
+
+        // Object pins are not always given a class name, such as a local variable of type Object.
+        // These pins still provide access to the members declared by the Object class itself.
+        String class_name = property.class_name;
+        if (class_name.is_empty() && property.type == Variant::OBJECT) {
+            class_name = Object::get_class_static();
+        }
+
+        if (!class_name.is_empty()) {
+            if (ScriptServer::is_global_class(class_name)) {
+                _target_classes = ScriptServer::get_class_hierarchy(class_name, true);
             }
             else {
-                String class_name = property.class_name;
+                if (p_target) {
+                    class_name = p_target->get_class();
+                }
                 while (!class_name.is_empty()) {
                     _target_classes.push_back(class_name);
                     class_name = ClassDB::get_parent_class(class_name);

@@ -73,6 +73,11 @@ namespace PropertyUtils {
         if (p_variant_on_nil && p_type == Variant::NIL) {
             return make_variant(p_name);
         }
+        if (p_type == Variant::OBJECT) {
+            // Godot never encodes an object property without a class name; an object of an unspecified
+            // class is an "Object", whereas an untyped value is a NIL property that is a variant.
+            return make_object(p_name, Object::get_class_static());
+        }
         return { p_type, p_name, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT };
     }
 
