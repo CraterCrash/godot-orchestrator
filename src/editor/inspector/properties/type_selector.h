@@ -68,7 +68,7 @@ class OrchestratorEditorTypeSelector : public HBoxContainer {
     void _right_type_pressed();
     void _right_type_selected(OrchestratorSelectTypeSearchDialog* p_dialog);
 
-    void _open_type_dialog(const String& p_title, const Callable& p_select_callback);
+    void _open_type_dialog(const String& p_title, const Callable& p_select_callback, bool p_allow_container_types);
     void _type_dialog_closed(OrchestratorSelectTypeSearchDialog* p_dialog);
 
     void _emit_property_changed();

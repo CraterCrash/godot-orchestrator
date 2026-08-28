@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c1759arrayofc"]
+
+[ext_resource type="Script" uid="uid://b1759arrayofc" path="res://scenes/features/typed_array_of_collections.torch" id="1_typed"]
+
+[node name="TypedArrayOfCollections" type="Node" unique_id=1759000101]
+script = ExtResource("1_typed")
