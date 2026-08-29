@@ -1,0 +1,121 @@
+[orchestration type="OScript" load_steps=7 format=4 uid="uid://bforeach0001"]
+
+[obj type="OScriptFunction" id="OScriptFunction_fn"]
+guid = "A1000000-0000-4000-8000-00000000E001"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_gr"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_evt"]
+function_id = "A1000000-0000-4000-8000-00000000E001"
+id = 0
+position = Vector2(0, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeMakeArray" id="OScriptNodeMakeArray_mk"]
+id = 1
+position = Vector2(0, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"Element_0",
+"flags": 2,
+"label": "[0]",
+"usage": 131078,
+"dv": "a"
+}, {
+"pin_name": &"Element_1",
+"flags": 2,
+"label": "[1]",
+"usage": 131078,
+"dv": "b"
+}, {
+"pin_name": &"Element_2",
+"flags": 2,
+"label": "[2]",
+"usage": 131078,
+"dv": "c"
+}, {
+"pin_name": &"array",
+"type": 28,
+"dir": 1,
+"flags": 2,
+"dv": []
+}])
+
+[obj type="OScriptNodeForEach" id="OScriptNodeForEach_fe"]
+id = 2
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"array",
+"type": 28,
+"flags": 10,
+"dv": []
+}, {
+"pin_name": &"loop_body",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"element",
+"dir": 1,
+"flags": 2,
+"usage": 131078
+}, {
+"pin_name": &"index",
+"type": 2,
+"dir": 1,
+"flags": 2,
+"dv": 0
+}, {
+"pin_name": &"completed",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_p1"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 3
+position = Vector2(650, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_fn")])
+connections = Array[int]([0, 0, 2, 0, 1, 0, 2, 1, 2, 0, 3, 0, 2, 1, 3, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_evt"), SubResource("OScriptNodeMakeArray_mk"), SubResource("OScriptNodeForEach_fe"), SubResource("OScriptNodeCallBuiltinFunction_p1")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_gr")])

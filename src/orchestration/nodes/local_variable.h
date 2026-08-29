@@ -45,6 +45,7 @@ public:
     String get_tooltip_text() const override;
     bool is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const override;
     bool can_duplicate() const override { return false; }
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface

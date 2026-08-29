@@ -67,7 +67,7 @@ public:
     String get_icon() const override;
     String get_help_topic() const override;
     PackedStringArray get_keywords() const override;
-    void initialize(const OScriptNodeInitContext& p_context) override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
 
