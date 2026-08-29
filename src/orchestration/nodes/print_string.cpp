@@ -21,7 +21,6 @@
 #include "common/settings.h"
 
 #include <godot_cpp/classes/control.hpp>
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
@@ -120,13 +119,12 @@ void OScriptNodePrintStringOverlay::add_text(const String& p_text, const String&
     label->append_text(p_text);
     label->pop();
 
-    SceneTree* tree = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
-    Ref<SceneTreeTimer> timer = tree->create_timer(p_duration_sec);
+    Ref<SceneTreeTimer> timer = SceneTree::get_singleton()->create_timer(p_duration_sec);
     timer->connect("timeout", callable_mp_cast(label, Node, queue_free));
 }
 
 OScriptNodePrintStringOverlay* OScriptNodePrintStringOverlay::get_or_create_overlay() {
-    SceneTree* tree = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+    SceneTree* tree = SceneTree::get_singleton();
     ERR_FAIL_NULL_V_MSG(tree, nullptr, "Cannot get or create print string overlay, no scene tree was found.");
 
     Node* root = tree->get_root();
