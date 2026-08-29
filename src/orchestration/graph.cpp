@@ -76,6 +76,8 @@ void OScriptGraph::_set_functions(const TypedArray<int>& p_functions) {
 }
 
 void OScriptGraph::_initialize_node(const Ref<OScriptNode>& p_node, const OScriptNodeInitContext& p_context, const Vector2& p_position) {
+    // Configured first so that initialize, and every override it runs through, sees the node's state.
+    p_node->configure(p_context);
     p_node->initialize(p_context);
 
     if (p_position != Vector2()) {

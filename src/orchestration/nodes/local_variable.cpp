@@ -112,17 +112,19 @@ bool OScriptNodeLocalVariable::is_compatible_with_graph(const Ref<OScriptGraph>&
     return p_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION);
 }
 
+void OScriptNodeLocalVariable::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+
+    _type = VariantUtils::to_type(data.get("type", Variant::NIL));
+}
+
 void OScriptNodeLocalVariable::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "A local variable node requires a type argument.");
 
-    _type = Variant::NIL;
-
-    const Dictionary data = p_context.user_data.value();
-    if (data.has("type")) {
-        _type = VariantUtils::to_type(data["type"]);
-    }
-
     _guid = Guid::create_guid();
+
     super::initialize(p_context);
 }
 

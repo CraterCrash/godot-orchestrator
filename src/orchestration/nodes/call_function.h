@@ -173,6 +173,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override;
     String get_help_topic() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     PackedStringArray get_suggestions(const Ref<OScriptNodePin>& p_pin) override;
     //~ End OScriptNode Interface
@@ -290,6 +291,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "pure_function_call"; }
     String get_help_topic() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
@@ -324,6 +326,7 @@ public:
     String get_node_title_color_name() const override { return "function_call"; }
     String get_help_topic() const override;
     String get_icon() const override { return "MemberMethod"; }
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 

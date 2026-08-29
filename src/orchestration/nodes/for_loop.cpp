@@ -280,14 +280,14 @@ void OScriptNodeForEach::get_actions(List<Ref<OScriptAction>>& p_action_list) {
     super::get_actions(p_action_list);
 }
 
-void OScriptNodeForEach::initialize(const OScriptNodeInitContext& p_context) {
-    if (p_context.user_data) {
-        const Dictionary& data = p_context.user_data.value();
-        if (data.has("with_break")) {
-            _with_break = data["with_break"];
-        }
-    }
-    super::initialize(p_context);
+void OScriptNodeForEach::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    // Every configurable value is assigned, defaulting the ones the context does not carry, so
+    // that a node describing an action cannot inherit the configuration described before it.
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+
+    _with_break = data.get("with_break", false);
 }
 
 void OScriptNodeForEach::_set_with_break(bool p_break_status) {

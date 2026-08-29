@@ -312,7 +312,13 @@ public:
     /// @return true if the user-defined pin can be created, false otherwise
     virtual bool can_create_user_defined_pin(EPinDirection p_direction, String& r_message) { return false; }
 
-    /// Initializes the node from spawner data
+    /// Applies the spawner data to the node's state, without allocating pins or touching the
+    /// owning orchestration. This makes it safe to call on a node that is only being used to
+    /// describe an action, where no orchestration exists to allocate pins against.
+    /// @param p_context the initialization context
+    virtual void configure(const OScriptNodeInitContext& p_context) { }
+
+    /// Initializes the node from spawner data, expecting configure to have already been called.
     /// @param p_context the initialization context
     virtual void initialize(const OScriptNodeInitContext& p_context);
 

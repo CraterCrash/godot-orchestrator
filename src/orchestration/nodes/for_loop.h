@@ -93,7 +93,7 @@ public:
     bool is_loop_port(int p_port) const override;
     bool is_loop_break_pin(const Ref<OScriptNodePin>& p_pin) override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
-    void initialize(const OScriptNodeInitContext& p_context) override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 };
 

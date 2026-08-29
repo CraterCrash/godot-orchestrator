@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cforeach0001"]
+
+[ext_resource type="Script" uid="uid://bforeach0001" path="res://scenes/features/for_each.torch" id="1_for_e"]
+
+[node name="ForEach" type="Node"]
+script = ExtResource("1_for_e")

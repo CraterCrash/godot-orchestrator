@@ -63,13 +63,18 @@ String OScriptNodeCompose::get_icon() const {
     return SceneUtils::get_icon_path("Compose");
 }
 
+void OScriptNodeCompose::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+
+    _type = VariantUtils::to_type(data.get("type", Variant::NIL));
+}
+
 void OScriptNodeCompose::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "A Compose node requires custom data");
+    ERR_FAIL_COND_MSG(!p_context.user_data.value().has("type"), "Cannot properly initialize compose node, no type specified.");
 
-    const Dictionary& data = p_context.user_data.value();
-    ERR_FAIL_COND_MSG(!data.has("type"), "Cannot properly initialize compose node, no type specified.");
-
-    _type = VariantUtils::to_type(data["type"]);
     super::initialize(p_context);
 }
 
@@ -190,13 +195,14 @@ PackedStringArray OScriptNodeComposeFrom::get_keywords() const {
     return Array::make("combine", "compose", "create", "make", Variant::get_type_name(_type));
 }
 
-void OScriptNodeComposeFrom::initialize(const OScriptNodeInitContext& p_context) {
-    ERR_FAIL_COND_MSG(!p_context.user_data, "A ComposeFrom node requires custom data");
+void OScriptNodeComposeFrom::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
 
-    const Dictionary& data = p_context.user_data.value();
-    ERR_FAIL_COND_MSG(!data.has("type"), "Cannot properly initialize compose from node, no type specified.");
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
 
-    _type = VariantUtils::to_type(data["type"]);
+    _type = VariantUtils::to_type(data.get("type", Variant::NIL));
+
+    _constructor_args.clear();
     if (data.has("constructor_args")) {
         const Array constructor_types = data["constructor_args"];
         for (int i = 0; i < constructor_types.size(); i++) {
@@ -204,6 +210,11 @@ void OScriptNodeComposeFrom::initialize(const OScriptNodeInitContext& p_context)
             _constructor_args.push_back(pi);
         }
     }
+}
+
+void OScriptNodeComposeFrom::initialize(const OScriptNodeInitContext& p_context) {
+    ERR_FAIL_COND_MSG(!p_context.user_data, "A ComposeFrom node requires custom data");
+    ERR_FAIL_COND_MSG(!p_context.user_data.value().has("type"), "Cannot properly initialize compose from node, no type specified.");
 
     super::initialize(p_context);
 }

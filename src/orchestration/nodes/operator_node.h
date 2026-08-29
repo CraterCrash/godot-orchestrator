@@ -107,6 +107,7 @@ public:
     String get_node_title_color_name() const override { return "math_operations"; }
     String get_icon() const override { return "Translation"; }
     String get_help_topic() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override;
     bool can_change_pin_type(const Ref<OScriptNodePin>& p_pin) const override;
