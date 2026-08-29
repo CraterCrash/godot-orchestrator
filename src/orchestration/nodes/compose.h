@@ -48,6 +48,7 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "pure_function_call"; }
     String get_icon() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface
@@ -81,6 +82,7 @@ public:
     String get_icon() const override;
     String get_help_topic() const override;
     PackedStringArray get_keywords() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     bool is_pure() const override { return true; }
     //~ End OScriptNode Interface

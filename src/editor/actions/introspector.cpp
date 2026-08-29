@@ -35,7 +35,72 @@
 
 #include <godot_cpp/classes/engine.hpp>
 
-HashMap<String, Ref<OScriptNode>> OrchestratorEditorIntrospector::_script_node_cache;
+namespace {
+
+/// The presentation a node class gives for a specific action, read from a pooled node that is
+/// reconfigured on every fetch. The values are copied out so that no caller can hold the node
+/// itself across a later fetch, which would observe another action's configuration.
+struct NodeTemplateInfo {
+    String icon;
+    String tooltip;
+    PackedStringArray keywords;
+    bool experimental = false;
+};
+
+HashMap<String, Ref<OScriptNode>> node_template_cache;
+
+Ref<OScriptNode> get_or_create_node_template(const String& p_node_type, const Dictionary& p_data, bool p_ignore_not_catalogable) {
+    if (!node_template_cache.has(p_node_type)) {
+        const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(p_node_type, nullptr);
+        if (!node.is_valid()) {
+            WARN_PRINT("Failed to create template node with name " + p_node_type);
+            return Ref<OScriptNode>();
+        }
+
+        node_template_cache[p_node_type] = node;
+    }
+
+    const Ref<OScriptNode> node = node_template_cache[p_node_type];
+    if (!node->get_flags().has_flag(OScriptNode::CATALOGABLE) && !p_ignore_not_catalogable) {
+        WARN_PRINT("Node " + p_node_type + " is not catalogable");
+        return Ref<OScriptNode>();
+    }
+
+    // A node class can describe several actions, such as the array and dictionary flavors of the
+    // for-each loop, and the icon, tooltip, and keywords all depend on which one is being
+    // described. The cached node is therefore reconfigured on every fetch rather than left in the
+    // state the previous caller gave it. Applying the data allocates no pins and does not reach
+    // for an orchestration, which a node used this way does not have.
+    OScriptNodeInitContext context;
+    context.user_data = p_data;
+
+    node->configure(context);
+
+    return node;
+}
+
+NodeTemplateInfo get_node_template_info(const String& p_node_type, const Dictionary& p_data = Dictionary(),
+    bool p_ignore_not_catalogable = false) {
+
+    NodeTemplateInfo info;
+
+    const Ref<OScriptNode> node = get_or_create_node_template(p_node_type, p_data, p_ignore_not_catalogable);
+    if (node.is_valid()) {
+        info.icon = node->get_icon();
+        info.tooltip = node->get_tooltip_text();
+        info.keywords = node->get_keywords();
+        info.experimental = node->get_flags().has_flag(OScriptNode::EXPERIMENTAL);
+    }
+
+    return info;
+}
+
+template <typename T>
+NodeTemplateInfo get_node_template_info(const Dictionary& p_data = Dictionary(), bool p_ignore_not_catalogable = false) {
+    return get_node_template_info(T::get_class_static(), p_data, p_ignore_not_catalogable);
+}
+
+} // namespace
 
 void OrchestratorEditorIntrospector::_apply_method_overrides(const String& p_class_name, MethodInfo& r_method) {
     // For Object.connect, override the flags attribute to disable a list of connect flag enum values
@@ -78,8 +143,7 @@ void OrchestratorEditorIntrospector::_register_global_class_static_methods(const
 OrchestratorEditorIntrospector::ActionBuilder OrchestratorEditorIntrospector::_script_node_builder(
     const String& p_node_type, const String& p_category, const String& p_name, const Dictionary& p_data) {
 
-    const Ref<OScriptNode> node_template = _get_or_create_node_template(p_node_type);
-    const bool experimental = node_template->get_flags().has_flag(OScriptNode::EXPERIMENTAL);
+    const NodeTemplateInfo info = get_node_template_info(p_node_type, p_data);
 
     // todo:
     //  for nodes that have static pin configurations, flow control, and many others, it would
@@ -88,33 +152,13 @@ OrchestratorEditorIntrospector::ActionBuilder OrchestratorEditorIntrospector::_s
     //  action, likely relying on a PropertyInfo struct for now.
     return ActionBuilder(p_category, p_name)
         .type(ActionType::ACTION_SPAWN_NODE)
-        .icon(node_template->get_icon())
-        .tooltip(node_template->get_tooltip_text())
-        .keywords(node_template->get_keywords())
+        .icon(info.icon)
+        .tooltip(info.tooltip)
+        .keywords(info.keywords)
         .selectable(true)
         .node_class(p_node_type)
-        .flags(experimental ? Action::FLAG_EXPERIMENTAL : Action::FLAG_NONE)
+        .flags(info.experimental ? Action::FLAG_EXPERIMENTAL : Action::FLAG_NONE)
         .data(p_data);
-}
-
-Ref<OScriptNode> OrchestratorEditorIntrospector::_get_or_create_node_template(const String& p_node_type, bool p_ignore_not_catalogable) {
-    if (!_script_node_cache.has(p_node_type)) {
-        const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(p_node_type, nullptr);
-        if (!node.is_valid()) {
-            WARN_PRINT("Failed to create template node with name " + p_node_type);
-            return Ref<OScriptNode>();
-        }
-
-        _script_node_cache[p_node_type] = node;
-    }
-
-    const Ref<OScriptNode> node = _script_node_cache[p_node_type];
-    if (!node->get_flags().has_flag(OScriptNode::CATALOGABLE) && !p_ignore_not_catalogable) {
-        WARN_PRINT("Node " + p_node_type + " is not catalogable");
-        return Ref<OScriptNode>();
-    }
-
-    return node;
 }
 
 void OrchestratorEditorIntrospector::_create_categories_from_path(ActionSet& r_actions, const String& p_category_path, const String& p_icon) {
@@ -333,8 +377,7 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
     }
 
     if (!p_methods.is_empty()) {
-        const Ref<OScriptNodeEvent> event_node = _get_or_create_node_template<OScriptNodeEvent>(true);
-        const Ref<OScriptNodeCallMemberFunction> func_node = _get_or_create_node_template<OScriptNodeCallMemberFunction>();
+        const String member_call_tooltip = get_node_template_info<OScriptNodeCallMemberFunction>().tooltip;
 
         const bool prefer_properties_over_methods = ORCHESTRATOR_GET("interface/editor/actions_menu/prefer_properties_over_methods", false);
 
@@ -373,7 +416,7 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
                     ActionBuilder(methods_category, method.name)
                     .type(ActionType::ACTION_CALL_MEMBER_FUNCTION)
                     .icon(_get_method_icon_name(method))
-                    .tooltip(func_node->get_tooltip_text())
+                    .tooltip(member_call_tooltip)
                     .keywords(keywords)
                     .target_class(p_class_name)
                     .selectable(true)
@@ -386,11 +429,11 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
     }
 
     if (!p_signals.is_empty()) {
-        const Ref<OScriptNodeEmitSignal> node = _get_or_create_node_template<OScriptNodeEmitSignal>();
+        const NodeTemplateInfo emit_signal_info = get_node_template_info<OScriptNodeEmitSignal>();
         for (int i = 0; i < p_signals.size(); i++) {
             const MethodInfo signal = DictionaryUtils::to_method(p_signals[i]);
 
-            PackedStringArray keywords = node->get_keywords();
+            PackedStringArray keywords = emit_signal_info.keywords;
             keywords.append_array(signal.name.capitalize().to_lower().split(" ", false));
             keywords.append(signal.name);
             keywords.append(p_class_name);
@@ -401,7 +444,7 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
                 ActionBuilder(signals_category, vformat("Emit %s", signal.name))
                 .type(ActionType::ACTION_EMIT_MEMBER_SIGNAL)
                 .icon("Signal")
-                .tooltip(node->get_tooltip_text())
+                .tooltip(emit_signal_info.tooltip)
                 .keywords(keywords)
                 .target_class(p_class_name)
                 .selectable(true)
@@ -1124,5 +1167,5 @@ Vector<Ref<OrchestratorEditorIntrospector::Action>> OrchestratorEditorIntrospect
 }
 
 void OrchestratorEditorIntrospector::free_resources() {
-    _script_node_cache.clear();
+    node_template_cache.clear();
 }

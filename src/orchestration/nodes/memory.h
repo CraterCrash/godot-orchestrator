@@ -45,7 +45,7 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     StringName resolve_type_class(const Ref<OScriptNodePin>& p_pin) const override { return _class_name; }
-    void initialize(const OScriptNodeInitContext& p_context) override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
 
     String get_allocated_class_name() { return _class_name; }
