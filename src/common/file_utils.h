@@ -22,11 +22,18 @@
 using namespace godot;
 
 namespace FileUtils {
-    /// Opens a file in the Godot project's <code>.godot</code> directory.
+    /// Returns the path to a file in Orchestrator's dedicated editor cache directory, creating
+    /// the directory when it does not yet exist.
     /// @param p_file_name the name of the file
-    /// @param p_flags the mode flags to use when opening the file
-    /// @return a reference to the file access object or an invalid reference if the file could not be opened
-    Ref<FileAccess> open_project_settings_file(const String& p_file_name, FileAccess::ModeFlags p_flags);
+    /// @return the absolute path to the file
+    String get_editor_cache_file(const String& p_file_name);
+
+    /// Relocates caches written by earlier Orchestrator versions directly into the Godot project
+    /// settings directory. The ConfigFile backed caches move into the dedicated editor cache
+    /// directory, while the line based favorite and history caches are folded into sections of the
+    /// metadata file and their files discarded. This is safe to call on every start-up; it does
+    /// nothing once no legacy files remain.
+    void migrate_editor_cache_files();
 
     /// For the specified file, reads each line and calls the specified callback function with the line.
     /// @param p_file the file to read

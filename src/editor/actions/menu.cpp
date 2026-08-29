@@ -17,7 +17,6 @@
 #include "editor/actions/menu.h"
 
 #include "common/callable_lambda.h"
-#include "common/file_utils.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
@@ -25,6 +24,7 @@
 #include "editor/actions/definition.h"
 #include "editor/actions/introspector.h"
 #include "editor/gui/filter_line_edit.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
@@ -609,75 +609,46 @@ void OrchestratorEditorActionMenu::_finish_search() {
     get_ok_button()->set_disabled(!_results->get_selected());
 }
 
-void OrchestratorEditorActionMenu::_load_file_into_list(const String& p_filename, ItemList* p_list) {
-    // User data is always store in an encoded way to make it easy to be reloaded.
-    // Format is as follows:
-    //
-    //      [format version]
-    //      [blank]
-    //      [fully qualified action item]
-    //      [description]
-    //      [icon]
-    //      [blank]
-    //      starts next action item...
-    //
+void OrchestratorEditorActionMenu::_load_list_from_metadata(const String& p_section, ItemList* p_list) {
+    // Each entry is stored as a record holding the fully qualified action, the description shown in
+    // the list and the name of its icon.
+    const Array records = OrchestratorPlugin::get_singleton()->get_metadata_value(p_section, _suffix, Array());
+    for (int i = 0; i < records.size(); i++) {
+        const Dictionary record = records[i];
+        const Ref<Texture2D> icon = _get_cached_icon(String(record.get("icon", "")));
 
-    PackedStringArray items;
-    const Ref<FileAccess> favorites = FileUtils::open_project_settings_file(p_filename, FileAccess::READ);
-    FileUtils::for_each_line(favorites, [&](const String& line) {
-        items.push_back(line.strip_edges());
-    });
-
-    if (!items.is_empty()) {
-        const int64_t format = items[0].is_valid_int() ? items[0].to_int() : 0;
-        if (format > 0) {
-            // For now there is no difference in formats, so it's merely a formality
-            for (int index = 2; (index + 2) < items.size(); index += 4) {
-                const String& fully_qualified_action = items[index];
-                const String& description = items[index + 1];
-                const String& icon_name = items[index + 2];
-                const Ref<Texture2D> icon = _get_cached_icon(icon_name);
-
-                const int32_t id = p_list->add_item(description, icon, true);
-                p_list->set_item_metadata(id, fully_qualified_action);
-            }
-        }
+        const int32_t id = p_list->add_item(String(record.get("description", "")), icon, true);
+        p_list->set_item_metadata(id, String(record.get("action", "")));
     }
 }
 
-void OrchestratorEditorActionMenu::_save_list_into_file(ItemList* p_list, const String& p_filename, int64_t p_max) {
-    PackedStringArray items;
-    items.push_back("1");
-    items.push_back("");
+void OrchestratorEditorActionMenu::_save_list_into_metadata(ItemList* p_list, const String& p_section, int64_t p_max) {
+    Array records;
     for (int i = 0; i < p_list->get_item_count(); i++) {
-        items.push_back(p_list->get_item_metadata(i));
-        items.push_back(p_list->get_item_text(i));
-        items.push_back(_get_cached_icon_name(p_list->get_item_icon(i)));
-        items.push_back("");
+        Dictionary record;
+        record["action"] = p_list->get_item_metadata(i);
+        record["description"] = p_list->get_item_text(i);
+        record["icon"] = _get_cached_icon_name(p_list->get_item_icon(i));
+        records.push_back(record);
 
         if (p_max > 0 && i + 1 >= p_max) {
             break;
         }
     }
 
-    const Ref<FileAccess> file = FileUtils::open_project_settings_file(p_filename, FileAccess::WRITE);
-    if (file.is_valid()) {
-        for (const String& line : items) {
-            file->store_line(line);
-        }
-    }
+    OrchestratorPlugin::get_singleton()->set_metadata_value(p_section, _suffix, records);
 }
 
 void OrchestratorEditorActionMenu::_load_user_data() {
-    _load_file_into_list(vformat("orchestrator_menu_favorites.%s", _suffix), _favorites);
-    _load_file_into_list(vformat("orchestrator_menu_recents.%s", _suffix), _recents);
+    _load_list_from_metadata("action_favorites", _favorites);
+    _load_list_from_metadata("action_recents", _recents);
 }
 
 void OrchestratorEditorActionMenu::_save_user_data() {
     constexpr int64_t RECENT_HISTORY_MAX_SIZE = 15;
 
-    _save_list_into_file(_favorites, vformat("orchestrator_menu_favorites.%s", _suffix));
-    _save_list_into_file(_recents, vformat("orchestrator_menu_recents.%s", _suffix), RECENT_HISTORY_MAX_SIZE);
+    _save_list_into_metadata(_favorites, "action_favorites");
+    _save_list_into_metadata(_recents, "action_recents", RECENT_HISTORY_MAX_SIZE);
 }
 
 String OrchestratorEditorActionMenu::_get_cached_icon_name(const Ref<Texture2D>& p_texture) {

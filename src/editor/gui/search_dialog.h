@@ -108,15 +108,17 @@ protected:
     /// @return the search item reference, invalid reference if not found
     Ref<SearchItem> _get_search_item_by_name(const String& p_name) const;
 
-    /// Reads contents of the file line by line
-    /// @param p_file_name the file name
-    /// @return an array of recent items
-    PackedStringArray _read_file_lines(const String& p_file_name) const;
+    /// Reads a list of values from the editor metadata
+    /// @param p_section the metadata section
+    /// @param p_key the key within the section
+    /// @return the stored values, empty if the key is not set
+    PackedStringArray _read_cache_values(const String& p_section, const String& p_key) const;
 
-    /// Writes the array of items line-by-line to the given file
-    /// @param p_file_name the file name
+    /// Writes a list of values into the editor metadata
+    /// @param p_section the metadata section
+    /// @param p_key the key within the section
     /// @param p_values the values to write
-    void _write_file_lines(const String& p_file_name, const PackedStringArray& p_values);
+    void _write_cache_values(const String& p_section, const String& p_key, const PackedStringArray& p_values);
 
     /// Get all filters
     /// @return the possible filters

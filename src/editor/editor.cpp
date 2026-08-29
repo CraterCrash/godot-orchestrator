@@ -18,6 +18,7 @@
 
 #include "common/callable_lambda.h"
 #include "common/dictionary_utils.h"
+#include "common/file_utils.h"
 #include "common/macros.h"
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
@@ -49,7 +50,6 @@
 #include <godot_cpp/classes/editor_file_system.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
-#include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_system_dock.hpp>
@@ -1096,13 +1096,11 @@ void OrchestratorEditor::_mark_built_in_scripts_as_saved(const String& p_full_pa
 }
 
 PackedStringArray OrchestratorEditor::_get_recent_scripts() const { // NOLINT
-    const Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
-    return metadata->get_value("recent_files", "orchestrations", PackedStringArray());
+    return OrchestratorPlugin::get_singleton()->get_metadata_value("recent_files", "orchestrations", PackedStringArray());
 }
 
 void OrchestratorEditor::_set_recent_scripts(const PackedStringArray& p_scripts) { // NOLINT
-    const Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
-    metadata->set_value("recent_files", "orchestrations", p_scripts);
+    OrchestratorPlugin::get_singleton()->set_metadata_value("recent_files", "orchestrations", p_scripts);
 }
 
 void OrchestratorEditor::_add_recent_script(const String& p_path) {
@@ -1415,6 +1413,21 @@ Array OrchestratorEditor::_get_cached_breakpoints_for_script(const String& p_pat
     }
 
     return state["breakpoints"];
+}
+
+void OrchestratorEditor::_prune_editor_cache() {
+    // Cached state is only dropped when a file is removed or renamed through the FileSystem dock, so
+    // an orchestration deleted outside the editor leaves its section behind permanently. Built-in
+    // scripts are skipped because their paths do not name a standalone file.
+    for (const String& section : _editor_cache->get_sections()) {
+        if (!section.begins_with("res://") || section.contains("::")) {
+            continue;
+        }
+
+        if (!FileAccess::file_exists(section)) {
+            _editor_cache->erase_section(section);
+        }
+    }
 }
 
 void OrchestratorEditor::_window_changed(bool p_visible) {
@@ -2023,7 +2036,7 @@ void OrchestratorEditor::get_window_layout(const Ref<ConfigFile>& r_layout) {
         r_layout->set_value("Orchestrator", E.key, E.value);
     }
 
-    _editor_cache->save(EI->get_editor_paths()->get_project_settings_dir().path_join("orchestrator_editor_cache.cfg"));
+    _editor_cache->save(FileUtils::get_editor_cache_file("editor_cache.cfg"));
 }
 
 void OrchestratorEditor::set_window_layout(const Ref<ConfigFile>& p_layout) {
@@ -2518,7 +2531,8 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     add_child(memnew(OrchestratorEditorConnectionsDock));
 
     _editor_cache.instantiate();
-    _editor_cache->load(EI->get_editor_paths()->get_project_settings_dir().path_join("orchestrator_editor_cache.cfg"));
+    _editor_cache->load(FileUtils::get_editor_cache_file("editor_cache.cfg"));
+    _prune_editor_cache();
 
     _restoring_layout = false;
     _pending_auto_reload = false;

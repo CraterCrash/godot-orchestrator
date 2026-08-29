@@ -155,8 +155,8 @@ class OrchestratorEditorActionMenu : public ConfirmationDialog {
     void _update_search();
     void _finish_search();
 
-    void _load_file_into_list(const String& p_filename, ItemList* p_list);
-    void _save_list_into_file(ItemList* p_list, const String& p_filename, int64_t p_max = -1);
+    void _load_list_from_metadata(const String& p_section, ItemList* p_list);
+    void _save_list_into_metadata(ItemList* p_list, const String& p_section, int64_t p_max = -1);
 
     void _load_user_data();
     void _save_user_data();
