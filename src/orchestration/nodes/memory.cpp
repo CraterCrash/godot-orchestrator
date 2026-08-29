@@ -101,14 +101,12 @@ String OScriptNodeNew::get_icon() const {
     return "CurveCreate";
 }
 
-void OScriptNodeNew::initialize(const OScriptNodeInitContext& p_context) {
-    _class_name = "Object";
+void OScriptNodeNew::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
 
-    if (p_context.user_data && p_context.user_data.value().has("class_name")) {
-        _class_name = p_context.user_data.value()["class_name"];
-    }
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
 
-    super::initialize(p_context);
+    _class_name = data.get("class_name", "Object");
 }
 
 OScriptNodeNew::OScriptNodeNew() {

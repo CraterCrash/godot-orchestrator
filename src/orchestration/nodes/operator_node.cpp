@@ -480,19 +480,23 @@ String OScriptNodePromotableOperator::get_help_topic() const {
     return super::get_help_topic();
 }
 
-void OScriptNodePromotableOperator::initialize(const OScriptNodeInitContext& p_context) {
-    ERR_FAIL_COND_MSG(!p_context.user_data, "No data provided to create an Operator node");
+void OScriptNodePromotableOperator::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
 
-    const Dictionary& data = p_context.user_data.value();
-    ERR_FAIL_COND_MSG(!data.has("op"), "An operation node requires specify an 'op' value.");
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
 
-    _op = CAST_INT_TO_ENUM(VariantOperators::Code, data["op"]);
-    if (is_unary()) {
-        _operands.push_back(Variant::NIL);
-    } else {
-        _operands.push_back(Variant::NIL);
+    _op = CAST_INT_TO_ENUM(VariantOperators::Code, data.get("op", VariantOperators::OP_EQUAL));
+
+    _operands.clear();
+    _operands.push_back(Variant::NIL);
+    if (!is_unary()) {
         _operands.push_back(Variant::NIL);
     }
+}
+
+void OScriptNodePromotableOperator::initialize(const OScriptNodeInitContext& p_context) {
+    ERR_FAIL_COND_MSG(!p_context.user_data, "No data provided to create an Operator node");
+    ERR_FAIL_COND_MSG(!p_context.user_data.value().has("op"), "An operation node requires specify an 'op' value.");
 
     super::initialize(p_context);
 }

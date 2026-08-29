@@ -20,8 +20,6 @@
 #include "editor/actions/definition.h"
 #include "orchestration/node.h"
 
-#include <godot_cpp/templates/hash_map.hpp>
-
 /// A standalone component that is responsible for being able to read and generate a set of actions based on
 /// provided class, object, or script metadata. It also can provide actions based on the visual scripting
 /// language, built-in Godot types, and project configured autoloads.
@@ -34,17 +32,11 @@ class OrchestratorEditorIntrospector {
     using GraphType = Action::GraphType;
     using ActionSet = OrchestratorEditorActionSet;
 
-    static HashMap<String, Ref<OScriptNode>> _script_node_cache;
-
     template <typename T>
     static ActionBuilder _script_node_builder(const String& p_category, const String& p_name, const Dictionary& p_data = Dictionary())
     { return _script_node_builder(T::get_class_static(), p_category, p_name, p_data); }
 
-    template <typename T> static Ref<OScriptNode> _get_or_create_node_template(bool p_ignore_not_catalogable = false)
-    { return _get_or_create_node_template(T::get_class_static(), p_ignore_not_catalogable); }
-
-    static ActionBuilder _script_node_builder(const String& p_node_type, const String& p_name, const String& p_category, const Dictionary& p_data = Dictionary());
-    static Ref<OScriptNode> _get_or_create_node_template(const String& p_node_type, bool p_ignore_not_catalogable = false);
+    static ActionBuilder _script_node_builder(const String& p_node_type, const String& p_category, const String& p_name, const Dictionary& p_data = Dictionary());
     static void _create_categories_from_path(ActionSet& r_actions, const String& p_category_path, const String& p_icon = String());
     static PackedStringArray _get_native_class_hierarchy(const String& p_class_name);
 

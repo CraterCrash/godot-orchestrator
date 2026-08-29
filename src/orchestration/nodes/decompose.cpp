@@ -113,7 +113,9 @@ PackedStringArray OScriptNodeDecompose::get_keywords() const {
     return Array::make("break", "split", "separate", "decompose", Variant::get_type_name(_type));
 }
 
-void OScriptNodeDecompose::initialize(const OScriptNodeInitContext& p_context) {
+void OScriptNodeDecompose::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
     ERR_FAIL_COND_MSG(!p_context.user_data, "A Decompose node requires custom data");
 
     const Dictionary& data = p_context.user_data.value();
@@ -121,8 +123,6 @@ void OScriptNodeDecompose::initialize(const OScriptNodeInitContext& p_context) {
 
     _type = VariantUtils::to_type(data["type"]);
     _sub_type = static_cast<SubType>(static_cast<int32_t>(data.get("sub_type", ST_NONE)));
-
-    super::initialize(p_context);
 }
 
 void OScriptNodeDecompose::_bind_methods() {

@@ -483,36 +483,42 @@ String OScriptNodeCallMemberFunction::get_help_topic() const {
     return super::get_help_topic();
 }
 
-void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_context) {
+void OScriptNodeCallMemberFunction::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
     MethodInfo mi;
-    StringName target_class = get_orchestration()->get_base_type();
+    StringName target_class;
     Variant::Type target_type = Variant::NIL;
-    if (p_context.user_data) {
+
+    if (p_context.user_data && p_context.user_data.value().has("method")) {
         // Built-in types supply target_type (Variant.Type) and "method" (dictionary)
         const Dictionary& data = p_context.user_data.value();
-        if (!data.has("target_type") && !data.has("method")) {
-            ERR_FAIL_MSG("Cannot initialize member function node, missing 'target_type' and 'method'");
-        }
-
-        target_type = VariantUtils::to_type(data["target_type"]);
+        target_type = VariantUtils::to_type(data.get("target_type", Variant::NIL));
         mi = DictionaryUtils::to_method(data["method"]);
-        target_class = "";
     } else if (p_context.method && p_context.class_name) {
         // Class-type member function call, includes 'class_name' and 'method' (MethodInfo)
         mi = p_context.method.value();
         target_class = p_context.class_name.value();
         target_type = Variant::OBJECT;
-    } else {
-        ERR_FAIL_MSG("Cannot initialize member function node, missing attributes.");
     }
-
-    ERR_FAIL_COND_MSG(mi.name.is_empty(), "Failed to initialize CallMemberFunction without a MethodInfo");
 
     _reference.method = mi;
     _reference.target_type = target_type;
     _reference.target_class_name = target_class;
 
+    _function_flags = FF_NONE;
     _set_function_flags(_reference.method);
+}
+
+void OScriptNodeCallMemberFunction::initialize(const OScriptNodeInitContext& p_context) {
+    if (p_context.user_data) {
+        const Dictionary& data = p_context.user_data.value();
+        ERR_FAIL_COND_MSG(!data.has("target_type") && !data.has("method"),
+            "Cannot initialize member function node, missing 'target_type' and 'method'");
+    } else {
+        ERR_FAIL_COND_MSG(!p_context.method || !p_context.class_name,
+            "Cannot initialize member function node, missing attributes.");
+    }
 
     super::initialize(p_context);
 }
@@ -740,16 +746,20 @@ String OScriptNodeCallBuiltinFunction::get_help_topic() const {
     return vformat("class_method:@GlobalScope:%s", _reference.method.name);
 }
 
+void OScriptNodeCallBuiltinFunction::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+
+    _reference.method = data.has("name") ? DictionaryUtils::to_method(data) : MethodInfo();
+
+    _function_flags = FF_NONE;
+    _set_function_flags(_reference.method);
+}
+
 void OScriptNodeCallBuiltinFunction::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "Failed to initialize BuiltInFunction without data");
-
-    const Dictionary& data = p_context.user_data.value();
-    ERR_FAIL_COND_MSG(!data.has("name"), "MethodInfo is incomplete.");
-
-    const MethodInfo mi = DictionaryUtils::to_method(data);
-    _reference.method = mi;
-
-    _set_function_flags(_reference.method);
+    ERR_FAIL_COND_MSG(!p_context.user_data.value().has("name"), "MethodInfo is incomplete.");
 
     super::initialize(p_context);
 }
@@ -909,15 +919,19 @@ String OScriptNodeCallStaticFunction::get_help_topic() const {
     return super::get_help_topic();
 }
 
+void OScriptNodeCallStaticFunction::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+
+    _class_name = data.get("class_name", StringName());
+    _method = p_context.method.value_or(MethodInfo());
+}
+
 void OScriptNodeCallStaticFunction::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "Failed to initialize CallStaticFunction without user data");
     ERR_FAIL_COND_MSG(!p_context.method, "Method is missing");
-
-    const Dictionary data = p_context.user_data.value();
-    ERR_FAIL_COND_MSG(!data.has("class_name"), "Data is missing the class name.");
-
-    _class_name = data["class_name"];
-    _method = p_context.method.value();
+    ERR_FAIL_COND_MSG(!p_context.user_data.value().has("class_name"), "Data is missing the class name.");
 
     super::initialize(p_context);
 }
