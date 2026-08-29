@@ -202,7 +202,7 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
 
 Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassSearchDialog::_get_recent_items() const {
     Vector<Ref<SearchItem>> items;
-    for (const String& recent_item : _read_file_lines(vformat("orchestrator_recent_history.%s", _data_suffix))) {
+    for (const String& recent_item : _read_cache_values("search_recent_history", _data_suffix)) {
         const Ref<SearchItem> item = _get_search_item_by_name(recent_item);
         if (item.is_valid()) {
             items.push_back(item);
@@ -213,7 +213,7 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
 
 Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassSearchDialog::_get_favorite_items() const {
     Vector<Ref<SearchItem>> items;
-    for (const String& recent_item : _read_file_lines(vformat("orchestrator_favorites.%s", _data_suffix))) {
+    for (const String& recent_item : _read_cache_values("search_favorites", _data_suffix)) {
         const Ref<SearchItem> item = _get_search_item_by_name(recent_item);
         if (item.is_valid()) {
             items.push_back(item);
@@ -231,7 +231,7 @@ void OrchestratorSelectClassSearchDialog::_save_recent_items(const Vector<Ref<Se
         }
     }
 
-    _write_file_lines(vformat("orchestrator_recent_history.%s", _data_suffix), items);
+    _write_cache_values("search_recent_history", _data_suffix, items);
 }
 
 void OrchestratorSelectClassSearchDialog::_save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) {
@@ -243,7 +243,7 @@ void OrchestratorSelectClassSearchDialog::_save_favorite_items(const Vector<Ref<
         }
     }
 
-    _write_file_lines(vformat("orchestrator_favorites.%s", _data_suffix), items);
+    _write_cache_values("search_favorites", _data_suffix, items);
 }
 
 void OrchestratorSelectClassSearchDialog::popup_create(bool p_dont_clear, bool p_replace_mode, const String& p_current_type, const String& p_current_name) {

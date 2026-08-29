@@ -43,6 +43,7 @@ class OrchestratorPlugin : public EditorPlugin {
     Vector<Ref<EditorExportPlugin>> _export_plugins;
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
     Vector<Ref<EditorDebuggerPlugin>> _debugger_plugins;
+    Ref<ConfigFile> _metadata;
 
     template <typename T>
     struct PluginTraits;
@@ -75,6 +76,8 @@ class OrchestratorPlugin : public EditorPlugin {
 
     static String _get_orchestrator_metedata_path();
 
+    Ref<ConfigFile> _get_metadata();
+
     void _focus_another_editor();
     bool _is_exiting() const;
 
@@ -83,7 +86,11 @@ class OrchestratorPlugin : public EditorPlugin {
 
     void _register_shortcuts();
 
-    bool _is_plugin_just_installed() const;
+    bool _is_plugin_just_installed();
+
+    /// Records the layout the metadata file is written in and the plugin version that last touched
+    /// it, writing only the values that are missing or have changed.
+    void _update_metadata_stamp();
 
     void _add_plugin_icon_to_editor_theme();
 
@@ -131,8 +138,8 @@ public:
 
     Ref<Texture2D> get_plugin_icon_hires() const;
 
-    Ref<ConfigFile> get_metadata();
-    void save_metadata(const Ref<ConfigFile>& p_metadata);
+    Variant get_metadata_value(const String& p_section, const String& p_key, const Variant& p_default = Variant());
+    void set_metadata_value(const String& p_section, const String& p_key, const Variant& p_value);
 
     void make_active();
 
