@@ -114,6 +114,15 @@ void OrchestratorEditorContextMenu::add_icon_shortcut(const String& p_icon_name,
     _add_epilogue(p_callable, p_options);
 }
 
+void OrchestratorEditorContextMenu::add_icon_shortcut(const Ref<Texture2D>& p_icon, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, const ItemOptions& p_options) {
+    if (!p_options.visible) {
+        return;
+    }
+
+    _menu->add_icon_shortcut(p_icon, p_shortcut);
+    _add_epilogue(p_callable, p_options);
+}
+
 OrchestratorEditorContextMenu* OrchestratorEditorContextMenu::add_submenu(const String& p_label) {
     OrchestratorEditorContextMenu* menu = memnew(OrchestratorEditorContextMenu(false));
     _submenus.push_back(menu);

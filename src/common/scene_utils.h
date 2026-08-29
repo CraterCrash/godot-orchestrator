@@ -151,4 +151,6 @@ namespace SceneUtils {
     }
 
     Ref<Texture2D> get_sized_icon(const Ref<Texture2D>& p_icon, int p_size);
+
+    Ref<Texture2D> get_rotated_icon(const String& p_icon_name, ClockDirection p_direction);
 }

@@ -82,6 +82,18 @@ private:
         ALIGN_MAX
     };
 
+    enum GraphNodeDistribution {
+        DISTRIBUTE_HORIZONTALLY,
+        DISTRIBUTE_VERTICALLY,
+        DISTRIBUTE_MAX
+    };
+
+    enum GraphNodeStack {
+        STACK_HORIZONTALLY,
+        STACK_VERTICALLY,
+        STACK_MAX
+    };
+
     struct ScopedThemeGuard {
         bool& flag;
 
@@ -220,7 +232,11 @@ private:
     bool _create_new_function_override(const MethodInfo& p_method);
     bool _can_call_parent_function(OrchestratorEditorGraphNode* p_node);
     void _create_call_to_parent_function(OrchestratorEditorGraphNode* p_node);
+    void _set_node_position(OrchestratorEditorGraphNode* p_node, const Vector2& p_position);
+    Vector<OrchestratorEditorGraphNode*> _get_selected_nodes_sorted(bool p_horizontal);
     void _align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment);
+    void _distribute_nodes(int p_distribution);
+    void _stack_nodes(OrchestratorEditorGraphNode* p_anchor, int p_stack);
     void _set_variable_node_validation(OrchestratorEditorGraphNode* p_node, bool p_validated);
     void _toggle_await_function(OrchestratorEditorGraphNode* p_node);
 
