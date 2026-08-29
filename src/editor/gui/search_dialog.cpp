@@ -16,11 +16,11 @@
 //
 #include "editor/gui/search_dialog.h"
 
-#include "common/file_utils.h"
 #include "common/macros.h"
 #include "common/scene_utils.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/gui/filter_line_edit.h"
+#include "editor/plugins/orchestrator_editor_plugin.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -402,26 +402,12 @@ Ref<OrchestratorEditorSearchDialog::SearchItem> OrchestratorEditorSearchDialog::
     return {};
 }
 
-PackedStringArray OrchestratorEditorSearchDialog::_read_file_lines(const String& p_file_name) const {
-    PackedStringArray items;
-    const Ref<FileAccess> file = FileUtils::open_project_settings_file(p_file_name, FileAccess::READ);
-    FileUtils::for_each_line(file, [&](const String& line) {
-        if (const String trimmed = line.strip_edges(); !trimmed.is_empty()) {
-            if (!items.has(trimmed)) {
-                items.push_back(trimmed);
-            }
-        }
-    });
-    return items;
+PackedStringArray OrchestratorEditorSearchDialog::_read_cache_values(const String& p_section, const String& p_key) const {
+    return OrchestratorPlugin::get_singleton()->get_metadata_value(p_section, p_key, PackedStringArray());
 }
 
-void OrchestratorEditorSearchDialog::_write_file_lines(const String& p_file_name, const PackedStringArray& p_values) {
-    const Ref<FileAccess> file = FileUtils::open_project_settings_file(p_file_name, FileAccess::WRITE);
-    if (file.is_valid()) {
-        for (const String& item : p_values) {
-            file->store_line(item);
-        }
-    }
+void OrchestratorEditorSearchDialog::_write_cache_values(const String& p_section, const String& p_key, const PackedStringArray& p_values) {
+    OrchestratorPlugin::get_singleton()->set_metadata_value(p_section, p_key, p_values);
 }
 
 void OrchestratorEditorSearchDialog::popup_create(bool p_dont_clear, bool p_replace_mode, const String& p_current_type, const String& p_current_name) {

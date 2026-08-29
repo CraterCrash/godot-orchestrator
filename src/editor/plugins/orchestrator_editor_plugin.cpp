@@ -16,6 +16,7 @@
 //
 #include "editor/plugins/orchestrator_editor_plugin.h"
 
+#include "common/file_utils.h"
 #include "common/macros.h"
 #include "common/resource_utils.h"
 #include "common/scene_utils.h"
@@ -38,7 +39,6 @@
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/dpi_texture.hpp>
-#include <godot_cpp/classes/editor_paths.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
@@ -50,8 +50,20 @@
 
 OrchestratorPlugin* OrchestratorPlugin::_plugin = nullptr;
 
+/// The layout version of the metadata file. Bump this whenever the sections or keys change shape so
+/// that a later release can recognise and migrate an older file.
+constexpr int64_t METADATA_FORMAT_VERSION = 1;
+
 String OrchestratorPlugin::_get_orchestrator_metedata_path() {
-    return EI->get_editor_paths()->get_project_settings_dir().path_join("orchestrator_metadata.cfg");
+    return FileUtils::get_editor_cache_file("metadata.cfg");
+}
+
+Ref<ConfigFile> OrchestratorPlugin::_get_metadata() {
+    if (_metadata.is_null()) {
+        _metadata.instantiate();
+        _metadata->load(_get_orchestrator_metedata_path());
+    }
+    return _metadata;
 }
 
 void OrchestratorPlugin::_focus_another_editor() {
@@ -191,18 +203,30 @@ void OrchestratorPlugin::_register_shortcuts() {
     oes->register_shortcut("debugger/continue", "Continue", KEY_F12, true);
 }
 
-bool OrchestratorPlugin::_is_plugin_just_installed() const {
+bool OrchestratorPlugin::_is_plugin_just_installed() {
     if (FileAccess::file_exists(_get_orchestrator_metedata_path())) {
         return false;
     }
 
-    Ref<FileAccess> file = FileAccess::open(_get_orchestrator_metedata_path(), FileAccess::WRITE);
-    if (file.is_valid()) {
-        file->close();
-        return true;
+    // Seed the metadata. The marker is the file's existence, so it must carry content; an empty file
+    // is indistinguishable from a cache that a clean-up pass discards.
+    _update_metadata_stamp();
+
+    // Only report a fresh install once the marker is on disk, otherwise a failed write would have
+    // every start-up request another restart.
+    return FileAccess::file_exists(_get_orchestrator_metedata_path());
+}
+
+void OrchestratorPlugin::_update_metadata_stamp() {
+    const int64_t format = get_metadata_value("meta", "format", 0);
+    if (format != METADATA_FORMAT_VERSION) {
+        set_metadata_value("meta", "format", METADATA_FORMAT_VERSION);
     }
 
-    return false;
+    const String version = get_metadata_value("meta", "version", "");
+    if (version != VERSION_NUMBER) {
+        set_metadata_value("meta", "version", VERSION_NUMBER);
+    }
 }
 
 void OrchestratorPlugin::_add_plugin_icon_to_editor_theme() {
@@ -453,14 +477,14 @@ Ref<Texture2D> OrchestratorPlugin::get_plugin_icon_hires() const {
     return ResourceLoader::get_singleton()->load("res://addons/orchestrator/icons/Orchestrator_Logo.svg");
 }
 
-Ref<ConfigFile> OrchestratorPlugin::get_metadata() {
-    Ref<ConfigFile> metadata(memnew(ConfigFile));
-    metadata->load(_get_orchestrator_metedata_path());
-    return metadata;
+Variant OrchestratorPlugin::get_metadata_value(const String& p_section, const String& p_key, const Variant& p_default) {
+    return _get_metadata()->get_value(p_section, p_key, p_default);
 }
 
-void OrchestratorPlugin::save_metadata(const Ref<ConfigFile>& p_metadata) {
-    p_metadata->save(_get_orchestrator_metedata_path());
+void OrchestratorPlugin::set_metadata_value(const String& p_section, const String& p_key, const Variant& p_value) {
+    const Ref<ConfigFile> metadata = _get_metadata();
+    metadata->set_value(p_section, p_key, p_value);
+    metadata->save(_get_orchestrator_metedata_path());
 }
 
 void OrchestratorPlugin::make_active() {
@@ -475,6 +499,9 @@ void OrchestratorPlugin::_notification(int p_what) {
             // Plugins only enter the tree once and this happens before the main view.
             // It's safe then to cache the plugin reference here.
             _plugin = this;
+
+            // Must run before anything reads a cache file, notably the editor panel below.
+            FileUtils::migrate_editor_cache_files();
 
             _register_plugins();
             _register_shortcuts();
@@ -516,6 +543,9 @@ void OrchestratorPlugin::_notification(int p_what) {
                 // dialog due to the order of operations.
                 callable_mp_this(request_editor_restart).call_deferred();
             } else {
+                // Runs after migration so an upgraded project is stamped, and refreshes the version
+                // once the user moves to a newer release.
+                _update_metadata_stamp();
                 _add_plugin_icon_to_editor_theme();
             }
             break;

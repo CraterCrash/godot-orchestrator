@@ -18,7 +18,6 @@
 
 #include "api/extension_db.h"
 #include "common/dictionary_utils.h"
-#include "common/file_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
@@ -442,26 +441,19 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
     Vector<Ref<SearchItem>> items;
 
     RBSet<String> recent_items;
-    const Ref<FileAccess> recents = FileUtils::open_project_settings_file(vformat("orchestrator_recent_history.%s", _data_suffix), FileAccess::READ);
-    FileUtils::for_each_line(recents, [&](const String& line) {
-        if (const String trimmed = line.strip_edges(); !trimmed.is_empty()) {
-            if (recent_items.has(trimmed)) {
-                return;
-            }
-
-            const String value = _decode_property_line(trimmed);
-            if (value.is_empty()) {
-                return;
-            }
-
-            recent_items.insert(value);
-
-            const Ref<SearchItem> search_item = _get_search_item_by_property(_string_to_property(value));
-            if (search_item.is_valid()) {
-                items.push_back(search_item);
-            }
+    for (const String& line : _read_cache_values("search_recent_history", _data_suffix)) {
+        const String value = _decode_property_line(line);
+        if (value.is_empty() || recent_items.has(value)) {
+            continue;
         }
-    });
+
+        recent_items.insert(value);
+
+        const Ref<SearchItem> search_item = _get_search_item_by_property(_string_to_property(value));
+        if (search_item.is_valid()) {
+            items.push_back(search_item);
+        }
+    }
 
     return items;
 }
@@ -469,48 +461,50 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSe
 Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectTypeSearchDialog::_get_favorite_items() const {
     Vector<Ref<SearchItem>> items;
 
-    const Ref<FileAccess> recents = FileUtils::open_project_settings_file(vformat("orchestrator_favorites.%s", _data_suffix), FileAccess::READ);
-    FileUtils::for_each_line(recents, [&](const String& line) {
-        if (const String trimmed = line.strip_edges(); !trimmed.is_empty()) {
-            const String value = _decode_property_line(trimmed);
-            if (value.is_empty()) {
-                return;
-            }
-
-            const Ref<SearchItem> search_item = _get_search_item_by_property(_string_to_property(value));
-            if (search_item.is_valid()) {
-                items.push_back(search_item);
-            }
+    for (const String& line : _read_cache_values("search_favorites", _data_suffix)) {
+        const String value = _decode_property_line(line);
+        if (value.is_empty()) {
+            continue;
         }
-    });
+
+        const Ref<SearchItem> search_item = _get_search_item_by_property(_string_to_property(value));
+        if (search_item.is_valid()) {
+            items.push_back(search_item);
+        }
+    }
 
     return items;
 }
 
 void OrchestratorSelectTypeSearchDialog::_save_recent_items(const Vector<Ref<SearchItem>>& p_recents) {
     RBSet<String> recent_items;
-    Ref<FileAccess> file = FileUtils::open_project_settings_file(vformat("orchestrator_recent_history.%s", _data_suffix), FileAccess::WRITE);
+
+    PackedStringArray values;
     for (const Ref<SearchItem>& item : p_recents) {
-        // Always have a single line per property
+        // Always have a single entry per property
         const String value = _property_to_string(item->property);
-        if (recent_items.has(value)) {
+        if (value.is_empty() || recent_items.has(value)) {
             continue;
         }
-        if (!value.is_empty()) {
-            file->store_line(value);
-        }
+
+        recent_items.insert(value);
+        values.push_back(value);
     }
+
+    _write_cache_values("search_recent_history", _data_suffix, values);
 }
 
 void OrchestratorSelectTypeSearchDialog::_save_favorite_items(const Vector<Ref<SearchItem>>& p_favorites) {
-    Ref<FileAccess> file = FileUtils::open_project_settings_file(vformat("orchestrator_favorites.%s", _data_suffix), FileAccess::WRITE);
+    PackedStringArray values;
     for (const Ref<SearchItem>& item : p_favorites) {
-        // Always have a single line per property
+        // Always have a single entry per property
         const String value = _property_to_string(item->property);
         if (!value.is_empty()) {
-            file->store_line(value);
+            values.push_back(value);
         }
     }
+
+    _write_cache_values("search_favorites", _data_suffix, values);
 }
 
 Vector<OrchestratorEditorSearchDialog::FilterOption> OrchestratorSelectTypeSearchDialog::_get_filters() const {
@@ -595,14 +589,11 @@ bool OrchestratorSelectTypeSearchDialog::_is_filtered(const Ref<SearchItem>& p_i
 }
 
 int OrchestratorSelectTypeSearchDialog::_get_default_filter() const {
-    Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
-    return metadata->get_value("variable_type_search", "filter", 0);
+    return OrchestratorPlugin::get_singleton()->get_metadata_value("variable_type_search", "filter", 0);
 }
 
 void OrchestratorSelectTypeSearchDialog::_filter_type_changed(int p_index) {
-    Ref<ConfigFile> metadata = OrchestratorPlugin::get_singleton()->get_metadata();
-    metadata->set_value("variable_type_search", "filter", p_index);
-    OrchestratorPlugin::get_singleton()->save_metadata(metadata);
+    OrchestratorPlugin::get_singleton()->set_metadata_value("variable_type_search", "filter", p_index);
 }
 
 PropertyInfo OrchestratorSelectTypeSearchDialog::get_selected() const {
