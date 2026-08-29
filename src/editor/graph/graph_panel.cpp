@@ -71,6 +71,25 @@
 
 using Connection = OScriptConnection;
 
+namespace {
+    /// Gap left between stacked nodes when the graph is not snapping to the grid.
+    constexpr float DEFAULT_STACK_SPACING = 20;
+
+    /// Orders nodes by their leading edge so that distribution and stacking preserve the
+    /// left-to-right or top-to-bottom order the user already arranged on the graph.
+    struct GraphNodeHorizontalPositionSort {
+        bool operator()(OrchestratorEditorGraphNode* a, OrchestratorEditorGraphNode* b) const {
+            return a->get_position_offset().x < b->get_position_offset().x;
+        }
+    };
+
+    struct GraphNodeVerticalPositionSort {
+        bool operator()(OrchestratorEditorGraphNode* a, OrchestratorEditorGraphNode* b) const {
+            return a->get_position_offset().y < b->get_position_offset().y;
+        }
+    };
+}
+
 void OrchestratorEditorGraphPanel::_child_entered_tree(Node* p_node) {
     if (OrchestratorEditorGraphFrame* frame = cast_to<OrchestratorEditorGraphFrame>(p_node)) {
         _connect_graph_frame_signals(frame);
@@ -470,13 +489,74 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/expand_node"), callable_mp_this(_expand_node).bind(p_node), { .disabled = !can_expand });
     menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/collapse_to_function"), callable_mp_this(_collapse_selected_nodes_to_function));
 
+    // Distribution needs an interior node to move, and stacking needs a second node to place.
+    const bool can_distribute = get_selection_count() > 2;
+    const bool can_stack = are_multiple_selections;
+
     OrchestratorEditorContextMenu* align = menu->add_submenu("Alignment");
-    align->add_icon_shortcut("ControlAlignTopWide", ED_GET_SHORTCUT("graph_editor/alignment/align_top"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_TOP));
-    align->add_icon_shortcut("ControlAlignHCenterWide", ED_GET_SHORTCUT("graph_editor/alignment/align_middle"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_MIDDLE));
-    align->add_icon_shortcut("ControlAlignBottomWide", ED_GET_SHORTCUT("graph_editor/alignment/align_bottom"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_BOTTOM));
-    align->add_icon_shortcut("ControlAlignLeftWide", ED_GET_SHORTCUT("graph_editor/alignment/align_left"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_LEFT));
-    align->add_icon_shortcut("ControlAlignVCenterWide", ED_GET_SHORTCUT("graph_editor/alignment/align_center"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_CENTER));
-    align->add_icon_shortcut("ControlAlignRightWide", ED_GET_SHORTCUT("graph_editor/alignment/align_right"), callable_mp_this(_align_nodes).bind(p_node, ALIGN_RIGHT));
+    align->add_separator("Align");
+    align->add_icon_shortcut(
+        "ControlAlignTopWide",
+        ED_GET_SHORTCUT("graph_editor/alignment/align_top"),
+        callable_mp_this(_align_nodes).bind(p_node, ALIGN_TOP),
+        { .tooltip = "Aligns the top edge of each selected node with the top edge of the clicked node." });
+    align->add_icon_shortcut(
+        "ControlAlignHCenterWide",
+        ED_GET_SHORTCUT("graph_editor/alignment/align_middle"),
+        callable_mp_this(_align_nodes).bind(p_node, ALIGN_MIDDLE),
+        { .tooltip = "Aligns the vertical center of each selected node with that of the clicked node." });
+    align->add_icon_shortcut(
+        "ControlAlignBottomWide",
+        ED_GET_SHORTCUT("graph_editor/alignment/align_bottom"),
+        callable_mp_this(_align_nodes).bind(p_node, ALIGN_BOTTOM),
+        { .tooltip = "Aligns the bottom edge of each selected node with the bottom edge of the clicked node." });
+    align->add_icon_shortcut(
+        "ControlAlignLeftWide",
+        ED_GET_SHORTCUT("graph_editor/alignment/align_left"),
+        callable_mp_this(_align_nodes).bind(p_node, ALIGN_LEFT),
+        { .tooltip = "Aligns the left edge of each selected node with the left edge of the clicked node." });
+    align->add_icon_shortcut(
+        "ControlAlignVCenterWide",
+        ED_GET_SHORTCUT("graph_editor/alignment/align_center"),
+        callable_mp_this(_align_nodes).bind(p_node, ALIGN_CENTER),
+        { .tooltip = "Aligns the horizontal center of each selected node with that of the clicked node." });
+    align->add_icon_shortcut(
+        "ControlAlignRightWide",
+        ED_GET_SHORTCUT("graph_editor/alignment/align_right"),
+        callable_mp_this(_align_nodes).bind(p_node, ALIGN_RIGHT),
+        { .tooltip = "Aligns the right edge of each selected node with the right edge of the clicked node." });
+
+    align->add_separator("Distribution");
+    align->add_icon_shortcut(
+        "PingPongLoop",
+        ED_GET_SHORTCUT("graph_editor/alignment/distribute_horizontally"),
+        callable_mp_this(_distribute_nodes).bind(DISTRIBUTE_HORIZONTALLY),
+        { .disabled = !can_distribute,
+          .tooltip = "Evens out the horizontal gaps between the selected nodes. The outermost nodes stay put, so the "
+                     "group keeps its overall width. Requires at least three selected nodes." });
+    align->add_icon_shortcut(
+        SceneUtils::get_rotated_icon("PingPongLoop", CLOCKWISE),
+        ED_GET_SHORTCUT("graph_editor/alignment/distribute_vertically"),
+        callable_mp_this(_distribute_nodes).bind(DISTRIBUTE_VERTICALLY),
+        { .disabled = !can_distribute,
+          .tooltip = "Evens out the vertical gaps between the selected nodes. The outermost nodes stay put, so the "
+                     "group keeps its overall height. Requires at least three selected nodes." });
+
+    align->add_separator("Stack");
+    align->add_icon_shortcut(
+        "Panels2Alt",
+        ED_GET_SHORTCUT("graph_editor/alignment/stack_horizontally"),
+        callable_mp_this(_stack_nodes).bind(p_node, STACK_HORIZONTALLY),
+        { .disabled = !can_stack,
+          .tooltip = "Packs the selected nodes into a tight row beginning at the clicked node. Vertical positions are "
+                     "left untouched, so pair this with an align option for a flush row." });
+    align->add_icon_shortcut(
+        "Panels2",
+        ED_GET_SHORTCUT("graph_editor/alignment/stack_vertically"),
+        callable_mp_this(_stack_nodes).bind(p_node, STACK_VERTICALLY),
+        { .disabled = !can_stack,
+          .tooltip = "Packs the selected nodes into a tight column beginning at the clicked node. Horizontal positions "
+                     "are left untouched, so pair this with an align option for a flush column." });
 
     if (!are_multiple_selections) {
         menu->add_separator("Breakpoints");
@@ -1130,13 +1210,24 @@ void OrchestratorEditorGraphPanel::_create_call_to_parent_function(OrchestratorE
     }
 }
 
+void OrchestratorEditorGraphPanel::_set_node_position(OrchestratorEditorGraphNode* p_node, const Vector2& p_position) {
+    p_node->set_position_offset(p_position);
+    p_node->_node->set_position(p_node->get_position_offset());
+}
+
+Vector<OrchestratorEditorGraphNode*> OrchestratorEditorGraphPanel::_get_selected_nodes_sorted(bool p_horizontal) {
+    Vector<OrchestratorEditorGraphNode*> nodes = get_selected<OrchestratorEditorGraphNode>();
+    if (p_horizontal) {
+        nodes.sort_custom<GraphNodeHorizontalPositionSort>();
+    } else {
+        nodes.sort_custom<GraphNodeVerticalPositionSort>();
+    }
+    return nodes;
+}
+
 void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment) {
     ERR_FAIL_NULL_MSG(p_anchor, "Cannot perform node alignment with an invalid anchor node reference");
     ERR_FAIL_INDEX(p_alignment, GraphNodeAlignment::ALIGN_MAX);
-
-    #define SET_NODE_POS(node_obj, position)                            \
-        node_obj->set_position_offset(position);                        \
-        node_obj->_node->set_position(node_obj->get_position_offset());
 
     const Vector2 align_offset = p_anchor->get_position_offset();
     const Vector2 align_size = p_anchor->get_size();
@@ -1147,7 +1238,7 @@ void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_a
             const float top = align_offset.y;
             for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
                 const float adjust = top - node->get_position_offset().y;
-                SET_NODE_POS(node, node->get_position_offset() + Vector2(0, adjust));
+                _set_node_position(node, node->get_position_offset() + Vector2(0, adjust));
             }, true);
             _set_edited(true);
             break;
@@ -1157,7 +1248,7 @@ void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_a
             const float mid_y = align_offset.y + (align_size.y / 2);
             for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
                 const float node_mid_y = node->get_position_offset().y + (node->get_size().y / 2);
-                SET_NODE_POS(node, node->get_position_offset() + Vector2(0, mid_y - node_mid_y));
+                _set_node_position(node, node->get_position_offset() + Vector2(0, mid_y - node_mid_y));
             }, true);
             _set_edited(true);
             break;
@@ -1167,7 +1258,7 @@ void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_a
             const float bottom = align_offset.y + align_size.y;
             for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
                 const float adjust = bottom - (node->get_position_offset().y + node->get_size().y);
-                SET_NODE_POS(node, node->get_position_offset() + Vector2(0, adjust));
+                _set_node_position(node, node->get_position_offset() + Vector2(0, adjust));
             }, true);
             _set_edited(true);
             break;
@@ -1177,7 +1268,7 @@ void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_a
             const Vector2 pos = align_offset;
             for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
                 const float left = node->get_position_offset().x;
-                SET_NODE_POS(node, node->get_position_offset() + Vector2(pos.x - left, 0));
+                _set_node_position(node, node->get_position_offset() + Vector2(pos.x - left, 0));
             }, true);
             _set_edited(true);
             break;
@@ -1187,7 +1278,7 @@ void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_a
             const float mid_x = align_offset.x + (align_size.x / 2);
             for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
                 const float node_mid_x = node->get_position_offset().x + (node->get_size().x / 2);
-                SET_NODE_POS(node, node->get_position_offset() + Vector2(mid_x - node_mid_x, 0));
+                _set_node_position(node, node->get_position_offset() + Vector2(mid_x - node_mid_x, 0));
             }, true);
             _set_edited(true);
             break;
@@ -1197,14 +1288,81 @@ void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_a
             const float right = align_offset.x + align_size.x;
             for_each<OrchestratorEditorGraphNode>([&] (OrchestratorEditorGraphNode* node) {
                 const float adjust = right - (node->get_position_offset().x + node->get_size().x);
-                SET_NODE_POS(node, node->get_position_offset() + Vector2(adjust, 0));
+                _set_node_position(node, node->get_position_offset() + Vector2(adjust, 0));
             }, true);
             _set_edited(true);
             break;
         }
     }
+}
 
-    #undef SET_NODE_POS
+void OrchestratorEditorGraphPanel::_distribute_nodes(int p_distribution) {
+    ERR_FAIL_INDEX(p_distribution, GraphNodeDistribution::DISTRIBUTE_MAX);
+
+    const bool horizontal = p_distribution == DISTRIBUTE_HORIZONTALLY;
+    const Vector<OrchestratorEditorGraphNode*> nodes = _get_selected_nodes_sorted(horizontal);
+
+    // The two outermost nodes anchor the span, so there is nothing to spread until a third
+    // node sits between them.
+    if (nodes.size() < 3) {
+        return;
+    }
+
+    OrchestratorEditorGraphNode* first = nodes[0];
+    OrchestratorEditorGraphNode* last = nodes[nodes.size() - 1];
+
+    const float start = horizontal ? first->get_position_offset().x : first->get_position_offset().y;
+    const float end = horizontal
+        ? last->get_position_offset().x + last->get_size().x
+        : last->get_position_offset().y + last->get_size().y;
+
+    // Nodes vary widely in size, so the gaps between them are equalized rather than the
+    // distance between their centers, which would otherwise bunch the larger nodes together.
+    float occupied = 0;
+    for (OrchestratorEditorGraphNode* node : nodes) {
+        occupied += horizontal ? node->get_size().x : node->get_size().y;
+    }
+
+    const float gap = ((end - start) - occupied) / static_cast<float>(nodes.size() - 1);
+
+    float cursor = start;
+    for (OrchestratorEditorGraphNode* node : nodes) {
+        const Vector2 offset = node->get_position_offset();
+        _set_node_position(node, horizontal ? Vector2(cursor, offset.y) : Vector2(offset.x, cursor));
+        cursor += (horizontal ? node->get_size().x : node->get_size().y) + gap;
+    }
+
+    _set_edited(true);
+}
+
+void OrchestratorEditorGraphPanel::_stack_nodes(OrchestratorEditorGraphNode* p_anchor, int p_stack) {
+    ERR_FAIL_NULL_MSG(p_anchor, "Cannot stack nodes with an invalid anchor node reference");
+    ERR_FAIL_INDEX(p_stack, GraphNodeStack::STACK_MAX);
+
+    const bool horizontal = p_stack == STACK_HORIZONTALLY;
+    const Vector<OrchestratorEditorGraphNode*> nodes = _get_selected_nodes_sorted(horizontal);
+
+    if (nodes.size() < 2) {
+        return;
+    }
+
+    // Packing against the grid keeps a stacked run consistent with nodes placed by hand.
+    const float spacing = is_snapping_enabled() ? get_snapping_distance() : DEFAULT_STACK_SPACING;
+
+    // The node under the cursor supplies the origin, and the run grows from there in the order the
+    // nodes are already laid out. Only the packing axis is touched; each node keeps its own
+    // position on the other axis so that stacking composes with the align operations rather than
+    // quietly repeating them.
+    const Vector2 origin = p_anchor->get_position_offset();
+
+    float cursor = horizontal ? origin.x : origin.y;
+    for (OrchestratorEditorGraphNode* node : nodes) {
+        const Vector2 offset = node->get_position_offset();
+        _set_node_position(node, horizontal ? Vector2(cursor, offset.y) : Vector2(offset.x, cursor));
+        cursor += (horizontal ? node->get_size().x : node->get_size().y) + spacing;
+    }
+
+    _set_edited(true);
 }
 
 void OrchestratorEditorGraphPanel::_set_variable_node_validation(OrchestratorEditorGraphNode* p_node, bool p_validated) {
@@ -2517,6 +2675,14 @@ void OrchestratorEditorGraphPanel::_shortcut_input(const Ref<InputEvent>& p_even
                     _align_nodes(hovered_node, ALIGN_CENTER);
                 } else if (ED_IS_SHORTCUT("graph_editor/alignment/align_right", p_event)) {
                     _align_nodes(hovered_node, ALIGN_RIGHT);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/distribute_horizontally", p_event)) {
+                    _distribute_nodes(DISTRIBUTE_HORIZONTALLY);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/distribute_vertically", p_event)) {
+                    _distribute_nodes(DISTRIBUTE_VERTICALLY);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/stack_horizontally", p_event)) {
+                    _stack_nodes(hovered_node, STACK_HORIZONTALLY);
+                } else if (ED_IS_SHORTCUT("graph_editor/alignment/stack_vertically", p_event)) {
+                    _stack_nodes(hovered_node, STACK_VERTICALLY);
                 } else if (ED_IS_SHORTCUT("graph_editor/view_documentation", p_event)) {
                     _view_documentation(hovered_node->get_graph_node()->get_help_topic());
                 } else {

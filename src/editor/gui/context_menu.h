@@ -83,6 +83,7 @@ public:
     void add_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, const ItemOptions& p_options = ItemOptions());
     void add_check_shortcut(const Ref<Shortcut>& p_shortcut, const Callable& p_callable, bool p_checked, const ItemOptions& p_options = ItemOptions());
     void add_icon_shortcut(const String& p_icon_name, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, const ItemOptions& p_options = ItemOptions());
+    void add_icon_shortcut(const Ref<Texture2D>& p_icon, const Ref<Shortcut>& p_shortcut, const Callable& p_callable, const ItemOptions& p_options = ItemOptions());
 
     OrchestratorEditorContextMenu* add_submenu(const String& p_label);
 
