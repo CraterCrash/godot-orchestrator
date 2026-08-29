@@ -254,6 +254,8 @@ protected:
     void _clear_breakpoints();
     Array _get_cached_breakpoints_for_script(const String& p_path) const;
 
+    void _prune_editor_cache();
+
     void _window_changed(bool p_visible);
     void _tree_changed();
     void _split_dragged(float p_value);
