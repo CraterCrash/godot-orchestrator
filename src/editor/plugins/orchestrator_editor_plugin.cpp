@@ -157,6 +157,10 @@ void OrchestratorPlugin::_register_shortcuts() {
     ED_SHORTCUT("graph_editor/alignment/align_left", "Align Left");
     ED_SHORTCUT("graph_editor/alignment/align_center", "Align Center");
     ED_SHORTCUT("graph_editor/alignment/align_right", "Align Right");
+    ED_SHORTCUT("graph_editor/alignment/distribute_horizontally", "Distribute Horizontally");
+    ED_SHORTCUT("graph_editor/alignment/distribute_vertically", "Distribute Vertically");
+    ED_SHORTCUT("graph_editor/alignment/stack_horizontally", "Stack Horizontally");
+    ED_SHORTCUT("graph_editor/alignment/stack_vertically", "Stack Vertically");
     ED_SHORTCUT("graph_editor/view_documentation", "View Documentation");
     ED_SHORTCUT("graph_editor/zoom_in", "Zoom In", KEY_KP_ADD);
     ED_SHORTCUT("graph_editor/zoom_out", "Zoom Out", KEY_KP_SUBTRACT);

@@ -345,4 +345,21 @@ namespace SceneUtils {
 
         return ImageTexture::create_from_image(scaled);
     }
+
+    Ref<Texture2D> get_rotated_icon(const String& p_icon_name, ClockDirection p_direction) {
+        const Ref<Texture2D> icon = get_editor_icon(p_icon_name);
+        if (icon.is_null()) {
+            return icon;
+        }
+
+        const Ref<Image> image = icon->get_image();
+        if (image.is_null()) {
+            return icon;
+        }
+
+        Ref<Image> rotated = image->duplicate();
+        rotated->rotate_90(p_direction);
+
+        return ImageTexture::create_from_image(rotated);
+    }
 }
