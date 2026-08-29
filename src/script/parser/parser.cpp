@@ -2533,21 +2533,30 @@ OScriptParser::StatementResult OScriptParser::build_for_each(const Ref<OScriptNo
 
     // todo: need to guard that control flow from the loop does not re-enter the for
 
-    // The ForEach node is a bit unique in that it outputs two values per loop iteration,
-    // the array item and it's index. Right now there is not a clean way to expose both
-    // of these without trade-offs with how the compiler/vm are designed.
+    // The ForEach node is a bit unique in that it outputs two values per loop iteration.
+    // For arrays that pair is the element and its index, and for dictionaries it is the
+    // key and its value. Right now there is not a clean way to expose both of these
+    // without trade-offs with how the compiler/vm are designed.
     //
-    // So the way this works is that if the index-pin is not connected, the ForEach loop
-    // will use the standard "for element in array" syntax by specifying the input array
-    // as the list item in the ForNode. If the index pin is connected, then the list is
-    // populated with a size call and used in a range-based for loop. In addition, the
-    // first operation in the for loop will be to assign the element variable with the
-    // array item using the "element = array[index]" syntax.
+    // Only one of the two outputs can act as the loop variable, so the other is assigned
+    // inside the loop body by subscripting the collection. The second data output, the
+    // index or the value, is what decides the shape of the emitted loop:
     //
+    //  Array, index unused      "for element in array"
+    //  Array, index used        "for index in range(0, array.size())" and "element = array[index]"
+    //  Dictionary, value unused "for key in dictionary"
+    //  Dictionary, value used   "for key in dictionary" and "value = dictionary[key]"
+    //
+    // A dictionary iterates its keys directly, so the range-based rewrite that gives arrays
+    // access to their index is never needed there.
+    //
+    const bool is_dictionary = p_script_node->get_collection_type() == Variant::DICTIONARY;
+    const bool is_second_output_used = p_script_node->find_pin(2, PD_Output)->has_any_connections();
+    const bool is_index_required = !is_dictionary && is_second_output_used;
+
     ExpressionNode* for_list = nullptr;
-    const bool is_index_required = p_script_node->find_pin(2, PD_Output)->has_any_connections();
     if (!is_index_required) {
-        // Uses the simple "for element in array" syntax
+        // Uses the simple "for element in array" or "for key in dictionary" syntax
         for_list = resolve_input(p_script_node->find_pin(1, PD_Input));
     } else {
         ExpressionNode* array = resolve_input(p_script_node->find_pin(1, PD_Input));
@@ -2585,22 +2594,30 @@ OScriptParser::StatementResult OScriptParser::build_for_each(const Ref<OScriptNo
     suite->parent_block = current_suite;
     suite->parent_function = current_function;
 
-    // Setup element variable in nested suite
+    // Setup loop variable in nested suite
     add_local_variable(for_node->variable, suite);
 
-    if (is_index_required) {
-        // Set up the index pin variable, and create assignment operation
-        const String index_name = vformat("for_elem_%d", p_script_node->get_id());
+    if (is_second_output_used) {
+        // The loop variable is the array index when the index pin is used, and otherwise it
+        // is the array element or, for dictionaries, the key.
+        const int loop_variable_port = is_index_required ? 2 : 1;
+        const int subscript_port = is_dictionary ? 2 : 1;
+
+        // Set up the pin variable that is not the loop variable, creating the assignment
+        // operation that reads it back out of the collection.
+        const String subscript_name = is_dictionary
+            ? vformat("for_value_%d", p_script_node->get_id())
+            : vformat("for_elem_%d", p_script_node->get_id());
 
         SubscriptNode* subscript = alloc_node<SubscriptNode>();
         subscript->base = resolve_input(p_script_node->find_pin(1, PD_Input));
         subscript->index = build_identifier(for_node->variable->name, suite);
 
-        VariableNode* index = create_local(index_name, subscript, suite);
-        add_statement(index, suite);
+        VariableNode* subscript_variable = create_local(subscript_name, subscript, suite);
+        add_statement(subscript_variable, suite);
 
-        add_pin_alias(index_name, p_script_node->find_pin(1, PD_Output), suite);
-        add_pin_alias(for_node->variable->name, p_script_node->find_pin(2, PD_Output), suite);
+        add_pin_alias(subscript_name, p_script_node->find_pin(subscript_port, PD_Output), suite);
+        add_pin_alias(for_node->variable->name, p_script_node->find_pin(loop_variable_port, PD_Output), suite);
     } else {
         add_pin_alias(for_node->variable->name, p_script_node->find_pin(1, PD_Output), suite);
     }
