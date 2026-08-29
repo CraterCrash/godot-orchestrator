@@ -21,7 +21,6 @@
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -302,7 +301,7 @@ bool OrchestratorEditorSettings::is_event_array_equal(const Array& p_a, const Ar
 }
 
 void OrchestratorEditorSettings::notify_changes() { // NOLINT
-    SceneTree* tree = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+    SceneTree* tree = SceneTree::get_singleton();
     if (!tree) {
         return;
     }

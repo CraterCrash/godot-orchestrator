@@ -21,7 +21,6 @@
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/image.hpp>
 #include <godot_cpp/classes/image_texture.hpp>
@@ -168,7 +167,7 @@ namespace SceneUtils {
     }
 
     Node* get_scene_base_node(const Ref<Script>& p_script) {
-        if (SceneTree* tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())) {
+        if (SceneTree* tree = SceneTree::get_singleton()) {
             if (Node* root = tree->get_edited_scene_root()) {
                 Vector<Node*> nodes;
                 find_all_nodes_for_script(root, root, p_script, nodes);
@@ -233,7 +232,7 @@ namespace SceneUtils {
     }
 
     Vector<Node*> find_all_nodes_for_script_in_edited_scene(const Ref<Script>& p_script) {
-        SceneTree* scene_tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+        SceneTree* scene_tree = SceneTree::get_singleton();
         if (scene_tree) {
             Node* scene_root = scene_tree->get_edited_scene_root();
 

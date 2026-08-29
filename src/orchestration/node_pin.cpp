@@ -26,7 +26,6 @@
 #include "orchestration/orchestration.h"
 #include "script/script_server.h"
 
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script.hpp>
 
@@ -787,8 +786,7 @@ PackedStringArray OScriptNodePin::resolve_signal_names(bool p_self_fallback) con
         } else if (p_self_fallback) {
             Ref<Script> script = get_owning_node()->get_orchestration()->get_self();
             if (script.is_valid()) {
-                MainLoop* main_loop = Engine::get_singleton()->get_main_loop();
-                if (Node* root = cast_to<SceneTree>(main_loop)->get_edited_scene_root()) {
+                if (Node* root = SceneTree::get_singleton()->get_edited_scene_root()) {
                     if (Node* node = SceneUtils::get_node_with_script(script, root, root)) {
                         const TypedArray<Dictionary> signal_list = node->get_signal_list();
                         for (uint32_t i = 0; i < signal_list.size(); i++) {
