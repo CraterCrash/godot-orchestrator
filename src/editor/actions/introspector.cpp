@@ -688,6 +688,8 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
 
     const Dictionary with_break = DictionaryUtils::of({ { "with_break", true } });
     const Dictionary without_break = DictionaryUtils::of({ { "with_break", false } });
+    const Dictionary dict_with_break = DictionaryUtils::of({ { "collection_type", Variant::DICTIONARY }, { "with_break", true } });
+    const Dictionary dict_without_break = DictionaryUtils::of({ { "collection_type", Variant::DICTIONARY }, { "with_break", false } });
     const Dictionary array_data = DictionaryUtils::of({ { "collection_type", Variant::ARRAY },{ "index_type", Variant::NIL } });
 
     // Constants
@@ -738,6 +740,10 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
         .executions(true).inputs(Variant::ARRAY).outputs(Variant::NIL, Variant::INT).build());
     r_actions.insert(_script_node_builder<OScriptNodeForEach>("Flow Control", "For Each With Break", with_break)
         .executions(true).inputs(Variant::ARRAY).outputs(Variant::NIL, Variant::INT).build());
+    r_actions.insert(_script_node_builder<OScriptNodeForEach>("Flow Control", "For Each Key-Value", dict_without_break)
+        .executions(true).inputs(Variant::DICTIONARY).outputs(Variant::NIL, Variant::NIL).build());
+    r_actions.insert(_script_node_builder<OScriptNodeForEach>("Flow Control", "For Each Key-Value With Break", dict_with_break)
+        .executions(true).inputs(Variant::DICTIONARY).outputs(Variant::NIL, Variant::NIL).build());
     r_actions.insert(_script_node_builder<OScriptNodeForLoop>("Flow Control", "For Loop", without_break)
         .executions(true).inputs(Variant::INT).outputs(Variant::INT).build());
     r_actions.insert(_script_node_builder<OScriptNodeForLoop>("Flow Control", "For Loop With Break", with_break)
