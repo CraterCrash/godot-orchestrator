@@ -22,7 +22,6 @@
 #include "orchestration/orchestration.h"
 #include "script/script_server.h"
 
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 
@@ -220,7 +219,7 @@ String OScriptNodeProperty::get_help_topic() const {
         case CALL_SELF:
             return vformat("class_property:%s:%s", get_orchestration()->get_base_type(), _property.name);
         case CALL_NODE_PATH: {
-            if (SceneTree* st = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())) {
+            if (SceneTree* st = SceneTree::get_singleton()) {
                 Node* node = st->get_edited_scene_root()->get_node_or_null(_node_path);
                 if (node) {
                     return vformat("class_property:%s:%s", node->get_class(), _property.name);

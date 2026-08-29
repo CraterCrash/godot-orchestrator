@@ -21,7 +21,6 @@
 #include "common/scene_utils.h"
 #include "orchestration/orchestration.h"
 
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script.hpp>
 
@@ -92,7 +91,7 @@ Ref<OScriptTargetObject> OScriptNodeSelf::resolve_target(const Ref<OScriptNodePi
             // For now look at the current edited scene, and if one exists, try and find the node
             // that has the attached script to refer to as "self". This is just an approximation,
             // as multiple nodes could have the script attached.
-            Node* root = cast_to<SceneTree>(Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
+            Node* root = SceneTree::get_singleton()->get_edited_scene_root();
             if (root) {
                 Node* node = SceneUtils::get_node_with_script(script, root, root);
                 return memnew(OScriptTargetObject(node, false));
