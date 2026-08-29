@@ -20,6 +20,7 @@
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
 #include "common/property_utils.h"
+#include "common/variant_utils.h"
 
 void OScriptNodeForLoop::_get_property_list(List<PropertyInfo> *r_list) const {
     r_list->push_back(PropertyInfo(Variant::BOOL, "with_break", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
@@ -168,11 +169,15 @@ void OScriptNodeForLoop::_set_with_break(bool p_break_status) {
 
 void OScriptNodeForEach::_get_property_list(List<PropertyInfo>* r_list) const {
     r_list->push_back(PropertyInfo(Variant::BOOL, "with_break", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
+    r_list->push_back(PropertyInfo(Variant::INT, "collection_type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
 }
 
 bool OScriptNodeForEach::_get(const StringName& p_name, Variant& r_value) const {
     if (p_name.match("with_break")) {
         r_value = _with_break;
+        return true;
+    } else if (p_name.match("collection_type")) {
+        r_value = _collection_type;
         return true;
     }
     return false;
@@ -183,47 +188,53 @@ bool OScriptNodeForEach::_set(const StringName& p_name, const Variant& p_value) 
         _with_break = p_value;
         _notify_pins_changed();
         return true;
+    } else if (p_name.match("collection_type")) {
+        _collection_type = VariantUtils::to_type(p_value);
+        _notify_pins_changed();
+        return true;
     }
     return false;
 }
 
 void OScriptNodeForEach::post_initialize() {
-    bool reconstructed = false;
+    if (_collection_type == Variant::ARRAY) {
+        bool reconstructed = false;
 
-    // Automatically coerces old element pins to using NIL for Any rather than OBJECT
-    Ref<OScriptNodePin> element = find_pin("element", PD_Output);
-    if (element.is_valid() && element->get_type() == Variant::OBJECT) {
-        element->set_type(Variant::NIL);
-    }
+        // Automatically coerces old element pins to using NIL for Any rather than OBJECT
+        Ref<OScriptNodePin> element = find_pin("element", PD_Output);
+        if (element.is_valid() && element->get_type() == Variant::OBJECT) {
+            element->set_type(Variant::NIL);
+        }
 
-    // Fixes issue where a break pin exists but the break status was not persisted
-    if (!_with_break && find_pin("break", PD_Input).is_valid()) {
-        _with_break = true;
-    }
+        // Fixes issue where a break pin exists but the break status was not persisted
+        if (!_with_break && find_pin("break", PD_Input).is_valid()) {
+            _with_break = true;
+        }
 
-    // Automatically adjusts old nodes to having the new aborted node layout
-    if (_with_break && !find_pin("aborted", PD_Output).is_valid()) {
-        reconstruct_node();
-        reconstructed = true;
-
-        // This needs to be delayed until the end of frame due to pin index caching
-        callable_mp_lambda(this, [&,this]() {
-            const Ref<OScriptNodePin> aborted = find_pin("aborted", PD_Output);
-            const Ref<OScriptNodePin> completed = find_pin("completed", PD_Output);
-            if (aborted.is_valid() && completed.is_valid()) {
-                const Vector<Ref<OScriptNodePin>> targets = completed->get_connections();
-                if (!targets.is_empty()) {
-                    aborted->link(targets[0]);
-                }
-            }
-        }).call_deferred();
-    }
-
-    // Fixup - reconstruct element pins
-    if (!reconstructed && element.is_valid()) {
-        if (PropertyUtils::is_nil_no_variant(element->get_property_info())) {
+        // Automatically adjusts old nodes to having the new aborted node layout
+        if (_with_break && !find_pin("aborted", PD_Output).is_valid()) {
             reconstruct_node();
             reconstructed = true;
+
+            // This needs to be delayed until the end of frame due to pin index caching
+            callable_mp_lambda(this, [&,this]() {
+                const Ref<OScriptNodePin> aborted = find_pin("aborted", PD_Output);
+                const Ref<OScriptNodePin> completed = find_pin("completed", PD_Output);
+                if (aborted.is_valid() && completed.is_valid()) {
+                    const Vector<Ref<OScriptNodePin>> targets = completed->get_connections();
+                    if (!targets.is_empty()) {
+                        aborted->link(targets[0]);
+                    }
+                }
+            }).call_deferred();
+        }
+
+        // Fixup - reconstruct element pins
+        if (!reconstructed && element.is_valid()) {
+            if (PropertyUtils::is_nil_no_variant(element->get_property_info())) {
+                reconstruct_node();
+                reconstructed = true;
+            }
         }
     }
 
@@ -232,15 +243,26 @@ void OScriptNodeForEach::post_initialize() {
 
 void OScriptNodeForEach::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
-    create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY))->set_flag(OScriptNodePin::IGNORE_DEFAULT);
+
+    if (_collection_type == Variant::DICTIONARY) {
+        create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("dictionary", Variant::DICTIONARY))->set_flag(OScriptNodePin::IGNORE_DEFAULT);
+    } else {
+        create_pin(PD_Input, PT_Data, PropertyUtils::make_typed("array", Variant::ARRAY))->set_flag(OScriptNodePin::IGNORE_DEFAULT);
+    }
 
     if (_with_break) {
         create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("break"))->show_label();
     }
 
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("loop_body"))->show_label();
-    create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("element"));
-    create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
+    if (_collection_type == Variant::DICTIONARY) {
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("key"));
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("value"));
+    } else {
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_variant("element"));
+        create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("index", Variant::INT));
+    }
+
     create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("completed"))->show_label();
 
     if (_with_break) {
@@ -249,19 +271,32 @@ void OScriptNodeForEach::allocate_default_pins() {
 }
 
 String OScriptNodeForEach::get_tooltip_text() const {
+    if (_collection_type == Variant::DICTIONARY) {
+        return "Executes the 'Loop Body' for each key-value pair in the dictionary.";
+    }
     return "Executes the 'Loop Body' for each element in the array.";
 }
 
 String OScriptNodeForEach::get_node_title() const {
-    return vformat("For Each%s", _with_break ? " With Break" : "");
+    return vformat("For Each%s%s",
+        _collection_type == Variant::DICTIONARY ? " Key-Value" : "",
+        _with_break ? " With Break" : "");
 }
 
 String OScriptNodeForEach::get_icon() const {
     return "Loop";
 }
 
+PackedStringArray OScriptNodeForEach::get_keywords() const {
+    if (_collection_type == Variant::DICTIONARY) {
+        return Array::make("for", "each", "key", "value", "map", "dictionary", "dict", "loop", "range");
+    }
+    return Array::make("for", "each", "loop", "range", "array");
+}
+
 bool OScriptNodeForEach::is_loop_port(int p_port) const {
-    // Body, Index, Element
+    // Array: Body, Index, Element
+    // Dictionary: Body, Key, Value
     return p_port <= 2;
 }
 
@@ -288,9 +323,18 @@ void OScriptNodeForEach::configure(const OScriptNodeInitContext& p_context) {
     const Dictionary data = p_context.user_data.value_or(Dictionary());
 
     _with_break = data.get("with_break", false);
+    _collection_type = VariantUtils::to_type(data.get("collection_type", Variant::ARRAY));
 }
 
 void OScriptNodeForEach::_set_with_break(bool p_break_status) {
     _with_break = p_break_status;
     reconstruct_node();
+}
+
+void OScriptNodeForEach::set_collection_type(Variant::Type p_type) {
+    ERR_FAIL_COND_MSG(p_type != Variant::ARRAY && p_type != Variant::DICTIONARY, "ForEach must be ARRAY or DICTIONARY");
+    if (_collection_type != p_type) {
+        _collection_type = p_type;
+        reconstruct_node();
+    }
 }

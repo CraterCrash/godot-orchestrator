@@ -67,6 +67,7 @@ class OScriptNodeForEach : public OScriptNode
     ORCHESTRATOR_NODE_CLASS(OScriptNodeForEach, OScriptNode);
 
     bool _with_break = false; // Whether break is enabled
+    Variant::Type _collection_type = Variant::ARRAY; // Which collection type is iterated
 
 protected:
     static void _bind_methods() { }
@@ -89,11 +90,14 @@ public:
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "flow_control"; }
     String get_icon() const override;
-    PackedStringArray get_keywords() const override { return Array::make("for", "each", "loop", "range"); }
+    PackedStringArray get_keywords() const override;
     bool is_loop_port(int p_port) const override;
     bool is_loop_break_pin(const Ref<OScriptNodePin>& p_pin) override;
     void get_actions(List<Ref<OScriptAction>>& p_action_list) override;
     void configure(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNode Interface
+
+    Variant::Type get_collection_type() const { return _collection_type; }
+    void set_collection_type(Variant::Type p_type);
 };
 
