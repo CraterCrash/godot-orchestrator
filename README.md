@@ -15,13 +15,13 @@ Whether you are an experienced Godot veteran or an aspiring developer eager to g
 
 The following screenshots only scratch the surface of what the plug-in offers out of the box, with much more in future builds.
 
-![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-a-c.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/orchestrator-screenshot-a-c.png)
 
-![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-b-c.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/orchestrator-screenshot-b-c.png)
 
-![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-c-c.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/orchestrator-screenshot-c-c.png)
 
-![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-d-c.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/orchestrator-screenshot-d-c.png)
 
 ## ![icon](https://wormhole.cratercrash.space/orchestrator/images/github-readme-icon-c_.png?width=auto&height=20)  Godot Compatibility
 
