@@ -1,4 +1,4 @@
-![screen-shot](https://static.cratercrash.space/orchestrator/images/banners/orchestrator_banner.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/godot-store-icon-b-c.png)
 
 ![Godot v4.7](https://img.shields.io/badge/Godot-v4.7-%23478cbf?logo=godot-engine&logoColor=white&style=flat-square)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/CraterCrash/godot-orchestrator?&style=flat-square)
@@ -15,13 +15,13 @@ Whether you are an experienced Godot veteran or an aspiring developer eager to g
 
 The following screenshots only scratch the surface of what the plug-in offers out of the box, with much more in future builds.
 
-![screen-shot](https://static.cratercrash.space/orchestrator/images/screenshots/screenshot_a.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-a-c.png)
 
-![screen-shot](https://static.cratercrash.space/orchestrator/images/screenshots/screenshot_b.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-b-c.png)
 
-![screen-shot](https://static.cratercrash.space/orchestrator/images/screenshots/screenshot_c.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-c-c.png)
 
-![screen-shot](https://static.cratercrash.space/orchestrator/images/screenshots/screenshot_d.png)
+![screen-shot](https://wormhole.cratercrash.space/orchestrator/images/gotdot-store-screenshot-d-c.png)
 
 ## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20)  Godot Compatibility
 
@@ -58,7 +58,7 @@ The following Godot versions are no longer supported:
 * Design complex dialogue conversations for NPCs for any game.
 * Work with any Godot engine data type, including complex types like Arrays or Dictionaries.
 
-## ![icon](https://static.cratercrash.space/orchestrator/images/icons/orchestrator_menu_image_20px.png?width=auto&height=20) Documentation
+## ![icon](https://wormhole.cratercrash.space/orchestrator/images/github-readme-icon-c.png?width=auto&height=20) Documentation
 
 For complete documentation, see https://docs.cratercrash.space/orchestrator.
 
