@@ -66,7 +66,7 @@ For complete documentation, see https://docs.cratercrash.space/orchestrator.
 
 See [CHANGELOG](https://github.com/CraterCrash/godot-orchestrator/blob/main/CHANGELOG.md).
 
-## ## ![icon](https://wormhole.cratercrash.space/orchestrator/images/github-readme-icon-c_.png?width=auto&height=20) Licenses
+## ![icon](https://wormhole.cratercrash.space/orchestrator/images/github-readme-icon-c_.png?width=auto&height=20) Licenses
 
 - Source code: [Apache-2.0 License](/LICENSE)
 - Godot logo: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
