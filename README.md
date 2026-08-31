@@ -70,7 +70,7 @@ See [CHANGELOG](https://github.com/CraterCrash/godot-orchestrator/blob/main/CHAN
 
 - Source code: [Apache-2.0 License](/LICENSE)
 - Godot logo: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- Orchestrator logo: [&copy; 2023-present Crater Crash Studios, LLC. All Rights Reserved](https://www.cratercrash.com/legal/webcn)
+- Orchestrator logo: [&copy; 2023-present Crater Crash Studios, LLC. All Rights Reserved](https://cratercrash.space/legal/copyright-notices)
 
 ## ![icon](https://wormhole.cratercrash.space/orchestrator/images/github-readme-icon-c_.png?width=auto&height=20) Community
 
