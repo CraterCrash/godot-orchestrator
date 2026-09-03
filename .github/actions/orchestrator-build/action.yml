@@ -63,7 +63,7 @@ runs:
 
     # Installs ccache
     - name: Install ccache
-      uses: hendrikmuhs/ccache-action@v1.2.23
+      uses: hendrikmuhs/ccache-action@v1.2.24
       with:
         key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
         restore: false
