@@ -38,13 +38,6 @@ void OrchestrationSerializer::_decode_and_set_flags(const String& p_path, uint32
     }
 }
 
-bool OrchestrationSerializer::_is_resource_built_in(const Ref<Resource>& p_resource) {
-    if (p_resource.is_valid()) {
-        return p_resource->is_built_in();
-    }
-    return false;
-}
-
 int64_t OrchestrationSerializer::_get_resource_id_for_path(const String& p_path, bool p_generate) {
     return OrchestrationTextFormat::get_resource_id_for_path(p_path, p_generate);
 }
@@ -66,10 +59,6 @@ String OrchestrationSerializer::_resource_get_class(const Ref<Resource>& p_resou
     return p_resource->get_class();
 }
 
-String OrchestrationSerializer::_generate_scene_unique_id() {
-    return Resource::generate_scene_unique_id();
-}
-
 String OrchestrationSerializer::_create_resource_uid(const Ref<Resource>& p_resource, const HashSet<String>& p_used_ids, bool& r_generated) {
     String uid = p_resource->get_scene_unique_id();
 
@@ -79,7 +68,7 @@ String OrchestrationSerializer::_create_resource_uid(const Ref<Resource>& p_reso
     }
 
     while (true) {
-        uid = _resource_get_class(p_resource) + "_" + _generate_scene_unique_id();
+        uid = _resource_get_class(p_resource) + "_" + Resource::generate_scene_unique_id();
         if (!p_used_ids.has(uid)) {
             break;
         }

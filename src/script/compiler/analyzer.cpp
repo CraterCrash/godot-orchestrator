@@ -20,7 +20,6 @@
 #include "common/dictionary_utils.h"
 #include "common/error_list.h"
 #include "common/method_utils.h"
-#include "common/resource_utils.h"
 #include "common/variant_utils.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_constants.h"

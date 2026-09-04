@@ -342,7 +342,7 @@ void OrchestratorEditor::_menu_option(int p_option) {
                 if (resource.is_valid()) {
                     String path = resource->get_path();
                     if (!path.is_empty()) {
-                        if (ResourceUtils::is_builtin(resource)) {
+                        if (resource->is_built_in()) {
                             path = path.get_slice("::", 0);
                         }
                         EI->get_file_system_dock()->navigate_to_path(path);
@@ -404,7 +404,7 @@ void OrchestratorEditor::_close_tab(int p_idx, bool p_save, bool p_history_back)
     if (current) {
         const Ref<Resource> file = current->get_edited_resource();
         if (p_save && file.is_valid()) {
-            if (!ResourceUtils::is_builtin(file)) {
+            if (!file->is_built_in()) {
                 save_current_script();
             }
         }
@@ -971,7 +971,7 @@ void OrchestratorEditor::_add_callback(Object* p_object, const String& p_functio
             }
         }
 
-        if (!ResourceUtils::is_builtin(script)) {
+        if (!script->is_built_in()) {
             save_current_script();
         }
 
@@ -991,7 +991,7 @@ void OrchestratorEditor::_resave_scripts(const String& p_value) {
         }
 
         const Ref<Resource> resource = view->get_edited_resource();
-        if (ResourceUtils::is_builtin(resource)) {
+        if (resource->is_built_in()) {
             continue;
         }
 
@@ -1010,7 +1010,7 @@ void OrchestratorEditor::_reload_scripts(bool p_refresh_only) {
         }
 
         Ref<Resource> edited_resource = view->get_edited_resource();
-        if (ResourceUtils::is_builtin(edited_resource)) {
+        if (edited_resource->is_built_in()) {
             continue;
         }
 
@@ -1076,7 +1076,7 @@ void OrchestratorEditor::_mark_built_in_scripts_as_saved(const String& p_full_pa
         OrchestratorEditorView* view = cast_to<OrchestratorEditorView>(_tab_container->get_tab_control(i));
         if (view) {
             const Ref<Resource> edited_resource = view->get_edited_resource();
-            if (!ResourceUtils::is_builtin(edited_resource)) {
+            if (!edited_resource->is_built_in()) {
                 continue;
             }
 
@@ -1216,7 +1216,7 @@ bool OrchestratorEditor::_test_script_times_on_disk(const Ref<Resource>& p_for_s
                 continue;
             }
 
-            if (ResourceUtils::is_builtin(edited_resource)) {
+            if (edited_resource->is_built_in()) {
                 continue;
             }
 
@@ -1721,7 +1721,7 @@ void OrchestratorEditor::save_all_scripts() {
             view->apply_code();
         }
 
-        if (!ResourceUtils::is_builtin(edited_resource)) {
+        if (!edited_resource->is_built_in()) {
             Ref<OScript> script = edited_resource;
             if (script.is_valid()) {
                 clear_docs_from_script(script);
@@ -2213,7 +2213,7 @@ void OrchestratorEditor::edit_previous_item() {
 
 void OrchestratorEditor::save_resource(const Ref<Resource>& p_resource) {
     // This is taken from editor_node.cpp and is a scaled down version of what the EditorNode offers.
-    if (ResourceUtils::is_builtin(p_resource)) {
+    if (p_resource->is_built_in()) {
         WARN_PRINT_ED("OrchestratorEditor cannot save built-in resources.");
         return;
     }
