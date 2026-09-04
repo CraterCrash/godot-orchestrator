@@ -322,7 +322,7 @@ void OrchestrationBinarySerializer::_write_variant(const Variant& p_value, HashM
                 return;
             }
 
-            if (!_is_resource_built_in(res)) {
+            if (!(res.is_valid() && res->is_built_in())) {
                 _file->store_32(OrchestrationBinaryFormat::OBJECT_EXTERNAL_RESOURCE_INDEX);
                 _file->store_32(_external_resources[res]);
             } else {
@@ -534,7 +534,7 @@ void OrchestrationBinarySerializer::_find_resources_object(const Variant& p_vari
 }
 
 void OrchestrationBinarySerializer::_find_resources_resource(const Ref<Resource>& p_resource, bool p_main) { // NOLINT
-    if (!p_main && !_bundle_resources && !_is_resource_built_in(p_resource)) {
+    if (!p_main && !_bundle_resources && !(p_resource.is_valid() && p_resource->is_built_in())) {
         if (p_resource->get_path() == _path) {
             ERR_PRINT(vformat("(Circular reference to resource being saved found: %s will be null next time its loaded.", _path));
             return;
@@ -812,7 +812,7 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
     // For resources that have collisions, first one visited wins; others reassigned.
     HashSet<String> used_unique_ids;
     for (const Ref<Resource>& E : _saved_resources) {
-        if (_is_resource_built_in(E)) {
+        if (E.is_valid() && E->is_built_in()) {
             if (!E->get_scene_unique_id().is_empty()) {
                 if (used_unique_ids.has(E->get_scene_unique_id())) {
                     E->set_scene_unique_id("");
@@ -831,7 +831,7 @@ Error OrchestrationBinarySerializer::save(const Ref<Resource>& p_resource, const
     HashMap<Ref<Resource>, uint32_t> resource_map;
     Vector<uint64_t> offsets;
     for (const Ref<Resource>& E: _saved_resources) {
-        if (_is_resource_built_in(E)) {
+        if (E.is_valid() && E->is_built_in()) {
             bool generated;
             String uid_text = _create_resource_uid(E, used_unique_ids, generated);
             if (generated) {
