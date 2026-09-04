@@ -50,7 +50,7 @@ String OrchestrationTextSerializer::_write_resource(const Ref<Resource>& p_resou
         return _write_internal_resource_ref(p_resource);
     }
 
-    if (!_is_resource_built_in(p_resource)) {
+    if (!(p_resource.is_valid() && p_resource->is_built_in())) {
         if (p_resource->get_path() == _path) {
             // Circular reference
             return "null";
@@ -100,7 +100,7 @@ void OrchestrationTextSerializer::_find_resources_object(const Variant& p_varian
 }
 
 void OrchestrationTextSerializer::_find_resources_resource(const Ref<Resource>& p_resource, bool p_main) { // NOLINT
-    if (!p_main && !_bundle_resources && !_is_resource_built_in(p_resource)) {
+    if (!p_main && !_bundle_resources && !(p_resource.is_valid() && p_resource->is_built_in())) {
         if (p_resource->get_path() == _path) {
             ERR_PRINT(vformat("(Circular reference to resource being saved found: %s will be null next time its loaded.", _path));
             return;
@@ -108,7 +108,7 @@ void OrchestrationTextSerializer::_find_resources_resource(const Ref<Resource>& 
 
         // Use a numeric ID as base to sort in a natural order before saving.
         // This increase the chances of thread loading to fetch them first.
-        _external_resources[p_resource] = itos(_external_resources.size() + 1) + "_" + _generate_scene_unique_id();
+        _external_resources[p_resource] = itos(_external_resources.size() + 1) + "_" + Resource::generate_scene_unique_id();
         return;
     }
 
@@ -198,7 +198,7 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
 
         String attempt;
         while (attempt.is_empty() || cached_ids_found.has(attempt)) {
-            attempt = E.value + _generate_scene_unique_id();
+            attempt = E.value + Resource::generate_scene_unique_id();
         }
 
         cached_ids_found.insert(attempt);
@@ -237,7 +237,7 @@ Error OrchestrationTextSerializer::save(const Ref<Resource>& p_resource, const S
     HashSet<String> used_unique_ids;
     for (List<Ref<Resource>>::Element* E = _saved_resources.front(); E ; E = E->next()) {
         const Ref<Resource> res = E->get();
-        if (E->next() && _is_resource_built_in(res)) {
+        if (E->next() && res.is_valid() && res->is_built_in()) {
             if (!res->get_scene_unique_id().is_empty()) {
                 if (used_unique_ids.has(res->get_scene_unique_id())) {
                     res->set_scene_unique_id(""); // Repeated

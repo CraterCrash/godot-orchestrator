@@ -21,7 +21,6 @@
 #include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "common/name_utils.h"
-#include "common/resource_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "core/godot/core_string_names.h"
@@ -914,7 +913,7 @@ String OrchestratorScriptGraphEditorView::get_name() {
     String name = _script->get_path().get_file();
     if (name.is_empty()) {
         name = "[unsaved]";
-    } else if (ResourceUtils::is_builtin(_script)) {
+    } else if (_script->is_built_in()) {
         const String& script_name = _script->get_name();
         if (!script_name.is_empty()) {
             name = vformat("%s (%s)", script_name, name.get_slice("::", 0));
@@ -931,7 +930,7 @@ String OrchestratorScriptGraphEditorView::get_name() {
 Ref<Texture2D> OrchestratorScriptGraphEditorView::get_theme_icon() {
     if (get_parent_control() && _script.is_valid()) {
         String icon_name = _script->get_class();
-        if (ResourceUtils::is_builtin(_script)) {
+        if (_script->is_built_in()) {
             icon_name += "Internal";
         }
         if (get_parent_control()->has_theme_icon(icon_name, "EditorIcons")) {

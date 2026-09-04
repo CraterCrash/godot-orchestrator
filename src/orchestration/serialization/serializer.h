@@ -47,12 +47,10 @@ protected:
 
     virtual void _decode_and_set_flags(const String& p_path, uint32_t p_flags);
 
-    bool _is_resource_built_in(const Ref<Resource>& p_resource);
     static int64_t _get_resource_id_for_path(const String& p_path, bool p_generate = false);
     void _set_resource_edited(const Ref<Resource>& p_resource, bool p_edited = true);
 
     static String _resource_get_class(const Ref<Resource>& p_resource);
-    static String _generate_scene_unique_id();
     static String _create_resource_uid(const Ref<Resource>& p_resource, const HashSet<String>& p_used_ids, bool& r_generated);
 
     virtual void _find_resources(const Variant& p_variant, bool p_main);
