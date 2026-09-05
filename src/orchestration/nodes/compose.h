@@ -32,13 +32,10 @@
 class OScriptNodeCompose : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeCompose, OScriptNode);
 
-    using TypeMap = HashMap<Variant::Type, Array>;
-
-    static TypeMap _type_components;        //! Variant types and the respective components
     Variant::Type _type = Variant::NIL;     //! Transient type to pass from creation metadata
 
 protected:
-    static void _bind_methods();
+    static void _bind_methods() { }
 
 public:
     //~ Begin OScriptNode Interface

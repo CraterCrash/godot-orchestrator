@@ -24,6 +24,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
+#include "common/variant_struct_schema.h"
 #include "common/variant_utils.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
@@ -649,7 +650,8 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
         menu->add_item(label, callable_mp_this(_remove_node_pin).bind(p_pin));
     }
 
-    if (script_node->can_change_pin_type(p_pin->_pin)) {
+    // A sub-pin's type is fixed by its parent's component
+    if (!script_pin->is_sub_pin() && script_node->can_change_pin_type(p_pin->_pin)) {
         const Vector<Variant::Type> options = script_node->get_possible_pin_types(p_pin->_pin);
         if (!options.is_empty()) {
             OrchestratorEditorContextMenu* submenu = menu->add_submenu("Change Pin Type");
@@ -658,6 +660,22 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
                 submenu->add_item(label, callable_mp_this(_change_node_pin_type).bind(p_pin, option));
             }
         }
+    }
+
+    // Composite pins split into their components; a component recombines its parent
+    const bool is_composite = !script_pin->is_execution() && !script_pin->is_split() && script_pin->is_connectable()
+        && VariantStructSchema::is_composite(script_pin->get_type());
+    if (is_composite) {
+        const bool can_split = script_pin->can_split();
+        menu->add_item("Split Struct Pin", callable_mp_this(_split_node_pin).bind(p_pin),
+            { .disabled = !can_split, .tooltip = can_split ? String() : "Break this pin's link before splitting it." });
+    }
+    if (script_pin->is_sub_pin()) {
+        const Ref<OrchestrationGraphPin> parent = Ref<OrchestrationGraphPin>(script_pin->get_parent_pin());
+        const bool can_recombine = parent->can_recombine();
+        const String label = vformat("Recombine %s", StringUtils::default_if_empty(parent->get_label(), parent->get_component_name()).capitalize());
+        menu->add_item(label, callable_mp_this(_recombine_node_pin).bind(p_pin),
+            { .disabled = !can_recombine, .tooltip = can_recombine ? String() : "Break the links to every component before recombining." });
     }
 
     if (pin_connections.size() > 1) {
@@ -953,8 +971,8 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         const Ref<OrchestrationGraphNode> source_node = target_graph->get_node(C.from_node);
         const Ref<OrchestrationGraphNode> target_node = target_graph->get_node(C.to_node);
         if (source_node.is_valid() && target_node.is_valid()) {
-            const Ref<OrchestrationGraphPin> source_pin = source_node->find_pin(C.from_port, PD_Output);
-            const Ref<OrchestrationGraphPin> target_pin = target_node->find_pin(C.to_port, PD_Input);
+            const Ref<OrchestrationGraphPin> source_pin = source_node->find_slot_pin(static_cast<int>(C.from_port), PD_Output);
+            const Ref<OrchestrationGraphPin> target_pin = target_node->find_slot_pin(static_cast<int>(C.to_port), PD_Input);
             if (source_pin.is_valid() && target_pin.is_valid()) {
                 source_pin->link(target_pin);
             }
@@ -978,7 +996,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         const Connection C(connection_id);
 
         const Ref<OrchestrationGraphNode> source = _graph->get_orchestration()->get_node(C.from_node);
-        const Ref<OrchestrationGraphPin> source_pin = source->find_pins(PD_Output)[C.from_port];
+        const Ref<OrchestrationGraphPin> source_pin = source->find_slot_pin(static_cast<int>(C.from_port), PD_Output);
         if (source_pin->is_execution() && !call_execution_wired) {
             source_graph->link(C.from_node, C.from_port, call_function->get_id(), 0);
             call_execution_wired = true;
@@ -987,7 +1005,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         }
 
         const Ref<OrchestrationGraphNode> target = _graph->get_orchestration()->get_node(C.to_node);
-        const Ref<OrchestrationGraphPin> target_pin = target->find_pins(PD_Input)[C.to_port];
+        const Ref<OrchestrationGraphPin> target_pin = target->find_slot_pin(static_cast<int>(C.to_port), PD_Input);
 
         if (!entry_positioned) {
             const Ref<OrchestrationGraphNode> entry = _graph->get_orchestration()->get_node(function->get_owning_node_id());
@@ -1037,7 +1055,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
             const Connection C(connection_id);
 
             const Ref<OrchestrationGraphNode> source = _graph->get_orchestration()->get_node(C.from_node);
-            const Ref<OrchestrationGraphPin> source_pin = source->find_pins(PD_Output)[C.from_port];
+            const Ref<OrchestrationGraphPin> source_pin = source->find_slot_pin(static_cast<int>(C.from_port), PD_Output);
 
             if (!positioned) {
                 result->set_position(source->get_position() + Vector2(250, 0));
@@ -1081,7 +1099,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
 
         // Get the exterior node connected to the selected node
         const Ref<OrchestrationGraphNode> target = _graph->get_orchestration()->get_node(C.to_node);
-        const Ref<OrchestrationGraphPin> target_pin = target->find_pins(PD_Input)[C.to_port];
+        const Ref<OrchestrationGraphPin> target_pin = target->find_slot_pin(static_cast<int>(C.to_port), PD_Input);
         if (target_pin->is_execution() && !call_execution_wired) {
             source_graph->link(call_function->get_id(), 0, C.to_node, C.to_port);
             call_execution_wired = true;
@@ -1513,6 +1531,32 @@ void OrchestratorEditorGraphPanel::_reset_pin_to_generated_default_value(Orchest
 
     p_pin->_pin->set_default_value(p_pin->_pin->get_generated_default_value());
     _set_edited(true);
+}
+
+void OrchestratorEditorGraphPanel::_split_node_pin(OrchestratorEditorGraphPin* p_pin) {
+    ERR_FAIL_NULL_MSG(p_pin, "Cannot split an invalid pin reference");
+
+    // The node rebuilds its widgets on change, which frees the pin widget; keep only the node
+    OrchestratorEditorGraphNode* graph_node = p_pin->get_graph_node();
+    const Ref<OrchestrationGraphNode> script_node = graph_node->_node;
+    if (script_node.is_valid() && script_node->split_pin(p_pin->_pin)) {
+        _set_edited(true);
+    }
+
+    // This shrinks the node when widget layouts change
+    graph_node->set_anchor_and_offset(SIDE_BOTTOM, 0, 0);
+}
+
+void OrchestratorEditorGraphPanel::_recombine_node_pin(OrchestratorEditorGraphPin* p_pin) {
+    ERR_FAIL_NULL_MSG(p_pin, "Cannot recombine an invalid pin reference");
+
+    OrchestratorEditorGraphNode* graph_node = p_pin->get_graph_node();
+    const Ref<OrchestrationGraphNode> script_node = graph_node->_node;
+    if (script_node.is_valid() && script_node->recombine_pin(p_pin->_pin)) {
+        _set_edited(true);
+    }
+
+    graph_node->set_anchor_and_offset(SIDE_BOTTOM, 0, 0);
 }
 
 void OrchestratorEditorGraphPanel::_view_documentation(const String& p_topic) {
@@ -2511,8 +2555,8 @@ void OrchestratorEditorGraphPanel::_create_connection_reroute(const Dictionary& 
     ERR_FAIL_NULL_MSG(source_graph_node, "Cannot insert reroute: source graph node not found.");
     ERR_FAIL_NULL_MSG(target_graph_node, "Cannot insert reroute: target graph node not found.");
 
-    OrchestratorEditorGraphPin* source_pin = source_graph_node->get_output_pin(connection.from_port);
-    OrchestratorEditorGraphPin* target_pin = target_graph_node->get_input_pin(connection.to_port);
+    OrchestratorEditorGraphPin* source_pin = source_graph_node->get_port_pin(static_cast<int32_t>(connection.from_port), PD_Output);
+    OrchestratorEditorGraphPin* target_pin = target_graph_node->get_port_pin(static_cast<int32_t>(connection.to_port), PD_Input);
     ERR_FAIL_NULL_MSG(source_pin, "Cannot insert reroute: source pin not found.");
     ERR_FAIL_NULL_MSG(target_pin, "Cannot insert reroute: target pin not found.");
 
@@ -2564,8 +2608,8 @@ void OrchestratorEditorGraphPanel::_dissolve_selected_reroutes() {
             OrchestratorEditorGraphNode* source_node = find_node(static_cast<int>(incoming.from_node));
             OrchestratorEditorGraphNode* target_node = find_node(static_cast<int>(outgoing.to_node));
             if (source_node && target_node) {
-                OrchestratorEditorGraphPin* source_pin = source_node->get_output_pin(static_cast<int>(incoming.from_port));
-                OrchestratorEditorGraphPin* target_pin = target_node->get_input_pin(static_cast<int>(outgoing.to_port));
+                OrchestratorEditorGraphPin* source_pin = source_node->get_port_pin(static_cast<int32_t>(incoming.from_port), PD_Output);
+                OrchestratorEditorGraphPin* target_pin = target_node->get_port_pin(static_cast<int32_t>(outgoing.to_port), PD_Input);
                 if (source_pin && target_pin) {
                     link(source_pin, target_pin);
                 }
@@ -3103,13 +3147,13 @@ bool OrchestratorEditorGraphPanel::_is_node_hover_valid(const StringName& p_from
     OrchestratorEditorGraphNode* source = find_node(p_from_node);
     ERR_FAIL_NULL_V_MSG(source, false, "Failed to locate source node with name " + p_from_node);
 
-    OrchestratorEditorGraphPin* source_pin = source->get_output_pin(p_from_port);
+    OrchestratorEditorGraphPin* source_pin = source->get_port_pin(p_from_port, PD_Output);
     ERR_FAIL_NULL_V_MSG(source_pin, false, "Failed to locate source node pin at port " + itos(p_from_port));
 
     OrchestratorEditorGraphNode* target = find_node(p_to_node);
     ERR_FAIL_NULL_V_MSG(target, false, "Failed to locate target node with name " + p_to_node);
 
-    OrchestratorEditorGraphPin* target_pin = target->get_input_pin(p_to_port);
+    OrchestratorEditorGraphPin* target_pin = target->get_port_pin(p_to_port, PD_Input);
     ERR_FAIL_NULL_V_MSG(target_pin, false, "Failed to locate target node pin at port " + itos(p_to_port));
 
     return target_pin->_pin->can_accept(source_pin->_pin);

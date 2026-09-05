@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3s1p9nestout"]
+
+[ext_resource type="Script" uid="uid://b3s1p9nestout" path="res://scenes/features/split_pin_output_nested.torch" id="1_spl09"]
+
+[node name="SplitPinOutputNested" type="Node" unique_id=735100109]
+script = ExtResource("1_spl09")

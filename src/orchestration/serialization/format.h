@@ -20,5 +20,6 @@
 
 struct OrchestrationFormat {
     // Format 4: Introduction of OScriptNodeReroute nodes
-    static inline uint32_t FORMAT_VERSION = 4;
+    // Format 5: Split pins store their sub-pins nested under the parent pin's data
+    static inline uint32_t FORMAT_VERSION = 5;
 };

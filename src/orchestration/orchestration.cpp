@@ -600,7 +600,7 @@ Vector<Ref<OScriptNodePin>> Orchestration::get_connections(const OScriptNodePin*
     for (uint32_t endpoint : *others) {
         const Ref<OScriptNode> other = get_node(ConnectionCache::node_from_key(endpoint));
         if (other.is_valid()) {
-            const Ref<OScriptNodePin> other_pin = other->find_pin(ConnectionCache::pin_index_from_key(endpoint), other_dir);
+            const Ref<OScriptNodePin> other_pin = other->find_slot_pin(ConnectionCache::pin_index_from_key(endpoint), other_dir);
             if (other_pin.is_valid()) {
                 results.push_back(other_pin);
             }
@@ -696,7 +696,7 @@ Ref<OScriptNodePin> Orchestration::get_single_connection(const OScriptNodePin* p
     for (uint32_t endpoint : *others) {
         const Ref<OScriptNode> other = get_node(ConnectionCache::node_from_key(endpoint));
         if (other.is_valid()) {
-            const Ref<OScriptNodePin> other_pin = other->find_pin(ConnectionCache::pin_index_from_key(endpoint), other_dir);
+            const Ref<OScriptNodePin> other_pin = other->find_slot_pin(ConnectionCache::pin_index_from_key(endpoint), other_dir);
             if (other_pin.is_valid()) {
                 // More than one valid endpoint: caller semantics require an invalid result.
                 if (++valid > 1) {

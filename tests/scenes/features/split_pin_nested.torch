@@ -1,0 +1,117 @@
+[orchestration type="OScript" load_steps=7 format=3 uid="uid://b3s1p4nested0"]
+
+[obj type="OScriptFunction" id="OScriptFunction_spl04"]
+guid = "5A1F0C11-0007-4B0A-9C3E-53504C495431"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_spl04"]
+function_id = "5A1F0C11-0007-4B0A-9C3E-53504C495431"
+id = 0
+size = Vector2(139, 66)
+position = Vector2(100, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeLocalVariable" id="OScriptNodeLocalVariable_spl04"]
+guid = "5A1F0C11-0008-4B0A-9C3E-53504C495431"
+id = 1
+size = Vector2(160, 66)
+position = Vector2(100, 320)
+pin_data = Array[Dictionary]([{
+"pin_name": &"variable",
+"type": 7,
+"dir": 1,
+"flags": 2,
+"dv": Rect2(0, 0, 0, 0)
+}])
+
+[obj type="OScriptNodeAssignLocalVariable" id="OScriptNodeAssignLocalVariable_spl04"]
+id = 2
+size = Vector2(200, 186)
+position = Vector2(380, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"variable",
+"type": 7,
+"flags": 10
+}, {
+"pin_name": &"value",
+"type": 7,
+"flags": 2,
+"split": [{
+"pin_name": &"value.position",
+"type": 5,
+"flags": 2,
+"split": [{
+"pin_name": &"value.position.x",
+"type": 3,
+"flags": 2,
+"dv": 1.0
+}, {
+"pin_name": &"value.position.y",
+"type": 3,
+"flags": 2,
+"dv": 2.0
+}]
+}, {
+"pin_name": &"value.size",
+"type": 5,
+"flags": 2,
+"dv": Vector2(3, 4)
+}]
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_spl04"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 3
+size = Vector2(113, 127)
+position = Vector2(660, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[resource]
+base_type = &"Node"
+brief_description = "Nested split (Rect2 -> position -> x, y) composes recursively"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_spl04")])
+connections = Array[int]([0, 0, 2, 0, 1, 0, 2, 1, 2, 0, 3, 0, 1, 0, 3, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_spl04"), SubResource("OScriptNodeLocalVariable_spl04"), SubResource("OScriptNodeAssignLocalVariable_spl04"), SubResource("OScriptNodeCallBuiltinFunction_spl04")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

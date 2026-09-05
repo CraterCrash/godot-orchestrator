@@ -246,6 +246,8 @@ private:
     bool _can_promote_pin_to_variable(OrchestratorEditorGraphPin* p_pin);
     void _promote_pin_to_variable(OrchestratorEditorGraphPin* p_pin);
     void _reset_pin_to_generated_default_value(OrchestratorEditorGraphPin* p_pin);
+    void _split_node_pin(OrchestratorEditorGraphPin* p_pin);
+    void _recombine_node_pin(OrchestratorEditorGraphPin* p_pin);
     void _view_documentation(const String& p_topic);
 
     void _connect_graph_node_signals(OrchestratorEditorGraphNode* p_node);

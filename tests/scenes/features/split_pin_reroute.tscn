@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3s1pdreroute"]
+
+[ext_resource type="Script" uid="uid://b3s1pdreroute" path="res://scenes/features/split_pin_reroute.torch" id="1_spl13"]
+
+[node name="SplitPinReroute" type="Node" unique_id=735100113]
+script = ExtResource("1_spl13")

@@ -33,6 +33,7 @@ using namespace godot;
 /// Forward declarations
 class OScriptGraph;
 class OScriptInstance;
+class OScriptPinLayout;
 
 /// A context object used to initialize OScriptNode instances.
 ///
@@ -98,6 +99,16 @@ private:
     // Dictionaries are used to minimize the sub-resource footprint in the script file.
     TypedArray<Dictionary> _get_pin_data() const;
     void _set_pin_data(const TypedArray<Dictionary>& p_pin_data);
+
+    /// Re-applies the split state of the old pins to the freshly allocated pins after reconstruction.
+    /// @param p_old_pins the pins that existed before reconstruction
+    void _rewire_split_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins);
+
+    /// Splits the new pin the way the old pin was split, recursively, carrying sub-pin defaults over.
+    static void _restore_split_pin(const Ref<OScriptNodePin>& p_old_pin, const Ref<OScriptNodePin>& p_new_pin);
+
+    /// Emits the notifications that follow a change to the node's slot pins.
+    void _slot_pins_changed();
 
 protected:
     // Registration
@@ -277,6 +288,18 @@ public:
     /// @return true to draw the node as a bead, false otherwise.
     virtual bool should_draw_as_bead() const { return false; }
 
+    /// Describe how this node's pins are arranged into editor rows.
+    ///
+    /// The layout is transient and authored against logical pins; the editor places whatever slot pins each
+    /// logical pin stands for. Every input and output must appear exactly once, in declaration order, so rows
+    /// may space pins apart but never reorder a side. A layout that breaks the rule is reported and replaced
+    /// with the default layout.
+    ///
+    /// The default places input i beside output i.
+    ///
+    /// @param r_layout the layout to fill
+    virtual void get_pin_layout(OScriptPinLayout& r_layout) const;
+
     /// Whether this node is a reroute node.
     /// @return true if this node is a reroute, false otherwise.
     virtual bool is_reroute() const { return false; }
@@ -350,10 +373,12 @@ public:
     /// @return the pin reference if found or an invalid reference if the pin is not found
     Ref<OScriptNodePin> find_pin(const String& p_pin_name, EPinDirection p_direction = PD_MAX) const;
 
-    /// Find a pin by slot index and direction.
-    /// @param p_index the slot index
+    /// Find a pin by its logical position and direction.
+    /// @param p_index the position within the node's pin list for that direction, hidden pins included
     /// @param p_direction the pin's direction, should not be PD_MAX
     /// @return the pin reference if found or an invalid reference if the pin is not found
+    /// @note This is a positional lookup, not a port lookup. Connections store ports; resolve those
+    ///       with <code>find_slot_pin</code>.
     Ref<OScriptNodePin> find_pin(int p_index, EPinDirection p_direction) const;
 
     /// Find all pins for a given direction.
@@ -362,6 +387,35 @@ public:
     /// @note A direction is required; the returned reference aliases the node's canonical storage for
     ///       that direction and stays valid until the node's pins change (add/remove/reconstruct).
     const Vector<Ref<OScriptNodePin>>& find_pins(EPinDirection p_direction) const;
+
+    /// Get the pins for a direction in slot order, the flattened view used by connections and the editor.
+    /// @param p_direction the pin direction (PD_Input or PD_Output); PD_MAX is not supported
+    /// @return a newly built vector of pins in slot order
+    /// @note Methods named with <code>slot</code> operate on this view; every other pin accessor is
+    ///       logical. The two agree today and diverge once a pin can be split into sub-pins.
+    Vector<Ref<OScriptNodePin>> get_slot_pins(EPinDirection p_direction) const;
+
+    /// Find a pin by its port, the index stored in connections and reported by <code>get_pin_index</code>.
+    /// @param p_port the port, counted over visible slot pins only
+    /// @param p_direction the pin's direction, should not be PD_MAX
+    /// @return the pin reference if found or an invalid reference if no visible pin has that port
+    Ref<OScriptNodePin> find_slot_pin(int p_port, EPinDirection p_direction) const;
+
+    /// Find a slot pin by name.
+    /// @param p_name the pin name, a dotted path for sub-pins
+    /// @param p_direction the pin's direction, should not be PD_MAX
+    /// @return the pin reference if found or an invalid reference if the pin is not found
+    Ref<OScriptNodePin> find_slot_pin(const String& p_name, EPinDirection p_direction) const;
+
+    /// Splits a pin into its component sub-pins and shifts the ports of the pins after it.
+    /// @param p_pin a pin of this node that satisfies <code>OScriptNodePin::can_split</code>
+    /// @return true if the pin was split, false otherwise
+    bool split_pin(const Ref<OScriptNodePin>& p_pin);
+
+    /// Recombines a split pin, or the split pin a sub-pin belongs to, and shifts the ports after it.
+    /// @param p_pin a split pin of this node, or one of its sub-pins, satisfying <code>OScriptNodePin::can_recombine</code>
+    /// @return true if the pin was recombined, false otherwise
+    bool recombine_pin(const Ref<OScriptNodePin>& p_pin);
 
     /// Removes the specified pin from this node
     /// @param p_pin the pin to be removed

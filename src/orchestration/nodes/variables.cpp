@@ -225,24 +225,26 @@ void OScriptNodeVariableGet::set_validated(bool p_validated) {
             }
         }
 
-        // Record the connection before the change
-        Vector<Ref<OScriptNodePin>> connections;
+        // Record the connections before the change, per slot pin: a split value pin carries them on
+        // its sub-pins, which are recreated by name during reconstruction.
+        Vector<Pair<String, Ref<OScriptNodePin>>> connections;
         Ref<OScriptNodePin> value = find_pin("value", PD_Output);
         if (value.is_valid() && value->has_any_connections()) {
-            for (const Ref<OScriptNodePin>& target : value->get_connections()) {
-                connections.push_back(target);
+            for (const Ref<OScriptNodePin>& slot_pin : value->get_slot_pins()) {
+                for (const Ref<OScriptNodePin>& target : slot_pin->get_connections()) {
+                    connections.push_back({ slot_pin->get_pin_name(), target });
+                }
             }
             value->unlink_all();
         }
 
         _notify_pins_changed();
 
-        if (!connections.is_empty()) {
-            // Relink connection on change
-            value = find_pin("value", PD_Output);
-            if (value.is_valid()) {
-                for (const Ref<OScriptNodePin>& target : connections)
-                    value->link(target);
+        // Relink connections on change
+        for (const Pair<String, Ref<OScriptNodePin>>& connection : connections) {
+            const Ref<OScriptNodePin> slot_pin = find_slot_pin(connection.first, PD_Output);
+            if (slot_pin.is_valid()) {
+                slot_pin->link(connection.second);
             }
         }
     }

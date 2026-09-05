@@ -1,0 +1,196 @@
+[orchestration type="OScript" load_steps=12 format=3 uid="uid://b3s1p3output0"]
+
+[obj type="OScriptFunction" id="OScriptFunction_mkvec"]
+guid = "5A1F0C11-0005-4B0A-9C3E-53504C495431"
+method = {
+"name": &"make_vec",
+"return": {
+"name": &"return_value",
+"type": 5
+}
+}
+user_defined = true
+id = 0
+
+[obj type="OScriptFunction" id="OScriptFunction_spl03"]
+guid = "5A1F0C11-0006-4B0A-9C3E-53504C495431"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([10, 11, 12, 13])
+functions = Array[int]([10])
+
+[obj type="OScriptGraph" id="OScriptGraph_mkvec"]
+graph_name = &"make_vec"
+flags = 22
+nodes = Array[int]([0, 1, 2])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_mkvec"]
+function_id = "5A1F0C11-0005-4B0A-9C3E-53504C495431"
+id = 0
+size = Vector2(110, 66)
+position = Vector2(100, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_mkvec"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 1
+size = Vector2(113, 127)
+position = Vector2(300, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078,
+"dv": "called"
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_mkvec"]
+function_id = "5A1F0C11-0005-4B0A-9C3E-53504C495431"
+id = 2
+size = Vector2(161, 96)
+position = Vector2(520, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"return_value",
+"type": 5,
+"flags": 2,
+"label": "return_value",
+"dv": Vector2(3, 4)
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_spl03"]
+function_id = "5A1F0C11-0006-4B0A-9C3E-53504C495431"
+id = 10
+size = Vector2(139, 66)
+position = Vector2(100, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_spl03"]
+guid = "5A1F0C11-0005-4B0A-9C3E-53504C495431"
+function_name = &"make_vec"
+flags = 8
+id = 11
+size = Vector2(195, 130)
+position = Vector2(340, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"return_value",
+"type": 5,
+"dir": 1,
+"flags": 1026,
+"split": [{
+"pin_name": &"return_value.x",
+"type": 3,
+"dir": 1,
+"flags": 2
+}, {
+"pin_name": &"return_value.y",
+"type": 3,
+"dir": 1,
+"flags": 2
+}]
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_spl03x"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 12
+size = Vector2(113, 127)
+position = Vector2(620, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_spl03y"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 13
+size = Vector2(113, 127)
+position = Vector2(820, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[resource]
+base_type = &"Node"
+brief_description = "Split output of a non-pure call evaluates once and feeds each component"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_mkvec"), SubResource("OScriptFunction_spl03")])
+connections = Array[int]([0, 0, 1, 0, 1, 0, 2, 0, 10, 0, 11, 0, 11, 0, 12, 0, 12, 0, 13, 0, 11, 1, 12, 1, 11, 2, 13, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_mkvec"), SubResource("OScriptNodeCallBuiltinFunction_mkvec"), SubResource("OScriptNodeFunctionResult_mkvec"), SubResource("OScriptNodeEvent_spl03"), SubResource("OScriptNodeCallScriptFunction_spl03"), SubResource("OScriptNodeCallBuiltinFunction_spl03x"), SubResource("OScriptNodeCallBuiltinFunction_spl03y")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp"), SubResource("OScriptGraph_mkvec")])

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3s1p7pureout"]
+
+[ext_resource type="Script" uid="uid://b3s1p7pureout" path="res://scenes/features/split_pin_output_pure.torch" id="1_spl07"]
+
+[node name="SplitPinOutputPure" type="Node" unique_id=735100107]
+script = ExtResource("1_spl07")
