@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3s1pbmkbrk00"]
+
+[ext_resource type="Script" uid="uid://b3s1pbmkbrk00" path="res://scenes/features/split_pin_make_break_reduce.torch" id="1_spl11"]
+
+[node name="SplitPinMakeBreakReduce" type="Node" unique_id=735100111]
+script = ExtResource("1_spl11")

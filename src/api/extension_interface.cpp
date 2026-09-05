@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "common/guid.h"
+#include "common/variant_struct_schema.h"
 #include "core/register_core_types.h"
 #include "editor/register_editor_types.h"
 #include "orchestration/register_orchestration_types.h"
@@ -34,6 +35,11 @@ namespace orchestrator {
         if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
             ExtensionDB::create();
             register_core_singletons();
+
+            #ifdef DEBUG_ENABLED
+            // The struct schema promises that Type(components...) reconstructs a value; hold it to that.
+            VariantStructSchema::verify();
+            #endif
         }
         if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
             register_orchestration_types();

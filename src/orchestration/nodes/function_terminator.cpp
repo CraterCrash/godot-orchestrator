@@ -68,11 +68,6 @@ bool OScriptNodeFunctionTerminator::create_pins_for_function_entry_exit(const Re
             }
 
             pins_good = pin.is_valid() & pins_good;
-
-            // Create hidden output pin to transfer value to caller
-            Ref<OScriptNodePin> out = create_pin(PD_Output, PT_Data, PropertyUtils::as("return_out", mi.return_val));
-            out->set_flag(OScriptNodePin::Flags::HIDDEN);
-            pins_good = out.is_valid() & pins_good;
         }
     }
     return pins_good;

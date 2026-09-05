@@ -324,6 +324,12 @@ private:
     //              26: == END ==
     //
 
+    // Split pins
+    // A split input composes its value from its sub-pins; a sub-pin output reads a component of its root.
+    ExpressionNode* build_composed_input(const Ref<OScriptNodePin>& p_pin);
+    Ref<OScriptNodePin> get_split_root(const Ref<OScriptNodePin>& p_pin, Vector<String>& r_components);
+    ExpressionNode* wrap_components(ExpressionNode* p_base, const Vector<String>& p_components);
+
     // Inlines expressions as possible, should be used for expression nodes or arguments
     ExpressionNode* resolve_input(const Ref<OScriptNodePin>& p_pin);
     // Use for statements that need a named variable

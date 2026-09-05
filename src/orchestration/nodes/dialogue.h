@@ -38,6 +38,7 @@ public:
     String get_tooltip_text() const override;
     String get_node_title() const override;
     String get_node_title_color_name() const override { return "dialogue"; }
+    void get_pin_layout(OScriptPinLayout& r_layout) const override;
     //~ End OScriptNode Interface
 
     //~ Begin OScriptEditablePinNode Interface

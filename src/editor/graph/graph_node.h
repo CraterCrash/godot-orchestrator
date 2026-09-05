@@ -17,6 +17,7 @@
 #pragma once
 
 #include "orchestration/node.h"
+#include "orchestration/pin_layout.h"
 
 #include <godot_cpp/classes/graph_node.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -41,6 +42,9 @@ class OrchestratorEditorGraphNode : public GraphNode {
     bool _show_type_icons = true;
     bool _show_advanced_tooltips = false;
     bool _tooltip_built = false;
+
+    /// Checks that a layout places every logical pin exactly once and in declaration order on each side.
+    static bool _is_valid_pin_layout(const OScriptPinLayout& p_layout, const Vector<Ref<OrchestrationGraphPin>>& p_inputs, const Vector<Ref<OrchestrationGraphPin>>& p_outputs);
 
 protected:
     struct Slot {
@@ -116,6 +120,9 @@ public:
     OrchestratorEditorGraphPin* get_input_pin(int32_t p_slot);
     OrchestratorEditorGraphPin* get_output_pin(int32_t p_slot);
     OrchestratorEditorGraphPin* get_pin(int32_t p_slot, EPinDirection p_direction = PD_Input);
+
+    // Resolves a pin from a port, the index GraphEdit and stored connections use
+    OrchestratorEditorGraphPin* get_port_pin(int32_t p_port, EPinDirection p_direction);
 
     // Because we overload these in this class, we pull them back in
     using GraphNode::get_input_port_slot;

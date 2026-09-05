@@ -658,7 +658,16 @@ uint64_t OScriptParserNodes::SuiteNode::create_alias_key(const Ref<OScriptNodePi
     if (p_pin.is_null()) {
         return 0;
     }
-    return (static_cast<uint64_t>(p_pin->get_owning_node()->get_id()) << 32) | p_pin->get_pin_index();
+
+    // Aliases identify a logical pin, so the key is the pin's position among its node's pins of the
+    // same direction. A port would not do: a split pin has no port, yet its alias must be found by
+    // the sub-pins that resolve through it.
+    const OScriptNode* node = p_pin->get_owning_node();
+    const EPinDirection direction = p_pin->get_direction();
+    const int64_t position = node->find_pins(direction).find(p_pin);
+    return (static_cast<uint64_t>(node->get_id()) << 32)
+        | (static_cast<uint64_t>(direction) << 16)
+        | static_cast<uint64_t>(position & 0xFFFF);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

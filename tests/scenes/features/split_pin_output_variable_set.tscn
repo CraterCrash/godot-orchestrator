@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3s1p5varset0"]
+
+[ext_resource type="Script" uid="uid://b3s1p5varset0" path="res://scenes/features/split_pin_output_variable_set.torch" id="1_spl05"]
+
+[node name="SplitPinOutputVariableSet" type="Node" unique_id=735100105]
+script = ExtResource("1_spl05")

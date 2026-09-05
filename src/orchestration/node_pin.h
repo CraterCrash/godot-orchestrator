@@ -100,8 +100,21 @@ private:
     bool _set_type_resets_default = false;     //! Whether changing the type resets the default value
     bool _valid = true;                        //! Indicates if the pin is valid
     int _cached_pin_index = -1;                //! Cached pin index calculated after pins added to node
+    Vector<Ref<OScriptNodePin>> _sub_pins;     //! Component pins when split, empty otherwise
+    OScriptNodePin* _parent = nullptr;         //! The pin this pin was split from, null for top-level pins
 
     static Ref<OScriptNodePin> _resolve_reroute(const Ref<OScriptNodePin>& p_pin);
+
+    /// Creates the component sub-pins without any eligibility checks.
+    void _split_components();
+
+    /// Whether this pin or any pin split from it, at any depth, has a connection.
+    bool _has_connected_descendant() const;
+
+    /// Finds the pin standing in for this pin in the node's slots that is connected to the given pin.
+    /// @param p_other the pin on the far end of the connection
+    /// @return the connected slot pin, or an invalid reference when none is connected to it
+    Ref<OScriptNodePin> _find_slot_pin_connected_to(const Ref<OScriptNodePin>& p_other) const;
 
 protected:
     static void _bind_methods();
@@ -311,9 +324,56 @@ public:
     /// @return the singular connected pin
     Ref<OScriptNodePin> get_resolved_connection() const;
 
-    /// Return whether this pin is hidden.
+    /// Return whether this pin has been split into its component sub-pins.
+    /// A split pin holds no port of its own; its sub-pins take its place in the node's slots.
+    /// @return true if split, false otherwise
+    _FORCE_INLINE_ bool is_split() const { return !_sub_pins.is_empty(); }
+
+    /// Return whether this pin was split from another pin.
+    /// @return true if this is a sub-pin, false for top-level pins
+    _FORCE_INLINE_ bool is_sub_pin() const { return _parent != nullptr; }
+
+    /// Get the pin this pin was split from.
+    /// @return the parent pin, or null for top-level pins
+    OScriptNodePin* get_parent_pin() const { return _parent; }
+
+    /// Get the pin's component sub-pins, in constructor order.
+    /// @return the sub-pins, empty when the pin is not split
+    const Vector<Ref<OScriptNodePin>>& get_sub_pins() const { return _sub_pins; }
+
+    /// Get the top-level pin this pin descends from.
+    /// @return the root pin, which is this pin when it is not a sub-pin
+    Ref<OScriptNodePin> get_root_pin() const;
+
+    /// Get the component this sub-pin represents, the last segment of its dotted name.
+    /// @return the component name, or the pin name for top-level pins
+    String get_component_name() const;
+
+    /// Get the pins that stand for this pin in the node's slots: the pin itself when it is not split,
+    /// otherwise its sub-pins, expanded depth-first.
+    /// @return the slot pins in slot order
+    Vector<Ref<OScriptNodePin>> get_slot_pins() const;
+
+    /// Return whether this pin may be split: a composite data pin that is not split and has no connections.
+    /// @return true if the pin can be split, false otherwise
+    bool can_split() const;
+
+    /// Splits the pin into its component sub-pins, seeding their defaults from this pin's value.
+    /// Ports of later pins shift; callers on the node adjust connections accordingly.
+    /// @return true if the pin was split, false otherwise
+    bool split();
+
+    /// Return whether this pin may be recombined: it is split and no sub-pin at any depth has a connection.
+    /// @return true if the pin can be recombined, false otherwise
+    bool can_recombine() const;
+
+    /// Recombines a split pin, composing its default value from its sub-pins and discarding them.
+    /// @return true if the pin was recombined, false otherwise
+    bool recombine();
+
+    /// Return whether this pin is hidden, which includes split pins since their sub-pins take their place.
     /// @return true if the pin is hidden, false otherwise
-    _FORCE_INLINE_ bool is_hidden() const { return _flags.has_flag(HIDDEN); }
+    _FORCE_INLINE_ bool is_hidden() const { return _flags.has_flag(HIDDEN) || is_split(); }
 
     /// Return whether this pin acts as an execution pin.
     /// @return true if the pin is a control flow, execution pin, false otherwise

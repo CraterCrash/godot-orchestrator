@@ -160,7 +160,7 @@ void OScriptGraph::_upgrade(uint32_t p_old_version, uint32_t p_new_version) {
             {
                 const Ref<OScriptNode> src_node = _orchestration->get_node(conn.from_node);
                 if (src_node.is_valid()) {
-                    const Ref<OScriptNodePin> src_pin = src_node->find_pin(conn.from_port, PD_Output);
+                    const Ref<OScriptNodePin> src_pin = src_node->find_slot_pin(static_cast<int>(conn.from_port), PD_Output);
                     if (src_pin.is_valid()) {
                         conn_type = src_pin->is_execution()
                             ? OScriptNodeReroute::REROUTE_CONTROL
