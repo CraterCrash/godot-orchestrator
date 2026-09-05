@@ -258,6 +258,41 @@ Ref<OScriptNodePin> OScriptNode::find_pin(int p_index, EPinDirection p_direction
     return {};
 }
 
+const Vector<Ref<OScriptNodePin>>& OScriptNode::find_pins(EPinDirection p_direction) const {
+    ERR_FAIL_COND_V_MSG(p_direction == PD_MAX, _input_pins, "find_pins requires PD_Input or PD_Output.");
+    return p_direction == PD_Input ? _input_pins : _output_pins;
+}
+
+Vector<Ref<OScriptNodePin>> OScriptNode::get_slot_pins(EPinDirection p_direction) const {
+    ERR_FAIL_COND_V_MSG(p_direction == PD_MAX, {}, "get_slot_pins requires PD_Input or PD_Output.");
+    // No pin can be split yet, so the slot view is the logical list
+    return p_direction == PD_Input ? _input_pins : _output_pins;
+}
+
+Ref<OScriptNodePin> OScriptNode::find_slot_pin(int p_port, EPinDirection p_direction) const {
+    // Ports are assigned over visible slot pins only, mirroring _cache_pin_indices
+    int port = 0;
+    for (const Ref<OScriptNodePin>& pin : get_slot_pins(p_direction)) {
+        if (pin->is_hidden()) {
+            continue;
+        }
+        if (port == p_port) {
+            return pin;
+        }
+        port++;
+    }
+    return {};
+}
+
+Ref<OScriptNodePin> OScriptNode::find_slot_pin(const String& p_name, EPinDirection p_direction) const {
+    for (const Ref<OScriptNodePin>& pin : get_slot_pins(p_direction)) {
+        if (pin->get_pin_name().match(p_name)) {
+            return pin;
+        }
+    }
+    return {};
+}
+
 bool OScriptNode::remove_pin(const Ref<OScriptNodePin>& p_pin) {
     if (_input_pins.has(p_pin)) {
         _input_pins.erase(p_pin);
@@ -352,11 +387,6 @@ bool OScriptNode::has_execution_pins() const {
     return false;
 }
 
-const Vector<Ref<OScriptNodePin>>& OScriptNode::find_pins(EPinDirection p_direction) const {
-    ERR_FAIL_COND_V_MSG(p_direction == PD_MAX, _input_pins, "find_pins requires PD_Input or PD_Output.");
-    return p_direction == PD_Input ? _input_pins : _output_pins;
-}
-
 void OScriptNode::_validate_input_default_values() {
 }
 
@@ -368,15 +398,15 @@ void OScriptNode::_notify_pins_changed() {
 }
 
 void OScriptNode::_cache_pin_indices() {
-    // Iterate loaded pins and cache indices
+    // A pin's index is its port: its ordinal among visible pins in slot order. find_slot_pin(int) is the inverse.
     int input_index = 0;
-    for (const Ref<OScriptNodePin>& pin : _input_pins) {
+    for (const Ref<OScriptNodePin>& pin : get_slot_pins(PD_Input)) {
         if (!pin->is_hidden()) {
             pin->_cached_pin_index = input_index++;
         }
     }
     int output_index = 0;
-    for (const Ref<OScriptNodePin>& pin : _output_pins) {
+    for (const Ref<OScriptNodePin>& pin : get_slot_pins(PD_Output)) {
         if (!pin->is_hidden()) {
             pin->_cached_pin_index = output_index++;
         }

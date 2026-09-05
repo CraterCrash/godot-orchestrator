@@ -1426,9 +1426,14 @@ OScriptParser::ExpressionNode* OScriptParser::build_deconstruct(const Ref<OScrip
         }
 
         if (reduce) {
-            const int index = p_pin->get_pin_index();
+            // Map the Break output to the Make input at the same logical position, not the same port;
+            // the two differ once a Make input is split. Derived outputs such as Rect2's end have no
+            // Make counterpart and fall through to the subscript below.
+            const int index = p_node->find_pins(PD_Output).find(p_pin);
             const Ref<OScriptNodePin> make_input_pin = source_node->find_pin(index, PD_Input);
-            return resolve_input(make_input_pin);
+            if (make_input_pin.is_valid()) {
+                return resolve_input(make_input_pin);
+            }
         }
     }
 
@@ -3002,6 +3007,7 @@ OScriptParser::StatementResult OScriptParser::build_message_dialogue(const Ref<O
     MatchNode* match_node = alloc_node<MatchNode>();
     match_node->test = arg_get;
     for (int i = 0; i < choice_count; i++) {
+        // Positional: four hidden row spacers precede the choice exits, mirroring the four fixed inputs
         const Ref<OScriptNodePin> output_pin = p_script_node->find_pin(4 + i, PD_Output);
         if (output_pin.is_valid() && output_pin->has_any_connections()) {
             MatchBranchNode* branch = alloc_node<MatchBranchNode>();

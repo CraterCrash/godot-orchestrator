@@ -953,8 +953,8 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         const Ref<OrchestrationGraphNode> source_node = target_graph->get_node(C.from_node);
         const Ref<OrchestrationGraphNode> target_node = target_graph->get_node(C.to_node);
         if (source_node.is_valid() && target_node.is_valid()) {
-            const Ref<OrchestrationGraphPin> source_pin = source_node->find_pin(C.from_port, PD_Output);
-            const Ref<OrchestrationGraphPin> target_pin = target_node->find_pin(C.to_port, PD_Input);
+            const Ref<OrchestrationGraphPin> source_pin = source_node->find_slot_pin(static_cast<int>(C.from_port), PD_Output);
+            const Ref<OrchestrationGraphPin> target_pin = target_node->find_slot_pin(static_cast<int>(C.to_port), PD_Input);
             if (source_pin.is_valid() && target_pin.is_valid()) {
                 source_pin->link(target_pin);
             }
@@ -2511,8 +2511,8 @@ void OrchestratorEditorGraphPanel::_create_connection_reroute(const Dictionary& 
     ERR_FAIL_NULL_MSG(source_graph_node, "Cannot insert reroute: source graph node not found.");
     ERR_FAIL_NULL_MSG(target_graph_node, "Cannot insert reroute: target graph node not found.");
 
-    OrchestratorEditorGraphPin* source_pin = source_graph_node->get_output_pin(connection.from_port);
-    OrchestratorEditorGraphPin* target_pin = target_graph_node->get_input_pin(connection.to_port);
+    OrchestratorEditorGraphPin* source_pin = source_graph_node->get_port_pin(static_cast<int32_t>(connection.from_port), PD_Output);
+    OrchestratorEditorGraphPin* target_pin = target_graph_node->get_port_pin(static_cast<int32_t>(connection.to_port), PD_Input);
     ERR_FAIL_NULL_MSG(source_pin, "Cannot insert reroute: source pin not found.");
     ERR_FAIL_NULL_MSG(target_pin, "Cannot insert reroute: target pin not found.");
 
@@ -2564,8 +2564,8 @@ void OrchestratorEditorGraphPanel::_dissolve_selected_reroutes() {
             OrchestratorEditorGraphNode* source_node = find_node(static_cast<int>(incoming.from_node));
             OrchestratorEditorGraphNode* target_node = find_node(static_cast<int>(outgoing.to_node));
             if (source_node && target_node) {
-                OrchestratorEditorGraphPin* source_pin = source_node->get_output_pin(static_cast<int>(incoming.from_port));
-                OrchestratorEditorGraphPin* target_pin = target_node->get_input_pin(static_cast<int>(outgoing.to_port));
+                OrchestratorEditorGraphPin* source_pin = source_node->get_port_pin(static_cast<int32_t>(incoming.from_port), PD_Output);
+                OrchestratorEditorGraphPin* target_pin = target_node->get_port_pin(static_cast<int32_t>(outgoing.to_port), PD_Input);
                 if (source_pin && target_pin) {
                     link(source_pin, target_pin);
                 }
@@ -3103,13 +3103,13 @@ bool OrchestratorEditorGraphPanel::_is_node_hover_valid(const StringName& p_from
     OrchestratorEditorGraphNode* source = find_node(p_from_node);
     ERR_FAIL_NULL_V_MSG(source, false, "Failed to locate source node with name " + p_from_node);
 
-    OrchestratorEditorGraphPin* source_pin = source->get_output_pin(p_from_port);
+    OrchestratorEditorGraphPin* source_pin = source->get_port_pin(p_from_port, PD_Output);
     ERR_FAIL_NULL_V_MSG(source_pin, false, "Failed to locate source node pin at port " + itos(p_from_port));
 
     OrchestratorEditorGraphNode* target = find_node(p_to_node);
     ERR_FAIL_NULL_V_MSG(target, false, "Failed to locate target node with name " + p_to_node);
 
-    OrchestratorEditorGraphPin* target_pin = target->get_input_pin(p_to_port);
+    OrchestratorEditorGraphPin* target_pin = target->get_port_pin(p_to_port, PD_Input);
     ERR_FAIL_NULL_V_MSG(target_pin, false, "Failed to locate target node pin at port " + itos(p_to_port));
 
     return target_pin->_pin->can_accept(source_pin->_pin);

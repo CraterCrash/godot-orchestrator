@@ -154,7 +154,7 @@ void OScriptNodeReroute::allocate_default_pins() {
                 if (static_cast<int>(C.to_node) == _id && C.to_port == 0) {
                     const Ref<OScriptNode> src = get_orchestration()->get_node(C.from_node);
                     if (src.is_valid()) {
-                        const Ref<OScriptNodePin> src_pin = src->find_pin(C.from_port, PD_Output);
+                        const Ref<OScriptNodePin> src_pin = src->find_slot_pin(static_cast<int>(C.from_port), PD_Output);
                         if (src_pin.is_valid() && !PropertyUtils::is_nil(src_pin->get_property_info())) {
                             resolved = src_pin->get_property_info();
                             has_resolved = true;
@@ -183,7 +183,7 @@ void OScriptNodeReroute::allocate_default_pins() {
                             walk_node = C.to_node;
                             advanced = true;
                         } else {
-                            const Ref<OScriptNodePin> dst_pin = dst->find_pin(C.to_port, PD_Input);
+                            const Ref<OScriptNodePin> dst_pin = dst->find_slot_pin(static_cast<int>(C.to_port), PD_Input);
                             if (dst_pin.is_valid() && !PropertyUtils::is_nil(dst_pin->get_property_info())) {
                                 resolved = dst_pin->get_property_info();
                                 has_resolved = true;

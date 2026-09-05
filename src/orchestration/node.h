@@ -350,10 +350,12 @@ public:
     /// @return the pin reference if found or an invalid reference if the pin is not found
     Ref<OScriptNodePin> find_pin(const String& p_pin_name, EPinDirection p_direction = PD_MAX) const;
 
-    /// Find a pin by slot index and direction.
-    /// @param p_index the slot index
+    /// Find a pin by its logical position and direction.
+    /// @param p_index the position within the node's pin list for that direction, hidden pins included
     /// @param p_direction the pin's direction, should not be PD_MAX
     /// @return the pin reference if found or an invalid reference if the pin is not found
+    /// @note This is a positional lookup, not a port lookup. Connections store ports; resolve those
+    ///       with <code>find_slot_pin</code>.
     Ref<OScriptNodePin> find_pin(int p_index, EPinDirection p_direction) const;
 
     /// Find all pins for a given direction.
@@ -362,6 +364,25 @@ public:
     /// @note A direction is required; the returned reference aliases the node's canonical storage for
     ///       that direction and stays valid until the node's pins change (add/remove/reconstruct).
     const Vector<Ref<OScriptNodePin>>& find_pins(EPinDirection p_direction) const;
+
+    /// Get the pins for a direction in slot order, the flattened view used by connections and the editor.
+    /// @param p_direction the pin direction (PD_Input or PD_Output); PD_MAX is not supported
+    /// @return a newly built vector of pins in slot order
+    /// @note Methods named with <code>slot</code> operate on this view; every other pin accessor is
+    ///       logical. The two agree today and diverge once a pin can be split into sub-pins.
+    Vector<Ref<OScriptNodePin>> get_slot_pins(EPinDirection p_direction) const;
+
+    /// Find a pin by its port, the index stored in connections and reported by <code>get_pin_index</code>.
+    /// @param p_port the port, counted over visible slot pins only
+    /// @param p_direction the pin's direction, should not be PD_MAX
+    /// @return the pin reference if found or an invalid reference if no visible pin has that port
+    Ref<OScriptNodePin> find_slot_pin(int p_port, EPinDirection p_direction) const;
+
+    /// Find a slot pin by name.
+    /// @param p_name the pin name, a dotted path for sub-pins
+    /// @param p_direction the pin's direction, should not be PD_MAX
+    /// @return the pin reference if found or an invalid reference if the pin is not found
+    Ref<OScriptNodePin> find_slot_pin(const String& p_name, EPinDirection p_direction) const;
 
     /// Removes the specified pin from this node
     /// @param p_pin the pin to be removed

@@ -49,6 +49,9 @@ void OScriptNodeDialogueMessage::allocate_default_pins() {
     create_pin(PD_Input, PT_Data, PropertyUtils::make_file("scene", "*.scn,*.tscn; Scene Files"), "");
 
     if (_choices > 0) {
+        // Hidden spacers occupy the output rows opposite the four fixed inputs so that each choice
+        // exit renders on the same row as its choice input. Hidden pins hold no port, so they do
+        // not affect connections; the parser reads exits by position, spacers included.
         for (int i = 0; i < 4; i++) {
             create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("temp_" + itos(i)))->set_flag(OScriptNodePin::Flags::HIDDEN);
         }
@@ -110,19 +113,19 @@ void OScriptNodeDialogueMessage::remove_dynamic_pin(const Ref<OScriptNodePin>& p
         return;
     }
 
-    // Calculate the pin offset based on the input pin, not the output
-    // This is needed to adjust the connections later.
-    int pin_offset = p_pin->is_input() ? p_pin->get_pin_index() : other->get_pin_index();
+    // Each side shifts by its own port; the choice input and its exit pin sit at different ports
+    const Ref<OScriptNodePin> input = p_pin->is_input() ? p_pin : other;
+    const Ref<OScriptNodePin> output = p_pin->is_input() ? other : p_pin;
+    const int input_offset = input->get_pin_index();
+    const int output_offset = output->get_pin_index();
 
-    p_pin->unlink_all(true);
-    other->unlink_all(true);
-    remove_pin(p_pin);
-    remove_pin(other);
+    input->unlink_all(true);
+    output->unlink_all(true);
+    remove_pin(input);
+    remove_pin(output);
 
-    // Adjust both input and output
-    // We explicitly need to adjust connections separately due to hidden pins
-    _adjust_connections(pin_offset, -1, PD_Input);
-    _adjust_connections(pin_offset - 4, -1, PD_Output);
+    _adjust_connections(input_offset, -1, PD_Input);
+    _adjust_connections(output_offset, -1, PD_Output);
 
     _choices--;
     reconstruct_node();

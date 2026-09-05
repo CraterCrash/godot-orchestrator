@@ -136,12 +136,9 @@ void OrchestratorEditorGraphNode::_update_titlebar() {
 
 void OrchestratorEditorGraphNode::_create_pin_widgets()
 {
-    // todo:
-    //  when we support split pins, these collections need to be filtered to exclude hidden pins,
-    //  assuming that we handle split pins in the same way as UE
-
-    const Vector<Ref<OrchestrationGraphPin>> inputs = _node->find_pins(PD_Input);
-    const Vector<Ref<OrchestrationGraphPin>> outputs = _node->find_pins(PD_Output);
+    // One GraphNode slot per slot pin; GraphEdit numbers ports over enabled slots, matching get_pin_index()
+    const Vector<Ref<OrchestrationGraphPin>> inputs = _node->get_slot_pins(PD_Input);
+    const Vector<Ref<OrchestrationGraphPin>> outputs = _node->get_slot_pins(PD_Output);
 
     const int64_t max_slots = Math::max(inputs.size(), outputs.size());
     if (max_slots == 0) {
@@ -479,6 +476,10 @@ OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_output_pin(int32_t 
 
 OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_pin(int32_t p_slot, EPinDirection p_direction) {
     return p_direction == PD_Input ? get_input_pin(p_slot) : get_output_pin(p_slot);
+}
+
+OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_port_pin(int32_t p_port, EPinDirection p_direction) {
+    return get_pin(get_port_slot(p_port, p_direction), p_direction);
 }
 
 int32_t OrchestratorEditorGraphNode::get_input_port_slot(const String& p_pin_name) {

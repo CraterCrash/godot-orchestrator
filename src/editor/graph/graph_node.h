@@ -117,6 +117,9 @@ public:
     OrchestratorEditorGraphPin* get_output_pin(int32_t p_slot);
     OrchestratorEditorGraphPin* get_pin(int32_t p_slot, EPinDirection p_direction = PD_Input);
 
+    // Resolves a pin from a port, the index GraphEdit and stored connections use
+    OrchestratorEditorGraphPin* get_port_pin(int32_t p_port, EPinDirection p_direction);
+
     // Because we overload these in this class, we pull them back in
     using GraphNode::get_input_port_slot;
     using GraphNode::get_output_port_slot;
