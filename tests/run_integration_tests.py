@@ -44,6 +44,11 @@ MAX_JOBS = 4
 scenes_dir = (Path(__file__).parent / "scenes").resolve()
 
 use_color = sys.stdout.isatty()
+
+# When stdout is a pipe rather than a terminal, e.g. under a CI runner, Python block-buffers it and
+# nothing appears until the process exits. Line-buffer it so each scene's result shows as it completes.
+sys.stdout.reconfigure(line_buffering=True)
+
 GREEN  = "\033[32m"
 RED    = "\033[31m"
 YELLOW = "\033[33m"
@@ -154,25 +159,23 @@ def validate_output(source, result, elapsed):
     directive = lines[0].strip()
     expected = "\n".join(lines[1:]).strip()
 
-    if directive == "OSCRIPT_TEST_PASS":
-        stderr = result.stderr.strip()
-        if stderr:
-            return "FAIL", format_result("FAIL", elapsed, source) + \
-                f"\nExpected empty stderr, but got:\n----------\n{stderr}\n"
-        actual = result.stdout.strip()
-    elif directive == "OSCRIPT_TEST_FAILURE":
-        actual = result.stderr.strip()
-        # Godot did not add backtrace support until Godot 4.5+
-        if version == "4.4":
-            actual = strip_backtrace(actual)
-            expected = strip_backtrace(expected)
-
-        actual = normalize_cpp_lines(actual)
-        expected = normalize_cpp_lines(expected)
-
-    else:
+    if directive not in ("OSCRIPT_TEST_PASS", "OSCRIPT_TEST_FAILURE"):
         return "ERROR", format_result("ERROR", elapsed, source) + \
             f"\n  Unknown directive '{directive}' in {out_file}"
+
+    # The scene's stdout and stderr are captured as one stream, so the .out file records prints,
+    # warnings and errors in the order the scene emitted them, as the GDScript test suite does.
+    # A passing scene is therefore silent unless its .out file lists the warnings it is expected
+    # to emit, e.g. load-time repairs of a deliberately corrupted fixture.
+    actual = result.stdout.strip()
+
+    # Godot did not add backtrace support until Godot 4.5+
+    if version == "4.4":
+        actual = strip_backtrace(actual)
+        expected = strip_backtrace(expected)
+
+    actual = normalize_cpp_lines(actual)
+    expected = normalize_cpp_lines(expected)
 
     if actual == expected:
         return "PASS", format_result("PASS", elapsed, source)
@@ -243,7 +246,10 @@ def run_scene(scene_file):
                 *frame_args,
                 "--scene",
                 str(scene_file)],
-            capture_output=True,
+            # Merge stderr into stdout so the expectation sees the scene's output in emission order.
+            # Godot flushes each print, so the merged pipe preserves the true interleaving.
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             check=True,
             text=True)
     except subprocess.CalledProcessError as e:
@@ -252,8 +258,6 @@ def run_scene(scene_file):
         text += f"\n  exit code {e.returncode}"
         if e.stdout.strip():
             text += "\n" + truncate(e.stdout.strip())
-        if e.stderr.strip():
-            text += "\n" + truncate(e.stderr.strip())
         return "CRASH", text + "\n"
 
     elapsed = time.monotonic() - start

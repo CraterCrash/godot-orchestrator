@@ -208,8 +208,7 @@ void Orchestration::_fix_orphans() {
             continue;
         }
 
-        const String path = _self ? _self->get_path() : _script_path;
-        WARN_PRINT(vformat("Removed orphan node %d (%s) from script %s.", E.key, E.value->get_class(), path));
+        WARN_PRINT(vformat("Removed orphan node %d (%s) from script %s.", E.key, E.value->get_class(), get_orchestration_path()));
         orphans.push_back(E.key);
     }
 
@@ -364,10 +363,12 @@ void Orchestration::_update_all_self_nodes() {
 }
 
 String Orchestration::get_orchestration_path() const {
-    if (_self) {
+    // The outer resource has no path until loading completes, so fall back to the path recorded by the
+    // parser for messages emitted during post_initialize, and for orchestrations parsed without a script.
+    if (_self && !_self->get_path().is_empty()) {
         return _self->get_path();
     }
-    return {};
+    return _script_path;
 }
 
 StringName Orchestration::get_instance_class_type() const {
@@ -1522,17 +1523,21 @@ PackedStringArray Orchestration::get_custom_signal_names() const {
 
 void Orchestration::copy_state(const Ref<Orchestration>& p_other) {
     set_block_signals(true);
+
     set_global_name(p_other->get_global_name());
     set_icon_path(p_other->get_icon_path());
     set_description(p_other->get_description());
     set_brief_description(p_other->get_brief_description());
     set_base_type(p_other->get_base_type());
+
+    _script_path = p_other->_script_path;
     _set_nodes_internal(p_other->_get_nodes_internal());
     _set_connections_internal(p_other->_get_connections_internal());
     _set_graphs_internal(p_other->_get_graphs_internal());
     _set_functions_internal(p_other->_get_functions_internal());
     _set_variables_internal(p_other->_get_variables_internal());
     _set_signals_internal(p_other->_get_signals_internal());
+
     set_block_signals(false);
 
     // During the above setters, the model is being replaced with the on-disk snapshot.
