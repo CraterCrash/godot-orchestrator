@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://e4g8j1n5q9t2w"]
+
+[ext_resource type="Script" uid="uid://d2f6h9k3m7p1s" path="res://scenes/features/duplicate_event_node_repair_unresolved_owner.torch" id="1_unres"]
+
+[node name="DuplicateEventNodeRepairUnresolvedOwner" type="Node"]
+script = ExtResource("1_unres")

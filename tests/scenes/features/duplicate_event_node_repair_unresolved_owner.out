@@ -1,0 +1,9 @@
+OSCRIPT_TEST_PASS
+WARNING: Script 'res://scenes/features/duplicate_event_node_repair_unresolved_owner.torch': Removed function '_ready' and its event node(s), the owner node 99 could not be resolved. Please re-place the event node.
+     at: _fix_duplicate_event_nodes (src/orchestration/orchestration.cpp)
+WARNING: Removing orphan connection for 0:0-1:0, either the source or target node no longer exists.
+     at: _fix_orphans (src/orchestration/orchestration.cpp)
+WARNING: Script 'res://scenes/features/duplicate_event_node_repair_unresolved_owner.torch': Removed function '_ready' and its event node(s), the owner node 99 could not be resolved. Please re-place the event node.
+     at: _fix_duplicate_event_nodes (src/orchestration/orchestration.cpp)
+WARNING: Removing orphan connection for 0:0-1:0, either the source or target node no longer exists.
+     at: _fix_orphans (src/orchestration/orchestration.cpp)
