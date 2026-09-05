@@ -237,6 +237,87 @@ void Orchestration::_fix_orphans() {
     }
 }
 
+void Orchestration::_fix_duplicate_event_nodes() {
+    // Orchestrations written by 2.4.x and 2.5.x allowed an event node to be duplicated in place, which bound two
+    // event nodes to a single function. Only the function's recorded owner ever compiled, so the other nodes are
+    // removed. When the owner cannot be resolved, the function and every event node bound to it are dropped so
+    // the user can re-place the event. Event nodes whose function no longer exists are dropped too.
+    //
+    // This repair ships in 2.4, 2.5 and 2.6 and should be removed once support for 2.4 and 2.5 is dropped.
+    // It runs before _fix_orphans so that the connections of the removed nodes are pruned there.
+    const String path = get_orchestration_path();
+    String hint;
+    if (_self && OS::get_singleton()->has_feature("editor")) {
+        hint = " Please save orchestration '" + _self->get_path() + "' to apply changes.";
+    }
+
+    HashSet<int> removals;
+    Vector<StringName> dropped_functions;
+
+    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _functions) {
+        const Ref<OScriptFunction>& function = E.value;
+        if (!function.is_valid()) {
+            continue;
+        }
+
+        Vector<int> event_ids;
+        for (const KeyValue<int, Ref<OScriptNode>>& N : _nodes) {
+            const Ref<OScriptNodeEvent> event = N.value;
+            if (event.is_valid() && event->get_function() == function) {
+                event_ids.push_back(N.key);
+            }
+        }
+
+        if (event_ids.is_empty()) {
+            continue;
+        }
+
+        const int owner_id = function->get_owning_node_id();
+        if (event_ids.has(owner_id)) {
+            for (const int event_id : event_ids) {
+                if (event_id != owner_id) {
+                    WARN_PRINT(vformat(
+                        "Script '%s': Removed event node %d, a duplicate of node %d for function '%s'.%s",
+                        path, event_id, owner_id, E.key, hint));
+                    removals.insert(event_id);
+                }
+            }
+        } else {
+            for (const int event_id : event_ids) {
+                removals.insert(event_id);
+            }
+            dropped_functions.push_back(E.key);
+
+            WARN_PRINT(vformat(
+                "Script '%s': Removed function '%s' and its event node(s), the owner node %d could not be resolved. "
+                "Please re-place the event node.%s",
+                path, E.key, owner_id, hint));
+        }
+    }
+
+    for (const KeyValue<int, Ref<OScriptNode>>& N : _nodes) {
+        const Ref<OScriptNodeEvent> event = N.value;
+        if (event.is_valid() && !event->get_function().is_valid() && !removals.has(N.key)) {
+            WARN_PRINT(vformat(
+                "Script '%s': Removed event node %d, its function no longer exists. Please re-place the event node.%s",
+                path, N.key, hint));
+            removals.insert(N.key);
+        }
+    }
+
+    for (const StringName& function_name : dropped_functions) {
+        _functions.erase(function_name);
+    }
+
+    for (const int node_id : removals) {
+        const Ref<OScriptNode> node = _nodes[node_id];
+        for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs) {
+            G.value->remove_node(node);
+        }
+        _nodes.erase(node_id);
+    }
+}
+
 void Orchestration::_connect_nodes(int p_source_id, int p_source_port, int p_target_id, int p_target_port) {
     ERR_FAIL_COND_MSG(_has_instances(), "Cannot connect nodes, instances exist.");
 
@@ -456,6 +537,8 @@ void Orchestration::post_initialize() {
     for (const KeyValue<StringName, Ref<OScriptGraph>>& G : _graphs) {
         G.value->post_initialize();
     }
+
+    _fix_duplicate_event_nodes();
 
     // Sanitize attached nodes
     // In 2.5.0 deleting nodes while attached did not clean-up attachments

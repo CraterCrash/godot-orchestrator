@@ -130,6 +130,11 @@ protected:
     /// @note This should generally not be an issue, except during development, but its a great sanity check
     virtual void _fix_orphans();
 
+    /// Removes event nodes that share a function with another event node, or whose function no longer
+    /// exists, as written by 2.4.x and 2.5.x.
+    /// @note Ships in 2.4, 2.5 and 2.6; remove once support for 2.4 and 2.5 is dropped.
+    void _fix_duplicate_event_nodes();
+
     /// Get whether there are any instances of this orchestration
     /// @return true if there are existing instances, false otherwise
     virtual bool _has_instances() const { return false; }

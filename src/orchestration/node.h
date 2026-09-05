@@ -388,9 +388,14 @@ public:
     /// @param p_pin the pin that was disconnected
     virtual void on_pin_disconnected(const Ref<OScriptNodePin>& p_pin);
 
-    /// Returns whether the node can be duplicated
+    /// Returns whether the node can be duplicated in place within its orchestration
     /// @return if the node can be duplicated
     virtual bool can_duplicate() const { return true; }
+
+    /// Returns whether the node can be copied or cut to the clipboard. Unlike duplication, whether
+    /// the node can then be pasted depends on the target graph, not this node.
+    /// @return if the node can be copied
+    virtual bool can_copy() const { return can_duplicate(); }
 
     /// Return whether the specified port is a loop-based port
     virtual bool is_loop_port(int p_port) const { return false; }

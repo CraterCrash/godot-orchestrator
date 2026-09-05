@@ -420,6 +420,13 @@ Ref<OScriptNode> OScriptGraph::duplicate_node(int p_node_id, const Vector2& p_de
         return nullptr;
     }
 
+    // Function entry and event nodes carry a function GUID, so an in-place copy would share the source's
+    // function rather than define its own. Refuse here so no caller can create that state.
+    if (!node->can_duplicate()) {
+        ERR_PRINT(vformat("Cannot duplicate node with id %d (%s).", p_node_id, node->get_class()));
+        return nullptr;
+    }
+
     // Duplicate node
     Ref<OScriptNode> duplicate = node->duplicate(p_duplicate_resources);
 
