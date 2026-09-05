@@ -978,7 +978,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         const Connection C(connection_id);
 
         const Ref<OrchestrationGraphNode> source = _graph->get_orchestration()->get_node(C.from_node);
-        const Ref<OrchestrationGraphPin> source_pin = source->find_pins(PD_Output)[C.from_port];
+        const Ref<OrchestrationGraphPin> source_pin = source->find_slot_pin(static_cast<int>(C.from_port), PD_Output);
         if (source_pin->is_execution() && !call_execution_wired) {
             source_graph->link(C.from_node, C.from_port, call_function->get_id(), 0);
             call_execution_wired = true;
@@ -987,7 +987,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         }
 
         const Ref<OrchestrationGraphNode> target = _graph->get_orchestration()->get_node(C.to_node);
-        const Ref<OrchestrationGraphPin> target_pin = target->find_pins(PD_Input)[C.to_port];
+        const Ref<OrchestrationGraphPin> target_pin = target->find_slot_pin(static_cast<int>(C.to_port), PD_Input);
 
         if (!entry_positioned) {
             const Ref<OrchestrationGraphNode> entry = _graph->get_orchestration()->get_node(function->get_owning_node_id());
@@ -1037,7 +1037,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
             const Connection C(connection_id);
 
             const Ref<OrchestrationGraphNode> source = _graph->get_orchestration()->get_node(C.from_node);
-            const Ref<OrchestrationGraphPin> source_pin = source->find_pins(PD_Output)[C.from_port];
+            const Ref<OrchestrationGraphPin> source_pin = source->find_slot_pin(static_cast<int>(C.from_port), PD_Output);
 
             if (!positioned) {
                 result->set_position(source->get_position() + Vector2(250, 0));
@@ -1081,7 +1081,7 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
 
         // Get the exterior node connected to the selected node
         const Ref<OrchestrationGraphNode> target = _graph->get_orchestration()->get_node(C.to_node);
-        const Ref<OrchestrationGraphPin> target_pin = target->find_pins(PD_Input)[C.to_port];
+        const Ref<OrchestrationGraphPin> target_pin = target->find_slot_pin(static_cast<int>(C.to_port), PD_Input);
         if (target_pin->is_execution() && !call_execution_wired) {
             source_graph->link(call_function->get_id(), 0, C.to_node, C.to_port);
             call_execution_wired = true;

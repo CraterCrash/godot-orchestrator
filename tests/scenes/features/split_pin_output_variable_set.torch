@@ -1,0 +1,135 @@
+[orchestration type="OScript" load_steps=8 format=3 uid="uid://b3s1p5varset0"]
+
+[obj type="OScriptFunction" id="OScriptFunction_spl05"]
+guid = "5A1F0C11-0009-4B0A-9C3E-53504C495431"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_spl05"]
+function_id = "5A1F0C11-0009-4B0A-9C3E-53504C495431"
+id = 0
+size = Vector2(139, 66)
+position = Vector2(100, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_spl05"]
+variable_name = &"vec"
+id = 1
+size = Vector2(160, 126)
+position = Vector2(340, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"vec",
+"type": 5,
+"flags": 2050,
+"dv": Vector2(5, 6)
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 5,
+"dir": 1,
+"flags": 1026,
+"split": [{
+"pin_name": &"value.x",
+"type": 3,
+"dir": 1,
+"flags": 2
+}, {
+"pin_name": &"value.y",
+"type": 3,
+"dir": 1,
+"flags": 2
+}]
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_spl05x"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 2
+size = Vector2(113, 127)
+position = Vector2(600, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_spl05y"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 3
+size = Vector2(113, 127)
+position = Vector2(800, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_spl05"]
+name = "vec"
+category = "Default"
+info = {
+"name": &"vec",
+"type": 5
+}
+default_value = Vector2(0, 0)
+
+[resource]
+base_type = &"Node"
+brief_description = "Split output of a variable set resolves through the variable's own name"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_spl05")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_spl05")])
+connections = Array[int]([0, 0, 1, 0, 1, 0, 2, 0, 2, 0, 3, 0, 1, 1, 2, 1, 1, 2, 3, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_spl05"), SubResource("OScriptNodeVariableSet_spl05"), SubResource("OScriptNodeCallBuiltinFunction_spl05x"), SubResource("OScriptNodeCallBuiltinFunction_spl05y")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

@@ -881,19 +881,71 @@ void OScriptParser::evaluate_warning_directory_rules_for_script_path() {
 
 #endif
 
+OScriptParser::ExpressionNode* OScriptParser::build_composed_input(const Ref<OScriptNodePin>& p_pin) {
+    // With nothing wired into any sub-pin the value is fully known here, so fold it to one literal
+    // rather than constructing it at runtime.
+    if (!p_pin->has_any_connections()) {
+        return create_literal(p_pin->get_effective_default_value());
+    }
+
+    // Otherwise construct the value the same way a Make node does: Type(c1, c2, ...), with each
+    // sub-pin resolved on its own, so a nested split composes recursively.
+    const String type_name = Variant::get_type_name(p_pin->get_type());
+
+    CallNode* call_node = alloc_node<CallNode>();
+    call_node->callee = build_identifier(type_name);
+    call_node->function_name = type_name;
+    for (const Ref<OScriptNodePin>& sub_pin : p_pin->get_sub_pins()) {
+        call_node->arguments.push_back(resolve_input(sub_pin));
+    }
+    return call_node;
+}
+
+Ref<OScriptNodePin> OScriptParser::get_split_root(const Ref<OScriptNodePin>& p_pin, Vector<String>& r_components) {
+    // Walk up to the top-level pin, recording the component path root-first
+    Ref<OScriptNodePin> pin = p_pin;
+    while (pin.is_valid() && pin->is_sub_pin()) {
+        r_components.insert(0, pin->get_component_name());
+        pin = Ref<OScriptNodePin>(pin->get_parent_pin());
+    }
+    return pin;
+}
+
+OScriptParser::ExpressionNode* OScriptParser::wrap_components(ExpressionNode* p_base, const Vector<String>& p_components) {
+    // Read the component the same way a Break node does: base.component
+    ExpressionNode* expression = p_base;
+    for (const String& component : p_components) {
+        SubscriptNode* subscript = alloc_node<SubscriptNode>();
+        subscript->base = expression;
+        subscript->attribute = build_identifier(component);
+        subscript->is_attribute = true;
+        expression = subscript;
+    }
+    return expression;
+}
+
 OScriptParser::ExpressionNode* OScriptParser::resolve_input(const Ref<OScriptNodePin>& p_pin) {
     ERR_FAIL_COND_V(p_pin.is_null(), create_literal(Variant()));
     ERR_FAIL_COND_V(p_pin->is_execution(), create_literal(Variant()));
+
+    // A split input is composed from its sub-pins
+    if (p_pin->is_split()) {
+        return build_composed_input(p_pin);
+    }
 
     if (!p_pin->has_any_connections()) {
         return build_literal(p_pin);
     }
 
-    const Ref<OScriptNodePin> source_pin = p_pin->get_resolved_connection();
-    if (!source_pin.is_valid()) {
+    const Ref<OScriptNodePin> connected_pin = p_pin->get_resolved_connection();
+    if (!connected_pin.is_valid()) {
         return build_literal(p_pin);
     }
 
+    // A sub-pin output is resolved through its root pin, then narrowed to the component; this keeps
+    // a non-pure result cached once and shared by every component read from it.
+    Vector<String> components;
+    const Ref<OScriptNodePin> source_pin = get_split_root(connected_pin, components);
     const Ref<OScriptNode>& source_node = source_pin->get_owning_node();
 
     // Check object identity for passthroughs
@@ -907,11 +959,11 @@ OScriptParser::ExpressionNode* OScriptParser::resolve_input(const Ref<OScriptNod
                     NodeScope scope(*this, source_node->get_id());
                     SelfNode* self = alloc_node<SelfNode>();
                     self->current_class = current_class;
-                    return self;
+                    return wrap_components(self, components);
                 }
 
                 // Use default identifier resolution
-                return build_identifier(alias);
+                return wrap_components(build_identifier(alias), components);
             }
         }
     }
@@ -920,13 +972,13 @@ OScriptParser::ExpressionNode* OScriptParser::resolve_input(const Ref<OScriptNod
     for (const Ref<OScriptNodePin>& input : source_node->find_pins(PD_Input)) {
         if (input.is_valid() && input->is_execution()) {
             const String cache_name = create_cached_variable_name(source_pin);
-            return build_identifier(cache_name);
+            return wrap_components(build_identifier(cache_name), components);
         }
     }
 
     // Pure nodes always build an expression without caching
     if (source_node->is_pure()) {
-        return build_expression(p_pin, source_node, source_pin);
+        return wrap_components(build_expression(p_pin, source_node, source_pin), components);
     }
 
     // For non-pure nodes, cache in a variable
@@ -945,63 +997,93 @@ OScriptParser::ExpressionNode* OScriptParser::resolve_input(const Ref<OScriptNod
         current_suite->add_local(local, current_function);
     }
 
-    return build_identifier(cache_name);
+    return wrap_components(build_identifier(cache_name), components);
 }
 
 StringName OScriptParser::get_term_name(const Ref<OScriptNodePin>& p_pin) {
     ERR_FAIL_COND_V(p_pin.is_null(), "");
 
+    // A split input has no single source; name a local holding its composed value
+    if (p_pin->is_split()) {
+        const String composed_name = create_unique_name(p_pin);
+        if (current_suite && !current_suite->has_local(composed_name)) {
+            create_local_and_push(composed_name, build_composed_input(p_pin), p_pin);
+        }
+        return composed_name;
+    }
+
     if (!p_pin->has_any_connections()) {
         return "";
     }
 
-    const Ref<OScriptNodePin> source_pin = p_pin->get_resolved_connection();
-    if (!source_pin.is_valid()) {
+    const Ref<OScriptNodePin> connected_pin = p_pin->get_resolved_connection();
+    if (!connected_pin.is_valid()) {
         return "";
     }
+
+    Vector<String> components;
+    const Ref<OScriptNodePin> source_pin = get_split_root(connected_pin, components);
     const Ref<OScriptNode> source_node = source_pin->get_owning_node();
-    const uint64_t source_id = source_node->get_id();
 
     // Check for aliases
+    String root_name;
     if (current_suite) {
-        const uint64_t key = (source_id << 32) | source_pin->get_pin_index();
+        const uint64_t key = SuiteNode::create_alias_key(source_pin);
         if (current_suite->aliases.has(key)) {
-            return current_suite->aliases[key];
+            root_name = current_suite->aliases[key];
         }
     }
 
-    // Get or create cached variable
-    // The declaration is attributed to the source node
-    const String variable_name = create_cached_variable_name(source_pin);
-    if (current_suite && !current_suite->has_local(variable_name)) {
-        NodeScope scope(*this, source_node->get_id());
-        // Build the expression and cache it
-        ExpressionNode* expression = build_expression(p_pin, source_node, source_pin);
-        create_local_and_push(variable_name, expression, source_pin);
+    if (root_name.is_empty()) {
+        // Get or create cached variable
+        // The declaration is attributed to the source node
+        root_name = create_cached_variable_name(source_pin);
+        if (current_suite && !current_suite->has_local(root_name)) {
+            NodeScope scope(*this, source_node->get_id());
+            // Build the expression and cache it
+            ExpressionNode* expression = build_expression(p_pin, source_node, source_pin);
+            create_local_and_push(root_name, expression, source_pin);
+        }
     }
 
-    return variable_name;
+    if (components.is_empty()) {
+        return root_name;
+    }
+
+    // A component needs its own named term, read from the root's term
+    const String component_name = vformat("%s_%s", root_name, StringUtils::join("_", components));
+    if (current_suite && !current_suite->has_local(component_name)) {
+        create_local_and_push(component_name, wrap_components(build_identifier(root_name), components), connected_pin);
+    }
+    return component_name;
 }
 
 OScriptParser::ExpressionNode* OScriptParser::build_expression(const Ref<OScriptNodePin>& p_pin) {
     ERR_FAIL_COND_V(p_pin.is_null(), nullptr);
     ERR_FAIL_COND_V(p_pin->is_execution(), nullptr);
 
+    // A split input is composed from its sub-pins
+    if (p_pin->is_split()) {
+        return build_composed_input(p_pin);
+    }
+
     if (!p_pin->has_any_connections()) {
         return build_literal(p_pin);
     }
 
-    const Ref<OScriptNodePin> source_pin = p_pin->get_resolved_connection();
-    if (!source_pin.is_valid()) {
+    const Ref<OScriptNodePin> connected_pin = p_pin->get_resolved_connection();
+    if (!connected_pin.is_valid()) {
         return build_literal(p_pin);
     }
+
+    Vector<String> components;
+    const Ref<OScriptNodePin> source_pin = get_split_root(connected_pin, components);
     const Ref<OScriptNode> source_node = source_pin->get_owning_node();
 
     if (current_suite) {
-        uint64_t node_id = source_node->get_id();
-        uint64_t key = (node_id << 32) | source_pin->get_pin_index();
+        const uint64_t key = SuiteNode::create_alias_key(source_pin);
         if (current_suite->aliases.has(key)) {
-            return build_identifier(current_suite->aliases[key]);
+            return wrap_components(build_identifier(current_suite->aliases[key]), components);
         }
     }
 
@@ -1011,7 +1093,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_expression(const Ref<OScript
     // Control flow nodes always just return a cached identifier?
     for (const Ref<OScriptNodePin>& input : source_node->find_pins(PD_Input)) {
         if (input.is_valid() && input->is_execution()) {
-            return build_identifier(cachedVariableName);
+            return wrap_components(build_identifier(cachedVariableName), components);
         }
     }
 
@@ -1025,7 +1107,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_expression(const Ref<OScript
 
         // For nodes that are considered pure, the computed value will not be cached.
         if (source_node->is_pure()) {
-            return expression;
+            return wrap_components(expression, components);
         }
 
         // Store dependency node's output in a variable
@@ -1037,7 +1119,7 @@ OScriptParser::ExpressionNode* OScriptParser::build_expression(const Ref<OScript
         current_suite->add_local(local_var, current_function);
     }
 
-    return build_identifier(cachedVariableName);
+    return wrap_components(build_identifier(cachedVariableName), components);
 }
 
 OScriptParser::ExpressionNode* OScriptParser::build_expression(const Ref<OScriptNode>& p_node, int p_input_index) {

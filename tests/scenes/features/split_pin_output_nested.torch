@@ -1,0 +1,178 @@
+[orchestration type="OScript" load_steps=11 format=3 uid="uid://b3s1p9nestout"]
+
+[obj type="OScriptFunction" id="OScriptFunction_mkrect"]
+guid = "5A1F0C11-0016-4B0A-9C3E-53504C495431"
+method = {
+"name": &"make_rect",
+"return": {
+"name": &"return_value",
+"type": 7
+}
+}
+user_defined = true
+id = 0
+
+[obj type="OScriptFunction" id="OScriptFunction_spl09"]
+guid = "5A1F0C11-0017-4B0A-9C3E-53504C495431"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([10, 11, 12, 13])
+functions = Array[int]([10])
+
+[obj type="OScriptGraph" id="OScriptGraph_mkrect"]
+graph_name = &"make_rect"
+flags = 22
+nodes = Array[int]([0, 2])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_mkrect"]
+function_id = "5A1F0C11-0016-4B0A-9C3E-53504C495431"
+id = 0
+size = Vector2(110, 66)
+position = Vector2(100, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_mkrect"]
+function_id = "5A1F0C11-0016-4B0A-9C3E-53504C495431"
+id = 2
+size = Vector2(161, 96)
+position = Vector2(400, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"return_value",
+"type": 7,
+"flags": 2,
+"label": "return_value",
+"dv": Rect2(1, 2, 3, 4)
+}])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_spl09"]
+function_id = "5A1F0C11-0017-4B0A-9C3E-53504C495431"
+id = 10
+size = Vector2(139, 66)
+position = Vector2(100, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_spl09"]
+guid = "5A1F0C11-0016-4B0A-9C3E-53504C495431"
+function_name = &"make_rect"
+flags = 8
+id = 11
+size = Vector2(195, 160)
+position = Vector2(340, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"return_value",
+"type": 7,
+"dir": 1,
+"flags": 1026,
+"split": [{
+"pin_name": &"return_value.position",
+"type": 5,
+"dir": 1,
+"flags": 2,
+"split": [{
+"pin_name": &"return_value.position.x",
+"type": 3,
+"dir": 1,
+"flags": 2
+}, {
+"pin_name": &"return_value.position.y",
+"type": 3,
+"dir": 1,
+"flags": 2
+}]
+}, {
+"pin_name": &"return_value.size",
+"type": 5,
+"dir": 1,
+"flags": 2
+}]
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_spl09a"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 12
+size = Vector2(113, 127)
+position = Vector2(620, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_spl09b"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 13
+size = Vector2(113, 127)
+position = Vector2(820, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[resource]
+base_type = &"Node"
+brief_description = "A nested split output reads through a two-segment component path"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_mkrect"), SubResource("OScriptFunction_spl09")])
+connections = Array[int]([0, 0, 2, 0, 10, 0, 11, 0, 11, 0, 12, 0, 12, 0, 13, 0, 11, 1, 12, 1, 11, 3, 13, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_mkrect"), SubResource("OScriptNodeFunctionResult_mkrect"), SubResource("OScriptNodeEvent_spl09"), SubResource("OScriptNodeCallScriptFunction_spl09"), SubResource("OScriptNodeCallBuiltinFunction_spl09a"), SubResource("OScriptNodeCallBuiltinFunction_spl09b")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp"), SubResource("OScriptGraph_mkrect")])
