@@ -38,6 +38,28 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 
+bool OrchestratorEditorGraphNode::_is_valid_pin_layout(const OScriptPinLayout& p_layout, const Vector<Ref<OrchestrationGraphPin>>& p_inputs, const Vector<Ref<OrchestrationGraphPin>>& p_outputs) {
+    // Each side must read, top to bottom, exactly as the node declares it; anything else would renumber
+    // that side's ports relative to the pin indices stored in connections.
+    int64_t next_input = 0;
+    int64_t next_output = 0;
+    for (const OScriptPinLayout::Row& row : p_layout.get_rows()) {
+        if (row.left.is_valid()) {
+            if (next_input >= p_inputs.size() || p_inputs[next_input] != row.left) {
+                return false;
+            }
+            next_input++;
+        }
+        if (row.right.is_valid()) {
+            if (next_output >= p_outputs.size() || p_outputs[next_output] != row.right) {
+                return false;
+            }
+            next_output++;
+        }
+    }
+    return next_input == p_inputs.size() && next_output == p_outputs.size();
+}
+
 void OrchestratorEditorGraphNode::_resize_to_content() {
     set_anchor_and_offset(SIDE_RIGHT, 0, 0);
     set_anchor_and_offset(SIDE_BOTTOM, 0, 0);
@@ -51,7 +73,8 @@ void OrchestratorEditorGraphNode::_node_selected() {
 }
 
 void OrchestratorEditorGraphNode::_pin_connection_status_changed(int p_type, int p_index, bool p_connected) {
-    OrchestratorEditorGraphPin* pin = p_type == PD_Input ? get_input_pin(p_index) : get_output_pin(p_index);
+    // The model reports the pin's port, not its row
+    OrchestratorEditorGraphPin* pin = get_port_pin(p_index, static_cast<EPinDirection>(p_type));
     if (pin) {
         pin->set_default_value_control_visible(!p_connected);
     }
@@ -122,38 +145,75 @@ void OrchestratorEditorGraphNode::_update_titlebar() {
     set_title(_node->get_node_title());
 }
 
-// SplitPin
-//  1. Pin is marked hidden.
-//  2. Creates split-pin prototype node with the hidden pin.
-//  3. Iterates all non-hidden pins on prototype node
-//  4. Calls OrchestrationGraphNode::CreatePin() with details from prototype node pin.
-//  5. Mark SubPin parent as the hidden pin.
-//  6. The call to CreatePin() adds the pin to the GraphNode::Pins array, so they pop it.
-//  7. The SubPin is added to the hidden pin's sub-pin list.
-//  8. Performs some default value manipulation
-//  9. Inserts the Pin->SubPins collection into the GraphNode->Pins array just after the parent pin.
-// 10. Notifies GraphNode of pin changes
-
 void OrchestratorEditorGraphNode::_create_pin_widgets()
 {
-    // todo:
-    //  when we support split pins, these collections need to be filtered to exclude hidden pins,
-    //  assuming that we handle split pins in the same way as UE
-
+    // The node describes rows against its logical pins. Each side must appear in declaration order, because
+    // GraphEdit numbers ports over enabled slots, top to bottom, and get_pin_index() numbers visible slot pins
+    // in the same order. Rows may space pins apart but never reorders a side.
     const Vector<Ref<OrchestrationGraphPin>> inputs = _node->find_pins(PD_Input);
     const Vector<Ref<OrchestrationGraphPin>> outputs = _node->find_pins(PD_Output);
 
-    const int64_t max_slots = Math::max(inputs.size(), outputs.size());
-    if (max_slots == 0) {
+    if (inputs.is_empty() && outputs.is_empty()) {
         return;
     }
 
-    // Used in a second pass to align left/right columns in multiple HBoxContainers for each row
-    // to appear to have the same width, as one would expect had GraphNode used a GridContainer.
+    OScriptPinLayout layout;
+    _node->get_pin_layout(layout);
+    if (!_is_valid_pin_layout(layout, inputs, outputs)) {
+        ERR_PRINT(vformat("Node %d (%s) describes a pin layout that omits, repeats or reorders its pins; using the default layout.",
+            _node->get_id(), _node->get_class()));
+        layout.clear();
+        layout.add_default_rows(inputs, outputs);
+    }
+
+    // Materialize logical rows into slot rows one side at a time. A logical pin's row is the earliest row its slot
+    // pins may occupy. The pins then flow down into following rows, so a pin that stands for several slot pins
+    // never pins the opposite side. Rows are added only when a side runs past the last row. Today a logical pin
+    // stands for exactly itself; split pins expand this to sub-pins.
+    struct Cell {
+        Ref<OrchestrationGraphPin> left;
+        Ref<OrchestrationGraphPin> right;
+    };
+    Vector<Cell> cells;
+    cells.resize(layout.get_rows().size());
+
+    auto place = [&cells](const Ref<OrchestrationGraphPin>& p_pin, int64_t p_anchor, int64_t& r_next, bool p_left) {
+        // A split pin stands for its sub-pins, which flow down from the anchor row
+        for (const Ref<OrchestrationGraphPin>& slot_pin : p_pin->get_slot_pins()) {
+            const int64_t row = Math::max(p_anchor, r_next);
+            if (row >= cells.size()) {
+                cells.resize(row + 1);
+            }
+            if (p_left) {
+                cells.write[row].left = slot_pin;
+            } else {
+                cells.write[row].right = slot_pin;
+            }
+            r_next = row + 1;
+        }
+    };
+
+    int64_t next_left = 0;
+    int64_t next_right = 0;
+    for (int64_t anchor = 0; anchor < layout.get_rows().size(); anchor++) {
+        const OScriptPinLayout::Row& row = layout.get_rows()[anchor];
+        if (row.left.is_valid()) {
+            place(row.left, anchor, next_left, true);
+        }
+        if (row.right.is_valid()) {
+            place(row.right, anchor, next_right, false);
+        }
+    }
+
+    // Used in a second pass to align left/right columns in multiple HBoxContainers for each row to appear to
+    // have the same width, as one would expect had GraphNode used a GridContainer.
     real_t max_left_width = 0;
     real_t max_right_width = 0;
 
-    for (int64_t slot_index = 0; slot_index < max_slots; slot_index++) {
+    for (int64_t slot_index = 0; slot_index < cells.size(); slot_index++) {
+        const Ref<OrchestrationGraphPin>& left_pin = cells[slot_index].left;
+        const Ref<OrchestrationGraphPin>& right_pin = cells[slot_index].right;
+
         Slot slot;
         slot.slot = slot_index;
 
@@ -162,16 +222,16 @@ void OrchestratorEditorGraphNode::_create_pin_widgets()
         row->add_theme_constant_override("separation", 10);
         slot.row = row;
 
-        if (slot_index < inputs.size()) {
-            slot.left = OrchestratorEditorGraphPinFactory::create_pin_widget(inputs[slot_index]);
+        if (left_pin.is_valid()) {
+            slot.left = OrchestratorEditorGraphPinFactory::create_pin_widget(left_pin);
             if (slot.left) {
                 slot.left->set_graph_node(this);
                 row->add_child(slot.left);
             }
         }
 
-        if (slot_index < outputs.size()) {
-            slot.right = OrchestratorEditorGraphPinFactory::create_pin_widget(outputs[slot_index]);
+        if (right_pin.is_valid()) {
+            slot.right = OrchestratorEditorGraphPinFactory::create_pin_widget(right_pin);
             if (slot.right) {
                 slot.right->set_graph_node(this);
                 row->add_child(slot.right);
@@ -479,6 +539,10 @@ OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_output_pin(int32_t 
 
 OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_pin(int32_t p_slot, EPinDirection p_direction) {
     return p_direction == PD_Input ? get_input_pin(p_slot) : get_output_pin(p_slot);
+}
+
+OrchestratorEditorGraphPin* OrchestratorEditorGraphNode::get_port_pin(int32_t p_port, EPinDirection p_direction) {
+    return get_pin(get_port_slot(p_port, p_direction), p_direction);
 }
 
 int32_t OrchestratorEditorGraphNode::get_input_port_slot(const String& p_pin_name) {

@@ -16,10 +16,9 @@
 //
 #include "editor/graph/pins/struct_pin.h"
 
-#include "api/extension_db.h"
 #include "common/callable_lambda.h"
+#include "common/variant_struct_schema.h"
 #include "common/variant_utils.h"
-#include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 
 #include <string>
@@ -41,47 +40,6 @@ int OrchestratorEditorGraphPinStruct::_get_grid_columns_for_type(Variant::Type p
             return -1;
         }
     }
-}
-
-bool OrchestratorEditorGraphPinStruct::_is_property_excluded(Variant::Type p_type, const PropertyInfo& p_property) {
-    switch (p_type) {
-        case Variant::RECT2:
-        case Variant::RECT2I:
-        case Variant::AABB: {
-            return p_property.name.match(CoreStringName(end));
-        }
-        case Variant::PLANE: {
-            return p_property.name.match(CoreStringName(normal));
-        }
-        default: {
-            return false;
-        }
-    }
-}
-
-PackedStringArray OrchestratorEditorGraphPinStruct::_get_property_paths(Variant::Type p_type) {
-    PackedStringArray results;
-
-    const BuiltInType type = ExtensionDB::get_builtin_type(p_type);
-    if (!type.properties.is_empty()) {
-        for (const PropertyInfo& property : type.properties) {
-            if (_is_property_excluded(p_type, property)) {
-                continue;
-            }
-
-            PackedStringArray sub_parts = _get_property_paths(property.type);
-            if (sub_parts.is_empty()) {
-                results.push_back(property.name);
-                continue;
-            }
-
-            for (const String& sub_part :sub_parts) {
-                results.push_back(vformat("%s.%s", property.name, sub_part));
-            }
-        }
-    }
-
-    return results;
 }
 
 void OrchestratorEditorGraphPinStruct::_update_control_value_part(const String& p_path, int p_index, const Variant& p_value) {
@@ -113,7 +71,7 @@ void OrchestratorEditorGraphPinStruct::_read_control_value_part(const String& p_
 
 void OrchestratorEditorGraphPinStruct::_update_control_value(const Variant& p_value) {
     const PropertyInfo property = get_property_info();
-    const PackedStringArray property_paths = _get_property_paths(property.type);
+    const PackedStringArray property_paths = VariantStructSchema::get_component_paths(property.type);
 
     Variant value = p_value;
 
@@ -141,7 +99,7 @@ Variant OrchestratorEditorGraphPinStruct::_read_control_value() {
         pin_value = VariantUtils::make_default(property.type);
     }
 
-    const PackedStringArray property_paths = _get_property_paths(property.type);
+    const PackedStringArray property_paths = VariantStructSchema::get_component_paths(property.type);
     for (int i = 0; i < property_paths.size(); i++) {
         const String& property_path = property_paths[i];
         const PackedStringArray property_path_parts = property_path.split(".");
@@ -156,7 +114,7 @@ Variant OrchestratorEditorGraphPinStruct::_read_control_value() {
 
 Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget() {
     const PropertyInfo property = get_property_info();
-    const PackedStringArray property_paths = _get_property_paths(property.type);
+    const PackedStringArray property_paths = VariantStructSchema::get_component_paths(property.type);
 
     GridContainer* container = memnew(GridContainer);
     container->set_h_size_flags(SIZE_SHRINK_BEGIN);
@@ -209,177 +167,3 @@ Control* OrchestratorEditorGraphPinStruct::_create_default_value_widget() {
 
     return container;
 }
-
-// #include "common/defs.h"
-// #include "editor/graph/editor_graph_pin_factory.h"
-//
-// #include <godot_cpp/classes/label.hpp>
-//
-// void OrchestratorEditorGraphPinStruct::_update_control_value()
-// {
-//     for (int i = 0; i < _descriptor.fields.size(); i++)
-//     {
-//         Variant field_value = _descriptor.fields[i].getter(_value);
-//         _editors[i]->set_default_value(field_value);
-//     }
-// }
-//
-// Variant OrchestratorEditorGraphPinStruct::_read_control_value()
-// {
-//     Variant current_value = _value;
-//     for (int i = 0; i < _descriptor.fields.size(); i++)
-//     {
-//         Variant field_value = _editors[i]->get_default_value();
-//         _descriptor.fields[i].setter(current_value, field_value);
-//     }
-//     return current_value;
-// }
-//
-// void OrchestratorEditorGraphPinStruct::set_descriptor(EResolvedOrchestrationGraphPinType p_type)
-// {
-//     for (int i = _control->get_child_count() - 1; i >= 0; i--)
-//     {
-//         Node* child = _control->get_child(i);
-//         _control->remove_child(child);
-//         child->queue_free();
-//     }
-//
-//     _editors.clear();
-//
-//     auto it = _descriptors.find(p_type);
-//     if (it == _descriptors.end())
-//         CRASH_NOW_MSG("No struct pin definition defined for pin type " + itos(static_cast<int>(p_type)));
-//
-//     _descriptor = it->second;
-//     _type = p_type;
-//
-//     for (int i = 0; i < _descriptor.fields.size(); i++)
-//     {
-//         const StructField& field = _descriptor.fields[i];
-//
-//         Label* label = memnew(Label);
-//         label->set_text(field.label);
-//         label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
-//         _control->add_child(label);
-//
-//         OrchestratorEditorGraphPinBase* widget = OrchestratorEditorGraphPinWidgetFactory::make_widget(field.type);
-//         _control->add_child(widget);
-//         _editors.push_back(widget);
-//
-//         widget->set_default_value(field.getter(_value));
-//         widget->connect("default_value_changed", callable_mp_parent(_default_value_changed));
-//     }
-// }
-//
-// OrchestratorEditorGraphPinStruct::OrchestratorEditorGraphPinStruct()
-// {
-//     _control = memnew(GridContainer);
-//     _control->set_h_size_flags(SIZE_EXPAND_FILL);
-//     _type = GPT_Unknown;
-// }
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Vector2Desc = { {
-//     { "X", GPT_Float, [](auto& v) { return Vector2(v).x; }, [](auto& v, auto& c) { c = Vector2(v).x; } },
-//     { "Y", GPT_Float, [](auto& v) { return Vector2(v).y; }, [](auto& v, auto& c) { c = Vector2(v).y; } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Vector2iDesc = { {
-//     { "X", GPT_Integer, [](auto& v) { return Vector2i(v).x; }, [](auto& v, auto& c) { c = Vector2i(v).x; } },
-//     { "Y", GPT_Integer, [](auto& v) { return Vector2i(v).y; }, [](auto& v, auto& c) { c = Vector2i(v).y; } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Vector3Desc = { {
-//     { "X", GPT_Float, [](auto& v) { return Vector3(v).x; }, [](auto& v, auto& c) { c = Vector3(v).x; } },
-//     { "Y", GPT_Float, [](auto& v) { return Vector3(v).y; }, [](auto& v, auto& c) { c = Vector3(v).y; } },
-//     { "Z", GPT_Float, [](auto& v) { return Vector3(v).z; }, [](auto& v, auto& c) { c = Vector3(v).z; } }
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Vector3iDesc = { {
-//     { "X", GPT_Integer, [](auto& v) { return Vector3i(v).x; }, [](auto& v, auto& c) { c = Vector3i(v).x; } },
-//     { "Y", GPT_Integer, [](auto& v) { return Vector3i(v).y; }, [](auto& v, auto& c) { c = Vector3i(v).y; } },
-//     { "Z", GPT_Integer, [](auto& v) { return Vector3i(v).z; }, [](auto& v, auto& c) { c = Vector3i(v).z; } }
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Vector4Desc = { {
-//     { "X", GPT_Float, [](auto& v) { return Vector4(v).x; }, [](auto& v, auto& c) { c = Vector4(v).x; } },
-//     { "Y", GPT_Float, [](auto& v) { return Vector4(v).y; }, [](auto& v, auto& c) { c = Vector4(v).y; } },
-//     { "Z", GPT_Float, [](auto& v) { return Vector4(v).z; }, [](auto& v, auto& c) { c = Vector4(v).z; } },
-//     { "W", GPT_Float, [](auto& v) { return Vector4(v).w; }, [](auto& v, auto& c) { c = Vector4(v).w; } }
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Vector4iDesc = { {
-//     { "X", GPT_Integer, [](auto& v) { return Vector4i(v).x; }, [](auto& v, auto& c) { c = Vector4i(v).x; } },
-//     { "Y", GPT_Integer, [](auto& v) { return Vector4i(v).y; }, [](auto& v, auto& c) { c = Vector4i(v).y; } },
-//     { "Z", GPT_Integer, [](auto& v) { return Vector4i(v).z; }, [](auto& v, auto& c) { c = Vector4i(v).z; } },
-//     { "W", GPT_Integer, [](auto& v) { return Vector4i(v).w; }, [](auto& v, auto& c) { c = Vector4(v).w; } }
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Rect2Desc = { {
-//     { "Position", GPT_Vector2, [](auto& v) { return Rect2(v).position; }, [](auto& v, auto& c) { c = Rect2(v).position; } },
-//     { "Size", GPT_Vector2, [](auto& v) { return Rect2(v).size; }, [](auto& v, auto& c) { c = Rect2(v).size; } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Rect2iDesc = { {
-//     { "Position", GPT_Vector2i, [](auto& v) { return Rect2i(v).position; }, [](auto& v, auto& c) { c = Rect2i(v).position; } },
-//     { "Size", GPT_Vector2i, [](auto& v) { return Rect2i(v).size; }, [](auto& v, auto& c) { c = Rect2i(v).size; } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Transform2dDesc = { {
-//     { "X Axis", GPT_Vector2, [](auto& v) { return Transform2D(v)[0]; }, [](auto& v, auto& c) { c = Transform2D(v)[0]; } },
-//     { "Y Axis", GPT_Vector2, [](auto& v) { return Transform2D(v)[1]; }, [](auto& v, auto& c) { c = Transform2D(v)[1]; } },
-//     { "Origin", GPT_Vector2, [](auto& v) { return Transform2D(v)[2]; }, [](auto& v, auto& c) { c = Transform2D(v)[2]; } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::Transform3dDesc = { {
-//     { "Basis", GPT_Basis, [](auto& v) { return Transform3D(v).get_basis(); }, [](auto& v, auto& c) { c = Transform3D(v).get_basis(); } },
-//     { "Origin", GPT_Vector3, [](auto& v) { return Transform3D(v).get_origin(); }, [](auto& v, auto& c) { c = Transform3D(v).get_origin(); } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::PlaneDesc = { {
-//     { "Normal", GPT_Vector3, [](auto& v) { return Plane(v).get_normal(); }, [](auto& v, auto& c) { c = Plane(v).get_normal(); } },
-//     { "Distance", GPT_Float, [](auto& v) { return Plane(v).d(); }, [](auto& v, auto& c) { c = Plane(v).d(); } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::QuaternionDesc = { {
-//     { "X", GPT_Float, [](auto& v) { return Quaternion(v).x; }, [](auto& v, auto& c) { c = Quaternion(v).x; } },
-//     { "Y", GPT_Float, [](auto& v) { return Quaternion(v).y; }, [](auto& v, auto& c) { c = Quaternion(v).y; } },
-//     { "Z", GPT_Float, [](auto& v) { return Quaternion(v).z; }, [](auto& v, auto& c) { c = Quaternion(v).z; } },
-//     { "W", GPT_Float, [](auto& v) { return Quaternion(v).w; }, [](auto& v, auto& c) { c = Quaternion(v).w; } }
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::AabbDesc = { {
-//     { "Position", GPT_Vector3, [](auto& v) { return AABB(v).position; }, [](auto& v, auto& c) { c = AABB(v).position; } },
-//     { "Size", GPT_Vector3, [](auto& v) { return AABB(v).size; }, [](auto& v, auto& c) { c = AABB(v).size; } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::BasisDesc = { {
-//     { "X Axis", GPT_Vector3, [](auto& v) { return Basis(v)[0]; }, [](auto& v, auto& c) { c = Basis(v)[0]; } },
-//     { "Y Axis", GPT_Vector3, [](auto& v) { return Basis(v)[1]; }, [](auto& v, auto& c) { c = Basis(v)[1]; } },
-//     { "Z Axis", GPT_Vector3, [](auto& v) { return Basis(v)[2]; }, [](auto& v, auto& c) { c = Basis(v)[2]; } },
-// } };
-//
-// const OrchestratorEditorGraphPinStruct::StructDescriptor OrchestratorEditorGraphPinStruct::ProjectionDesc = { {
-//     { "X Axis", GPT_Vector4, [](auto& v) { return Projection(v)[0]; }, [](auto& v, auto& c) { c = Projection(v)[0]; } },
-//     { "Y Axis", GPT_Vector4, [](auto& v) { return Projection(v)[1]; }, [](auto& v, auto& c) { c = Projection(v)[1]; } },
-//     { "Z Axis", GPT_Vector4, [](auto& v) { return Projection(v)[2]; }, [](auto& v, auto& c) { c = Projection(v)[2]; } },
-//     { "W Axis", GPT_Vector4, [](auto& v) { return Projection(v)[3]; }, [](auto& v, auto& c) { c = Projection(v)[3]; } },
-// } };
-//
-// const std::unordered_map<int, OrchestratorEditorGraphPinStruct::StructDescriptor>
-//     OrchestratorEditorGraphPinStruct::_descriptors = {
-//         { GPT_Vector2, Vector2Desc },
-//         { GPT_Vector2i, Vector2iDesc },
-//         { GPT_Vector3, Vector3Desc },
-//         { GPT_Vector3i, Vector3iDesc },
-//         { GPT_Vector4, Vector4Desc },
-//         { GPT_Vector4i, Vector4iDesc },
-//         { GPT_Rect2, Rect2Desc },
-//         { GPT_Rect2i, Rect2iDesc },
-//         { GPT_Transform2d, Transform2dDesc },
-//         { GPT_Transform3d, Transform3dDesc },
-//         { GPT_Plane, PlaneDesc },
-//         { GPT_Quaternion, QuaternionDesc },
-//         { GPT_Aabb, AabbDesc },
-//         { GPT_Basis, BasisDesc },
-//         { GPT_Projection, ProjectionDesc }
-//     };

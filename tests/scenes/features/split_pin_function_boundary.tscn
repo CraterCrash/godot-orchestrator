@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3s1pcfnbound"]
+
+[ext_resource type="Script" uid="uid://b3s1pcfnbound" path="res://scenes/features/split_pin_function_boundary.torch" id="1_spl12"]
+
+[node name="SplitPinFunctionBoundary" type="Node" unique_id=735100112]
+script = ExtResource("1_spl12")

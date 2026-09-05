@@ -305,15 +305,36 @@ void OrchestratorEditorGraphPin::_create_pin_layout() {
 }
 
 String OrchestratorEditorGraphPin::_get_label_text() {
-    if (_pin->is_label_visible()) {
-        String text = StringUtils::default_if_empty(_pin->get_label(), _pin->get_pin_name());
-        if (_pin->use_pretty_labels()) {
-            text = text.capitalize();
+    if (!_pin->is_label_visible()) {
+        return "";
+    }
+
+    if (_pin->is_sub_pin()) {
+        // A sub-pin reads as its root's label followed by the component path, e.g. "Rect Position X"
+        Vector<String> parts;
+        const OrchestrationGraphPin* pin = _pin.ptr();
+        while (pin->is_sub_pin()) {
+            parts.insert(0, pin->get_component_name());
+            pin = pin->get_parent_pin();
+        }
+        parts.insert(0, StringUtils::default_if_empty(pin->get_label(), pin->get_pin_name()));
+
+        if (!_pin->use_pretty_labels()) {
+            return StringUtils::join(".", parts);
+        }
+
+        String text;
+        for (const String& part : parts) {
+            text += (text.is_empty() ? "" : " ") + part.capitalize();
         }
         return text;
     }
 
-    return "";
+    String text = StringUtils::default_if_empty(_pin->get_label(), _pin->get_pin_name());
+    if (_pin->use_pretty_labels()) {
+        text = text.capitalize();
+    }
+    return text;
 }
 
 String OrchestratorEditorGraphPin::_get_tooltip_text() {
