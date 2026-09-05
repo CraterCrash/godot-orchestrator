@@ -1,0 +1,10 @@
+OSCRIPT_TEST_PASS
+WARNING: Script 'res://scenes/features/duplicate_event_node_repair.torch': Removed event node 3, a duplicate of node 0 for function '_ready'.
+     at: _fix_duplicate_event_nodes (src/orchestration/orchestration.cpp)
+WARNING: Removing orphan connection for 3:0-4:0, either the source or target node no longer exists.
+     at: _fix_orphans (src/orchestration/orchestration.cpp)
+WARNING: Script 'res://scenes/features/duplicate_event_node_repair.torch': Removed event node 3, a duplicate of node 0 for function '_ready'.
+     at: _fix_duplicate_event_nodes (src/orchestration/orchestration.cpp)
+WARNING: Removing orphan connection for 3:0-4:0, either the source or target node no longer exists.
+     at: _fix_orphans (src/orchestration/orchestration.cpp)
+owner

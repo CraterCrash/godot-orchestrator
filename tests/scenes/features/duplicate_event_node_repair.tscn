@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c5n8w2t6h1v4y"]
+
+[ext_resource type="Script" uid="uid://b7k2m4p1q8r3d" path="res://scenes/features/duplicate_event_node_repair.torch" id="1_dupev"]
+
+[node name="DuplicateEventNodeRepair" type="Node"]
+script = ExtResource("1_dupev")
