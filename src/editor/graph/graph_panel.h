@@ -263,6 +263,7 @@ private:
     void _show_drag_hint(const String& p_hint_text) const;
     bool _is_delete_confirmation_enabled();
     bool _can_duplicate_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog = true);
+    bool _can_copy_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog = true);
     void _set_scroll_offset_and_zoom(const Vector2& p_scroll_offset, float p_zoom = 1.f, const Callable& p_callback = Callable());
     void _schedule_restore();
     void _restore_edit_state();
