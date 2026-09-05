@@ -17,6 +17,7 @@
 #pragma once
 
 #include "orchestration/node.h"
+#include "orchestration/pin_layout.h"
 
 #include <godot_cpp/classes/graph_node.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -41,6 +42,9 @@ class OrchestratorEditorGraphNode : public GraphNode {
     bool _show_type_icons = true;
     bool _show_advanced_tooltips = false;
     bool _tooltip_built = false;
+
+    /// Checks that a layout places every logical pin exactly once and in declaration order on each side.
+    static bool _is_valid_pin_layout(const OScriptPinLayout& p_layout, const Vector<Ref<OrchestrationGraphPin>>& p_inputs, const Vector<Ref<OrchestrationGraphPin>>& p_outputs);
 
 protected:
     struct Slot {

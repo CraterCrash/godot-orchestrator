@@ -33,6 +33,7 @@ using namespace godot;
 /// Forward declarations
 class OScriptGraph;
 class OScriptInstance;
+class OScriptPinLayout;
 
 /// A context object used to initialize OScriptNode instances.
 ///
@@ -276,6 +277,18 @@ public:
     /// Whether to draw the node as a bead.
     /// @return true to draw the node as a bead, false otherwise.
     virtual bool should_draw_as_bead() const { return false; }
+
+    /// Describe how this node's pins are arranged into editor rows.
+    ///
+    /// The layout is transient and authored against logical pins; the editor places whatever slot pins each
+    /// logical pin stands for. Every input and output must appear exactly once, in declaration order, so rows
+    /// may space pins apart but never reorder a side. A layout that breaks the rule is reported and replaced
+    /// with the default layout.
+    ///
+    /// The default places input i beside output i.
+    ///
+    /// @param r_layout the layout to fill
+    virtual void get_pin_layout(OScriptPinLayout& r_layout) const;
 
     /// Whether this node is a reroute node.
     /// @return true if this node is a reroute, false otherwise.

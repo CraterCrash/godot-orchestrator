@@ -17,6 +17,7 @@
 #include "orchestration/nodes/dialogue.h"
 
 #include "common/property_utils.h"
+#include "orchestration/pin_layout.h"
 
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -33,6 +34,16 @@ void OScriptNodeDialogueMessage::_upgrade(uint32_t p_version, uint32_t p_current
 }
 
 void OScriptNodeDialogueMessage::post_initialize() {
+    // Older files carry four hidden "temp_" outputs that once held the rows opposite the fixed inputs
+    // so choice exits lined up with their choices; get_pin_layout does that now. Hidden pins never
+    // held a port, so dropping them leaves every connection intact.
+    const Vector<Ref<OScriptNodePin>> outputs = find_pins(PD_Output);
+    for (const Ref<OScriptNodePin>& pin : outputs) {
+        if (pin->get_pin_name().begins_with("temp_")) {
+            remove_pin(pin);
+        }
+    }
+
     _choices = 0;
     for (const Ref<OScriptNodePin>& pin : find_pins(PD_Input)) {
         if (pin->get_pin_name().begins_with("choice_")) {
@@ -49,13 +60,6 @@ void OScriptNodeDialogueMessage::allocate_default_pins() {
     create_pin(PD_Input, PT_Data, PropertyUtils::make_file("scene", "*.scn,*.tscn; Scene Files"), "");
 
     if (_choices > 0) {
-        // Hidden spacers occupy the output rows opposite the four fixed inputs so that each choice
-        // exit renders on the same row as its choice input. Hidden pins hold no port, so they do
-        // not affect connections; the parser reads exits by position, spacers included.
-        for (int i = 0; i < 4; i++) {
-            create_pin(PD_Output, PT_Execution, PropertyUtils::make_exec("temp_" + itos(i)))->set_flag(OScriptNodePin::Flags::HIDDEN);
-        }
-
         for (int i = 0; i < _choices; i++) {
             const String pin_name = _get_pin_name_given_index(i);
             const PropertyInfo pi = PropertyUtils::make_object(pin_name, OScriptNodeDialogueChoice::get_class_static());
@@ -77,6 +81,22 @@ String OScriptNodeDialogueMessage::get_tooltip_text() const {
 
 String OScriptNodeDialogueMessage::get_node_title() const {
     return "Show Dialogue Message";
+}
+
+void OScriptNodeDialogueMessage::get_pin_layout(OScriptPinLayout& r_layout) const {
+    if (_choices == 0) {
+        super::get_pin_layout(r_layout);
+        return;
+    }
+
+    // The fixed inputs take rows alone; each choice shares its row with the exit it produces
+    for (const Ref<OScriptNodePin>& input : find_pins(PD_Input)) {
+        if (input->get_pin_name().begins_with(get_pin_prefix())) {
+            r_layout.add_row(input, find_pin(String(input->get_pin_name()) + "_out", PD_Output));
+        } else {
+            r_layout.add_input_row(input);
+        }
+    }
 }
 
 void OScriptNodeDialogueMessage::add_dynamic_pin() {

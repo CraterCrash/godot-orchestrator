@@ -3007,8 +3007,8 @@ OScriptParser::StatementResult OScriptParser::build_message_dialogue(const Ref<O
     MatchNode* match_node = alloc_node<MatchNode>();
     match_node->test = arg_get;
     for (int i = 0; i < choice_count; i++) {
-        // Positional: four hidden row spacers precede the choice exits, mirroring the four fixed inputs
-        const Ref<OScriptNodePin> output_pin = p_script_node->find_pin(4 + i, PD_Output);
+        // Choice exits are the only outputs when choices exist
+        const Ref<OScriptNodePin> output_pin = p_script_node->find_pin(i, PD_Output);
         if (output_pin.is_valid() && output_pin->has_any_connections()) {
             MatchBranchNode* branch = alloc_node<MatchBranchNode>();
             PatternNode* pattern = alloc_node<PatternNode>();

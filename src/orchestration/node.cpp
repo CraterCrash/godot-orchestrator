@@ -20,6 +20,7 @@
 #include "common/variant_utils.h"
 #include "core/godot/object/enum_resolver.h"
 #include "orchestration/orchestration.h"
+#include "orchestration/pin_layout.h"
 
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -189,6 +190,10 @@ void OScriptNode::rewire_old_pins_to_new_pins(const Vector<Ref<OScriptNodePin>>&
             }
         }
     }
+}
+
+void OScriptNode::get_pin_layout(OScriptPinLayout& r_layout) const {
+    r_layout.add_default_rows(_input_pins, _output_pins);
 }
 
 void OScriptNode::initialize(const OScriptNodeInitContext& p_context) {
