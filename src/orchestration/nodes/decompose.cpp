@@ -16,18 +16,17 @@
 //
 #include "orchestration/nodes/decompose.h"
 
-#include "api/extension_db.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "common/variant_struct_schema.h"
 #include "common/variant_utils.h"
-
-OScriptNodeDecompose::TypeMap OScriptNodeDecompose::_type_components;
 
 PackedStringArray OScriptNodeDecompose::_get_components() const {
     PackedStringArray results;
 
-    const Array &components = _type_components[_type];
+    // Break exposes every readable property, including derived members such as Rect2's end
+    const PackedStringArray components = VariantStructSchema::get_property_names(_type);
     int64_t index_start = 0;
     int64_t index_end = components.size();
     if (_type == Variant::COLOR) {
@@ -126,17 +125,6 @@ void OScriptNodeDecompose::configure(const OScriptNodeInitContext& p_context) {
 }
 
 void OScriptNodeDecompose::_bind_methods() {
-    // Populate the type components
-    for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
-        if (!type.properties.is_empty()) {
-            Array properties;
-            for (const PropertyInfo& pi : type.properties) {
-                properties.push_back(pi.name);
-            }
-            _type_components[type.type] = properties;
-        }
-    }
-
     ClassDB::bind_method(D_METHOD("_set_sub_type", "type"), &OScriptNodeDecompose::_set_sub_type);
     ClassDB::bind_method(D_METHOD("_get_sub_type"), &OScriptNodeDecompose::_get_sub_type);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "sub_type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_sub_type", "_get_sub_type");

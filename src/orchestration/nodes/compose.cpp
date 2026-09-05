@@ -16,16 +16,12 @@
 //
 #include "orchestration/nodes/compose.h"
 
-#include "api/extension_db.h"
 #include "common/dictionary_utils.h"
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "common/variant_struct_schema.h"
 #include "common/variant_utils.h"
-
-#include <godot_cpp/classes/expression.hpp>
-
-OScriptNodeCompose::TypeMap OScriptNodeCompose::_type_components;
 
 void OScriptNodeCompose::post_initialize() {
     // Clone this from the output pin
@@ -34,12 +30,8 @@ void OScriptNodeCompose::post_initialize() {
 }
 
 void OScriptNodeCompose::allocate_default_pins() {
-    Variant default_value = VariantUtils::make_default(_type);
-
-    const Array& components = _type_components[_type];
-    for (int i = 0; i < components.size(); i++) {
-        const Variant bit = default_value.get(components[i]);
-        create_pin(PD_Input, PT_Data, PropertyUtils::make_typed(components[i], bit.get_type()));
+    for (const PropertyInfo& component : VariantStructSchema::get_components(_type)) {
+        create_pin(PD_Input, PT_Data, PropertyUtils::make_typed(component.name, component.type));
     }
 
     // This is the pin that will be constructed from its types
@@ -49,7 +41,7 @@ void OScriptNodeCompose::allocate_default_pins() {
 String OScriptNodeCompose::get_tooltip_text() const {
     if (_type != Variant::NIL) {
         const String type_name = VariantUtils::get_friendly_type_name(_type);
-        const String components = StringUtils::join(", ", _type_components[_type]);
+        const String components = StringUtils::join(", ", VariantStructSchema::get_component_names(_type));
         return vformat("Make a %s from %s", type_name, components);
     }
     return "Construct a Godot built-in type, optionally from its sub-components.";
@@ -79,59 +71,8 @@ void OScriptNodeCompose::initialize(const OScriptNodeInitContext& p_context) {
 }
 
 bool OScriptNodeCompose::is_supported(Variant::Type p_type) {
-    switch (p_type)
-    {
-        // These types are handled by OScriptNodeComposeFrom
-        case Variant::AABB:
-        case Variant::BASIS:
-        case Variant::COLOR:
-        case Variant::PLANE:
-        case Variant::PROJECTION:
-        case Variant::QUATERNION:
-        case Variant::RECT2:
-        case Variant::RECT2I:
-        case Variant::TRANSFORM2D:
-        case Variant::TRANSFORM3D:
-        case Variant::VECTOR2:
-        case Variant::VECTOR2I:
-        case Variant::VECTOR3:
-        case Variant::VECTOR3I:
-        case Variant::VECTOR4:
-        case Variant::VECTOR4I:
-            return false;
-        default:
-            return true;
-    }
-}
-
-void OScriptNodeCompose::_bind_methods() {
-    // Populate the type components
-    for (const BuiltInType& type : ExtensionDB::get_builtin_types()) {
-        if (!type.properties.is_empty()) {
-            Array properties;
-            for (const PropertyInfo& pi : type.properties) {
-                properties.push_back(pi.name);
-            }
-
-            if (type.type == Variant::COLOR) {
-                // Color exposes a variety of additional properties, we only concern ourselves
-                // with the R,G,B,A properties and not R8,G8,B8,A8 nor H, S, or V.
-                properties.resize(4);
-            }
-            else if (type.type == Variant::PLANE) {
-                // Plane exposes not only the X,Y,Z and distance but also the normal.
-                // We want to express planes only via X, Y, Z, and distance.
-                properties.resize(4);
-            }
-            else if (type.type == Variant::AABB) {
-                // AABB exposes position, size, and end.
-                // We only want to express AABB via position and size only.
-                properties.resize(2);
-            }
-
-            _type_components[type.type] = properties;
-        }
-    }
+    // Composite types are handled by OScriptNodeComposeFrom
+    return !VariantStructSchema::is_composite(p_type);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

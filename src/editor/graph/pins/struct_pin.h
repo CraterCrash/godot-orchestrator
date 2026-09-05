@@ -31,8 +31,6 @@ class OrchestratorEditorGraphPinStruct : public OrchestratorEditorGraphPin {
     Vector<LineEdit*> _controls;
 
     static int _get_grid_columns_for_type(Variant::Type p_type);
-    static bool _is_property_excluded(Variant::Type p_type, const PropertyInfo& p_property);
-    static PackedStringArray _get_property_paths(Variant::Type p_type);
 
     void _update_control_value_part(const String& p_path, int p_index, const Variant& p_value);
     void _read_control_value_part(const String& p_path, int p_index, Variant& r_value);

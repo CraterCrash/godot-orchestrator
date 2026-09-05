@@ -43,9 +43,6 @@ public:
     };
 
 private:
-    using TypeMap = HashMap<Variant::Type, Array>;
-
-    static TypeMap _type_components;        //! Various types and respective components
     Variant::Type _type = Variant::NIL;     //! Transient type to pass from creation metadata
     SubType _sub_type = ST_NONE;
 
