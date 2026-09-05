@@ -73,7 +73,8 @@ void OrchestratorEditorGraphNode::_node_selected() {
 }
 
 void OrchestratorEditorGraphNode::_pin_connection_status_changed(int p_type, int p_index, bool p_connected) {
-    OrchestratorEditorGraphPin* pin = p_type == PD_Input ? get_input_pin(p_index) : get_output_pin(p_index);
+    // The model reports the pin's port, not its row
+    OrchestratorEditorGraphPin* pin = get_port_pin(p_index, static_cast<EPinDirection>(p_type));
     if (pin) {
         pin->set_default_value_control_visible(!p_connected);
     }

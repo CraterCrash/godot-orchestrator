@@ -24,6 +24,7 @@
 #include "common/scene_utils.h"
 #include "common/settings.h"
 #include "common/string_utils.h"
+#include "common/variant_struct_schema.h"
 #include "common/variant_utils.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
@@ -649,7 +650,8 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
         menu->add_item(label, callable_mp_this(_remove_node_pin).bind(p_pin));
     }
 
-    if (script_node->can_change_pin_type(p_pin->_pin)) {
+    // A sub-pin's type is fixed by its parent's component
+    if (!script_pin->is_sub_pin() && script_node->can_change_pin_type(p_pin->_pin)) {
         const Vector<Variant::Type> options = script_node->get_possible_pin_types(p_pin->_pin);
         if (!options.is_empty()) {
             OrchestratorEditorContextMenu* submenu = menu->add_submenu("Change Pin Type");
@@ -658,6 +660,22 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
                 submenu->add_item(label, callable_mp_this(_change_node_pin_type).bind(p_pin, option));
             }
         }
+    }
+
+    // Composite pins split into their components; a component recombines its parent
+    const bool is_composite = !script_pin->is_execution() && !script_pin->is_split() && script_pin->is_connectable()
+        && VariantStructSchema::is_composite(script_pin->get_type());
+    if (is_composite) {
+        const bool can_split = script_pin->can_split();
+        menu->add_item("Split Struct Pin", callable_mp_this(_split_node_pin).bind(p_pin),
+            { .disabled = !can_split, .tooltip = can_split ? String() : "Break this pin's link before splitting it." });
+    }
+    if (script_pin->is_sub_pin()) {
+        const Ref<OrchestrationGraphPin> parent = Ref<OrchestrationGraphPin>(script_pin->get_parent_pin());
+        const bool can_recombine = parent->can_recombine();
+        const String label = vformat("Recombine %s", StringUtils::default_if_empty(parent->get_label(), parent->get_component_name()).capitalize());
+        menu->add_item(label, callable_mp_this(_recombine_node_pin).bind(p_pin),
+            { .disabled = !can_recombine, .tooltip = can_recombine ? String() : "Break the links to every component before recombining." });
     }
 
     if (pin_connections.size() > 1) {
@@ -1513,6 +1531,32 @@ void OrchestratorEditorGraphPanel::_reset_pin_to_generated_default_value(Orchest
 
     p_pin->_pin->set_default_value(p_pin->_pin->get_generated_default_value());
     _set_edited(true);
+}
+
+void OrchestratorEditorGraphPanel::_split_node_pin(OrchestratorEditorGraphPin* p_pin) {
+    ERR_FAIL_NULL_MSG(p_pin, "Cannot split an invalid pin reference");
+
+    // The node rebuilds its widgets on change, which frees the pin widget; keep only the node
+    OrchestratorEditorGraphNode* graph_node = p_pin->get_graph_node();
+    const Ref<OrchestrationGraphNode> script_node = graph_node->_node;
+    if (script_node.is_valid() && script_node->split_pin(p_pin->_pin)) {
+        _set_edited(true);
+    }
+
+    // This shrinks the node when widget layouts change
+    graph_node->set_anchor_and_offset(SIDE_BOTTOM, 0, 0);
+}
+
+void OrchestratorEditorGraphPanel::_recombine_node_pin(OrchestratorEditorGraphPin* p_pin) {
+    ERR_FAIL_NULL_MSG(p_pin, "Cannot recombine an invalid pin reference");
+
+    OrchestratorEditorGraphNode* graph_node = p_pin->get_graph_node();
+    const Ref<OrchestrationGraphNode> script_node = graph_node->_node;
+    if (script_node.is_valid() && script_node->recombine_pin(p_pin->_pin)) {
+        _set_edited(true);
+    }
+
+    graph_node->set_anchor_and_offset(SIDE_BOTTOM, 0, 0);
 }
 
 void OrchestratorEditorGraphPanel::_view_documentation(const String& p_topic) {
