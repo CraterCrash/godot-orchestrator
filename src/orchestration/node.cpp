@@ -17,6 +17,7 @@
 #include "orchestration/node.h"
 
 #include "common/macros.h"
+#include "common/variant_struct_schema.h"
 #include "common/variant_utils.h"
 #include "core/godot/object/enum_resolver.h"
 #include "orchestration/orchestration.h"
@@ -49,6 +50,46 @@ void OScriptNode::_set_pin_data(const TypedArray<Dictionary>& p_pin_data) {
             _output_pins.push_back(pin);
         }
     }
+}
+
+void OScriptNode::_rewire_split_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins) {
+    int position[PD_MAX] = { 0, 0 };
+    for (const Ref<OScriptNodePin>& old : p_old_pins) {
+        const EPinDirection direction = old->get_direction();
+        const Ref<OScriptNodePin> new_pin = rewire_old_pins_by_position()
+            ? find_pin(position[direction], direction)
+            : find_pin(old->get_pin_name(), direction);
+        position[direction]++;
+
+        if (old->is_split() && new_pin.is_valid()) {
+            _restore_split_pin(old, new_pin);
+        }
+    }
+}
+
+void OScriptNode::_restore_split_pin(const Ref<OScriptNodePin>& p_old_pin, const Ref<OScriptNodePin>& p_new_pin) {
+    // A pin can only stay split if it kept its type; connections at the sub-pin ports are still present,
+    // so the eligibility check in split() cannot be used here.
+    if (p_new_pin->is_split() || p_new_pin->get_type() != p_old_pin->get_type() || !VariantStructSchema::is_composite(p_new_pin->get_type())) {
+        return;
+    }
+
+    p_new_pin->_split_components();
+
+    const Vector<Ref<OScriptNodePin>>& old_subs = p_old_pin->get_sub_pins();
+    const Vector<Ref<OScriptNodePin>>& new_subs = p_new_pin->get_sub_pins();
+    for (int i = 0; i < old_subs.size() && i < new_subs.size(); i++) {
+        new_subs[i]->_default_value = old_subs[i]->_default_value;
+        if (old_subs[i]->is_split()) {
+            _restore_split_pin(old_subs[i], new_subs[i]);
+        }
+    }
+}
+
+void OScriptNode::_slot_pins_changed() {
+    _cache_pin_indices();
+    emit_changed();
+    emit_signal("pins_changed");
 }
 
 bool OScriptNode::_is_in_editor() {
@@ -137,6 +178,8 @@ void OScriptNode::reconstruct_node() {
 
     reallocate_pins_during_reconstruction(old_pins);
     rewire_old_pins_to_new_pins(old_pins, get_all_pins());
+    _rewire_split_pins(old_pins);
+    _cache_pin_indices();
 
     post_reconstruct_node();
 
@@ -270,8 +313,13 @@ const Vector<Ref<OScriptNodePin>>& OScriptNode::find_pins(EPinDirection p_direct
 
 Vector<Ref<OScriptNodePin>> OScriptNode::get_slot_pins(EPinDirection p_direction) const {
     ERR_FAIL_COND_V_MSG(p_direction == PD_MAX, {}, "get_slot_pins requires PD_Input or PD_Output.");
-    // No pin can be split yet, so the slot view is the logical list
-    return p_direction == PD_Input ? _input_pins : _output_pins;
+
+    // Each logical pin stands for itself, or for its sub-pins when split
+    Vector<Ref<OScriptNodePin>> slot_pins;
+    for (const Ref<OScriptNodePin>& pin : (p_direction == PD_Input ? _input_pins : _output_pins)) {
+        slot_pins.append_array(pin->get_slot_pins());
+    }
+    return slot_pins;
 }
 
 Ref<OScriptNodePin> OScriptNode::find_slot_pin(int p_port, EPinDirection p_direction) const {
@@ -296,6 +344,60 @@ Ref<OScriptNodePin> OScriptNode::find_slot_pin(const String& p_name, EPinDirecti
         }
     }
     return {};
+}
+
+bool OScriptNode::split_pin(const Ref<OScriptNodePin>& p_pin) {
+    ERR_FAIL_COND_V(p_pin.is_null() || p_pin->get_owning_node() != this, false);
+    ERR_FAIL_COND_V_MSG(!p_pin->can_split(), false, vformat("Pin '%s' cannot be split.", p_pin->get_pin_name()));
+
+    const EPinDirection direction = p_pin->get_direction();
+    const int64_t added = VariantStructSchema::get_components(p_pin->get_type()).size() - 1;
+
+    // Ports are 8 bits wide in connections
+    int64_t port_count = 0;
+    for (const Ref<OScriptNodePin>& pin : get_slot_pins(direction)) {
+        if (!pin->is_hidden()) {
+            port_count++;
+        }
+    }
+    ERR_FAIL_COND_V_MSG(port_count + added > 255, false, vformat("Splitting pin '%s' would exceed the 255 ports a node may have.", p_pin->get_pin_name()));
+
+    // The pin's own port has no connections, so only the pins after it move
+    const int port = p_pin->get_pin_index();
+    if (!p_pin->split()) {
+        return false;
+    }
+
+    if (_orchestration && added > 0) {
+        _orchestration->adjust_connections(this, port + 1, added, direction);
+    }
+
+    _slot_pins_changed();
+    return true;
+}
+
+bool OScriptNode::recombine_pin(const Ref<OScriptNodePin>& p_pin) {
+    ERR_FAIL_COND_V(p_pin.is_null() || p_pin->get_owning_node() != this, false);
+
+    const Ref<OScriptNodePin> parent = p_pin->is_split() ? p_pin : Ref<OScriptNodePin>(p_pin->get_parent_pin());
+    ERR_FAIL_COND_V_MSG(parent.is_null() || !parent->can_recombine(), false, vformat("Pin '%s' cannot be recombined.", p_pin->get_pin_name()));
+
+    const EPinDirection direction = parent->get_direction();
+    const Vector<Ref<OScriptNodePin>> slot_pins = parent->get_slot_pins();
+    const int first_port = slot_pins[0]->get_pin_index();
+    const int64_t removed = slot_pins.size() - 1;
+
+    if (!parent->recombine()) {
+        return false;
+    }
+
+    // The recombined pin takes the first sub-pin's port; the pins after the last sub-pin move up
+    if (_orchestration && removed > 0) {
+        _orchestration->adjust_connections(this, first_port + removed + 1, -removed, direction);
+    }
+
+    _slot_pins_changed();
+    return true;
 }
 
 bool OScriptNode::remove_pin(const Ref<OScriptNodePin>& p_pin) {
@@ -338,8 +440,12 @@ Vector<Ref<OScriptNodePin>> OScriptNode::get_all_pins() const {
 }
 
 Vector<Ref<OScriptNodePin>> OScriptNode::get_eligible_autowire_pins(const Ref<OScriptNodePin>& p_pin) const {
+    // Autowire targets connectable pins, so sub-pins stand in for their split parents
+    Vector<Ref<OScriptNodePin>> candidates = get_slot_pins(PD_Input);
+    candidates.append_array(get_slot_pins(PD_Output));
+
     Vector<Ref<OScriptNodePin>> eligible_pins;
-    for (const Ref<OScriptNodePin>& pin : get_all_pins()) {
+    for (const Ref<OScriptNodePin>& pin : candidates) {
         // Invalid or hidden pins are skipped
         if (!pin.is_valid() || pin->is_hidden()) {
             continue;

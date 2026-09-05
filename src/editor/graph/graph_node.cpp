@@ -177,16 +177,19 @@ void OrchestratorEditorGraphNode::_create_pin_widgets()
     cells.resize(layout.get_rows().size());
 
     auto place = [&cells](const Ref<OrchestrationGraphPin>& p_pin, int64_t p_anchor, int64_t& r_next, bool p_left) {
-        const int64_t row = Math::max(p_anchor, r_next);
-        if (row >= cells.size()) {
-            cells.resize(row + 1);
+        // A split pin stands for its sub-pins, which flow down from the anchor row
+        for (const Ref<OrchestrationGraphPin>& slot_pin : p_pin->get_slot_pins()) {
+            const int64_t row = Math::max(p_anchor, r_next);
+            if (row >= cells.size()) {
+                cells.resize(row + 1);
+            }
+            if (p_left) {
+                cells.write[row].left = slot_pin;
+            } else {
+                cells.write[row].right = slot_pin;
+            }
+            r_next = row + 1;
         }
-        if (p_left) {
-            cells.write[row].left = p_pin;
-        } else {
-            cells.write[row].right = p_pin;
-        }
-        r_next = row + 1;
     };
 
     int64_t next_left = 0;

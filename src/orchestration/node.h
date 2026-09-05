@@ -100,6 +100,16 @@ private:
     TypedArray<Dictionary> _get_pin_data() const;
     void _set_pin_data(const TypedArray<Dictionary>& p_pin_data);
 
+    /// Re-applies the split state of the old pins to the freshly allocated pins after reconstruction.
+    /// @param p_old_pins the pins that existed before reconstruction
+    void _rewire_split_pins(const Vector<Ref<OScriptNodePin>>& p_old_pins);
+
+    /// Splits the new pin the way the old pin was split, recursively, carrying sub-pin defaults over.
+    static void _restore_split_pin(const Ref<OScriptNodePin>& p_old_pin, const Ref<OScriptNodePin>& p_new_pin);
+
+    /// Emits the notifications that follow a change to the node's slot pins.
+    void _slot_pins_changed();
+
 protected:
     // Registration
     static void register_custom_orchestrator_data_to_otdb() { }
@@ -396,6 +406,16 @@ public:
     /// @param p_direction the pin's direction, should not be PD_MAX
     /// @return the pin reference if found or an invalid reference if the pin is not found
     Ref<OScriptNodePin> find_slot_pin(const String& p_name, EPinDirection p_direction) const;
+
+    /// Splits a pin into its component sub-pins and shifts the ports of the pins after it.
+    /// @param p_pin a pin of this node that satisfies <code>OScriptNodePin::can_split</code>
+    /// @return true if the pin was split, false otherwise
+    bool split_pin(const Ref<OScriptNodePin>& p_pin);
+
+    /// Recombines a split pin, or the split pin a sub-pin belongs to, and shifts the ports after it.
+    /// @param p_pin a split pin of this node, or one of its sub-pins, satisfying <code>OScriptNodePin::can_recombine</code>
+    /// @return true if the pin was recombined, false otherwise
+    bool recombine_pin(const Ref<OScriptNodePin>& p_pin);
 
     /// Removes the specified pin from this node
     /// @param p_pin the pin to be removed

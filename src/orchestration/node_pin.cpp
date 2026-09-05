@@ -19,6 +19,7 @@
 #include "common/property_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "common/variant_struct_schema.h"
 #include "common/variant_utils.h"
 #include "orchestration/nodes.h"
 #include "orchestration/nodes/operator_node.h"
@@ -28,6 +29,48 @@
 
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script.hpp>
+
+void OScriptNodePin::_split_components() {
+    // Seed sub-pin defaults from this pin's values before any sub-pin exists, since the effective default
+    // of a split pin is composed from its sub-pins.
+    const Variant generated = _generated_default_value.get_type() != Variant::NIL
+        ? _generated_default_value
+        : VariantUtils::make_default(_property.type);
+    const Variant effective = get_effective_default_value();
+    const bool has_explicit_default = _default_value.get_type() != Variant::NIL;
+
+    for (const PropertyInfo& component : VariantStructSchema::get_components(_property.type)) {
+        const String path = vformat("%s.%s", _property.name, component.name);
+        Ref<OScriptNodePin> sub_pin = create(_owning_node, PropertyUtils::make_typed(path, component.type));
+        sub_pin->_parent = this;
+        sub_pin->_direction = _direction;
+        sub_pin->_flags.set_flag(DATA);
+        sub_pin->_set_type_resets_default = _set_type_resets_default;
+        sub_pin->_generated_default_value = generated.get(component.name);
+        if (has_explicit_default) {
+            sub_pin->_default_value = effective.get(component.name);
+        }
+        _sub_pins.push_back(sub_pin);
+    }
+}
+
+bool OScriptNodePin::_has_connected_descendant() const {
+    for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+        if (sub_pin->has_any_connections()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Ref<OScriptNodePin> OScriptNodePin::_find_slot_pin_connected_to(const Ref<OScriptNodePin>& p_other) const {
+    for (const Ref<OScriptNodePin>& slot_pin : get_slot_pins()) {
+        if (slot_pin->get_connections().has(p_other)) {
+            return slot_pin;
+        }
+    }
+    return {};
+}
 
 Ref<OScriptNodePin> OScriptNodePin::create(OScriptNode* p_owning_node, const PropertyInfo& p_property) {
     Ref<OScriptNodePin> pin(memnew(OScriptNodePin));
@@ -123,6 +166,19 @@ bool OScriptNodePin::_load(const Dictionary& p_data) {
         _property.usage = p_data["usage"];
     }
 
+    if (p_data.has("split")) {
+        const Array sub_pins = p_data["split"];
+        for (int i = 0; i < sub_pins.size(); i++) {
+            Ref<OScriptNodePin> sub_pin;
+            sub_pin.instantiate();
+            sub_pin->_owning_node = _owning_node;
+            sub_pin->_parent = this;
+            if (sub_pin->_load(sub_pins[i])) {
+                _sub_pins.push_back(sub_pin);
+            }
+        }
+    }
+
     return true;
 }
 
@@ -177,6 +233,14 @@ Dictionary OScriptNodePin::_save() {
         data["usage"] = _property.usage;
     }
 
+    if (is_split()) {
+        Array sub_pins;
+        for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+            sub_pins.push_back(sub_pin->_save());
+        }
+        data["split"] = sub_pins;
+    }
+
     return data;
 }
 
@@ -217,6 +281,9 @@ Ref<OScriptNodePin> OScriptNodePin::create(OScriptNode* p_owning_node) {
 
 void OScriptNodePin::post_initialize() {
     _set_type_resets_default = true;
+    for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+        sub_pin->post_initialize();
+    }
 }
 
 OScriptNode* OScriptNodePin::get_owning_node() const {
@@ -226,6 +293,9 @@ OScriptNode* OScriptNodePin::get_owning_node() const {
 void OScriptNodePin::set_owning_node(OScriptNode* p_owning_node) {
     if (_owning_node != p_owning_node) {
         _owning_node = p_owning_node;
+        for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+            sub_pin->set_owning_node(p_owning_node);
+        }
         emit_changed();
     }
 }
@@ -258,6 +328,7 @@ Variant::Type OScriptNodePin::get_type() const {
 
 void OScriptNodePin::set_type(Variant::Type p_type) {
     if (_property.type != p_type) {
+        ERR_FAIL_COND_MSG(is_split(), vformat("Pin '%s' must be recombined before its type can change.", _property.name));
         _property.type = p_type;
 
         if (_set_type_resets_default) {
@@ -328,6 +399,15 @@ void OScriptNodePin::set_generated_default_value(const Variant& p_default_value)
 }
 
 Variant OScriptNodePin::get_effective_default_value() const {
+    if (is_split()) {
+        // The sub-pins hold the value while the pin is split
+        Vector<Variant> components;
+        for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+            components.push_back(sub_pin->get_effective_default_value());
+        }
+        return VariantStructSchema::compose(_property.type, components);
+    }
+
     Variant value = get_default_value();
     if (value.get_type() == Variant::NIL) {
         value = get_generated_default_value();
@@ -408,6 +488,19 @@ String OScriptNodePin::get_file_types() const {
 }
 
 bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
+    ERR_FAIL_COND_V(p_pin.is_null(), false);
+
+    // A split pin stands for its sub-pins, so a check against it is a check against the sub-pin
+    // that actually carries the connection to the other side.
+    if (p_pin->is_split()) {
+        const Ref<OScriptNodePin> source = p_pin->_find_slot_pin_connected_to(Ref<OScriptNodePin>(const_cast<OScriptNodePin*>(this)));
+        return source.is_valid() && can_accept(source);
+    }
+    if (is_split()) {
+        const Ref<OScriptNodePin> target = _find_slot_pin_connected_to(p_pin);
+        return target.is_valid() && target->can_accept(p_pin);
+    }
+
     // todo: consider relaxing this requirement
     // This should always be called from the context that "this" is the target and p_pin is the source.
     if (get_direction() != PD_Input || p_pin->get_direction() != PD_Output) {
@@ -572,6 +665,7 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const {
 
 void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin) {
     ERR_FAIL_COND_MSG(p_pin.is_null(), "Connection link failed, target pin is not valid.");
+    ERR_FAIL_COND_MSG(is_split() || p_pin->is_split(), "Connection link failed, a split pin holds no port; link one of its sub-pins.");
 
     Orchestration* orchestration = get_owning_node()->get_orchestration();
 
@@ -659,6 +753,22 @@ void OScriptNodePin::link(const Ref<OScriptNodePin>& p_pin) {
 void OScriptNodePin::unlink(const Ref<OScriptNodePin>& p_pin) {
     ERR_FAIL_COND_MSG(!p_pin.is_valid(), "Connection unlink failed, pin is not valid.");
 
+    // A split pin holds no connection itself; unlink through the sub-pin that does
+    if (is_split()) {
+        const Ref<OScriptNodePin> slot_pin = _find_slot_pin_connected_to(p_pin);
+        if (slot_pin.is_valid()) {
+            slot_pin->unlink(p_pin);
+        }
+        return;
+    }
+    if (p_pin->is_split()) {
+        const Ref<OScriptNodePin> slot_pin = p_pin->_find_slot_pin_connected_to(Ref<OScriptNodePin>(this));
+        if (slot_pin.is_valid()) {
+            unlink(slot_pin);
+        }
+        return;
+    }
+
     // todo: tried delegating to node graph; however, the find_graph method failed to return a graph instance
     Orchestration* orchestration = get_owning_node()->get_orchestration();
 
@@ -685,6 +795,14 @@ void OScriptNodePin::unlink(const Ref<OScriptNodePin>& p_pin) {
 }
 
 void OScriptNodePin::unlink_all(bool p_notify_nodes) {
+    if (is_split()) {
+        // A split pin holds no connections of its own
+        for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+            sub_pin->unlink_all(p_notify_nodes);
+        }
+        return;
+    }
+
     Orchestration* orchestration = get_owning_node()->get_orchestration();
 
     Vector<Ref<OScriptNode>> affected_nodes;
@@ -707,14 +825,35 @@ void OScriptNodePin::unlink_all(bool p_notify_nodes) {
 }
 
 bool OScriptNodePin::has_any_connections() const {
+    if (is_split()) {
+        return _has_connected_descendant();
+    }
     return get_owning_node()->get_orchestration()->has_connections(this);
 }
 
 Vector<Ref<OScriptNodePin>> OScriptNodePin::get_connections() const {
+    if (is_split()) {
+        // A split pin reports the connections of the pins standing in for it
+        Vector<Ref<OScriptNodePin>> connections;
+        for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+            connections.append_array(sub_pin->get_connections());
+        }
+        return connections;
+    }
     return get_owning_node()->get_orchestration()->get_connections(this);
 }
 
 Ref<OScriptNodePin> OScriptNodePin::get_connection() const {
+    // A split pin reports the connection of the first sub-pin that has one
+    if (is_split()) {
+        for (const Ref<OScriptNodePin>& slot_pin : get_slot_pins()) {
+            if (slot_pin->has_any_connections()) {
+                return slot_pin->get_connection();
+            }
+        }
+        return {};
+    }
+
     if (get_direction() == PD_Input) {
         // Control flow can have multiple inputs while data pins have only one.
         if (_flags.has_flag(DATA)) {
@@ -744,6 +883,80 @@ Vector<Ref<OScriptNodePin>> OScriptNodePin::get_resolved_connections() const {
         }
     }
     return result;
+}
+
+Ref<OScriptNodePin> OScriptNodePin::get_root_pin() const {
+    const OScriptNodePin* pin = this;
+    while (pin->_parent) {
+        pin = pin->_parent;
+    }
+    return Ref<OScriptNodePin>(const_cast<OScriptNodePin*>(pin));
+}
+
+String OScriptNodePin::get_component_name() const {
+    const String name = _property.name;
+    const int separator = name.rfind(".");
+    return separator == -1 ? name : name.substr(separator + 1);
+}
+
+Vector<Ref<OScriptNodePin>> OScriptNodePin::get_slot_pins() const {
+    if (!is_split()) {
+        return { Ref<OScriptNodePin>(const_cast<OScriptNodePin*>(this)) };
+    }
+
+    Vector<Ref<OScriptNodePin>> slot_pins;
+    for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+        slot_pins.append_array(sub_pin->get_slot_pins());
+    }
+    return slot_pins;
+}
+
+bool OScriptNodePin::can_split() const {
+    if (is_split() || is_execution() || !_flags.has_flag(DATA)) {
+        return false;
+    }
+    if (!VariantStructSchema::is_composite(_property.type)) {
+        return false;
+    }
+    return !has_any_connections();
+}
+
+bool OScriptNodePin::split() {
+    ERR_FAIL_COND_V_MSG(!can_split(), false, vformat("Pin '%s' cannot be split.", _property.name));
+    _split_components();
+    emit_changed();
+    return true;
+}
+
+bool OScriptNodePin::can_recombine() const {
+    return is_split() && !_has_connected_descendant();
+}
+
+bool OScriptNodePin::recombine() {
+    ERR_FAIL_COND_V_MSG(!can_recombine(), false, vformat("Pin '%s' cannot be recombined while a sub-pin is connected.", _property.name));
+
+    // Fold the sub-pin values back into this pin, but only when a user actually changed one; otherwise,
+    // the pin returns to relying on its generated default value.
+    bool has_explicit_default = false;
+    for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+        if (sub_pin->get_default_value().get_type() != Variant::NIL || sub_pin->is_split()) {
+            has_explicit_default = true;
+            break;
+        }
+    }
+
+    const Variant composed = get_effective_default_value();
+    for (const Ref<OScriptNodePin>& sub_pin : _sub_pins) {
+        sub_pin->_parent = nullptr;
+    }
+    _sub_pins.clear();
+
+    if (has_explicit_default) {
+        _default_value = composed;
+    }
+
+    emit_changed();
+    return true;
 }
 
 bool OScriptNodePin::is_label_visible() const {
