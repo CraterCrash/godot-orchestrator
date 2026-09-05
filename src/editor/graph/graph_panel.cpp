@@ -245,7 +245,7 @@ void OrchestratorEditorGraphPanel::_connection_drag_ended() {
 
 void OrchestratorEditorGraphPanel::_copy_nodes_request() {
     const Vector<OrchestratorEditorGraphNode*> selected_nodes = get_selected<OrchestratorEditorGraphNode>();
-    if (!selected_nodes.is_empty() && !_can_duplicate_nodes(selected_nodes)) {
+    if (!selected_nodes.is_empty() && !_can_copy_nodes(selected_nodes)) {
         return;
     }
 
@@ -254,7 +254,7 @@ void OrchestratorEditorGraphPanel::_copy_nodes_request() {
 
 void OrchestratorEditorGraphPanel::_cut_nodes_request() {
     const Vector<OrchestratorEditorGraphNode*> selected = get_selected<OrchestratorEditorGraphNode>();
-    if (selected.is_empty() || !_can_duplicate_nodes(selected)) {
+    if (selected.is_empty() || !_can_copy_nodes(selected)) {
         return;
     }
 
@@ -817,10 +817,9 @@ void OrchestratorEditorGraphPanel::_expand_node(OrchestratorEditorGraphNode* p_n
     HashSet<int> nodes_to_duplicate;
     const Ref<OrchestrationGraph> function_graph = function->get_function_graph();
     for (const Ref<OrchestrationGraphNode>& node : function_graph->get_nodes()) {
-        const Ref<OScriptNodeFunctionEntry> entry = node;
         const Ref<OScriptNodeFunctionResult> result = node;
 
-        if (!entry.is_valid() && !result.is_valid() && node->can_duplicate()) {
+        if (!result.is_valid() && node->can_duplicate()) {
             const Rect2 node_rect = Rect2(node->get_position(), node->get_size());
             if (nodes_to_duplicate.is_empty()) {
                 nodes_area = node_rect;
@@ -2027,6 +2026,19 @@ bool OrchestratorEditorGraphPanel::_can_duplicate_nodes(const Vector<Orchestrato
         if (!node->_node->can_duplicate()) {
             if (p_error_dialog) {
                 const String message = vformat("Cannot duplicate node '%s' with ID %d", node->get_title(), node->get_id());
+                OrchestratorEditorDialogs::error(message);
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+bool OrchestratorEditorGraphPanel::_can_copy_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog) {
+    for (OrchestratorEditorGraphNode* node : p_nodes) {
+        if (!node->_node->can_copy()) {
+            if (p_error_dialog) {
+                const String message = vformat("Cannot copy node '%s' with ID %d", node->get_title(), node->get_id());
                 OrchestratorEditorDialogs::error(message);
             }
             return false;
