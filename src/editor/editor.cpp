@@ -2457,7 +2457,6 @@ void OrchestratorEditor::_notification(int p_what) {
         case NOTIFICATION_LAYOUT_DIRECTION_CHANGED:
         case NOTIFICATION_THEME_CHANGED: {
             _theme_manager->theme_changed();
-            _tab_container->add_theme_stylebox_override(SceneStringName(panel), get_theme_stylebox("ScriptEditor", "EditorStyles"));
 
             _calculate_script_name_button_size();
 
@@ -2473,8 +2472,6 @@ void OrchestratorEditor::_notification(int p_what) {
             break;
         }
         case NOTIFICATION_READY: {
-            add_theme_stylebox_override(SceneStringName(panel), get_theme_stylebox("ScriptEditorPanel", "EditorStyles"));
-
             EditorNode->connect("script_add_function_request", callable_mp_this(_add_callback));
             EditorNode->connect("resource_saved", callable_mp_this(_resource_saved_callback));
 
@@ -2526,6 +2523,11 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _theme_manager->connect("theme_rebuilt", callable_mp_lambda(this, [this] {
         set_theme(_theme_manager->get_theme());
     }));
+
+    // The builder produces the initial theme synchronously, so the panel style resolves from it
+    // on the first frame rather than falling back to the Godot editor theme.
+    set_theme(_theme_manager->get_theme());
+    set_theme_type_variation("OrchestratorEditorPanel");
 
     add_child(memnew(OrchestratorEditorActionRegistry));
     add_child(memnew(OrchestratorEditorConnectionsDock));
@@ -2580,6 +2582,7 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _script_split->add_child(editor_container);
 
     _tab_container = memnew(TabContainer);
+    _tab_container->set_theme_type_variation("OrchestratorEditorTabs");
     _tab_container->set_tabs_visible(false);
     _tab_container->set_custom_minimum_size(Size2(200, 0) * EDSCALE);
     _tab_container->set_h_size_flags(SIZE_EXPAND_FILL);
