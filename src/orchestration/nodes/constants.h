@@ -69,6 +69,7 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNodeInterface
 
@@ -98,6 +99,7 @@ public:
     String get_help_topic() const override;
     String get_icon() const override;
     PackedStringArray get_keywords() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNodeInterface
 
     String get_constant_name() const { return _constant_name; }
@@ -138,6 +140,7 @@ public:
     String get_node_title() const override;
     String get_help_topic() const override;
     String get_icon() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     void initialize(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNodeInterface
 
@@ -188,6 +191,7 @@ public:
     String get_node_title() const override;
     String get_help_topic() const override;
     String get_icon() const override;
+    void configure(const OScriptNodeInitContext& p_context) override;
     //~ End OScriptNodeInterface
 
     String get_constant_class_name() const { return _class_name; }
