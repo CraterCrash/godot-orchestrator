@@ -20,6 +20,7 @@
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/rb_set.hpp>
 
 using namespace godot;
@@ -198,6 +199,27 @@ public:
     /// @param p_position the position to be placed
     /// @return the pasted node
     Ref<OScriptNode> paste_node(const Ref<OScriptNode>& p_node, const Vector2& p_position);
+
+    /// Exports a set of nodes as data that any graph can import, including one in another orchestration.
+    /// The data holds each node's persisted properties, the connections between the exported nodes, and
+    /// the knots on those connections. Connections to nodes outside the set are dropped.
+    /// @param p_node_ids the nodes to export, ids not in this graph are ignored
+    /// @return the exported data
+    Dictionary export_nodes(const Vector<int>& p_node_ids) const;
+
+    /// Imports nodes from data produced by <code>export_nodes</code> into this graph, assigning new ids
+    /// and preserving everything internal to the set: connections, knots, comment attachments, and
+    /// promotable operator pin types.
+    /// @param p_data the exported data
+    /// @param p_offset the offset added to each exported node position
+    /// @param r_remap map of exported node id to the id of its imported counterpart in this graph. Import
+    ///   adds an entry for every node it creates. A caller may seed entries for exported nodes it has
+    ///   already recreated by other means, for example an event node created through <code>create_node</code>
+    ///   so its function exists. For a seeded entry, import does not create a node and does not verify that
+    ///   the mapped node matches the exported one in type or pins; it simply wires connections and comment
+    ///   attachments to it. The caller is responsible for the mapped node being an equivalent of the export.
+    /// @param p_skipped exported node ids that are not imported
+    void import_nodes(const Dictionary& p_data, const Vector2& p_offset, HashMap<uint64_t, uint64_t>& r_remap, const HashSet<int>& p_skipped = HashSet<int>());
 
     /// Sanitize the nodes array
     void sanitize_nodes();

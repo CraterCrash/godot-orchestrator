@@ -16,8 +16,10 @@
 //
 #include "orchestration/graph.h"
 
+#include "common/resource_utils.h"
 #include "orchestration/nodes.h"
 #include "orchestration/orchestration.h"
+#include "orchestration/serialization/format.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
@@ -458,6 +460,154 @@ Ref<OScriptNode> OScriptGraph::paste_node(const Ref<OScriptNode>& p_node, const 
     node->post_placed_new_node();
 
     return node;
+}
+
+Dictionary OScriptGraph::export_nodes(const Vector<int>& p_node_ids) const {
+    Dictionary data;
+    data["format"] = OrchestrationFormat::FORMAT_VERSION;
+
+    HashSet<int> exported;
+    Array nodes;
+    for (const int node_id : p_node_ids) {
+        if (!_nodes.has(node_id)) {
+            continue;
+        }
+
+        const Ref<OScriptNode> node = get_node(node_id);
+        if (!node.is_valid()) {
+            continue;
+        }
+
+        // The id is carried on the entry, the importer assigns a new one
+        Dictionary properties = ResourceUtils::get_storage_properties(node);
+        properties.erase("id");
+
+        Dictionary entry;
+        entry["class"] = node->get_class();
+        entry["id"] = node_id;
+        entry["properties"] = properties;
+
+        nodes.push_back(entry);
+        exported.insert(node_id);
+    }
+    data["nodes"] = nodes;
+
+    // Connections are stored flat, four values per connection, matching the script file layout
+    Array connections;
+    Dictionary knots;
+    for (const OScriptConnection& C : get_connections()) {
+        if (!exported.has(C.from_node) || !exported.has(C.to_node)) {
+            continue;
+        }
+
+        connections.push_back(static_cast<int>(C.from_node));
+        connections.push_back(static_cast<int>(C.from_port));
+        connections.push_back(static_cast<int>(C.to_node));
+        connections.push_back(static_cast<int>(C.to_port));
+
+        if (_knots.has(C.id)) {
+            knots[static_cast<int64_t>(C.id)] = _knots[C.id];
+        }
+    }
+    data["connections"] = connections;
+    data["knots"] = knots;
+
+    return data;
+}
+
+void OScriptGraph::import_nodes(const Dictionary& p_data, const Vector2& p_offset, HashMap<uint64_t, uint64_t>& r_remap, const HashSet<int>& p_skipped) {
+    ERR_FAIL_NULL(_orchestration);
+
+    const uint32_t version = p_data.get("format", OrchestrationFormat::FORMAT_VERSION);
+
+    // Nodes created here, keyed by their new id, for the fix-ups that must run after linking
+    HashMap<uint64_t, Dictionary> created;
+
+    const Array entries = p_data.get("nodes", Array());
+    for (int i = 0; i < entries.size(); i++) {
+        const Dictionary entry = entries[i];
+        const int exported_id = entry.get("id", -1);
+        if (exported_id < 0 || p_skipped.has(exported_id) || r_remap.has(exported_id)) {
+            continue;
+        }
+
+        const String class_name = entry.get("class", String());
+        const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(class_name, _orchestration);
+        ERR_CONTINUE_MSG(!node.is_valid(), vformat("Cannot import node %d, unknown node type '%s'.", exported_id, class_name));
+
+        const Dictionary properties = entry.get("properties", Dictionary());
+        const Array keys = properties.keys();
+        for (int j = 0; j < keys.size(); j++) {
+            node->set(keys[j], properties[keys[j]]);
+        }
+
+        node->set_id(_orchestration->get_available_id());
+        node->set_position(Vector2(properties.get("position", Vector2())) + p_offset);
+
+        if (version < OrchestrationFormat::FORMAT_VERSION) {
+            node->_upgrade(version, OrchestrationFormat::FORMAT_VERSION);
+        }
+
+        node->post_initialize();
+        _orchestration->add_node(this, node);
+        node->post_placed_new_node();
+
+        r_remap[exported_id] = node->get_id();
+        created[node->get_id()] = properties;
+    }
+
+    const Array connections = p_data.get("connections", Array());
+    const Dictionary knots = p_data.get("knots", Dictionary());
+    bool knots_changed = false;
+    for (int i = 0; i + 3 < connections.size(); i += 4) {
+        OScriptConnection exported;
+        exported.from_node = static_cast<int>(connections[i]);
+        exported.from_port = static_cast<int>(connections[i + 1]);
+        exported.to_node = static_cast<int>(connections[i + 2]);
+        exported.to_port = static_cast<int>(connections[i + 3]);
+
+        if (!r_remap.has(exported.from_node) || !r_remap.has(exported.to_node)) {
+            continue;
+        }
+
+        OScriptConnection imported;
+        imported.from_node = r_remap[exported.from_node];
+        imported.from_port = exported.from_port;
+        imported.to_node = r_remap[exported.to_node];
+        imported.to_port = exported.to_port;
+
+        link(imported.from_node, imported.from_port, imported.to_node, imported.to_port);
+
+        const int64_t exported_key = static_cast<int64_t>(exported.id);
+        if (knots.has(exported_key)) {
+            PackedVector2Array points = knots[exported_key];
+            for (int j = 0; j < points.size(); j++) {
+                points.set(j, points[j] + p_offset);
+            }
+            _knots[imported.id] = points;
+            knots_changed = true;
+        }
+    }
+
+    if (knots_changed) {
+        emit_signal("knots_updated");
+    }
+
+    for (const KeyValue<uint64_t, Dictionary>& E : created) {
+        const Ref<OScriptNode> node = _orchestration->get_node(E.key);
+        if (!node.is_valid()) {
+            continue;
+        }
+
+        // Linking may have promoted operator pins away from the exported types
+        OScriptNodePromotableOperator::copy_pin_types(E.value, node);
+
+        // Attachments still reference the exported ids
+        const Ref<OScriptNodeComment> comment = node;
+        if (comment.is_valid()) {
+            comment->remap_attached_nodes(r_remap);
+        }
+    }
 }
 
 Vector<Ref<OScriptFunction>> OScriptGraph::get_functions() const {

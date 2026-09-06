@@ -30,6 +30,7 @@
 #include "editor/actions/registry.h"
 #include "editor/editor_view.h"
 #include "editor/getting_started.h"
+#include "editor/graph/graph_clipboard.h"
 #include "editor/gui/about_dialog.h"
 #include "editor/gui/dialogs_helper.h"
 #include "editor/gui/editor_log_event_router.h"
@@ -2782,5 +2783,6 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
 }
 
 OrchestratorEditor::~OrchestratorEditor() {
+    OrchestratorEditorGraphClipboard::free_resources();
     memdelete(_theme_manager);
 }
