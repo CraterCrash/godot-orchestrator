@@ -1962,6 +1962,13 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
         case OrchestratorEditorActionDefinition::ACTION_EVENT: {
             ERR_FAIL_COND_MSG(!p_action->method.has_value(), "Handle event has no method");
 
+            // Events live in event graphs only. This panel cannot see other graphs, so the owning
+            // editor resolves the event graph and spawns there, see script_editor_view.
+            if (!_graph->get_flags().has_flag(OrchestrationGraph::GF_EVENT)) {
+                emit_signal("event_spawn_requested", DictionaryUtils::from_method(p_action->method.value()));
+                break;
+            }
+
             NodeSpawnOptions options;
             options.node_class = OScriptNodeEvent::get_class_static();
             options.context.method = p_action->method;
@@ -3783,6 +3790,9 @@ void OrchestratorEditorGraphPanel::_bind_methods() {
 
     // Used to notify parent type to focus & edit the function
     ADD_SIGNAL(MethodInfo("edit_function_requested", PropertyInfo(Variant::STRING, "function_name")));
+
+    // Used to notify parent type to spawn the event in an event graph when this panel is not one
+    ADD_SIGNAL(MethodInfo("event_spawn_requested", PropertyInfo(Variant::DICTIONARY, "method")));
 
     ADD_SIGNAL(MethodInfo("breakpoint_changed", PropertyInfo(Variant::INT, "node_id"), PropertyInfo(Variant::BOOL, "enabled")));
     ADD_SIGNAL(MethodInfo("breakpoint_added", PropertyInfo(Variant::INT, "node_id")));

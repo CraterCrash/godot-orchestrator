@@ -134,6 +134,7 @@ protected:
     void _scroll_to_graph_node(int p_node_id);
 
     void _focus_object(Object* p_object);
+    void _event_spawn_requested(const Dictionary& p_method);
 
     void _toggle_bookmark_for_selected_nodes();
     void _remove_all_bookmarks();
