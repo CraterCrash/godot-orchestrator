@@ -150,6 +150,26 @@ void OScriptNodeComment::detach_node(const Ref<OScriptNode>& p_node) {
     }
 }
 
+void OScriptNodeComment::remap_attached_nodes(const HashMap<uint64_t, uint64_t>& p_remap) {
+    PackedInt64Array remapped;
+    for (const int64_t node_id : _attached_nodes) {
+        if (const uint64_t* mapped = p_remap.getptr(node_id)) {
+            remapped.push_back(*mapped);
+        }
+    }
+    set_attached_nodes(remapped);
+}
+
+void OScriptNodeComment::retain_attached_nodes(const HashSet<int>& p_node_ids) {
+    PackedInt64Array retained;
+    for (const int64_t node_id : _attached_nodes) {
+        if (p_node_ids.has(node_id)) {
+            retained.push_back(node_id);
+        }
+    }
+    set_attached_nodes(retained);
+}
+
 void OScriptNodeComment::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_icon_path"), &OScriptNodeComment::get_icon_path);
     ClassDB::bind_method(D_METHOD("set_icon_path", "icon_path"), &OScriptNodeComment::set_icon_path);
