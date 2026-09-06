@@ -28,18 +28,73 @@
 #include "orchestration/nodes/operator_node.h"
 #include "orchestration/nodes/variables.h"
 #include "orchestration/orchestration.h"
+#include "orchestration/serialization/format.h"
 
-Dictionary* OrchestratorEditorGraphClipboard::_payload = nullptr;
+#include <godot_cpp/classes/display_server.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
+
+namespace {
+    constexpr const char* PAYLOAD_MAGIC = "orchestrator/clipboard";
+    constexpr const char* PAYLOAD_HEADER = "; orchestrator/clipboard";
+}
+
+OrchestratorEditorGraphClipboard::Buffer* OrchestratorEditorGraphClipboard::_buffer = nullptr;
 
 bool OrchestratorEditorGraphClipboard::ClipboardResult::had_skipped_nodes() const {
     return !skipped_functions.is_empty() || !skipped_events.is_empty() || !skipped_variables.is_empty() || !skipped_signals.is_empty();
 }
 
-Dictionary& OrchestratorEditorGraphClipboard::_get_payload() {
-    if (!_payload) {
-        _payload = memnew(Dictionary);
+void OrchestratorEditorGraphClipboard::_write_payload(const Dictionary& p_payload) {
+    if (!_buffer) {
+        _buffer = memnew(Buffer);
     }
-    return *_payload;
+
+    _buffer->payload = p_payload;
+    _buffer->text = String(PAYLOAD_HEADER) + "\n" + UtilityFunctions::var_to_str(p_payload);
+
+    if (DisplayServer* display_server = DisplayServer::get_singleton()) {
+        display_server->clipboard_set(_buffer->text);
+    }
+}
+
+bool OrchestratorEditorGraphClipboard::_read_payload(Dictionary& r_payload) {
+    DisplayServer* display_server = DisplayServer::get_singleton();
+    const String text = display_server ? display_server->clipboard_get() : String();
+
+    // Nothing on the OS clipboard, or no OS clipboard at all, falls back to what this editor last copied
+    if (text.is_empty()) {
+        if (_buffer && !_buffer->payload.is_empty()) {
+            r_payload = _buffer->payload;
+            return true;
+        }
+        return false;
+    }
+
+    // Something other than a payload is on the clipboard, there is nothing to paste
+    if (!text.begins_with(PAYLOAD_HEADER)) {
+        return false;
+    }
+
+    // Text this editor produced needs no parsing
+    if (_buffer && text == _buffer->text) {
+        r_payload = _buffer->payload;
+        return true;
+    }
+
+    // The header is a parser comment, so the text is parsed as a whole
+    const Variant parsed = UtilityFunctions::str_to_var(text);
+    ERR_FAIL_COND_V_MSG(parsed.get_type() != Variant::DICTIONARY, false, "The clipboard payload could not be parsed.");
+
+    const Dictionary payload = parsed;
+    ERR_FAIL_COND_V_MSG(String(payload.get("magic", String())) != PAYLOAD_MAGIC, false, "The clipboard text is not an Orchestrator payload.");
+
+    const Dictionary graph = payload.get("graph", Dictionary());
+    const uint32_t format = graph.get("format", OrchestrationFormat::FORMAT_VERSION);
+    ERR_FAIL_COND_V_MSG(format > OrchestrationFormat::FORMAT_VERSION, false,
+        vformat("The clipboard payload was created by a newer version of Orchestrator (%s).", String(payload.get("plugin", String()))));
+
+    r_payload = payload;
+    return true;
 }
 
 void OrchestratorEditorGraphClipboard::_apply_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded) {
@@ -111,14 +166,16 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
         result.added_nodes.insert(script_node->get_id());
     }
 
-    Dictionary& payload = _get_payload();
-    payload["magic"] = "orchestrator/clipboard";
+    Dictionary payload;
+    payload["magic"] = PAYLOAD_MAGIC;
     payload["plugin"] = VERSION_FULL_BUILD;
     payload["graph"] = p_source->export_nodes(node_ids);
     payload["functions"] = functions;
     payload["events"] = events;
     payload["variables"] = variables;
     payload["signals"] = signals;
+
+    _write_payload(payload);
 
     return result;
 }
@@ -127,14 +184,14 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     const Ref<OrchestrationGraph>& p_target, const Vector2& p_offset, bool p_snapping_enabled, int p_snapping_distance) {
 
     ClipboardResult result;
-    if (!_payload || _payload->is_empty()) {
+
+    Dictionary payload;
+    if (!_read_payload(payload)) {
         return result;
     }
 
     Orchestration* orchestration = p_target->get_orchestration();
     ERR_FAIL_NULL_V(orchestration, result);
-
-    const Dictionary& payload = *_payload;
 
     // Properties that identify a resource within its source orchestration, or that the target
     // consumes when it creates the resource. Everything else in a declaration is applied as-is.
@@ -370,14 +427,15 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
 }
 
 void OrchestratorEditorGraphClipboard::clear() {
-    if (_payload) {
-        _payload->clear();
+    if (_buffer) {
+        _buffer->payload.clear();
+        _buffer->text = String();
     }
 }
 
 void OrchestratorEditorGraphClipboard::free_resources() {
-    if (_payload) {
-        memdelete(_payload);
-        _payload = nullptr;
+    if (_buffer) {
+        memdelete(_buffer);
+        _buffer = nullptr;
     }
 }
