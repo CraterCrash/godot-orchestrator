@@ -20,6 +20,7 @@
 #include "common/method_utils.h"
 #include "common/property_utils.h"
 #include "orchestration/nodes/call_function.h"
+#include "orchestration/nodes/comment.h"
 #include "orchestration/nodes/emit_signal.h"
 #include "orchestration/nodes/event.h"
 #include "orchestration/nodes/operator_node.h"
@@ -46,42 +47,63 @@ bool OrchestratorEditorGraphClipboard::ClipboardResult::had_skipped_nodes() cons
 }
 
 OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboard::copy(
-    const Vector<OrchestratorEditorGraphNode*>& p_nodes, const Ref<OrchestrationGraph>& p_source) {
+    const Vector<Ref<OrchestrationGraphNode>>& p_nodes, const Ref<OrchestrationGraph>& p_source) {
 
     clear();
 
     ClipboardResult result;
     HashSet<uint64_t> node_ids;
-    for (OrchestratorEditorGraphNode* node : p_nodes) {
-        const Ref<OrchestrationGraphNode> script_node = p_source->get_orchestration()->get_node(node->get_id());
+    for (const Ref<OrchestrationGraphNode>& script_node : p_nodes) {
         ERR_CONTINUE(script_node.is_null());
+
+        // A node whose referenced function, variable, or signal no longer resolves cannot be reproduced on paste,
+        // so it is left out of the buffer rather than dereferenced.
+        Ref<OScriptFunction> event_function;
+        Ref<OScriptFunction> called_function;
+        Ref<OScriptVariable> variable;
+        Ref<OScriptSignal> signal;
+
+        if (const Ref<OScriptNodeEvent>& event = script_node; event.is_valid()) {
+            event_function = event->get_function();
+            ERR_CONTINUE_MSG(event_function.is_null(), vformat("Cannot copy event node %d; its function no longer exists.", script_node->get_id()));
+        } else if (const Ref<OScriptNodeCallScriptFunction>& call_script = script_node; call_script.is_valid()) {
+            called_function = call_script->get_function();
+            ERR_CONTINUE_MSG(called_function.is_null(), vformat("Cannot copy call function node %d; its function no longer exists.", script_node->get_id()));
+        }
+
+        if (const Ref<OScriptNodeVariable>& variable_node = script_node; variable_node.is_valid()) {
+            variable = variable_node->get_variable();
+            ERR_CONTINUE_MSG(variable.is_null(), vformat("Cannot copy variable node %d; its variable no longer exists.", script_node->get_id()));
+        }
+
+        if (const Ref<OScriptNodeEmitSignal>& signal_node = script_node; signal_node.is_valid()) {
+            signal = signal_node->get_signal();
+            ERR_CONTINUE_MSG(signal.is_null(), vformat("Cannot copy emit signal node %d; its signal no longer exists.", script_node->get_id()));
+        }
 
         CopyItem item;
         item.id = script_node->get_id();
-        item.position = node->get_position_offset();
-        item.size = node->get_size();
+        item.position = script_node->get_position();
         item.node = p_source->copy_node(item.id, true);
 
         node_ids.insert(item.id);
         result.added_nodes.insert(item.id);
         _buffer.nodes.push_back(item);
 
-        if (const Ref<OScriptNodeEvent>& event = script_node; event.is_valid()) {
-            const Ref<OScriptFunction> function = event->get_function()->duplicate();
-            _buffer.events[function->get_function_name()] = function;
-        } else if (const Ref<OScriptNodeCallScriptFunction>& call_script = script_node; call_script.is_valid()) {
-            const Ref<OScriptFunction> function = call_script->get_function()->duplicate();
-            _buffer.functions[function->get_function_name()] = function;
+        if (event_function.is_valid()) {
+            _buffer.events[event_function->get_function_name()] = event_function->duplicate();
         }
 
-        if (const Ref<OScriptNodeVariable>& variable_node = script_node; variable_node.is_valid()) {
-            const Ref<OScriptVariable> variable = variable_node->get_variable()->duplicate();
-            _buffer.variables[variable->get_variable_name()] = variable;
+        if (called_function.is_valid()) {
+            _buffer.functions[called_function->get_function_name()] = called_function->duplicate();
         }
 
-        if (const Ref<OScriptNodeEmitSignal>& signal_node = script_node; signal_node.is_valid()) {
-            const Ref<OScriptSignal> signal = signal_node->get_signal()->duplicate();
-            _buffer.signals[signal->get_signal_name()] = signal;
+        if (variable.is_valid()) {
+            _buffer.variables[variable->get_variable_name()] = variable->duplicate();
+        }
+
+        if (signal.is_valid()) {
+            _buffer.signals[signal->get_signal_name()] = signal->duplicate();
         }
     }
 
@@ -196,7 +218,12 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             // If the function doesn't exist (or has a different signature) in the target, skip the node.
             const Ref<OScriptNodeCallScriptFunction> call_script_func = node;
             if (call_script_func.is_valid()) {
-                const StringName function_name = call_script_func->get_function()->get_function_name();
+                const Ref<OScriptFunction> called_function = call_script_func->get_function();
+                if (called_function.is_null()) {
+                    continue;
+                }
+
+                const StringName function_name = called_function->get_function_name();
                 if (result.skipped_functions.has(function_name)) {
                     continue;
                 }
@@ -211,13 +238,19 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
 
             // Variable and signal nodes whose referenced resource was incompatible are skipped.
             const Ref<OScriptNodeVariable> variable_node = node;
-            if (variable_node.is_valid() && result.skipped_variables.has(variable_node->get_variable()->get_variable_name())) {
-                continue;
+            if (variable_node.is_valid()) {
+                const Ref<OScriptVariable> variable = variable_node->get_variable();
+                if (variable.is_null() || result.skipped_variables.has(variable->get_variable_name())) {
+                    continue;
+                }
             }
 
             const Ref<OScriptNodeEmitSignal> signal_node = node;
-            if (signal_node.is_valid() && result.skipped_signals.has(signal_node->get_signal()->get_signal_name())) {
-                continue;
+            if (signal_node.is_valid()) {
+                const Ref<OScriptSignal> signal = signal_node->get_signal();
+                if (signal.is_null() || result.skipped_signals.has(signal->get_signal_name())) {
+                    continue;
+                }
             }
 
             new_node = p_target->paste_node(node, item.position + offset);
@@ -246,16 +279,21 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
         OScriptNodePromotableOperator::copy_pin_types(item.node, new_node);
     }
 
+    // Pass 9 - Pasted comments still reference the copied nodes' original ids
+    _remap_comment_attachments(p_target, result.added_nodes, connection_remap);
+
     return result;
 }
 
 OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboard::duplicate(
-    const Vector<OrchestratorEditorGraphNode*>& p_nodes, const Ref<OrchestrationGraph>& p_graph, const Vector2& p_offset) {
+    const Vector<Ref<OrchestrationGraphNode>>& p_nodes, const Ref<OrchestrationGraph>& p_graph, const Vector2& p_offset) {
 
     ClipboardResult result;
     HashMap<uint64_t, uint64_t> connection_remap;
 
-    for (OrchestratorEditorGraphNode* node : p_nodes) {
+    for (const Ref<OrchestrationGraphNode>& node : p_nodes) {
+        ERR_CONTINUE(node.is_null());
+
         const Ref<OrchestrationGraphNode> new_node = p_graph->duplicate_node(node->get_id(), p_offset, true);
         ERR_CONTINUE(!new_node.is_valid());
 
@@ -273,16 +311,32 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
 
     // Makes sure that if a PromotableOperator node has any connections that are duplicated, the pin types
     // from the original node are restored.
-    for (OrchestratorEditorGraphNode* node : p_nodes) {
+    for (const Ref<OrchestrationGraphNode>& node : p_nodes) {
+        if (node.is_null() || !connection_remap.has(node->get_id())) {
+            continue;
+        }
+
         const int new_node_id = connection_remap[node->get_id()];
         const Ref<OrchestrationGraphNode> new_node = p_graph->get_orchestration()->get_node(new_node_id);
-        const Ref<OrchestrationGraphNode> old_node = p_graph->get_orchestration()->get_node(node->get_id());
-        OScriptNodePromotableOperator::copy_pin_types(old_node, new_node);
+        OScriptNodePromotableOperator::copy_pin_types(node, new_node);
     }
+
+    _remap_comment_attachments(p_graph, result.added_nodes, connection_remap);
 
     return result;
 }
 
 void OrchestratorEditorGraphClipboard::clear() {
     _buffer.clear();
+}
+
+void OrchestratorEditorGraphClipboard::_remap_comment_attachments(const Ref<OrchestrationGraph>& p_graph,
+    const HashSet<uint64_t>& p_node_ids, const HashMap<uint64_t, uint64_t>& p_remap) {
+
+    for (const uint64_t node_id : p_node_ids) {
+        const Ref<OScriptNodeComment> comment = p_graph->get_orchestration()->get_node(node_id);
+        if (comment.is_valid()) {
+            comment->remap_attached_nodes(p_remap);
+        }
+    }
 }
