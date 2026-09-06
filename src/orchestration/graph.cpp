@@ -523,8 +523,12 @@ void OScriptGraph::import_nodes(const Dictionary& p_data, const Vector2& p_offse
     // Nodes created here, keyed by their new id, for the fix-ups that must run after linking
     HashMap<uint64_t, Dictionary> created;
 
-    // Seeded entries that fail verification join the skipped set so nothing links to them
-    HashSet<int> skipped = p_skipped;
+    // Seeded entries that fail verification join the skipped set so nothing links to them.
+    // Copied by hand, HashSet has no copy constructor from a const reference.
+    HashSet<int> skipped;
+    for (const int id : p_skipped) {
+        skipped.insert(id);
+    }
 
     const Array entries = p_data.get("nodes", Array());
     for (int i = 0; i < entries.size(); i++) {

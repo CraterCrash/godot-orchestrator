@@ -69,4 +69,23 @@ namespace ResourceUtils {
         return properties;
     }
 
+    Variant get_storage_property(const Dictionary& p_properties, const StringName& p_class, const StringName& p_name) {
+        if (p_properties.has(p_name)) {
+            return p_properties[p_name];
+        }
+        return GDE::ClassDB::get_property_default_value(p_class, p_name);
+    }
+
+    void apply_storage_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded) {
+        ERR_FAIL_COND(p_resource.is_null());
+
+        const Array keys = p_properties.keys();
+        for (int i = 0; i < keys.size(); i++) {
+            const StringName key = keys[i];
+            if (!p_excluded.has(key)) {
+                p_resource->set(key, p_properties[key]);
+            }
+        }
+    }
+
 }

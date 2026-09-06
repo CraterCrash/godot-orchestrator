@@ -40,6 +40,7 @@
 #include "editor/graph/graph_pin.h"
 #include "editor/graph/nodes/comment_graph_frame.h"
 #include "editor/graph/nodes/reroute_graph_node.h"
+#include "editor/gui/clipboard_conflict_dialog.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/dialogs_helper.h"
 #include "editor/settings/editor_settings.h"
@@ -288,10 +289,30 @@ void OrchestratorEditorGraphPanel::_duplicate_nodes_request() {
 void OrchestratorEditorGraphPanel::_paste_nodes_request() {
     const Vector2 offset = (get_scroll_offset() + get_local_mouse_position()) / get_zoom();
 
-    OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.paste(
-        _graph, offset, is_snapping_enabled(), get_snapping_distance());
+    // Declarations that exist here with a different definition need the user's decision first
+    const Vector<OrchestratorEditorGraphClipboard::Conflict> conflicts = _clipboard.plan(_graph->get_orchestration());
+    if (conflicts.is_empty()) {
+        _paste_nodes(offset, Vector<OrchestratorEditorGraphClipboard::Resolution>());
+        return;
+    }
 
-    if (result.added_nodes.is_empty()) {
+    OrchestratorEditorClipboardConflictDialog* dialog = memnew(OrchestratorEditorClipboardConflictDialog);
+    dialog->popup_conflicts(conflicts, callable_mp_this(_paste_conflicts_confirmed).bind(dialog, offset));
+}
+
+void OrchestratorEditorGraphPanel::_paste_conflicts_confirmed(Object* p_dialog, const Vector2& p_offset) {
+    OrchestratorEditorClipboardConflictDialog* dialog = cast_to<OrchestratorEditorClipboardConflictDialog>(p_dialog);
+    ERR_FAIL_NULL(dialog);
+
+    _paste_nodes(p_offset, dialog->get_resolutions());
+}
+
+void OrchestratorEditorGraphPanel::_paste_nodes(const Vector2& p_offset, const Vector<OrchestratorEditorGraphClipboard::Resolution>& p_resolutions) {
+    OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.paste(
+        _graph, p_offset, is_snapping_enabled(), get_snapping_distance(), p_resolutions);
+
+    // A payload of declarations alone adds no nodes here, that is still a paste
+    if (result.is_empty()) {
         ORCHESTRATOR_ERROR("No nodes were pasted");
     }
 
@@ -304,21 +325,9 @@ void OrchestratorEditorGraphPanel::_paste_nodes_request() {
 
     _set_edited(true);
 
-    if (result.had_skipped_nodes()) {
-        String message = "Several nodes were not pasted due to the following reasons:\n\n";
-        for (const KeyValue<StringName, String>& E : result.skipped_functions) {
-            message += "* Function " + E.key + ": " + E.value + "\n";
-        }
-        for (const KeyValue<StringName, String>& E : result.skipped_events) {
-            message += "* Event " + E.key + ": " + E.value + "\n";
-        }
-        for (const KeyValue<StringName, String>& E : result.skipped_variables) {
-            message += "* Variable " + E.key + ": " + E.value + "\n";
-        }
-        for (const KeyValue<StringName, String>& E : result.skipped_signals) {
-            message += "* Signal " + E.key + ": " + E.value + "\n";
-        }
-        ORCHESTRATOR_ERROR(message);
+    const String summary = result.get_summary();
+    if (!summary.is_empty()) {
+        OrchestratorEditorDialogs::accept(summary);
     }
 }
 
