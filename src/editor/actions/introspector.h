@@ -54,6 +54,9 @@ class OrchestratorEditorIntrospector {
     static void _register_static_methods(const String& p_lookup_class, const String& p_register_class, const String& p_category, ActionSet& r_actions);
     static void _register_global_class_static_methods(const String& p_class_name, const String& p_category, ActionSet& r_actions);
 
+    static void _register_constant(const String& p_node_type, const String& p_category, const String& p_owner, const String& p_constant_name, const Variant& p_value, const Dictionary& p_data, ActionSet& r_actions);
+    static void _register_class_constants(const String& p_class_name, ActionSet& r_actions);
+
 public:
 
     // registrar.filter->target_object->get_target()
