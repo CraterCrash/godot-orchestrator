@@ -368,6 +368,8 @@ public:
 
     int64_t get_selection_count();
 
+    bool is_moving_selection() const { return _moving_selection; }
+
     Rect2 get_bounds_for_nodes(bool p_only_selected, bool p_padding = 0.f);
     Rect2 get_bounds_for_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_padding = 0.f);
 
