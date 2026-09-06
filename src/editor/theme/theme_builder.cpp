@@ -37,6 +37,26 @@ OrchestratorEditorThemeBuilder::ThemeParams OrchestratorEditorThemeBuilder::_rea
     };
 }
 
+void OrchestratorEditorThemeBuilder::_build_editor_styles(const Ref<Theme>& p_theme) {
+    // The editor panel and its tab container used to borrow the ScriptEditorPanel and ScriptEditor styles
+    // from the Godot editor theme. These styles were subset in Godot 4.8, so the equivalents are defined
+    // here as type variations that the editor selects, keeping the lookup independent of the editor.
+    const float base_margin = 4 * EDSCALE;
+
+    const Ref<StyleBoxEmpty> panel_sb = memnew(StyleBoxEmpty);
+    panel_sb->set_content_margin_all(base_margin);
+    panel_sb->set_content_margin(SIDE_TOP, 0);
+
+    p_theme->set_type_variation("OrchestratorEditorPanel", "PanelContainer");
+    p_theme->set_stylebox(SceneStringName(panel), "OrchestratorEditorPanel", panel_sb);
+
+    const Ref<StyleBoxEmpty> tabs_sb = memnew(StyleBoxEmpty);
+    tabs_sb->set_content_margin_all(0);
+
+    p_theme->set_type_variation("OrchestratorEditorTabs", "TabContainer");
+    p_theme->set_stylebox(SceneStringName(panel), "OrchestratorEditorTabs", tabs_sb);
+}
+
 void OrchestratorEditorThemeBuilder::_build_graph_styles(const Ref<Theme>& p_theme, const ThemeParams& p_params) {
 
     // Base GraphNode: panel font color adapts to background brightness
@@ -122,12 +142,13 @@ void OrchestratorEditorThemeBuilder::_build_graph_styles(const Ref<Theme>& p_the
 
 }
 
-void OrchestratorEditorThemeBuilder::_rebuild_theme() {
+void OrchestratorEditorThemeBuilder::rebuild() {
     _rebuilding = false;
 
     const ThemeParams params = _read_theme_params();
     Ref<Theme> theme = memnew(Theme);
 
+    _build_editor_styles(theme);
     _build_graph_styles(theme, params);
 
     _theme = theme;
@@ -140,14 +161,16 @@ void OrchestratorEditorThemeBuilder::queue_rebuild() {
     }
 
     _rebuilding = true;
-    callable_mp_this(_rebuild_theme).call_deferred();
+    callable_mp_this(rebuild).call_deferred();
 }
 
 void OrchestratorEditorThemeBuilder::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_POSTINITIALIZE: {
             ProjectSettings::get_singleton()->connect("settings_changed", callable_mp_this(queue_rebuild));
-            callable_mp_this(queue_rebuild).call_deferred();
+
+            // Built synchronously so the theme can be applied before the editor enters the tree
+            rebuild();
             break;
         }
     }
