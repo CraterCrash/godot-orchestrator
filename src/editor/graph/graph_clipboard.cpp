@@ -27,6 +27,7 @@
 #include "orchestration/nodes/comment.h"
 #include "orchestration/nodes/emit_signal.h"
 #include "orchestration/nodes/event.h"
+#include "orchestration/nodes/function_result.h"
 #include "orchestration/nodes/operator_node.h"
 #include "orchestration/nodes/variables.h"
 #include "orchestration/orchestration.h"
@@ -57,7 +58,8 @@ bool OrchestratorEditorGraphClipboard::ClipboardResult::is_empty() const {
 }
 
 bool OrchestratorEditorGraphClipboard::ClipboardResult::had_skipped_nodes() const {
-    return !skipped_functions.is_empty() || !skipped_events.is_empty() || !skipped_variables.is_empty() || !skipped_signals.is_empty();
+    return !skipped_functions.is_empty() || !skipped_events.is_empty() || !skipped_variables.is_empty()
+        || !skipped_signals.is_empty() || !skipped_nodes.is_empty();
 }
 
 bool OrchestratorEditorGraphClipboard::ClipboardResult::had_renamed_declarations() const {
@@ -96,6 +98,9 @@ String OrchestratorEditorGraphClipboard::ClipboardResult::get_summary() const {
         }
         for (const KeyValue<StringName, String>& E : skipped_signals) {
             summary += vformat("* Signal %s: %s\n", E.key, E.value);
+        }
+        for (const KeyValue<uint64_t, String>& E : skipped_nodes) {
+            summary += vformat("* Node %d: %s\n", E.key, E.value);
         }
     }
 
@@ -795,6 +800,15 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             }
 
             remap[id] = node->get_id();
+            continue;
+        }
+
+        // A return node rebinds to the function owning the graph it lands in when it is placed, see
+        // OScriptNodeFunctionResult::post_placed_new_node, but it cannot exist outside a function graph at all.
+        if (ClassDB::is_parent_class(class_name, OScriptNodeFunctionResult::get_class_static())
+                && !p_target->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION)) {
+            result.skipped_nodes[id] = "Return nodes can only be pasted into function graphs.";
+            skipped.insert(id);
             continue;
         }
 

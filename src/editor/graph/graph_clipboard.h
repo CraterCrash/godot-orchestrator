@@ -93,6 +93,7 @@ public:
         HashMap<StringName, String> skipped_events;
         HashMap<StringName, String> skipped_variables;
         HashMap<StringName, String> skipped_signals;
+        HashMap<uint64_t, String> skipped_nodes;   //! Keyed by the node's id in the payload
 
         /// Whether nothing at all was pasted
         bool is_empty() const;
