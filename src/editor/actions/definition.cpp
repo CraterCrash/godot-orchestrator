@@ -16,6 +16,12 @@
 //
 #include "editor/actions/definition.h"
 
+String OrchestratorEditorActionDefinition::make_sort_key(const String& p_category, const String& p_name) {
+    // Lower-cased so ordering follows the capitalized text the menu displays, not declaration casing
+    const String separator = String::chr(1);
+    return (p_category.replace("/", separator) + separator + p_name).to_lower();
+}
+
 OrchestratorEditorActionBuilder& OrchestratorEditorActionBuilder::tooltip(const String& p_tooltip) {
     _action->tooltip = p_tooltip;
     return *this;
@@ -119,12 +125,14 @@ OrchestratorEditorActionBuilder::OrchestratorEditorActionBuilder(const String& p
     _action.instantiate();
     _action->category = p_category;
     _action->name = "";
+    _action->sort_key = OrchestratorEditorActionDefinition::make_sort_key(p_category, "");
 }
 
 OrchestratorEditorActionBuilder::OrchestratorEditorActionBuilder(const String& p_category, const String& p_name) {
     _action.instantiate();
     _action->category = p_category;
     _action->name = p_name;
+    _action->sort_key = OrchestratorEditorActionDefinition::make_sort_key(p_category, p_name);
 }
 
 
