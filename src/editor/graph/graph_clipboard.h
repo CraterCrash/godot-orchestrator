@@ -39,13 +39,25 @@
 /// Declarations carry every persisted property of the resource, see ResourceUtils::get_storage_properties.
 /// On paste the properties that identify the resource within its source orchestration are excluded and
 /// everything else is applied, so a property added to a resource later is carried without changes here.
+///
+/// The payload travels on the OS clipboard as text: a header line followed by the dictionary in
+/// <code>var_to_str</code> form. The header begins with <code>;</code>, which the variant parser treats as
+/// a comment, so the text round-trips through any text editor and pastes into another editor instance.
+/// The OS clipboard is authoritative on paste. The last payload written is kept in memory for headless
+/// runs and to skip re-parsing text this editor produced.
 class OrchestratorEditorGraphClipboard {
 
     // Allocated on first use. A static Dictionary is constructed before the extension is initialized
-    // and crashes the plugin on load, so the payload lives behind a pointer.
-    static Dictionary* _payload;
+    // and crashes the plugin on load, so the buffer lives behind a pointer.
+    struct Buffer {
+        Dictionary payload;
+        String text;
+    };
 
-    static Dictionary& _get_payload();
+    static Buffer* _buffer;
+
+    static void _write_payload(const Dictionary& p_payload);
+    static bool _read_payload(Dictionary& r_payload);
     static void _apply_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded);
     static void _remap_comment_attachments(const Ref<OrchestrationGraph>& p_graph, const HashSet<uint64_t>& p_node_ids, const HashMap<uint64_t, uint64_t>& p_remap);
 
@@ -64,8 +76,9 @@ public:
     ClipboardResult paste(const Ref<OrchestrationGraph>& p_target, const Vector2& p_offset, bool p_snapping_enabled, int p_snapping_distance);
     ClipboardResult duplicate(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, const Ref<OrchestrationGraph>& p_graph, const Vector2& p_offset);
 
+    /// Clears the in-memory payload. The OS clipboard is left as-is.
     void clear();
 
-    /// Releases the shared payload, called when the editor is torn down
+    /// Releases the in-memory payload, called when the editor is torn down
     static void free_resources();
 };
