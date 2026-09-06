@@ -674,7 +674,12 @@ void OrchestratorEditorGraphNode::update() {
     _create_pin_widgets();
     _create_add_button_widgets();
 
-    if (get_position_offset() != _node->get_position()) {
+    // While the selection is being dragged, the widget's offset is authoritative: the model only learns
+    // the new position when "dragged" fires on release. Resetting from the model here, e.g. because a
+    // self node was reconstructed mid-drag, would snap this node back mid-selection move.
+    const OrchestratorEditorGraphPanel* graph = get_graph();
+    const bool moving_selection = graph && graph->is_moving_selection();
+    if (!moving_selection && get_position_offset() != _node->get_position()) {
         set_position_offset(_node->get_position());
     }
 
