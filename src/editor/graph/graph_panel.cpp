@@ -247,7 +247,7 @@ void OrchestratorEditorGraphPanel::_copy_nodes_request() {
 
 void OrchestratorEditorGraphPanel::_cut_nodes_request() {
     const Vector<Ref<OrchestrationGraphNode>> selected = _get_selected_model_nodes();
-    if (selected.is_empty() || !_can_copy_nodes(selected)) {
+    if (selected.is_empty() || !_can_copy_nodes(selected, true)) {
         return;
     }
 
@@ -2115,11 +2115,13 @@ bool OrchestratorEditorGraphPanel::_can_duplicate_nodes(const Vector<Ref<Orchest
     return true;
 }
 
-bool OrchestratorEditorGraphPanel::_can_copy_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_error_dialog) {
+bool OrchestratorEditorGraphPanel::_can_copy_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_cut, bool p_error_dialog) {
     for (const Ref<OrchestrationGraphNode>& node : p_nodes) {
         if (node.is_valid() && !node->can_copy()) {
             if (p_error_dialog) {
-                const String message = vformat("Cannot copy node '%s' with ID %d", node->get_node_title(), node->get_id());
+                // The whole operation is refused, the message says so rather than reading as a per-node warning
+                const String message = vformat("Nothing was %s. Node '%s' with ID %d cannot be placed on the clipboard.",
+                    p_cut ? "cut" : "copied", node->get_node_title(), node->get_id());
                 OrchestratorEditorDialogs::error(message);
             }
             return false;
