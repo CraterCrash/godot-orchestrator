@@ -16,7 +16,7 @@
 //
 #pragma once
 
-#include "editor/graph/graph_node.h"
+#include "orchestration/graph.h"
 #include "orchestration/node.h"
 #include "orchestration/signals.h"
 #include "orchestration/variable.h"
@@ -30,7 +30,6 @@ class OrchestratorEditorGraphClipboard {
         int id;
         Ref<OrchestrationGraphNode> node;
         Vector2 position;
-        Vector2 size;
     };
 
     struct Buffer {
@@ -47,6 +46,8 @@ class OrchestratorEditorGraphClipboard {
 
     static Buffer _buffer;
 
+    static void _remap_comment_attachments(const Ref<OrchestrationGraph>& p_graph, const HashSet<uint64_t>& p_node_ids, const HashMap<uint64_t, uint64_t>& p_remap);
+
 public:
     struct ClipboardResult {
         HashSet<uint64_t> added_nodes;
@@ -58,9 +59,9 @@ public:
         bool had_skipped_nodes() const;
     };
 
-    ClipboardResult copy(const Vector<OrchestratorEditorGraphNode*>& p_nodes, const Ref<OrchestrationGraph>& p_source);
+    ClipboardResult copy(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, const Ref<OrchestrationGraph>& p_source);
     ClipboardResult paste(const Ref<OrchestrationGraph>& p_target, const Vector2& p_offset, bool p_snapping_enabled, int p_snapping_distance);
-    ClipboardResult duplicate(const Vector<OrchestratorEditorGraphNode*>& p_nodes, const Ref<OrchestrationGraph>& p_graph, const Vector2& p_offset);
+    ClipboardResult duplicate(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, const Ref<OrchestrationGraph>& p_graph, const Vector2& p_offset);
 
     void clear();
 };
