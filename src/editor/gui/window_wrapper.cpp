@@ -271,6 +271,10 @@ void OrchestratorWindowWrapper::_notification(int p_what) {
             _window->connect("close_requested", callable_mp_this(set_window_enabled).bind(false));
             break;
         }
+        case NOTIFICATION_EXIT_TREE: {
+            _window->disconnect("close_requested", callable_mp_this(set_window_enabled).bind(false));
+            break;
+        }
         case NOTIFICATION_READY: {
             break;
         }
