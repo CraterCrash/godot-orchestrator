@@ -523,15 +523,32 @@ void OScriptGraph::import_nodes(const Dictionary& p_data, const Vector2& p_offse
     // Nodes created here, keyed by their new id, for the fix-ups that must run after linking
     HashMap<uint64_t, Dictionary> created;
 
+    // Seeded entries that fail verification join the skipped set so nothing links to them
+    HashSet<int> skipped = p_skipped;
+
     const Array entries = p_data.get("nodes", Array());
     for (int i = 0; i < entries.size(); i++) {
         const Dictionary entry = entries[i];
         const int exported_id = entry.get("id", -1);
-        if (exported_id < 0 || p_skipped.has(exported_id) || r_remap.has(exported_id)) {
+        if (exported_id < 0 || skipped.has(exported_id)) {
             continue;
         }
 
         const String class_name = entry.get("class", String());
+
+        // A seeded entry is the caller's promise that the mapped node already stands in for the export.
+        // The node is not created, but the promise is checked so connections never land on the wrong node.
+        if (r_remap.has(exported_id)) {
+            const uint64_t seeded_id = r_remap[exported_id];
+            const Ref<OScriptNode> seeded = _orchestration->get_node(static_cast<int>(seeded_id));
+            if (!seeded.is_valid() || String(seeded->get_class()) != class_name) {
+                ERR_PRINT(vformat("Cannot import node %d, the node seeded for it (%d) is missing or is not a '%s'.", exported_id, seeded_id, class_name));
+                r_remap.erase(exported_id);
+                skipped.insert(exported_id);
+            }
+            continue;
+        }
+
         const Ref<OScriptNode> node = OScriptNodeFactory::create_node_from_name(class_name, _orchestration);
         ERR_CONTINUE_MSG(!node.is_valid(), vformat("Cannot import node %d, unknown node type '%s'.", exported_id, class_name));
 
