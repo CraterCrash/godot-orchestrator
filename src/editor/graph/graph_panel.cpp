@@ -181,22 +181,14 @@ void OrchestratorEditorGraphPanel::_node_deselected(Node* p_node) {
     }
 }
 
-template <typename T>
-static TypedArray<T> set_to_typed_array(const HashSet<T*>& p_set) {
-    TypedArray<T> results;
-    for (T* entry : p_set) {
-        results.push_back(entry);
-    }
-    return results;
-}
-
 void OrchestratorEditorGraphPanel::_delete_nodes_request(const PackedStringArray& p_names) {
     // In Godot 4.2, there is a case where this method can be called with no values
     if (p_names.is_empty()) {
         return;
     }
 
-    HashSet<OrchestratorEditorGraphNode*> node_set;
+    // Frames and nodes are confirmed and removed together; neither goes before the user answers.
+    PackedInt64Array node_ids;
     for (const String& name : p_names) {
         GraphElement* element = cast_to<GraphElement>(find_child(name, false, false));
         if (!element) {
@@ -204,17 +196,18 @@ void OrchestratorEditorGraphPanel::_delete_nodes_request(const PackedStringArray
         }
 
         if (OrchestratorEditorGraphFrame* frame = cast_to<OrchestratorEditorGraphFrame>(element)) {
-            remove_frame(frame, false);
+            if (frame->get_comment().is_valid()) {
+                node_ids.push_back(frame->get_comment()->get_id());
+            }
         } else if (OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(element)) {
-            node_set.insert(node);
+            if (node->can_user_delete_node()) {
+                node_ids.push_back(node->get_id());
+            }
         }
     }
 
-    const uint32_t node_count = node_set.size();
-    const TypedArray<OrchestratorEditorGraphNode> node_array = set_to_typed_array(node_set);
-
-    if (node_count > 0) {
-        remove_nodes(node_array);
+    if (!node_ids.is_empty()) {
+        remove_nodes(node_ids);
     }
 }
 
@@ -244,7 +237,7 @@ void OrchestratorEditorGraphPanel::_connection_drag_ended() {
 }
 
 void OrchestratorEditorGraphPanel::_copy_nodes_request() {
-    const Vector<OrchestratorEditorGraphNode*> selected_nodes = get_selected<OrchestratorEditorGraphNode>();
+    const Vector<Ref<OrchestrationGraphNode>> selected_nodes = _get_selected_model_nodes();
     if (!selected_nodes.is_empty() && !_can_copy_nodes(selected_nodes)) {
         return;
     }
@@ -253,7 +246,7 @@ void OrchestratorEditorGraphPanel::_copy_nodes_request() {
 }
 
 void OrchestratorEditorGraphPanel::_cut_nodes_request() {
-    const Vector<OrchestratorEditorGraphNode*> selected = get_selected<OrchestratorEditorGraphNode>();
+    const Vector<Ref<OrchestrationGraphNode>> selected = _get_selected_model_nodes();
     if (selected.is_empty() || !_can_copy_nodes(selected)) {
         return;
     }
@@ -263,13 +256,17 @@ void OrchestratorEditorGraphPanel::_cut_nodes_request() {
         return;
     }
 
-    for (OrchestratorEditorGraphNode* node : selected) {
-        remove_node(node, false);
+    // Only what reached the clipboard is removed; a node the copy refused must not be lost. The panel
+    // tears down each visual element in response to "node_removed", see _node_removed.
+    for (const Ref<OrchestrationGraphNode>& node : selected) {
+        if (result.added_nodes.has(node->get_id())) {
+            _graph->get_orchestration()->remove_node(node->get_id());
+        }
     }
 }
 
 void OrchestratorEditorGraphPanel::_duplicate_nodes_request() {
-    const Vector<OrchestratorEditorGraphNode*> selected = get_selected<OrchestratorEditorGraphNode>();
+    const Vector<Ref<OrchestrationGraphNode>> selected = _get_selected_model_nodes();
     if (selected.is_empty() || !_can_duplicate_nodes(selected)) {
         return;
     }
@@ -281,14 +278,11 @@ void OrchestratorEditorGraphPanel::_duplicate_nodes_request() {
 
     _set_edited(true);
     _refresh_panel_connections_with_model();
+    _restore_frame_attachments(result.added_nodes);
 
     emit_signal("nodes_changed");
 
-    clear_selections();
-
-    for (uint64_t node_id : result.added_nodes) {
-        find_node(node_id)->set_selected(true);
-    }
+    _select_elements(result.added_nodes);
 }
 
 void OrchestratorEditorGraphPanel::_paste_nodes_request() {
@@ -302,14 +296,11 @@ void OrchestratorEditorGraphPanel::_paste_nodes_request() {
     }
 
     _refresh_panel_connections_with_model();
+    _restore_frame_attachments(result.added_nodes);
 
     emit_signal("nodes_changed");
 
-    clear_selections();
-
-    for (uint64_t node_id : result.added_nodes) {
-        find_node(node_id)->set_selected(true);
-    }
+    _select_elements(result.added_nodes);
 
     _set_edited(true);
 
@@ -743,7 +734,7 @@ void OrchestratorEditorGraphPanel::_node_added(int p_node_id) {
 }
 
 void OrchestratorEditorGraphPanel::_node_removed(int p_node_id) {
-    if (find_node(p_node_id)) {
+    if (find<GraphElement>(itos(p_node_id))) {
         _remove_node_from_panel(p_node_id);
 
         // This makes sure that we only ever emit 1 event during bulk node removal
@@ -813,9 +804,13 @@ void OrchestratorEditorGraphPanel::_expand_node(OrchestratorEditorGraphNode* p_n
         ORCHESTRATOR_ERROR(vformat("Function the node references cannot be found."));
     }
 
+    const Ref<OrchestrationGraph> function_graph = function->get_function_graph();
+    if (!function_graph.is_valid()) {
+        ORCHESTRATOR_ERROR(vformat("Function graph cannot be found."));
+    }
+
     Rect2 nodes_area;
     HashSet<int> nodes_to_duplicate;
-    const Ref<OrchestrationGraph> function_graph = function->get_function_graph();
     for (const Ref<OrchestrationGraphNode>& node : function_graph->get_nodes()) {
         const Ref<OScriptNodeFunctionResult> result = node;
 
@@ -833,12 +828,14 @@ void OrchestratorEditorGraphPanel::_expand_node(OrchestratorEditorGraphNode* p_n
     if (!nodes_to_duplicate.is_empty()) {
         const Vector2 position_delta = p_node->get_graph_rect().get_center() - nodes_area.get_center();
 
-        HashMap<int, int> connection_remap;
+        HashMap<uint64_t, uint64_t> connection_remap;
+        HashSet<uint64_t> added_nodes;
         for (const int node_id : nodes_to_duplicate) {
             const Ref<OrchestrationGraphNode> new_node = _graph->duplicate_node(node_id, position_delta, true);
             ERR_CONTINUE(!new_node.is_valid());
 
             connection_remap[node_id] = new_node->get_id();
+            added_nodes.insert(new_node->get_id());
         }
 
         for (const Connection& C : _graph->get_orchestration()->get_connections()) {
@@ -850,11 +847,25 @@ void OrchestratorEditorGraphPanel::_expand_node(OrchestratorEditorGraphNode* p_n
         // Makes sure that if a PromotableOperator node has any connections that are duplicated, the pin types
         // from the original node are restored.
         for (int old_node_id : nodes_to_duplicate) {
+            if (!connection_remap.has(old_node_id)) {
+                continue;
+            }
+
             const int new_node_id = connection_remap[old_node_id];
             const Ref<OrchestrationGraphNode> new_node = _graph->get_orchestration()->get_node(new_node_id);
             const Ref<OrchestrationGraphNode> old_node = _graph->get_orchestration()->get_node(old_node_id);
             OScriptNodePromotableOperator::copy_pin_types(old_node, new_node);
         }
+
+        // Expanded comments still reference the function graph's node ids
+        for (const uint64_t node_id : added_nodes) {
+            const Ref<OScriptNodeComment> comment = _graph->get_orchestration()->get_node(node_id);
+            if (comment.is_valid()) {
+                comment->remap_attached_nodes(connection_remap);
+            }
+        }
+
+        _restore_frame_attachments(added_nodes);
     }
 
     remove_node(p_node, false);
@@ -867,7 +878,9 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         return;
     }
 
-    if (!_can_duplicate_nodes(selected_nodes)) {
+    const Vector<OrchestratorEditorGraphFrame*> selected_frames = get_selected<OrchestratorEditorGraphFrame>();
+    const Vector<Ref<OrchestrationGraphNode>> selected_model_nodes = _get_selected_model_nodes();
+    if (!_can_duplicate_nodes(selected_model_nodes)) {
         return;
     }
 
@@ -928,7 +941,10 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
     const Ref<OrchestrationGraph> source_graph = _graph;
     const Ref<OrchestrationGraph> target_graph = function->get_function_graph();
 
-    const Rect2 selected_node_area = get_bounds_for_nodes(selected_nodes);
+    Rect2 selected_node_area = get_bounds_for_nodes(selected_nodes);
+    for (OrchestratorEditorGraphFrame* frame : selected_frames) {
+        selected_node_area = selected_node_area.merge(Rect2(frame->get_position_offset(), frame->get_size()));
+    }
 
     // Before moving the nodes, their connections to non-collapsed nodes must be severed
     for (uint64_t connection_id : input_connections) {
@@ -941,9 +957,30 @@ void OrchestratorEditorGraphPanel::_collapse_selected_nodes_to_function() {
         source_graph->unlink(C.from_node, C.from_port, C.to_node, C.to_port);
     }
 
-    // Transfer the nodes between the graphs
-    for (OrchestratorEditorGraphNode* node : selected_nodes) {
-        source_graph->move_node_to(node->_node, target_graph);
+    // Tearing an attached node out of this panel re-saves its frame's attachments from what remains.
+    // This would strip the very nodes travelling with the frame. Snapshot, restore next.
+    HashMap<int, PackedInt64Array> frame_attachments;
+    for (OrchestratorEditorGraphFrame* frame : selected_frames) {
+        const Ref<OScriptNodeComment> comment = frame->get_comment();
+        if (comment.is_valid()) {
+            frame_attachments[comment->get_id()] = comment->get_attached_nodes();
+        }
+    }
+
+    // Transfer the nodes and frames between the graphs
+    HashSet<int> moved_ids;
+    for (const Ref<OrchestrationGraphNode>& node : selected_model_nodes) {
+        moved_ids.insert(node->get_id());
+        source_graph->move_node_to(node, target_graph);
+    }
+
+    // Only attachments that made the trip remain valid in the target graph
+    for (const KeyValue<int, PackedInt64Array>& E : frame_attachments) {
+        const Ref<OScriptNodeComment> comment = target_graph->get_node(E.key);
+        if (comment.is_valid()) {
+            comment->set_attached_nodes(E.value);
+            comment->retain_attached_nodes(moved_ids);
+        }
     }
 
     // Reapply connections in new graph
@@ -1222,6 +1259,31 @@ Vector<OrchestratorEditorGraphNode*> OrchestratorEditorGraphPanel::_get_selected
         nodes.sort_custom<GraphNodeVerticalPositionSort>();
     }
     return nodes;
+}
+
+Vector<Ref<OrchestrationGraphNode>> OrchestratorEditorGraphPanel::_get_selected_model_nodes() {
+    Vector<Ref<OrchestrationGraphNode>> nodes;
+    for (OrchestratorEditorGraphNode* node : get_selected<OrchestratorEditorGraphNode>()) {
+        if (node->_node.is_valid()) {
+            nodes.push_back(node->_node);
+        }
+    }
+    for (OrchestratorEditorGraphFrame* frame : get_selected<OrchestratorEditorGraphFrame>()) {
+        if (frame->get_comment().is_valid()) {
+            nodes.push_back(frame->get_comment());
+        }
+    }
+    return nodes;
+}
+
+void OrchestratorEditorGraphPanel::_select_elements(const HashSet<uint64_t>& p_node_ids) {
+    clear_selections();
+
+    for (const uint64_t node_id : p_node_ids) {
+        if (GraphElement* element = find<GraphElement>(itos(node_id))) {
+            element->set_selected(true);
+        }
+    }
 }
 
 void OrchestratorEditorGraphPanel::_align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment) {
@@ -1637,19 +1699,36 @@ void OrchestratorEditorGraphPanel::_save_frame_attachments(OrchestratorEditorGra
 
 void OrchestratorEditorGraphPanel::_restore_frame_attachments() {
     for_each<OrchestratorEditorGraphFrame>([&](OrchestratorEditorGraphFrame* frame) {
-        const Ref<OScriptNodeComment> comment = frame->get_comment();
-        if (comment.is_null()) {
-            return;
-        }
-
-        const PackedInt64Array attached_ids = comment->get_attached_nodes();
-        for (int i = 0; i < attached_ids.size(); i++) {
-            const StringName node_name = itos(attached_ids[i]);
-            attach_graph_element_to_frame(node_name, frame->get_name());
-        }
-
-        frame->update_placeholder(attached_ids.size() > 0);
+        _restore_frame_attachments(frame);
     });
+}
+
+void OrchestratorEditorGraphPanel::_restore_frame_attachments(OrchestratorEditorGraphFrame* p_frame) {
+    GUARD_NULL(p_frame);
+
+    const Ref<OScriptNodeComment> comment = p_frame->get_comment();
+    if (comment.is_null()) {
+        return;
+    }
+
+    int attached_count = 0;
+    for (const int64_t attached_id : comment->get_attached_nodes()) {
+        const StringName node_name = itos(attached_id);
+        if (find<GraphElement>(node_name)) {
+            attach_graph_element_to_frame(node_name, p_frame->get_name());
+            attached_count++;
+        }
+    }
+
+    p_frame->update_placeholder(attached_count > 0);
+}
+
+void OrchestratorEditorGraphPanel::_restore_frame_attachments(const HashSet<uint64_t>& p_node_ids) {
+    for (const uint64_t node_id : p_node_ids) {
+        if (OrchestratorEditorGraphFrame* frame = find_frame(itos(node_id))) {
+            _restore_frame_attachments(frame);
+        }
+    }
 }
 
 void OrchestratorEditorGraphPanel::_spawn_frame() {
@@ -2021,11 +2100,11 @@ bool OrchestratorEditorGraphPanel::_is_delete_confirmation_enabled() {
     return ORCHESTRATOR_GET("interface/editor/graph/confirm_on_delete", true);
 }
 
-bool OrchestratorEditorGraphPanel::_can_duplicate_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog) {
-    for (OrchestratorEditorGraphNode* node : p_nodes) {
-        if (!node->_node->can_duplicate()) {
+bool OrchestratorEditorGraphPanel::_can_duplicate_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_error_dialog) {
+    for (const Ref<OrchestrationGraphNode>& node : p_nodes) {
+        if (node.is_valid() && !node->can_duplicate()) {
             if (p_error_dialog) {
-                const String message = vformat("Cannot duplicate node '%s' with ID %d", node->get_title(), node->get_id());
+                const String message = vformat("Cannot duplicate node '%s' with ID %d", node->get_node_title(), node->get_id());
                 OrchestratorEditorDialogs::error(message);
             }
             return false;
@@ -2034,11 +2113,11 @@ bool OrchestratorEditorGraphPanel::_can_duplicate_nodes(const Vector<Orchestrato
     return true;
 }
 
-bool OrchestratorEditorGraphPanel::_can_copy_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog) {
-    for (OrchestratorEditorGraphNode* node : p_nodes) {
-        if (!node->_node->can_copy()) {
+bool OrchestratorEditorGraphPanel::_can_copy_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_error_dialog) {
+    for (const Ref<OrchestrationGraphNode>& node : p_nodes) {
+        if (node.is_valid() && !node->can_copy()) {
             if (p_error_dialog) {
-                const String message = vformat("Cannot copy node '%s' with ID %d", node->get_title(), node->get_id());
+                const String message = vformat("Cannot copy node '%s' with ID %d", node->get_node_title(), node->get_id());
                 OrchestratorEditorDialogs::error(message);
             }
             return false;
@@ -2271,6 +2350,20 @@ void OrchestratorEditorGraphPanel::_add_node_to_panel(const Ref<OrchestrationGra
 }
 
 void OrchestratorEditorGraphPanel::_remove_node_from_panel(int p_node_id) {
+    if (OrchestratorEditorGraphFrame* frame = find_frame(itos(p_node_id))) {
+        if (frame->is_selected()) {
+            frame->set_selected(false);
+        }
+
+        _detach_node_from_frame(frame->get_name());
+
+        // Leave the tree now rather than on queue_free so GraphEdit drops its attachment bookkeeping
+        // for this frame immediately; elements torn down afterwards must not find it as their parent.
+        remove_child(frame);
+        frame->queue_free();
+        return;
+    }
+
     OrchestratorEditorGraphNode* graph_node = find_node(p_node_id);
     if (!graph_node) {
         return;
@@ -3407,33 +3500,32 @@ void OrchestratorEditorGraphPanel::remove_node(OrchestratorEditorGraphNode* p_no
     _graph->get_orchestration()->remove_node(p_node->get_id());
 }
 
-void OrchestratorEditorGraphPanel::remove_nodes(const TypedArray<OrchestratorEditorGraphNode>& p_nodes, bool p_confirm) {
-    if (p_confirm && _is_delete_confirmation_enabled()) {
-        ORCHESTRATOR_CONFIRM(vformat("Do you wish to delete %d node(s)?", p_nodes.size()),
-            callable_mp_this(remove_nodes).bind(p_nodes, false));
+void OrchestratorEditorGraphPanel::remove_nodes(const PackedInt64Array& p_node_ids, bool p_confirm) {
+    if (p_node_ids.is_empty()) {
+        return;
     }
 
-    for (int i = 0; i < p_nodes.size(); i++) {
-        OrchestratorEditorGraphNode* node = cast_to<OrchestratorEditorGraphNode>(p_nodes[i]);
-        if (node && node->can_user_delete_node()) {
-            remove_node(node, false);
-        }
+    if (p_confirm && _is_delete_confirmation_enabled()) {
+        ORCHESTRATOR_CONFIRM(vformat("Do you wish to delete %d node(s)?", p_node_ids.size()),
+            callable_mp_this(remove_nodes).bind(p_node_ids, false));
+    }
+
+    // The panel tears down each visual node or frame in response to "node_removed", see _node_removed.
+    for (const int64_t node_id : p_node_ids) {
+        _graph->get_orchestration()->remove_node(node_id);
     }
 }
 
 void OrchestratorEditorGraphPanel::remove_selected_nodes(bool p_confirm) {
-    Vector<OrchestratorEditorGraphNode*> selected_nodes = get_selected<OrchestratorEditorGraphNode>();
-    if (p_confirm && _is_delete_confirmation_enabled()) {
-        ORCHESTRATOR_CONFIRM(vformat("Do you wish to delete %d node(s)?", selected_nodes.size()),
-            callable_mp_this(remove_selected_nodes).bind(false));
-    }
-
-    for (int i = 0; i < selected_nodes.size(); i++) {
-        OrchestratorEditorGraphNode* node = selected_nodes[i];
-        if (node && node->can_user_delete_node()) {
-            remove_node(node, false);
+    // Resolve the selection to ids up front so the confirmation applies to what the user saw selected.
+    PackedInt64Array node_ids;
+    for (const Ref<OrchestrationGraphNode>& node : _get_selected_model_nodes()) {
+        if (node->can_user_delete_node()) {
+            node_ids.push_back(node->get_id());
         }
     }
+
+    remove_nodes(node_ids, p_confirm);
 }
 
 void OrchestratorEditorGraphPanel::remove_frame(OrchestratorEditorGraphFrame* p_frame, bool p_confirm) {
@@ -3441,27 +3533,12 @@ void OrchestratorEditorGraphPanel::remove_frame(OrchestratorEditorGraphFrame* p_
         ORCHESTRATOR_CONFIRM("Do you wish to delete this frame?", callable_mp_this(remove_frame).bind(p_frame, false));
     }
 
-    if (p_frame->is_selected()) {
-        p_frame->set_selected(false);
-    }
-
-    _detach_node_from_frame(p_frame->get_name());
-
-    p_frame->queue_free();
-
     const Ref<OScriptNodeComment> comment = p_frame->get_comment();
-    if (comment.is_valid()) {
-        _graph->get_orchestration()->remove_node(comment->get_id());
-    }
+    ERR_FAIL_COND_MSG(comment.is_null(), "Frame has no comment node and cannot be removed.");
 
-    if (!_pending_nodes_changed_event) {
-        _set_edited(true);
-        _pending_nodes_changed_event = true;
-        callable_mp_lambda(this, [&] {
-            _pending_nodes_changed_event = false;
-            emit_signal("nodes_changed");
-        }).call_deferred();
-    }
+    // Removing the comment from the orchestration emits "node_removed", and the panel tears down its
+    // visual frame in response, see _node_removed.
+    _graph->get_orchestration()->remove_node(comment->get_id());
 }
 
 OrchestratorEditorGraphNode* OrchestratorEditorGraphPanel::find_node(int p_id) {

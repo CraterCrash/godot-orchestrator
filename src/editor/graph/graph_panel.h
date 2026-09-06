@@ -206,6 +206,8 @@ protected:
     void _detach_node_from_frame(const StringName& p_node_name);
     void _save_frame_attachments(OrchestratorEditorGraphFrame* p_frame);
     void _restore_frame_attachments();
+    void _restore_frame_attachments(OrchestratorEditorGraphFrame* p_frame);
+    void _restore_frame_attachments(const HashSet<uint64_t>& p_node_ids);
     void _spawn_frame();
 
 private:
@@ -234,6 +236,8 @@ private:
     void _create_call_to_parent_function(OrchestratorEditorGraphNode* p_node);
     void _set_node_position(OrchestratorEditorGraphNode* p_node, const Vector2& p_position);
     Vector<OrchestratorEditorGraphNode*> _get_selected_nodes_sorted(bool p_horizontal);
+    Vector<Ref<OrchestrationGraphNode>> _get_selected_model_nodes();
+    void _select_elements(const HashSet<uint64_t>& p_node_ids);
     void _align_nodes(OrchestratorEditorGraphNode* p_anchor, int p_alignment);
     void _distribute_nodes(int p_distribution);
     void _stack_nodes(OrchestratorEditorGraphNode* p_anchor, int p_stack);
@@ -262,8 +266,8 @@ private:
     void _settings_changed();
     void _show_drag_hint(const String& p_hint_text) const;
     bool _is_delete_confirmation_enabled();
-    bool _can_duplicate_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog = true);
-    bool _can_copy_nodes(const Vector<OrchestratorEditorGraphNode*>& p_nodes, bool p_error_dialog = true);
+    bool _can_duplicate_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_error_dialog = true);
+    bool _can_copy_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_error_dialog = true);
     void _set_scroll_offset_and_zoom(const Vector2& p_scroll_offset, float p_zoom = 1.f, const Callable& p_callback = Callable());
     void _schedule_restore();
     void _restore_edit_state();
@@ -360,7 +364,7 @@ public:
     OrchestratorEditorGraphFrame* find_frame(const StringName& p_name);
 
     void remove_node(OrchestratorEditorGraphNode* p_node, bool p_confirm = true);
-    void remove_nodes(const TypedArray<OrchestratorEditorGraphNode>& p_nodes, bool p_confirm = true);
+    void remove_nodes(const PackedInt64Array& p_node_ids, bool p_confirm = true);
     void remove_selected_nodes(bool p_confirm = true);
     void remove_frame(OrchestratorEditorGraphFrame* p_frame, bool p_confirm = true);
 

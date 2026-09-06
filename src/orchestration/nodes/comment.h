@@ -18,6 +18,9 @@
 
 #include "orchestration/node.h"
 
+#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
+
 /// Provides the ability to add a comment/text section with a frame around existing nodes.
 class OScriptNodeComment : public OScriptNode {
     ORCHESTRATOR_NODE_CLASS(OScriptNodeComment, OScriptNode);
@@ -85,4 +88,11 @@ public:
 
     void attach_node(const Ref<OScriptNode>& p_node);
     void detach_node(const Ref<OScriptNode>& p_node);
+
+    /// Rewrites attached node ids through the map; ids without a mapping are dropped.
+    /// Used when this comment is a copy whose attachments still name the originals.
+    void remap_attached_nodes(const HashMap<uint64_t, uint64_t>& p_remap);
+
+    /// Keeps only the attached node ids in the given set.
+    void retain_attached_nodes(const HashSet<int>& p_node_ids);
 };
