@@ -25,7 +25,7 @@
 #include <godot_cpp/classes/engine.hpp>
 
 OScriptNodeConstant::OScriptNodeConstant() {
-    _flags = CATALOGABLE | EXPERIMENTAL;
+    _flags = CATALOGABLE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,6 +134,13 @@ PackedStringArray OScriptNodeGlobalConstant::get_keywords() const {
     return PackedStringArray();
 }
 
+void OScriptNodeGlobalConstant::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+    _constant_name = data.get("constant", StringName());
+}
+
 void OScriptNodeGlobalConstant::initialize(const OScriptNodeInitContext& p_context) {
     _constant_name = _get_default_constant_name();
     super::initialize(p_context);
@@ -190,6 +197,13 @@ String OScriptNodeMathConstant::get_icon() const {
 
 PackedStringArray OScriptNodeMathConstant::get_keywords() const {
     return ExtensionDB::get_math_constant_names();
+}
+
+void OScriptNodeMathConstant::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+    _constant_name = data.get("constant", "One");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,9 +342,24 @@ String OScriptNodeTypeConstant::get_icon() const {
     return "MemberConstant";
 }
 
+void OScriptNodeTypeConstant::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+    _type = VariantUtils::to_type(data.get("type", Variant::NIL));
+    _constant_name = data.get("constant", "");
+}
+
 void OScriptNodeTypeConstant::initialize(const OScriptNodeInitContext& p_context) {
-    _type = _types[0];
-    _constant_name = _type_constants[_type].begin()->key;
+    // Fall back to the first type and its first constant when the spawn data named neither or named
+    // something this type does not define.
+    if (!_type_constants.has(_type)) {
+        _type = _types[0];
+    }
+
+    if (!_type_constants[_type].has(_constant_name)) {
+        _constant_name = _type_constants[_type].begin()->key;
+    }
     super::initialize(p_context);
 }
 
@@ -468,6 +497,18 @@ String OScriptNodeClassConstantBase::get_help_topic() const {
 
 String OScriptNodeClassConstantBase::get_icon() const {
     return "MemberConstant";
+}
+
+void OScriptNodeClassConstantBase::configure(const OScriptNodeInitContext& p_context) {
+    super::configure(p_context);
+
+    // Each subclass seeds its own default class in its constructor, so only spawn data that names
+    // a class overrides it.
+    const Dictionary data = p_context.user_data.value_or(Dictionary());
+    if (data.has("class_name")) {
+        _class_name = data["class_name"];
+    }
+    _constant_name = data.get("constant", "");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

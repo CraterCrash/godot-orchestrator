@@ -110,7 +110,7 @@ void OScriptNodeNew::configure(const OScriptNodeInitContext& p_context) {
 }
 
 OScriptNodeNew::OScriptNodeNew() {
-    _flags.set_flag(EXPERIMENTAL);
+    _flags.set_flag(NONE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,5 +146,5 @@ String OScriptNodeFree::get_icon() const {
 }
 
 OScriptNodeFree::OScriptNodeFree() {
-    _flags.set_flag(EXPERIMENTAL);
+    _flags.set_flag(NONE);
 }
