@@ -82,6 +82,17 @@ public:
     std::optional<Vector<Variant::Type>> inputs;        //! Operators pass their input types
     std::optional<Vector<Variant::Type>> outputs;       //! Operators pass their output types
     bool executions = false;                            //! Whether the action has execution pins
+
+    // Precomputed menu ordering key, see OrchestratorEditorActionDefinitionComparator
+    String sort_key;
+
+    /// Builds the key that orders an action among its menu siblings. The category separator is
+    /// replaced by a character below every printable one so that a sub-category, compared by its
+    /// own name, interleaves alphabetically with the leaves beside it rather than trailing them.
+    /// @param p_category the action category path
+    /// @param p_name the action name
+    /// @return the sort key
+    static String make_sort_key(const String& p_category, const String& p_name);
 };
 
 struct OrchestratorEditorActionDefinitionComparator {
@@ -97,10 +108,11 @@ struct OrchestratorEditorActionDefinitionComparator {
         if (!b_valid)
             return false;
 
-        if (a->category == b->category)
-            return a->name < b->name;
+        // Only at the top level do uncategorized actions trail every category
+        if (a->category.is_empty() != b->category.is_empty())
+            return !a->category.is_empty();
 
-        return a->category < b->category;
+        return a->sort_key < b->sort_key;
     }
 };
 
