@@ -215,9 +215,9 @@ public:
     /// @param r_remap map of exported node id to the id of its imported counterpart in this graph. Import
     ///   adds an entry for every node it creates. A caller may seed entries for exported nodes it has
     ///   already recreated by other means, for example an event node created through <code>create_node</code>
-    ///   so its function exists. For a seeded entry, import does not create a node and does not verify that
-    ///   the mapped node matches the exported one in type or pins; it simply wires connections and comment
-    ///   attachments to it. The caller is responsible for the mapped node being an equivalent of the export.
+    ///   so its function exists. For a seeded entry, import does not create a node. It verifies that the
+    ///   mapped node exists and is of the exported class, then wires connections and comment attachments to
+    ///   it; pins are not compared. A seeded entry that fails verification is dropped from the map and skipped.
     /// @param p_skipped exported node ids that are not imported
     void import_nodes(const Dictionary& p_data, const Vector2& p_offset, HashMap<uint64_t, uint64_t>& r_remap, const HashSet<int>& p_skipped = HashSet<int>());
 
