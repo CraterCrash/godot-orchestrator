@@ -874,12 +874,12 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
 
         const Dictionary type_dict = DictionaryUtils::of({ { "type", type.type } });
 
-        // Local variables for macros
+        // Local variables are only permitted in function graphs
         r_actions.insert(
             _script_node_builder<OScriptNodeLocalVariable>(
                 category,
                 vformat("Local %s Variable", type_name), type_dict)
-            .graph_type(GraphType::GRAPH_MACRO)
+            .graph_type(GraphType::GRAPH_FUNCTION)
             .build());
 
         if (!type.properties.is_empty()) {
