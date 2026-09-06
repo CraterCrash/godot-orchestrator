@@ -16,6 +16,7 @@
 //
 #pragma once
 
+#include "editor/graph/graph_clipboard.h"
 #include "orchestration/orchestration.h"
 #include "script/script.h"
 
@@ -66,6 +67,7 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
     };
 
     Ref<Orchestration> _orchestration;
+    OrchestratorEditorGraphClipboard _clipboard;
 
     OrchestratorEditorComponentView* _graphs = nullptr;
     OrchestratorEditorComponentView* _functions = nullptr;
@@ -104,6 +106,10 @@ class OrchestratorScriptComponentsContainer : public ScrollContainer {
     void _component_add_item_commit(TreeItem* p_item);
     void _component_add_item_canceled(TreeItem* p_item);
     void _component_duplicate_item(TreeItem* p_item, const Dictionary& p_data);
+    void _component_copy_item(TreeItem* p_item);
+    void _component_paste();
+    void _component_paste_conflicts_confirmed(Object* p_dialog);
+    void _component_paste_declarations(const Vector<OrchestratorEditorGraphClipboard::Resolution>& p_resolutions);
     void _component_rename_item(TreeItem* p_item);
     void _component_remove_item(TreeItem* p_item, bool p_confirm = true);
     void _component_focus_item(TreeItem* p_item);

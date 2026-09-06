@@ -34,6 +34,7 @@
 #include "editor/graph/nodes/reroute_graph_node.h"
 #include "editor/graph/pins/pins.h"
 #include "editor/gui/about_dialog.h"
+#include "editor/gui/clipboard_conflict_dialog.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/editor_log_event_router.h"
 #include "editor/gui/file_dialog.h"
@@ -139,6 +140,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorComponentView)
     GDREGISTER_INTERNAL_CLASS(OrchestratorScriptComponentsContainer)
     GDREGISTER_INTERNAL_CLASS(OrchestratorGotoNodeDialog)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorClipboardConflictDialog)
     GDREGISTER_INTERNAL_CLASS(OrchestratorUpdaterButton)
     GDREGISTER_INTERNAL_CLASS(OrchestratorUpdaterVersionPicker)
     GDREGISTER_INTERNAL_CLASS(OrchestratorUpdaterReleaseNotesDialog)
