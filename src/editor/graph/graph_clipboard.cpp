@@ -21,6 +21,8 @@
 #include "common/property_utils.h"
 #include "common/resource_utils.h"
 #include "common/version.h"
+#include "core/godot/object/class_db.h"
+#include "orchestration/function.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/comment.h"
 #include "orchestration/nodes/emit_signal.h"
@@ -29,6 +31,8 @@
 #include "orchestration/nodes/variables.h"
 #include "orchestration/orchestration.h"
 #include "orchestration/serialization/format.h"
+#include "orchestration/signals.h"
+#include "orchestration/variable.h"
 
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -95,6 +99,14 @@ bool OrchestratorEditorGraphClipboard::_read_payload(Dictionary& r_payload) {
 
     r_payload = payload;
     return true;
+}
+
+Variant OrchestratorEditorGraphClipboard::_get_declared(const Dictionary& p_properties, const StringName& p_class, const StringName& p_name) {
+    // Declarations omit values equal to the class default, see ResourceUtils::get_storage_properties
+    if (p_properties.has(p_name)) {
+        return p_properties[p_name];
+    }
+    return GDE::ClassDB::get_property_default_value(p_class, p_name);
 }
 
 void OrchestratorEditorGraphClipboard::_apply_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded) {
@@ -205,11 +217,11 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     for (int i = 0; i < function_names.size(); i++) {
         const StringName name = function_names[i];
         const Dictionary declaration = functions[name];
-        const MethodInfo method = DictionaryUtils::to_method(declaration.get("method", Dictionary()));
+        const MethodInfo method = DictionaryUtils::to_method(_get_declared(declaration, OScriptFunction::get_class_static(), "method"));
 
         const Ref<OScriptFunction> target_function = orchestration->find_function(name);
         if (!target_function.is_valid()) {
-            const bool user_defined = declaration.get("user_defined", false);
+            const bool user_defined = _get_declared(declaration, OScriptFunction::get_class_static(), "user_defined");
             const Ref<OScriptFunction> function = orchestration->create_function(method, user_defined);
             if (!function.is_valid()) {
                 result.skipped_functions[name] = "Failed to create function.";
@@ -232,7 +244,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
 
         const Ref<OScriptFunction> target_function = orchestration->find_function(name);
         if (target_function.is_valid()) {
-            const MethodInfo method = DictionaryUtils::to_method(declaration.get("method", Dictionary()));
+            const MethodInfo method = DictionaryUtils::to_method(_get_declared(declaration, OScriptFunction::get_class_static(), "method"));
             if (!MethodUtils::has_same_signature(method, target_function->get_method_info())) {
                 result.skipped_events[name] = "Event function signatures do not match.";
             }
@@ -251,7 +263,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             const Ref<OScriptVariable> variable = orchestration->create_variable(name);
             ERR_CONTINUE(!variable.is_valid());
             _apply_properties(variable, properties, variable_identity);
-        } else if (!PropertyUtils::are_equal(DictionaryUtils::to_property(properties.get("info", Dictionary())), target_variable->get_info())) {
+        } else if (!PropertyUtils::are_equal(DictionaryUtils::to_property(_get_declared(properties, OScriptVariable::get_class_static(), "info")), target_variable->get_info())) {
             result.skipped_variables[name] = "Variable declarations do not match.";
         }
     }
@@ -268,7 +280,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             const Ref<OScriptSignal> signal = orchestration->create_custom_signal(name);
             ERR_CONTINUE(!signal.is_valid());
             _apply_properties(signal, properties, signal_identity);
-        } else if (!MethodUtils::has_same_signature(DictionaryUtils::to_method(properties.get("method", Dictionary())), target_signal->get_method_info())) {
+        } else if (!MethodUtils::has_same_signature(DictionaryUtils::to_method(_get_declared(properties, OScriptSignal::get_class_static(), "method")), target_signal->get_method_info())) {
             result.skipped_signals[name] = "Signal signatures do not match.";
         }
     }
@@ -329,8 +341,8 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             const Dictionary declaration = events[name];
 
             OScriptNodeInitContext context;
-            context.method = DictionaryUtils::to_method(declaration.get("method", Dictionary()));
-            context.user_data = DictionaryUtils::of({ { "user_defined", declaration.get("user_defined", false) } });
+            context.method = DictionaryUtils::to_method(_get_declared(declaration, OScriptFunction::get_class_static(), "method"));
+            context.user_data = DictionaryUtils::of({ { "user_defined", _get_declared(declaration, OScriptFunction::get_class_static(), "user_defined") } });
 
             const Vector2 position = Vector2(properties.get("position", Vector2())) + offset;
             const Ref<OScriptNode> node = p_target->create_node<OScriptNodeEvent>(context, position);

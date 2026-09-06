@@ -58,6 +58,7 @@ class OrchestratorEditorGraphClipboard {
 
     static void _write_payload(const Dictionary& p_payload);
     static bool _read_payload(Dictionary& r_payload);
+    static Variant _get_declared(const Dictionary& p_properties, const StringName& p_class, const StringName& p_name);
     static void _apply_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded);
     static void _remap_comment_attachments(const Ref<OrchestrationGraph>& p_graph, const HashSet<uint64_t>& p_node_ids, const HashMap<uint64_t, uint64_t>& p_remap);
 
