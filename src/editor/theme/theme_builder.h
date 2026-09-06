@@ -39,9 +39,8 @@ class OrchestratorEditorThemeBuilder : public Object {
 
     ThemeParams _read_theme_params() const;
 
+    void _build_editor_styles(const Ref<Theme>& p_theme);
     void _build_graph_styles(const Ref<Theme>& p_theme, const ThemeParams& p_params);
-
-    void _rebuild_theme();
 
 protected:
     static void _bind_methods();
@@ -53,5 +52,6 @@ protected:
 public:
     Ref<Theme> get_theme() const { return _theme; }
 
+    void rebuild();
     void queue_rebuild();
 };
