@@ -223,7 +223,6 @@ private:
     void _graph_changed();
     //~ End OrchestrationGraph Signals
 
-    void _clear_copy_buffer();
     void _toggle_resizer_for_selected_nodes();
     void _resize_selected_nodes_to_content();
     void _refresh_selected_nodes();

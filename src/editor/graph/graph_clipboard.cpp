@@ -19,6 +19,8 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
+#include "common/resource_utils.h"
+#include "common/version.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/comment.h"
 #include "orchestration/nodes/emit_signal.h"
@@ -27,23 +29,38 @@
 #include "orchestration/nodes/variables.h"
 #include "orchestration/orchestration.h"
 
-OrchestratorEditorGraphClipboard::Buffer OrchestratorEditorGraphClipboard::_buffer;
-
-bool OrchestratorEditorGraphClipboard::Buffer::is_empty() const {
-    return nodes.is_empty();
-}
-
-void OrchestratorEditorGraphClipboard::Buffer::clear() {
-    nodes.clear();
-    connections.clear();
-    variables.clear();
-    functions.clear();
-    events.clear();
-    signals.clear();
-}
+Dictionary* OrchestratorEditorGraphClipboard::_payload = nullptr;
 
 bool OrchestratorEditorGraphClipboard::ClipboardResult::had_skipped_nodes() const {
     return !skipped_functions.is_empty() || !skipped_events.is_empty() || !skipped_variables.is_empty() || !skipped_signals.is_empty();
+}
+
+Dictionary& OrchestratorEditorGraphClipboard::_get_payload() {
+    if (!_payload) {
+        _payload = memnew(Dictionary);
+    }
+    return *_payload;
+}
+
+void OrchestratorEditorGraphClipboard::_apply_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded) {
+    const Array keys = p_properties.keys();
+    for (int i = 0; i < keys.size(); i++) {
+        const StringName key = keys[i];
+        if (!p_excluded.has(key)) {
+            p_resource->set(key, p_properties[key]);
+        }
+    }
+}
+
+void OrchestratorEditorGraphClipboard::_remap_comment_attachments(const Ref<OrchestrationGraph>& p_graph,
+    const HashSet<uint64_t>& p_node_ids, const HashMap<uint64_t, uint64_t>& p_remap) {
+
+    for (const uint64_t node_id : p_node_ids) {
+        const Ref<OScriptNodeComment> comment = p_graph->get_orchestration()->get_node(node_id);
+        if (comment.is_valid()) {
+            comment->remap_attached_nodes(p_remap);
+        }
+    }
 }
 
 OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboard::copy(
@@ -52,66 +69,56 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     clear();
 
     ClipboardResult result;
-    HashSet<uint64_t> node_ids;
+    Dictionary functions;
+    Dictionary events;
+    Dictionary variables;
+    Dictionary signals;
+    Vector<int> node_ids;
+
     for (const Ref<OrchestrationGraphNode>& script_node : p_nodes) {
         ERR_CONTINUE(script_node.is_null());
 
         // A node whose referenced function, variable, or signal no longer resolves cannot be reproduced on paste,
-        // so it is left out of the buffer rather than dereferenced.
-        Ref<OScriptFunction> event_function;
-        Ref<OScriptFunction> called_function;
-        Ref<OScriptVariable> variable;
-        Ref<OScriptSignal> signal;
-
+        // so it is left out of the payload rather than dereferenced.
         if (const Ref<OScriptNodeEvent>& event = script_node; event.is_valid()) {
-            event_function = event->get_function();
-            ERR_CONTINUE_MSG(event_function.is_null(), vformat("Cannot copy event node %d; its function no longer exists.", script_node->get_id()));
+            const Ref<OScriptFunction> function = event->get_function();
+            ERR_CONTINUE_MSG(function.is_null(), vformat("Cannot copy event node %d; its function no longer exists.", script_node->get_id()));
+
+            // The persisted guid links the exported node back to this declaration on paste
+            events[function->get_function_name()] = ResourceUtils::get_storage_properties(function);
         } else if (const Ref<OScriptNodeCallScriptFunction>& call_script = script_node; call_script.is_valid()) {
-            called_function = call_script->get_function();
-            ERR_CONTINUE_MSG(called_function.is_null(), vformat("Cannot copy call function node %d; its function no longer exists.", script_node->get_id()));
+            const Ref<OScriptFunction> function = call_script->get_function();
+            ERR_CONTINUE_MSG(function.is_null(), vformat("Cannot copy call function node %d; its function no longer exists.", script_node->get_id()));
+
+            functions[function->get_function_name()] = ResourceUtils::get_storage_properties(function);
         }
 
         if (const Ref<OScriptNodeVariable>& variable_node = script_node; variable_node.is_valid()) {
-            variable = variable_node->get_variable();
+            const Ref<OScriptVariable> variable = variable_node->get_variable();
             ERR_CONTINUE_MSG(variable.is_null(), vformat("Cannot copy variable node %d; its variable no longer exists.", script_node->get_id()));
+
+            variables[variable->get_variable_name()] = ResourceUtils::get_storage_properties(variable);
         }
 
         if (const Ref<OScriptNodeEmitSignal>& signal_node = script_node; signal_node.is_valid()) {
-            signal = signal_node->get_signal();
+            const Ref<OScriptSignal> signal = signal_node->get_signal();
             ERR_CONTINUE_MSG(signal.is_null(), vformat("Cannot copy emit signal node %d; its signal no longer exists.", script_node->get_id()));
+
+            signals[signal->get_signal_name()] = ResourceUtils::get_storage_properties(signal);
         }
 
-        CopyItem item;
-        item.id = script_node->get_id();
-        item.position = script_node->get_position();
-        item.node = p_source->copy_node(item.id, true);
-
-        node_ids.insert(item.id);
-        result.added_nodes.insert(item.id);
-        _buffer.nodes.push_back(item);
-
-        if (event_function.is_valid()) {
-            _buffer.events[event_function->get_function_name()] = event_function->duplicate();
-        }
-
-        if (called_function.is_valid()) {
-            _buffer.functions[called_function->get_function_name()] = called_function->duplicate();
-        }
-
-        if (variable.is_valid()) {
-            _buffer.variables[variable->get_variable_name()] = variable->duplicate();
-        }
-
-        if (signal.is_valid()) {
-            _buffer.signals[signal->get_signal_name()] = signal->duplicate();
-        }
+        node_ids.push_back(script_node->get_id());
+        result.added_nodes.insert(script_node->get_id());
     }
 
-    for (const OScriptConnection& C : p_source->get_orchestration()->get_connections()) {
-        if (node_ids.has(C.from_node) && node_ids.has(C.to_node)) {
-            _buffer.connections.push_back(C.id);
-        }
-    }
+    Dictionary& payload = _get_payload();
+    payload["magic"] = "orchestrator/clipboard";
+    payload["plugin"] = VERSION_FULL_BUILD;
+    payload["graph"] = p_source->export_nodes(node_ids);
+    payload["functions"] = functions;
+    payload["events"] = events;
+    payload["variables"] = variables;
+    payload["signals"] = signals;
 
     return result;
 }
@@ -120,167 +127,203 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     const Ref<OrchestrationGraph>& p_target, const Vector2& p_offset, bool p_snapping_enabled, int p_snapping_distance) {
 
     ClipboardResult result;
+    if (!_payload || _payload->is_empty()) {
+        return result;
+    }
+
+    Orchestration* orchestration = p_target->get_orchestration();
+    ERR_FAIL_NULL_V(orchestration, result);
+
+    const Dictionary& payload = *_payload;
+
+    // Properties that identify a resource within its source orchestration, or that the target
+    // consumes when it creates the resource. Everything else in a declaration is applied as-is.
+    const Vector<StringName> function_identity = { "guid", "id", "method", "user_defined" };
+    const Vector<StringName> variable_identity = { "name" };
+    const Vector<StringName> signal_identity = { "signal_name" };
 
     // Pass 1 - Verify Functions
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _buffer.functions) {
-        const Ref<OScriptFunction> target_function = p_target->get_orchestration()->find_function(E.key);
+    const Dictionary functions = payload.get("functions", Dictionary());
+    const Array function_names = functions.keys();
+    for (int i = 0; i < function_names.size(); i++) {
+        const StringName name = function_names[i];
+        const Dictionary declaration = functions[name];
+        const MethodInfo method = DictionaryUtils::to_method(declaration.get("method", Dictionary()));
+
+        const Ref<OScriptFunction> target_function = orchestration->find_function(name);
         if (!target_function.is_valid()) {
-            const Ref<OScriptFunction> function = p_target->get_orchestration()->create_function(
-                E.value->get_method_info(), E.value->is_user_defined());
+            const bool user_defined = declaration.get("user_defined", false);
+            const Ref<OScriptFunction> function = orchestration->create_function(method, user_defined);
             if (!function.is_valid()) {
-                result.skipped_functions[E.key] = "Failed to create function.";
+                result.skipped_functions[name] = "Failed to create function.";
+            } else {
+                _apply_properties(function, declaration, function_identity);
             }
-        } else if (!MethodUtils::has_same_signature(E.value->get_method_info(), target_function->get_method_info())) {
-            result.skipped_functions[E.key] = "Function signatures do not match.";
+        } else if (!MethodUtils::has_same_signature(method, target_function->get_method_info())) {
+            result.skipped_functions[name] = "Function signatures do not match.";
         }
     }
 
     // Pass 2 - Verify Events
-    for (const KeyValue<StringName, Ref<OScriptFunction>>& E : _buffer.events) {
-        const Ref<OScriptFunction> target_function = p_target->get_orchestration()->find_function(E.key);
+    HashMap<String, StringName> event_names;
+    const Dictionary events = payload.get("events", Dictionary());
+    const Array event_keys = events.keys();
+    for (int i = 0; i < event_keys.size(); i++) {
+        const StringName name = event_keys[i];
+        const Dictionary declaration = events[name];
+        event_names[declaration.get("guid", String())] = name;
+
+        const Ref<OScriptFunction> target_function = orchestration->find_function(name);
         if (target_function.is_valid()) {
-            if (!MethodUtils::has_same_signature(E.value->get_method_info(), target_function->get_method_info())) {
-                result.skipped_events[E.key] = "Event function signatures do not match.";
+            const MethodInfo method = DictionaryUtils::to_method(declaration.get("method", Dictionary()));
+            if (!MethodUtils::has_same_signature(method, target_function->get_method_info())) {
+                result.skipped_events[name] = "Event function signatures do not match.";
             }
         }
     }
 
     // Pass 3 - Create missing variables
-    for (const KeyValue<StringName, Ref<OScriptVariable>>& E : _buffer.variables) {
-        const Ref<OScriptVariable> target_variable = p_target->get_orchestration()->get_variable(E.key);
+    const Dictionary variables = payload.get("variables", Dictionary());
+    const Array variable_names = variables.keys();
+    for (int i = 0; i < variable_names.size(); i++) {
+        const StringName name = variable_names[i];
+        const Dictionary properties = variables[name];
+
+        const Ref<OScriptVariable> target_variable = orchestration->get_variable(name);
         if (target_variable.is_null()) {
-            const Ref<OScriptVariable> variable = p_target->get_orchestration()->create_variable(E.key);
+            const Ref<OScriptVariable> variable = orchestration->create_variable(name);
             ERR_CONTINUE(!variable.is_valid());
-            variable->copy_persistent_state(E.value);
-        } else if (!PropertyUtils::are_equal(E.value->get_info(), target_variable->get_info())) {
-            result.skipped_variables[E.key] = "Variable declarations do not match.";
+            _apply_properties(variable, properties, variable_identity);
+        } else if (!PropertyUtils::are_equal(DictionaryUtils::to_property(properties.get("info", Dictionary())), target_variable->get_info())) {
+            result.skipped_variables[name] = "Variable declarations do not match.";
         }
     }
 
     // Pass 4 - Create missing signals
-    for (const KeyValue<StringName, Ref<OScriptSignal>>& E : _buffer.signals) {
-        const Ref<OScriptSignal> target_signal = p_target->get_orchestration()->find_custom_signal(E.key);
+    const Dictionary signals = payload.get("signals", Dictionary());
+    const Array signal_names = signals.keys();
+    for (int i = 0; i < signal_names.size(); i++) {
+        const StringName name = signal_names[i];
+        const Dictionary properties = signals[name];
+
+        const Ref<OScriptSignal> target_signal = orchestration->find_custom_signal(name);
         if (target_signal.is_null()) {
-            const Ref<OScriptSignal> signal = p_target->get_orchestration()->create_custom_signal(E.key);
+            const Ref<OScriptSignal> signal = orchestration->create_custom_signal(name);
             ERR_CONTINUE(!signal.is_valid());
-            signal->copy_persistent_state(E.value);
-        } else if (!MethodUtils::has_same_signature(E.value->get_method_info(), target_signal->get_method_info())) {
-            result.skipped_signals[E.key] = "Signal signatures do not match.";
+            _apply_properties(signal, properties, signal_identity);
+        } else if (!MethodUtils::has_same_signature(DictionaryUtils::to_method(properties.get("method", Dictionary())), target_signal->get_method_info())) {
+            result.skipped_signals[name] = "Signal signatures do not match.";
         }
     }
 
     // Pass 5 - Compute Paste Offset
+    // The graph data is worked on as a deep copy, the reference rewrites below must not alter the payload
+    const Dictionary graph = Dictionary(payload.get("graph", Dictionary())).duplicate(true);
+    const Array entries = graph.get("nodes", Array());
+
     Vector2 offset = p_offset;
-    if (!_buffer.nodes.is_empty()) {
-        offset -= _buffer.nodes.get(0).position;
+    if (!entries.is_empty()) {
+        const Dictionary first = entries[0];
+        const Dictionary properties = first.get("properties", Dictionary());
+        offset -= Vector2(properties.get("position", Vector2()));
     }
 
     if (p_snapping_enabled) {
         offset = offset.snapped(Vector2(p_snapping_distance, p_snapping_distance));
     }
 
-    // Pass 6 - Create Nodes
-    HashMap<uint64_t, uint64_t> connection_remap;
-    for (const CopyItem& item : _buffer.nodes) {
+    // Pass 6 - Resolve references against the target and create event nodes
+    HashMap<uint64_t, uint64_t> remap;
+    HashSet<int> skipped;
+    for (int i = 0; i < entries.size(); i++) {
+        const Dictionary entry = entries[i];
+        const int id = entry.get("id", -1);
+        const String class_name = entry.get("class", String());
+        Dictionary properties = entry.get("properties", Dictionary());
 
-        Ref<OrchestrationGraphNode> new_node;
-        const Ref<OrchestrationGraphNode>& node = item.node;
+        if (ClassDB::is_parent_class(class_name, OScriptNodeEvent::get_class_static())) {
+            const String guid = properties.get("function_id", String());
+            if (!event_names.has(guid)) {
+                skipped.insert(id);
+                continue;
+            }
 
-        const Ref<OScriptNodeEvent> event = node;
-        if (event.is_valid()) {
-            const Ref<OScriptFunction> event_function = event->get_function();
-            if (!event_function.is_valid() || result.skipped_events.has(event_function->get_function_name())) {
+            const StringName name = event_names[guid];
+            if (result.skipped_events.has(name)) {
+                skipped.insert(id);
                 continue;
             }
 
             // Event nodes can only be placed inside event graphs
             if (!p_target->get_flags().has_flag(OrchestrationGraph::GF_EVENT)) {
-                result.skipped_events[event_function->get_function_name()] = "Cannot paste event nodes into non-event graphs.";
+                result.skipped_events[name] = "Cannot paste event nodes into non-event graphs.";
+                skipped.insert(id);
                 continue;
             }
 
-            const Ref<OScriptFunction> target_function = p_target->get_orchestration()->find_function(event_function->get_function_name());
-            if (target_function.is_valid()) {
-                result.skipped_events[event_function->get_function_name()] = "An event node already exists with the same name.";
+            if (orchestration->find_function(name).is_valid()) {
+                result.skipped_events[name] = "An event node already exists with the same name.";
+                skipped.insert(id);
                 continue;
             }
+
+            // This creates the node and its matching event function signature, so the event is seeded
+            // into the remap rather than imported as data.
+            const Dictionary declaration = events[name];
 
             OScriptNodeInitContext context;
-            context.method = event_function->get_method_info();
-            context.user_data = DictionaryUtils::of({ { "user_defined", event_function->is_user_defined() } });
+            context.method = DictionaryUtils::to_method(declaration.get("method", Dictionary()));
+            context.user_data = DictionaryUtils::of({ { "user_defined", declaration.get("user_defined", false) } });
 
-            // This creates the node and its matching event function signature
-            // Event nodes require this special handling versus the pasting.
-            new_node = p_target->create_node<OScriptNodeEvent>(context, item.position + offset);
+            const Vector2 position = Vector2(properties.get("position", Vector2())) + offset;
+            const Ref<OScriptNode> node = p_target->create_node<OScriptNodeEvent>(context, position);
+            if (!node.is_valid()) {
+                skipped.insert(id);
+                continue;
+            }
 
-        } else {
-            // Call-script-function nodes need their function GUID remapped to the target orchestration.
+            // The node created the function, carry over the rest of its declaration
+            const Ref<OScriptFunction> function = orchestration->find_function(name);
+            if (function.is_valid()) {
+                _apply_properties(function, declaration, function_identity);
+            }
+
+            remap[id] = node->get_id();
+            continue;
+        }
+
+        if (ClassDB::is_parent_class(class_name, OScriptNodeCallScriptFunction::get_class_static())) {
+            // The function GUID belongs to the source orchestration and is rewritten to the target's function.
             // If the function doesn't exist (or has a different signature) in the target, skip the node.
-            const Ref<OScriptNodeCallScriptFunction> call_script_func = node;
-            if (call_script_func.is_valid()) {
-                const Ref<OScriptFunction> called_function = call_script_func->get_function();
-                if (called_function.is_null()) {
-                    continue;
-                }
-
-                const StringName function_name = called_function->get_function_name();
-                if (result.skipped_functions.has(function_name)) {
-                    continue;
-                }
-
-                const Ref<OScriptFunction> target_function = p_target->get_orchestration()->find_function(function_name);
-                if (!target_function.is_valid()) {
-                    continue;
-                }
-
-                call_script_func->set("guid", target_function->get_guid().to_string());
+            const StringName name = properties.get("function_name", String());
+            const Ref<OScriptFunction> target_function = orchestration->find_function(name);
+            if (result.skipped_functions.has(name) || !target_function.is_valid()) {
+                skipped.insert(id);
+                continue;
             }
 
-            // Variable and signal nodes whose referenced resource was incompatible are skipped.
-            const Ref<OScriptNodeVariable> variable_node = node;
-            if (variable_node.is_valid()) {
-                const Ref<OScriptVariable> variable = variable_node->get_variable();
-                if (variable.is_null() || result.skipped_variables.has(variable->get_variable_name())) {
-                    continue;
-                }
+            properties["guid"] = target_function->get_guid().to_string();
+        } else if (ClassDB::is_parent_class(class_name, OScriptNodeVariable::get_class_static())) {
+            const StringName name = properties.get("variable_name", String());
+            if (result.skipped_variables.has(name)) {
+                skipped.insert(id);
+                continue;
             }
-
-            const Ref<OScriptNodeEmitSignal> signal_node = node;
-            if (signal_node.is_valid()) {
-                const Ref<OScriptSignal> signal = signal_node->get_signal();
-                if (signal.is_null() || result.skipped_signals.has(signal->get_signal_name())) {
-                    continue;
-                }
+        } else if (ClassDB::is_parent_class(class_name, OScriptNodeEmitSignal::get_class_static())) {
+            const StringName name = properties.get("signal_name", String());
+            if (result.skipped_signals.has(name)) {
+                skipped.insert(id);
+                continue;
             }
-
-            new_node = p_target->paste_node(node, item.position + offset);
-        }
-
-        ERR_CONTINUE(!new_node.is_valid());
-        connection_remap[item.id] = new_node->get_id();
-        result.added_nodes.insert(new_node->get_id());
-    }
-
-    // Pass 7 - Create connections
-    for (const uint64_t id : _buffer.connections) {
-        const OScriptConnection C(id);
-        const uint64_t source_node = connection_remap[C.from_node];
-        const uint64_t target_node = connection_remap[C.to_node];
-
-        if (result.added_nodes.has(source_node) && result.added_nodes.has(target_node)) {
-            p_target->link(source_node, C.from_port, target_node, C.to_port);
         }
     }
 
-    // Pass 8 - Restore pin types if pasted PromotableOperator nodes have connections
-    for (const CopyItem& item : _buffer.nodes) {
-        const int new_node_id = connection_remap[item.node->get_id()];
-        const Ref<OrchestrationGraphNode> new_node = p_target->get_orchestration()->get_node(new_node_id);
-        OScriptNodePromotableOperator::copy_pin_types(item.node, new_node);
-    }
+    // Pass 7 - Import nodes, connections, knots, pin types and comment attachments
+    p_target->import_nodes(graph, offset, remap, skipped);
 
-    // Pass 9 - Pasted comments still reference the copied nodes' original ids
-    _remap_comment_attachments(p_target, result.added_nodes, connection_remap);
+    for (const KeyValue<uint64_t, uint64_t>& E : remap) {
+        result.added_nodes.insert(E.value);
+    }
 
     return result;
 }
@@ -327,16 +370,14 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
 }
 
 void OrchestratorEditorGraphClipboard::clear() {
-    _buffer.clear();
+    if (_payload) {
+        _payload->clear();
+    }
 }
 
-void OrchestratorEditorGraphClipboard::_remap_comment_attachments(const Ref<OrchestrationGraph>& p_graph,
-    const HashSet<uint64_t>& p_node_ids, const HashMap<uint64_t, uint64_t>& p_remap) {
-
-    for (const uint64_t node_id : p_node_ids) {
-        const Ref<OScriptNodeComment> comment = p_graph->get_orchestration()->get_node(node_id);
-        if (comment.is_valid()) {
-            comment->remap_attached_nodes(p_remap);
-        }
+void OrchestratorEditorGraphClipboard::free_resources() {
+    if (_payload) {
+        memdelete(_payload);
+        _payload = nullptr;
     }
 }
