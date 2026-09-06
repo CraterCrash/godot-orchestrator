@@ -17,6 +17,7 @@
 #include "common/resource_utils.h"
 
 #include "common/dictionary_utils.h"
+#include "core/godot/object/class_db.h"
 
 #include <godot_cpp/classes/file_access.hpp>
 
@@ -41,7 +42,28 @@ namespace ResourceUtils {
                 continue;
             }
 
-            properties[property.name] = p_resource->get(property.name);
+            const Variant value = p_resource->get(property.name);
+
+            // Same rules as the script serializers: a value equal to the class default is not persisted,
+            // nor is a null object unless the property asks for it.
+            const Variant default_value = GDE::ClassDB::get_property_default_value(p_resource->get_class(), property.name);
+            if (default_value.get_type() != Variant::NIL) {
+                bool valid = false;
+                Variant result = false;
+                Variant::evaluate(Variant::OP_EQUAL, value, default_value, result, valid);
+                if (valid && result) {
+                    continue;
+                }
+            }
+
+            if (property.type == Variant::OBJECT) {
+                const Object* object = Object::cast_to<Object>(value);
+                if (!object && !(property.usage & PROPERTY_USAGE_STORE_IF_NULL)) {
+                    continue;
+                }
+            }
+
+            properties[property.name] = value;
         }
 
         return properties;
