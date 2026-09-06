@@ -26,4 +26,10 @@ namespace ResourceUtils {
     /// @return true if it is a file path; false otherwise
     bool is_file(const String& p_path);
 
+    /// Collects the persisted state of a resource, the same properties the script serializers write.
+    /// Resource base properties, the script, and transient metadata are excluded.
+    /// @param p_resource the resource
+    /// @return property name to value map, in property list order
+    Dictionary get_storage_properties(const Ref<Resource>& p_resource);
+
 }

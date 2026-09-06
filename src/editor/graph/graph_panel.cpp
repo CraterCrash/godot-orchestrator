@@ -759,11 +759,6 @@ void OrchestratorEditorGraphPanel::_graph_changed() {
     }
 }
 
-
-void OrchestratorEditorGraphPanel::_clear_copy_buffer() {
-    _clipboard.clear();
-}
-
 void OrchestratorEditorGraphPanel::_toggle_resizer_for_selected_nodes() {
     for (OrchestratorEditorGraphNode* node : get_selected<OrchestratorEditorGraphNode>()) {
         node->set_resizable(!node->is_resizable());

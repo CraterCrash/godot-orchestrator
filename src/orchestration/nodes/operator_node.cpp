@@ -913,6 +913,25 @@ void OScriptNodePromotableOperator::copy_pin_types(const Ref<OrchestrationGraphN
     target->_set_operand_types(source->_operands);
 }
 
+void OScriptNodePromotableOperator::copy_pin_types(const Dictionary& p_properties, const Ref<OrchestrationGraphNode>& p_target) {
+    if (p_target.is_null() || !p_target->has_any_connections() || !p_properties.has("operand_types")) {
+        return;
+    }
+
+    const Ref<OScriptNodePromotableOperator> target = p_target;
+    if (target.is_null()) {
+        return;
+    }
+
+    const PackedInt32Array array = p_properties["operand_types"];
+    Vector<Variant::Type> types;
+    for (int i = 0; i < array.size(); i++) {
+        types.push_back(CAST_INT_TO_ENUM(Variant::Type, array[i]));
+    }
+
+    target->_set_operand_types(types);
+}
+
 void OScriptNodePromotableOperator::_bind_methods() {
 
 }
