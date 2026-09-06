@@ -28,6 +28,7 @@
 #include "editor/editor.h"
 #include "editor/editor_component_view.h"
 #include "editor/graph/graph_panel.h"
+#include "editor/gui/clipboard_conflict_dialog.h"
 #include "editor/gui/context_menu.h"
 #include "editor/gui/dialogs_helper.h"
 #include "editor/inspector/properties/type_selector.h"
@@ -181,6 +182,8 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
             menu->add_shortcut(ED_GET_SHORTCUT("graph_components_panel/open"), callable_mp_this(_open_graph).bind(func->get_function_name()));
             menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, DictionaryUtils::of({{ "include_code", "true" }})));
             menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate_without_code"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
+            menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_component_copy_item).bind(p_item));
+            menu->add_icon_shortcut("ActionPaste", ED_ACTION_SHORTCUT("ui_paste", "Paste"), callable_mp_this(_component_paste));
             menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_functions, p_item));
             menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
             menu->add_icon_shortcut(
@@ -195,11 +198,15 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
         }
         case SCRIPT_VARIABLE: {
             menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
+            menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_component_copy_item).bind(p_item));
+            menu->add_icon_shortcut("ActionPaste", ED_ACTION_SHORTCUT("ui_paste", "Paste"), callable_mp_this(_component_paste));
             menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_variables, p_item));
             menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
             break;
         }
         case SCRIPT_SIGNAL: {
+            menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_component_copy_item).bind(p_item));
+            menu->add_icon_shortcut("ActionPaste", ED_ACTION_SHORTCUT("ui_paste", "Paste"), callable_mp_this(_component_paste));
             menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_signals, p_item));
             menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
             break;
@@ -247,6 +254,18 @@ void OrchestratorScriptComponentsContainer::_component_item_gui_input(TreeItem* 
         }
 
         _component_remove_item(p_item);
+        accept_event();
+        return;
+    }
+
+    if (ED_IS_ACTION_SHORTCUT("ui_copy", p_event)) {
+        _component_copy_item(p_item);
+        accept_event();
+        return;
+    }
+
+    if (ED_IS_ACTION_SHORTCUT("ui_paste", p_event)) {
+        _component_paste();
         accept_event();
         return;
     }
@@ -672,6 +691,69 @@ void OrchestratorScriptComponentsContainer::_component_duplicate_item(TreeItem* 
         }
         default:
             break;
+    }
+}
+
+void OrchestratorScriptComponentsContainer::_component_copy_item(TreeItem* p_item) {
+    ERR_FAIL_NULL_MSG(p_item, "Cannot copy component item with no tree item");
+    ERR_FAIL_COND_MSG(!_orchestration.is_valid(), "Cannot copy component item, orchestration is invalid");
+
+    const StringName name = p_item->get_meta("__name", "");
+    const uint32_t type = p_item->get_meta("__component_type", NONE);
+
+    switch (type) {
+        case SCRIPT_FUNCTION: {
+            _clipboard.copy_function(_get_orchestration().ptr(), name);
+            break;
+        }
+        case SCRIPT_VARIABLE: {
+            _clipboard.copy_variable(_get_orchestration().ptr(), name);
+            break;
+        }
+        case SCRIPT_SIGNAL: {
+            _clipboard.copy_signal(_get_orchestration().ptr(), name);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void OrchestratorScriptComponentsContainer::_component_paste() {
+    ERR_FAIL_COND_MSG(!_orchestration.is_valid(), "Cannot paste, orchestration is invalid");
+
+    // Declarations that exist here with a different definition need the user's decision first
+    const Vector<OrchestratorEditorGraphClipboard::Conflict> conflicts = _clipboard.plan(_get_orchestration().ptr());
+    if (conflicts.is_empty()) {
+        _component_paste_declarations(Vector<OrchestratorEditorGraphClipboard::Resolution>());
+        return;
+    }
+
+    OrchestratorEditorClipboardConflictDialog* dialog = memnew(OrchestratorEditorClipboardConflictDialog);
+    dialog->popup_conflicts(conflicts, callable_mp_this(_component_paste_conflicts_confirmed).bind(dialog));
+}
+
+void OrchestratorScriptComponentsContainer::_component_paste_conflicts_confirmed(Object* p_dialog) {
+    OrchestratorEditorClipboardConflictDialog* dialog = cast_to<OrchestratorEditorClipboardConflictDialog>(p_dialog);
+    ERR_FAIL_NULL(dialog);
+
+    _component_paste_declarations(dialog->get_resolutions());
+}
+
+void OrchestratorScriptComponentsContainer::_component_paste_declarations(const Vector<OrchestratorEditorGraphClipboard::Resolution>& p_resolutions) {
+    // Only declarations are pasted here; functions bring their bodies, graph nodes in the payload are ignored
+    const OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.paste_declarations(_get_orchestration().ptr(), p_resolutions);
+    if (result.is_empty()) {
+        OrchestratorEditorDialogs::error("Nothing was pasted");
+        return;
+    }
+
+    _update_components();
+    _set_edited(true);
+
+    const String summary = result.get_summary();
+    if (!summary.is_empty()) {
+        OrchestratorEditorDialogs::accept(summary);
     }
 }
 

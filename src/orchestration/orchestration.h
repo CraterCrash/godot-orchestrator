@@ -298,6 +298,9 @@ public:
     Ref<OScriptFunction> create_function(const MethodInfo& p_method, bool p_user_defined = false);
     Ref<OScriptFunction> create_function(const MethodInfo& p_method, int p_node_id, bool p_user_defined = false);
     Ref<OScriptFunction> duplicate_function(const StringName& p_name, bool p_include_code);
+    Dictionary export_function(const StringName& p_name) const;
+    Ref<OScriptFunction> import_function(const Dictionary& p_data, const StringName& p_name);
+    bool import_function_body(const StringName& p_name, const Dictionary& p_graph_data);
     void remove_function(const StringName& p_name);
     Ref<OScriptFunction> find_function(const StringName& p_name) const;
     Ref<OScriptFunction> find_function(const Guid& p_guid) const;

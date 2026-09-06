@@ -33,4 +33,18 @@ namespace ResourceUtils {
     /// @return property name to value map, in property list order
     Dictionary get_storage_properties(const Ref<Resource>& p_resource);
 
+    /// Reads a property from a map produced by <code>get_storage_properties</code>, falling back to the
+    /// class default when the map omits it.
+    /// @param p_properties the property map
+    /// @param p_class the class the map was collected from
+    /// @param p_name the property name
+    /// @return the stored value, or the class default
+    Variant get_storage_property(const Dictionary& p_properties, const StringName& p_class, const StringName& p_name);
+
+    /// Applies a map produced by <code>get_storage_properties</code> to a resource.
+    /// @param p_resource the resource
+    /// @param p_properties the property map
+    /// @param p_excluded property names that are not applied
+    void apply_storage_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded = Vector<StringName>());
+
 }
