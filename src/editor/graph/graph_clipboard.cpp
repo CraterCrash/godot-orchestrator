@@ -18,10 +18,10 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/name_utils.h"
 #include "common/property_utils.h"
 #include "common/resource_utils.h"
 #include "common/version.h"
-#include "core/godot/object/class_db.h"
 #include "orchestration/function.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/comment.h"
@@ -40,12 +40,66 @@
 namespace {
     constexpr const char* PAYLOAD_MAGIC = "orchestrator/clipboard";
     constexpr const char* PAYLOAD_HEADER = "; orchestrator/clipboard";
+
+    // Properties that identify a resource within its source orchestration, or that the target consumes
+    // when it creates the resource. Everything else in a declaration is applied as-is. Built on demand:
+    // a StringName at static-init time is constructed before the extension is initialized and crashes
+    // the plugin on load.
+    Vector<StringName> function_identity() { return { "guid", "id", "method", "user_defined", "graph" }; }
+    Vector<StringName> variable_identity() { return { "name" }; }
+    Vector<StringName> signal_identity() { return { "signal_name" }; }
 }
 
 OrchestratorEditorGraphClipboard::Buffer* OrchestratorEditorGraphClipboard::_buffer = nullptr;
 
+bool OrchestratorEditorGraphClipboard::ClipboardResult::is_empty() const {
+    return added_nodes.is_empty() && added_functions.is_empty() && added_variables.is_empty() && added_signals.is_empty();
+}
+
 bool OrchestratorEditorGraphClipboard::ClipboardResult::had_skipped_nodes() const {
     return !skipped_functions.is_empty() || !skipped_events.is_empty() || !skipped_variables.is_empty() || !skipped_signals.is_empty();
+}
+
+bool OrchestratorEditorGraphClipboard::ClipboardResult::had_renamed_declarations() const {
+    return !renamed_functions.is_empty() || !renamed_variables.is_empty() || !renamed_signals.is_empty();
+}
+
+String OrchestratorEditorGraphClipboard::ClipboardResult::get_summary() const {
+    String summary;
+
+    if (had_renamed_declarations()) {
+        summary += "The following items were pasted under a new name:\n\n";
+        for (const KeyValue<StringName, StringName>& E : renamed_functions) {
+            summary += vformat("* Function %s was pasted as %s\n", E.key, E.value);
+        }
+        for (const KeyValue<StringName, StringName>& E : renamed_variables) {
+            summary += vformat("* Variable %s was pasted as %s\n", E.key, E.value);
+        }
+        for (const KeyValue<StringName, StringName>& E : renamed_signals) {
+            summary += vformat("* Signal %s was pasted as %s\n", E.key, E.value);
+        }
+    }
+
+    if (had_skipped_nodes()) {
+        if (!summary.is_empty()) {
+            summary += "\n";
+        }
+        summary += "Several nodes were not pasted due to the following reasons:\n\n";
+        for (const KeyValue<StringName, String>& E : skipped_functions) {
+            summary += vformat("* Function %s: %s\n", E.key, E.value);
+        }
+        for (const KeyValue<StringName, String>& E : skipped_events) {
+            summary += vformat("* Event %s: %s\n", E.key, E.value);
+        }
+        for (const KeyValue<StringName, String>& E : skipped_variables) {
+            summary += vformat("* Variable %s: %s\n", E.key, E.value);
+        }
+        for (const KeyValue<StringName, String>& E : skipped_signals) {
+            summary += vformat("* Signal %s: %s\n", E.key, E.value);
+        }
+    }
+
+    return summary;
 }
 
 void OrchestratorEditorGraphClipboard::_write_payload(const Dictionary& p_payload) {
@@ -92,8 +146,7 @@ bool OrchestratorEditorGraphClipboard::_read_payload(Dictionary& r_payload) {
     const Dictionary payload = parsed;
     ERR_FAIL_COND_V_MSG(String(payload.get("magic", String())) != PAYLOAD_MAGIC, false, "The clipboard text is not an Orchestrator payload.");
 
-    const Dictionary graph = payload.get("graph", Dictionary());
-    const uint32_t format = graph.get("format", OrchestrationFormat::FORMAT_VERSION);
+    const uint32_t format = payload.get("format", OrchestrationFormat::FORMAT_VERSION);
     ERR_FAIL_COND_V_MSG(format > OrchestrationFormat::FORMAT_VERSION, false,
         vformat("The clipboard payload was created by a newer version of Orchestrator (%s).", String(payload.get("plugin", String()))));
 
@@ -101,20 +154,364 @@ bool OrchestratorEditorGraphClipboard::_read_payload(Dictionary& r_payload) {
     return true;
 }
 
-Variant OrchestratorEditorGraphClipboard::_get_declared(const Dictionary& p_properties, const StringName& p_class, const StringName& p_name) {
-    // Declarations omit values equal to the class default, see ResourceUtils::get_storage_properties
-    if (p_properties.has(p_name)) {
-        return p_properties[p_name];
+Dictionary OrchestratorEditorGraphClipboard::_create_payload(const Dictionary& p_functions, const Dictionary& p_events,
+    const Dictionary& p_variables, const Dictionary& p_signals, const Dictionary& p_graph) {
+
+    Dictionary payload;
+    payload["magic"] = PAYLOAD_MAGIC;
+    payload["plugin"] = VERSION_FULL_BUILD;
+    payload["format"] = OrchestrationFormat::FORMAT_VERSION;
+    if (!p_graph.is_empty()) {
+        payload["graph"] = p_graph;
     }
-    return GDE::ClassDB::get_property_default_value(p_class, p_name);
+    payload["functions"] = p_functions;
+    payload["events"] = p_events;
+    payload["variables"] = p_variables;
+    payload["signals"] = p_signals;
+
+    return payload;
 }
 
-void OrchestratorEditorGraphClipboard::_apply_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded) {
-    const Array keys = p_properties.keys();
-    for (int i = 0; i < keys.size(); i++) {
-        const StringName key = keys[i];
-        if (!p_excluded.has(key)) {
-            p_resource->set(key, p_properties[key]);
+void OrchestratorEditorGraphClipboard::_collect_function_closure(Orchestration* p_source, const StringName& p_name,
+    Dictionary& r_functions, Dictionary& r_variables, Dictionary& r_signals) {
+
+    Vector<StringName> worklist;
+    worklist.push_back(p_name);
+
+    while (!worklist.is_empty()) {
+        const StringName name = worklist[worklist.size() - 1];
+        worklist.remove_at(worklist.size() - 1);
+
+        if (r_functions.has(name)) {
+            continue;
+        }
+
+        const Ref<OScriptFunction> function = p_source->find_function(name);
+        if (!function.is_valid()) {
+            continue;
+        }
+
+        // Only user functions have a body of their own; anything else travels as a declaration
+        if (!function->is_user_defined()) {
+            r_functions[name] = ResourceUtils::get_storage_properties(function);
+            continue;
+        }
+
+        const Dictionary data = p_source->export_function(name);
+        r_functions[name] = data;
+
+        if (data.has("graph")) {
+            _collect_references(p_source, data["graph"], worklist, r_variables, r_signals);
+        }
+    }
+}
+
+void OrchestratorEditorGraphClipboard::_collect_references(Orchestration* p_source, const Dictionary& p_graph,
+    Vector<StringName>& r_worklist, Dictionary& r_variables, Dictionary& r_signals) {
+
+    const Array entries = p_graph.get("nodes", Array());
+    for (int i = 0; i < entries.size(); i++) {
+        const Dictionary entry = entries[i];
+        const String class_name = entry.get("class", String());
+        const Dictionary properties = entry.get("properties", Dictionary());
+
+        if (ClassDB::is_parent_class(class_name, OScriptNodeCallScriptFunction::get_class_static())) {
+            r_worklist.push_back(properties.get("function_name", String()));
+        } else if (ClassDB::is_parent_class(class_name, OScriptNodeVariable::get_class_static())) {
+            const StringName name = properties.get("variable_name", String());
+            if (!r_variables.has(name)) {
+                const Ref<OScriptVariable> variable = p_source->get_variable(name);
+                if (variable.is_valid()) {
+                    r_variables[name] = ResourceUtils::get_storage_properties(variable);
+                }
+            }
+        } else if (ClassDB::is_parent_class(class_name, OScriptNodeEmitSignal::get_class_static())) {
+            const StringName name = properties.get("signal_name", String());
+            if (!r_signals.has(name)) {
+                const Ref<OScriptSignal> signal = p_source->find_custom_signal(name);
+                if (signal.is_valid()) {
+                    r_signals[name] = ResourceUtils::get_storage_properties(signal);
+                }
+            }
+        }
+    }
+}
+
+Vector<Dictionary> OrchestratorEditorGraphClipboard::_get_node_entries(const Dictionary& p_payload) {
+    Vector<Dictionary> result;
+
+    const Dictionary graph = p_payload.get("graph", Dictionary());
+    const Array entries = graph.get("nodes", Array());
+    for (int i = 0; i < entries.size(); i++) {
+        result.push_back(entries[i]);
+    }
+
+    const Dictionary functions = p_payload.get("functions", Dictionary());
+    const Array names = functions.keys();
+    for (int i = 0; i < names.size(); i++) {
+        const Dictionary declaration = functions[names[i]];
+        const Dictionary body = declaration.get("graph", Dictionary());
+        const Array body_entries = body.get("nodes", Array());
+        for (int j = 0; j < body_entries.size(); j++) {
+            result.push_back(body_entries[j]);
+        }
+    }
+
+    return result;
+}
+
+String OrchestratorEditorGraphClipboard::_describe_function(const Dictionary& p_declaration) {
+    const MethodInfo method = DictionaryUtils::to_method(ResourceUtils::get_storage_property(p_declaration, OScriptFunction::get_class_static(), "method"));
+    return MethodUtils::get_signature(method);
+}
+
+String OrchestratorEditorGraphClipboard::_describe_variable(const Dictionary& p_declaration) {
+    const PropertyInfo info = DictionaryUtils::to_property(ResourceUtils::get_storage_property(p_declaration, OScriptVariable::get_class_static(), "info"));
+    return PropertyUtils::get_property_type_name(info);
+}
+
+String OrchestratorEditorGraphClipboard::_describe_signal(const Dictionary& p_declaration) {
+    const MethodInfo method = DictionaryUtils::to_method(ResourceUtils::get_storage_property(p_declaration, OScriptSignal::get_class_static(), "method"));
+    return MethodUtils::get_signature(method);
+}
+
+void OrchestratorEditorGraphClipboard::_rename_function(Dictionary& p_payload, const StringName& p_old_name, const StringName& p_new_name) {
+    Dictionary functions = p_payload.get("functions", Dictionary());
+    if (!functions.has(p_old_name)) {
+        return;
+    }
+
+    Dictionary declaration = functions[p_old_name];
+    functions.erase(p_old_name);
+
+    Dictionary method = declaration.get("method", Dictionary());
+    method["name"] = p_new_name;
+    declaration["method"] = method;
+    functions[p_new_name] = declaration;
+
+    // Every call to the function, in the selection and in any carried body, follows the new name
+    for (const Dictionary& entry : _get_node_entries(p_payload)) {
+        const String class_name = entry.get("class", String());
+        if (!ClassDB::is_parent_class(class_name, OScriptNodeCallScriptFunction::get_class_static())) {
+            continue;
+        }
+
+        Dictionary properties = entry.get("properties", Dictionary());
+        if (StringName(properties.get("function_name", String())) != p_old_name) {
+            continue;
+        }
+
+        properties["function_name"] = p_new_name;
+        if (properties.has("method")) {
+            Dictionary call_method = properties["method"];
+            if (call_method.has("name")) {
+                call_method["name"] = p_new_name;
+            }
+        }
+    }
+}
+
+void OrchestratorEditorGraphClipboard::_rename_variable(Dictionary& p_payload, const StringName& p_old_name, const StringName& p_new_name) {
+    Dictionary variables = p_payload.get("variables", Dictionary());
+    if (!variables.has(p_old_name)) {
+        return;
+    }
+
+    Dictionary declaration = variables[p_old_name];
+    variables.erase(p_old_name);
+
+    if (declaration.has("name")) {
+        declaration["name"] = p_new_name;
+    }
+    if (declaration.has("info")) {
+        Dictionary info = declaration["info"];
+        if (info.has("name")) {
+            info["name"] = p_new_name;
+        }
+    }
+    variables[p_new_name] = declaration;
+
+    for (const Dictionary& entry : _get_node_entries(p_payload)) {
+        const String class_name = entry.get("class", String());
+        if (!ClassDB::is_parent_class(class_name, OScriptNodeVariable::get_class_static())) {
+            continue;
+        }
+
+        Dictionary properties = entry.get("properties", Dictionary());
+        if (StringName(properties.get("variable_name", String())) == p_old_name) {
+            properties["variable_name"] = p_new_name;
+        }
+    }
+}
+
+void OrchestratorEditorGraphClipboard::_rename_signal(Dictionary& p_payload, const StringName& p_old_name, const StringName& p_new_name) {
+    Dictionary signals = p_payload.get("signals", Dictionary());
+    if (!signals.has(p_old_name)) {
+        return;
+    }
+
+    Dictionary declaration = signals[p_old_name];
+    signals.erase(p_old_name);
+
+    Dictionary method = declaration.get("method", Dictionary());
+    method["name"] = p_new_name;
+    declaration["method"] = method;
+    if (declaration.has("signal_name")) {
+        declaration["signal_name"] = p_new_name;
+    }
+    signals[p_new_name] = declaration;
+
+    for (const Dictionary& entry : _get_node_entries(p_payload)) {
+        const String class_name = entry.get("class", String());
+        if (!ClassDB::is_parent_class(class_name, OScriptNodeEmitSignal::get_class_static())) {
+            continue;
+        }
+
+        Dictionary properties = entry.get("properties", Dictionary());
+        if (StringName(properties.get("signal_name", String())) == p_old_name) {
+            properties["signal_name"] = p_new_name;
+        }
+    }
+}
+
+void OrchestratorEditorGraphClipboard::_apply_resolutions(Orchestration* p_target, Dictionary& p_payload,
+    const Vector<Resolution>& p_resolutions, ClipboardResult& r_result) {
+
+    // Unique names must avoid every identifier in the target, and the names chosen here
+    PackedStringArray used = p_target->get_function_names();
+    used.append_array(p_target->get_variable_names());
+    used.append_array(p_target->get_custom_signal_names());
+
+    for (const Resolution& resolution : p_resolutions) {
+        if (!resolution.rename) {
+            switch (resolution.kind) {
+                case Conflict::FUNCTION: {
+                    r_result.skipped_functions[resolution.name] = "Skipped by user.";
+                    break;
+                }
+                case Conflict::VARIABLE: {
+                    r_result.skipped_variables[resolution.name] = "Skipped by user.";
+                    break;
+                }
+                case Conflict::SIGNAL: {
+                    r_result.skipped_signals[resolution.name] = "Skipped by user.";
+                    break;
+                }
+            }
+            continue;
+        }
+
+        const StringName new_name = NameUtils::create_unique_name(resolution.name, used);
+        used.push_back(new_name);
+
+        switch (resolution.kind) {
+            case Conflict::FUNCTION: {
+                _rename_function(p_payload, resolution.name, new_name);
+                r_result.renamed_functions[resolution.name] = new_name;
+                break;
+            }
+            case Conflict::VARIABLE: {
+                _rename_variable(p_payload, resolution.name, new_name);
+                r_result.renamed_variables[resolution.name] = new_name;
+                break;
+            }
+            case Conflict::SIGNAL: {
+                _rename_signal(p_payload, resolution.name, new_name);
+                r_result.renamed_signals[resolution.name] = new_name;
+                break;
+            }
+        }
+    }
+}
+
+void OrchestratorEditorGraphClipboard::_paste_declarations(Orchestration* p_target, Dictionary& p_payload,
+    const Vector<Resolution>& p_resolutions, ClipboardResult& r_result) {
+
+    _apply_resolutions(p_target, p_payload, p_resolutions, r_result);
+
+    // Variables and signals first, function bodies resolve them by name as their nodes initialize
+    const Dictionary variables = p_payload.get("variables", Dictionary());
+    const Array variable_names = variables.keys();
+    for (int i = 0; i < variable_names.size(); i++) {
+        const StringName name = variable_names[i];
+        if (r_result.skipped_variables.has(name)) {
+            continue;
+        }
+
+        const Dictionary properties = variables[name];
+        const Ref<OScriptVariable> target_variable = p_target->get_variable(name);
+        if (target_variable.is_null()) {
+            const Ref<OScriptVariable> variable = p_target->create_variable(name);
+            ERR_CONTINUE(!variable.is_valid());
+            ResourceUtils::apply_storage_properties(variable, properties, variable_identity());
+            r_result.added_variables.insert(name);
+        } else if (!PropertyUtils::are_equal(DictionaryUtils::to_property(ResourceUtils::get_storage_property(properties, OScriptVariable::get_class_static(), "info")), target_variable->get_info())) {
+            r_result.skipped_variables[name] = "Variable declarations do not match.";
+        }
+    }
+
+    const Dictionary signals = p_payload.get("signals", Dictionary());
+    const Array signal_names = signals.keys();
+    for (int i = 0; i < signal_names.size(); i++) {
+        const StringName name = signal_names[i];
+        if (r_result.skipped_signals.has(name)) {
+            continue;
+        }
+
+        const Dictionary properties = signals[name];
+        const Ref<OScriptSignal> target_signal = p_target->find_custom_signal(name);
+        if (target_signal.is_null()) {
+            const Ref<OScriptSignal> signal = p_target->create_custom_signal(name);
+            ERR_CONTINUE(!signal.is_valid());
+            ResourceUtils::apply_storage_properties(signal, properties, signal_identity());
+            r_result.added_signals.insert(name);
+        } else if (!MethodUtils::has_same_signature(DictionaryUtils::to_method(ResourceUtils::get_storage_property(properties, OScriptSignal::get_class_static(), "method")), target_signal->get_method_info())) {
+            r_result.skipped_signals[name] = "Signal signatures do not match.";
+        }
+    }
+
+    // Function declarations next, all of them before any function body, so calls between them can be bound
+    const Dictionary functions = p_payload.get("functions", Dictionary());
+    const Array function_names = functions.keys();
+    for (int i = 0; i < function_names.size(); i++) {
+        const StringName name = function_names[i];
+        if (r_result.skipped_functions.has(name)) {
+            continue;
+        }
+
+        const Dictionary declaration = functions[name];
+        const Ref<OScriptFunction> target_function = p_target->find_function(name);
+        if (!target_function.is_valid()) {
+            const Ref<OScriptFunction> function = p_target->import_function(declaration, name);
+            if (!function.is_valid()) {
+                r_result.skipped_functions[name] = "Failed to create function.";
+            } else {
+                r_result.added_functions.insert(name);
+            }
+        } else if (!MethodUtils::has_same_signature(DictionaryUtils::to_method(ResourceUtils::get_storage_property(declaration, OScriptFunction::get_class_static(), "method")), target_function->get_method_info())) {
+            r_result.skipped_functions[name] = "Function signatures do not match.";
+        }
+    }
+
+    // Every function that will exist now does, so call nodes anywhere in the payload can be bound to it
+    for (const Dictionary& entry : _get_node_entries(p_payload)) {
+        const String class_name = entry.get("class", String());
+        if (!ClassDB::is_parent_class(class_name, OScriptNodeCallScriptFunction::get_class_static())) {
+            continue;
+        }
+
+        Dictionary properties = entry.get("properties", Dictionary());
+        const Ref<OScriptFunction> target_function = p_target->find_function(StringName(properties.get("function_name", String())));
+        if (target_function.is_valid()) {
+            properties["guid"] = target_function->get_guid().to_string();
+        }
+    }
+
+    // Bodies last, into the functions created above; an existing function keeps its own body
+    for (const StringName& name : r_result.added_functions) {
+        const Dictionary declaration = functions[name];
+        if (declaration.has("graph")) {
+            p_target->import_function_body(name, declaration["graph"]);
         }
     }
 }
@@ -136,6 +533,11 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     clear();
 
     ClipboardResult result;
+    ERR_FAIL_COND_V(p_source.is_null(), result);
+
+    Orchestration* orchestration = p_source->get_orchestration();
+    ERR_FAIL_NULL_V(orchestration, result);
+
     Dictionary functions;
     Dictionary events;
     Dictionary variables;
@@ -157,7 +559,8 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             const Ref<OScriptFunction> function = call_script->get_function();
             ERR_CONTINUE_MSG(function.is_null(), vformat("Cannot copy call function node %d; its function no longer exists.", script_node->get_id()));
 
-            functions[function->get_function_name()] = ResourceUtils::get_storage_properties(function);
+            // The called function travels with its body, and everything the body needs
+            _collect_function_closure(orchestration, function->get_function_name(), functions, variables, signals);
         }
 
         if (const Ref<OScriptNodeVariable>& variable_node = script_node; variable_node.is_valid()) {
@@ -178,24 +581,112 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
         result.added_nodes.insert(script_node->get_id());
     }
 
-    Dictionary payload;
-    payload["magic"] = PAYLOAD_MAGIC;
-    payload["plugin"] = VERSION_FULL_BUILD;
-    payload["graph"] = p_source->export_nodes(node_ids);
-    payload["functions"] = functions;
-    payload["events"] = events;
-    payload["variables"] = variables;
-    payload["signals"] = signals;
-
-    _write_payload(payload);
+    _write_payload(_create_payload(functions, events, variables, signals, p_source->export_nodes(node_ids)));
 
     return result;
 }
 
-OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboard::paste(
-    const Ref<OrchestrationGraph>& p_target, const Vector2& p_offset, bool p_snapping_enabled, int p_snapping_distance) {
+void OrchestratorEditorGraphClipboard::copy_function(Orchestration* p_source, const StringName& p_name) {
+    clear();
+    ERR_FAIL_NULL(p_source);
+
+    Dictionary functions;
+    Dictionary variables;
+    Dictionary signals;
+    _collect_function_closure(p_source, p_name, functions, variables, signals);
+    ERR_FAIL_COND_MSG(functions.is_empty(), "No function exists with the name: " + p_name);
+
+    _write_payload(_create_payload(functions, Dictionary(), variables, signals));
+}
+
+void OrchestratorEditorGraphClipboard::copy_variable(Orchestration* p_source, const StringName& p_name) {
+    clear();
+    ERR_FAIL_NULL(p_source);
+
+    const Ref<OScriptVariable> variable = p_source->get_variable(p_name);
+    ERR_FAIL_COND_MSG(variable.is_null(), "No variable exists with the name: " + p_name);
+
+    Dictionary variables;
+    variables[p_name] = ResourceUtils::get_storage_properties(variable);
+
+    _write_payload(_create_payload(Dictionary(), Dictionary(), variables, Dictionary()));
+}
+
+void OrchestratorEditorGraphClipboard::copy_signal(Orchestration* p_source, const StringName& p_name) {
+    clear();
+    ERR_FAIL_NULL(p_source);
+
+    const Ref<OScriptSignal> signal = p_source->find_custom_signal(p_name);
+    ERR_FAIL_COND_MSG(signal.is_null(), "No signal exists with the name: " + p_name);
+
+    Dictionary signals;
+    signals[p_name] = ResourceUtils::get_storage_properties(signal);
+
+    _write_payload(_create_payload(Dictionary(), Dictionary(), Dictionary(), signals));
+}
+
+Vector<OrchestratorEditorGraphClipboard::Conflict> OrchestratorEditorGraphClipboard::plan(Orchestration* p_target) {
+    Vector<Conflict> conflicts;
+    ERR_FAIL_NULL_V(p_target, conflicts);
+
+    Dictionary payload;
+    if (!_read_payload(payload)) {
+        return conflicts;
+    }
+
+    const Dictionary functions = payload.get("functions", Dictionary());
+    const Array function_names = functions.keys();
+    for (int i = 0; i < function_names.size(); i++) {
+        const StringName name = function_names[i];
+        const Dictionary declaration = functions[name];
+
+        const Ref<OScriptFunction> target_function = p_target->find_function(name);
+        if (target_function.is_valid()) {
+            const MethodInfo method = DictionaryUtils::to_method(ResourceUtils::get_storage_property(declaration, OScriptFunction::get_class_static(), "method"));
+            if (!MethodUtils::has_same_signature(method, target_function->get_method_info())) {
+                conflicts.push_back({ Conflict::FUNCTION, name, _describe_function(declaration), MethodUtils::get_signature(target_function->get_method_info()) });
+            }
+        }
+    }
+
+    const Dictionary variables = payload.get("variables", Dictionary());
+    const Array variable_names = variables.keys();
+    for (int i = 0; i < variable_names.size(); i++) {
+        const StringName name = variable_names[i];
+        const Dictionary declaration = variables[name];
+
+        const Ref<OScriptVariable> target_variable = p_target->get_variable(name);
+        if (target_variable.is_valid()) {
+            const PropertyInfo info = DictionaryUtils::to_property(ResourceUtils::get_storage_property(declaration, OScriptVariable::get_class_static(), "info"));
+            if (!PropertyUtils::are_equal(info, target_variable->get_info())) {
+                conflicts.push_back({ Conflict::VARIABLE, name, _describe_variable(declaration), PropertyUtils::get_property_type_name(target_variable->get_info()) });
+            }
+        }
+    }
+
+    const Dictionary signals = payload.get("signals", Dictionary());
+    const Array signal_names = signals.keys();
+    for (int i = 0; i < signal_names.size(); i++) {
+        const StringName name = signal_names[i];
+        const Dictionary declaration = signals[name];
+
+        const Ref<OScriptSignal> target_signal = p_target->find_custom_signal(name);
+        if (target_signal.is_valid()) {
+            const MethodInfo method = DictionaryUtils::to_method(ResourceUtils::get_storage_property(declaration, OScriptSignal::get_class_static(), "method"));
+            if (!MethodUtils::has_same_signature(method, target_signal->get_method_info())) {
+                conflicts.push_back({ Conflict::SIGNAL, name, _describe_signal(declaration), MethodUtils::get_signature(target_signal->get_method_info()) });
+            }
+        }
+    }
+
+    return conflicts;
+}
+
+OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboard::paste(const Ref<OrchestrationGraph>& p_target,
+    const Vector2& p_offset, bool p_snapping_enabled, int p_snapping_distance, const Vector<Resolution>& p_resolutions) {
 
     ClipboardResult result;
+    ERR_FAIL_COND_V(p_target.is_null(), result);
 
     Dictionary payload;
     if (!_read_payload(payload)) {
@@ -205,37 +696,21 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     Orchestration* orchestration = p_target->get_orchestration();
     ERR_FAIL_NULL_V(orchestration, result);
 
-    // Properties that identify a resource within its source orchestration, or that the target
-    // consumes when it creates the resource. Everything else in a declaration is applied as-is.
-    const Vector<StringName> function_identity = { "guid", "id", "method", "user_defined" };
-    const Vector<StringName> variable_identity = { "name" };
-    const Vector<StringName> signal_identity = { "signal_name" };
+    // The payload is worked on as a deep copy, renames and reference rewrites must not alter the buffer
+    Dictionary working = payload.duplicate(true);
 
-    // Pass 1 - Verify Functions
-    const Dictionary functions = payload.get("functions", Dictionary());
-    const Array function_names = functions.keys();
-    for (int i = 0; i < function_names.size(); i++) {
-        const StringName name = function_names[i];
-        const Dictionary declaration = functions[name];
-        const MethodInfo method = DictionaryUtils::to_method(_get_declared(declaration, OScriptFunction::get_class_static(), "method"));
+    _paste_declarations(orchestration, working, p_resolutions, result);
 
-        const Ref<OScriptFunction> target_function = orchestration->find_function(name);
-        if (!target_function.is_valid()) {
-            const bool user_defined = _get_declared(declaration, OScriptFunction::get_class_static(), "user_defined");
-            const Ref<OScriptFunction> function = orchestration->create_function(method, user_defined);
-            if (!function.is_valid()) {
-                result.skipped_functions[name] = "Failed to create function.";
-            } else {
-                _apply_properties(function, declaration, function_identity);
-            }
-        } else if (!MethodUtils::has_same_signature(method, target_function->get_method_info())) {
-            result.skipped_functions[name] = "Function signatures do not match.";
-        }
+    // A payload copied from the components panel carries no graph nodes, the declarations were the paste
+    const Dictionary graph = working.get("graph", Dictionary());
+    const Array entries = graph.get("nodes", Array());
+    if (entries.is_empty()) {
+        return result;
     }
 
-    // Pass 2 - Verify Events
+    // Verify events; their function may already exist in the target with a different signature
     HashMap<String, StringName> event_names;
-    const Dictionary events = payload.get("events", Dictionary());
+    const Dictionary events = working.get("events", Dictionary());
     const Array event_keys = events.keys();
     for (int i = 0; i < event_keys.size(); i++) {
         const StringName name = event_keys[i];
@@ -244,54 +719,16 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
 
         const Ref<OScriptFunction> target_function = orchestration->find_function(name);
         if (target_function.is_valid()) {
-            const MethodInfo method = DictionaryUtils::to_method(_get_declared(declaration, OScriptFunction::get_class_static(), "method"));
+            const MethodInfo method = DictionaryUtils::to_method(ResourceUtils::get_storage_property(declaration, OScriptFunction::get_class_static(), "method"));
             if (!MethodUtils::has_same_signature(method, target_function->get_method_info())) {
                 result.skipped_events[name] = "Event function signatures do not match.";
             }
         }
     }
 
-    // Pass 3 - Create missing variables
-    const Dictionary variables = payload.get("variables", Dictionary());
-    const Array variable_names = variables.keys();
-    for (int i = 0; i < variable_names.size(); i++) {
-        const StringName name = variable_names[i];
-        const Dictionary properties = variables[name];
-
-        const Ref<OScriptVariable> target_variable = orchestration->get_variable(name);
-        if (target_variable.is_null()) {
-            const Ref<OScriptVariable> variable = orchestration->create_variable(name);
-            ERR_CONTINUE(!variable.is_valid());
-            _apply_properties(variable, properties, variable_identity);
-        } else if (!PropertyUtils::are_equal(DictionaryUtils::to_property(_get_declared(properties, OScriptVariable::get_class_static(), "info")), target_variable->get_info())) {
-            result.skipped_variables[name] = "Variable declarations do not match.";
-        }
-    }
-
-    // Pass 4 - Create missing signals
-    const Dictionary signals = payload.get("signals", Dictionary());
-    const Array signal_names = signals.keys();
-    for (int i = 0; i < signal_names.size(); i++) {
-        const StringName name = signal_names[i];
-        const Dictionary properties = signals[name];
-
-        const Ref<OScriptSignal> target_signal = orchestration->find_custom_signal(name);
-        if (target_signal.is_null()) {
-            const Ref<OScriptSignal> signal = orchestration->create_custom_signal(name);
-            ERR_CONTINUE(!signal.is_valid());
-            _apply_properties(signal, properties, signal_identity);
-        } else if (!MethodUtils::has_same_signature(DictionaryUtils::to_method(_get_declared(properties, OScriptSignal::get_class_static(), "method")), target_signal->get_method_info())) {
-            result.skipped_signals[name] = "Signal signatures do not match.";
-        }
-    }
-
-    // Pass 5 - Compute Paste Offset
-    // The graph data is worked on as a deep copy, the reference rewrites below must not alter the payload
-    const Dictionary graph = Dictionary(payload.get("graph", Dictionary())).duplicate(true);
-    const Array entries = graph.get("nodes", Array());
-
+    // Compute the paste offset from the first node
     Vector2 offset = p_offset;
-    if (!entries.is_empty()) {
+    {
         const Dictionary first = entries[0];
         const Dictionary properties = first.get("properties", Dictionary());
         offset -= Vector2(properties.get("position", Vector2()));
@@ -301,7 +738,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
         offset = offset.snapped(Vector2(p_snapping_distance, p_snapping_distance));
     }
 
-    // Pass 6 - Resolve references against the target and create event nodes
+    // Resolve node references against the target and create event nodes
     HashMap<uint64_t, uint64_t> remap;
     HashSet<int> skipped;
     for (int i = 0; i < entries.size(); i++) {
@@ -341,8 +778,8 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             const Dictionary declaration = events[name];
 
             OScriptNodeInitContext context;
-            context.method = DictionaryUtils::to_method(_get_declared(declaration, OScriptFunction::get_class_static(), "method"));
-            context.user_data = DictionaryUtils::of({ { "user_defined", _get_declared(declaration, OScriptFunction::get_class_static(), "user_defined") } });
+            context.method = DictionaryUtils::to_method(ResourceUtils::get_storage_property(declaration, OScriptFunction::get_class_static(), "method"));
+            context.user_data = DictionaryUtils::of({ { "user_defined", ResourceUtils::get_storage_property(declaration, OScriptFunction::get_class_static(), "user_defined") } });
 
             const Vector2 position = Vector2(properties.get("position", Vector2())) + offset;
             const Ref<OScriptNode> node = p_target->create_node<OScriptNodeEvent>(context, position);
@@ -354,24 +791,20 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             // The node created the function, carry over the rest of its declaration
             const Ref<OScriptFunction> function = orchestration->find_function(name);
             if (function.is_valid()) {
-                _apply_properties(function, declaration, function_identity);
+                ResourceUtils::apply_storage_properties(function, declaration, function_identity());
             }
 
             remap[id] = node->get_id();
             continue;
         }
 
+        // Nodes that reference a declaration the paste could not provide are left out
         if (ClassDB::is_parent_class(class_name, OScriptNodeCallScriptFunction::get_class_static())) {
-            // The function GUID belongs to the source orchestration and is rewritten to the target's function.
-            // If the function doesn't exist (or has a different signature) in the target, skip the node.
             const StringName name = properties.get("function_name", String());
-            const Ref<OScriptFunction> target_function = orchestration->find_function(name);
-            if (result.skipped_functions.has(name) || !target_function.is_valid()) {
+            if (result.skipped_functions.has(name) || !orchestration->find_function(name).is_valid()) {
                 skipped.insert(id);
                 continue;
             }
-
-            properties["guid"] = target_function->get_guid().to_string();
         } else if (ClassDB::is_parent_class(class_name, OScriptNodeVariable::get_class_static())) {
             const StringName name = properties.get("variable_name", String());
             if (result.skipped_variables.has(name)) {
@@ -387,12 +820,29 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
         }
     }
 
-    // Pass 7 - Import nodes, connections, knots, pin types and comment attachments
+    // Import nodes, connections, knots, pin types and comment attachments
     p_target->import_nodes(graph, offset, remap, skipped);
 
     for (const KeyValue<uint64_t, uint64_t>& E : remap) {
         result.added_nodes.insert(E.value);
     }
+
+    return result;
+}
+
+OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboard::paste_declarations(Orchestration* p_target,
+    const Vector<Resolution>& p_resolutions) {
+
+    ClipboardResult result;
+    ERR_FAIL_NULL_V(p_target, result);
+
+    Dictionary payload;
+    if (!_read_payload(payload)) {
+        return result;
+    }
+
+    Dictionary working = payload.duplicate(true);
+    _paste_declarations(p_target, working, p_resolutions, result);
 
     return result;
 }

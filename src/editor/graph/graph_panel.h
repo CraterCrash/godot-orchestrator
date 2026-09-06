@@ -180,6 +180,8 @@ protected:
     void _cut_nodes_request();
     void _duplicate_nodes_request();
     void _paste_nodes_request();
+    void _paste_conflicts_confirmed(Object* p_dialog, const Vector2& p_offset);
+    void _paste_nodes(const Vector2& p_offset, const Vector<OrchestratorEditorGraphClipboard::Resolution>& p_resolutions);
     void _begin_node_move();
     void _end_node_move();
     void _scroll_offset_changed(const Vector2& p_scroll_offset);

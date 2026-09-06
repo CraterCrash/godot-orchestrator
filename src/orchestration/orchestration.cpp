@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/name_utils.h"
+#include "common/resource_utils.h"
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
@@ -992,158 +993,131 @@ Ref<OScriptFunction> Orchestration::duplicate_function(const StringName& p_name,
     ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot duplicate functions, instances exist.");
     ERR_FAIL_COND_V_MSG(!has_function(p_name), nullptr, "No function exists with the name: " + p_name);
 
-    Ref<OScriptGraph> old_graph = find_graph(p_name);
-    Ref<OScriptFunction> old_function = find_function(p_name);
+    // A duplicate is an export re-imported under a unique name, so the copy shares the clipboard's
+    // invariants: id remap, connections, comment attachments, and promotable operator pin types.
+    const Dictionary data = export_function(p_name);
+    const String new_name = NameUtils::create_unique_name(p_name, get_function_names());
 
-    // make a unique name for the new function
-    String new_name = NameUtils::create_unique_name(p_name, get_function_names());
-
-    // make a graph
-    Ref<OScriptGraph> new_graph = create_graph(new_name, OScriptGraph::GF_FUNCTION | OScriptGraph::GF_DEFAULT);
-
-    // duplicate each node, make a lookup table that maps old node IDs to new node IDs
-    HashMap<int,int> node_id_map;
-
-    // new entry and result nodes (only needed later if we don't include code)
-    Ref<OScriptNodeFunctionEntry> new_entry;
-    Ref<OScriptNodeFunctionResult> new_result;
-
-    // Block signals for performance reasons
-    old_graph->set_block_signals(true);
-    new_graph->set_block_signals(true);
-
-    bool failed = false;
-    for (const Ref<OScriptNode>& old_node : old_graph->get_nodes()) {
-        // Short-cut exit
-        if (new_entry.is_valid() && new_result.is_valid() && !p_include_code) {
-            break;
-        }
-
-        if (!new_entry.is_valid()) {
-            Ref<OScriptNodeFunctionEntry> old_entry = old_node;
-            if (old_entry.is_valid()) {
-                const Ref<OScriptNodeFunctionEntry> entry = old_graph->duplicate_node(old_node->get_id(), {}, true);
-                if (!entry.is_valid()) {
-                    ERR_PRINT("Failed to duplicate entry node " + itos(old_node->get_id()));
-                    failed = true;
-                    break;
-                }
-                node_id_map[old_node->get_id()] = entry->get_id();
-                old_graph->remove_node(entry);
-                new_graph->add_node(entry);
-                new_entry = entry;
-                continue;
-            }
-        }
-
-        if (!new_result.is_valid()) {
-            Ref<OScriptNodeFunctionResult> old_result = old_node;
-            if (old_result.is_valid()) {
-                const Ref<OScriptNodeFunctionResult> result = old_graph->duplicate_node(old_node->get_id(), {}, true);
-                if (!result.is_valid()) {
-                    ERR_PRINT("Failed to duplicate result node " + itos(old_node->get_id()));
-                    failed = true;
-                    break;
-                }
-                node_id_map[old_node->get_id()] = result->get_id();
-                old_graph->remove_node(result);
-                new_graph->add_node(result);
-                new_result = result;
-                continue;
-            }
-        }
-
-        if (p_include_code) {
-            const Ref<OScriptNode> new_node = old_graph->duplicate_node(old_node->get_id(), {}, true);
-            if (!new_node.is_valid()) {
-                ERR_PRINT("Failed to duplicate node " + itos(old_node->get_id()));
-                failed = true;
-                break;
-            }
-            node_id_map[old_node->get_id()] = new_node->get_id();
-            old_graph->move_node_to(new_node, new_graph);
-        }
-    }
-
-    // Re-enable signals
-    old_graph->set_block_signals(false);
-    new_graph->set_block_signals(false);
-
-    if (failed) {
-        remove_graph(new_graph->get_graph_name());
+    const Ref<OScriptFunction> function = import_function(data, new_name);
+    if (!function.is_valid()) {
         return nullptr;
     }
 
-    MethodInfo method = old_function->get_method_info();
-    method.name = new_name;
+    if (p_include_code && data.has("graph")) {
+        if (!import_function_body(new_name, data["graph"])) {
+            remove_function(new_name);
+            return nullptr;
+        }
+    }
 
-    Ref<OScriptFunction> new_function = create_function(method, new_entry->get_id(), old_function->is_user_defined());
-    if (!new_function.is_valid()) {
-        remove_graph(new_graph->get_graph_name());
+    return function;
+}
+
+Dictionary Orchestration::export_function(const StringName& p_name) const {
+    const Ref<OScriptFunction> function = find_function(p_name);
+    ERR_FAIL_COND_V_MSG(!function.is_valid(), Dictionary(), "No function exists with the name: " + p_name);
+
+    Dictionary data = ResourceUtils::get_storage_properties(function);
+
+    const Ref<OScriptGraph> graph = find_graph(p_name);
+    if (graph.is_valid()) {
+        Vector<int> node_ids;
+        for (const Ref<OScriptNode>& node : graph->get_nodes()) {
+            node_ids.push_back(node->get_id());
+        }
+        data["graph"] = graph->export_nodes(node_ids);
+    }
+
+    return data;
+}
+
+Ref<OScriptFunction> Orchestration::import_function(const Dictionary& p_data, const StringName& p_name) {
+    ERR_FAIL_COND_V_MSG(_has_instances(), nullptr, "Cannot import functions, instances exist.");
+
+    MethodInfo method = DictionaryUtils::to_method(ResourceUtils::get_storage_property(p_data, OScriptFunction::get_class_static(), "method"));
+    method.name = p_name;
+
+    const bool user_defined = ResourceUtils::get_storage_property(p_data, OScriptFunction::get_class_static(), "user_defined");
+
+    const Ref<OScriptFunction> function = create_function(method, user_defined);
+    if (!function.is_valid()) {
         return nullptr;
     }
 
-    // The duplicated terminators carry the source function's guid, as that is stored state that is
-    // copied verbatim. They must be rebound onto the new function, otherwise the duplicate resolves
-    // back to the source function when the orchestration is reloaded.
-    new_entry->set_function(new_function);
-    if (new_result.is_valid()) {
-        new_result->set_function(new_function);
-    }
+    // The identity properties belong to the exporting orchestration or were consumed above
+    ResourceUtils::apply_storage_properties(function, p_data, { "guid", "id", "method", "user_defined", "graph" });
 
-    old_graph->emit_changed();
-    new_graph->emit_changed();
+    return function;
+}
 
-    // now restore connections
-    if (p_include_code) {
-        // if we include code, we need to restore all connections
-        for (const OScriptConnection& old_connection : old_graph->get_connections()) {
-            int source_id = node_id_map[static_cast<int>(old_connection.from_node)];
-            int target_id = node_id_map[static_cast<int>(old_connection.to_node)];
-            int source_port = old_connection.from_port;
-            int target_port = old_connection.to_port;
-            new_graph->link(source_id, source_port, target_id, target_port);
-        }
-    }
-    else
-    {
-        // otherwise we just connect the entry node to the result node (if we had a result node)
-        if (new_entry.is_valid() && new_result.is_valid()) {
-            // get first the output pin of the entry node that is an execution pin
-            Ref<OScriptNodePin> entry_execution_pin;
-            for (const Ref<OScriptNodePin>& pin : new_entry->find_pins(PD_Output)) {
-                if (pin->is_execution()) {
-                    entry_execution_pin = pin;
-                    break;
-                }
-            }
-            Ref<OScriptNodePin> result_execution_pin;
-            // get the fist input pin of the result node that is an execution pin
-            for (const Ref<OScriptNodePin>& pin : new_result->find_pins(PD_Input)) {
-                if (pin->is_execution()) {
-                    result_execution_pin = pin;
-                    break;
-                }
-            }
+bool Orchestration::import_function_body(const StringName& p_name, const Dictionary& p_graph_data) {
+    ERR_FAIL_COND_V_MSG(_has_instances(), false, "Cannot import function bodies, instances exist.");
 
+    const Ref<OScriptFunction> function = find_function(p_name);
+    ERR_FAIL_COND_V_MSG(!function.is_valid(), false, "No function exists with the name: " + p_name);
 
-            // connect the entry node to the result node
-            if (entry_execution_pin.is_valid() && result_execution_pin.is_valid()) {
-                // link the entry execution pin to the result execution pin
-                new_graph->link(
-                    new_entry->get_id(),
-                    entry_execution_pin->get_pin_index(),
-                    new_result->get_id(),
-                    result_execution_pin->get_pin_index());
-            }
+    const Ref<OScriptGraph> graph = find_graph(p_name);
+    ERR_FAIL_COND_V_MSG(!graph.is_valid(), false, "No function graph exists with the name: " + p_name);
 
-            // and move the result node close to the entry node
-            // this doesn't work too well on HDPI displays, but it is better than nothing
-            new_result->set_position(new_entry->get_position() + Vector2(250, 0));
+    const Ref<OScriptNode> entry = function->get_owning_node();
+    ERR_FAIL_COND_V_MSG(!entry.is_valid(), false, "The function has no entry node: " + p_name);
+
+    // Creating the function produced the entry node and, for a function with a return value, one result
+    // node linked to it. The body carries its own result nodes, any number of them, which are imported as
+    // ordinary nodes below.
+    //
+    // Only the generated node is surplus, and it is removed after the body is in place: removing the last
+    // result node of a function clears its return value, see OScriptNodeFunctionResult::pre_remove. The
+    // entry node is kept and seeded so the body's connections land on it.
+    Vector<int> generated_results;
+    for (const Ref<OScriptNode>& node : graph->get_nodes()) {
+        const Ref<OScriptNodeFunctionResult> result = node;
+        if (result.is_valid()) {
+            generated_results.push_back(result->get_id());
         }
     }
 
-    return new_function;
+    // The body is worked on as a deep copy; terminators must carry this function's guid, not the source's
+    const Dictionary data = p_graph_data.duplicate(true);
+    const String guid = function->get_guid().to_string();
+
+    HashMap<uint64_t, uint64_t> remap;
+    const Array entries = data.get("nodes", Array());
+    for (int i = 0; i < entries.size(); i++) {
+        const Dictionary node_entry = entries[i];
+        const String class_name = node_entry.get("class", String());
+        Dictionary properties = node_entry.get("properties", Dictionary());
+
+        if (ClassDB::is_parent_class(class_name, OScriptNodeFunctionEntry::get_class_static())) {
+            const int exported_id = node_entry.get("id", -1);
+            remap[exported_id] = entry->get_id();
+
+            // Keep the exported layout for the seeded node
+            entry->set_position(properties.get("position", entry->get_position()));
+            entry->set_size(properties.get("size", entry->get_size()));
+        } else if (ClassDB::is_parent_class(class_name, OScriptNodeFunctionTerminator::get_class_static())) {
+            properties["function_id"] = guid;
+        }
+    }
+
+    graph->import_nodes(data, Vector2(), remap);
+
+    // A body may legitimately carry no result node, in which case the removal below would clear the
+    // return the declaration asked for, so it is captured here and restored if that happens.
+    const bool returns_value = function->has_return_type();
+    const PropertyInfo return_value = function->get_method_info().return_val;
+
+    for (const int node_id : generated_results) {
+        remove_node(node_id);
+    }
+
+    if (returns_value && !function->has_return_type()) {
+        function->set_return(return_value);
+    }
+
+    graph->emit_changed();
+
+    return true;
 }
 
 void Orchestration::remove_function(const StringName& p_name) {
