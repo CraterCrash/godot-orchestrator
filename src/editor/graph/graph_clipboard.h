@@ -18,34 +18,35 @@
 
 #include "orchestration/graph.h"
 #include "orchestration/node.h"
-#include "orchestration/signals.h"
-#include "orchestration/variable.h"
 
 #include <godot_cpp/templates/hash_set.hpp>
 
 /// Manages the clipboard state for <code>OrchestratorEditorGraphPanel</code>.
+///
+/// The clipboard holds data rather than live nodes, so it has no ties to the orchestration the nodes
+/// were copied from. The payload is a dictionary with the following layout:
+///
+/// <pre>
+/// magic       "orchestrator/clipboard"
+/// plugin      the plugin version that produced the payload
+/// graph       exported nodes, see OScriptGraph::export_nodes
+/// functions   name -> persisted function properties, for every called script function
+/// events      name -> persisted function properties, for every event node
+/// variables   name -> persisted variable properties
+/// signals     name -> persisted signal properties
+/// </pre>
+///
+/// Declarations carry every persisted property of the resource, see ResourceUtils::get_storage_properties.
+/// On paste the properties that identify the resource within its source orchestration are excluded and
+/// everything else is applied, so a property added to a resource later is carried without changes here.
 class OrchestratorEditorGraphClipboard {
 
-    struct CopyItem {
-        int id;
-        Ref<OrchestrationGraphNode> node;
-        Vector2 position;
-    };
+    // Allocated on first use. A static Dictionary is constructed before the extension is initialized
+    // and crashes the plugin on load, so the payload lives behind a pointer.
+    static Dictionary* _payload;
 
-    struct Buffer {
-        List<CopyItem> nodes;
-        List<uint64_t> connections;
-        HashMap<StringName, Ref<OScriptVariable>> variables;
-        HashMap<StringName, Ref<OScriptFunction>> functions;
-        HashMap<StringName, Ref<OScriptFunction>> events;
-        HashMap<StringName, Ref<OScriptSignal>> signals;
-
-        bool is_empty() const;
-        void clear();
-    };
-
-    static Buffer _buffer;
-
+    static Dictionary& _get_payload();
+    static void _apply_properties(const Ref<Resource>& p_resource, const Dictionary& p_properties, const Vector<StringName>& p_excluded);
     static void _remap_comment_attachments(const Ref<OrchestrationGraph>& p_graph, const HashSet<uint64_t>& p_node_ids, const HashMap<uint64_t, uint64_t>& p_remap);
 
 public:
@@ -64,4 +65,7 @@ public:
     ClipboardResult duplicate(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, const Ref<OrchestrationGraph>& p_graph, const Vector2& p_offset);
 
     void clear();
+
+    /// Releases the shared payload, called when the editor is torn down
+    static void free_resources();
 };
