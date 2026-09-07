@@ -470,9 +470,6 @@ void OScriptVariable::set_default_value(const Variant& p_default_value) {
     if (_default_value != p_default_value) {
         _default_value = p_default_value;
         emit_changed();
-
-        // This is required so that variable value type is refreshed in inspector
-        notify_property_list_changed();
     }
 }
 
