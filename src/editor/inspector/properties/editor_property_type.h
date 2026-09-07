@@ -27,9 +27,16 @@ class OrchestratorEditorTypeSelector;
 
 class OrchestratorEditorTypeConstraintProvider {
 public:
-    virtual bool is_key_locked() const = 0;
-    virtual bool is_value_locked() const = 0;
+    /// Whether the value the type describes already holds data, which changing the type would
+    /// discard. The property editor decides what this locks down.
+    virtual bool is_type_locked() const = 0;
+
     virtual PackedStringArray get_exclusions() const = 0;
+
+    /// The object the constraints are derived from, which is tracked for changes, or null when the
+    /// constraints cannot change while the property editor is shown.
+    virtual Object* get_constraint_source() const = 0;
+
     virtual ~OrchestratorEditorTypeConstraintProvider() = default;
 };
 
@@ -38,8 +45,13 @@ class OrchestratorEditorPropertyType : public EditorProperty {
 
     OrchestratorEditorTypeSelector* _selector = nullptr;
     std::unique_ptr<OrchestratorEditorTypeConstraintProvider> _provider;
+    ObjectID _constraint_source_id;
 
     void _selector_type_changed(const Dictionary& p_property);
+    bool _is_type_locked() const;
+    void _apply_read_only(bool p_read_only);
+    void _update_constraints();
+    void _disconnect_constraint_source();
 
 protected:
     static void _bind_methods() { }

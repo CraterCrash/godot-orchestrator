@@ -344,6 +344,16 @@ void OrchestratorEditorTypeSelector::_emit_property_changed() {
     emit_signal("changed", DictionaryUtils::to_property(outbound));
 }
 
+void OrchestratorEditorTypeSelector::_apply_tooltips() {
+    // While read only with a reason, every button explains why it cannot be used rather than
+    // describing what it would otherwise do.
+    const bool explain = _read_only && !_read_only_reason.is_empty();
+
+    _left_type->set_tooltip_text(explain ? _read_only_reason : _left_tooltip);
+    _right_type->set_tooltip_text(explain ? _read_only_reason : _right_tooltip);
+    _container_type->set_tooltip_text(explain ? _read_only_reason : String("Set container type"));
+}
+
 void OrchestratorEditorTypeSelector::_update() {
     const Vector<GDE::GodotType> type_infos = GDE::TypeResolver::resolve(_property);
     switch (_get_container_shape(_property)) {
@@ -351,7 +361,8 @@ void OrchestratorEditorTypeSelector::_update() {
             _container_type->select(0);
             _left_type->set_text(type_infos[0].name);
             _left_type->set_button_icon(SceneUtils::get_class_icon(type_infos[0].name));
-            _left_type->set_tooltip_text("Set variable type");
+            _left_tooltip = "Set variable type";
+            _right_tooltip = String();
             _right_type->set_visible(false);
             break;
         }
@@ -359,7 +370,8 @@ void OrchestratorEditorTypeSelector::_update() {
             _container_type->select(1);
             _left_type->set_text(type_infos[1].name);
             _left_type->set_button_icon(SceneUtils::get_class_icon(type_infos[1].name));
-            _left_type->set_tooltip_text("Set array element type");
+            _left_tooltip = "Set array element type";
+            _right_tooltip = String();
             _right_type->set_visible(false);
             break;
         }
@@ -367,14 +379,16 @@ void OrchestratorEditorTypeSelector::_update() {
             _container_type->select(2);
             _left_type->set_text(type_infos[1].name);
             _left_type->set_button_icon(SceneUtils::get_class_icon(type_infos[1].name));
-            _left_type->set_tooltip_text("Set dictionary key type");
+            _left_tooltip = "Set dictionary key type";
             _right_type->set_text(type_infos[2].name);
             _right_type->set_button_icon(SceneUtils::get_class_icon(type_infos[2].name));
-            _right_type->set_tooltip_text("Set dictionary value type");
+            _right_tooltip = "Set dictionary value type";
             _right_type->set_visible(true);
             break;
         }
     }
+
+    _apply_tooltips();
 }
 
 void OrchestratorEditorTypeSelector::set_property(const PropertyInfo& p_property) {
@@ -389,14 +403,15 @@ PropertyInfo OrchestratorEditorTypeSelector::get_property() const {
     return outbound;
 }
 
-void OrchestratorEditorTypeSelector::set_read_only(bool p_read_only) {
-    set_read_only(p_read_only, p_read_only);
-    _container_type->set_disabled(p_read_only);
-}
+void OrchestratorEditorTypeSelector::set_read_only(bool p_read_only, const String& p_reason) {
+    _read_only = p_read_only;
+    _read_only_reason = p_reason;
 
-void OrchestratorEditorTypeSelector::set_read_only(bool p_left_read_only, bool p_right_read_only) {
-    _left_type->set_disabled(p_left_read_only);
-    _right_type->set_disabled(p_right_read_only);
+    _left_type->set_disabled(p_read_only);
+    _right_type->set_disabled(p_read_only);
+    _container_type->set_disabled(p_read_only);
+
+    _apply_tooltips();
 }
 
 void OrchestratorEditorTypeSelector::setup(const String& p_cache_suffix, bool p_allow_abstract_types, const PackedStringArray& p_exclusions) {
@@ -446,7 +461,6 @@ OrchestratorEditorTypeSelector::OrchestratorEditorTypeSelector() {
 
     _container_type = memnew(OptionButton);
     _container_type->set_h_size_flags(SIZE_SHRINK_BEGIN);
-    _container_type->set_tooltip_text("Set container type");
     _container_type->add_icon_item(SceneUtils::get_icon("ContainerNone"), "");
     _container_type->set_item_tooltip(0, "No container");
     _container_type->add_icon_item(SceneUtils::get_icon("ContainerArray"), "");
@@ -465,7 +479,6 @@ OrchestratorEditorTypeSelector::OrchestratorEditorTypeSelector() {
     _right_type->set_button_icon(SceneUtils::get_editor_icon("Variant"));
     _right_type->set_text("Variant");
     _right_type->set_h_size_flags(SIZE_EXPAND_FILL);
-    _right_type->set_tooltip_text("Set dictionary element type");
     _right_type->hide();
     _right_type->connect(SceneStringName(pressed), callable_mp_this(_right_type_pressed));
     add_child(_right_type);
