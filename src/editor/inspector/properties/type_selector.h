@@ -51,6 +51,10 @@ class OrchestratorEditorTypeSelector : public HBoxContainer {
     String _cache_name;
     bool _allow_abstract_types;
     PropertyInfo _property;
+    String _left_tooltip;
+    String _right_tooltip;
+    String _read_only_reason;
+    bool _read_only = false;
 
     static void _normalize_inbound(PropertyInfo& r_property);
     static void _normalize_outbound(PropertyInfo& r_property);
@@ -72,6 +76,7 @@ class OrchestratorEditorTypeSelector : public HBoxContainer {
     void _type_dialog_closed(OrchestratorSelectTypeSearchDialog* p_dialog);
 
     void _emit_property_changed();
+    void _apply_tooltips();
     void _update();
 
 protected:
@@ -88,8 +93,8 @@ public:
 
     /// Set the read only mode
     /// @param p_read_only true if widget is in read only mode, false otherwise
-    void set_read_only(bool p_read_only);
-    void set_read_only(bool p_left_read_only, bool p_right_read_only);
+    /// @param p_reason optional explanation shown as the button tooltips while read only
+    void set_read_only(bool p_read_only, const String& p_reason = String());
 
     /// Set up the widget
     /// @param p_cache_suffix the cache file suffix, which stores favorites and/or recently used
