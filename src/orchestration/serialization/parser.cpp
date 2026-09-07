@@ -17,6 +17,7 @@
 #include "orchestration/serialization/parser.h"
 
 #include "editor/plugins/orchestrator_editor_plugin.h"
+#include "orchestration/nodes/local_variables_legacy.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/missing_resource.hpp>
@@ -85,6 +86,17 @@ String OrchestrationParser::_remap_class_type(const String& p_class_name) {
     if (p_class_name == OScript::get_class_static()) {
         return Orchestration::get_class_static();
     }
+
+    // The original local variable node classes were renamed when local variables became function
+    // declarations. The old names now belong to the abstract accessor base, which is never written,
+    // so any file carrying them predates the migration and loads the legacy nodes for upgrade.
+    if (p_class_name == "OScriptNodeLocalVariable") {
+        return OScriptNodeLocalVariableLegacy::get_class_static();
+    }
+    if (p_class_name == "OScriptNodeAssignLocalVariable") {
+        return OScriptNodeAssignLocalVariableLegacy::get_class_static();
+    }
+
     return p_class_name;
 }
 

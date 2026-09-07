@@ -33,6 +33,8 @@ String OrchestratorEditorClipboardConflictDialog::_get_kind_name(Conflict::Kind 
             return "Variable";
         case Conflict::SIGNAL:
             return "Signal";
+        case Conflict::LOCAL_VARIABLE:
+            return "Local Variable";
     }
     return String();
 }

@@ -18,6 +18,7 @@
 
 #include "common/guid.h"
 #include "orchestration/annotation.h"
+#include "orchestration/local_variable.h"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
@@ -53,9 +54,20 @@ class OScriptFunction : public Resource {
     bool _returns_value = false;               //! Whether the function returns a value
     String _description;                       //! Optional description for a function
     OScriptAnnotationList _annotations;        //! Annotations applied to the function
+    Vector<Ref<OScriptLocalVariable>> _local_variables;
+
+    //~ Begin Serialization
+    TypedArray<Dictionary> _get_local_variables_internal() const;
+    void _set_local_variables_internal(const TypedArray<Dictionary>& p_local_variables);
+    //~ End Serialization
+
+    /// Get the index of the named local variable declaration
+    /// @param p_name the local variable name
+    /// @return the declaration index, or -1 if no such local variable exists
+    int _find_local_variable_index(const StringName& p_name) const;
 
 protected:
-    static void _bind_methods() { }
+    static void _bind_methods();
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;
@@ -220,4 +232,16 @@ public:
 
     /// Replaces the whole annotation list, used by serialization and undo snapshots
     void set_annotations(const Vector<OScriptAnnotation>& p_annotations);
+
+    //~ Begin Local Variable Interface
+    bool has_local_variable(const StringName& p_name) const;
+    Ref<OScriptLocalVariable> create_local_variable(const StringName& p_name, Variant::Type p_type = Variant::NIL);
+    Ref<OScriptLocalVariable> duplicate_local_variable(const StringName& p_name);
+    void remove_local_variable(const StringName& p_name);
+    Ref<OScriptLocalVariable> find_local_variable(const StringName& p_name) const;
+    bool rename_local_variable(const StringName& p_old_name, const StringName& p_new_name);
+    Vector<Ref<OScriptLocalVariable>> get_local_variables() const;
+    PackedStringArray get_local_variable_names() const;
+    bool is_local_variable_name_available(const StringName& p_name) const;
+    //~ End Local Variable Interface
 };

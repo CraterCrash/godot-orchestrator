@@ -18,8 +18,15 @@
 
 #include "orchestration/node.h"
 
-class OScriptNodeLocalVariable : public OScriptNode {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeLocalVariable, OScriptNode);
+/// Legacy graph-declared local variable, superseded by function-scoped declarations.
+///
+/// These nodes are never created anymore; they remain loadable so that files written before the
+/// migration deserialize and can be upgraded into local variable declarations plus Get/Set nodes.
+/// Files that were serialized with the old class names are remapped to these classes by the
+/// orchestration parsers.
+///
+class OScriptNodeLocalVariableLegacy : public OScriptNode {
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeLocalVariableLegacy, OScriptNode);
 
 protected:
     static void _bind_methods() { }
@@ -54,8 +61,8 @@ public:
     String get_variable_name() const;
 };
 
-class OScriptNodeAssignLocalVariable : public OScriptNode {
-    ORCHESTRATOR_NODE_CLASS(OScriptNodeAssignLocalVariable, OScriptNode);
+class OScriptNodeAssignLocalVariableLegacy : public OScriptNode {
+    ORCHESTRATOR_NODE_CLASS(OScriptNodeAssignLocalVariableLegacy, OScriptNode);
 
 protected:
     static void _bind_methods() { }

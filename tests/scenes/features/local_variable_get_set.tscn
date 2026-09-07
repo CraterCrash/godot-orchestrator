@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bx6gq7cddgtcc"]
+
+[ext_resource type="Script" uid="uid://swrtbt2fhwmhg" path="res://scenes/features/local_variable_get_set.torch" id="1_6rf8k"]
+
+[node name="local_variable_get_set" type="Node"]
+script = ExtResource("1_6rf8k")

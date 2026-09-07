@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ypr732wiyhzri"]
+
+[ext_resource type="Script" uid="uid://x1hkfeq5ajzsv" path="res://scenes/features/local_variable_upgrade_orphan_assign.torch" id="1_kw6ht"]
+
+[node name="local_variable_upgrade_orphan_assign" type="Node"]
+script = ExtResource("1_kw6ht")

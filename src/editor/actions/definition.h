@@ -44,7 +44,9 @@ public:
         ACTION_EMIT_MEMBER_SIGNAL,
         ACTION_EMIT_SIGNAL,
         ACTION_VARIABLE_GET,
-        ACTION_VARIABLE_SET
+        ACTION_VARIABLE_SET,
+        ACTION_LOCAL_VARIABLE_GET,
+        ACTION_LOCAL_VARIABLE_SET
     };
 
     enum GraphType {

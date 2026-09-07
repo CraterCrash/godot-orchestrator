@@ -22,6 +22,7 @@
 #include "common/name_utils.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "common/string_utils.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
@@ -88,6 +89,46 @@ void OrchestratorScriptComponentsContainer::_functions_changed() {
 void OrchestratorScriptComponentsContainer::_variables_changed() {
     _set_edited(true);
     _update_variables();
+}
+
+void OrchestratorScriptComponentsContainer::_local_variable_changed() {
+    _set_edited(true);
+    _update_local_variables();
+}
+
+void OrchestratorScriptComponentsContainer::_local_variable_added(const StringName& p_name) {
+    _update_local_variables();
+}
+
+void OrchestratorScriptComponentsContainer::_local_variable_removed(const StringName& p_name) {
+    _update_local_variables();
+}
+
+void OrchestratorScriptComponentsContainer::_local_variable_renamed(const StringName& p_old_name, const StringName& p_new_name) {
+    _update_local_variables();
+}
+
+void OrchestratorScriptComponentsContainer::_set_active_function(const Ref<OScriptFunction>& p_function) {
+    if (_active_function == p_function) {
+        return;
+    }
+
+    if (_active_function.is_valid()) {
+        _active_function->disconnect("local_variable_added", callable_mp_this(_local_variable_added));
+        _active_function->disconnect("local_variable_removed", callable_mp_this(_local_variable_removed));
+        _active_function->disconnect("local_variable_renamed", callable_mp_this(_local_variable_renamed));
+    }
+
+    _active_function = p_function;
+
+    if (_active_function.is_valid()) {
+        _active_function->connect("local_variable_added", callable_mp_this(_local_variable_added));
+        _active_function->connect("local_variable_removed", callable_mp_this(_local_variable_removed));
+        _active_function->connect("local_variable_renamed", callable_mp_this(_local_variable_renamed));
+    }
+
+    // The view is scoped to the active function, so it must repopulate even though no model changed
+    _update_local_variables();
 }
 
 void OrchestratorScriptComponentsContainer::_open_graph(const String& p_graph_name) {
@@ -201,6 +242,11 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
             menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
             menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_component_copy_item).bind(p_item));
             menu->add_icon_shortcut("ActionPaste", ED_ACTION_SHORTCUT("ui_paste", "Paste"), callable_mp_this(_component_paste));
+            menu->add_icon_item("LocalVariable", "Copy as Local Variable", callable_mp_this(_component_copy_variable_as_local).bind(p_item),
+                {
+                    .disabled = !_active_function.is_valid(),
+                    .tooltip = "Declares a local variable of the same type in the open function graph."
+                });
             menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_variables, p_item));
             menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
             break;
@@ -209,6 +255,16 @@ void OrchestratorScriptComponentsContainer::_component_show_context_menu(Node* p
             menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_component_copy_item).bind(p_item));
             menu->add_icon_shortcut("ActionPaste", ED_ACTION_SHORTCUT("ui_paste", "Paste"), callable_mp_this(_component_paste));
             menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_signals, p_item));
+            menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
+            break;
+        }
+        case FUNCTION_LOCAL_VARIABLE: {
+            menu->add_icon_shortcut("Duplicate", ED_GET_SHORTCUT("graph_components_panel/duplicate"), callable_mp_this(_component_duplicate_item).bind(p_item, Dictionary()));
+            menu->add_icon_shortcut("ActionCopy", ED_ACTION_SHORTCUT("ui_copy", "Copy"), callable_mp_this(_component_copy_item).bind(p_item));
+            menu->add_icon_shortcut("ActionPaste", ED_ACTION_SHORTCUT("ui_paste", "Paste"), callable_mp_this(_component_paste));
+            menu->add_icon_item("MemberProperty", "Promote to Variable", callable_mp_this(_component_promote_local_variable).bind(p_item),
+                { .tooltip = "Turns the local variable into a script variable and converts every node that uses it." });
+            menu->add_icon_shortcut("Rename", ED_GET_SHORTCUT("graph_components_panel/rename"), RENAME_ITEM(_local_variables, p_item));
             menu->add_icon_shortcut("Remove", ED_GET_SHORTCUT("graph_components_panel/remove"), callable_mp_this(_component_remove_item).bind(p_item, true));
             break;
         }
@@ -313,6 +369,15 @@ Variant OrchestratorScriptComponentsContainer::_component_item_dragged(TreeItem*
             }
             break;
         }
+        case FUNCTION_LOCAL_VARIABLE: {
+            const StringName variable_name = p_item->get_meta("__name", "");
+            if (_active_function.is_valid() && _active_function->has_local_variable(variable_name)) {
+                data["type"] = "local_variable";
+                data["function"] = _active_function->get_function_name();
+                data["variables"] = Array::make(variable_name);
+            }
+            break;
+        }
         default: {
             break;
         }
@@ -407,6 +472,43 @@ void OrchestratorScriptComponentsContainer::_component_item_button_clicked(Node*
             }
             break;
         }
+        case FUNCTION_LOCAL_VARIABLE: {
+            if (!_active_function.is_valid()) {
+                return;
+            }
+
+            const Ref<OScriptLocalVariable> variable = _active_function->find_local_variable(item_name);
+            if (!variable.is_valid()) {
+                return;
+            }
+
+            if (p_column == 0 && p_id == 2) {
+                Tree* tree = p_item->get_tree();
+                const Rect2 cell_rect = tree->get_item_area_rect(p_item, p_column);
+                const Rect2 xformed = tree->get_global_transform().xform(cell_rect);
+                const Rect2i screen_rect = Rect2i(Vector2i(xformed.position.x, xformed.position.y + xformed.size.y), Vector2i(cell_rect.size));
+
+                AcceptDialog* dialog = memnew(AcceptDialog);
+                dialog->set_title("Change Type: " + variable->get_variable_name());
+                dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
+                dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+                dialog->set_flag(Window::FLAG_RESIZE_DISABLED, true);
+                dialog->set_flag(Window::FLAG_MAXIMIZE_DISABLED, true);
+                dialog->set_flag(Window::FLAG_MINIMIZE_DISABLED, true);
+                add_child(dialog);
+
+                OrchestratorEditorTypeSelector* selector = memnew(OrchestratorEditorTypeSelector);
+                selector->set_property(variable->get_info());
+                selector->setup("variable_type", true);
+                selector->connect(CoreStringName(changed), callable_mp_lambda(this, [variable, selector](const Dictionary& value) {
+                    variable->set_info(DictionaryUtils::to_property(value));
+                    selector->set_property(DictionaryUtils::to_property(value));
+                }));
+                dialog->add_child(selector);
+                dialog->popup_on_parent(screen_rect);
+            }
+            break;
+        }
         default: {
             break;
         }
@@ -446,6 +548,15 @@ void OrchestratorScriptComponentsContainer::_component_item_selected(Node* p_nod
             const Ref<OScriptSignal> signal = _get_orchestration()->find_custom_signal(item_name);
             if (signal.is_valid()) {
                 EI->edit_resource(signal);
+            }
+            break;
+        }
+        case FUNCTION_LOCAL_VARIABLE: {
+            if (_active_function.is_valid()) {
+                const Ref<OScriptLocalVariable> variable = _active_function->find_local_variable(item_name);
+                if (variable.is_valid()) {
+                    EI->edit_resource(variable);
+                }
             }
             break;
         }
@@ -547,6 +658,27 @@ void OrchestratorScriptComponentsContainer::_component_add_item(int p_component_
             _signals->edit_tree_item(item, callable_mp_this(_component_add_item_commit), callable_mp_this(_component_add_item_canceled));
             break;
         }
+        case FUNCTION_LOCAL_VARIABLE: {
+            if (!_active_function.is_valid()) {
+                ORCHESTRATOR_ACCEPT("Local variables can only be added while a function graph is open.");
+            }
+
+            PackedStringArray existing_names = _active_function->get_local_variable_names();
+            for (const PropertyInfo& argument : _active_function->get_method_info().arguments) {
+                existing_names.push_back(argument.name);
+            }
+            const String label = NameUtils::create_unique_name("NewLocal", existing_names);
+
+            if (_active_function->get_local_variables().is_empty()) {
+                _local_variables->clear_tree();
+            }
+
+            TreeItem* item = _local_variables->add_tree_item(label, SceneUtils::get_editor_icon("LocalVariable"));
+            item->set_meta("__component_type", FUNCTION_LOCAL_VARIABLE);
+
+            _local_variables->edit_tree_item(item, callable_mp_this(_component_add_item_commit), callable_mp_this(_component_add_item_canceled));
+            break;
+        }
         default: {
             break;
         }
@@ -566,11 +698,28 @@ void OrchestratorScriptComponentsContainer::_component_add_item_commit(TreeItem*
         return;
     }
 
+    const uint32_t type = p_item->get_meta("__component_type", NONE);
+
+    // Local variables share a namespace with the function's arguments and other locals only;
+    // shadowing a script member is legal and reported by the analyzer as a warning.
+    if (type == FUNCTION_LOCAL_VARIABLE) {
+        if (!_active_function.is_valid()) {
+            ORCHESTRATOR_ACCEPT("Local variables can only be added while a function graph is open.");
+        }
+        if (!_active_function->is_local_variable_name_available(item_name)) {
+            ORCHESTRATOR_ACCEPT(vformat("A local variable or argument already exists with the name \"%s\".", item_name));
+        }
+        if (!_active_function->create_local_variable(item_name).is_valid()) {
+            ORCHESTRATOR_ACCEPT("Failed to create the local variable with name " + item_name);
+        }
+        _set_edited(true);
+        return;
+    }
+
     if (_is_identifier_used(item_name)) {
         return;
     }
 
-    const uint32_t type = p_item->get_meta("__component_type", NONE);
     switch (type) {
         case EVENT_GRAPH: {
             if (_get_orchestration()->has_graph(item_name)) {
@@ -690,9 +839,100 @@ void OrchestratorScriptComponentsContainer::_component_duplicate_item(TreeItem* 
             }
             break;
         }
+        case FUNCTION_LOCAL_VARIABLE: {
+            if (!_active_function.is_valid()) {
+                break;
+            }
+            const Ref<OScriptLocalVariable> duplicate = _active_function->duplicate_local_variable(name);
+            if (duplicate.is_valid()) {
+                _update_local_variables();
+                _find_and_edit_local_variable(duplicate->get_variable_name());
+            }
+            break;
+        }
         default:
             break;
     }
+}
+
+void OrchestratorScriptComponentsContainer::_component_promote_local_variable(TreeItem* p_item) {
+    ERR_FAIL_NULL_MSG(p_item, "Cannot promote component item with no tree item");
+    ERR_FAIL_COND_MSG(!_orchestration.is_valid(), "Cannot promote component item, orchestration is invalid");
+    ERR_FAIL_COND_MSG(!_active_function.is_valid(), "Cannot promote local variable, no function graph is active");
+
+    const StringName name = p_item->get_meta("__name", "");
+
+    // Another function's local or argument with the same name would shadow the new script variable there.
+    // That is legal, so the user decides whether to keep the name or take a unique one.
+    const PackedStringArray shadowing = _get_orchestration()->get_functions_shadowing(name, _active_function);
+    if (shadowing.is_empty()) {
+        _promote_local_variable(name, false);
+        return;
+    }
+
+    const String message = vformat(
+        "The %s %s also declare%s a local variable or argument named \"%s\".\n\n"
+        "If the script variable is also named \"%s\", it will be shadowed there and the analyzer will warn about it.",
+        shadowing.size() == 1 ? "function" : "functions",
+        StringUtils::join(", ", shadowing),
+        shadowing.size() == 1 ? "s" : "",
+        name, name);
+
+    OrchestratorEditorDialogs::confirm_with_alternative(
+        message,
+        vformat("Promote as \"%s\"", name),
+        callable_mp_this(_promote_local_variable).bind(name, false),
+        "Use a unique name",
+        callable_mp_this(_promote_local_variable).bind(name, true));
+}
+
+void OrchestratorScriptComponentsContainer::_promote_local_variable(const StringName& p_name, bool p_avoid_shadowing) {
+    ERR_FAIL_COND_MSG(!_active_function.is_valid(), "Cannot promote local variable, no function graph is active");
+
+    const Ref<OScriptVariable> variable = _get_orchestration()->promote_local_variable(_active_function, p_name, p_avoid_shadowing);
+    if (!variable.is_valid()) {
+        ORCHESTRATOR_ACCEPT("Failed to promote local variable " + p_name);
+    }
+
+    EI->inspect_object(nullptr);
+    _update_components();
+    _set_edited(true);
+
+    // A rename the user asked for needs no notice; one forced by a script-wide name collision does
+    if (!p_avoid_shadowing && variable->get_variable_name() != p_name) {
+        ORCHESTRATOR_ACCEPT(vformat("The name \"%s\" is already in use, so the local variable was promoted as variable \"%s\".", p_name, variable->get_variable_name()));
+    }
+}
+
+void OrchestratorScriptComponentsContainer::_component_copy_variable_as_local(TreeItem* p_item) {
+    ERR_FAIL_NULL_MSG(p_item, "Cannot copy component item with no tree item");
+    ERR_FAIL_COND_MSG(!_orchestration.is_valid(), "Cannot copy component item, orchestration is invalid");
+    ERR_FAIL_COND_MSG(!_active_function.is_valid(), "Cannot copy variable as local, no function graph is active");
+
+    const StringName name = p_item->get_meta("__name", "");
+    const Ref<OScriptVariable> variable = _get_orchestration()->get_variable(name);
+    if (!variable.is_valid()) {
+        ORCHESTRATOR_ACCEPT("No variable found with the name " + name);
+    }
+
+    // The copy is a declaration only; the variable's nodes stay as they are
+    PackedStringArray used = _active_function->get_local_variable_names();
+    for (const PropertyInfo& argument : _active_function->get_method_info().arguments) {
+        used.push_back(argument.name);
+    }
+    const String local_name = NameUtils::create_unique_name("local_" + name, used);
+
+    const Ref<OScriptLocalVariable> local_variable = _active_function->create_local_variable(local_name, variable->get_info().type);
+    if (!local_variable.is_valid()) {
+        ORCHESTRATOR_ACCEPT("Failed to create the local variable with name " + local_name);
+    }
+
+    local_variable->set_info(variable->get_info());
+    local_variable->set_default_value(variable->get_default_value());
+    local_variable->set_description(variable->get_description());
+
+    _update_local_variables();
+    _set_edited(true);
 }
 
 void OrchestratorScriptComponentsContainer::_component_copy_item(TreeItem* p_item) {
@@ -715,6 +955,12 @@ void OrchestratorScriptComponentsContainer::_component_copy_item(TreeItem* p_ite
             _clipboard.copy_signal(_get_orchestration().ptr(), name);
             break;
         }
+        case FUNCTION_LOCAL_VARIABLE: {
+            if (_active_function.is_valid()) {
+                _clipboard.copy_local_variable(_get_orchestration().ptr(), _active_function->get_function_name(), name);
+            }
+            break;
+        }
         default:
             break;
     }
@@ -723,8 +969,10 @@ void OrchestratorScriptComponentsContainer::_component_copy_item(TreeItem* p_ite
 void OrchestratorScriptComponentsContainer::_component_paste() {
     ERR_FAIL_COND_MSG(!_orchestration.is_valid(), "Cannot paste, orchestration is invalid");
 
-    // Declarations that exist here with a different definition need the user's decision first
-    const Vector<OrchestratorEditorGraphClipboard::Conflict> conflicts = _clipboard.plan(_get_orchestration().ptr());
+    // Declarations that exist here with a different definition need the user's decision first.
+    // Local variables paste into the function whose graph is active, so conflicts are checked there.
+    const StringName function_name = _active_function.is_valid() ? _active_function->get_function_name() : StringName();
+    const Vector<OrchestratorEditorGraphClipboard::Conflict> conflicts = _clipboard.plan(_get_orchestration().ptr(), function_name);
     if (conflicts.is_empty()) {
         _component_paste_declarations(Vector<OrchestratorEditorGraphClipboard::Resolution>());
         return;
@@ -742,8 +990,10 @@ void OrchestratorScriptComponentsContainer::_component_paste_conflicts_confirmed
 }
 
 void OrchestratorScriptComponentsContainer::_component_paste_declarations(const Vector<OrchestratorEditorGraphClipboard::Resolution>& p_resolutions) {
-    // Only declarations are pasted here; functions bring their bodies, graph nodes in the payload are ignored
-    const OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.paste_declarations(_get_orchestration().ptr(), p_resolutions);
+    // Only declarations are pasted here; functions bring their bodies, graph nodes in the payload are ignored.
+    // Local variables go to the active function, or are skipped when no function graph is open.
+    const StringName function_name = _active_function.is_valid() ? _active_function->get_function_name() : StringName();
+    const OrchestratorEditorGraphClipboard::ClipboardResult result = _clipboard.paste_declarations(_get_orchestration().ptr(), p_resolutions, function_name);
     if (result.is_empty()) {
         OrchestratorEditorDialogs::error("Nothing was pasted");
         return;
@@ -776,11 +1026,26 @@ void OrchestratorScriptComponentsContainer::_component_rename_item(TreeItem* p_i
         return;
     }
 
+    const uint32_t type = p_item->get_meta("__component_type", NONE);
+
+    if (type == FUNCTION_LOCAL_VARIABLE) {
+        if (!_active_function.is_valid() || !_active_function->has_local_variable(old_name)) {
+            ORCHESTRATOR_ACCEPT("No local variable found with the name " + old_name);
+        }
+        if (!_active_function->is_local_variable_name_available(new_name)) {
+            ORCHESTRATOR_ACCEPT(vformat("A local variable or argument already exists with the name \"%s\".", new_name));
+        }
+        if (!_active_function->rename_local_variable(old_name, new_name)) {
+            ORCHESTRATOR_ACCEPT("Failed to rename local variable " + old_name);
+        }
+        _set_edited(true);
+        return;
+    }
+
     if (_is_identifier_used(new_name)) {
         return;
     }
 
-    const uint32_t type = p_item->get_meta("__component_type", NONE);
     switch (type) {
         case EVENT_GRAPH: {
             if (!_get_orchestration()->has_graph(old_name)) {
@@ -867,6 +1132,10 @@ void OrchestratorScriptComponentsContainer::_component_remove_item(TreeItem* p_i
                 text = "Removing a signal will remove all nodes that emit the signal.";
                 break;
             }
+            case FUNCTION_LOCAL_VARIABLE: {
+                text = "Removing a local variable will remove all nodes that get or set the local variable.";
+                break;
+            }
             default: {
                 break;
             }
@@ -933,6 +1202,15 @@ void OrchestratorScriptComponentsContainer::_component_remove_item(TreeItem* p_i
             _get_orchestration()->remove_custom_signal(signal->get_signal_name());
             break;
         }
+        case FUNCTION_LOCAL_VARIABLE: {
+            if (!_active_function.is_valid() || !_active_function->has_local_variable(item_name)) {
+                ORCHESTRATOR_ACCEPT("No local variable found with the name " + item_name);
+            }
+
+            _set_edited(true);
+            _active_function->remove_local_variable(item_name);
+            break;
+        }
         default: {
             break;
         }
@@ -943,7 +1221,8 @@ void OrchestratorScriptComponentsContainer::_component_remove_item(TreeItem* p_i
         case EVENT_GRAPH_FUNCTION:
         case SCRIPT_FUNCTION:
         case SCRIPT_VARIABLE:
-        case SCRIPT_SIGNAL: {
+        case SCRIPT_SIGNAL:
+        case FUNCTION_LOCAL_VARIABLE: {
             EI->inspect_object(nullptr);
             break;
         }
@@ -1006,6 +1285,10 @@ void OrchestratorScriptComponentsContainer::_update_components(int p_component_t
             _update_variables();
             break;
         }
+        case FUNCTION_LOCAL_VARIABLE: {
+            _update_local_variables();
+            break;
+        }
         case SCRIPT_SIGNAL: {
             _update_signals();
             break;
@@ -1014,6 +1297,7 @@ void OrchestratorScriptComponentsContainer::_update_components(int p_component_t
             _update_graphs_and_functions();
             _update_macros();
             _update_variables();
+            _update_local_variables();
             _update_signals();
             break;
         }
@@ -1032,6 +1316,13 @@ void OrchestratorScriptComponentsContainer::_find_and_edit_variable(const String
     ERR_FAIL_NULL_MSG(item, "Failed to find variable with name " + p_variable_name);
 
     _variables->rename_tree_item(item, callable_mp_this(_component_rename_item));
+}
+
+void OrchestratorScriptComponentsContainer::_find_and_edit_local_variable(const String& p_variable_name) {
+    TreeItem* item = _local_variables->find_item(p_variable_name);
+    ERR_FAIL_NULL_MSG(item, "Failed to find local variable with name " + p_variable_name);
+
+    _local_variables->rename_tree_item(item, callable_mp_this(_component_rename_item));
 }
 
 void OrchestratorScriptComponentsContainer::_update_graphs_and_functions() {
@@ -1253,6 +1544,59 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
     }
 }
 
+void OrchestratorScriptComponentsContainer::_update_local_variables() {
+    // Local variables belong to the function whose graph tab is active; event graphs have none
+    _local_variables->set_visible(_active_function.is_valid());
+    _local_variables->clear_tree();
+
+    if (!_active_function.is_valid()) {
+        return;
+    }
+
+    const Vector<Ref<OScriptLocalVariable>> local_variables = _active_function->get_local_variables();
+    if (local_variables.is_empty()) {
+        _local_variables->add_tree_empty_item("No local variables defined");
+        return;
+    }
+
+    PackedStringArray names;
+    HashMap<String, Ref<OScriptLocalVariable>> variable_map;
+    for (const Ref<OScriptLocalVariable>& local_variable : local_variables) {
+        names.push_back(local_variable->get_variable_name());
+        variable_map[local_variable->get_variable_name()] = local_variable;
+    }
+    names.sort();
+
+    const Ref<Texture2D> variable_icon = SceneUtils::get_editor_icon("LocalVariable");
+    for (const String& name : names) {
+        const Ref<OScriptLocalVariable>& local_variable = variable_map[name];
+
+        if (!local_variable->is_connected(CoreStringName(changed), callable_mp_this(_local_variable_changed))) {
+            local_variable->connect(CoreStringName(changed), callable_mp_this(_local_variable_changed));
+        }
+
+        TreeItem* item = _local_variables->add_tree_item(name, variable_icon);
+        item->set_meta("__component_type", FUNCTION_LOCAL_VARIABLE);
+
+        {
+            // There is no way to set the size of the image on the button, so we must rescale
+            Ref<Texture2D> class_icon = SceneUtils::get_class_icon(local_variable->get_variable_type_name());
+            if (class_icon.is_valid()) {
+                class_icon = SceneUtils::get_sized_icon(class_icon, SceneUtils::get_editor_class_icon_size());
+            } else {
+                class_icon = SceneUtils::get_editor_icon("FileBroken");
+            }
+
+            item->add_button(0, class_icon, 2, false, "Change local variable type");
+        }
+
+        if (!local_variable->get_description().strip_edges().is_empty()) {
+            const String tooltip = vformat("%s\n\n%s", name, local_variable->get_description().strip_edges());
+            item->set_tooltip_text(0, SceneUtils::create_wrapped_tooltip_text(tooltip));
+        }
+    }
+}
+
 void OrchestratorScriptComponentsContainer::_update_signals() {
     ERR_FAIL_COND_MSG(!_orchestration.is_valid(), "Orchestration is invalid");
 
@@ -1372,6 +1716,7 @@ void OrchestratorScriptComponentsContainer::set_edited_resource(const Ref<Resour
     ERR_FAIL_COND_MSG(!script.is_valid(), "Could not set the orchestration");
 
     if (script.is_valid()) {
+        _set_active_function(nullptr);
         _orchestration = script->get_orchestration();
     }
 }
@@ -1382,6 +1727,7 @@ Dictionary OrchestratorScriptComponentsContainer::get_edit_state() {
     panel_states["functions"] = _functions->is_collapsed();
     panel_states["macros"] = _macros->is_collapsed();
     panel_states["variables"] = _variables->is_collapsed();
+    panel_states["local_variables"] = _local_variables->is_collapsed();
     panel_states["signals"] = _signals->is_collapsed();
     return panel_states;
 }
@@ -1394,6 +1740,7 @@ void OrchestratorScriptComponentsContainer::set_edit_state(const Variant& p_stat
         _functions->set_collapsed(panel_states.get("functions", false));
         _macros->set_collapsed(panel_states.get("macros", false));
         _variables->set_collapsed(panel_states.get("variables", false));
+        _local_variables->set_collapsed(panel_states.get("local_variables", false));
         _signals->set_collapsed(panel_states.get("signals", false));
     }
 }
@@ -1412,6 +1759,15 @@ void OrchestratorScriptComponentsContainer::notify_graph_opened(OrchestratorEdit
 
     p_graph->connect("nodes_changed", callable_mp_this(update));
     p_graph->connect("edit_function_requested", callable_mp_this(_find_and_edit_function));
+}
+
+void OrchestratorScriptComponentsContainer::notify_active_graph_changed(const Ref<OScriptGraph>& p_graph) {
+    Ref<OScriptFunction> function;
+    if (_orchestration.is_valid() && p_graph.is_valid() && p_graph->get_flags().has_flag(OScriptGraph::GF_FUNCTION)) {
+        function = _get_orchestration()->find_function(p_graph->get_graph_name());
+    }
+
+    _set_active_function(function);
 }
 
 void OrchestratorScriptComponentsContainer::_notification(int p_what) {
@@ -1519,6 +1875,27 @@ OrchestratorScriptComponentsContainer::OrchestratorScriptComponentsContainer() {
         "a get/set node or use the action menu to find the get/set option for the variable.\n\n"
         "Selecting a variable in the component view displays the variable details in the inspector."));
     components->add_child(_variables);
+
+    _local_variables = memnew(OrchestratorEditorComponentView);
+    _local_variables->set_title("Local Variables");
+    _local_variables->set_tree_drag_forward(callable_mp_this(_component_item_dragged));
+    _local_variables->set_tree_gui_handler(callable_mp_this(_component_item_gui_input));
+    _local_variables->connect("add_requested", callable_mp_this(_component_add_item).bind(FUNCTION_LOCAL_VARIABLE));
+    _local_variables->connect("context_menu_requested", callable_mp_this(_component_show_context_menu));
+    _local_variables->connect(SceneStringName(item_selected), callable_mp_this(_component_item_selected));
+    _local_variables->connect(SceneStringName(item_activated), callable_mp_this(_component_item_activated));
+    _local_variables->connect("item_button_clicked", callable_mp_this(_component_item_button_clicked));
+    _local_variables->connect("item_edit_started", callable_mp_this(_component_item_edit_started));
+    _local_variables->connect("item_edit_finished", callable_mp_this(_component_item_edit_finished));
+    _local_variables->set_panel_tooltip(SceneUtils::create_wrapped_tooltip_text(
+        "A local variable holds data for the duration of a single function call and is only visible "
+        "within the function graph that declares it. This view lists the local variables of the "
+        "function whose graph is currently open.\n\n"
+        "Drag a local variable from the component view onto the function graph to select whether to "
+        "create a get/set node or use the action menu to find the get/set option for the local variable.\n\n"
+        "Selecting a local variable in the component view displays its details in the inspector."));
+    _local_variables->set_visible(false);
+    components->add_child(_local_variables);
 
     _signals = memnew(OrchestratorEditorComponentView);
     _signals->set_title("Signals");

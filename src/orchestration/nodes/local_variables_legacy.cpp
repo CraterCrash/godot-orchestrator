@@ -14,18 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "orchestration/nodes/local_variable.h"
+#include "orchestration/nodes/local_variables_legacy.h"
 
 #include "common/property_utils.h"
 #include "common/variant_utils.h"
 
-void OScriptNodeLocalVariable::_get_property_list(List<PropertyInfo>* r_list) const {
+void OScriptNodeLocalVariableLegacy::_get_property_list(List<PropertyInfo>* r_list) const {
     r_list->push_back(PropertyInfo(Variant::STRING, "guid", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE));
     r_list->push_back(PropertyInfo(Variant::STRING, "variable_name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR));
     r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT));
 }
 
-bool OScriptNodeLocalVariable::_get(const StringName& p_name, Variant& r_value) const {
+bool OScriptNodeLocalVariableLegacy::_get(const StringName& p_name, Variant& r_value) const {
     if (p_name.match("guid")) {
         r_value = _guid.to_string();
         return true;
@@ -42,7 +42,7 @@ bool OScriptNodeLocalVariable::_get(const StringName& p_name, Variant& r_value) 
     return false;
 }
 
-bool OScriptNodeLocalVariable::_set(const StringName& p_name, const Variant& p_value) {
+bool OScriptNodeLocalVariableLegacy::_set(const StringName& p_name, const Variant& p_value) {
     if (p_name.match("guid")) {
         _guid = Guid(p_value);
         return true;
@@ -65,12 +65,12 @@ bool OScriptNodeLocalVariable::_set(const StringName& p_name, const Variant& p_v
     return false;
 }
 
-void OScriptNodeLocalVariable::post_initialize() {
+void OScriptNodeLocalVariableLegacy::post_initialize() {
     _type = find_pin("variable", PD_Output)->get_type();
     super::post_initialize();
 }
 
-void OScriptNodeLocalVariable::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) {
+void OScriptNodeLocalVariableLegacy::reallocate_pins_during_reconstruction(const Vector<Ref<OScriptNodePin>>& p_old_pins) {
     super::reallocate_pins_during_reconstruction(p_old_pins);
 
     // The variable name is stored as the output pin's label, and pin labels are not carried over
@@ -86,21 +86,21 @@ void OScriptNodeLocalVariable::reallocate_pins_during_reconstruction(const Vecto
     }
 }
 
-void OScriptNodeLocalVariable::allocate_default_pins() {
+void OScriptNodeLocalVariableLegacy::allocate_default_pins() {
     // todo: When local variables ported to function-scoped API, handle complex types like objects, enums, bitfields, etc.
     create_pin(PD_Output, PT_Data, PropertyUtils::make_typed("variable", _type));
     super::allocate_default_pins();
 }
 
-String OScriptNodeLocalVariable::get_node_title() const {
+String OScriptNodeLocalVariableLegacy::get_node_title() const {
     return vformat("Local %s", VariantUtils::get_friendly_type_name(_type, true));
 }
 
-String OScriptNodeLocalVariable::get_icon() const {
+String OScriptNodeLocalVariableLegacy::get_icon() const {
     return "MemberProperty";
 }
 
-String OScriptNodeLocalVariable::get_tooltip_text() const {
+String OScriptNodeLocalVariableLegacy::get_tooltip_text() const {
     if (_type != Variant::NIL) {
         return vformat("A local temporary %s variable", VariantUtils::get_friendly_type_name(_type));
     } else {
@@ -108,11 +108,11 @@ String OScriptNodeLocalVariable::get_tooltip_text() const {
     }
 }
 
-bool OScriptNodeLocalVariable::is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const {
+bool OScriptNodeLocalVariableLegacy::is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const {
     return p_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION);
 }
 
-void OScriptNodeLocalVariable::configure(const OScriptNodeInitContext& p_context) {
+void OScriptNodeLocalVariableLegacy::configure(const OScriptNodeInitContext& p_context) {
     super::configure(p_context);
 
     const Dictionary data = p_context.user_data.value_or(Dictionary());
@@ -120,7 +120,7 @@ void OScriptNodeLocalVariable::configure(const OScriptNodeInitContext& p_context
     _type = VariantUtils::to_type(data.get("type", Variant::NIL));
 }
 
-void OScriptNodeLocalVariable::initialize(const OScriptNodeInitContext& p_context) {
+void OScriptNodeLocalVariableLegacy::initialize(const OScriptNodeInitContext& p_context) {
     ERR_FAIL_COND_MSG(!p_context.user_data, "A local variable node requires a type argument.");
 
     _guid = Guid::create_guid();
@@ -128,7 +128,7 @@ void OScriptNodeLocalVariable::initialize(const OScriptNodeInitContext& p_contex
     super::initialize(p_context);
 }
 
-String OScriptNodeLocalVariable::get_variable_name() const {
+String OScriptNodeLocalVariableLegacy::get_variable_name() const {
     const Ref<OScriptNodePin> output = find_pin(0, PD_Output);
     if (output.is_null() || output->get_label().is_empty()) {
         return "";
@@ -137,9 +137,9 @@ String OScriptNodeLocalVariable::get_variable_name() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// OScriptNodeAssignLocalVariable
+/// OScriptNodeAssignLocalVariableLegacy
 
-void OScriptNodeAssignLocalVariable::_upgrade(uint32_t p_version, uint32_t p_current_version) {
+void OScriptNodeAssignLocalVariableLegacy::_upgrade(uint32_t p_version, uint32_t p_current_version) {
     if (p_version == 1 && p_current_version >= 2) {
         // Fixup - make sure variant is encoded for nils
         Ref<OScriptNodePin> variable = find_pin("variable", PD_Input);
@@ -150,12 +150,12 @@ void OScriptNodeAssignLocalVariable::_upgrade(uint32_t p_version, uint32_t p_cur
     super::_upgrade(p_version, p_current_version);
 }
 
-void OScriptNodeAssignLocalVariable::post_initialize() {
+void OScriptNodeAssignLocalVariableLegacy::post_initialize() {
     _type = find_pin("variable", PD_Input)->get_type();
     super::post_initialize();
 }
 
-void OScriptNodeAssignLocalVariable::post_placed_new_node() {
+void OScriptNodeAssignLocalVariableLegacy::post_placed_new_node() {
     const Ref<OScriptNodePin> variable = find_pin("variable");
     if (variable.is_valid() && _type != Variant::NIL && !variable->has_any_connections()) {
         _type = Variant::NIL;
@@ -164,7 +164,7 @@ void OScriptNodeAssignLocalVariable::post_placed_new_node() {
     super::post_placed_new_node();
 }
 
-void OScriptNodeAssignLocalVariable::allocate_default_pins() {
+void OScriptNodeAssignLocalVariableLegacy::allocate_default_pins() {
     create_pin(PD_Input, PT_Execution, PropertyUtils::make_exec("ExecIn"));
 
     // todo: When local variables ported to function-scoped API, handle complex types like objects, enums, bitfields, etc.
@@ -182,19 +182,19 @@ void OScriptNodeAssignLocalVariable::allocate_default_pins() {
     super::allocate_default_pins();
 }
 
-String OScriptNodeAssignLocalVariable::get_node_title() const {
+String OScriptNodeAssignLocalVariableLegacy::get_node_title() const {
     return "Assign";
 }
 
-String OScriptNodeAssignLocalVariable::get_tooltip_text() const {
+String OScriptNodeAssignLocalVariableLegacy::get_tooltip_text() const {
     return "Assigns a value to a local variable.";
 }
 
-bool OScriptNodeAssignLocalVariable::is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const {
+bool OScriptNodeAssignLocalVariableLegacy::is_compatible_with_graph(const Ref<OScriptGraph>& p_graph) const {
     return p_graph->get_flags().has_flag(OScriptGraph::GraphFlags::GF_FUNCTION);
 }
 
-void OScriptNodeAssignLocalVariable::on_pin_connected(const Ref<OScriptNodePin>& p_pin) {
+void OScriptNodeAssignLocalVariableLegacy::on_pin_connected(const Ref<OScriptNodePin>& p_pin) {
     if (p_pin->is_input() && p_pin->get_pin_name().match("variable")) {
         Vector<Ref<OScriptNodePin>> pin_connections = p_pin->get_connections();
         Variant::Type pin_type = pin_connections[0]->get_type();
@@ -206,7 +206,7 @@ void OScriptNodeAssignLocalVariable::on_pin_connected(const Ref<OScriptNodePin>&
     super::on_pin_connected(p_pin);
 }
 
-void OScriptNodeAssignLocalVariable::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) {
+void OScriptNodeAssignLocalVariableLegacy::on_pin_disconnected(const Ref<OScriptNodePin>& p_pin) {
     if (p_pin->is_input() && p_pin->get_pin_name().match("variable")) {
         // Check if any inputs remain connected
         bool still_connected = false;
@@ -225,13 +225,13 @@ void OScriptNodeAssignLocalVariable::on_pin_disconnected(const Ref<OScriptNodePi
     super::on_pin_disconnected(p_pin);
 }
 
-String OScriptNodeAssignLocalVariable::get_variable_guid() const {
+String OScriptNodeAssignLocalVariableLegacy::get_variable_guid() const {
     const Ref<OScriptNodePin> variable = find_pin("variable", PD_Input);
     if (variable.is_valid()) {
         const Vector<Ref<OScriptNodePin>> conns = variable->get_connections();
         if (!conns.is_empty()) {
             const Ref<OScriptNodePin>& first = conns[0];
-            Ref<OScriptNodeLocalVariable> node = cast_to<OScriptNodeLocalVariable>(first->get_owning_node());
+            Ref<OScriptNodeLocalVariableLegacy> node = cast_to<OScriptNodeLocalVariableLegacy>(first->get_owning_node());
             if (node.is_valid()) {
                 return node->get("guid");
             }

@@ -302,6 +302,8 @@ void OScriptFunctionAnalyzer::_register_incoming_nets(Context& p_context, const 
             if (const Ref<OScriptNodeFunctionEntry>& entry = source_node; entry.is_valid()) {
                 p_context.info.net_variable_allocation[key] = source_pin->get_pin_name();
             } else if (const Ref<OScriptNodeLocalVariable>& local_var = source_node; local_var.is_valid()) {
+                p_context.info.net_variable_allocation[key] = local_var->get_variable_name();
+            } else if (const Ref<OScriptNodeLocalVariableLegacy>& local_var = source_node; local_var.is_valid()) {
                 String variable_name = local_var->get_variable_name();
                 if (variable_name.is_empty()) {
                     const uint64_t net_id = p_context.get_next_net_id();
@@ -731,7 +733,7 @@ void OScriptFunctionAnalyzer::_analyze_combined(Context& p_context) {
             }
         } else if (const Ref<OScriptNodeBranch>& branch = current; branch.is_valid()) {
             info.is_branch_node[node_id] = true;
-        } else if (const Ref<OScriptNodeLocalVariable>& local_variable = current; local_variable.is_valid()) {
+        } else if (const Ref<OScriptNodeLocalVariableLegacy>& local_variable = current; local_variable.is_valid()) {
             info.local_variables[node_id] = local_variable->get_variable_name();
         }
 

@@ -94,7 +94,7 @@ struct OScriptFunctionInfo {
     HashSet<NodeId> unreachable_nodes;                              //! Nodes with no incoming control flow
     HashSet<NodeId> dead_end_nodes;                                 //! Nodes with no outgoing control flow
     HashMap<NodeId, NodeId> incoming_control_flow_count;            //! merge point detection
-    HashMap<NodeId, StringName> local_variables;                    //! Local function-scoped variable declarations
+    HashMap<NodeId, StringName> local_variables;                    //! Legacy graph-declared local variables (unconverted nodes)
 
     enum class DivergenceType {
         ConditionalBranch,      //! Branch if/else

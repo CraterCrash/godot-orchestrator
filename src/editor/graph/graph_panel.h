@@ -18,6 +18,7 @@
 
 #include "common/godot_version.h"
 #include "core/godot/object/weak_ref.h"
+#include "editor/actions/definition.h"
 #include "editor/graph/graph_clipboard.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel_styler.h"
@@ -243,6 +244,7 @@ private:
     void _distribute_nodes(int p_distribution);
     void _stack_nodes(OrchestratorEditorGraphNode* p_anchor, int p_stack);
     void _set_variable_node_validation(OrchestratorEditorGraphNode* p_node, bool p_validated);
+
     void _toggle_await_function(OrchestratorEditorGraphNode* p_node);
 
     void _select_connected_execution_pins(OrchestratorEditorGraphPin* p_pin);
@@ -250,6 +252,8 @@ private:
     void _change_node_pin_type(OrchestratorEditorGraphPin* p_pin, int p_type);
     bool _can_promote_pin_to_variable(OrchestratorEditorGraphPin* p_pin);
     void _promote_pin_to_variable(OrchestratorEditorGraphPin* p_pin);
+    bool _can_promote_pin_to_local_variable(OrchestratorEditorGraphPin* p_pin);
+    void _promote_pin_to_local_variable(OrchestratorEditorGraphPin* p_pin);
     void _reset_pin_to_generated_default_value(OrchestratorEditorGraphPin* p_pin);
     void _split_node_pin(OrchestratorEditorGraphPin* p_pin);
     void _recombine_node_pin(OrchestratorEditorGraphPin* p_pin);
@@ -260,6 +264,7 @@ private:
 
     OrchestratorEditorGraphPin* _resolve_pin_from_handle(const PinHandle& p_handle, bool p_input);
 
+    OrchestratorEditorActionSet _get_script_actions() const;
     void _connect_with_menu(const PinHandle& p_handle, const Vector2& p_position, bool p_input);
     void _popup_menu(const Vector2& p_position);
     void _action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action);
@@ -299,6 +304,7 @@ private:
     void _drop_data_property(const Dictionary& p_property, const Vector2& p_at_position, const String& p_path, bool p_setter);
     void _drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable);
     void _drop_data_variable(const String& p_name, const Vector2& p_at_position, bool p_validated, bool p_setter);
+    void _drop_data_local_variable(const String& p_name, const Vector2& p_at_position, bool p_setter);
 
     bool _is_in_port_hotzone(const Vector2& p_pos, const Vector2& p_mouse_pos, const Vector2i& p_port_size, bool p_left);
 
@@ -329,6 +335,7 @@ public:
     bool _is_in_output_hotzone(Object* p_in_node, int32_t p_in_port, const Vector2& p_mouse_position) override;
     //~ End GraphEdit Interface
 
+    Ref<OrchestrationGraph> get_graph() const { return _graph; }
     void set_graph(const Ref<OrchestrationGraph>& p_graph);
     void reloaded_from_file();
 

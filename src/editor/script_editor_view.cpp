@@ -136,6 +136,9 @@ void OrchestratorScriptGraphEditorView::_close_graph_editor(const String& p_name
     if (tab_panel && tab_panel != _event_graph) {
         _store_graph_tab_state(tab_panel->get_name(), _get_graph_tab_state(tab_panel, false));
         tab_panel->queue_free();
+
+        // The tab container settles on its new current tab only after the panel is freed
+        callable_mp_this(_notify_active_graph).call_deferred();
     }
 }
 
@@ -174,6 +177,14 @@ void OrchestratorScriptGraphEditorView::_go_to_graph_tab(int p_index) {
     if (current_tab_panel) {
         validate();
     }
+
+    _notify_active_graph();
+}
+
+void OrchestratorScriptGraphEditorView::_notify_active_graph() {
+    // Scoped component views (local variables) follow the active tab, including when no tab remains
+    OrchestratorEditorGraphPanel* active_panel = _tab_container->get_tab_count() > 0 ? _get_active_graph_tab() : nullptr;
+    _components->notify_active_graph_changed(active_panel ? active_panel->get_graph() : Ref<OrchestrationGraph>());
 }
 
 void OrchestratorScriptGraphEditorView::_close_graph_tab(int p_index) {

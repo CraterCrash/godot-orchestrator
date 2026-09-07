@@ -364,7 +364,9 @@ private:
     ExpressionNode* build_deconstruct(const Ref<OScriptNodeDecompose>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_function_entry(const Ref<OScriptNodeFunctionEntry>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_pure_call(const Ref<OScriptNodeCallFunction>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
-    ExpressionNode* build_get_local_variable(const Ref<OScriptNodeLocalVariable>& p_node, const Ref<OScriptNodePin>& p_pin);
+    ExpressionNode* build_local_variable_get(const Ref<OScriptNodeLocalVariableGet>& p_node, const Ref<OScriptNodePin>& p_pin);
+    ExpressionNode* build_local_variable_set_expression(const Ref<OScriptNodeLocalVariableSet>& p_node, const Ref<OScriptNodePin>& p_pin);
+    ExpressionNode* build_get_local_variable_legacy(const Ref<OScriptNodeLocalVariableLegacy>& p_node, const Ref<OScriptNodePin>& p_pin);
     ExpressionNode* build_make_dictionary(const Ref<OScriptNodeMakeDictionary>& p_node, const Ref<OScriptNodePin>& p_pin);
     ExpressionNode* build_make_array(const Ref<OScriptNodeMakeArray>& p_node, const Ref<OScriptNodePin>& p_pin); // vars validated
     ExpressionNode* build_array_get_at_index(const Ref<OScriptNodeArrayGet>& p_node, const Ref<OScriptNodePin>& p_pin);
@@ -386,7 +388,8 @@ private:
     StatementResult build_variable_get_validated(const Ref<OScriptNodeVariableGet>& p_script_node); // vars validated
     StatementResult build_variable_set(const Ref<OScriptNodeVariableSet>& p_script_node); // vars validated
     StatementResult build_property_set(const Ref<OScriptNodePropertySet>& p_script_node); // vars validated
-    StatementResult build_assign_local_variable(const Ref<OScriptNodeAssignLocalVariable>& p_script_node);
+    StatementResult build_local_variable_set(const Ref<OScriptNodeLocalVariableSet>& p_script_node);
+    StatementResult build_assign_local_variable_legacy(const Ref<OScriptNodeAssignLocalVariableLegacy>& p_script_node);
     StatementResult build_call_member_function(const Ref<OScriptNodeCallMemberFunction>& p_script_node); // vars validated
     StatementResult build_call_builtin_function(const Ref<OScriptNodeCallBuiltinFunction>& p_script_node); // vars validated
     StatementResult build_call_script_function(const Ref<OScriptNodeCallScriptFunction>& p_script_node); // vars_validated

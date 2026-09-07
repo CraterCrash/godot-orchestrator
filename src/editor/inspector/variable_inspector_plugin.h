@@ -20,7 +20,7 @@
 
 using namespace godot;
 
-/// An EditorInspectorPlugin that handles selecting the variable type for OScriptVariable objects
+/// An EditorInspectorPlugin that handles selecting the variable type for OScriptVariable and OScriptLocalVariable objects
 class OrchestratorEditorInspectorPluginVariable : public EditorInspectorPlugin {
     GDCLASS(OrchestratorEditorInspectorPluginVariable, EditorInspectorPlugin);
 

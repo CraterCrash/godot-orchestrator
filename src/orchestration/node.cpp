@@ -142,7 +142,7 @@ void OScriptNode::pre_save() {
 
 void OScriptNode::pre_remove() {
     // During node removal, there is no need for pin reconstruction to fire and there may
-    // be situations, such as in AssignLocalVariable, that could trigger reconstruction
+    // be situations, such as in the legacy AssignLocalVariable, that could trigger reconstruction
     // when pins are unlinked. By preemptively setting reconstructing to true, this will
     // block pin reconstruction when nodes are being removed.
     _reconstructing = true;

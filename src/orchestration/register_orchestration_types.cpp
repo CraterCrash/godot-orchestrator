@@ -30,11 +30,13 @@ void register_orchestration_types() {
     #if GODOT_VERSION >= 0x040500
     GDREGISTER_CLASS(OScriptGraph)
     GDREGISTER_CLASS(OScriptFunction)
+    GDREGISTER_CLASS(OScriptLocalVariable)
     GDREGISTER_CLASS(OScriptVariable)
     GDREGISTER_CLASS(OScriptSignal)
     #else
     GDREGISTER_INTERNAL_CLASS(OScriptGraph)
     GDREGISTER_INTERNAL_CLASS(OScriptFunction)
+    GDREGISTER_INTERNAL_CLASS(OScriptLocalVariable)
     GDREGISTER_INTERNAL_CLASS(OScriptVariable)
     GDREGISTER_INTERNAL_CLASS(OScriptSignal)
     #endif
@@ -52,6 +54,7 @@ void register_orchestration_node_types() {
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptEditablePinNode)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeProperty)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeVariable)
+    ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeLocalVariable)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeConstant)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeSwitchEditablePin)
     ORCHESTRATOR_REGISTER_ABSTRACT_NODE_CLASS(OScriptNodeClassConstantBase)
@@ -156,8 +159,10 @@ void register_orchestration_node_types() {
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeSelf)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeVariableGet)
     ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeVariableSet)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeLocalVariable)
-    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAssignLocalVariable)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeLocalVariableGet)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeLocalVariableSet)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeLocalVariableLegacy)
+    ORCHESTRATOR_REGISTER_NODE_CLASS(OScriptNodeAssignLocalVariableLegacy)
 }
 
 void unregister_orchestration_node_types() {

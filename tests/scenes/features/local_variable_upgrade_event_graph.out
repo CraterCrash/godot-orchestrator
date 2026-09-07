@@ -1,0 +1,6 @@
+OSCRIPT_TEST_PASS
+WARNING: Script 'res://scenes/features/local_variable_upgrade_event_graph.torch': Graph 'EventGraph' holds legacy local variable nodes outside a function graph; they were not converted to function-scoped local variables.
+     at: _upgrade_local_variables (src/orchestration/orchestration.cpp)
+WARNING: Script 'res://scenes/features/local_variable_upgrade_event_graph.torch': Graph 'EventGraph' holds legacy local variable nodes outside a function graph; they were not converted to function-scoped local variables.
+     at: _upgrade_local_variables (src/orchestration/orchestration.cpp)
+9

@@ -16,6 +16,7 @@
 //
 #include "editor/gui/dialogs_helper.h"
 
+#include "common/callable_lambda.h"
 #include "common/macros.h"
 #include "core/godot/scene_string_names.h"
 
@@ -54,6 +55,37 @@ void OrchestratorEditorDialogs::confirm(const String& p_message, const Callable&
     dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
 
     EI->popup_dialog_centered(dialog);
+}
+
+void OrchestratorEditorDialogs::confirm_with_alternative(const String& p_message, const String& p_ok_label, const Callable& p_callback,
+    const String& p_alternative_label, const Callable& p_alternative_callback) {
+
+    ConfirmationDialog* dialog = memnew(ConfirmationDialog);
+    dialog->set_ok_button_text(p_ok_label);
+    dialog->set_text(p_message);
+    dialog->set_title("Please confirm...");
+    dialog->set_autowrap(true);
+    dialog->set_min_size(Vector2i(600, 0));
+    dialog->get_label()->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+
+    // The alternative is a custom action, which does not close the dialog by itself
+    dialog->add_button(p_alternative_label, false, "alternative");
+    dialog->connect("custom_action", callable_mp_lambda(dialog, [dialog, p_alternative_callback](const StringName& p_action) {
+        dialog->hide();
+        if (p_alternative_callback.is_valid()) {
+            p_alternative_callback.call();
+        }
+        dialog->queue_free();
+    }));
+
+    if (p_callback.is_valid()) {
+        dialog->connect(SceneStringName(confirmed), p_callback);
+    }
+
+    dialog->connect(SceneStringName(canceled), callable_mp_cast(dialog, Node, queue_free));
+    dialog->connect(SceneStringName(confirmed), callable_mp_cast(dialog, Node, queue_free));
+
+    EI->popup_dialog_centered_clamped(dialog, Size2i(), 0.0);
 }
 
 void OrchestratorEditorDialogs::error(const String& p_message, const String& p_title, bool p_exclusive) {

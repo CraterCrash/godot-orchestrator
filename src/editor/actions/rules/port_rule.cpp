@@ -97,7 +97,8 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
 
         switch (p_action->type) {
             case OrchestratorEditorActionDefinition::ACTION_SET_PROPERTY:
-            case OrchestratorEditorActionDefinition::ACTION_VARIABLE_SET: {
+            case OrchestratorEditorActionDefinition::ACTION_VARIABLE_SET:
+            case OrchestratorEditorActionDefinition::ACTION_LOCAL_VARIABLE_SET: {
                 if (_output) {
                     return property.type == _type
                         || _target_classes.has(property.class_name)
@@ -106,7 +107,8 @@ bool OrchestratorEditorActionPortRule::matches(const Ref<OrchestratorEditorActio
                 break;
             }
             case OrchestratorEditorActionDefinition::ACTION_GET_PROPERTY:
-            case OrchestratorEditorActionDefinition::ACTION_VARIABLE_GET: {
+            case OrchestratorEditorActionDefinition::ACTION_VARIABLE_GET:
+            case OrchestratorEditorActionDefinition::ACTION_LOCAL_VARIABLE_GET: {
                 if (!_output) {
                     return property.type == _type
                         || _target_classes.has(property.class_name)

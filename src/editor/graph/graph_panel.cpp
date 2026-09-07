@@ -30,6 +30,7 @@
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 #include "editor/actions/filter_engine.h"
+#include "editor/actions/introspector.h"
 #include "editor/actions/menu.h"
 #include "editor/actions/registry.h"
 #include "editor/actions/rules/override_function_rule.h"
@@ -290,8 +291,10 @@ void OrchestratorEditorGraphPanel::_duplicate_nodes_request() {
 void OrchestratorEditorGraphPanel::_paste_nodes_request() {
     const Vector2 offset = (get_scroll_offset() + get_local_mouse_position()) / get_zoom();
 
-    // Declarations that exist here with a different definition need the user's decision first
-    const Vector<OrchestratorEditorGraphClipboard::Conflict> conflicts = _clipboard.plan(_graph->get_orchestration());
+    // Declarations that exist here with a different definition need the user's decision first.
+    // Local variables are checked against the function that owns this graph, if any.
+    const StringName function_name = _graph->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION) ? _graph->get_graph_name() : StringName();
+    const Vector<OrchestratorEditorGraphClipboard::Conflict> conflicts = _clipboard.plan(_graph->get_orchestration(), function_name);
     if (conflicts.is_empty()) {
         _paste_nodes(offset, Vector<OrchestratorEditorGraphClipboard::Resolution>());
         return;
@@ -728,6 +731,7 @@ void OrchestratorEditorGraphPanel::_show_pin_context_menu(OrchestratorEditorGrap
     }
 
     menu->add_item("Promote to Variable", callable_mp_this(_promote_pin_to_variable).bind(p_pin), { .visible = _can_promote_pin_to_variable(p_pin) });
+    menu->add_item("Promote to Local Variable", callable_mp_this(_promote_pin_to_local_variable).bind(p_pin), { .visible = _can_promote_pin_to_local_variable(p_pin) });
     menu->add_item("Reset to Default Value", callable_mp_this(_reset_pin_to_generated_default_value).bind(p_pin), { .visible = !p_pin->is_execution() && pin_connections.is_empty() && p_pin->is_connectable() && p_pin->get_direction() == PD_Input });
 
     menu->add_separator("Documentation");
@@ -1592,6 +1596,54 @@ void OrchestratorEditorGraphPanel::_promote_pin_to_variable(OrchestratorEditorGr
     }
 }
 
+bool OrchestratorEditorGraphPanel::_can_promote_pin_to_local_variable(OrchestratorEditorGraphPin* p_pin) {
+    ERR_FAIL_NULL_V(p_pin, false);
+    return !p_pin->is_execution() && _graph->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION);
+}
+
+void OrchestratorEditorGraphPanel::_promote_pin_to_local_variable(OrchestratorEditorGraphPin* p_pin) {
+    ERR_FAIL_NULL_MSG(p_pin, "Cannot promote pin to a local variable with an invalid pin reference");
+    ERR_FAIL_COND_MSG(!_can_promote_pin_to_local_variable(p_pin), "Pin is not eligible for promotion to local variable");
+
+    const Ref<OScriptFunction> function = _graph->get_orchestration()->find_function(_graph->get_graph_name());
+    ERR_FAIL_COND_MSG(!function.is_valid(), "Cannot promote pin, the graph has no function");
+
+    int index = 0;
+    String name = vformat("%s_%d", p_pin->get_pin_name(), index++);
+    while (!function->is_local_variable_name_available(name)) {
+        name = vformat("%s_%d", p_pin->get_pin_name(), index++);
+    }
+
+    const Ref<OScriptLocalVariable> local_variable = function->create_local_variable(name);
+    if (local_variable.is_valid()) {
+        const bool is_input = p_pin->get_direction() == PD_Input;
+        const Vector2 port_offset = p_pin->get_graph_node()->get_port_position_for_pin(p_pin);
+        const Vector2 pin_position = p_pin->get_graph_node()->get_position_offset() + port_offset;
+
+        local_variable->set_info(p_pin->get_property_info());
+        local_variable->set_default_value(p_pin->_pin->get_effective_default_value());
+
+        NodeSpawnOptions options;
+        options.context.variable_name = local_variable->get_variable_name();
+        options.context.function_name = function->get_function_name();
+        options.position = pin_position + Vector2(250, 0) * (is_input ? -1 : 1);
+
+        if (is_input) {
+            OrchestratorEditorGraphNode* node = spawn_node<OScriptNodeLocalVariableGet>(options).node;
+            if (node) {
+                link(node->get_output_pin(0), p_pin);
+            }
+        } else {
+            OrchestratorEditorGraphNode* node = spawn_node<OScriptNodeLocalVariableSet>(options).node;
+            if (node) {
+                link(node->get_input_pin(1), p_pin);
+            }
+        }
+
+        _set_edited(true);
+    }
+}
+
 void OrchestratorEditorGraphPanel::_reset_pin_to_generated_default_value(OrchestratorEditorGraphPin* p_pin) {
     ERR_FAIL_NULL_MSG(p_pin, "Cannot reset pin to generated default value with an invalid pin reference");
 
@@ -1885,10 +1937,22 @@ void OrchestratorEditorGraphPanel::_connect_with_menu(const PinHandle& p_handle,
     }
 
     if (actions.is_empty()) {
-        actions = action_registry->get_actions(source_script);
+        actions = _get_script_actions();
     }
 
     menu->popup(p_position + get_screen_position(), actions, filter_engine);
+}
+
+OrchestratorEditorActionSet OrchestratorEditorGraphPanel::_get_script_actions() const {
+    OrchestratorEditorActionSet actions = OrchestratorEditorActionRegistry::get_singleton()->get_actions(_graph->get_orchestration()->as_script());
+
+    // Local variables are scoped to the function whose graph this is
+    if (_graph->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION)) {
+        const Ref<OScriptFunction> function = _graph->get_orchestration()->find_function(_graph->get_graph_name());
+        OrchestratorEditorIntrospector::generate_actions_from_function(function, actions);
+    }
+
+    return actions;
 }
 
 void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position) {
@@ -1925,10 +1989,7 @@ void OrchestratorEditorGraphPanel::_popup_menu(const Vector2& p_position) {
     menu->connect("action_selected", callable_mp_this(_action_menu_selection));
     menu->connect(SceneStringName(canceled), callable_mp_this(_action_menu_canceled));
 
-    menu->popup(
-        p_position + get_screen_position(),
-        OrchestratorEditorActionRegistry::get_singleton()->get_actions(_graph->get_orchestration()->as_script()),
-        filter_engine);
+    menu->popup(p_position + get_screen_position(), _get_script_actions(), filter_engine);
 }
 
 void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<OrchestratorEditorActionDefinition>& p_action) {
@@ -2074,6 +2135,24 @@ void OrchestratorEditorGraphPanel::_action_menu_selection(const Ref<Orchestrator
             NodeSpawnOptions options;
             options.node_class = OScriptNodeVariableSet::get_class_static();
             options.context.variable_name = p_action->property.value().name;
+            options.position = spawn_position;
+            options.drag_pin = _drag_from_pin;
+
+            spawn_node(options);
+            break;
+        }
+        case OrchestratorEditorActionDefinition::ACTION_LOCAL_VARIABLE_GET:
+        case OrchestratorEditorActionDefinition::ACTION_LOCAL_VARIABLE_SET: {
+            ERR_FAIL_COND_MSG(!p_action->property.has_value(), "Local variable action has no property");
+
+            const bool setter = p_action->type == OrchestratorEditorActionDefinition::ACTION_LOCAL_VARIABLE_SET;
+
+            NodeSpawnOptions options;
+            options.node_class = setter
+                ? OScriptNodeLocalVariableSet::get_class_static()
+                : OScriptNodeLocalVariableGet::get_class_static();
+            options.context.variable_name = p_action->property.value().name;
+            options.context.function_name = _graph->get_graph_name();
             options.position = spawn_position;
             options.drag_pin = _drag_from_pin;
 
@@ -2436,6 +2515,11 @@ void OrchestratorEditorGraphPanel::_remove_node_from_panel(int p_node_id) {
 
     _detach_node_from_frame(graph_node->get_name());
 
+    // Leave the tree now rather than on queue_free. UI nodes are named by model id, and a model operation may
+    // replace a node with another of the same id in the same frame (see Orchestration::_replace_node); the
+    // newcomer would otherwise be renamed to avoid the dying sibling and the connection refresh would bind
+    // to the wrong one.
+    remove_child(graph_node);
     graph_node->queue_free();
 }
 
@@ -2582,6 +2666,18 @@ void OrchestratorEditorGraphPanel::_drop_data_property(const Dictionary& p_prope
     if (!p_path.is_empty()) {
         options.context.node_path = p_path;
     }
+
+    spawn_node(options);
+}
+
+void OrchestratorEditorGraphPanel::_drop_data_local_variable(const String& p_name, const Vector2& p_at_position, bool p_setter) {
+    NodeSpawnOptions options;
+    options.node_class = p_setter
+        ? OScriptNodeLocalVariableSet::get_class_static()
+        : OScriptNodeLocalVariableGet::get_class_static();
+    options.context.variable_name = p_name;
+    options.context.function_name = _graph->get_graph_name();
+    options.position = p_at_position;
 
     spawn_node(options);
 }
@@ -3031,7 +3127,7 @@ void OrchestratorEditorGraphPanel::_gui_input(const Ref<InputEvent>& p_event) {
 bool OrchestratorEditorGraphPanel::_can_drop_data(const Vector2& p_at_position, const Variant& p_data) const {
     // Widget types that can be dropped
     static PackedStringArray allowed_types = Array::make(
-        "files", "obj_property", "nodes", "function", "variable", "signal");
+        "files", "obj_property", "nodes", "function", "variable", "signal", "local_variable");
 
     if (p_data.get_type() != Variant::DICTIONARY) {
         return false;
@@ -3058,6 +3154,18 @@ bool OrchestratorEditorGraphPanel::_can_drop_data(const Vector2& p_at_position, 
                 _show_drag_hint("Use Shift to drop a Getter variable node");
             }
         }
+    } else if (drop_type == "local_variable") {
+        // A local variable can only be dropped into the graph of the function that declares it
+        if (!_graph->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION)) {
+            return false;
+        }
+
+        const String function_name = data.get("function", "");
+        if (function_name != String(_graph->get_graph_name())) {
+            return false;
+        }
+
+        _show_drag_hint("Use Ctrl to drop a Setter, Shift to drop a Getter local variable node");
     }
 
     return true;
@@ -3213,6 +3321,38 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
             menu->add_item("Set " + variable_name,
                 callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, false, true),
                 { .visible = !variable->is_constant() });
+
+            menu->set_position(popup_position);
+            menu->popup();
+        }
+    } else if (drop_type == "local_variable") {
+        const Array& variables = data["variables"];
+        if (variables.is_empty()) {
+            return;
+        }
+
+        const Ref<OScriptFunction> function = _graph->get_orchestration()->find_function(_graph->get_graph_name());
+        if (!function.is_valid()) {
+            return;
+        }
+
+        const String variable_name = variables[0];
+        if (!function->has_local_variable(variable_name)) {
+            return;
+        }
+
+        if (Input::get_singleton()->is_key_pressed(KEY_CTRL)) {
+            _drop_data_local_variable(variable_name, spawn_position, true);
+        } else if (Input::get_singleton()->is_key_pressed(KEY_SHIFT)) {
+            _drop_data_local_variable(variable_name, spawn_position, false);
+        } else {
+            OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
+
+            menu->add_separator("Local Variable " + variable_name);
+            menu->add_item("Get " + variable_name, callable_mp_this(_drop_data_local_variable)
+                .bind(variable_name, spawn_position, false));
+            menu->add_item("Set " + variable_name, callable_mp_this(_drop_data_local_variable)
+                .bind(variable_name, spawn_position, true));
 
             menu->set_position(popup_position);
             menu->popup();

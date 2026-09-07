@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://hjfomcfka3wrw"]
+
+[ext_resource type="Script" uid="uid://pobn5o1vcmawp" path="res://scenes/features/local_variable_upgrade_reroute.torch" id="1_uoq5s"]
+
+[node name="local_variable_upgrade_reroute" type="Node"]
+script = ExtResource("1_uoq5s")

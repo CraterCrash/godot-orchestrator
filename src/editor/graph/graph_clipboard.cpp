@@ -28,6 +28,7 @@
 #include "orchestration/nodes/emit_signal.h"
 #include "orchestration/nodes/event.h"
 #include "orchestration/nodes/function_result.h"
+#include "orchestration/nodes/local_variables.h"
 #include "orchestration/nodes/operator_node.h"
 #include "orchestration/nodes/variables.h"
 #include "orchestration/orchestration.h"
@@ -49,21 +50,35 @@ namespace {
     Vector<StringName> function_identity() { return { "guid", "id", "method", "user_defined", "graph" }; }
     Vector<StringName> variable_identity() { return { "name" }; }
     Vector<StringName> signal_identity() { return { "signal_name" }; }
+    Vector<StringName> local_variable_identity() { return { "name" }; }
+
+    // The local variable nodes of the top-level selection; function bodies resolve their own
+    Vector<Dictionary> get_graph_node_entries(const Dictionary& p_payload) {
+        Vector<Dictionary> result;
+        const Dictionary graph = p_payload.get("graph", Dictionary());
+        const Array entries = graph.get("nodes", Array());
+        for (int i = 0; i < entries.size(); i++) {
+            result.push_back(entries[i]);
+        }
+        return result;
+    }
 }
 
 OrchestratorEditorGraphClipboard::Buffer* OrchestratorEditorGraphClipboard::_buffer = nullptr;
 
 bool OrchestratorEditorGraphClipboard::ClipboardResult::is_empty() const {
-    return added_nodes.is_empty() && added_functions.is_empty() && added_variables.is_empty() && added_signals.is_empty();
+    return added_nodes.is_empty() && added_functions.is_empty() && added_variables.is_empty() && added_signals.is_empty()
+        && added_local_variables.is_empty();
 }
 
 bool OrchestratorEditorGraphClipboard::ClipboardResult::had_skipped_nodes() const {
     return !skipped_functions.is_empty() || !skipped_events.is_empty() || !skipped_variables.is_empty()
-        || !skipped_signals.is_empty() || !skipped_nodes.is_empty();
+        || !skipped_signals.is_empty() || !skipped_local_variables.is_empty() || !skipped_nodes.is_empty();
 }
 
 bool OrchestratorEditorGraphClipboard::ClipboardResult::had_renamed_declarations() const {
-    return !renamed_functions.is_empty() || !renamed_variables.is_empty() || !renamed_signals.is_empty();
+    return !renamed_functions.is_empty() || !renamed_variables.is_empty() || !renamed_signals.is_empty()
+        || !renamed_local_variables.is_empty();
 }
 
 String OrchestratorEditorGraphClipboard::ClipboardResult::get_summary() const {
@@ -79,6 +94,9 @@ String OrchestratorEditorGraphClipboard::ClipboardResult::get_summary() const {
         }
         for (const KeyValue<StringName, StringName>& E : renamed_signals) {
             summary += vformat("* Signal %s was pasted as %s\n", E.key, E.value);
+        }
+        for (const KeyValue<StringName, StringName>& E : renamed_local_variables) {
+            summary += vformat("* Local variable %s was pasted as %s\n", E.key, E.value);
         }
     }
 
@@ -98,6 +116,9 @@ String OrchestratorEditorGraphClipboard::ClipboardResult::get_summary() const {
         }
         for (const KeyValue<StringName, String>& E : skipped_signals) {
             summary += vformat("* Signal %s: %s\n", E.key, E.value);
+        }
+        for (const KeyValue<StringName, String>& E : skipped_local_variables) {
+            summary += vformat("* Local variable %s: %s\n", E.key, E.value);
         }
         for (const KeyValue<uint64_t, String>& E : skipped_nodes) {
             summary += vformat("* Node %d: %s\n", E.key, E.value);
@@ -160,7 +181,7 @@ bool OrchestratorEditorGraphClipboard::_read_payload(Dictionary& r_payload) {
 }
 
 Dictionary OrchestratorEditorGraphClipboard::_create_payload(const Dictionary& p_functions, const Dictionary& p_events,
-    const Dictionary& p_variables, const Dictionary& p_signals, const Dictionary& p_graph) {
+    const Dictionary& p_variables, const Dictionary& p_signals, const Dictionary& p_local_variables, const Dictionary& p_graph) {
 
     Dictionary payload;
     payload["magic"] = PAYLOAD_MAGIC;
@@ -173,6 +194,7 @@ Dictionary OrchestratorEditorGraphClipboard::_create_payload(const Dictionary& p
     payload["events"] = p_events;
     payload["variables"] = p_variables;
     payload["signals"] = p_signals;
+    payload["local_variables"] = p_local_variables;
 
     return payload;
 }
@@ -280,6 +302,11 @@ String OrchestratorEditorGraphClipboard::_describe_signal(const Dictionary& p_de
     return MethodUtils::get_signature(method);
 }
 
+String OrchestratorEditorGraphClipboard::_describe_local_variable(const Dictionary& p_declaration) {
+    const PropertyInfo info = DictionaryUtils::to_property(ResourceUtils::get_storage_property(p_declaration, OScriptLocalVariable::get_class_static(), "info"));
+    return PropertyUtils::get_property_type_name(info);
+}
+
 void OrchestratorEditorGraphClipboard::_rename_function(Dictionary& p_payload, const StringName& p_old_name, const StringName& p_new_name) {
     Dictionary functions = p_payload.get("functions", Dictionary());
     if (!functions.has(p_old_name)) {
@@ -379,13 +406,56 @@ void OrchestratorEditorGraphClipboard::_rename_signal(Dictionary& p_payload, con
     }
 }
 
-void OrchestratorEditorGraphClipboard::_apply_resolutions(Orchestration* p_target, Dictionary& p_payload,
-    const Vector<Resolution>& p_resolutions, ClipboardResult& r_result) {
+void OrchestratorEditorGraphClipboard::_rename_local_variable(Dictionary& p_payload, const StringName& p_old_name, const StringName& p_new_name) {
+    Dictionary local_variables = p_payload.get("local_variables", Dictionary());
+    if (!local_variables.has(p_old_name)) {
+        return;
+    }
+
+    Dictionary declaration = local_variables[p_old_name];
+    local_variables.erase(p_old_name);
+
+    if (declaration.has("name")) {
+        declaration["name"] = p_new_name;
+    }
+    if (declaration.has("info")) {
+        Dictionary info = declaration["info"];
+        if (info.has("name")) {
+            info["name"] = p_new_name;
+        }
+    }
+    local_variables[p_new_name] = declaration;
+
+    // Only the selection references these locals; carried function bodies use their own declarations
+    for (const Dictionary& entry : get_graph_node_entries(p_payload)) {
+        const String class_name = entry.get("class", String());
+        if (!ClassDB::is_parent_class(class_name, OScriptNodeLocalVariable::get_class_static())) {
+            continue;
+        }
+
+        Dictionary properties = entry.get("properties", Dictionary());
+        if (StringName(properties.get("variable_name", String())) == p_old_name) {
+            properties["variable_name"] = p_new_name;
+        }
+    }
+}
+
+void OrchestratorEditorGraphClipboard::_apply_resolutions(Orchestration* p_target, const Ref<OScriptFunction>& p_function,
+    Dictionary& p_payload, const Vector<Resolution>& p_resolutions, ClipboardResult& r_result) {
 
     // Unique names must avoid every identifier in the target, and the names chosen here
     PackedStringArray used = p_target->get_function_names();
     used.append_array(p_target->get_variable_names());
     used.append_array(p_target->get_custom_signal_names());
+
+    // Local variables live in the function's namespace, beside its arguments and other locals
+    PackedStringArray used_locals;
+    if (p_function.is_valid()) {
+        used_locals = p_function->get_local_variable_names();
+        for (const PropertyInfo& argument : p_function->get_method_info().arguments) {
+            used_locals.push_back(argument.name);
+        }
+    }
 
     for (const Resolution& resolution : p_resolutions) {
         if (!resolution.rename) {
@@ -402,7 +472,20 @@ void OrchestratorEditorGraphClipboard::_apply_resolutions(Orchestration* p_targe
                     r_result.skipped_signals[resolution.name] = "Skipped by user.";
                     break;
                 }
+                case Conflict::LOCAL_VARIABLE: {
+                    r_result.skipped_local_variables[resolution.name] = "Skipped by user.";
+                    break;
+                }
             }
+            continue;
+        }
+
+        if (resolution.kind == Conflict::LOCAL_VARIABLE) {
+            const StringName new_name = NameUtils::create_unique_name(resolution.name, used_locals);
+            used_locals.push_back(new_name);
+
+            _rename_local_variable(p_payload, resolution.name, new_name);
+            r_result.renamed_local_variables[resolution.name] = new_name;
             continue;
         }
 
@@ -425,14 +508,19 @@ void OrchestratorEditorGraphClipboard::_apply_resolutions(Orchestration* p_targe
                 r_result.renamed_signals[resolution.name] = new_name;
                 break;
             }
+            default: {
+                break;
+            }
         }
     }
 }
 
-void OrchestratorEditorGraphClipboard::_paste_declarations(Orchestration* p_target, Dictionary& p_payload,
-    const Vector<Resolution>& p_resolutions, ClipboardResult& r_result) {
+void OrchestratorEditorGraphClipboard::_paste_declarations(Orchestration* p_target, const StringName& p_function_name,
+    Dictionary& p_payload, const Vector<Resolution>& p_resolutions, ClipboardResult& r_result) {
 
-    _apply_resolutions(p_target, p_payload, p_resolutions, r_result);
+    const Ref<OScriptFunction> function = p_function_name.is_empty() ? Ref<OScriptFunction>() : p_target->find_function(p_function_name);
+
+    _apply_resolutions(p_target, function, p_payload, p_resolutions, r_result);
 
     // Variables and signals first, function bodies resolve them by name as their nodes initialize
     const Dictionary variables = p_payload.get("variables", Dictionary());
@@ -472,6 +560,39 @@ void OrchestratorEditorGraphClipboard::_paste_declarations(Orchestration* p_targ
             r_result.added_signals.insert(name);
         } else if (!MethodUtils::has_same_signature(DictionaryUtils::to_method(ResourceUtils::get_storage_property(properties, OScriptSignal::get_class_static(), "method")), target_signal->get_method_info())) {
             r_result.skipped_signals[name] = "Signal signatures do not match.";
+        }
+    }
+
+    // Local variables land in the function that owns the target graph; without one they cannot be placed
+    const Dictionary local_variables = p_payload.get("local_variables", Dictionary());
+    const Array local_variable_names = local_variables.keys();
+    for (int i = 0; i < local_variable_names.size(); i++) {
+        const StringName name = local_variable_names[i];
+        if (r_result.skipped_local_variables.has(name)) {
+            continue;
+        }
+
+        if (!function.is_valid()) {
+            r_result.skipped_local_variables[name] = "Local variables can only be pasted into a function graph.";
+            continue;
+        }
+
+        const Dictionary properties = local_variables[name];
+        const PropertyInfo info = DictionaryUtils::to_property(ResourceUtils::get_storage_property(properties, OScriptLocalVariable::get_class_static(), "info"));
+
+        const Ref<OScriptLocalVariable> target_local = function->find_local_variable(name);
+        if (target_local.is_null()) {
+            if (!function->is_local_variable_name_available(name)) {
+                r_result.skipped_local_variables[name] = "A function argument already has that name.";
+                continue;
+            }
+
+            const Ref<OScriptLocalVariable> local_variable = function->create_local_variable(name, info.type);
+            ERR_CONTINUE(!local_variable.is_valid());
+            ResourceUtils::apply_storage_properties(local_variable, properties, local_variable_identity());
+            r_result.added_local_variables.insert(name);
+        } else if (!PropertyUtils::are_equal(info, target_local->get_info())) {
+            r_result.skipped_local_variables[name] = "Local variable declarations do not match.";
         }
     }
 
@@ -547,6 +668,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     Dictionary events;
     Dictionary variables;
     Dictionary signals;
+    Dictionary local_variables;
     Vector<int> node_ids;
 
     for (const Ref<OrchestrationGraphNode>& script_node : p_nodes) {
@@ -582,11 +704,18 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
             signals[signal->get_signal_name()] = ResourceUtils::get_storage_properties(signal);
         }
 
+        if (const Ref<OScriptNodeLocalVariable>& local_node = script_node; local_node.is_valid()) {
+            const Ref<OScriptLocalVariable> local_variable = local_node->get_variable();
+            ERR_CONTINUE_MSG(local_variable.is_null(), vformat("Cannot copy local variable node %d; its local variable no longer exists.", script_node->get_id()));
+
+            local_variables[local_variable->get_variable_name()] = ResourceUtils::get_storage_properties(local_variable);
+        }
+
         node_ids.push_back(script_node->get_id());
         result.added_nodes.insert(script_node->get_id());
     }
 
-    _write_payload(_create_payload(functions, events, variables, signals, p_source->export_nodes(node_ids)));
+    _write_payload(_create_payload(functions, events, variables, signals, local_variables, p_source->export_nodes(node_ids)));
 
     return result;
 }
@@ -630,7 +759,23 @@ void OrchestratorEditorGraphClipboard::copy_signal(Orchestration* p_source, cons
     _write_payload(_create_payload(Dictionary(), Dictionary(), Dictionary(), signals));
 }
 
-Vector<OrchestratorEditorGraphClipboard::Conflict> OrchestratorEditorGraphClipboard::plan(Orchestration* p_target) {
+void OrchestratorEditorGraphClipboard::copy_local_variable(Orchestration* p_source, const StringName& p_function_name, const StringName& p_name) {
+    clear();
+    ERR_FAIL_NULL(p_source);
+
+    const Ref<OScriptFunction> function = p_source->find_function(p_function_name);
+    ERR_FAIL_COND_MSG(function.is_null(), "No function exists with the name: " + p_function_name);
+
+    const Ref<OScriptLocalVariable> local_variable = function->find_local_variable(p_name);
+    ERR_FAIL_COND_MSG(local_variable.is_null(), vformat("No local variable exists with the name '%s' in function '%s'.", p_name, p_function_name));
+
+    Dictionary local_variables;
+    local_variables[p_name] = ResourceUtils::get_storage_properties(local_variable);
+
+    _write_payload(_create_payload(Dictionary(), Dictionary(), Dictionary(), Dictionary(), local_variables));
+}
+
+Vector<OrchestratorEditorGraphClipboard::Conflict> OrchestratorEditorGraphClipboard::plan(Orchestration* p_target, const StringName& p_function_name) {
     Vector<Conflict> conflicts;
     ERR_FAIL_NULL_V(p_target, conflicts);
 
@@ -684,6 +829,24 @@ Vector<OrchestratorEditorGraphClipboard::Conflict> OrchestratorEditorGraphClipbo
         }
     }
 
+    const Ref<OScriptFunction> function = p_function_name.is_empty() ? Ref<OScriptFunction>() : p_target->find_function(p_function_name);
+    if (function.is_valid()) {
+        const Dictionary local_variables = payload.get("local_variables", Dictionary());
+        const Array local_variable_names = local_variables.keys();
+        for (int i = 0; i < local_variable_names.size(); i++) {
+            const StringName name = local_variable_names[i];
+            const Dictionary declaration = local_variables[name];
+
+            const Ref<OScriptLocalVariable> target_local = function->find_local_variable(name);
+            if (target_local.is_valid()) {
+                const PropertyInfo info = DictionaryUtils::to_property(ResourceUtils::get_storage_property(declaration, OScriptLocalVariable::get_class_static(), "info"));
+                if (!PropertyUtils::are_equal(info, target_local->get_info())) {
+                    conflicts.push_back({ Conflict::LOCAL_VARIABLE, name, _describe_local_variable(declaration), PropertyUtils::get_property_type_name(target_local->get_info()) });
+                }
+            }
+        }
+    }
+
     return conflicts;
 }
 
@@ -704,7 +867,11 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     // The payload is worked on as a deep copy, renames and reference rewrites must not alter the buffer
     Dictionary working = payload.duplicate(true);
 
-    _paste_declarations(orchestration, working, p_resolutions, result);
+    // Local variables belong to the function whose graph receives the paste
+    const bool function_graph = p_target->get_flags().has_flag(OrchestrationGraph::GF_FUNCTION);
+    const StringName function_name = function_graph ? p_target->get_graph_name() : StringName();
+
+    _paste_declarations(orchestration, function_name, working, p_resolutions, result);
 
     // A payload copied from the components panel carries no graph nodes, the declarations were the paste
     const Dictionary graph = working.get("graph", Dictionary());
@@ -831,6 +998,19 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
                 skipped.insert(id);
                 continue;
             }
+        } else if (ClassDB::is_parent_class(class_name, OScriptNodeLocalVariable::get_class_static())) {
+            const StringName name = properties.get("variable_name", String());
+            if (!function_graph) {
+                result.skipped_nodes[id] = "Local variable nodes can only be pasted into function graphs.";
+                skipped.insert(id);
+                continue;
+            }
+
+            const Ref<OScriptFunction> function = orchestration->find_function(function_name);
+            if (result.skipped_local_variables.has(name) || !function.is_valid() || !function->has_local_variable(name)) {
+                skipped.insert(id);
+                continue;
+            }
         }
     }
 
@@ -845,7 +1025,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
 }
 
 OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboard::paste_declarations(Orchestration* p_target,
-    const Vector<Resolution>& p_resolutions) {
+    const Vector<Resolution>& p_resolutions, const StringName& p_function_name) {
 
     ClipboardResult result;
     ERR_FAIL_NULL_V(p_target, result);
@@ -856,7 +1036,7 @@ OrchestratorEditorGraphClipboard::ClipboardResult OrchestratorEditorGraphClipboa
     }
 
     Dictionary working = payload.duplicate(true);
-    _paste_declarations(p_target, working, p_resolutions, result);
+    _paste_declarations(p_target, p_function_name, working, p_resolutions, result);
 
     return result;
 }

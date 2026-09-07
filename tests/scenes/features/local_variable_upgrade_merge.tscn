@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ei2vyiwx4xkj1"]
+
+[ext_resource type="Script" uid="uid://c6rdm5q5cnain" path="res://scenes/features/local_variable_upgrade_merge.torch" id="1_ncy03"]
+
+[node name="local_variable_upgrade_merge" type="Node"]
+script = ExtResource("1_ncy03")
