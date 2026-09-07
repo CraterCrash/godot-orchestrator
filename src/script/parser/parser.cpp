@@ -181,7 +181,8 @@ void OScriptParser::bind_handlers() {
     register_statement_handler<OScriptNodeVariableGet,              &OScriptParser::build_variable_get_validated>();
     register_statement_handler<OScriptNodeVariableSet,              &OScriptParser::build_variable_set>();
     register_statement_handler<OScriptNodePropertySet,              &OScriptParser::build_property_set>();
-    register_statement_handler<OScriptNodeAssignLocalVariable,      &OScriptParser::build_assign_local_variable>();
+    register_statement_handler<OScriptNodeLocalVariableSet,         &OScriptParser::build_local_variable_set>();
+    register_statement_handler<OScriptNodeAssignLocalVariableLegacy, &OScriptParser::build_assign_local_variable_legacy>();
     register_statement_handler<OScriptNodeCallMemberFunction,       &OScriptParser::build_call_member_function>();
     register_statement_handler<OScriptNodeCallBuiltinFunction,      &OScriptParser::build_call_builtin_function>();
     register_statement_handler<OScriptNodeCallScriptFunction,       &OScriptParser::build_call_script_function>();
@@ -241,7 +242,9 @@ void OScriptParser::bind_handlers() {
     register_expression_handler<OScriptNodeCallBuiltinFunction, &OScriptParser::build_pure_call>();
     register_expression_handler<OScriptNodeCallScriptFunction,  &OScriptParser::build_pure_call>();
     register_expression_handler<OScriptNodeCallStaticFunction,  &OScriptParser::build_pure_call>();
-    register_expression_handler<OScriptNodeLocalVariable,       &OScriptParser::build_get_local_variable>();
+    register_expression_handler<OScriptNodeLocalVariableGet,    &OScriptParser::build_local_variable_get>();
+    register_expression_handler<OScriptNodeLocalVariableSet,    &OScriptParser::build_local_variable_set_expression>();
+    register_expression_handler<OScriptNodeLocalVariableLegacy, &OScriptParser::build_get_local_variable_legacy>();
     register_expression_handler<OScriptNodeMakeDictionary,      &OScriptParser::build_make_dictionary>();
     register_expression_handler<OScriptNodeMakeArray,           &OScriptParser::build_make_array>();
     register_expression_handler<OScriptNodeArrayGet,            &OScriptParser::build_array_get_at_index>();
@@ -381,6 +384,10 @@ StringName OScriptParser::create_cached_variable_name(const Ref<OScriptNodePin>&
     }
 
     if (const Ref<OScriptNodeLocalVariable>& node = source_node; node.is_valid()) {
+        return node->get_variable_name();
+    }
+
+    if (const Ref<OScriptNodeLocalVariableLegacy>& node = source_node; node.is_valid()) {
         const String local_var_name = node->get_variable_name();
         if (!local_var_name.is_empty()) {
             return local_var_name;
@@ -1616,7 +1623,25 @@ OScriptParser::ExpressionNode* OScriptParser::build_pure_call(const Ref<OScriptN
     return call_node;
 }
 
-OScriptParser::ExpressionNode* OScriptParser::build_get_local_variable(const Ref<OScriptNodeLocalVariable>& p_node, const Ref<OScriptNodePin>& p_pin) {
+OScriptParser::ExpressionNode* OScriptParser::build_local_variable_get(const Ref<OScriptNodeLocalVariableGet>& p_node, const Ref<OScriptNodePin>& p_pin) {
+    if (!p_node->get_variable().is_valid()) {
+        push_error(vformat(R"(Local variable "%s" is not declared by the function.)", p_node->get_variable_name()));
+        return build_identifier(p_node->get_variable_name());
+    }
+
+    return build_identifier(p_node->get_variable()->get_variable_name());
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_local_variable_set_expression(const Ref<OScriptNodeLocalVariableSet>& p_node, const Ref<OScriptNodePin>& p_pin) {
+    if (!p_node->get_variable().is_valid()) {
+        push_error(vformat(R"(Local variable "%s" is not declared by the function.)", p_node->get_variable_name()));
+        return build_identifier(p_node->get_variable_name());
+    }
+
+    return build_identifier(p_node->get_variable()->get_variable_name());
+}
+
+OScriptParser::ExpressionNode* OScriptParser::build_get_local_variable_legacy(const Ref<OScriptNodeLocalVariableLegacy>& p_node, const Ref<OScriptNodePin>& p_pin) {
     String variable_name = p_node->get_variable_name();
     if (variable_name.is_empty()) {
         variable_name = create_cached_variable_name(p_pin);
@@ -2010,7 +2035,29 @@ OScriptParser::StatementResult OScriptParser::build_property_set(const Ref<OScri
     return create_statement_result(p_script_node, 0);
 }
 
-OScriptParser::StatementResult OScriptParser::build_assign_local_variable(const Ref<OScriptNodeAssignLocalVariable>& p_script_node) {
+OScriptParser::StatementResult OScriptParser::build_local_variable_set(const Ref<OScriptNodeLocalVariableSet>& p_script_node) {
+    if (!p_script_node.is_valid()) {
+        return create_stop_result();
+    }
+
+    const Ref<OScriptLocalVariable> variable = p_script_node->get_variable();
+    if (!variable.is_valid()) {
+        push_error(vformat(R"(Local variable "%s" is not declared by the function.)", p_script_node->get_variable_name()));
+        return create_stop_result();
+    }
+
+    const String variable_name = variable->get_variable_name();
+    const Ref<OScriptNodePin> value_pin = p_script_node->find_pin(1, PD_Input);
+
+    AssignmentNode* assign = alloc_node<AssignmentNode>();
+    assign->assignee = build_identifier(variable_name);
+    assign->assigned_value = resolve_input(value_pin);
+    add_statement(assign);
+
+    return create_statement_result(p_script_node, 0);
+}
+
+OScriptParser::StatementResult OScriptParser::build_assign_local_variable_legacy(const Ref<OScriptNodeAssignLocalVariableLegacy>& p_script_node) {
     const Ref<OScriptNodePin> variable_pin = p_script_node->find_pin(1, PD_Input);
     const Ref<OScriptNodePin> value_pin = p_script_node->find_pin(2, PD_Input);
 
@@ -3405,8 +3452,28 @@ OScriptParser::FunctionNode* OScriptParser::build_function(const Ref<OScriptFunc
         }
 
         // Apply function local variables
+        const int entry_node_id = p_function->get_owning_node_id();
+        for (const Ref<OScriptLocalVariable>& local_variable : p_function->get_local_variables()) {
+            const PropertyInfo& info = local_variable->get_info();
+
+            // A declared default value initializes the local; otherwise the type default applies
+            ExpressionNode* initializer = nullptr;
+            if (local_variable->get_default_value().get_type() != Variant::NIL) {
+                initializer = create_expression(local_variable->get_default_value());
+            }
+
+            VariableNode* local = create_local(local_variable->get_variable_name(), initializer, body);
+            if (!PropertyUtils::is_nil_no_variant(info)) {
+                local->datatype_specifier = build_type(info);
+            }
+            local->identifier->script_node_id = entry_node_id;
+            local->script_node_id = entry_node_id;
+            add_statement(local, body);
+        }
+
+        // Apply legacy graph-declared local variables (unconverted nodes only)
         for (const KeyValue<NodeId, StringName>& local_var : function_info.local_variables) {
-            const Ref<OScriptNodeLocalVariable> var_node = p_function->get_graph()->get_node(local_var.key);
+            const Ref<OScriptNodeLocalVariableLegacy> var_node = p_function->get_graph()->get_node(local_var.key);
             if (var_node.is_valid()) {
                 const Ref<OScriptNodePin> pin = var_node->find_pin(0, PD_Output);
                 if (pin.is_valid()) {

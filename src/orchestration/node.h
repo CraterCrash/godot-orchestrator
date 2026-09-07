@@ -46,6 +46,7 @@ struct OScriptNodeInitContext {
     std::optional<NodePath> node_path;
     std::optional<StringName> class_name;
     std::optional<String> variable_name;
+    std::optional<StringName> function_name;
     std::optional<String> resource_path;
     std::optional<Dictionary> user_data;
 };

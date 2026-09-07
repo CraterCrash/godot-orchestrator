@@ -18,6 +18,7 @@
 
 #include "api/extension_db.h"
 #include "editor/actions/definition.h"
+#include "orchestration/function.h"
 #include "orchestration/node.h"
 
 /// A standalone component that is responsible for being able to read and generate a set of actions based on
@@ -66,6 +67,7 @@ public:
     // No specific registrar filter
     static void generate_actions_from_class(const StringName& p_class_name, ActionSet& r_actions);
     static void generate_actions_from_script(const Ref<Script>& p_script, ActionSet& r_actions);
+    static void generate_actions_from_function(const Ref<OScriptFunction>& p_function, ActionSet& r_actions);
 
     static void generate_actions_from_script_nodes(ActionSet& r_actions);
     static void generate_actions_from_variant_types(ActionSet& r_actions);

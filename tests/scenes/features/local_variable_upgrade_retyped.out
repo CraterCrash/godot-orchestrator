@@ -1,0 +1,6 @@
+OSCRIPT_TEST_PASS
+WARNING: Script 'res://scenes/features/local_variable_upgrade_retyped.torch': Function 'run' declared local variable 'value' twice with different types; the declaration at node 4 was renamed to 'value_0'.
+     at: _upgrade_local_variables (src/orchestration/orchestration.cpp)
+WARNING: Script 'res://scenes/features/local_variable_upgrade_retyped.torch': Function 'run' declared local variable 'value' twice with different types; the declaration at node 4 was renamed to 'value_0'.
+     at: _upgrade_local_variables (src/orchestration/orchestration.cpp)
+0.0

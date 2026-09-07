@@ -180,4 +180,18 @@ namespace PropertyUtils {
     /// @param r_class the returned class name
     /// @param r_script the returned script
     void get_element_type(const String& p_hint, Variant::Type& r_builtin, StringName& r_class, Variant& r_script);
+
+    /// Creates the default value a variable declared with the given property should carry when its
+    /// type changes. Typed arrays and dictionaries are seeded with their element types so the inspector
+    /// and serializer keep the container typing; other types convert the current value.
+    /// @param p_info the variable's property declaration
+    /// @param p_current the current default value
+    /// @return the new default value
+    Variant make_declared_default_value(const PropertyInfo& p_info, const Variant& p_current);
+
+    /// Shapes an inspector <code>default_value</code> property so it edits a value of the declared type.
+    /// Variants, nodes and non-resource objects have no editable default and become read-only.
+    /// @param r_property the inspector property being validated
+    /// @param p_info the variable's property declaration
+    void shape_default_value_property(PropertyInfo& r_property, const PropertyInfo& p_info);
 }

@@ -25,6 +25,7 @@ class OrchestratorEditorDialogs {
 public:
     static void accept(const String& p_message, const String& p_button = "OK");
     static void confirm(const String& p_message, const Callable& p_callback, const String& p_yes_label = "Yes", const String& p_no_label = "No");
+    static void confirm_with_alternative(const String& p_message, const String& p_ok_label, const Callable& p_callback, const String& p_alternative_label, const Callable& p_alternative_callback);
     static void error(const String& p_message, const String& p_title = "Error", bool p_exclusive = true);
 };
 

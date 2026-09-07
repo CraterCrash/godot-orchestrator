@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://2pvxtei05d1nk"]
+
+[ext_resource type="Script" uid="uid://xrnub2baa2ai1" path="res://scenes/features/local_variable_upgrade_event_graph.torch" id="1_804o5"]
+
+[node name="local_variable_upgrade_event_graph" type="Node"]
+script = ExtResource("1_804o5")

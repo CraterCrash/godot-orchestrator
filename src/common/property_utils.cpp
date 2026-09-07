@@ -200,4 +200,95 @@ namespace PropertyUtils {
             }
         }
     }
+
+    Variant make_declared_default_value(const PropertyInfo& p_info, const Variant& p_current) {
+        // An Array/Dictionary that is typed must seed a property typed container with element data.
+        // This is necessary so that all information is carried forward to the Inspector/Serializer, etc.
+        if (p_info.type == Variant::ARRAY && p_info.hint == PROPERTY_HINT_ARRAY_TYPE && !p_info.hint_string.is_empty()) {
+            Variant::Type builtin; StringName class_name; Variant script;
+            get_element_type(p_info.hint_string, builtin, class_name, script);
+
+            Array default_value;
+            default_value.set_typed(builtin, class_name, script);
+            return default_value;
+        }
+
+        if (p_info.type == Variant::DICTIONARY && p_info.hint == PROPERTY_HINT_DICTIONARY_TYPE && !p_info.hint_string.is_empty()) {
+            const PackedStringArray parts = p_info.hint_string.split(";", true);
+            if (parts.size() == 2) {
+                Variant::Type key_builtin; StringName key_class_name; Variant key_script;
+                Variant::Type value_builtin; StringName value_class_name; Variant value_script;
+                get_element_type(parts[0], key_builtin, key_class_name, key_script);
+                get_element_type(parts[1], value_builtin, value_class_name, value_script);
+
+                Dictionary dict;
+                dict.set_typed(key_builtin, key_class_name, key_script, value_builtin, value_class_name, value_script);
+                return dict;
+            }
+        }
+
+        return VariantUtils::convert(p_current, p_info.type);
+    }
+
+    void shape_default_value_property(PropertyInfo& r_property, const PropertyInfo& p_info) {
+        if (is_variant(p_info)) {
+            r_property.usage |= PROPERTY_USAGE_READ_ONLY;
+            return;
+        }
+
+        if (p_info.type == Variant::ARRAY && p_info.hint == PROPERTY_HINT_ARRAY_TYPE) {
+            // Array[type]
+            if (ClassDB::is_parent_class(p_info.hint_string, "Object")) {
+                r_property.usage |= PROPERTY_USAGE_READ_ONLY;
+            }
+
+            r_property.type = p_info.type;
+            r_property.hint = p_info.hint;
+            r_property.hint_string = p_info.hint_string;
+            r_property.class_name = p_info.class_name;
+            return;
+        }
+
+        if (p_info.type == Variant::DICTIONARY && p_info.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
+            // Dictionary[key, value]
+            for (const String& type : p_info.hint_string.split(";", true)) {
+                if (ClassDB::is_parent_class(type, "Object")) {
+                    r_property.usage |= PROPERTY_USAGE_READ_ONLY;
+                    break;
+                }
+            }
+
+            r_property.type = p_info.type;
+            r_property.hint = p_info.hint;
+            r_property.hint_string = p_info.hint_string;
+            r_property.class_name = p_info.class_name;
+            return;
+        }
+
+        if (ClassDB::is_parent_class(p_info.class_name, "Node")) {
+            r_property.usage |= PROPERTY_USAGE_READ_ONLY;
+            return;
+        }
+
+        if (ClassDB::is_parent_class(p_info.class_name, "Resource")) {
+            r_property.type = p_info.type;
+            r_property.class_name = p_info.class_name;
+            r_property.hint = p_info.hint;
+            r_property.hint_string = p_info.hint_string;
+            r_property.usage = p_info.usage;
+            return;
+        }
+
+        if (ClassDB::is_parent_class(p_info.class_name, "Object")) {
+            r_property.usage |= PROPERTY_USAGE_READ_ONLY;
+            return;
+        }
+
+        r_property.type = p_info.type;
+        r_property.class_name = p_info.class_name;
+        r_property.hint = p_info.hint;
+        r_property.hint_string = p_info.hint_string;
+        r_property.usage = p_info.usage;
+        r_property.usage &= ~PROPERTY_USAGE_READ_ONLY;
+    }
 }

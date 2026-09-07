@@ -237,70 +237,7 @@ void OScriptVariable::_validate_property(PropertyInfo& p_property) const {
             return;
         }
 
-        if (PropertyUtils::is_variant(_info)) {
-            p_property.usage |= PROPERTY_USAGE_READ_ONLY;
-            return;
-        }
-
-        if (_info.type == Variant::ARRAY) {
-            if (_info.hint == PROPERTY_HINT_ARRAY_TYPE) {
-                // Array[type]
-                if (ClassDB::is_parent_class(_info.hint_string, "Object")) {
-                    p_property.usage |= PROPERTY_USAGE_READ_ONLY;
-                }
-
-                p_property.type = _info.type;
-                p_property.hint = _info.hint;
-                p_property.hint_string = _info.hint_string;
-                p_property.class_name = _info.class_name;
-                return;
-            }
-        }
-
-        if (_info.type == Variant::DICTIONARY) {
-            if (_info.hint == PROPERTY_HINT_DICTIONARY_TYPE) {
-                // Dictionary[key, value]
-                for (const String& type : _info.hint_string.split(";", true)) {
-                    if (ClassDB::is_parent_class(type, "Object")) {
-                        p_property.usage |= PROPERTY_USAGE_READ_ONLY;
-                        break;
-                    }
-                }
-
-                p_property.type = _info.type;
-                p_property.hint = _info.hint;
-                p_property.hint_string = _info.hint_string;
-                p_property.class_name = _info.class_name;
-                return;
-            }
-        }
-
-        if (ClassDB::is_parent_class(_info.class_name, "Node")) {
-            p_property.usage |= PROPERTY_USAGE_READ_ONLY;
-            return;
-        }
-
-        if (ClassDB::is_parent_class(_info.class_name, "Resource")) {
-            p_property.type = _info.type;
-            p_property.class_name = _info.class_name;
-            p_property.hint = _info.hint;
-            p_property.hint_string = _info.hint_string;
-            p_property.usage = _info.usage;
-            return;
-        }
-
-        if (ClassDB::is_parent_class(_info.class_name, "Object")) {
-            p_property.usage |= PROPERTY_USAGE_READ_ONLY;
-            return;
-        }
-
-        p_property.type = _info.type;
-        p_property.class_name = _info.class_name;
-        p_property.hint = _info.hint;
-        p_property.hint_string = _info.hint_string;
-        p_property.usage = _info.usage;
-        p_property.usage &= ~PROPERTY_USAGE_READ_ONLY;
-
+        PropertyUtils::shape_default_value_property(p_property, _info);
     } else if (p_property.name.match("exported")) {
         if (is_exportable()) {
             p_property.usage &= ~PROPERTY_USAGE_READ_ONLY;
@@ -381,36 +318,10 @@ void OScriptVariable::_reset_initializer_if_needed() {
 }
 
 bool OScriptVariable::_convert_default_value(Variant::Type p_new_type) {
-    // An Array/Dictionary that is typed must seed a property typed container with element data.
-    // This is necessary so that all information is carried forward to the Inspector/Serializer, etc.
-    if (p_new_type == Variant::ARRAY && _info.hint == PROPERTY_HINT_ARRAY_TYPE && !_info.hint_string.is_empty()) {
-        Variant::Type builtin; StringName class_name; Variant script;
-        PropertyUtils::get_element_type(_info.hint_string, builtin, class_name, script);
+    PropertyInfo info = _info;
+    info.type = p_new_type;
 
-        Array default_value;
-        default_value.set_typed(builtin, class_name, script);
-
-        set_default_value(default_value);
-        return true;
-    }
-
-    if (p_new_type == Variant::DICTIONARY && _info.hint == PROPERTY_HINT_DICTIONARY_TYPE && !_info.hint_string.is_empty()) {
-        const PackedStringArray parts = _info.hint_string.split(";", true);
-        if (parts.size() == 2) {
-            Variant::Type key_builtin; StringName key_class_name; Variant key_script;
-            Variant::Type value_builtin; StringName value_class_name; Variant value_script;
-            PropertyUtils::get_element_type(parts[0], key_builtin, key_class_name, key_script);
-            PropertyUtils::get_element_type(parts[1], value_builtin, value_class_name, value_script);
-
-            Dictionary dict;
-            dict.set_typed(key_builtin, key_class_name, key_script, value_builtin, value_class_name, value_script);
-
-            set_default_value(dict);
-            return true;
-        }
-    }
-
-    set_default_value(VariantUtils::convert(get_default_value(), p_new_type));
+    set_default_value(PropertyUtils::make_declared_default_value(info, get_default_value()));
     return true;
 }
 

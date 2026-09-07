@@ -119,6 +119,7 @@ protected:
     Dictionary _get_graph_tab_state(OrchestratorEditorGraphPanel* p_tab_panel, bool p_open = true);
     void _store_graph_tab_state(const String& p_name, const Dictionary& p_state);
     void _go_to_graph_tab(int p_index);
+    void _notify_active_graph();
     void _close_graph_tab(int p_index);
     void _restore_next_tab();
 

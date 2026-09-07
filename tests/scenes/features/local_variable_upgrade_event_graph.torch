@@ -1,0 +1,97 @@
+[orchestration type="OScript" load_steps=7 format=4 uid="uid://xrnub2baa2ai1"]
+
+[obj type="OScriptFunction" id="OScriptFunction_8iwy0"]
+guid = "0D5091B5-365E-091B-A039-FB94FAA79111"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_m6wcd"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([10, 12, 13, 14])
+functions = Array[int]([10])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_kbw1k"]
+function_id = "0D5091B5-365E-091B-A039-FB94FAA79111"
+id = 10
+size = Vector2(29, 41)
+position = Vector2(0, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeLocalVariable" id="OScriptNodeLocalVariable_vq5xh"]
+guid = "D2D53A67-D043-64A7-7FA5-6A386AD992D4"
+id = 12
+size = Vector2(29, 41)
+position = Vector2(0, 100)
+pin_data = Array[Dictionary]([{
+"pin_name": &"variable",
+"type": 2,
+"dir": 1,
+"flags": 2,
+"label": "total",
+"dv": 0
+}])
+
+[obj type="OScriptNodeAssignLocalVariable" id="OScriptNodeAssignLocalVariable_32ndp"]
+id = 13
+size = Vector2(29, 41)
+position = Vector2(200, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"variable",
+"type": 2,
+"flags": 10
+}, {
+"pin_name": &"value",
+"type": 2,
+"flags": 2,
+"dv": 9
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_fj0dx"]
+function_name = &"prints"
+flags = 33
+method = {
+"name": &"prints",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 14
+size = Vector2(29, 41)
+position = Vector2(400, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[resource]
+base_type = &"Node"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_8iwy0")])
+connections = Array[int]([10, 0, 13, 0, 12, 0, 13, 1, 13, 0, 14, 0, 12, 0, 14, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_kbw1k"), SubResource("OScriptNodeLocalVariable_vq5xh"), SubResource("OScriptNodeAssignLocalVariable_32ndp"), SubResource("OScriptNodeCallBuiltinFunction_fj0dx")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_m6wcd")])

@@ -719,6 +719,61 @@ void OrchestratorEditorIntrospector::generate_actions_from_script(const Ref<Scri
     }
 }
 
+void OrchestratorEditorIntrospector::generate_actions_from_function(const Ref<OScriptFunction>& p_function, ActionSet& r_actions) {
+    if (!p_function.is_valid() || !p_function->get_orchestration()) {
+        return;
+    }
+
+    const String base_type = p_function->get_orchestration()->get_base_type();
+    const Dictionary data = DictionaryUtils::of({ { "function_name", p_function->get_function_name() } });
+
+    for (const Ref<OScriptLocalVariable>& local_variable : p_function->get_local_variables()) {
+        if (!local_variable.is_valid()) {
+            continue;
+        }
+
+        const PropertyInfo& property = local_variable->get_info();
+        const String name = local_variable->get_variable_name();
+
+        String get_desc = vformat("Get the value of the local variable '%s' in function '%s'.", name, p_function->get_function_name());
+        String set_desc = vformat("Sets the value of the local variable '%s' in function '%s'.", name, p_function->get_function_name());
+        if (!local_variable->get_description().is_empty()) {
+            get_desc += "\n\n" + local_variable->get_description();
+            set_desc += "\n\n" + local_variable->get_description();
+        }
+
+        PackedStringArray keywords = _build_member_keywords(name, base_type);
+
+        r_actions.insert(
+            ActionBuilder("Local Variables", vformat("Get %s", name))
+            .type(ActionType::ACTION_LOCAL_VARIABLE_GET)
+            .graph_type(GraphType::GRAPH_FUNCTION)
+            .icon(_get_type_icon(property.type))
+            .tooltip(get_desc)
+            .keywords(keywords)
+            .target_class(base_type)
+            .selectable(true)
+            .property(property)
+            .class_name(base_type)
+            .data(data)
+            .build());
+
+        r_actions.insert(
+            ActionBuilder("Local Variables", vformat("Set %s", name))
+            .type(ActionType::ACTION_LOCAL_VARIABLE_SET)
+            .graph_type(GraphType::GRAPH_FUNCTION)
+            .icon(_get_type_icon(property.type))
+            .tooltip(set_desc)
+            .keywords(keywords)
+            .target_class(base_type)
+            .selectable(true)
+            .property(property)
+            .class_name(base_type)
+            .data(data)
+            .build());
+    }
+}
+
 void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSet& r_actions) {
     // todo:
     //  we need a way to describe the pin types on nodes
@@ -882,13 +937,6 @@ void OrchestratorEditorIntrospector::generate_actions_from_script_nodes(ActionSe
     r_actions.insert(_script_node_builder<OScriptNodePrintString>("Utilities", "Print String")
         .executions(true).inputs(Variant::STRING, Variant::BOOL, Variant::COLOR, Variant::FLOAT).build());
 
-    // Variable Assignment
-    const Dictionary local_object = DictionaryUtils::of({ { "type", Variant::OBJECT } });
-    r_actions.insert(_script_node_builder<OScriptNodeAssignLocalVariable>("Variables", "Assign Local").graph_type(GraphType::GRAPH_FUNCTION).build());
-    r_actions.insert(_script_node_builder<OScriptNodeAssignLocalVariable>("Utilities/Macros", "Assign Local").graph_type(GraphType::GRAPH_MACRO).build());
-    r_actions.insert(_script_node_builder<OScriptNodeLocalVariable>("Variables", "Local Object", local_object).graph_type(GraphType::GRAPH_FUNCTION).build());
-    r_actions.insert(_script_node_builder<OScriptNodeLocalVariable>("Utilities/Macros", "Local Object", local_object).graph_type(GraphType::GRAPH_MACRO).build());
-
     // List each engine singleton directly
     for (const String& name : Engine::get_singleton()->get_singleton_list()) {
         const Dictionary data = DictionaryUtils::of({ { "singleton_name", name } });
@@ -942,14 +990,6 @@ void OrchestratorEditorIntrospector::generate_actions_from_variant_types(ActionS
                     type_name, constant.name, constant.value, data, r_actions);
             }
         }
-
-        // Local variables are only permitted in function graphs
-        r_actions.insert(
-            _script_node_builder<OScriptNodeLocalVariable>(
-                category,
-                vformat("Local %s Variable", type_name), type_dict)
-            .graph_type(GraphType::GRAPH_FUNCTION)
-            .build());
 
         if (!type.properties.is_empty()) {
             Vector<Variant::Type> property_types;

@@ -86,5 +86,6 @@
 #include "orchestration/nodes/print_string.h"
 
 // Variables
-#include "orchestration/nodes/local_variable.h"
+#include "orchestration/nodes/local_variables_legacy.h"
+#include "orchestration/nodes/local_variables.h"
 #include "orchestration/nodes/variables.h"
