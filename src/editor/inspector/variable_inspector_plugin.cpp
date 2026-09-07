@@ -26,23 +26,32 @@ class OScriptVariableConstraintProvider : public OrchestratorEditorTypeConstrain
     Ref<OScriptVariable> _variable;
 
 public:
-    bool is_key_locked() const override {
+    bool is_type_locked() const override {
         if (_variable.is_valid()) {
             const Variant value = _variable->get_default_value();
-            if (value.get_type() == Variant::DICTIONARY) {
-                const Dictionary& dict = value;
-                return !dict.is_empty();
+            switch (value.get_type()) {
+                case Variant::ARRAY: {
+                    const Array& array = value;
+                    return !array.is_empty();
+                }
+                case Variant::DICTIONARY: {
+                    const Dictionary& dictionary = value;
+                    return !dictionary.is_empty();
+                }
+                default: {
+                    break;
+                }
             }
         }
         return false;
     }
 
-    bool is_value_locked() const override {
-        return is_key_locked();
-    }
-
     PackedStringArray get_exclusions() const override {
         return {};
+    }
+
+    Object* get_constraint_source() const override {
+        return _variable.ptr();
     }
 
     explicit OScriptVariableConstraintProvider(const Ref<OScriptVariable>& p_variable)
