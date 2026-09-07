@@ -36,6 +36,7 @@
 #include "editor/scene/connections_dock.h"
 #include "editor/scene/script_connections.h"
 #include "editor/settings/editor_settings.h"
+#include "orchestration/annotation_registry.h"
 #include "orchestration/nodes/function_entry.h"
 #include "orchestration/nodes/function_result.h"
 #include "script/script.h"
@@ -1237,7 +1238,12 @@ void OrchestratorScriptComponentsContainer::_update_variables() {
         } else {
             String tooltip_text = "Variable is not exported and only visible to scripts.";
             if (!variable->is_exportable()) {
-                tooltip_text += "\nType cannot be exported.";
+                const StringName conflict = OScriptAnnotationRegistry::find_conflict("@export", variable->get_annotations());
+                if (conflict.is_empty()) {
+                    tooltip_text += "\nType cannot be exported.";
+                } else {
+                    tooltip_text += vformat("\nCannot be exported while %s is applied.", conflict);
+                }
             }
             int32_t index = item->get_button_count(0);
             item->add_button(0, SceneUtils::get_editor_icon("GuiVisibilityHidden"), 3);

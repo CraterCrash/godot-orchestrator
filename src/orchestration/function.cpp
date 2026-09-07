@@ -19,6 +19,7 @@
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
 #include "common/property_utils.h"
+#include "orchestration/annotation_registry.h"
 #include "orchestration/nodes/call_function.h"
 #include "orchestration/nodes/function_entry.h"
 #include "orchestration/nodes/function_result.h"
@@ -34,6 +35,10 @@ void OScriptFunction::_get_property_list(List<PropertyInfo> *r_list) const {
     r_list->push_back(PropertyInfo(Variant::STRING, "built-in", PROPERTY_HINT_ENUM, "Yes,No", PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR));
 
     r_list->push_back(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT, "", _user_defined ? PROPERTY_USAGE_DEFAULT : PROPERTY_USAGE_STORAGE));
+
+    // Shown for every function: events accept warning suppression even though they cannot be RPCs.
+    // Written only when non-empty so untouched functions serialize as before.
+    r_list->push_back(PropertyInfo(Variant::ARRAY, "annotations", PROPERTY_HINT_NONE, "", _annotations.is_empty() ? PROPERTY_USAGE_EDITOR : PROPERTY_USAGE_DEFAULT));
 
     uint32_t usage = (_user_defined ? PROPERTY_USAGE_EDITOR : PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR);
     r_list->push_back(PropertyInfo(Variant::STRING, "Inputs/Outputs", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY));
@@ -56,6 +61,9 @@ bool OScriptFunction::_get(const StringName &p_name, Variant &r_value) {
         return true;
     } else if (p_name.match("description")) {
         r_value = _description;
+        return true;
+    } else if (p_name.match("annotations")) {
+        r_value = _annotations.to_array();
         return true;
     } else if (p_name.match("built-in")) {
         r_value = _user_defined ? "No" : "Yes";
@@ -116,6 +124,11 @@ bool OScriptFunction::_set(const StringName &p_name, const Variant &p_value)
     } else if (p_name.match("description")) {
         _description = p_value;
         result = true;
+    } else if (p_name.match("annotations")) {
+        OScriptAnnotationList annotations;
+        annotations.from_array(p_value);
+        set_annotations(annotations.get_items());
+        return true;
     } else if (p_name.match("inputs")) {
         // The inspector's argument editor adds and removes its own rows, and graph nodes that
         // reference this function reconstruct from "changed", so a property list refresh here
@@ -392,6 +405,39 @@ void OScriptFunction::remove_argument(int p_index) {
 
         _method.arguments.remove_at(p_index);
 
+        emit_changed();
+    }
+}
+
+Error OScriptFunction::add_annotation(const OScriptAnnotation& p_annotation, String* r_reason) {
+    const uint32_t target = _user_defined ? OScriptAnnotationRegistry::TARGET_FUNCTION : OScriptAnnotationRegistry::TARGET_EVENT;
+    const Error result = _annotations.add(target, _method.return_val, p_annotation, r_reason);
+    if (result == OK) {
+        emit_changed();
+    }
+    return result;
+}
+
+void OScriptFunction::remove_annotation(int p_index) {
+    if (_annotations.remove_at(p_index)) {
+        emit_changed();
+    }
+}
+
+void OScriptFunction::set_annotation_arguments(int p_index, const Array& p_arguments) {
+    if (_annotations.set_arguments(p_index, p_arguments)) {
+        emit_changed();
+    }
+}
+
+void OScriptFunction::set_annotations(const Vector<OScriptAnnotation>& p_annotations) {
+    // Whole-list replacement bypasses the cardinality check so a snapshot restores verbatim;
+    // the parser reports any conflict at compile time.
+    OScriptAnnotationList replacement;
+    replacement.set_items(p_annotations);
+
+    if (_annotations != replacement) {
+        _annotations = replacement;
         emit_changed();
     }
 }

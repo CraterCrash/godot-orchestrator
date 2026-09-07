@@ -23,6 +23,7 @@
 #include "common/settings.h"
 #include "common/string_utils.h"
 #include "core/godot/object/class_db.h"
+#include "orchestration/annotation_registry.h"
 #include "orchestration/node_pin.h"
 #include "orchestration/nodes/branch.h"
 #include "orchestration/nodes/call_function.h"
@@ -37,6 +38,8 @@
 #include <ranges>
 #include <string>
 
+#include <godot_cpp/classes/multiplayer_api.hpp>
+#include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 
 #ifdef DEBUG_ENABLED
@@ -818,6 +821,7 @@ void OScriptParser::push_warning(const Node* p_source, OScriptWarning::Code p_co
 
     PendingWarning pw;
     pw.source = p_source;
+    pw.function = current_function;
     pw.code = p_code;
     pw.treated_as_error = warn_level == OScriptWarning::ERROR;
     pw.symbols = p_symbols;
@@ -831,6 +835,13 @@ void OScriptParser::apply_pending_warnings() {
             continue;
         }
         if (warning_ignore_start_nodes[pw.code] <= pw.source->script_node_id) {
+            continue;
+        }
+        // @warning_ignore on the member itself, or on the function whose body raised it.
+        if (pw.source->ignored_warning_codes.has(pw.code)) {
+            continue;
+        }
+        if (pw.function && pw.function->ignored_warning_codes.has(pw.code)) {
             continue;
         }
 
@@ -3261,17 +3272,25 @@ OScriptParser::VariableNode* OScriptParser::build_variable(const Ref<OScriptVari
     variable->export_info.usage &= ~PROPERTY_USAGE_SCRIPT_VARIABLE;
     variable->datatype_specifier = build_type(p_variable->get_info());
 
-    if (p_variable->is_exported()) {
-        AnnotationNode* annotation = memnew(AnnotationNode);
-        annotation->name = "@export";
-        annotation->info = &valid_annotations[annotation->name];
+    build_annotations(variable, p_variable->get_annotations(), AnnotationInfo::TargetKind::VARIABLE);
 
-        if (annotation->applies_to(AnnotationInfo::TargetKind::VARIABLE)) {
-            variable->annotations.push_back(annotation);
+    if (p_variable->is_node_path_initializer()) {
+        // get_node(path) as T, so the analyzer sees the same shape as a GDScript "$Path" initializer
+        // and raises GET_NODE_DEFAULT_WITHOUT_ONREADY when the annotation is missing.
+        CallNode* get_node = create_func_call("get_node");
+        get_node->arguments.push_back(create_literal(p_variable->get_default_value()));
+
+        ExpressionNode* initializer = get_node;
+        if (!PropertyUtils::is_variant(p_variable->get_info())) {
+            CastNode* cast = alloc_node<CastNode>();
+            cast->operand = get_node;
+            cast->cast_type = build_type(p_variable->get_info());
+            initializer = cast;
         }
-    }
 
-    if (p_variable->get_default_value().get_type() != Variant::NIL) {
+        variable->initializer = initializer;
+        variable->assignments++;
+    } else if (p_variable->get_default_value().get_type() != Variant::NIL) {
         ExpressionNode* default_value = create_expression(p_variable->get_default_value());
         variable->initializer = default_value;
         variable->assignments++;
@@ -3347,6 +3366,8 @@ OScriptParser::FunctionNode* OScriptParser::build_function(const Ref<OScriptFunc
     }
 
     function_node->return_type = build_type(p_function->get_method_info().return_val);
+
+    build_annotations(function_node, p_function->get_annotations(), AnnotationInfo::TargetKind::FUNCTION);
 
     #ifdef TOOLS_ENABLED
     function_node->doc_data.description = p_function->get_description();
@@ -3833,6 +3854,330 @@ bool OScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_tar
 	return true;
 }
 
+bool OScriptParser::export_storage_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class) {
+    ERR_FAIL_COND_V_MSG(p_target->type != Node::VARIABLE, false, vformat(R"("%s" annotation can only be applied to variables.)", p_annotation->name));
+
+    VariableNode* variable = static_cast<VariableNode*>(p_target);
+    if (variable->is_static) {
+        push_error(vformat(R"(Annotation "%s" cannot be applied to a static variable.)", p_annotation->name), p_annotation);
+        return false;
+    }
+    if (variable->exported) {
+        push_error(vformat(R"(Annotation "%s" cannot be used with another "@export" annotation.)", p_annotation->name), p_annotation);
+        return false;
+    }
+
+    variable->exported = true;
+
+    // Save the info because the compiler uses export info for overwriting member info.
+    variable->export_info = variable->get_datatype().to_property_info(variable->identifier->name);
+    variable->export_info.usage |= PROPERTY_USAGE_STORAGE;
+
+    return true;
+}
+
+bool OScriptParser::export_custom_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class) {
+    ERR_FAIL_COND_V_MSG(p_target->type != Node::VARIABLE, false, vformat(R"("%s" annotation can only be applied to variables.)", p_annotation->name));
+    ERR_FAIL_COND_V_MSG(p_annotation->resolved_arguments.size() < 2, false, R"(Annotation "@export_custom" requires 2 arguments.)");
+
+    VariableNode* variable = static_cast<VariableNode*>(p_target);
+    if (variable->is_static) {
+        push_error(vformat(R"(Annotation "%s" cannot be applied to a static variable.)", p_annotation->name), p_annotation);
+        return false;
+    }
+    if (variable->exported) {
+        push_error(vformat(R"(Annotation "%s" cannot be used with another "@export" annotation.)", p_annotation->name), p_annotation);
+        return false;
+    }
+
+    variable->exported = true;
+
+    const DataType export_type = variable->get_datatype();
+    variable->export_info.type = export_type.builtin_type;
+    variable->export_info.hint = static_cast<PropertyHint>(p_annotation->resolved_arguments[0].operator int64_t());
+    variable->export_info.hint_string = p_annotation->resolved_arguments[1];
+
+    if (p_annotation->resolved_arguments.size() >= 3) {
+        variable->export_info.usage = p_annotation->resolved_arguments[2].operator int64_t();
+    }
+
+    return true;
+}
+
+bool OScriptParser::export_tool_button_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class) {
+    #ifdef TOOLS_ENABLED
+    ERR_FAIL_COND_V_MSG(p_target->type != Node::VARIABLE, false, vformat(R"("%s" annotation can only be applied to variables.)", p_annotation->name));
+    ERR_FAIL_COND_V(p_annotation->resolved_arguments.is_empty(), false);
+
+    VariableNode* variable = static_cast<VariableNode*>(p_target);
+    if (variable->is_static) {
+        push_error(vformat(R"(Annotation "%s" cannot be applied to a static variable.)", p_annotation->name), p_annotation);
+        return false;
+    }
+    if (variable->exported) {
+        push_error(vformat(R"(Annotation "%s" cannot be used with another "@export" annotation.)", p_annotation->name), p_annotation);
+        return false;
+    }
+
+    const DataType variable_type = variable->get_datatype();
+    if (!variable_type.is_variant() && variable_type.is_hard_type()) {
+        if (variable_type.kind != DataType::BUILTIN || variable_type.builtin_type != Variant::CALLABLE) {
+            push_error(vformat(R"("@export_tool_button" annotation requires a variable of type "Callable", but type "%s" was given instead.)", variable_type.to_string()), p_annotation);
+            return false;
+        }
+    }
+
+    variable->exported = true;
+
+    // Build the hint string (format: `<text>[,<icon>]`).
+    String hint_string = p_annotation->resolved_arguments[0].operator String();
+    if (p_annotation->resolved_arguments.size() > 1) {
+        hint_string += "," + p_annotation->resolved_arguments[1].operator String();
+    }
+
+    variable->export_info.type = Variant::CALLABLE;
+    variable->export_info.hint = PROPERTY_HINT_TOOL_BUTTON;
+    variable->export_info.hint_string = hint_string;
+    variable->export_info.usage = PROPERTY_USAGE_EDITOR;
+    #endif
+
+    return true;
+}
+
+bool OScriptParser::rpc_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class) {
+    ERR_FAIL_COND_V_MSG(p_target->type != Node::FUNCTION, false, vformat(R"("%s" annotation can only be applied to functions.)", p_annotation->name));
+
+    FunctionNode* function = static_cast<FunctionNode*>(p_target);
+    if (function->rpc_config.get_type() != Variant::NIL) {
+        push_error(R"(RPC annotations can only be used once per function.)", p_annotation);
+        return false;
+    }
+
+    Dictionary rpc_config;
+    rpc_config["rpc_mode"] = MultiplayerAPI::RPC_MODE_AUTHORITY;
+
+    if (!p_annotation->resolved_arguments.is_empty()) {
+        unsigned char locality_args = 0;
+        unsigned char permission_args = 0;
+        unsigned char transfer_mode_args = 0;
+
+        for (int i = 0; i < p_annotation->resolved_arguments.size(); i++) {
+            if (i == 3) {
+                rpc_config["channel"] = p_annotation->resolved_arguments[i].operator int();
+                continue;
+            }
+
+            const String arg = p_annotation->resolved_arguments[i].operator String();
+            if (arg == "call_local") {
+                locality_args++;
+                rpc_config["call_local"] = true;
+            } else if (arg == "call_remote") {
+                locality_args++;
+                rpc_config["call_local"] = false;
+            } else if (arg == "any_peer") {
+                permission_args++;
+                rpc_config["rpc_mode"] = MultiplayerAPI::RPC_MODE_ANY_PEER;
+            } else if (arg == "authority") {
+                permission_args++;
+                rpc_config["rpc_mode"] = MultiplayerAPI::RPC_MODE_AUTHORITY;
+            } else if (arg == "reliable") {
+                transfer_mode_args++;
+                rpc_config["transfer_mode"] = MultiplayerPeer::TRANSFER_MODE_RELIABLE;
+            } else if (arg == "unreliable") {
+                transfer_mode_args++;
+                rpc_config["transfer_mode"] = MultiplayerPeer::TRANSFER_MODE_UNRELIABLE;
+            } else if (arg == "unreliable_ordered") {
+                transfer_mode_args++;
+                rpc_config["transfer_mode"] = MultiplayerPeer::TRANSFER_MODE_UNRELIABLE_ORDERED;
+            } else {
+                push_error(R"(Invalid RPC argument. Must be one of: "call_local"/"call_remote" (local calls), "any_peer"/"authority" (permission), "reliable"/"unreliable"/"unreliable_ordered" (transfer mode).)", p_annotation);
+            }
+        }
+
+        if (locality_args > 1) {
+            push_error(R"(Invalid RPC config. The locality ("call_local"/"call_remote") must be specified no more than once.)", p_annotation);
+        } else if (permission_args > 1) {
+            push_error(R"(Invalid RPC config. The permission ("any_peer"/"authority") must be specified no more than once.)", p_annotation);
+        } else if (transfer_mode_args > 1) {
+            push_error(R"(Invalid RPC config. The transfer mode ("reliable"/"unreliable"/"unreliable_ordered") must be specified no more than once.)", p_annotation);
+        }
+    }
+
+    function->rpc_config = rpc_config;
+    return true;
+}
+
+bool OScriptParser::onready_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class) {
+    ERR_FAIL_COND_V_MSG(p_target->type != Node::VARIABLE, false, R"("@onready" annotation can only be applied to class variables.)");
+    ERR_FAIL_NULL_V(p_class, false);
+
+    if (!ClassDB::is_parent_class(p_class->base_type.native_type, "Node")) {
+        push_error(R"("@onready" can only be used in classes that inherit "Node".)", p_annotation);
+        return false;
+    }
+
+    VariableNode* variable = static_cast<VariableNode*>(p_target);
+    if (variable->is_static) {
+        push_error(R"("@onready" annotation cannot be applied to a static variable.)", p_annotation);
+        return false;
+    }
+    if (variable->onready) {
+        push_error(R"("@onready" annotation can only be used once per variable.)", p_annotation);
+        return false;
+    }
+
+    variable->onready = true;
+    p_class->onready_used = true;
+    return true;
+}
+
+bool OScriptParser::warning_annotations(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class) {
+    #ifndef DEBUG_ENABLED
+    // Only available in debug builds.
+    return true;
+    #else
+    if (is_project_ignoring_warnings) {
+        // We already ignore all warnings, let's optimize it.
+        return true;
+    }
+
+    bool has_error = false;
+    for (const Variant& warning_name : p_annotation->resolved_arguments) {
+        const OScriptWarning::Code warning_code = OScriptWarning::get_code_from_name(String(warning_name).to_upper());
+        if (warning_code == OScriptWarning::WARNING_MAX) {
+            push_error(vformat(R"(Invalid warning name: "%s".)", warning_name), p_annotation);
+            has_error = true;
+        } else if (!p_target->ignored_warning_codes.has(warning_code)) {
+            // GDScript ignores by line range; here the target node and, for functions, every warning
+            // raised while its body is analyzed are suppressed instead.
+            p_target->ignored_warning_codes.push_back(warning_code);
+        }
+    }
+
+    return !has_error;
+    #endif
+}
+
+void OScriptParser::build_annotations(Node* p_target, const Vector<OScriptAnnotation>& p_annotations, uint32_t p_target_kind) {
+    for (const OScriptAnnotation& annotation : p_annotations) {
+        if (!valid_annotations.has(annotation.name)) {
+            push_error(vformat(R"(Unknown annotation "%s".)", annotation.name), p_target);
+            continue;
+        }
+
+        AnnotationNode* node = alloc_node<AnnotationNode>();
+        node->name = annotation.name;
+        node->info = &valid_annotations[annotation.name];
+        node->script_node_id = p_target->script_node_id;
+
+        if (!node->applies_to(p_target_kind)) {
+            push_error(vformat(R"(Annotation "%s" is not allowed in this context.)", annotation.name), p_target);
+            continue;
+        }
+
+        // Mirrors GDScriptParser::validate_annotation_arguments
+        const MethodInfo& info = node->info->info;
+        const int argument_count = annotation.arguments.size();
+        if (((info.flags & METHOD_FLAG_VARARG) == 0) && argument_count > info.arguments.size()) {
+            push_error(vformat(R"("%s" annotation requires at most %d arguments, but %d were given.)", annotation.name, info.arguments.size(), argument_count), p_target);
+            continue;
+        }
+        if (argument_count < info.arguments.size() - info.default_arguments.size()) {
+            push_error(vformat(R"("%s" annotation requires at least %d arguments, but %d were given.)", annotation.name, info.arguments.size() - info.default_arguments.size(), argument_count), p_target);
+            continue;
+        }
+
+        for (int i = 0; i < argument_count; i++) {
+            node->arguments.push_back(create_expression(annotation.arguments[i]));
+        }
+
+        p_target->annotations.push_back(node);
+    }
+}
+
+OScriptParser::AnnotationAction OScriptParser::get_annotation_action(const StringName& p_name) {
+    if (p_name == StringName("@export")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_NONE, Variant::NIL>;
+    } else if (p_name == StringName("@export_enum")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_ENUM, Variant::NIL>;
+    } else if (p_name == StringName("@export_file")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_FILE, Variant::STRING>;
+    } else if (p_name == StringName("@export_dir")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_DIR, Variant::STRING>;
+    } else if (p_name == StringName("@export_global_file")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_GLOBAL_FILE, Variant::STRING>;
+    } else if (p_name == StringName("@export_global_dir")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_GLOBAL_DIR, Variant::STRING>;
+    } else if (p_name == StringName("@export_multiline")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_MULTILINE_TEXT, Variant::STRING>;
+    } else if (p_name == StringName("@export_placeholder")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_PLACEHOLDER_TEXT, Variant::STRING>;
+    } else if (p_name == StringName("@export_range")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_RANGE, Variant::FLOAT>;
+    } else if (p_name == StringName("@export_exp_easing")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_EXP_EASING, Variant::FLOAT>;
+    } else if (p_name == StringName("@export_color_no_alpha")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_COLOR_NO_ALPHA, Variant::COLOR>;
+    } else if (p_name == StringName("@export_node_path")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_NODE_PATH_VALID_TYPES, Variant::NODE_PATH>;
+    } else if (p_name == StringName("@export_flags")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_FLAGS, Variant::INT>;
+    } else if (p_name == StringName("@export_flags_2d_render")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_LAYERS_2D_RENDER, Variant::INT>;
+    } else if (p_name == StringName("@export_flags_2d_physics")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_LAYERS_2D_PHYSICS, Variant::INT>;
+    } else if (p_name == StringName("@export_flags_2d_navigation")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_LAYERS_2D_NAVIGATION, Variant::INT>;
+    } else if (p_name == StringName("@export_flags_3d_render")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_LAYERS_3D_RENDER, Variant::INT>;
+    } else if (p_name == StringName("@export_flags_3d_physics")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_LAYERS_3D_PHYSICS, Variant::INT>;
+    } else if (p_name == StringName("@export_flags_3d_navigation")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_LAYERS_3D_NAVIGATION, Variant::INT>;
+    } else if (p_name == StringName("@export_flags_avoidance")) {
+        return &OScriptParser::export_annotations<PROPERTY_HINT_LAYERS_AVOIDANCE, Variant::INT>;
+    } else if (p_name == StringName("@export_storage")) {
+        return &OScriptParser::export_storage_annotation;
+    } else if (p_name == StringName("@export_custom")) {
+        return &OScriptParser::export_custom_annotation;
+    } else if (p_name == StringName("@export_tool_button")) {
+        return &OScriptParser::export_tool_button_annotation;
+    } else if (p_name == StringName("@rpc")) {
+        return &OScriptParser::rpc_annotation;
+    } else if (p_name == StringName("@onready")) {
+        return &OScriptParser::onready_annotation;
+    } else if (p_name == StringName("@warning_ignore")) {
+        return &OScriptParser::warning_annotations;
+    }
+    return nullptr;
+}
+
+uint32_t OScriptParser::get_annotation_target_kinds(uint32_t p_registry_targets) {
+    uint32_t kinds = AnnotationInfo::NONE;
+    if (p_registry_targets & OScriptAnnotationRegistry::TARGET_VARIABLE) {
+        kinds |= AnnotationInfo::VARIABLE;
+    }
+    if (p_registry_targets & (OScriptAnnotationRegistry::TARGET_FUNCTION | OScriptAnnotationRegistry::TARGET_EVENT)) {
+        kinds |= AnnotationInfo::FUNCTION;
+    }
+    if (p_registry_targets & OScriptAnnotationRegistry::TARGET_CLASS) {
+        kinds |= AnnotationInfo::CLASS;
+    }
+    return kinds;
+}
+
+void OScriptParser::register_annotations() {
+    // The registry owns the signatures and targets; the parser only contributes the apply callbacks.
+    // Every descriptor must have one, otherwise the model could accept an annotation the compiler
+    // cannot apply.
+    for (const OScriptAnnotationDescriptor& descriptor : OScriptAnnotationRegistry::get_descriptors()) {
+        const AnnotationAction action = get_annotation_action(descriptor.info.name);
+        ERR_CONTINUE_MSG(action == nullptr, vformat(R"(Annotation "%s" has no parser action.)", descriptor.info.name));
+
+        register_annotation(descriptor.info, get_annotation_target_kinds(descriptor.targets), action);
+    }
+}
+
 Error OScriptParser::parse(Orchestration* p_orchestration, const String& p_script_path) {
     ERR_FAIL_NULL_V_MSG(p_orchestration, ERR_PARSE_ERROR, "Orchestration was null and cannot be parsed.");
 
@@ -3966,7 +4311,7 @@ OScriptParser::OScriptParser() {
     bind_handlers();
 
     if (unlikely(valid_annotations.is_empty())) {
-        register_annotation(MethodInfo("@export"), AnnotationInfo::VARIABLE, &OScriptParser::export_annotations<PROPERTY_HINT_NONE, Variant::NIL>);
+        register_annotations();
     }
 }
 

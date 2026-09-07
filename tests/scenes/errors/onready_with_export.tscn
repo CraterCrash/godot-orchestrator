@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0nr3adyexp0r"]
+
+[ext_resource type="Script" uid="uid://c0nr3adyexp0r" path="res://scenes/errors/onready_with_export.torch" id="1_torch"]
+
+[node name="OnreadyWithExport" type="Node"]
+script = ExtResource("1_torch")

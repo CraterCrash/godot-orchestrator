@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://brpcann0tbad1"]
+
+[ext_resource type="Script" uid="uid://crpcann0tbad1" path="res://scenes/errors/rpc_annotation_invalid.torch" id="1_torch"]
+
+[node name="RpcAnnotationInvalid" type="Node"]
+script = ExtResource("1_torch")

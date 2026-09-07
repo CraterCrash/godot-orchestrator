@@ -1,0 +1,87 @@
+[orchestration type="OScript" load_steps=10 format=5 uid="uid://crpcann0tati0"]
+
+[obj type="OScriptFunction" id="OScriptFunction_ping"]
+guid = "1A2B3C4D-0001-4000-8000-00000000A001"
+method = {
+"name": &"ping"
+}
+user_defined = true
+id = 0
+annotations = [{
+"name": &"@rpc",
+"args": ["any_peer", "call_local", "reliable", 2]
+}]
+
+[obj type="OScriptFunction" id="OScriptFunction_pong"]
+guid = "1A2B3C4D-0002-4000-8000-00000000A002"
+method = {
+"name": &"pong"
+}
+user_defined = true
+id = 2
+annotations = [{
+"name": &"@rpc"
+}]
+
+[obj type="OScriptGraph" id="OScriptGraph_event"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptGraph" id="OScriptGraph_ping"]
+graph_name = &"ping"
+flags = 22
+nodes = Array[int]([0, 1])
+functions = Array[int]([0])
+
+[obj type="OScriptGraph" id="OScriptGraph_pong"]
+graph_name = &"pong"
+flags = 22
+nodes = Array[int]([2, 3])
+functions = Array[int]([2])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_ping"]
+function_id = "1A2B3C4D-0001-4000-8000-00000000A001"
+id = 0
+size = Vector2(29, 41)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_ping"]
+function_id = "1A2B3C4D-0001-4000-8000-00000000A001"
+id = 1
+size = Vector2(29, 41)
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_pong"]
+function_id = "1A2B3C4D-0002-4000-8000-00000000A002"
+id = 2
+size = Vector2(29, 41)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_pong"]
+function_id = "1A2B3C4D-0002-4000-8000-00000000A002"
+id = 3
+size = Vector2(29, 41)
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}])
+
+[resource]
+base_type = &"Node"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_ping"), SubResource("OScriptFunction_pong")])
+connections = Array[int]([0, 0, 1, 0, 2, 0, 3, 0])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_ping"), SubResource("OScriptNodeFunctionResult_ping"), SubResource("OScriptNodeFunctionEntry_pong"), SubResource("OScriptNodeFunctionResult_pong")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_event"), SubResource("OScriptGraph_ping"), SubResource("OScriptGraph_pong")])

@@ -17,6 +17,7 @@
 #include "orchestration/register_orchestration_types.h"
 
 #include "common/version.h"
+#include "orchestration/annotation_registry.h"
 #include "orchestration/nodes.h"
 #include "orchestration/orchestration.h"
 
@@ -43,7 +44,7 @@ void register_orchestration_types() {
 }
 
 void unregister_orchestration_types() {
-
+    OScriptAnnotationRegistry::cleanup();
 }
 
 void register_orchestration_node_types() {

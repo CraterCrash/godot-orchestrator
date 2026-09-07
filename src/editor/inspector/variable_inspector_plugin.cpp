@@ -16,8 +16,10 @@
 //
 #include "editor/inspector/variable_inspector_plugin.h"
 
-#include "common/macros.h"
+#include "common/scene_utils.h"
+#include "editor/inspector/properties/editor_property_annotations.h"
 #include "editor/inspector/properties/editor_property_type.h"
+#include "orchestration/orchestration.h"
 #include "orchestration/variable.h"
 
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -62,6 +64,19 @@ bool OrchestratorEditorInspectorPluginVariable::_can_handle(Object* p_object) co
     return p_object && p_object->get_class() == OScriptVariable::get_class_static();
 }
 
+void OrchestratorEditorInspectorPluginVariable::_parse_begin(Object* p_object) {
+    const Ref<OScriptVariable> variable = cast_to<OScriptVariable>(p_object);
+    if (variable.is_null() || !variable->get_orchestration()) {
+        return;
+    }
+
+    if (Node* base_node = SceneUtils::get_scene_base_node(variable->get_orchestration()->get_self())) {
+        variable->set_meta("__base_node_relative", base_node);
+    } else if (variable->has_meta("__base_node_relative")) {
+        variable->remove_meta("__base_node_relative");
+    }
+}
+
 bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object, Variant::Type p_type, const String& p_name,
     PropertyHint p_hint, const String& p_hint_string, BitField<PropertyUsageFlags> p_usage, bool p_wide) {
 
@@ -75,6 +90,12 @@ bool OrchestratorEditorInspectorPluginVariable::_parse_property(Object* p_object
         editor->setup("variable_type", true);
         editor->set_constraint_provider(std::make_unique<OScriptVariableConstraintProvider>(variable));
         add_property_editor(p_name, editor, true, "Variable Type");
+        return true;
+    }
+
+    if (p_name.match("annotations")) {
+        OrchestratorEditorPropertyAnnotations* editor = memnew(OrchestratorEditorPropertyAnnotations);
+        add_property_editor(p_name, editor, false, "Annotations");
         return true;
     }
 

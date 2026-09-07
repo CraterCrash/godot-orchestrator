@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: Invalid warning name: "nope".
+   at: OScript::reload (res://scenes/errors/warning_ignore_invalid.torch:0)
+ERROR: Failed to load script "res://scenes/errors/warning_ignore_invalid.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)

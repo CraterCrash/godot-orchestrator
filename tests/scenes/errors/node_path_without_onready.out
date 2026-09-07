@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: The default value uses "get_node()" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this. (Warning treated as error.)
+   at: OScript::reload (res://scenes/errors/node_path_without_onready.torch:-1)
+ERROR: Failed to load script "res://scenes/errors/node_path_without_onready.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)

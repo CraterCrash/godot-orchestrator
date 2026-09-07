@@ -16,6 +16,8 @@
 //
 #pragma once
 
+#include "orchestration/annotation.h"
+
 #include <godot_cpp/classes/resource.hpp>
 
 using namespace godot;
@@ -34,13 +36,25 @@ class OScriptVariable : public Resource {
 
     GDCLASS(OScriptVariable, Resource);
 
+public:
+    /// How the default value initializes the variable
+    enum InitializerKind {
+        INITIALIZER_LITERAL,    //! The default value is assigned as-is
+        INITIALIZER_NODE_PATH,  //! The default value is a NodePath resolved with get_node() on the owner
+    };
+
+private:
     Orchestration* _orchestration = nullptr;   //! The owning orchestration
     PropertyInfo _info;                        //! Basic property details
     Variant _default_value;                    //! Optional defined default value
     String _description;                       //! An optional description for the variable
     String _category;                          //! Category for variables
-    bool _exported = false;                    //! Whether the variable is exposed on the node
+    OScriptAnnotationList _annotations;        //! Annotations applied to the variable
+    InitializerKind _initializer = INITIALIZER_LITERAL;  //! How the default value is applied
     bool _constant = false;                    //! Whether variable is a constant
+
+    /// Falls back to a literal initializer when the type no longer accepts a node path
+    void _reset_initializer_if_needed();
 
 protected:
     static void _bind_methods();
@@ -56,11 +70,19 @@ protected:
     //~ Begin Serializers
     void _set_property_info(const Dictionary& p_property);
     Dictionary _get_property_info() const;
+    void _set_annotations_array(const Array& p_annotations);
+    Array _get_annotations_array() const;
+    void _set_initializer(int p_initializer);
+    int _get_initializer() const;
     //~ End Serializers
 
     /// Attempt to convert the default value to the new type
     /// @return true if the conversion was successful, false otherwise
     bool _convert_default_value(Variant::Type p_new_type);
+
+    /// Drops annotations that no longer apply to the variable's type
+    /// @return true if any annotation was removed
+    bool _prune_annotations();
 
 public:
     Orchestration* get_orchestration() const;
@@ -82,12 +104,39 @@ public:
     String get_description() const { return _description; }
     void set_description(const String& p_description);
 
-    bool is_exported() const { return _exported; }
+    /// Whether an annotation from the export family is applied
+    bool is_exported() const;
+    /// Applies a plain "@export" when true and none of the export family is present,
+    /// or removes whichever export-family annotation is applied when false.
     void set_exported(bool p_exported);
     bool is_exportable() const;
 
+    const Vector<OScriptAnnotation>& get_annotations() const { return _annotations.get_items(); }
+    bool has_annotation(const StringName& p_name) const { return _annotations.has(p_name); }
+    bool has_annotation_family(const StringName& p_family) const { return _annotations.has_family(p_family); }
+    int find_annotation(const StringName& p_name) const { return _annotations.find(p_name); }
+
+    /// Adds an annotation when the registry permits it for this variable
+    /// @param p_annotation the annotation to add
+    /// @param r_reason optional explanation when the annotation is rejected
+    /// @return OK if added, otherwise the registry's error
+    Error add_annotation(const OScriptAnnotation& p_annotation, String* r_reason = nullptr);
+    void remove_annotation(int p_index);
+    void set_annotation_arguments(int p_index, const Array& p_arguments);
+
+    /// Replaces the whole annotation list, used by serialization and undo snapshots
+    void set_annotations(const Vector<OScriptAnnotation>& p_annotations);
+
     Variant get_default_value() const { return _default_value; }
     void set_default_value(const Variant& p_default_value);
+
+    InitializerKind get_initializer_kind() const { return _initializer; }
+    /// Switching to a node path clears the default to an empty NodePath; switching back restores
+    /// the type's default. The "@onready" annotation is left to the user, as in GDScript.
+    void set_initializer_kind(InitializerKind p_initializer);
+    bool is_node_path_initializer() const { return _initializer == INITIALIZER_NODE_PATH; }
+    /// Whether the variable's type can be initialized from a node path: Variant or a Node class
+    bool is_node_path_initializer_allowed() const;
 
     bool is_constant() const { return _constant; }
     void set_constant(bool p_constant);

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bwarnign0bad1"]
+
+[ext_resource type="Script" uid="uid://cwarnign0bad1" path="res://scenes/errors/warning_ignore_invalid.torch" id="1_torch"]
+
+[node name="WarningIgnoreInvalid" type="Node"]
+script = ExtResource("1_torch")

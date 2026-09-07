@@ -1,0 +1,51 @@
+[orchestration type="OScript" load_steps=6 format=5 uid="uid://c3xp0rtann0t8"]
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptVariable" id="OScriptVariable_speed"]
+name = "speed"
+category = "Default"
+exported = true
+classification = "type:float"
+type = 3
+default_value = 4.5
+annotations = [{
+"name": &"@export_range",
+"args": [0, 20, 0.5]
+}]
+
+[obj type="OScriptVariable" id="OScriptVariable_mode"]
+name = "mode"
+category = "Default"
+classification = "type:String"
+type = 4
+default_value = "Idle"
+annotations = [{
+"name": &"@export_enum",
+"args": ["Idle", "Walk", "Run"]
+}]
+
+[obj type="OScriptVariable" id="OScriptVariable_layers"]
+name = "layers"
+category = "Default"
+classification = "type:int"
+type = 2
+default_value = 1
+annotations = [{
+"name": &"@export_flags_2d_physics"
+}]
+
+[obj type="OScriptVariable" id="OScriptVariable_legacy"]
+name = "legacy"
+category = "Default"
+exported = true
+classification = "type:int"
+type = 2
+default_value = 7
+
+[resource]
+base_type = &"Node"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_speed"), SubResource("OScriptVariable_mode"), SubResource("OScriptVariable_layers"), SubResource("OScriptVariable_legacy")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

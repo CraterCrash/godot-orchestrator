@@ -47,6 +47,7 @@
 #include "editor/inspector/function_inspector_plugin.h"
 #include "editor/inspector/new_object_inspector_plugin.h"
 #include "editor/inspector/orchestration_inspector_plugin.h"
+#include "editor/inspector/properties/editor_property_annotations.h"
 #include "editor/inspector/properties/editor_property_class_name.h"
 #include "editor/inspector/properties/editor_property_extends.h"
 #include "editor/inspector/properties/editor_property_pin_properties.h"
@@ -104,6 +105,7 @@ void register_editor_types() {
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorTypeSelector)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorLogEventRouter)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyType)
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyAnnotations)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyClassName)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyPinProperties)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorPropertyExtends)

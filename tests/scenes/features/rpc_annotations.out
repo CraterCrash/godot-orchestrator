@@ -1,0 +1,2 @@
+OSCRIPT_TEST_PASS
+{ &"ping": { "rpc_mode": 1, "call_local": true, "transfer_mode": 2, "channel": 2 }, &"pong": { "rpc_mode": 2 } }

@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: Unknown annotation "@bogus".
+   at: OScript::reload (res://scenes/errors/export_annotation_unknown.torch:-1)
+ERROR: Failed to load script "res://scenes/errors/export_annotation_unknown.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)

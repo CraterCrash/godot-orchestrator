@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: Invalid RPC argument. Must be one of: "call_local"/"call_remote" (local calls), "any_peer"/"authority" (permission), "reliable"/"unreliable"/"unreliable_ordered" (transfer mode).
+   at: OScript::reload (res://scenes/errors/rpc_annotation_invalid.torch:0)
+ERROR: Failed to load script "res://scenes/errors/rpc_annotation_invalid.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)

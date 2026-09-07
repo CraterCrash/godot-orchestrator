@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://bxp0rtann0tsc"]
+
+[ext_resource type="Script" uid="uid://c3xp0rtann0t8" path="res://scenes/features/export_annotations.torch" id="1_torch"]
+[ext_resource type="Script" uid="uid://dxp0rtann0tpr" path="res://scenes/features/export_annotations_probe.gd" id="2_probe"]
+
+[node name="ExportAnnotations" type="Node"]
+script = ExtResource("1_torch")
+
+[node name="Probe" type="Node" parent="."]
+script = ExtResource("2_probe")

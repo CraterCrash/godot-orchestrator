@@ -1,0 +1,50 @@
+[orchestration type="OScript" load_steps=5 format=5 uid="uid://cwarnign0bad1"]
+
+[obj type="OScriptFunction" id="OScriptFunction_tick"]
+guid = "1A2B3C4D-0004-4000-8000-00000000A004"
+method = {
+"name": &"tick"
+}
+user_defined = true
+id = 0
+annotations = [{
+"name": &"@warning_ignore",
+"args": ["nope"]
+}]
+
+[obj type="OScriptGraph" id="OScriptGraph_event"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptGraph" id="OScriptGraph_tick"]
+graph_name = &"tick"
+flags = 22
+nodes = Array[int]([0, 1])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_tick"]
+function_id = "1A2B3C4D-0004-4000-8000-00000000A004"
+id = 0
+size = Vector2(29, 41)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_tick"]
+function_id = "1A2B3C4D-0004-4000-8000-00000000A004"
+id = 1
+size = Vector2(29, 41)
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}])
+
+[resource]
+base_type = &"Node"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_tick")])
+connections = Array[int]([0, 0, 1, 0])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_tick"), SubResource("OScriptNodeFunctionResult_tick")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_event"), SubResource("OScriptGraph_tick")])
