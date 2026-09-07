@@ -486,8 +486,9 @@ void OrchestratorEditorGraphPanel::_show_node_context_menu(OrchestratorEditorGra
     menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/detach_from_frame"), callable_mp_this(_detach_node_from_frame).bind(p_node->get_name()), { .visible = parent_frame != nullptr });
 
     const bool can_expand = cast_to<OScriptNodeCallScriptFunction>(script_node.ptr()) != nullptr;
+    const bool can_collapse = cast_to<OScriptNodeEvent>(script_node.ptr()) == nullptr;
     menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/expand_node"), callable_mp_this(_expand_node).bind(p_node), { .disabled = !can_expand });
-    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/collapse_to_function"), callable_mp_this(_collapse_selected_nodes_to_function));
+    menu->add_shortcut(ED_GET_SHORTCUT("graph_editor/collapse_to_function"), callable_mp_this(_collapse_selected_nodes_to_function), { .disabled = !can_collapse });
 
     // Distribution needs an interior node to move, and stacking needs a second node to place.
     const bool can_distribute = get_selection_count() > 2;
