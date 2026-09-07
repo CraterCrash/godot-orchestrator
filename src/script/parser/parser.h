@@ -16,6 +16,7 @@
 //
 #pragma once
 
+#include "orchestration/annotation.h"
 #include "orchestration/nodes.h"
 #include "script/parser/parser_nodes.h"
 #include "script/parser/function_analyzer.h"
@@ -228,6 +229,7 @@ public:
 private:
     struct PendingWarning {
         const Node *source = nullptr;
+        const FunctionNode* function = nullptr;   // Function being analyzed when the warning was raised, if any
         OScriptWarning::Code code = OScriptWarning::WARNING_MAX;
         bool treated_as_error = false;
         Vector<String> symbols;
@@ -429,8 +431,21 @@ private:
     SuiteNode* build_suite(const String& p_name, const Ref<OScriptNodePin>& p_source_pin, SuiteNode* p_suite = nullptr);
 
     // Annotations
+    // Synthesizes annotation nodes from the model's list onto the target, validating argument counts.
+    void build_annotations(Node* p_target, const Vector<OScriptAnnotation>& p_annotations, uint32_t p_target_kind);
+    // Pairs a registry descriptor name with its compile-time apply callback; null when none exists.
+    static AnnotationAction get_annotation_action(const StringName& p_name);
+    static uint32_t get_annotation_target_kinds(uint32_t p_registry_targets);
+    static void register_annotations();
+
     template <PropertyHint t_hint, Variant::Type t_type>
     bool export_annotations(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class);
+    bool export_storage_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class);
+    bool export_custom_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class);
+    bool export_tool_button_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class);
+    bool rpc_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class);
+    bool onready_annotation(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class);
+    bool warning_annotations(AnnotationNode* p_annotation, Node* p_target, ClassNode* p_class);
 
 public:
     Error parse(Orchestration* p_orchestration, const String& p_script_path);

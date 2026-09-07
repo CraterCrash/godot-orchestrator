@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: Annotation "@export_range" cannot be used with another "@export" annotation.
+   at: OScript::reload (res://scenes/errors/export_annotation_duplicate.torch:-1)
+ERROR: Failed to load script "res://scenes/errors/export_annotation_duplicate.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)

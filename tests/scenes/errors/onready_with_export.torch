@@ -1,0 +1,23 @@
+[orchestration type="OScript" load_steps=3 format=5 uid="uid://c0nr3adyexp0r"]
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptVariable" id="OScriptVariable_label"]
+name = "label"
+category = "Default"
+classification = "class:Label"
+type = 24
+initializer = 1
+default_value = NodePath("Label")
+annotations = [{
+"name": &"@export"
+}, {
+"name": &"@onready"
+}]
+
+[resource]
+base_type = &"Node"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_label")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

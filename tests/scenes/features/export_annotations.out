@@ -1,0 +1,5 @@
+OSCRIPT_TEST_PASS
+speed type=3 hint=1 hint_string=0.0,20.0,0.5
+mode type=4 hint=2 hint_string=Idle,Walk,Run
+layers type=2 hint=8 hint_string=
+legacy type=2 hint=0 hint_string=

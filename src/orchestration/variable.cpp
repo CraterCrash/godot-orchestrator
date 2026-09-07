@@ -21,6 +21,7 @@
 #include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "orchestration/annotation_registry.h"
 #include "script/script_server.h"
 
 class ClassificationParser {
@@ -181,7 +182,7 @@ bool OScriptVariable::_set(const StringName& p_name, const Variant& p_value) {
         PropertyInfo property;
         bool converted;
         if (parse_classification(p_value, property, converted)) {
-            if (converted) {
+            if (converted && _initializer == INITIALIZER_LITERAL) {
                 _convert_default_value(property.type);
             }
         }
@@ -192,6 +193,9 @@ bool OScriptVariable::_set(const StringName& p_name, const Variant& p_value) {
         _info.class_name = property.class_name;
         _info.usage = property.usage | PROPERTY_USAGE_SCRIPT_VARIABLE;
 
+        _prune_annotations();
+        _reset_initializer_if_needed();
+
         notify_property_list_changed();
         emit_changed();
         return true;
@@ -201,7 +205,8 @@ bool OScriptVariable::_set(const StringName& p_name, const Variant& p_value) {
         if (_info.type != value) {
             _info.type = value;
 
-            if (_default_value.get_type() != _info.type) {
+            _reset_initializer_if_needed();
+            if (_initializer == INITIALIZER_LITERAL && _default_value.get_type() != _info.type) {
                 set_default_value(VariantUtils::make_default(_info.type));
             }
 
@@ -214,7 +219,24 @@ bool OScriptVariable::_set(const StringName& p_name, const Variant& p_value) {
 }
 
 void OScriptVariable::_validate_property(PropertyInfo& p_property) const {
+    if (p_property.name.match("initializer")) {
+        if (!is_node_path_initializer_allowed()) {
+            p_property.usage &= ~PROPERTY_USAGE_EDITOR;
+        }
+        return;
+    }
+
     if (p_property.name.match("default_value")) {
+        if (_initializer == INITIALIZER_NODE_PATH) {
+            // Picked relative to the edited scene root, matching the scene node graph node.
+            p_property.type = Variant::NODE_PATH;
+            p_property.hint = PROPERTY_HINT_NODE_PATH_VALID_TYPES;
+            p_property.hint_string = ClassDB::class_exists(_info.class_name) ? String(_info.class_name) : String();
+            p_property.class_name = StringName();
+            p_property.usage = PROPERTY_USAGE_DEFAULT;
+            return;
+        }
+
         if (PropertyUtils::is_variant(_info)) {
             p_property.usage |= PROPERTY_USAGE_READ_ONLY;
             return;
@@ -289,7 +311,7 @@ void OScriptVariable::_validate_property(PropertyInfo& p_property) const {
 }
 
 bool OScriptVariable::_property_can_revert(const StringName& p_name) const {
-    static Array properties = Array::make("name", "category", "exported", "default_value", "description", "constant", "info");
+    static Array properties = Array::make("name", "category", "exported", "default_value", "description", "constant", "info", "annotations", "initializer");
     return properties.has(p_name);
 }
 
@@ -315,6 +337,12 @@ bool OScriptVariable::_property_get_revert(const StringName& p_name, Variant& r_
     } else if (p_name.match("info")) {
         r_property = DictionaryUtils::from_property(PropertyUtils::make_variant(_info.name), true);
         return true;
+    } else if (p_name.match("annotations")) {
+        r_property = Array();
+        return true;
+    } else if (p_name.match("initializer")) {
+        r_property = INITIALIZER_LITERAL;
+        return true;
     }
     return false;
 }
@@ -325,6 +353,31 @@ void OScriptVariable::_set_property_info(const Dictionary& p_property) {
 
 Dictionary OScriptVariable::_get_property_info() const {
     return DictionaryUtils::from_property(_info, true);
+}
+
+void OScriptVariable::_set_annotations_array(const Array& p_annotations) {
+    OScriptAnnotationList annotations;
+    annotations.from_array(p_annotations);
+    set_annotations(annotations.get_items());
+}
+
+Array OScriptVariable::_get_annotations_array() const {
+    return _annotations.to_array();
+}
+
+void OScriptVariable::_set_initializer(int p_initializer) {
+    set_initializer_kind(p_initializer == INITIALIZER_NODE_PATH ? INITIALIZER_NODE_PATH : INITIALIZER_LITERAL);
+}
+
+int OScriptVariable::_get_initializer() const {
+    return _initializer;
+}
+
+void OScriptVariable::_reset_initializer_if_needed() {
+    if (_initializer == INITIALIZER_NODE_PATH && !is_node_path_initializer_allowed()) {
+        _initializer = INITIALIZER_LITERAL;
+        _default_value = VariantUtils::make_default(_info.type);
+    }
 }
 
 bool OScriptVariable::_convert_default_value(Variant::Type p_new_type) {
@@ -361,6 +414,10 @@ bool OScriptVariable::_convert_default_value(Variant::Type p_new_type) {
     return true;
 }
 
+bool OScriptVariable::_prune_annotations() {
+    return _annotations.prune(OScriptAnnotationRegistry::TARGET_VARIABLE, _info) > 0;
+}
+
 Orchestration* OScriptVariable::get_orchestration() const {
     return _orchestration;
 }
@@ -376,7 +433,11 @@ void OScriptVariable::set_info(const PropertyInfo& p_property) {
     _info.hint_string = p_property.hint_string;
     _info.usage = p_property.usage;
 
-    _convert_default_value(_info.type);
+    _reset_initializer_if_needed();
+    if (_initializer == INITIALIZER_LITERAL) {
+        _convert_default_value(_info.type);
+    }
+    _prune_annotations();
 
     notify_property_list_changed();
     emit_changed();
@@ -415,9 +476,16 @@ void OScriptVariable::set_description(const String& p_description) {
     }
 }
 
+bool OScriptVariable::is_exported() const {
+    return _annotations.has_family(OScriptAnnotationRegistry::FAMILY_EXPORT);
+}
+
 void OScriptVariable::set_exported(bool p_exported) {
-    if (_exported != p_exported) {
-        _exported = p_exported;
+    if (p_exported) {
+        if (!is_exported()) {
+            add_annotation(OScriptAnnotation("@export"));
+        }
+    } else if (_annotations.remove_family(OScriptAnnotationRegistry::FAMILY_EXPORT) > 0) {
         emit_changed();
     }
 }
@@ -425,6 +493,11 @@ void OScriptVariable::set_exported(bool p_exported) {
 bool OScriptVariable::is_exportable() const {
     // Constants cannot be exported
     if (_constant) {
+        return false;
+    }
+
+    // Nor can a variable carrying an annotation the export family conflicts with, such as @onready
+    if (!OScriptAnnotationRegistry::find_conflict("@export", _annotations.get_items()).is_empty()) {
         return false;
     }
 
@@ -473,14 +546,91 @@ void OScriptVariable::set_default_value(const Variant& p_default_value) {
     }
 }
 
+void OScriptVariable::set_initializer_kind(InitializerKind p_initializer) {
+    if (_initializer == p_initializer) {
+        return;
+    }
+
+    if (p_initializer == INITIALIZER_NODE_PATH && !is_node_path_initializer_allowed()) {
+        return;
+    }
+
+    _initializer = p_initializer;
+    if (_initializer == INITIALIZER_NODE_PATH) {
+        if (_default_value.get_type() != Variant::NODE_PATH) {
+            _default_value = NodePath();
+        }
+    } else {
+        _default_value = VariantUtils::make_default(_info.type);
+    }
+
+    notify_property_list_changed();
+    emit_changed();
+}
+
+bool OScriptVariable::is_node_path_initializer_allowed() const {
+    if (_constant) {
+        return false;
+    }
+
+    if (PropertyUtils::is_variant(_info)) {
+        return true;
+    }
+
+    if (_info.type != Variant::OBJECT || _info.class_name.is_empty()) {
+        return false;
+    }
+
+    StringName native_class = _info.class_name;
+    if (ScriptServer::is_global_class(native_class)) {
+        native_class = ScriptServer::get_global_class_native_base(native_class);
+    }
+    return ClassDB::is_parent_class(native_class, "Node");
+}
+
 void OScriptVariable::set_constant(bool p_constant) {
     if (_constant != p_constant) {
         _constant = p_constant;
 
-        // Constants cannot be exported
-        _exported = _constant ? false : _exported;
+        // Constants cannot be exported or resolved from the scene tree
+        if (_constant) {
+            _annotations.remove_family(OScriptAnnotationRegistry::FAMILY_EXPORT);
+            _reset_initializer_if_needed();
+        }
 
         notify_property_list_changed();
+        emit_changed();
+    }
+}
+
+Error OScriptVariable::add_annotation(const OScriptAnnotation& p_annotation, String* r_reason) {
+    const Error result = _annotations.add(OScriptAnnotationRegistry::TARGET_VARIABLE, _info, p_annotation, r_reason);
+    if (result == OK) {
+        emit_changed();
+    }
+    return result;
+}
+
+void OScriptVariable::remove_annotation(int p_index) {
+    if (_annotations.remove_at(p_index)) {
+        emit_changed();
+    }
+}
+
+void OScriptVariable::set_annotation_arguments(int p_index, const Array& p_arguments) {
+    if (_annotations.set_arguments(p_index, p_arguments)) {
+        emit_changed();
+    }
+}
+
+void OScriptVariable::set_annotations(const Vector<OScriptAnnotation>& p_annotations) {
+    // Whole-list replacement bypasses the cardinality check so a snapshot restores verbatim;
+    // the parser reports any conflict at compile time.
+    OScriptAnnotationList replacement;
+    replacement.set_items(p_annotations);
+
+    if (_annotations != replacement) {
+        _annotations = replacement;
         emit_changed();
     }
 }
@@ -491,7 +641,8 @@ void OScriptVariable::copy_persistent_state(const Ref<OScriptVariable>& p_other)
         _constant = p_other->_constant;
         _default_value = p_other->_default_value;
         _description = p_other->_description;
-        _exported = p_other->_exported;
+        _annotations = p_other->_annotations;
+        _initializer = p_other->_initializer;
 
         set_info(p_other->_info);
     }
@@ -525,13 +676,20 @@ void OScriptVariable::_bind_methods() {
     ClassDB::bind_method(D_METHOD("is_constant"), &OScriptVariable::is_constant);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "constant"), "set_constant", "is_constant");
 
+    // Derived from the annotation list and not stored since format 5; the setter still migrates the
+    // flag written by older formats into a plain "@export".
     ClassDB::bind_method(D_METHOD("set_exported", "exported"), &OScriptVariable::set_exported);
     ClassDB::bind_method(D_METHOD("is_exported"), &OScriptVariable::is_exported);
-    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "exported"), "set_exported", "is_exported");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "exported", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_exported", "is_exported");
 
     ClassDB::bind_method(D_METHOD("set_property_info", "property"), &OScriptVariable::_set_property_info);
     ClassDB::bind_method(D_METHOD("get_property_info"), &OScriptVariable::_get_property_info);
     ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "info"), "set_property_info", "get_property_info");
+
+    // Bound before "default_value" so a stored NodePath loads under the right initializer kind.
+    ClassDB::bind_method(D_METHOD("set_initializer", "initializer"), &OScriptVariable::_set_initializer);
+    ClassDB::bind_method(D_METHOD("get_initializer"), &OScriptVariable::_get_initializer);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "initializer", PROPERTY_HINT_ENUM, "Literal,Node Path"), "set_initializer", "get_initializer");
 
     ClassDB::bind_method(D_METHOD("set_default_value", "value"), &OScriptVariable::set_default_value);
     ClassDB::bind_method(D_METHOD("get_default_value"), &OScriptVariable::get_default_value);
@@ -540,6 +698,11 @@ void OScriptVariable::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_description", "description"), &OScriptVariable::set_description);
     ClassDB::bind_method(D_METHOD("get_description"), &OScriptVariable::get_description);
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "description", PROPERTY_HINT_MULTILINE_TEXT), "set_description", "get_description");
+
+    // Bound after "exported" so a stored list replaces the plain "@export" an older file's flag applies on load.
+    ClassDB::bind_method(D_METHOD("set_annotations", "annotations"), &OScriptVariable::_set_annotations_array);
+    ClassDB::bind_method(D_METHOD("get_annotations"), &OScriptVariable::_get_annotations_array);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "annotations"), "set_annotations", "get_annotations");
 }
 
 OScriptVariable::OScriptVariable() {

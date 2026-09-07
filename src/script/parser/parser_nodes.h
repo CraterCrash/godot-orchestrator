@@ -249,6 +249,7 @@ namespace OScriptParserNodes
         Node* next = nullptr;
         DataType data_type;
         List<AnnotationNode*> annotations;
+        Vector<int> ignored_warning_codes;  // OScriptWarning::Code values suppressed by @warning_ignore on this node
 
         virtual DataType get_datatype() const { return data_type; }
         virtual void set_datatype(const DataType& p_datatype) { data_type = p_datatype; }

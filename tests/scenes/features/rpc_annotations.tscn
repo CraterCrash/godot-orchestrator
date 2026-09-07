@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://brpcann0tati0"]
+
+[ext_resource type="Script" uid="uid://crpcann0tati0" path="res://scenes/features/rpc_annotations.torch" id="1_torch"]
+[ext_resource type="Script" uid="uid://drpcann0tprbe" path="res://scenes/features/rpc_annotations_probe.gd" id="2_probe"]
+
+[node name="RpcAnnotations" type="Node"]
+script = ExtResource("1_torch")
+
+[node name="Probe" type="Node" parent="."]
+script = ExtResource("2_probe")

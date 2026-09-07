@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bn0d3pathn00r"]
+
+[ext_resource type="Script" uid="uid://cn0d3pathn00r" path="res://scenes/errors/node_path_without_onready.torch" id="1_torch"]
+
+[node name="NodePathWithoutOnready" type="Node"]
+script = ExtResource("1_torch")

@@ -1,0 +1,20 @@
+[orchestration type="OScript" load_steps=3 format=5 uid="uid://cann0tunkn0wn"]
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptVariable" id="OScriptVariable_count"]
+name = "count"
+category = "Default"
+classification = "type:int"
+type = 2
+default_value = 1
+annotations = [{
+"name": &"@bogus"
+}]
+
+[resource]
+base_type = &"Node"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_count")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

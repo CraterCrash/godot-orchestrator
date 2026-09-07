@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: "@export_range" annotation requires a variable of type "float", "Array[float]", "PackedFloat32Array", or "PackedFloat64Array", but type "String" was given instead.
+   at: OScript::reload (res://scenes/errors/export_annotation_type_mismatch.torch:-1)
+ERROR: Failed to load script "res://scenes/errors/export_annotation_type_mismatch.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)

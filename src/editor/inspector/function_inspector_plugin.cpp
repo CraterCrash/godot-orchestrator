@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/macros.h"
+#include "editor/inspector/properties/editor_property_annotations.h"
 #include "editor/inspector/properties/editor_property_pin_properties.h"
 #include "orchestration/nodes/function_entry.h"
 #include "orchestration/orchestration.h"
@@ -112,6 +113,12 @@ bool OrchestratorEditorInspectorPluginFunction::_parse_property(Object* p_object
         outputs->setup(false, 1);
         outputs->connect("remove", callable_mp_this(_remove_return_value).bind(function));
         add_property_editor(p_name, outputs, true);
+        return true;
+    }
+
+    if (p_name.match("annotations")) {
+        OrchestratorEditorPropertyAnnotations* annotations = memnew(OrchestratorEditorPropertyAnnotations);
+        add_property_editor(p_name, annotations, false, "Annotations");
         return true;
     }
 

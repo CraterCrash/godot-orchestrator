@@ -1,0 +1,32 @@
+[orchestration type="OScript" load_steps=4 format=5 uid="uid://c0nr3adyann0t"]
+
+[obj type="OScriptGraph" id="OScriptGraph_orolp"]
+graph_name = &"EventGraph"
+flags = 8
+
+[obj type="OScriptVariable" id="OScriptVariable_label"]
+name = "label"
+category = "Default"
+classification = "class:Label"
+type = 24
+initializer = 1
+default_value = NodePath("Label")
+annotations = [{
+"name": &"@onready"
+}]
+
+[obj type="OScriptVariable" id="OScriptVariable_any"]
+name = "any"
+category = "Default"
+classification = "class:Node"
+type = 24
+initializer = 1
+default_value = NodePath("Label")
+annotations = [{
+"name": &"@onready"
+}]
+
+[resource]
+base_type = &"Node"
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_label"), SubResource("OScriptVariable_any")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_orolp")])

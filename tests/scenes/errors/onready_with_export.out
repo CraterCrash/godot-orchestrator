@@ -1,0 +1,5 @@
+OSCRIPT_TEST_FAILURE
+ERROR: Parser Error: "@onready" will set the default value after "@export" takes effect and will override it. (Warning treated as error.)
+   at: OScript::reload (res://scenes/errors/onready_with_export.torch:-1)
+ERROR: Failed to load script "res://scenes/errors/onready_with_export.torch" with error "Parse error".
+   at: _load (src/script/serialization/text/resource_loader_text.cpp)
