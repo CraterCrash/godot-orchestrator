@@ -53,7 +53,6 @@
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/center_container.hpp>
-#include <godot_cpp/classes/curve2d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/graph_frame.hpp>
@@ -2195,6 +2194,8 @@ void OrchestratorEditorGraphPanel::_settings_changed() {
     _disconnect_control_flow_when_dragged = ORCHESTRATOR_GET("interface/editor/graph/disconnect_control_flow_when_dragged", true);
     _show_advanced_tooltips= ORCHESTRATOR_GET("interface/editor/graph/show_advanced_tooltips", false);
 
+    _update_connection_line_style();
+
     bool node_update_required = false;
     node_update_required |= ORCHESTRATOR_GET_TRACK(_show_type_icons, "interface/editor/graph_nodes/show_type_icons", true);
     node_update_required |= ORCHESTRATOR_GET_TRACK(_resizable_by_default, "interface/editor/graph_nodes/resizable_by_default", true);
@@ -2219,6 +2220,27 @@ void OrchestratorEditorGraphPanel::_settings_changed() {
         });
 
     }
+}
+
+void OrchestratorEditorGraphPanel::_update_connection_line_style() {
+    bool changed = _connection_line_style == nullptr;
+    changed |= ORCHESTRATOR_GET_TRACK(_connection_line_style_name, "interface/editor/graph/connection_line_style",
+        String(OrchestratorEditorGraphConnectionLineStyle::STYLE_DEFAULT));
+    changed |= ORCHESTRATOR_GET_TRACK(_connection_line_curvature, "interface/editor/graph/connection_line_curvature", 0.5f);
+    if (!changed) {
+        return;
+    }
+
+    if (_connection_line_style) {
+        memdelete(_connection_line_style);
+    }
+    _connection_line_style = OrchestratorEditorGraphConnectionLineStyle::create(
+        _connection_line_style_name, _connection_line_curvature, get_connection_lines_curvature());
+
+    // GraphEdit caches each connection's tessellated points and only rebuilds them when an endpoint
+    // moves. The curvature setter invalidates that cache unconditionally, even for an unchanged value,
+    // which is the only public way to force every wire (and the minimap) to be re-shaped.
+    set_connection_lines_curvature(get_connection_lines_curvature());
 }
 
 void OrchestratorEditorGraphPanel::_show_drag_hint(const String& p_hint_text) const {
@@ -3376,29 +3398,24 @@ PackedVector2Array OrchestratorEditorGraphPanel::_get_connection_line(const Vect
     _get_graph_node_and_port(from_adjusted, source_node_id, source_node_port);
     _get_graph_node_and_port(to_adjusted, target_node_id, target_node_port);
 
-    const bool source_is_reroute = source_node_id != -1
+    OrchestratorEditorGraphConnectionLineStyle::Context context;
+    context.zoom = get_zoom();
+    context.source_is_reroute = source_node_id != -1
         && cast_to<OrchestratorEditorGraphNodeReroute>(find_child(itos(source_node_id), false, false));
-    const bool target_is_reroute = target_node_id != -1
+    context.target_is_reroute = target_node_id != -1
         && cast_to<OrchestratorEditorGraphNodeReroute>(find_child(itos(target_node_id), false, false));
 
-    // Suppress curvature between two reroute nodes so the wire runs straight, matching
-    // the original knot behavior where only the first and last segments were curved.
-    const float curvature = (source_is_reroute && target_is_reroute) ? 0.0f : get_connection_lines_curvature();
-
-    float xdiff = p_from_position.x - p_to_position.x;
-    float cp_offset = xdiff * curvature;
-    if (xdiff < 0) {
-        cp_offset *= -1;
+    if (!_connection_line_style) {
+        // Settings have not been applied yet; shape the wire the way GraphEdit would.
+        const float curvature = get_connection_lines_curvature();
+        OrchestratorEditorGraphConnectionLineStyle* fallback = OrchestratorEditorGraphConnectionLineStyle::create(
+            OrchestratorEditorGraphConnectionLineStyle::STYLE_DEFAULT, curvature, curvature);
+        const PackedVector2Array points = fallback->build(p_from_position, p_to_position, context);
+        memdelete(fallback);
+        return points;
     }
 
-    Ref<Curve2D> curve;
-    curve.instantiate();
-    curve->add_point(p_from_position);
-    curve->set_point_out(0, Vector2(cp_offset, 0));
-    curve->add_point(p_to_position);
-    curve->set_point_in(1, Vector2(-cp_offset, 0));
-
-    return curvature > 0 ? curve->tessellate(5, 2.0) : curve->tessellate(1);
+    return _connection_line_style->build(p_from_position, p_to_position, context);
 }
 
 bool OrchestratorEditorGraphPanel::_is_node_hover_valid(const StringName& p_from_node, int32_t p_from_port,
@@ -4119,6 +4136,11 @@ OrchestratorEditorGraphPanel::OrchestratorEditorGraphPanel() {
 }
 
 OrchestratorEditorGraphPanel::~OrchestratorEditorGraphPanel() {
+    if (_connection_line_style) {
+        memdelete(_connection_line_style);
+        _connection_line_style = nullptr;
+    }
+
     memdelete(_markers);
     _markers = nullptr;
 }
