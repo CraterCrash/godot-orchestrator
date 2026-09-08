@@ -33,6 +33,7 @@
 #include "script/script.h"
 #include "script/script_server.h"
 
+#include <climits>
 #include <functional>
 #include <ranges>
 #include <string>
@@ -3880,6 +3881,12 @@ OScriptParser::OScriptParser() {
     if (unlikely(valid_annotations.is_empty())) {
         register_annotation(MethodInfo("@export"), AnnotationInfo::VARIABLE, &OScriptParser::export_annotations<PROPERTY_HINT_NONE, Variant::NIL>);
     }
+
+    #ifdef DEBUG_ENABLED
+    for (int i = 0; i < OScriptWarning::WARNING_MAX; i++) {
+        warning_ignore_start_nodes[i] = INT_MAX;
+    }
+    #endif
 }
 
 OScriptParser::~OScriptParser() {
