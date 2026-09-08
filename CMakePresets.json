@@ -134,9 +134,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
-        "ANDROID_TOOLCHAIN_NAME": "arm-linux-androideabi-4.9",
-        "ANDROID_PLATFORM": "android-22",
-        "ANDROID_TOOLCHAIN": "clang"
+        "ANDROID_PLATFORM": "android-24"
       }
     },
     {
@@ -144,7 +142,6 @@
       "inherits": ["default-editor", "android-default"],
       "description": "Builds Orchestrator for Android arm64 using editor.",
       "cacheVariables": {
-        "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a",
         "ANDROID_ABI": "arm64-v8a"
       }
     },
@@ -153,7 +150,6 @@
       "inherits": ["default-release", "android-default"],
       "description": "Builds Orchestrator for Android arm64 using template_release.",
       "cacheVariables": {
-        "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a",
         "ANDROID_ABI": "arm64-v8a"
       }
     },
@@ -162,7 +158,6 @@
       "inherits": ["default-editor", "android-default"],
       "description": "Builds Orchestrator for Android arm32 using editor.",
       "cacheVariables": {
-        "CMAKE_ANDROID_ARCH_ABI": "armeabi-v7a",
         "ANDROID_ABI": "armeabi-v7a"
       }
     },
@@ -171,7 +166,6 @@
       "inherits": ["default-release", "android-default"],
       "description": "Builds Orchestrator for Android arm32 using template_release.",
       "cacheVariables": {
-        "CMAKE_ANDROID_ARCH_ABI": "armeabi-v7a",
         "ANDROID_ABI": "armeabi-v7a"
       }
     },
