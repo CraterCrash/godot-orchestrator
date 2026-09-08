@@ -20,6 +20,7 @@
 #include "core/godot/object/weak_ref.h"
 #include "editor/actions/definition.h"
 #include "editor/graph/graph_clipboard.h"
+#include "editor/graph/graph_connection_line_style.h"
 #include "editor/graph/graph_node.h"
 #include "editor/graph/graph_panel_styler.h"
 
@@ -125,6 +126,10 @@ private:
     WeakRef<OrchestratorEditorGraphPin> _drag_from_pin;
 
     OrchestratorEditorGraphMarkers* _markers = nullptr;
+
+    OrchestratorEditorGraphConnectionLineStyle* _connection_line_style = nullptr;
+    String _connection_line_style_name;
+    float _connection_line_curvature = 0.5f;
 
     HFlowContainer* _toolbar_hflow = nullptr;
     Control* _center_status = nullptr;
@@ -272,6 +277,7 @@ private:
 
     void _grid_pattern_changed(int p_index);
     void _settings_changed();
+    void _update_connection_line_style();
     void _show_drag_hint(const String& p_hint_text) const;
     bool _is_delete_confirmation_enabled();
     bool _can_duplicate_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_error_dialog = true);
