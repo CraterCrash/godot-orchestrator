@@ -61,6 +61,12 @@
         <member name="interface/editor/graph/confirm_on_delete" type="bool" setter="" getter="" default="true">
             Prompt for confirmation before deleting nodes from a graph.
         </member>
+        <member name="interface/editor/graph/connection_line_curvature" type="float" setter="" getter="" default="0.5">
+            The bezier curvature applied to connection lines when [member interface/editor/graph/connection_line_style] is [code]Custom[/code]. A value of [code]0[/code] draws straight lines; larger values bow the wire further from a straight path.
+        </member>
+        <member name="interface/editor/graph/connection_line_style" type="String" setter="" getter="" default="&quot;Default&quot;">
+            How connection lines are drawn between node pins. [code]Default[/code] uses the engine's standard curved wires, [code]Straight[/code] draws a single straight segment, [code]45 Degrees[/code] and [code]90 Degrees[/code] route wires along horizontal and vertical runs like circuit-board traces, and [code]Custom[/code] draws curved wires using [member interface/editor/graph/connection_line_curvature]. Wires between two reroute nodes are always straight.
+        </member>
         <member name="interface/editor/graph/disconnect_control_flow_when_dragged" type="bool" setter="" getter="" default="true">
             When dragging a node, automatically break its execution (control flow) connections.
         </member>
