@@ -336,6 +336,9 @@ void OrchestratorEditorGraphPanel::_begin_node_move() {
 
 void OrchestratorEditorGraphPanel::_end_node_move() {
     _moving_selection = false;
+
+    // Wires are not re-planned while dragging, so the moved nodes settle into lanes now
+    _queue_connection_lanes_update();
 }
 
 void OrchestratorEditorGraphPanel::_scroll_offset_changed(const Vector2& p_scroll_offset) {
@@ -606,6 +609,13 @@ void OrchestratorEditorGraphPanel::_node_position_changed(const Vector2& p_old_p
 void OrchestratorEditorGraphPanel::_node_resized(OrchestratorEditorGraphNode* p_node) {
     ERR_FAIL_NULL_MSG(p_node, "Cannot update node position with an invalid node reference");
     _node_resize_end(p_node->get_position(), p_node);
+}
+
+void OrchestratorEditorGraphPanel::_node_item_rect_changed() {
+    // Fires for every node on each drag frame; those settle in _end_node_move instead
+    if (!_moving_selection) {
+        _queue_connection_lanes_update();
+    }
 }
 
 void OrchestratorEditorGraphPanel::_node_resize_end(const Vector2& p_size, OrchestratorEditorGraphNode* p_node) {
@@ -1593,6 +1603,7 @@ void OrchestratorEditorGraphPanel::_connect_graph_node_signals(OrchestratorEdito
     p_node->connect("double_click_jump_request", callable_mp_this(_double_click_node_jump_request));
     p_node->connect("add_node_pin_requested", callable_mp_this(_add_node_pin));
     p_node->connect("dragged", callable_mp_this(_node_position_changed).bind(p_node));
+    p_node->connect("item_rect_changed", callable_mp_this(_node_item_rect_changed));
 
     // Godot 4.3 introduced a new resize_end callback that we will use now to handle triggering the
     // final size of a node. This helps to avoid issues with editor scale changes being problematic
@@ -1610,6 +1621,7 @@ void OrchestratorEditorGraphPanel::_disconnect_graph_node_signals(OrchestratorEd
     p_node->disconnect("double_click_jump_request", callable_mp_this(_double_click_node_jump_request));
     p_node->disconnect("add_node_pin_requested", callable_mp_this(_add_node_pin));
     p_node->disconnect("dragged", callable_mp_this(_node_position_changed).bind(p_node));
+    p_node->disconnect("item_rect_changed", callable_mp_this(_node_item_rect_changed));
 
     // Godot 4.3 introduced a new resize_end callback that we will use now to handle triggering the
     // final size of a node. This helps to avoid issues with editor scale changes being problematic
@@ -1617,6 +1629,9 @@ void OrchestratorEditorGraphPanel::_disconnect_graph_node_signals(OrchestratorEd
     p_node->disconnect("resize_end", callable_mp_this(_node_resize_end).bind(p_node));
 
     _disconnect_graph_node_pin_signals(p_node);
+
+    // A node leaving the graph takes its wires with it, which may free lanes its neighbours were using
+    _queue_connection_lanes_update();
 }
 
 void OrchestratorEditorGraphPanel::_connect_graph_frame_signals(OrchestratorEditorGraphFrame* p_frame) {
@@ -2104,6 +2119,7 @@ void OrchestratorEditorGraphPanel::_update_connection_line_style() {
     changed |= ORCHESTRATOR_GET_TRACK(_connection_line_style_name, "interface/editor/graph/connection_line_style",
         String(OrchestratorEditorGraphConnectionLineStyle::STYLE_DEFAULT));
     changed |= ORCHESTRATOR_GET_TRACK(_connection_line_curvature, "interface/editor/graph/connection_line_curvature", 0.5f);
+    changed |= ORCHESTRATOR_GET_TRACK(_connection_line_spacing, "interface/editor/graph/connection_line_spacing", 8.f);
     if (!changed) {
         return;
     }
@@ -2114,10 +2130,224 @@ void OrchestratorEditorGraphPanel::_update_connection_line_style() {
     _connection_line_style = OrchestratorEditorGraphConnectionLineStyle::create(
         _connection_line_style_name, _connection_line_curvature, get_connection_lines_curvature());
 
+    // Plan lanes before the wires are re-shaped so the new style never draws a frame with stale lanes
+    _update_connection_lanes();
+
     // GraphEdit caches each connection's tessellated points and only rebuilds them when an endpoint
     // moves. The curvature setter invalidates that cache unconditionally, even for an unchanged value,
     // which is the only public way to force every wire (and the minimap) to be re-shaped.
     set_connection_lines_curvature(get_connection_lines_curvature());
+}
+
+bool OrchestratorEditorGraphPanel::_is_connection_lane_routing_enabled() const {
+    return _connection_line_style && _connection_line_style->supports_lanes() && _connection_line_spacing > 0;
+}
+
+void OrchestratorEditorGraphPanel::_queue_connection_lanes_update() {
+    if (_connection_lanes_update_scheduled) {
+        return;
+    }
+
+    // With lanes off there is nothing to plan; a change of style or spacing that turns them off
+    // clears any lanes still assigned synchronously in _update_connection_line_style.
+    if (!_is_connection_lane_routing_enabled()) {
+        return;
+    }
+
+    // Coalesces the burst of rect changes a refresh, paste or zoom produces into one plan, made after
+    // the nodes have laid out so port positions are current.
+    _connection_lanes_update_scheduled = true;
+    callable_mp_this(_update_connection_lanes).call_deferred();
+}
+
+void OrchestratorEditorGraphPanel::_update_connection_lanes() {
+    _connection_lanes_update_scheduled = false;
+
+    if (_moving_selection) {
+        // The plan would churn on every drag frame; _end_node_move queues it once instead
+        return;
+    }
+
+    HashMap<uint64_t, int> lanes;
+    if (_is_connection_lane_routing_enabled()) {
+        lanes = _plan_connection_lanes();
+    }
+
+    bool changed = lanes.size() != _connection_lanes.size();
+    for (const KeyValue<uint64_t, int>& E : lanes) {
+        if (changed) {
+            break;
+        }
+        const int* previous = _connection_lanes.getptr(E.key);
+        changed = !previous || *previous != E.value;
+    }
+
+    if (!changed) {
+        return;
+    }
+
+    _connection_lanes = lanes;
+
+    // GraphEdit only re-shapes the wires of nodes that moved, but a neighbour's lane can change
+    // without its endpoints moving, so every wire is invalidated; see _update_connection_line_style.
+    set_connection_lines_curvature(get_connection_lines_curvature());
+}
+
+HashMap<uint64_t, int> OrchestratorEditorGraphPanel::_plan_connection_lanes() {
+    struct Wire {
+        uint64_t key;
+        uint64_t source_port;
+        uint64_t target_port;
+        Vector2 from;
+        Vector2 to;
+        OrchestratorEditorGraphConnectionLineStyle::Context context;
+        PackedVector2Array skeleton;
+        Rect2 bounds;
+    };
+
+    struct WireSort {
+        bool operator()(const Wire& a, const Wire& b) const {
+            if (a.from.y != b.from.y) {
+                return a.from.y < b.from.y;
+            }
+            if (a.from.x != b.from.x) {
+                return a.from.x < b.from.x;
+            }
+            if (a.to.y != b.to.y) {
+                return a.to.y < b.to.y;
+            }
+            if (a.to.x != b.to.x) {
+                return a.to.x < b.to.x;
+            }
+            return a.key < b.key;
+        }
+    };
+
+    // Two runs are treated as the same channel when they lie closer than half a lane apart
+    const float channel_tolerance = _connection_line_spacing * 0.5f;
+
+    // Runs that merely touch at a corner do not overlap
+    constexpr float overlap_tolerance = 1.f;
+
+    auto skeleton_bounds = [](const PackedVector2Array& p_points, float p_grow) {
+        Rect2 bounds(p_points[0], Vector2());
+        for (const Vector2& point : p_points) {
+            bounds.expand_to(point);
+        }
+        return bounds.grow(p_grow);
+    };
+
+    auto runs_overlap = [&](const Vector2& a0, const Vector2& a1, const Vector2& b0, const Vector2& b1) {
+        const bool a_horizontal = Math::is_equal_approx(a0.y, a1.y);
+        const bool b_horizontal = Math::is_equal_approx(b0.y, b1.y);
+        const bool a_vertical = Math::is_equal_approx(a0.x, a1.x);
+        const bool b_vertical = Math::is_equal_approx(b0.x, b1.x);
+
+        if (a_horizontal && b_horizontal && Math::abs(a0.y - b0.y) < channel_tolerance) {
+            const float overlap = MIN(MAX(a0.x, a1.x), MAX(b0.x, b1.x)) - MAX(MIN(a0.x, a1.x), MIN(b0.x, b1.x));
+            return overlap > overlap_tolerance;
+        }
+        if (a_vertical && b_vertical && Math::abs(a0.x - b0.x) < channel_tolerance) {
+            const float overlap = MIN(MAX(a0.y, a1.y), MAX(b0.y, b1.y)) - MAX(MIN(a0.y, a1.y), MIN(b0.y, b1.y));
+            return overlap > overlap_tolerance;
+        }
+        return false;
+    };
+
+    auto wires_overlap = [&](const Wire& a, const Wire& b) {
+        // Wires that share a port are one signal fanning out or in; their shared runs are expected
+        if (a.source_port == b.source_port || a.target_port == b.target_port) {
+            return false;
+        }
+        if (!a.bounds.intersects(b.bounds)) {
+            return false;
+        }
+        for (int i = 1; i < a.skeleton.size(); i++) {
+            for (int j = 1; j < b.skeleton.size(); j++) {
+                if (runs_overlap(a.skeleton[i - 1], a.skeleton[i], b.skeleton[j - 1], b.skeleton[j])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    Vector<Wire> wires;
+    const TypedArray<Dictionary> connections = get_connection_list();
+    for (int i = 0; i < connections.size(); i++) {
+        const Dictionary connection = connections[i];
+        const int from_port = connection["from_port"];
+        const int to_port = connection["to_port"];
+
+        OrchestratorEditorGraphNode* source = find_node(StringName(connection["from_node"]));
+        OrchestratorEditorGraphNode* target = find_node(StringName(connection["to_node"]));
+        if (!source || !target) {
+            continue;
+        }
+
+        // Planned in graph space, the same space GraphEdit derives its endpoints from; the model's
+        // connection id packs the four fields that identify a wire, so it doubles as the lane key
+        Wire wire;
+        wire.key = Connection::of(source->get_id(), from_port, target->get_id(), to_port).id;
+        wire.source_port = Connection::of(source->get_id(), from_port, 0, 0).id;
+        wire.target_port = Connection::of(0, 0, target->get_id(), to_port).id;
+        wire.from = source->get_output_port_position(from_port) + source->get_position_offset();
+        wire.to = target->get_input_port_position(to_port) + target->get_position_offset();
+        wire.context.source_is_reroute = cast_to<OrchestratorEditorGraphNodeReroute>(source) != nullptr;
+        wire.context.target_is_reroute = cast_to<OrchestratorEditorGraphNodeReroute>(target) != nullptr;
+        wire.context.lane_spacing = _connection_line_spacing;
+        wires.push_back(wire);
+    }
+
+    // A geometric order keeps lane choices stable across refreshes, whatever order connections load in
+    wires.sort_custom<WireSort>();
+
+    // Each wire takes the lowest lane on which it overlaps none of the wires placed before it. The
+    // test uses the routed geometry rather than the lane index, so any way a style maps lanes to
+    // offsets, including clamping, is accounted for.
+    constexpr int max_lanes = 8;
+
+    HashMap<uint64_t, int> lanes;
+    Vector<Wire> placed;
+    for (Wire& wire : wires) {
+        PackedVector2Array previous;
+        bool resolved = false;
+
+        for (int lane = 0; lane < max_lanes && !resolved; lane++) {
+            wire.context.lane = lane;
+            wire.skeleton = _connection_line_style->build_skeleton(wire.from, wire.to, wire.context);
+            if (wire.skeleton.size() < 2 || (lane > 0 && wire.skeleton == previous)) {
+                // The style cannot move this wire any further
+                break;
+            }
+            previous = wire.skeleton;
+            wire.bounds = skeleton_bounds(wire.skeleton, channel_tolerance);
+
+            resolved = true;
+            for (const Wire& other : placed) {
+                if (wires_overlap(wire, other)) {
+                    resolved = false;
+                    break;
+                }
+            }
+        }
+
+        if (!resolved) {
+            wire.context.lane = 0;
+            wire.skeleton = _connection_line_style->build_skeleton(wire.from, wire.to, wire.context);
+            if (wire.skeleton.size() < 2) {
+                continue;
+            }
+            wire.bounds = skeleton_bounds(wire.skeleton, channel_tolerance);
+        }
+
+        if (wire.context.lane > 0) {
+            lanes[wire.key] = wire.context.lane;
+        }
+        placed.push_back(wire);
+    }
+
+    return lanes;
 }
 
 void OrchestratorEditorGraphPanel::_show_drag_hint(const String& p_hint_text) const {
@@ -2445,6 +2675,7 @@ void OrchestratorEditorGraphPanel::_refresh_panel_with_model() {
         ERR_CONTINUE_MSG(err != OK, "Failed to create graph connection for connection id " + itos(E.id));
     }
 
+    _queue_connection_lanes_update();
     _restore_frame_attachments();
 
     // Queue up a revalidation sequence
@@ -2470,6 +2701,8 @@ void OrchestratorEditorGraphPanel::_refresh_panel_connections_with_model() {
         Error err = connect_node(itos(E.from_node), E.from_port, itos(E.to_node), E.to_port);
         ERR_CONTINUE_MSG(err != OK, "Failed to create graph connection for connection id " + itos(E.id));
     }
+
+    _queue_connection_lanes_update();
 
     emit_signal("connections_changed");
     emit_signal("validate_script");
@@ -3220,6 +3453,15 @@ PackedVector2Array OrchestratorEditorGraphPanel::_get_connection_line(const Vect
         && cast_to<OrchestratorEditorGraphNodeReroute>(find_child(itos(source_node_id), false, false));
     context.target_is_reroute = target_node_id != -1
         && cast_to<OrchestratorEditorGraphNodeReroute>(find_child(itos(target_node_id), false, false));
+
+    if (source_node_id != -1 && target_node_id != -1 && !_connection_lanes.is_empty()) {
+        const int* lane = _connection_lanes.getptr(
+            Connection::of(source_node_id, source_node_port, target_node_id, target_node_port).id);
+        if (lane) {
+            context.lane = *lane;
+            context.lane_spacing = _connection_line_spacing;
+        }
+    }
 
     if (!_connection_line_style) {
         // Settings have not been applied yet; shape the wire the way GraphEdit would.

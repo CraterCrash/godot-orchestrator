@@ -82,24 +82,45 @@ public:
 ///
 /// With chamfered corners, each bend is cut by up to half the length of the shorter adjacent run, so a short
 /// vertical collapses into a single 45 degree diagonal while longer runs keep a vertical between two diagonals.
+///
+/// Lanes shift the bends: a forward wire moves its vertical run off the midpoint, alternating sides so a
+/// group spreads evenly around it, while a back-routed wire lengthens its stubs and pushes its horizontal
+/// run further along, so neighbouring wires nest inside one another rather than overlap.
 class OrthogonalStyle : public OrchestratorEditorGraphConnectionLineStyle {
     bool _chamfer_corners;
 
-    static PackedVector2Array _route(const Vector2& p_from, const Vector2& p_to, float p_stub) {
+    static float _lane_offset(const Context& p_context, bool p_alternate) {
+        if (p_context.lane <= 0 || p_context.lane_spacing <= 0) {
+            return 0.f;
+        }
+
+        const float spacing = p_context.lane_spacing * p_context.zoom;
+        if (!p_alternate) {
+            return p_context.lane * spacing;
+        }
+
+        const int step = (p_context.lane + 1) / 2;
+        return (p_context.lane % 2 == 1 ? -step : step) * spacing;
+    }
+
+    static PackedVector2Array _route(const Vector2& p_from, const Vector2& p_to, float p_stub, const Context& p_context) {
         PackedVector2Array points;
         points.push_back(p_from);
 
         const Vector2 delta = p_to - p_from;
         if (delta.x >= 2 * p_stub) {
-            const float mid_x = p_from.x + delta.x * 0.5f;
+            // The vertical run stays between the stubs so that a lane never folds the wire back on itself
+            const float mid_x = CLAMP(p_from.x + delta.x * 0.5f + _lane_offset(p_context, true), p_from.x + p_stub, p_to.x - p_stub);
             points.push_back(Vector2(mid_x, p_from.y));
             points.push_back(Vector2(mid_x, p_to.y));
         } else {
-            const float mid_y = p_from.y + delta.y * 0.5f;
-            points.push_back(Vector2(p_from.x + p_stub, p_from.y));
-            points.push_back(Vector2(p_from.x + p_stub, mid_y));
-            points.push_back(Vector2(p_to.x - p_stub, mid_y));
-            points.push_back(Vector2(p_to.x - p_stub, p_to.y));
+            const float offset = _lane_offset(p_context, false);
+            const float reach = p_stub + offset;
+            const float mid_y = p_from.y + delta.y * 0.5f + (delta.y >= 0 ? offset : -offset);
+            points.push_back(Vector2(p_from.x + reach, p_from.y));
+            points.push_back(Vector2(p_from.x + reach, mid_y));
+            points.push_back(Vector2(p_to.x - reach, mid_y));
+            points.push_back(Vector2(p_to.x - reach, p_to.y));
         }
 
         points.push_back(p_to);
@@ -148,17 +169,29 @@ class OrthogonalStyle : public OrchestratorEditorGraphConnectionLineStyle {
 
 protected:
     PackedVector2Array _build(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const override {
-        PackedVector2Array points = _remove_duplicates(_route(p_from, p_to, ORTHOGONAL_STUB_LENGTH * p_context.zoom));
+        PackedVector2Array points = _build_skeleton(p_from, p_to, p_context);
         if (_chamfer_corners) {
             points = _remove_duplicates(_chamfer(points));
         }
         return points.size() >= 2 ? points : make_straight(p_from, p_to);
     }
 
+    PackedVector2Array _build_skeleton(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const override {
+        return _remove_duplicates(_route(p_from, p_to, ORTHOGONAL_STUB_LENGTH * p_context.zoom, p_context));
+    }
+
 public:
+    bool supports_lanes() const override {
+        return true;
+    }
+
     explicit OrthogonalStyle(bool p_chamfer_corners) : _chamfer_corners(p_chamfer_corners) { }
 };
 
+}
+
+PackedVector2Array OrchestratorEditorGraphConnectionLineStyle::_build_skeleton(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const {
+    return PackedVector2Array();
 }
 
 PackedVector2Array OrchestratorEditorGraphConnectionLineStyle::build(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const {
@@ -166,6 +199,17 @@ PackedVector2Array OrchestratorEditorGraphConnectionLineStyle::build(const Vecto
         return make_straight(p_from, p_to);
     }
     return _build(p_from, p_to, p_context);
+}
+
+PackedVector2Array OrchestratorEditorGraphConnectionLineStyle::build_skeleton(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const {
+    if (p_context.source_is_reroute && p_context.target_is_reroute) {
+        return make_straight(p_from, p_to);
+    }
+    return _build_skeleton(p_from, p_to, p_context);
+}
+
+bool OrchestratorEditorGraphConnectionLineStyle::supports_lanes() const {
+    return false;
 }
 
 OrchestratorEditorGraphConnectionLineStyle* OrchestratorEditorGraphConnectionLineStyle::create(const String& p_style, float p_custom_curvature, float p_default_curvature) {
