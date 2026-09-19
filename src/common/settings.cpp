@@ -289,6 +289,7 @@ void OrchestratorSettings::_initialize_settings() {
 
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "interface/editor/graph/connection_line_style", PROPERTY_HINT_ENUM, "Default,Straight,45 Degrees,90 Degrees,Custom"), "Default");
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "interface/editor/graph/connection_line_curvature", PROPERTY_HINT_RANGE, "0,1,0.01"), 0.5);
+    GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "interface/editor/graph/connection_line_spacing", PROPERTY_HINT_RANGE, "0,32,1"), 8.0);
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "interface/editor/graph/confirm_on_delete"), true);
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "interface/editor/graph/disconnect_control_flow_when_dragged"), true);
     GLOBAL_DEF_BASIC(PropertyInfo(Variant::BOOL, "interface/editor/graph/grid_enabled"), true);
