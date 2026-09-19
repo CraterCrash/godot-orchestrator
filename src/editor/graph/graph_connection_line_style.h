@@ -32,10 +32,16 @@ using namespace godot;
 class OrchestratorEditorGraphConnectionLineStyle {
 public:
     /// Per-connection details that influence the generated polyline.
+    ///
+    /// The panel assigns each wire a lane so that parallel runs of neighbouring wires do not overlap; lane
+    /// <code>0</code> is the wire's natural route and higher lanes shift its bends by multiples of the
+    /// unscaled <code>lane_spacing</code>. A spacing of <code>0</code> disables lanes.
     struct Context {
         float zoom = 1.f;
         bool source_is_reroute = false;
         bool target_is_reroute = false;
+        int lane = 0;
+        float lane_spacing = 0.f;
     };
 
     static constexpr const char* STYLE_DEFAULT = "Default";         // Default Godot style
@@ -48,12 +54,23 @@ protected:
     /// Produces the polyline for the given endpoints; implemented by each concrete style.
     virtual PackedVector2Array _build(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const = 0;
 
+    /// Produces the axis-aligned skeleton of the wire, the runs the lane planner tests for overlaps.
+    /// Styles without lanes return an empty array.
+    virtual PackedVector2Array _build_skeleton(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const;
+
 public:
     /// Produces the polyline for the given endpoints.
     ///
     /// A wire that runs between two reroute nodes is always a straight segment, regardless of style, so that
     /// reroutes remain the user's tool for placing bends.
     PackedVector2Array build(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const;
+
+    /// Produces the wire's skeleton, see <code>_build_skeleton</code>; two wires overlap when collinear
+    /// runs of their skeletons share more than a point.
+    PackedVector2Array build_skeleton(const Vector2& p_from, const Vector2& p_to, const Context& p_context) const;
+
+    /// Whether <code>Context::lane</code> moves the wire; styles that cannot separate wires report false.
+    virtual bool supports_lanes() const;
 
     /// Creates the style that corresponds to a <code>connection_line_style</code> setting value.
     ///

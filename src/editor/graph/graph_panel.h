@@ -31,6 +31,7 @@
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/classes/timer.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 
 using namespace godot;
@@ -130,6 +131,13 @@ private:
     OrchestratorEditorGraphConnectionLineStyle* _connection_line_style = nullptr;
     String _connection_line_style_name;
     float _connection_line_curvature = 0.5f;
+    float _connection_line_spacing = 8.f;
+
+    // Lanes assigned to wires whose natural routes would overlap a neighbour, keyed by connection id;
+    // wires on lane 0 are not stored. GraphEdit shapes wires one at a time without knowledge of the
+    // others, so the panel plans them together here and feeds each its lane on request.
+    HashMap<uint64_t, int> _connection_lanes;
+    bool _connection_lanes_update_scheduled = false;
 
     HFlowContainer* _toolbar_hflow = nullptr;
     Control* _center_status = nullptr;
@@ -202,6 +210,7 @@ protected:
     void _node_position_changed(const Vector2& p_old_position, const Vector2& p_new_position, OrchestratorEditorGraphNode* p_node);
     void _node_resized(OrchestratorEditorGraphNode* p_node);
     void _node_resize_end(const Vector2& p_size, OrchestratorEditorGraphNode* p_node);
+    void _node_item_rect_changed();
     //~ End OrchestratorEditorGraphNode Signals
 
     //~ Begin OrchestratorEditorGraphFrame Signals
@@ -278,6 +287,10 @@ private:
     void _grid_pattern_changed(int p_index);
     void _settings_changed();
     void _update_connection_line_style();
+    bool _is_connection_lane_routing_enabled() const;
+    void _queue_connection_lanes_update();
+    void _update_connection_lanes();
+    HashMap<uint64_t, int> _plan_connection_lanes();
     void _show_drag_hint(const String& p_hint_text) const;
     bool _is_delete_confirmation_enabled();
     bool _can_duplicate_nodes(const Vector<Ref<OrchestrationGraphNode>>& p_nodes, bool p_error_dialog = true);
