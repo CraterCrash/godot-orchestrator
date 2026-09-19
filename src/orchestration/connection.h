@@ -53,6 +53,21 @@ struct OScriptConnection {
     /// @return the new script connection
     static OScriptConnection from_dict(const Dictionary& p_dict);
 
+    /// Creates a script connection between two ports.
+    /// @param p_from_node the source node id
+    /// @param p_from_port the source port index
+    /// @param p_to_node the target node id
+    /// @param p_to_port the target port index
+    /// @return the new script connection
+    static OScriptConnection of(uint64_t p_from_node, uint64_t p_from_port, uint64_t p_to_node, uint64_t p_to_port) {
+        OScriptConnection connection;
+        connection.from_node = p_from_node;
+        connection.from_port = p_from_port;
+        connection.to_node = p_to_node;
+        connection.to_port = p_to_port;
+        return connection;
+    }
+
     /// Compare two connections with the less-than operator.
     /// @note Needed for associative containers, i.e. RBSet
     bool operator<(const OScriptConnection& p_connection) const { return id < p_connection.id; }
