@@ -240,6 +240,10 @@
     "godot_compatibility": "4.6"
   },
   {
+    "version": "v2.4.5.rc1",
+    "godot_compatibility": "4.6"
+  },
+  {
     "version": "v2.5.dev1",
     "godot_compatibility": "4.7"
   },
