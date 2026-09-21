@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c4rraytermv4r"]
+
+[ext_resource type="Script" uid="uid://b4rraytermv4r" path="res://scenes/features/array_term_member_variable.torch" id="1_arrayt"]
+
+[node name="ArrayTermMemberVariable" type="Node"]
+script = ExtResource("1_arrayt")
