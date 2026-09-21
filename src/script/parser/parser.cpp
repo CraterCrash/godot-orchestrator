@@ -973,12 +973,21 @@ StringName OScriptParser::get_term_name(const Ref<OScriptNodePin>& p_pin) {
 
     // Get or create cached variable
     // The declaration is attributed to the source node
-    const String variable_name = create_cached_variable_name(source_pin);
+    String variable_name = create_cached_variable_name(source_pin);
     if (current_suite && !current_suite->has_local(variable_name)) {
         NodeScope scope(*this, source_node->get_id());
         // Build the expression and cache it
         ExpressionNode* expression = build_expression(p_pin, source_node, source_pin);
-        create_local_and_push(variable_name, expression, source_pin);
+
+        // A pure source that resolves to a plain name, such as an engine singleton, an autoload,
+        // or a variable, is already a stable term and needs no local. Caching one declares a
+        // local of the pin's type that is initialized from that name, which for an engine
+        // singleton is a class reference rather than an instance, and the analyzer rejects it.
+        if (source_node->is_pure() && expression != nullptr && expression->type == Node::IDENTIFIER) {
+            variable_name = static_cast<IdentifierNode*>(expression)->name;
+        } else {
+            create_local_and_push(variable_name, expression, source_pin);
+        }
     }
 
     return variable_name;
