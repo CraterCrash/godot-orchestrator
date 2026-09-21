@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cs1ng1et0n02"]
+
+[ext_resource type="Script" uid="uid://bs1ng1et0n02" path="res://scenes/features/engine_singleton_chained_call.torch" id="1_chain"]
+
+[node name="EngineSingletonChainedCall" type="Node"]
+script = ExtResource("1_chain")

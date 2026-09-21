@@ -1061,7 +1061,16 @@ StringName OScriptParser::get_term_name(const Ref<OScriptNodePin>& p_pin) {
             NodeScope scope(*this, source_node->get_id());
             // Build the expression and cache it
             ExpressionNode* expression = build_expression(p_pin, source_node, source_pin);
-            create_local_and_push(root_name, expression, source_pin);
+
+            // A pure source that resolves to a plain name, such as an engine singleton, an autoload,
+            // or a variable, is already a stable term and needs no local. Caching one declares a
+            // local of the pin's type that is initialized from that name, which for an engine
+            // singleton is a class reference rather than an instance, and the analyzer rejects it.
+            if (source_node->is_pure() && expression != nullptr && expression->type == Node::IDENTIFIER) {
+                root_name = static_cast<IdentifierNode*>(expression)->name;
+            } else {
+                create_local_and_push(root_name, expression, source_pin);
+            }
         }
     }
 
