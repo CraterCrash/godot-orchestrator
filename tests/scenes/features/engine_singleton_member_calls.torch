@@ -1,0 +1,203 @@
+[orchestration type="OScript" load_steps=10 format=4 uid="uid://bs1ng1et0n01"]
+
+[obj type="OScriptFunction" id="OScriptFunction_fn"]
+guid = "A1000000-0000-4000-8000-00000000E010"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_gr"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3, 4, 5, 6])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_evt"]
+function_id = "A1000000-0000-4000-8000-00000000E010"
+id = 0
+position = Vector2(0, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEngineSingleton" id="OScriptNodeEngineSingleton_eng"]
+singleton = "Engine"
+id = 1
+position = Vector2(0, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"singleton",
+"type": 24,
+"dir": 1,
+"flags": 2050,
+"label": "Engine",
+"target_class": "Engine"
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_set"]
+function_name = &"set_physics_ticks_per_second"
+target_class_name = "Engine"
+target_type = 24
+flags = 512
+method = {
+"name": &"set_physics_ticks_per_second",
+"args": [{
+"name": &"physics_ticks_per_second",
+"type": 2
+}]
+}
+chain = false
+id = 2
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "Engine",
+"target_class": "Engine"
+}, {
+"pin_name": &"physics_ticks_per_second",
+"type": 2,
+"flags": 2,
+"dv": 30
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_get"]
+function_name = &"get_physics_ticks_per_second"
+target_class_name = "Engine"
+target_type = 24
+flags = 514
+method = {
+"name": &"get_physics_ticks_per_second",
+"return": {
+"type": 2
+},
+"flags": 5
+}
+chain = false
+id = 3
+position = Vector2(300, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "Engine",
+"target_class": "Engine"
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 1026,
+"dv": 0
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_p1"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 1
+id = 4
+position = Vector2(650, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078,
+"dv": "Physics ticks: "
+}, {
+"pin_name": &"arg2",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_hint"]
+function_name = &"is_editor_hint"
+target_class_name = "Engine"
+target_type = 24
+flags = 514
+method = {
+"name": &"is_editor_hint",
+"return": {
+"type": 1
+},
+"flags": 5
+}
+chain = false
+id = 5
+position = Vector2(300, 400)
+pin_data = Array[Dictionary]([{
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "Engine",
+"target_class": "Engine"
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"dir": 1,
+"flags": 1026,
+"dv": false
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_p2"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 1
+id = 6
+position = Vector2(650, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078,
+"dv": "Editor hint: "
+}, {
+"pin_name": &"arg2",
+"flags": 2,
+"usage": 131078
+}])
+
+[resource]
+base_type = &"Node"
+brief_description = "Empty template suitable for all Objects"
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_fn")])
+connections = Array[int]([0, 0, 2, 0, 2, 0, 4, 0, 4, 0, 6, 0, 1, 0, 2, 1, 1, 0, 3, 0, 1, 0, 5, 0, 3, 0, 4, 2, 5, 0, 6, 2])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_evt"), SubResource("OScriptNodeEngineSingleton_eng"), SubResource("OScriptNodeCallMemberFunction_set"), SubResource("OScriptNodeCallMemberFunction_get"), SubResource("OScriptNodeCallBuiltinFunction_p1"), SubResource("OScriptNodeCallMemberFunction_hint"), SubResource("OScriptNodeCallBuiltinFunction_p2")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_gr")])
