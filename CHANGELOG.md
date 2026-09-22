@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [2.6.dev2](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.6.dev2) - 2026-09-22
+
+- [c8505af6](http://github.com/CraterCrash/godot-orchestrator/commit/c8505af670ab58197a2d7698ea928b17d69b8e0b) - GH-1845 Avoid creating local vars for stable terms
+
 ## [2.6.dev1](https://github.com/CraterCrash/godot-orchestrator/releases/tag/v2.6.dev1) - 2026-09-19
 
 - [766cdcad](http://github.com/CraterCrash/godot-orchestrator/commit/766cdcad17779c630c6b4befe206aa00bbb31890) - GH-1785 Add `connection_line_spacing` option
