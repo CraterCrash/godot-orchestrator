@@ -28,18 +28,24 @@ using namespace godot;
 using GClassDB = godot::ClassDB;
 
 bool GDE::ClassDB::can_instantiate(const godot::StringName& p_class_name) {
-    // This intentionally mirrors the Godot ClassDB call to pre-condition when a bad class name
-    // is supplied to avoid an output error message.
+    // The engine call logs an error for any name that is not a native class. Godot 4.8 also
+    // dropped its ScriptServer fallback, so a global script class is answered from the class
+    // cache here instead of being forwarded.
     if (!GClassDB::class_exists(p_class_name)) {
         if (!ScriptServer::is_global_class(p_class_name)) {
             return false;
         }
+        return !ScriptServer::get_global_class(p_class_name).is_abstract;
     }
     return GClassDB::can_instantiate(p_class_name);
 }
 
 bool GDE::ClassDB::is_abstract(const StringName& p_class_name) {
-    // todo: this is just a workaround for now - this needs to be exposed
+    // ClassDB::is_abstract is not exposed to extensions; a native class that cannot be
+    // instantiated is treated as abstract, which also covers singletons.
+    if (!GClassDB::class_exists(p_class_name)) {
+        return ScriptServer::is_global_class(p_class_name) && ScriptServer::get_global_class(p_class_name).is_abstract;
+    }
     return !GClassDB::can_instantiate(p_class_name);
 }
 
