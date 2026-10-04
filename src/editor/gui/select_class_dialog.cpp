@@ -18,6 +18,7 @@
 
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
+#include "core/godot/object/class_db.h"
 #include "script/script.h"
 #include "script/script_server.h"
 
@@ -91,7 +92,7 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
         item->parent = parent;
 
         if (!_allow_abstract_types) {
-            if (!ClassDB::can_instantiate(class_name)) {
+            if (!GDE::ClassDB::can_instantiate(class_name)) {
                 item->selectable = false;
                 item->disabled = true;
             } else if (Engine::get_singleton()->get_singleton_list().has(class_name)) {
@@ -177,7 +178,7 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
     root->text = _base_type;
     root->selectable = true;
     root->collapsed = false;
-    root->set_meta("can_instantiate", ClassDB::can_instantiate(_base_type));
+    root->set_meta("can_instantiate", GDE::ClassDB::can_instantiate(_base_type));
     items.push_back(root);
 
     HashMap<String, Ref<SearchItem>> hierarchy_cache;

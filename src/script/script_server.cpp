@@ -219,6 +219,8 @@ ScriptServer::GlobalClass::GlobalClass(const Dictionary& p_dict) {
     path = p_dict["path"];
     language = p_dict["language"];
     icon_path = p_dict.get("icon", "");
+    is_abstract = p_dict.get("is_abstract", false);
+    is_tool = p_dict.get("is_tool", false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
