@@ -22,6 +22,7 @@
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
+#include "core/godot/object/class_db.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "orchestration/variable.h"
 #include "script/script_server.h"
@@ -208,7 +209,7 @@ void OrchestratorSelectTypeSearchDialog::_build_class_children(
             }
             // Abstract Filter: best-effort via can_instantiate().
             // This also filters out singletons, which may or may not be desirable
-            const bool can_instantiate = ClassDB::can_instantiate(child_class_name);
+            const bool can_instantiate = GDE::ClassDB::can_instantiate(child_class_name);
             selectable = _allow_abstract_types || can_instantiate;
         } else {
             if (!_base_type.is_empty() &&

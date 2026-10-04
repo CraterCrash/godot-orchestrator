@@ -27,6 +27,7 @@
 #include "common/dictionary_utils.h"
 #include "common/resource_utils.h"
 #include "common/string_utils.h"
+#include "core/godot/object/class_db.h"
 #include "core/godot/object/script_language.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -1057,7 +1058,7 @@ Error OScriptVariantParser::parse_value(Stream* p_stream, Token& p_token, int& p
             }
 
             String type = p_token.value;
-            if (!ClassDB::can_instantiate(type))
+            if (!GDE::ClassDB::can_instantiate(type))
             {
                 r_err_string = "Expected a constructable type, cannot construct '" + type + "'.";
                 return ERR_PARSE_ERROR;
