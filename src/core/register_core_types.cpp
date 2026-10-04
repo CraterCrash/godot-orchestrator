@@ -20,6 +20,7 @@
 #include "core/godot/core_string_names.h"
 #include "core/godot/scene_string_names.h"
 #include "godot/config/project_settings_cache.h"
+#include "script/script_server.h"
 
 #include <godot_cpp/core/class_db.hpp>
 
@@ -35,6 +36,7 @@ void unregister_core_singletons() {
 void create_core_singletons() {
     CoreStringNames::create();
     SceneStringNames::create();
+    ScriptServer::create();
 
     OrchestratorSettings::create();
     OrchestratorProjectSettingsCache::create();
@@ -44,6 +46,7 @@ void destroy_core_singletons() {
     OrchestratorProjectSettingsCache::destroy();
     OrchestratorSettings::destroy();
 
+    ScriptServer::free();
     SceneStringNames::free();
     CoreStringNames::free();
 }
