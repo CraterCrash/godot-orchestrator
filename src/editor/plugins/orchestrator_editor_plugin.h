@@ -16,6 +16,7 @@
 //
 #pragma once
 
+#include "common/version.h"
 #include "editor/debugger/script_debugger_plugin.h"
 
 #include <godot_cpp/classes/config_file.hpp>
@@ -29,7 +30,7 @@ using namespace godot;
 
 /// Forward declarations
 class OrchestratorEditor;
-class OrchestratorWindowWrapper;
+class OrchestratorEditorMainScreen;
 
 /// The Orchestrator editor plug-in.
 class OrchestratorPlugin : public EditorPlugin {
@@ -37,9 +38,8 @@ class OrchestratorPlugin : public EditorPlugin {
 
     static OrchestratorPlugin* _plugin;
 
-    String _last_editor;                                      //! Last editor
-    OrchestratorEditor* _editor_panel = nullptr;              //! Plugin's editor panel
-    OrchestratorWindowWrapper* _window_wrapper = nullptr;     //! Window wrapper
+    OrchestratorEditorMainScreen* _main_screen = nullptr;     //! Hosts the editor panel in the main screen
+    OrchestratorEditor* _editor_panel = nullptr;              //! Plugin's editor panel, owned by the host
     Vector<Ref<EditorExportPlugin>> _export_plugins;
     Vector<Ref<EditorInspectorPlugin>> _inspector_plugins;
     Vector<Ref<EditorDebuggerPlugin>> _debugger_plugins;
@@ -78,7 +78,6 @@ class OrchestratorPlugin : public EditorPlugin {
 
     Ref<ConfigFile> _get_metadata();
 
-    void _focus_another_editor();
     bool _is_exiting() const;
 
     void _register_plugins();
@@ -94,11 +93,6 @@ class OrchestratorPlugin : public EditorPlugin {
 
     void _add_plugin_icon_to_editor_theme();
 
-    //~ Begin Signals
-    void _main_screen_changed(const String& p_name);
-    void _window_visibility_changed(bool p_visible);
-    //~ End Signals
-
 protected:
     static void _bind_methods();
 
@@ -111,7 +105,9 @@ public:
     String get_plugin_version() const; // NOLINT
     void _edit(Object* p_object) override;
     bool _handles(Object* p_object) const override;
+    #if GODOT_VERSION < 0x040800
     bool _has_main_screen() const override;
+    #endif
     void _make_visible(bool p_visible) override;
     String _get_plugin_name() const override;
     Ref<Texture2D> _get_plugin_icon() const override;
