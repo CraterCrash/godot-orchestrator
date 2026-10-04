@@ -22,8 +22,17 @@
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
+
+struct ScriptServer::GlobalClassCache {
+    TypedArray<Dictionary> source;            //! The ProjectSettings list the tables were built from
+    HashMap<StringName, GlobalClass> classes; //! Global classes keyed by class name
+    HashMap<String, StringName> paths;        //! Global class names keyed by script path
+};
 
 bool ScriptServer::_reload_scripts_on_save = false;
+ScriptServer::GlobalClassCache* ScriptServer::_global_class_cache = nullptr;
+Mutex ScriptServer::_global_class_cache_mutex;
 
 Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) {
     ResourceLoader* loader = ResourceLoader::get_singleton();
@@ -226,32 +235,40 @@ ScriptServer::GlobalClass::GlobalClass(const Dictionary& p_dict) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// ScriptServer
 
-TypedArray<Dictionary> ScriptServer::_get_global_class_list() {
-    // todo: this can be called from non-main threads, and may not be thread-safe.
-    return ProjectSettings::get_singleton()->get_global_class_list();
-}
+ScriptServer::GlobalClassCache& ScriptServer::_sync_global_classes() {
+    GlobalClassCache& cache = *_global_class_cache;
 
-Dictionary ScriptServer::_get_global_class(const StringName& p_class_name) {
-    if (p_class_name.is_empty()) {
-        return {};
-    }
+    // The engine replaces its stored Array on every write, so an unchanged list is pointer-equal
+    // inside the engine and the comparison costs a single builtin call. A replaced list is deep
+    // compared engine-side without marshalling, and the tables are rebuilt only when the content
+    // differs. This never relies on signals, so the cache is never staler than ProjectSettings.
+    const TypedArray<Dictionary> list = ProjectSettings::get_singleton()->get_global_class_list();
+    if (cache.source != list) {
+        cache.classes.clear();
+        cache.paths.clear();
 
-    const TypedArray<Dictionary> list = _get_global_class_list();
-    for (uint32_t i = 0; i < list.size(); i++) {
-        const Dictionary& entry = list[i];
-        if (entry.has("class") && p_class_name.match(entry["class"])) {
-            return entry;
+        for (uint32_t i = 0; i < list.size(); i++) {
+            const GlobalClass global_class(list[i]);
+            if (global_class.name.is_empty()) {
+                continue;
+            }
+            cache.classes[global_class.name] = global_class;
+            cache.paths[global_class.path] = global_class.name;
         }
     }
-    return {};
+
+    // Adopt the engine's Array so the next comparison short-circuits on identity.
+    cache.source = list;
+    return cache;
 }
 
 bool ScriptServer::is_global_class(const StringName& p_class_name) {
-    if (p_class_name.is_empty()) {
+    if (p_class_name.is_empty() || ClassDB::class_exists(p_class_name)) {
         return false;
     }
 
-    return !ClassDB::class_exists(p_class_name) && !_get_global_class(p_class_name).is_empty();
+    MutexLock lock(_global_class_cache_mutex);
+    return _sync_global_classes().classes.has(p_class_name);
 }
 
 bool ScriptServer::is_parent_class(const StringName& p_source_class_name, const StringName& p_target_class_name) {
@@ -259,34 +276,36 @@ bool ScriptServer::is_parent_class(const StringName& p_source_class_name, const 
 }
 
 PackedStringArray ScriptServer::get_global_class_list() {
+    MutexLock lock(_global_class_cache_mutex);
+
     PackedStringArray global_class_names;
-    const TypedArray<Dictionary> class_list = _get_global_class_list();
-    for (uint32_t i = 0; i < class_list.size(); i++) {
-        const Dictionary& entry = class_list[i];
-        if (entry.has("class")) {
-            global_class_names.push_back(entry["class"]);
-        }
+    for (const KeyValue<StringName, GlobalClass>& E : _sync_global_classes().classes) {
+        global_class_names.push_back(E.key);
     }
     return global_class_names;
 }
 
 ScriptServer::GlobalClass ScriptServer::get_global_class(const StringName& p_class_name) {
-    const Dictionary entry = _get_global_class(p_class_name);
-    if (!entry.is_empty()) {
-        return GlobalClass(entry);
+    if (p_class_name.is_empty()) {
+        return {};
     }
-    return {};
+
+    MutexLock lock(_global_class_cache_mutex);
+    const GlobalClass* global_class = _sync_global_classes().classes.getptr(p_class_name);
+    return global_class ? *global_class : GlobalClass();
 }
 
 ScriptServer::GlobalClass ScriptServer::get_global_class_by_path(const String& p_path) {
-    const TypedArray<Dictionary> classes = _get_global_class_list();
-    for (uint32_t i = 0; i < classes.size(); i++) {
-        const Dictionary& data = classes[i];
-        if (data.get("path", "") == p_path) {
-            return GlobalClass(data);
-        }
+    MutexLock lock(_global_class_cache_mutex);
+    const GlobalClassCache& cache = _sync_global_classes();
+
+    const StringName* class_name = cache.paths.getptr(p_path);
+    if (!class_name) {
+        return {};
     }
-    return {};
+
+    const GlobalClass* global_class = cache.classes.getptr(*class_name);
+    return global_class ? *global_class : GlobalClass();
 }
 
 String ScriptServer::get_global_class_path(const StringName& p_class_name) {
@@ -337,11 +356,7 @@ bool ScriptServer::is_scripting_enabled() {
         return false;
     }
     #endif
-    return _scripting_enabled;
-}
-
-void ScriptServer::set_scripting_enabled(bool p_enabled) {
-    _scripting_enabled = p_enabled;
+    return true;
 }
 
 void ScriptServer::get_static_method_list(const StringName& p_class, TypedArray<Dictionary>* r_methods, bool p_no_inheritance) {
@@ -376,4 +391,16 @@ void ScriptServer::get_static_method_list(const StringName& p_class, TypedArray<
         }
     }
 
+}
+
+void ScriptServer::create() {
+    _global_class_cache = memnew(GlobalClassCache);
+}
+
+void ScriptServer::free() {
+    MutexLock lock(_global_class_cache_mutex);
+    if (_global_class_cache) {
+        memdelete(_global_class_cache);
+        _global_class_cache = nullptr;
+    }
 }

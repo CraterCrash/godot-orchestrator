@@ -32,10 +32,8 @@ bool GDE::ClassDB::can_instantiate(const godot::StringName& p_class_name) {
     // dropped its ScriptServer fallback, so a global script class is answered from the class
     // cache here instead of being forwarded.
     if (!GClassDB::class_exists(p_class_name)) {
-        if (!ScriptServer::is_global_class(p_class_name)) {
-            return false;
-        }
-        return !ScriptServer::get_global_class(p_class_name).is_abstract;
+        const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(p_class_name);
+        return global_class.is_valid() && !global_class.is_abstract;
     }
     return GClassDB::can_instantiate(p_class_name);
 }
@@ -44,7 +42,8 @@ bool GDE::ClassDB::is_abstract(const StringName& p_class_name) {
     // ClassDB::is_abstract is not exposed to extensions; a native class that cannot be
     // instantiated is treated as abstract, which also covers singletons.
     if (!GClassDB::class_exists(p_class_name)) {
-        return ScriptServer::is_global_class(p_class_name) && ScriptServer::get_global_class(p_class_name).is_abstract;
+        const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(p_class_name);
+        return global_class.is_valid() && global_class.is_abstract;
     }
     return !GClassDB::can_instantiate(p_class_name);
 }
