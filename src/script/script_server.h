@@ -17,13 +17,23 @@
 #pragma once
 
 #include <godot_cpp/classes/script.hpp>
+#include <godot_cpp/templates/mutex.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 
 using namespace godot;
 
 /// A helper class to accessing methods similarly found in Godot's ScriptServer.
 class ScriptServer {
-    static inline bool _scripting_enabled = true;
+    /// Forward declarations
+    struct GlobalClassCache;
+
+    static GlobalClassCache* _global_class_cache;
+    static Mutex _global_class_cache_mutex;
+
+    /// Synchronizes the cache with the current <code>ProjectSettings</code> global class list.
+    /// The caller must hold <code>_global_class_cache_mutex</code>.
+    /// @return the synchronized cache
+    static GlobalClassCache& _sync_global_classes();
 
 public:
     /// Represents a Global Class entry in the script server.
@@ -39,6 +49,11 @@ public:
         String language;          //! Language that contributes the class
         bool is_abstract = false; //! Whether the class is abstract and cannot be instantiated
         bool is_tool = false;     //! Whether the script runs in the editor
+
+        /// Checks whether this entry describes a registered global class.
+        /// Lookups return an invalid entry when the class name is not a global class.
+        /// @return true if valid, false if this is the not-found sentinel
+        bool is_valid() const { return !name.is_empty(); }
 
         /// Returns the list of properties on the global class
         /// @return an array of dictionary entries for properties
@@ -100,15 +115,6 @@ public:
 protected:
     static bool _reload_scripts_on_save;
 
-    /// Gets the global classes
-    /// @return an array of dictionary entries for the global class list
-    static TypedArray<Dictionary> _get_global_class_list();
-
-    /// Get the global class dictionary entry
-    /// @param p_class_name the global class name to find
-    /// @return the dictionary for the global class, or an empty dictionary if not found
-    static Dictionary _get_global_class(const StringName& p_class_name);
-
 public:
     /// Checks whether the specified class name is a global script class.
     /// @param p_class_name the global class name to check
@@ -160,10 +166,6 @@ public:
     /// @return true if scripting is enabled, false otherwise
     static bool is_scripting_enabled();
 
-    /// Set whether scripting is enabled
-    /// @param p_enabled whether to enable scripting or not.
-    static void set_scripting_enabled(bool p_enabled);
-
     /// Check whether scripts should be reloaded on save
     /// @return true if reload on save, false otherwise
     static bool is_reload_scripts_on_save() { return _reload_scripts_on_save; }
@@ -177,4 +179,7 @@ public:
     /// @param r_methods the return array of methods
     /// @param p_no_inheritance whether to traverse the inheritance hierarchy, defaults false.
     static void get_static_method_list(const StringName& p_class, TypedArray<Dictionary>* r_methods, bool p_no_inheritance = false);
+
+    static void create();
+    static void free();
 };
