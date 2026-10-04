@@ -132,11 +132,6 @@ void OScriptLanguage::_init() {
     track_locals = track_locals || EngineDebugger::get_singleton()->is_active();
     #endif
 
-    const String storage_format = ORCHESTRATOR_GET("editor/settings/storage_format", "Text");
-    if (storage_format.match("Binary")) {
-        _extension = ORCHESTRATOR_SCRIPT_EXTENSION;
-    }
-
     // Populate CoreConstants
     uint32_t core_constants_count = GDE::CoreConstants::get_global_constant_count();
     for (uint32_t i = 0; i < core_constants_count; i++) {
@@ -177,7 +172,11 @@ String OScriptLanguage::_get_type() const {
 }
 
 String OScriptLanguage::_get_extension() const {
-    return _extension;
+    const String storage_format = ORCHESTRATOR_GET("editor/settings/storage_format", "Text");
+    if (storage_format.match("Binary")) {
+        return ORCHESTRATOR_SCRIPT_EXTENSION;
+    }
+    return ORCHESTRATOR_SCRIPT_TEXT_EXTENSION;
 }
 
 void OScriptLanguage::_finish() {
