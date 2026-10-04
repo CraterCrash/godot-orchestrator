@@ -100,7 +100,6 @@ class OScriptLanguage : public ScriptLanguageExtension {
     #endif
 
     HashMap<String, ObjectID> orphan_subclasses;
-    String _extension = ORCHESTRATOR_SCRIPT_TEXT_EXTENSION;
 
 protected:
     static void _bind_methods();
