@@ -62,5 +62,5 @@ String OrchestrationTextFormat::create_ext_resource_tag(const String& p_type, co
         tag += vformat(R"( uid="%s")", ResourceUID::get_singleton()->id_to_text(uid));
     }
 
-    return vformat(R"(%s path="%s" id="%s"%s])", tag, p_path, p_id, p_newline ? "\n" : "");
+    return vformat(R"(%s path="%s" id="%s"]%s)", tag, p_path, p_id, p_newline ? "\n" : "");
 }
