@@ -390,7 +390,7 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
         }
     }
 
-    if (ClassDB::can_instantiate(p_class_name) || ScriptServer::is_global_class(p_class_name)) {
+    if (GDE::ClassDB::can_instantiate(p_class_name)) {
         r_actions.insert(
             _script_node_builder<OScriptNodeNew>(
                 methods_category,

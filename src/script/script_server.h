@@ -32,11 +32,13 @@ public:
         static Ref<Script> _load_script(const String& path);
 
     public:
-        StringName name;        //! Global class name
-        StringName base_type;   //! The type that the global class extends
-        String icon_path;       //! The path to the `@icon`
-        String path;            //! The path to the global class script
-        String language;        //! Language that contributes the class
+        StringName name;          //! Global class name
+        StringName base_type;     //! The type that the global class extends
+        String icon_path;         //! The path to the `@icon`
+        String path;              //! The path to the global class script
+        String language;          //! Language that contributes the class
+        bool is_abstract = false; //! Whether the class is abstract and cannot be instantiated
+        bool is_tool = false;     //! Whether the script runs in the editor
 
         /// Returns the list of properties on the global class
         /// @return an array of dictionary entries for properties
