@@ -63,6 +63,7 @@
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
+#include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/script_editor.hpp>
@@ -2291,6 +2292,14 @@ void OrchestratorEditorGraphPanel::_update_connection_lanes() {
         return;
     }
 
+    // GraphNode's port cache only holds children visible in the tree, so every port lookup fails while
+    // the panel is hidden (a closed main-screen dock re-enters the tree hidden and re-sorts). The plan
+    // is made once the panel is shown instead.
+    if (!is_visible_in_tree()) {
+        _connection_lanes_update_pending = true;
+        return;
+    }
+
     HashMap<uint64_t, int> lanes;
     if (_is_connection_lane_routing_enabled()) {
         lanes = _plan_connection_lanes();
@@ -4216,6 +4225,10 @@ void OrchestratorEditorGraphPanel::_notification(int p_what) {
                 // not visible. Afterward, the cached layout state is applied.
                 if (_panel_refresh_pending) {
                     _schedule_refresh();
+                }
+                if (_connection_lanes_update_pending) {
+                    _connection_lanes_update_pending = false;
+                    _queue_connection_lanes_update();
                 }
                 if (!_initialized) {
                     _schedule_restore();

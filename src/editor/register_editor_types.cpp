@@ -44,6 +44,7 @@
 #include "editor/gui/select_class_dialog.h"
 #include "editor/gui/select_type_dialog.h"
 #include "editor/gui/window_wrapper.h"
+#include "editor/main_screen.h"
 #include "editor/inspector/function_inspector_plugin.h"
 #include "editor/inspector/new_object_inspector_plugin.h"
 #include "editor/inspector/orchestration_inspector_plugin.h"
@@ -89,6 +90,11 @@ void register_editor_types() {
 
     // Plugin bits
     GDREGISTER_INTERNAL_CLASS(OrchestratorPlugin)
+    #if GODOT_VERSION < 0x040800
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorMainScreenLegacy)
+    #else
+    GDREGISTER_INTERNAL_CLASS(OrchestratorEditorMainScreenDock)
+    #endif
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorThemeManager)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorThemeBuilder)
     GDREGISTER_INTERNAL_CLASS(OrchestratorEditorDebuggerPlugin)

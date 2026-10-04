@@ -2701,7 +2701,8 @@ OrchestratorEditor::OrchestratorEditor(OrchestratorWindowWrapper* p_window_wrapp
     _updater = memnew(OrchestratorUpdaterButton);
     _menu_hb->add_child(_updater);
 
-    if (_window_wrapper->is_window_available()) {
+    // The window wrapper exists only on Godot versions before 4.8; later versions float the dock natively.
+    if (_window_wrapper && _window_wrapper->is_window_available()) {
         _make_floating_separator = memnew(VSeparator);
         _menu_hb->add_child(_make_floating_separator);
 
