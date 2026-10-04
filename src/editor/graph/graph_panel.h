@@ -137,6 +137,7 @@ private:
     // others, so the panel plans them together here and feeds each its lane on request.
     HashMap<uint64_t, int> _connection_lanes;
     bool _connection_lanes_update_scheduled = false;
+    bool _connection_lanes_update_pending = false;      //! A plan was requested while the panel was hidden
 
     HFlowContainer* _toolbar_hflow = nullptr;
     Control* _center_status = nullptr;
