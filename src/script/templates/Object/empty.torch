@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=2 format=3]
+[orchestration type="OScript" format=3]
 
 [obj type="OScriptGraph" id="OScriptGraph_orolp"]
 graph_name = &"EventGraph"

@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=8 format=4 uid="uid://bforeach0003"]
+[orchestration type="OScript" format=4 uid="uid://bforeach0003"]
 
 [obj type="OScriptFunction" id="OScriptFunction_fn"]
 guid = "A1000000-0000-4000-8000-00000000E003"

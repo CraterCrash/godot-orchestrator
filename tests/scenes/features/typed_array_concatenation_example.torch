@@ -1,4 +1,4 @@
-[orchestration type="OScript" script_class="TypedArrayConcatenationExample" load_steps=2 format=4 uid="uid://xj6q4fklvg0c"]
+[orchestration type="OScript" script_class="TypedArrayConcatenationExample" format=4 uid="uid://xj6q4fklvg0c"]
 
 [obj type="OScriptGraph" id="OScriptGraph_orolp"]
 graph_name = &"EventGraph"

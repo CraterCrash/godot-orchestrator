@@ -188,7 +188,6 @@ Error OrchestrationTextParser::_open(const Ref<FileAccess>& p_file, bool p_skip_
     _stream.set_readahead(p_buffered);
     _is_scene = false;
     _ignore_resource_parsing = false;
-    _resources_current = 0;
 
     OScriptVariantParser::Tag tag;
     if (const Error err = OScriptVariantParser::parse_tag(&_stream, _lines, tag, _error_text)) {
@@ -232,12 +231,6 @@ Error OrchestrationTextParser::_open(const Ref<FileAccess>& p_file, bool p_skip_
         _uid = ResourceUID::get_singleton()->text_to_id(tag.fields["uid"]);
     } else {
         _uid = ResourceUID::INVALID_ID;
-    }
-
-    if (tag.fields.has("load_steps")) {
-        _resources_total = tag.fields["load_steps"];
-    } else {
-        _resources_total = 0;
     }
 
     if (!p_skip_first_tag) {
@@ -325,12 +318,7 @@ Error OrchestrationTextParser::_load() {
             return err;
         }
 
-        _resources_current++;
     }
-
-    // These are the ones that count
-    _resources_total -= _resources_current;
-    _resources_current = 0;
 
     while (true) {
         if (_next_tag.name != "obj") {
@@ -414,12 +402,6 @@ Error OrchestrationTextParser::_load() {
                 res = Ref<Resource>(r);
                 do_assign = true;
             }
-        }
-
-        _resources_current++;
-
-        if (_progress && _resources_total > 0) {
-            *_progress = _resources_current / static_cast<float>(_resources_total);
         }
 
         _internal_resources[id] = res;
@@ -565,12 +547,6 @@ Error OrchestrationTextParser::_load() {
 			} else {
 			    break;
 			}
-		}
-
-		_resources_current++;
-
-		if (_progress && _resources_total > 0) {
-		    *_progress = _resources_current / static_cast<float>(_resources_total);
 		}
 
         #if GODOT_VERSION >= 0x040700
@@ -769,7 +745,6 @@ Error OrchestrationTextParser::rename_dependencies(const String& p_path, const D
                     _resource_type,
                     _script_class,
                     _icon_path,
-                    _resources_total,
                     OrchestrationFormat::FORMAT_VERSION,
                     _uid);
 
@@ -957,7 +932,6 @@ Error OrchestrationTextParser::set_uid(const String& p_path, int64_t p_uid) {
         OScript::get_class_static(),
         _script_class,
         _icon_path,
-        _resources_total,
         OrchestrationFormat::FORMAT_VERSION,
         p_uid).strip_edges());
 

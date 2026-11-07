@@ -1,4 +1,4 @@
-[orchestration type="OScript" script_class="TestCallNativeStaticJson" load_steps=12 format=3 uid="uid://cq4avq54wea61"]
+[orchestration type="OScript" script_class="TestCallNativeStaticJson" format=3 uid="uid://cq4avq54wea61"]
 
 [obj type="OScriptFunction" id="OScriptFunction_hpqt8"]
 guid = "6E39170D-FACB-4755-8005-A1E4013DEC86"

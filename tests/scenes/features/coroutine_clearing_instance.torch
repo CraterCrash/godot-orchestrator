@@ -1,4 +1,4 @@
-[orchestration type="OScript" script_class="CoroutineClearingInstance" load_steps=17 format=4 uid="uid://dcrrl3ry1yrn0"]
+[orchestration type="OScript" script_class="CoroutineClearingInstance" format=4 uid="uid://dcrrl3ry1yrn0"]
 
 [obj type="OScriptFunction" id="OScriptFunction_lnixc"]
 guid = "55E83DAE-B023-4C66-9CCF-759BC5B9FEBC"
