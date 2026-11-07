@@ -33,6 +33,10 @@ class OrchestratorEditorGraphPinLineEdit : public OrchestratorEditorGraphPin {
     void _popup_window_input(const Ref<InputEvent>& p_event);
     void _popup_index_pressed(int p_index);
 
+    static String _get_dropped_component_name(const Variant& p_data);
+    bool _can_drop_data_fw(const Vector2& p_position, const Variant& p_data) const;
+    void _drop_data_fw(const Vector2& p_position, const Variant& p_data);
+
 protected:
     static void _bind_methods() { }
 

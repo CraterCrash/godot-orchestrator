@@ -2972,19 +2972,9 @@ void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_funct
 
         spawn_node(options);
     } else {
-        int ctor_index = 0;
-        bool found = false;
-        const BuiltInType callable_type = ExtensionDB::get_builtin_type(Variant::CALLABLE);
-        for (; ctor_index < callable_type.constructors.size(); ctor_index++) {
-            const ConstructorInfo& ci = callable_type.constructors[ctor_index];
-            if (ci.arguments.size() == 2 && ci.arguments[0].type == Variant::OBJECT && ci.arguments[1].type == Variant::STRING_NAME) {
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            const Array arguments = DictionaryUtils::from_properties(callable_type.constructors[ctor_index].arguments);
+        ConstructorInfo constructor;
+        if (ExtensionDB::get_builtin_type_constructor(Variant::CALLABLE, { Variant::OBJECT, Variant::STRING_NAME }, constructor)) {
+            const Array arguments = DictionaryUtils::from_properties(constructor.arguments);
 
             NodeSpawnOptions options;
             options.node_class = OScriptNodeComposeFrom::get_class_static();
@@ -3005,6 +2995,36 @@ void OrchestratorEditorGraphPanel::_drop_data_function(const Dictionary& p_funct
                 }
             }
         }
+    }
+}
+
+void OrchestratorEditorGraphPanel::_drop_data_signal(const Dictionary& p_signal, const Vector2& p_at_position) {
+    NodeSpawnOptions options;
+    options.node_class = OScriptNodeEmitSignal::get_class_static();
+    options.context.method = DictionaryUtils::to_method(p_signal);
+    options.position = p_at_position;
+
+    spawn_node(options);
+}
+
+void OrchestratorEditorGraphPanel::_drop_data_name(const String& p_name, bool p_as_string_name, const Vector2& p_at_position) {
+    const Variant::Type type = p_as_string_name ? Variant::STRING_NAME : Variant::STRING;
+
+    ConstructorInfo constructor;
+    if (!ExtensionDB::get_builtin_type_constructor(type, { Variant::STRING }, constructor)) {
+        return;
+    }
+
+    const Array arguments = DictionaryUtils::from_properties(constructor.arguments);
+
+    NodeSpawnOptions options;
+    options.node_class = OScriptNodeComposeFrom::get_class_static();
+    options.context.user_data = DictionaryUtils::of({{ "type", type }, { "constructor_args", arguments }});
+    options.position = p_at_position;
+
+    OrchestratorEditorGraphNode* compose_node = spawn_node(options).node;
+    if (compose_node) {
+        compose_node->get_input_pin(0)->_pin->set_default_value(p_name);
     }
 }
 
@@ -3278,6 +3298,8 @@ bool OrchestratorEditorGraphPanel::_can_drop_data(const Vector2& p_at_position, 
                 _show_drag_hint("Use Shift to drop a Getter variable node");
             }
         }
+    } else if (drop_type == "signal") {
+        _show_drag_hint("Use Shift to drop an Emit Signal node");
     }
 
     return true;
@@ -3399,6 +3421,8 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
         menu->add_separator("Function " + method.name);
         menu->add_item("Add Call to Function", callable_mp_this(_drop_data_function).bind(data["functions"], spawn_position, false));
         menu->add_item("Add as a Callable", callable_mp_this(_drop_data_function).bind(data["functions"], spawn_position, true));
+        menu->add_item("Add Name as String", callable_mp_this(_drop_data_name).bind(method.name, false, spawn_position));
+        menu->add_item("Add Name as StringName", callable_mp_this(_drop_data_name).bind(method.name, true, spawn_position));
 
         menu->set_position(popup_position);
         menu->popup();
@@ -3434,16 +3458,34 @@ void OrchestratorEditorGraphPanel::_drop_data(const Vector2& p_at_position, cons
                 callable_mp_this(_drop_data_variable).bind(variable_name, spawn_position, false, true),
                 { .visible = !variable->is_constant() });
 
+            menu->add_item("Add Name as String",
+                callable_mp_this(_drop_data_name).bind(variable_name, false, spawn_position));
+            menu->add_item("Add Name as StringName",
+                callable_mp_this(_drop_data_name).bind(variable_name, true, spawn_position));
+
             menu->set_position(popup_position);
             menu->popup();
         }
     } else if (drop_type == "signal") {
-        NodeSpawnOptions options;
-        options.node_class = OScriptNodeEmitSignal::get_class_static();
-        options.context.method = DictionaryUtils::to_method(data["signals"]);
-        options.position = spawn_position;
+        const Dictionary signal = data["signals"];
 
-        spawn_node(options);
+        if (Input::get_singleton()->is_key_pressed(KEY_SHIFT)) {
+            _drop_data_signal(signal, spawn_position);
+        } else {
+            const String signal_name = signal.get("name", "");
+
+            OrchestratorEditorContextMenu* menu = OrchestratorEditorContextMenu::create(this);
+
+            menu->add_separator("Signal " + signal_name);
+            menu->add_item("Emit " + signal_name, callable_mp_this(_drop_data_signal).bind(signal, spawn_position));
+            menu->add_item("Add Name as String",
+                callable_mp_this(_drop_data_name).bind(signal_name, false, spawn_position));
+            menu->add_item("Add Name as StringName",
+                callable_mp_this(_drop_data_name).bind(signal_name, true, spawn_position));
+
+            menu->set_position(popup_position);
+            menu->popup();
+        }
     }
 }
 
