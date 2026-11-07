@@ -634,6 +634,39 @@ BuiltInType ExtensionDB::get_builtin_type(Variant::Type p_type) {
     return _singleton->builtin_types[_singleton->builtin_types_to_name[p_type]];
 }
 
+bool ExtensionDB::get_builtin_type_constructor(Variant::Type p_type, const Vector<Variant::Type>& p_argument_types, ConstructorInfo& r_constructor) {
+    const StringName* type_name = _singleton->builtin_types_to_name.getptr(p_type);
+    if (!type_name) {
+        return false;
+    }
+
+    const BuiltInType* builtin_type = _singleton->builtin_types.getptr(*type_name);
+    if (!builtin_type) {
+        return false;
+    }
+
+    for (const ConstructorInfo& constructor : builtin_type->constructors) {
+        if (constructor.arguments.size() != p_argument_types.size()) {
+            continue;
+        }
+
+        bool matches = true;
+        for (int i = 0; i < p_argument_types.size(); i++) {
+            if (constructor.arguments[i].type != p_argument_types[i]) {
+                matches = false;
+                break;
+            }
+        }
+
+        if (matches) {
+            r_constructor = constructor;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 PackedStringArray ExtensionDB::get_global_enum_names() {
     return _singleton->global_enum_names;
 }
