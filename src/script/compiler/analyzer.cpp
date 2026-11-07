@@ -1400,6 +1400,11 @@ Error OScriptAnalyzer::resolve_class_inheritance(OScriptParser::ClassNode* p_cla
 				p_class->extends_path = class_type.script_path.get_base_dir().path_join(p_class->extends_path).simplify_path();
 			}
 
+			if (!OScriptLanguage::get_singleton()->_get_recognized_extensions().has(p_class->extends_path.get_extension())) {
+				push_error(vformat(R"(Cannot extend "%s" because it is not an Orchestration.)", p_class->extends_path), p_class);
+				return ERR_PARSE_ERROR;
+			}
+
 			Ref<OScriptParserRef> ext_parser = parser->get_depended_parser_for(p_class->extends_path);
 			if (ext_parser.is_null()) {
 				push_error(vformat(R"(Could not resolve super class path "%s".)", p_class->extends_path), p_class);
@@ -1434,6 +1439,11 @@ Error OScriptAnalyzer::resolve_class_inheritance(OScriptParser::ClassNode* p_cla
 				if (OScript::is_canonically_equal_paths(base_path, parser->script_path)) {
 					base = parser->head->get_datatype();
 				} else {
+					if (!OScriptLanguage::get_singleton()->_get_recognized_extensions().has(base_path.get_extension())) {
+						push_error(vformat(R"(Cannot extend global class "%s" because it is not an Orchestration.)", name), id);
+						return ERR_PARSE_ERROR;
+					}
+
 					Ref<OScriptParserRef> base_parser = parser->get_depended_parser_for(base_path);
 					if (base_parser.is_null()) {
 						push_error(vformat(R"(Could not resolve super class "%s".)", name), id);

@@ -19,6 +19,7 @@
 #include "common/scene_utils.h"
 #include "common/string_utils.h"
 #include "core/godot/object/class_db.h"
+#include "script/language.h"
 #include "script/script.h"
 #include "script/script_server.h"
 
@@ -144,6 +145,13 @@ bool OrchestratorSelectClassSearchDialog::_is_class_excluded(const String& p_cla
     return false;
 }
 
+bool OrchestratorSelectClassSearchDialog::_is_global_class_excluded(const String& p_class_name) const {
+    if (_orchestration_global_classes_only) {
+        return ScriptServer::get_global_class(p_class_name).language != OScriptLanguage::get_singleton()->_get_name();
+    }
+    return false;
+}
+
 bool OrchestratorSelectClassSearchDialog::_is_preferred(const String& p_item) const {
     if (ClassDB::class_exists(p_item)) {
         return ClassDB::is_parent_class(p_item, _preferred_search_result_type);
@@ -193,6 +201,9 @@ Vector<Ref<OrchestratorEditorSearchDialog::SearchItem>> OrchestratorSelectClassS
 
     // Global Classes
     for (const String& class_name : ScriptServer::get_global_class_list()) {
+        if (_is_global_class_excluded(class_name)) {
+            continue;
+        }
         items.append_array(_get_class_hierarchy_search_items(class_name, hierarchy_cache, root));
     }
 
@@ -277,6 +288,10 @@ void OrchestratorSelectClassSearchDialog::set_data_suffix(const String& p_data_s
 
 void OrchestratorSelectClassSearchDialog::set_allow_abstract_types(bool p_allow_abstracts) {
     _allow_abstract_types = p_allow_abstracts;
+}
+
+void OrchestratorSelectClassSearchDialog::set_orchestration_global_classes_only(bool p_enabled) {
+    _orchestration_global_classes_only = p_enabled;
 }
 
 void OrchestratorSelectClassSearchDialog::set_popup_title(const String& p_title) {

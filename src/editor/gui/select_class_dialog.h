@@ -28,6 +28,7 @@ class OrchestratorSelectClassSearchDialog : public OrchestratorEditorSearchDialo
 
     bool _is_base_type_node = false;
     bool _allow_abstract_types = false;
+    bool _orchestration_global_classes_only = false;
     String _base_type;
     String _fallback_icon = "Object";
     String _preferred_search_result_type;
@@ -56,6 +57,11 @@ class OrchestratorSelectClassSearchDialog : public OrchestratorEditorSearchDialo
     /// @param p_class_name the native class name
     /// @return true to exclude the class, false otherwise
     bool _is_class_excluded(const String& p_class_name) const;
+
+    /// Specifies whether the global class is excluded
+    /// @param p_class_name the global class name
+    /// @return true to exclude the class, false otherwise
+    bool _is_global_class_excluded(const String& p_class_name) const;
 
 protected:
     static void _bind_methods() { }
@@ -92,6 +98,10 @@ public:
     /// Sets whether user can select abstract types
     /// @param p_allow_abstracts whether to allow selection of abstract classes
     void set_allow_abstract_types(bool p_allow_abstracts);
+
+    /// Sets whether only global classes defined by Orchestrations are listed
+    /// @param p_enabled true to exclude global classes contributed by other script languages
+    void set_orchestration_global_classes_only(bool p_enabled);
 
     /// Sets the popup dialog title
     /// @param p_title the title to display
