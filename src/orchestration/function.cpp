@@ -497,7 +497,7 @@ bool OScriptFunction::has_local_variable(const StringName& p_name) const {
 Ref<OScriptLocalVariable> OScriptFunction::create_local_variable(const StringName& p_name, Variant::Type p_type) {
     ERR_FAIL_COND_V_MSG(!_orchestration, nullptr, "Cannot create local variable, function is not owned by an orchestration.");
     ERR_FAIL_COND_V_MSG(_orchestration->_has_instances(), nullptr, "Cannot create local variables, instances exist.");
-    ERR_FAIL_COND_V_MSG(!String(p_name).is_valid_identifier(), nullptr, "Cannot create local variable, invalid name: " + p_name);
+    ERR_FAIL_COND_V_MSG(!String(p_name).is_valid_unicode_identifier(), nullptr, "Cannot create local variable, invalid name: " + p_name);
     ERR_FAIL_COND_V_MSG(has_local_variable(p_name), nullptr, "A local variable with that name already exists: " + p_name);
     ERR_FAIL_COND_V_MSG(!is_local_variable_name_available(p_name), nullptr, "A function argument with that name already exists: " + p_name);
 
@@ -577,7 +577,7 @@ bool OScriptFunction::rename_local_variable(const StringName& p_old_name, const 
     ERR_FAIL_COND_V_MSG(!_orchestration, false, "Cannot rename local variable, function is not owned by an orchestration.");
     ERR_FAIL_COND_V_MSG(_orchestration->_has_instances(), false, "Cannot rename local variable, instances exist.");
     ERR_FAIL_COND_V_MSG(!has_local_variable(p_old_name), false, "Cannot rename, no local variable exists with the old name: " + p_old_name);
-    ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_identifier(), false, "Cannot rename, local variable name is not valid: " + p_new_name);
+    ERR_FAIL_COND_V_MSG(!String(p_new_name).is_valid_unicode_identifier(), false, "Cannot rename, local variable name is not valid: " + p_new_name);
     ERR_FAIL_COND_V_MSG(has_local_variable(p_new_name), false, "Cannot rename, a local variable already exists with the new name: " + p_new_name);
     ERR_FAIL_COND_V_MSG(!is_local_variable_name_available(p_new_name), false, "Cannot rename, a function argument already exists with the new name: " + p_new_name);
 
@@ -602,7 +602,7 @@ PackedStringArray OScriptFunction::get_local_variable_names() const {
 }
 
 bool OScriptFunction::is_local_variable_name_available(const StringName& p_name) const {
-    if (!String(p_name).is_valid_identifier() || has_local_variable(p_name)) {
+    if (!String(p_name).is_valid_unicode_identifier() || has_local_variable(p_name)) {
         return false;
     }
 
