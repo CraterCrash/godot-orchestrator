@@ -53,6 +53,49 @@ void OrchestratorEditorGraphPinLineEdit::_popup_index_pressed(int p_index) {
     _control->release_focus();
 }
 
+String OrchestratorEditorGraphPinLineEdit::_get_dropped_component_name(const Variant& p_data) {
+    if (p_data.get_type() != Variant::DICTIONARY) {
+        return {};
+    }
+
+    const Dictionary data = p_data;
+    const String drop_type = data.get("type", "");
+
+    if (drop_type == "function") {
+        const Dictionary method = data.get("functions", Dictionary());
+        return method.get("name", "");
+    }
+
+    if (drop_type == "signal") {
+        const Dictionary method = data.get("signals", Dictionary());
+        return method.get("name", "");
+    }
+
+    if (drop_type == "variable") {
+        const Array variables = data.get("variables", Array());
+        if (!variables.is_empty()) {
+            return variables[0];
+        }
+    }
+
+    return {};
+}
+
+bool OrchestratorEditorGraphPinLineEdit::_can_drop_data_fw(const Vector2& p_position, const Variant& p_data) const {
+    // Returning false lets the LineEdit fall back to its own handling of dragged text
+    return _control->is_editable() && !_get_dropped_component_name(p_data).is_empty();
+}
+
+void OrchestratorEditorGraphPinLineEdit::_drop_data_fw(const Vector2& p_position, const Variant& p_data) {
+    const String name = _get_dropped_component_name(p_data);
+    if (name.is_empty()) {
+        return;
+    }
+
+    _control->set_text(name);
+    _default_value_changed();
+}
+
 void OrchestratorEditorGraphPinLineEdit::_update_control_value(const Variant& p_value) {
     _control->set_text(p_value);
 }
@@ -71,6 +114,9 @@ Control* OrchestratorEditorGraphPinLineEdit::_create_default_value_widget() {
     _control->connect(SceneStringName(text_submitted), callable_mp_lambda(this, [&] (const String&) { _control->release_focus(); }));
     _control->connect(SceneStringName(focus_entered), callable_mp_this(_focus_entered));
     _control->connect(SceneStringName(focus_exited), callable_mp_lambda(this, [&] { _default_value_changed(); }));
+
+    // Accepts a function, variable, or signal dragged from the component panel, using its name as the value
+    _control->set_drag_forwarding(Callable(), callable_mp_this(_can_drop_data_fw), callable_mp_this(_drop_data_fw));
 
     _popup = memnew(PopupMenu);
     _popup->set_flag(PopupMenu::FLAG_NO_FOCUS, true);
