@@ -132,8 +132,11 @@ bool OrchestratorSelectClassSearchDialog::_is_class_excluded(const String& p_cla
         return true;
     }
 
-    if (_is_base_type_node && p_class_name.begins_with("Editor")) {
-        return true;
+    if (_is_base_type_node && ClassDB::class_exists(p_class_name)) {
+        const ClassDB::APIType api_type = ClassDB::class_get_api_type(p_class_name);
+        if (api_type == ClassDB::API_EDITOR || api_type == ClassDB::API_EDITOR_EXTENSION) {
+            return true;
+        }
     }
 
     // An internal class for the editor
