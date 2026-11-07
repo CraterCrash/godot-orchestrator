@@ -1,4 +1,4 @@
-[orchestration type="OScript" script_class="CoroutineClearingLocalOwner" load_steps=24 format=4 uid="uid://cmcn1yqlhd0lw"]
+[orchestration type="OScript" script_class="CoroutineClearingLocalOwner" format=4 uid="uid://cmcn1yqlhd0lw"]
 
 [obj type="OScriptFunction" id="OScriptFunction_lnixc"]
 guid = "1EC00DF7-59CD-44AB-B54F-8979DBEED445"

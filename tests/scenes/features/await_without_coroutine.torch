@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=10 format=4 uid="uid://bv2d7lcokofvw"]
+[orchestration type="OScript" format=4 uid="uid://bv2d7lcokofvw"]
 
 [obj type="OScriptFunction" id="OScriptFunction_gc2ho"]
 guid = "5A76FFF0-E88B-49A9-ADED-66244F6F5691"

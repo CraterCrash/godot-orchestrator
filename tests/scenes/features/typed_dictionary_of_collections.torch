@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=57 format=4 uid="uid://b1759dictofcol"]
+[orchestration type="OScript" format=4 uid="uid://b1759dictofcol"]
 
 [obj type="OScriptFunction" id="OScriptFunction_1"]
 guid = "A1B2C3D4-1759-4A17-9E4C-0F5A6B7C8D02"

@@ -1,4 +1,4 @@
-[orchestration type="OScript" script_class="DuplicateTestResource" load_steps=5 format=3 uid="uid://cht4d4dtpgn0j"]
+[orchestration type="OScript" script_class="DuplicateTestResource" format=3 uid="uid://cht4d4dtpgn0j"]
 
 [obj type="OScriptGraph" id="OScriptGraph_orolp"]
 graph_name = &"EventGraph"
