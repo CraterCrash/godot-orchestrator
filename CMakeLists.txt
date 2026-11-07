@@ -213,6 +213,7 @@ SET(GDEXTENSION_LIB_PREFIX "")
 get_target_property( GODOTCPP_PLATFORM godot-cpp GODOTCPP_PLATFORM   )
 get_target_property( GODOTCPP_TARGET   godot-cpp GODOTCPP_TARGET     )
 get_target_property( GODOTCPP_ARCH     godot-cpp GODOTCPP_ARCH       )
+get_target_property( GODOTCPP_VISIBILITY_PRESET godot-cpp CXX_VISIBILITY_PRESET )
 
 # Converts GODOT_ARCH to the old system bits for unchanged file names.
 IF (APPLE)
@@ -247,6 +248,9 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME}
         PROPERTIES
         PREFIX "${GDEXTENSION_LIB_PREFIX}"
         POSITION_INDEPENDENT_CODE ON
+        # Must match godot-cpp, otherwise inline godot-cpp symbols get mixed visibility,
+        # which breaks function pointers on web builds (wasm-ld assigns them no table slot).
+        CXX_VISIBILITY_PRESET "${GODOTCPP_VISIBILITY_PRESET}"
         CMAKE_EXPORT_COMPILE_OPTIMIZATION_RELEASE ON
         CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON
         ARCHIVE_OUTPUT_DIRECTORY "${GDEXTENSION_LIB_PATH}"
