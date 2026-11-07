@@ -325,6 +325,8 @@ private:
     void _drop_data_function(const Dictionary& p_function, const Vector2& p_at_position, bool p_as_callable);
     void _drop_data_variable(const String& p_name, const Vector2& p_at_position, bool p_validated, bool p_setter);
     void _drop_data_local_variable(const String& p_name, const Vector2& p_at_position, bool p_setter);
+    void _drop_data_signal(const Dictionary& p_signal, const Vector2& p_at_position);
+    void _drop_data_name(const String& p_name, bool p_as_string_name, const Vector2& p_at_position);
 
     bool _is_in_port_hotzone(const Vector2& p_pos, const Vector2& p_mouse_pos, const Vector2i& p_port_size, bool p_left);
 

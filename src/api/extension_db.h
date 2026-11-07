@@ -184,6 +184,7 @@ namespace godot {
         static Vector<BuiltInType> get_builtin_types();
         static BuiltInType get_builtin_type(const StringName& p_type_name);
         static BuiltInType get_builtin_type(Variant::Type p_type);
+        static bool get_builtin_type_constructor(Variant::Type p_type, const Vector<Variant::Type>& p_argument_types, ConstructorInfo& r_constructor);
 
         // Global Enumerations
         static PackedStringArray get_global_enum_names();
