@@ -132,11 +132,11 @@ void OrchestratorEditorIntrospector::_register_static_methods(const String& p_lo
     }
 }
 
-void OrchestratorEditorIntrospector::_register_global_class_static_methods(const String& p_class_name, const String& p_category, ActionSet& r_actions) {
-    const TypedArray<Dictionary> methods = ScriptServer::get_global_class(p_class_name).get_static_method_list();
+void OrchestratorEditorIntrospector::_register_global_class_static_methods(const ScriptServer::GlobalClass& p_global_class, const String& p_category, ActionSet& r_actions) {
+    const TypedArray<Dictionary> methods = p_global_class.get_static_method_list();
     for (int i = 0; i < methods.size(); i++) {
         const MethodInfo method = DictionaryUtils::to_method(methods[i]);
-        r_actions.insert(_create_static_function_action(p_category, method.name, p_class_name, method));
+        r_actions.insert(_create_static_function_action(p_category, method.name, p_global_class.name, method));
     }
 }
 
@@ -518,14 +518,7 @@ void OrchestratorEditorIntrospector::_get_actions_for_class(const String& p_clas
 
 void OrchestratorEditorIntrospector::_get_actions_for_named_class(const String& p_class_name, ActionSet& r_actions) {
     if (ScriptServer::is_global_class(p_class_name)) {
-        const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(p_class_name);
-        _get_actions_for_class(
-            global_class.name,
-            global_class.name,
-            global_class.get_method_list(),
-            global_class.get_property_list(),
-            global_class.get_signal_list(),
-            r_actions);
+        _get_actions_for_global_class(ScriptServer::get_global_class(p_class_name), r_actions);
     } else {
         _get_actions_for_class(
             p_class_name,
@@ -535,6 +528,16 @@ void OrchestratorEditorIntrospector::_get_actions_for_named_class(const String& 
             ClassDB::class_get_signal_list(p_class_name, true),
             r_actions);
     }
+}
+
+void OrchestratorEditorIntrospector::_get_actions_for_global_class(const ScriptServer::GlobalClass& p_global_class, ActionSet& r_actions) {
+    _get_actions_for_class(
+        p_global_class.name,
+        p_global_class.name,
+        p_global_class.get_method_list(),
+        p_global_class.get_property_list(),
+        p_global_class.get_signal_list(),
+        r_actions);
 }
 
 void OrchestratorEditorIntrospector::generate_actions_from_object(Object* p_object, ActionSet& r_actions) {
@@ -1249,31 +1252,25 @@ void OrchestratorEditorIntrospector::generate_actions_from_native_classes(Action
     }
 }
 
-void OrchestratorEditorIntrospector::generate_actions_from_static_script_methods(ActionSet& r_actions) {
-    for (const String& global_class : ScriptServer::get_global_class_list()) {
-        _register_global_class_static_methods(global_class, vformat("Methods (Static)/%s", global_class), r_actions);
-    }
-}
-
 void OrchestratorEditorIntrospector::generate_actions_from_script_global_classes(ActionSet& r_actions) {
+    // Every global class is introspected exactly once from a single copy, so each script loads at
+    // most once per pass. Members are categorized under their declaring class, so walking a class's
+    // global base types here would only reproduce actions the base's own iteration already inserts.
     for (const String& global_name : ScriptServer::get_global_class_list()) {
-        // The object has a named script attached
-        // The script methods, properties, and signals must be registered using the script's class_name
-        // rather than adding these as part of the base script type.
-        const PackedStringArray class_hierarchy = ScriptServer::get_class_hierarchy(global_name, false);
-        for (const String& class_name : class_hierarchy) {
-            _get_actions_for_named_class(class_name, r_actions);
+        const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(global_name);
+        if (!global_class.is_valid()) {
+            continue;
         }
 
+        _get_actions_for_global_class(global_class, r_actions);
+
         const String static_category_name = vformat("Methods (Static)/%s", global_name);
-        _register_global_class_static_methods(global_name, static_category_name, r_actions);
+        _register_global_class_static_methods(global_class, static_category_name, r_actions);
 
         // Also register static methods from parent type as accessible via the script type.
-        const String base_type = ScriptServer::get_global_class(global_name).base_type;
-        _register_static_methods(base_type, global_name, static_category_name, r_actions);
+        _register_static_methods(global_class.base_type, global_name, static_category_name, r_actions);
 
         // Script-declared constants and enum values, spawning a class constant node scoped to the script class
-        const ScriptServer::GlobalClass global_class = ScriptServer::get_global_class(global_name);
         const PackedStringArray constant_names = global_class.get_integer_constant_list();
         if (!constant_names.is_empty()) {
             const String constants_category = vformat("Constants/%s", global_name);

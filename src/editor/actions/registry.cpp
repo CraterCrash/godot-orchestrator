@@ -20,45 +20,41 @@
 #include "common/macros.h"
 #include "core/godot/config/project_settings_cache.h"
 #include "editor/actions/introspector.h"
-#include "orchestration/nodes/arrays.h"
 #include "script/script_server.h"
 
 #include <godot_cpp/classes/editor_file_system.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
-#include <godot_cpp/classes/os.hpp>
-#include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/worker_thread_pool.hpp>
 
 OrchestratorEditorActionRegistry* OrchestratorEditorActionRegistry::_singleton = nullptr;
 
-void OrchestratorEditorActionRegistry::_project_settings_changed() {
-    if (_project_settings_update_timer != nullptr) {
-        _project_settings_update_timer->start();
-    }
+void OrchestratorEditorActionRegistry::_build_immutable_actions() {
+    // Immutable actions are ones that will never be overwritten
+    _immutable_actions.clear();
+
+    // These are all the immutable actions; none of them load project resources.
+    OrchestratorEditorIntrospector::generate_actions_from_script_nodes(_immutable_actions);
+    OrchestratorEditorIntrospector::generate_actions_from_variant_types(_immutable_actions);
+    OrchestratorEditorIntrospector::generate_actions_from_builtin_functions(_immutable_actions);
+    OrchestratorEditorIntrospector::generate_actions_from_native_classes(_immutable_actions);
 }
 
-void OrchestratorEditorActionRegistry::_script_classes_updated() {
-    // In the event this signal is called multiple times by the file system in quick succession,
-    // the plugin uses a timer to debounce the calls so that only one rebuild fires.
-    _global_script_class_update_timer->start();
-}
-
-void OrchestratorEditorActionRegistry::_rebuild_base_actions() {
-    _building = true;
-
-    if (_immutable_actions.is_empty()) {
-        _build_actions();
+void OrchestratorEditorActionRegistry::_ensure_built() {
+    if (!_global_classes_dirty && !_autoloads_dirty) {
+        return;
     }
 
-    _autoloads_updated();
-    _complete_on_main_thread();
-}
-
-void OrchestratorEditorActionRegistry::_complete_on_main_thread() {
     // Runs on the main thread: safe to load scripts via ResourceLoader.
-    _global_script_classes_updated();
+    if (_global_classes_dirty) {
+        _global_class_actions.clear();
+        OrchestratorEditorIntrospector::generate_actions_from_script_global_classes(_global_class_actions);
+        _global_classes_dirty = false;
+    }
 
-    OrchestratorEditorIntrospector::generate_actions_from_static_script_methods(_immutable_actions);
+    if (_autoloads_dirty) {
+        _autoload_actions.clear();
+        OrchestratorEditorIntrospector::generate_actions_from_autoloads(_autoload_actions);
+        _autoloads_dirty = false;
+    }
 
     OrchestratorEditorActionSet combined;
     for (const Ref<Action>& action : _immutable_actions) {
@@ -72,39 +68,24 @@ void OrchestratorEditorActionRegistry::_complete_on_main_thread() {
     }
 
     _base_actions = combined;
-    _building = false;
 }
 
-void OrchestratorEditorActionRegistry::_build_actions() {
-    // Immutable actions are ones that will never be overwritten
-    _immutable_actions.clear();
-
-    // These are all the immutable actions (no ResourceLoader calls = thread-safe)
-    OrchestratorEditorIntrospector::generate_actions_from_script_nodes(_immutable_actions);
-    OrchestratorEditorIntrospector::generate_actions_from_variant_types(_immutable_actions);
-    OrchestratorEditorIntrospector::generate_actions_from_builtin_functions(_immutable_actions);
-    OrchestratorEditorIntrospector::generate_actions_from_native_classes(_immutable_actions);
+void OrchestratorEditorActionRegistry::_settings_changed() {
+    _autoloads_dirty = true;
 }
 
-void OrchestratorEditorActionRegistry::_global_script_classes_updated() {
-    _global_class_actions.clear();
-    OrchestratorEditorIntrospector::generate_actions_from_script_global_classes(_global_class_actions);
+void OrchestratorEditorActionRegistry::_script_classes_updated() {
+    // The file system may report this several times in quick succession; the flag coalesces them
+    // and the rebuild happens once, on the next request.
+    _global_classes_dirty = true;
 }
 
-void OrchestratorEditorActionRegistry::_autoloads_updated() {
-    _autoload_actions.clear();
-    OrchestratorEditorIntrospector::generate_actions_from_autoloads(_autoload_actions);
-}
-
-void OrchestratorEditorActionRegistry::_resources_reloaded(const PackedStringArray& p_file_names) {
-    // No-op
+void OrchestratorEditorActionRegistry::prime() {
+    _ensure_built();
 }
 
 OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions() {
-    // If something calls this method before the background thread finishes, it blocks
-    while (_building) {
-        OS::get_singleton()->delay_msec(1000);
-    }
+    _ensure_built();
     return OrchestratorEditorActionSet(_base_actions);
 }
 
@@ -154,27 +135,13 @@ OrchestratorEditorActionSet OrchestratorEditorActionRegistry::get_actions(const 
 void OrchestratorEditorActionRegistry::_bind_methods() {
 }
 
-OrchestratorEditorActionRegistry::OrchestratorEditorActionRegistry()
-{
-    _global_script_class_update_timer = memnew(Timer);
-    _global_script_class_update_timer->set_one_shot(true);
-    _global_script_class_update_timer->set_wait_time(.5);
-    _global_script_class_update_timer->connect("timeout", callable_mp_this(_rebuild_base_actions));
-    add_child(_global_script_class_update_timer);
-
-    _project_settings_update_timer = memnew(Timer);
-    _project_settings_update_timer->set_one_shot(true);
-    _project_settings_update_timer->set_wait_time(.5);
-    _project_settings_update_timer->connect("timeout", callable_mp_this(_rebuild_base_actions));
-    add_child(_project_settings_update_timer);
-
+OrchestratorEditorActionRegistry::OrchestratorEditorActionRegistry() {
     _singleton = this;
 
-    _rebuild_base_actions();
+    _build_immutable_actions();
 
     EI->get_resource_filesystem()->connect("script_classes_updated", callable_mp_this(_script_classes_updated));
-    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_project_settings_changed));
-    EI->get_resource_filesystem()->connect("resources_reload", callable_mp_this(_resources_reloaded));
+    OrchestratorProjectSettingsCache::get_singleton()->connect("settings_changed", callable_mp_this(_settings_changed));
 }
 
 OrchestratorEditorActionRegistry::~OrchestratorEditorActionRegistry() {
