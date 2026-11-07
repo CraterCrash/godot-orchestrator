@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=3 format=5 uid="uid://cann0tunkn0wn"]
+[orchestration type="OScript" format=5 uid="uid://cann0tunkn0wn"]
 
 [obj type="OScriptGraph" id="OScriptGraph_orolp"]
 graph_name = &"EventGraph"

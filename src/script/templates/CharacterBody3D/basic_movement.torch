@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=65 format=3]
+[orchestration type="OScript" format=3]
 
 [obj type="OScriptFunction" id="OScriptFunction_orolp"]
 guid = "_GUID1_"

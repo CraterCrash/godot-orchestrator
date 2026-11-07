@@ -1,4 +1,4 @@
-[orchestration type="OScript" script_class="RichText_CLASS_" load_steps=13 format=3]
+[orchestration type="OScript" script_class="RichText_CLASS_" format=3]
 
 [obj type="OScriptFunction" id="OScriptFunction_k01ul"]
 guid = "_GUID1_"

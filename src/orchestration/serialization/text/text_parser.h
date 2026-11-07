@@ -70,11 +70,6 @@ class OrchestrationTextParser : public OrchestrationParser {
     String _error_text;
     int _lines = 0;
 
-    int _resources_total = 0;
-    int _resources_current = 0;
-
-    float* _progress = nullptr;
-
     ResourceFormatLoader::CacheMode _cache_mode = ResourceFormatLoader::CACHE_MODE_REUSE;
     ResourceFormatLoader::CacheMode _cache_mode_for_external = ResourceFormatLoader::CACHE_MODE_REUSE;
 

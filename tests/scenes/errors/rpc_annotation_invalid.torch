@@ -1,4 +1,4 @@
-[orchestration type="OScript" load_steps=5 format=5 uid="uid://crpcann0tbad1"]
+[orchestration type="OScript" format=5 uid="uid://crpcann0tbad1"]
 
 [obj type="OScriptFunction" id="OScriptFunction_ping"]
 guid = "1A2B3C4D-0003-4000-8000-00000000A003"
