@@ -20,19 +20,20 @@
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/script.hpp>
-#include <godot_cpp/classes/timer.hpp>
 
 using namespace godot;
 
 /// A singleton node that maintains a collection of all available actions
 ///
-/// When Godot first starts, the registry will be populated with a set of actions that are specific to
-/// all native classes in Godot. These are classes that will never change during the lifetime of the
-/// Editor's execution.
+/// When Godot first starts, the registry is populated with the actions for every native class,
+/// variant type, built-in function and script node. None of these introspect project resources,
+/// and none of them change for the lifetime of the editor.
 ///
-/// In addition, the <code>FileSystemDock</code> will emit details about all the resources that have
-/// been scanned, along with notifying when they're added or removed. These hooks are monitored by
-/// this class and all resource-related object's actions are kept synchronized.
+/// Actions derived from project scripts (global classes and autoloads) are built lazily on the
+/// first request and rebuilt only after the <code>EditorFileSystem</code> or project settings
+/// report a change. Introspecting a global class loads its script, and doing that while the
+/// editor is still initializing other addons can load scripts ahead of the addon that owns them;
+/// deferring the work until a menu needs it keeps this registry out of that ordering.
 ///
 class OrchestratorEditorActionRegistry : public Node {
     GDCLASS(OrchestratorEditorActionRegistry, Node);
@@ -49,26 +50,25 @@ class OrchestratorEditorActionRegistry : public Node {
     OrchestratorEditorActionSet _global_class_actions;
     OrchestratorEditorActionSet _autoload_actions;
 
-    bool _building = false;
-    Timer* _global_script_class_update_timer = nullptr;
-    Timer* _project_settings_update_timer = nullptr;
+    bool _global_classes_dirty = true;
+    bool _autoloads_dirty = true;
 
-    void _project_settings_changed();
+    void _build_immutable_actions();
+    void _ensure_built();
+
+    void _settings_changed();
     void _script_classes_updated();
-
-    void _rebuild_base_actions();
-    void _complete_on_main_thread();
-
-    void _build_actions();
-    void _global_script_classes_updated();
-    void _autoloads_updated();
-    void _resources_reloaded(const PackedStringArray& p_file_names);
 
 protected:
     static void _bind_methods();
 
 public:
     static OrchestratorEditorActionRegistry* get_singleton() { return _singleton; }
+
+    /// Builds any stale project-derived actions now rather than on the next request, so the
+    /// first menu opened after a change does not pay for the rebuild. Safe to call repeatedly;
+    /// it is a no-op while nothing is stale.
+    void prime();
 
     OrchestratorEditorActionSet get_actions();
     OrchestratorEditorActionSet get_actions(const Ref<Script>& p_script, const Ref<Script>& p_other = Ref<Script>());
