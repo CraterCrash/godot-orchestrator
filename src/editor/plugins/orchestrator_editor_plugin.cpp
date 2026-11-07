@@ -22,6 +22,7 @@
 #include "common/scene_utils.h"
 #include "common/version.h"
 #include "core/godot/scene_string_names.h"
+#include "editor/actions/registry.h"
 #include "editor/editor.h"
 #include "editor/export/orchestration_export_plugin.h"
 #include "editor/inspector/function_inspector_plugin.h"
@@ -270,6 +271,15 @@ bool OrchestratorPlugin::_has_main_screen() const {
 void OrchestratorPlugin::_make_visible(bool p_visible) {
     GUARD_NULL(_main_screen);
     _main_screen->make_visible(p_visible);
+
+    if (p_visible) {
+        // Godot shows a main screen only after the first filesystem scan has created the autoloads and
+        // initialized the addons, so introspecting project scripts here cannot load a script ahead of
+        // the plugin that owns it. Doing it now keeps the first action menu from paying for the build.
+        if (OrchestratorEditorActionRegistry* registry = OrchestratorEditorActionRegistry::get_singleton()) {
+            registry->prime();
+        }
+    }
 }
 
 String OrchestratorPlugin::_get_plugin_name() const {

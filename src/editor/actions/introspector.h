@@ -19,6 +19,7 @@
 #include "api/extension_db.h"
 #include "editor/actions/definition.h"
 #include "orchestration/node.h"
+#include "script/script_server.h"
 
 /// A standalone component that is responsible for being able to read and generate a set of actions based on
 /// provided class, object, or script metadata. It also can provide actions based on the visual scripting
@@ -47,12 +48,13 @@ class OrchestratorEditorIntrospector {
     static PackedStringArray _build_member_keywords(const String& p_name, const String& p_class_name);
     static void _get_actions_for_class(const String& p_class_name, const String& p_category_name, const TypedArray<Dictionary>& p_methods, const TypedArray<Dictionary>& p_properties, const TypedArray<Dictionary>& p_signals, ActionSet& r_actions);
     static void _get_actions_for_named_class(const String& p_class_name, ActionSet& r_actions);
+    static void _get_actions_for_global_class(const ScriptServer::GlobalClass& p_global_class, ActionSet& r_actions);
 
     static void _apply_method_overrides(const String& p_class_name, MethodInfo& r_method);
 
     static Ref<Action> _create_static_function_action(const String& p_category, const String& p_name, const String& p_class_name, const MethodInfo& p_method, const PackedStringArray& p_extra_keywords = PackedStringArray());
     static void _register_static_methods(const String& p_lookup_class, const String& p_register_class, const String& p_category, ActionSet& r_actions);
-    static void _register_global_class_static_methods(const String& p_class_name, const String& p_category, ActionSet& r_actions);
+    static void _register_global_class_static_methods(const ScriptServer::GlobalClass& p_global_class, const String& p_category, ActionSet& r_actions);
 
     static void _register_constant(const String& p_node_type, const String& p_category, const String& p_owner, const String& p_constant_name, const Variant& p_value, const Dictionary& p_data, ActionSet& r_actions);
     static void _register_class_constants(const String& p_class_name, ActionSet& r_actions);
@@ -72,7 +74,6 @@ public:
     static void generate_actions_from_builtin_functions(ActionSet& r_actions);
     static void generate_actions_from_autoloads(ActionSet& r_actions);
     static void generate_actions_from_native_classes(ActionSet& r_actions);
-    static void generate_actions_from_static_script_methods(ActionSet& r_actions);
     static void generate_actions_from_script_global_classes(ActionSet& r_actions);
 
     static Vector<Ref<Action>> generate_actions_from_category(const String& p_category, const String& p_icon = String());

@@ -37,42 +37,38 @@ Mutex ScriptServer::_global_class_cache_mutex;
 Ref<Script> ScriptServer::GlobalClass::_load_script(const String& path) {
     ResourceLoader* loader = ResourceLoader::get_singleton();
 
-    if (loader->has_cached(path)) {
-        return loader->load(path);
-    }
-
-    // When called from the main thread, the script should be loaded synchronously.
+    // The default cache mode returns the engine's already-compiled script when one is loaded and
+    // otherwise loads it once, after which the language cache retains it. CACHE_MODE_IGNORE does
+    // not yield a private copy for scripts: GDScriptCache (and OScriptCache) treat it as "update
+    // from disk" and recompile the shared instance in place on every call.
     //
-    // The threaded loader below leaks objects per `preload` call, which shows up as leaked RefCounted
-    // instances at editor exit, whenever a preload-heavy global class is introspected.
-    //
-    // The threaded path below exists only to avoid a ResourceLoader deadlock when called from
-    // a non-main thread, so this limits that to that only case.
+    // When called from the main thread, the script is loaded synchronously. The threaded path
+    // below exists only to avoid a ResourceLoader deadlock when called from a non-main thread.
     OS* os = OS::get_singleton();
     if (os->get_thread_caller_id() != os->get_main_thread_id()) {
         WARN_PRINT_ONCE(vformat(
             R"(ScriptServer::GlobalClass::_load_script() reached its off-main-thread fallback for "%s"; )"
-            R"(the threaded loader leaks preload dependencies, move this caller onto the main thread.)",
+            R"(move this caller onto the main thread.)",
             path));
 
         // When called from a background thread, delegate the load to the main thread
         // via load_threaded_request and wait for it to complete.
-        if (loader->load_threaded_request(path, "", ResourceLoader::CACHE_MODE_IGNORE) == OK) {
+        if (loader->load_threaded_request(path) == OK) {
             ResourceLoader::ThreadLoadStatus status;
             do {
                 status = loader->load_threaded_get_status(path);
             } while (status == ResourceLoader::THREAD_LOAD_IN_PROGRESS);
 
             // Always call load_threaded_get(), even on failure: the threaded loader only
-            // releases the completed task (and any dependencies it already loaded) once the
-            // result is retrieved. Returning without it orphans the task. On failure this
-            // yields an invalid resource, which we normalize to an empty Ref.
+            // releases the completed task once the result is retrieved. Returning without it
+            // orphans the task. On failure this yields an invalid resource, which we normalize
+            // to an empty Ref.
             const Ref<Script> script = loader->load_threaded_get(path);
             return status == ResourceLoader::THREAD_LOAD_LOADED ? script : Ref<Script>();
         }
     }
 
-    return loader->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
+    return loader->load(path);
 }
 
 TypedArray<Dictionary> ScriptServer::GlobalClass::get_property_list() const {
