@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bextendsgdscr1pt"]
+
+[ext_resource type="Script" uid="uid://cextendsgdscr1pt" path="res://scenes/errors/extends_gdscript_global_class.torch" id="1_torch"]
+
+[node name="ExtendsGDScriptGlobalClass" type="Node"]
+script = ExtResource("1_torch")

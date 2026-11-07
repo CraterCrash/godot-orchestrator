@@ -130,6 +130,8 @@ void OrchestratorEditorPropertyExtends::_notification(int p_what) {
             _dialog->set_data_suffix("extends");
             // Prevent extending OScript
             _dialog->add_class_exclusion(OScript::get_class_static());
+            // Orchestrations cannot inherit from global classes defined in other script languages
+            _dialog->set_orchestration_global_classes_only(true);
             _dialog->connect("selected", callable_mp_this(_extends_class_selected));
             add_child(_dialog);
 
