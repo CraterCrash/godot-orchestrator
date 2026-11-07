@@ -146,10 +146,11 @@ void OrchestratorScriptComponentsContainer::_close_graph(const String& p_graph_n
 
 void OrchestratorScriptComponentsContainer::_show_invalid_identifier(const String& p_name, bool p_friendly_names) {
     String message = vformat("The %s name is not valid. Names must follow these requirements:\n\n", p_name);
-    message += "* Must start with a letter (A-Z, a-z) or an underscore ('_')\n";
-    message += "* Can include letters (A-Z, a-z), numbers (0-9), and underscores ('_')\n";
-    message += "* Should not start with a number (0-9)\n";
+    message += "* Must start with a letter or an underscore ('_')\n";
+    message += "* Can include letters, numbers, and underscores ('_')\n";
+    message += "* Should not start with a number\n";
     message += "* Cannot contain spaces or special characters\n";
+    message += String::utf8("\nLetters are not limited to A-Z, and can include those from other languages, such as 'café' or '速度'.\n");
 
     if (p_friendly_names) {
         message += vformat("\nIf you want a space to appear in the %s name, please use camel-case (MyName).\n", p_name);
@@ -693,7 +694,7 @@ void OrchestratorScriptComponentsContainer::_component_add_item_commit(TreeItem*
 
     const String item_name = p_item->get_text(0);
 
-    if (!item_name.is_valid_identifier()) {
+    if (!item_name.is_valid_unicode_identifier()) {
         _show_invalid_identifier(item_name, _use_graph_friendly_names);
         return;
     }
@@ -1021,7 +1022,7 @@ void OrchestratorScriptComponentsContainer::_component_rename_item(TreeItem* p_i
         return;
     }
 
-    if (!new_name.is_valid_identifier()) {
+    if (!new_name.is_valid_unicode_identifier()) {
         _show_invalid_identifier(new_name, _use_graph_friendly_names);
         return;
     }
