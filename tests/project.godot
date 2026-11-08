@@ -16,6 +16,8 @@ config/icon="res://icon.svg"
 
 [orchestrator]
 
+debug/settings/always_track_local_variables=true
+
 interface/editor/components_panel/show_function_friendly_names=false
 interface/editor/components_panel/show_graph_friendly_names=false
 interface/editor/graph/show_advanced_tooltips=true

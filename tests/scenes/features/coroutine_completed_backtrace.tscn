@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ccorocbtrc01"]
+
+[ext_resource type="Script" uid="uid://bcorocbtrc01" path="res://scenes/features/coroutine_completed_backtrace.torch" id="1_coro_bt"]
+
+[node name="CoroutineCompletedBacktrace" type="Node"]
+script = ExtResource("1_coro_bt")
