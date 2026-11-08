@@ -447,6 +447,8 @@ class OScriptFunctionState : public RefCounted {
     SelfList<OScriptFunctionState> scripts_list;
     SelfList<OScriptFunctionState> instances_list;
 
+    bool cleared = false;
+
     Variant _signal_callback(const Variant** p_args, GDExtensionInt p_arg_count, GDExtensionCallError& r_error);
 
 protected:
@@ -464,6 +466,11 @@ public:
 
     void _clear_stack();
     void _clear_connections();
+
+    // Transfers the object into a zombie state, in which it has no functionality anymore and can outlive OScriptLanguage.
+    // A cleared function state does not hold any references and thus cannot be locked up in a reference cycle.
+    // Callers should hold a reference to the object while calling clear.
+    void clear();
 
     OScriptFunctionState();
     ~OScriptFunctionState() override;
