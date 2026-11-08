@@ -1,0 +1,106 @@
+[orchestration type="OScript" format=4 uid="uid://bawaitovrco02"]
+
+[obj type="OScriptFunction" id="OScriptFunction_fetch"]
+guid = "A1000000-0000-4000-8000-00000000E0F1"
+method = {
+"name": &"fetch_bool",
+"return": {
+"name": &"return_value",
+"type": 1
+}
+}
+user_defined = true
+id = 20
+
+[obj type="OScriptFunction" id="OScriptFunction_fire"]
+guid = "A1000000-0000-4000-8000-00000000E0F2"
+method = {
+"name": &"fire"
+}
+user_defined = true
+id = 30
+
+[obj type="OScriptGraph" id="OScriptGraph_event"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([])
+functions = Array[int]([])
+
+[obj type="OScriptGraph" id="OScriptGraph_fetch"]
+graph_name = &"fetch_bool"
+flags = 22
+nodes = Array[int]([20, 21])
+functions = Array[int]([20])
+
+[obj type="OScriptGraph" id="OScriptGraph_fire"]
+graph_name = &"fire"
+flags = 22
+nodes = Array[int]([30, 31])
+functions = Array[int]([30])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_fetch"]
+function_id = "A1000000-0000-4000-8000-00000000E0F1"
+id = 20
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeFunctionResult" id="OScriptNodeFunctionResult_fetch"]
+function_id = "A1000000-0000-4000-8000-00000000E0F1"
+id = 21
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"flags": 2,
+"label": "return_value",
+"dv": true
+}, {
+"pin_name": &"return_out",
+"type": 1,
+"dir": 1,
+"flags": 34
+}])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_fire"]
+function_id = "A1000000-0000-4000-8000-00000000E0F2"
+id = 30
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeEmitSignal" id="OScriptNodeEmitSignal_release"]
+signal_name = "release"
+id = 31
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptSignal" id="OScriptSignal_release"]
+method = {
+"name": &"release"
+}
+signal_name = &"release"
+
+[resource]
+base_type = &"RefCounted"
+class_name = &"AwaitOverriddenCoroutineBase"
+brief_description = "Base class whose fetch_bool() returns immediately."
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_fetch"), SubResource("OScriptFunction_fire")])
+signals = Array[OScriptSignal]([SubResource("OScriptSignal_release")])
+connections = Array[int]([20, 0, 21, 0, 30, 0, 31, 0])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_fetch"), SubResource("OScriptNodeFunctionResult_fetch"), SubResource("OScriptNodeFunctionEntry_fire"), SubResource("OScriptNodeEmitSignal_release")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_event"), SubResource("OScriptGraph_fetch"), SubResource("OScriptGraph_fire")])

@@ -1,0 +1,279 @@
+[orchestration type="OScript" format=4 uid="uid://bawaitovrco01"]
+
+[obj type="OScriptFunction" id="OScriptFunction_ready"]
+guid = "A1000000-0000-4000-8000-00000000E0C1"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptFunction" id="OScriptFunction_run"]
+guid = "A1000000-0000-4000-8000-00000000E0C2"
+method = {
+"name": &"run"
+}
+user_defined = true
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_event"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3, 4, 5])
+functions = Array[int]([0])
+
+[obj type="OScriptGraph" id="OScriptGraph_run"]
+graph_name = &"run"
+flags = 22
+nodes = Array[int]([10, 11, 12, 13, 14])
+functions = Array[int]([10])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_ready"]
+function_id = "A1000000-0000-4000-8000-00000000E0C1"
+id = 0
+position = Vector2(0, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_new"]
+class_name = "AwaitOverriddenCoroutineInherited"
+id = 1
+position = Vector2(200, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "AwaitOverriddenCoroutineInherited",
+"dv": null
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_set"]
+variable_name = &"instance"
+id = 2
+position = Vector2(500, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"flags": 2050,
+"target_class": "AwaitOverriddenCoroutineBase",
+"hint": 34,
+"hint_string": "AwaitOverriddenCoroutineBase",
+"usage": 4102
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 1026,
+"target_class": "AwaitOverriddenCoroutineBase",
+"hint": 34,
+"hint_string": "AwaitOverriddenCoroutineBase",
+"usage": 4102
+}])
+
+[obj type="OScriptNodeCallScriptFunction" id="OScriptNodeCallScriptFunction_run"]
+guid = "A1000000-0000-4000-8000-00000000E0C2"
+function_name = &"run"
+flags = 8
+id = 3
+position = Vector2(800, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_get1"]
+variable_name = &"instance"
+id = 4
+position = Vector2(800, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 2050,
+"label": "instance",
+"target_class": "AwaitOverriddenCoroutineBase",
+"hint": 34,
+"hint_string": "AwaitOverriddenCoroutineBase",
+"usage": 4102
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_fire"]
+function_name = &"fire"
+target_class_name = "AwaitOverriddenCoroutineBase"
+target_type = 24
+flags = 520
+method = {
+"name": &"fire",
+"return": {
+"usage": 0
+}
+}
+chain = false
+id = 5
+position = Vector2(1100, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "AwaitOverriddenCoroutineBase",
+"target_class": "AwaitOverriddenCoroutineBase"
+}])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_run"]
+function_id = "A1000000-0000-4000-8000-00000000E0C2"
+id = 10
+position = Vector2(0, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_get2"]
+variable_name = &"instance"
+id = 11
+position = Vector2(0, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"type": 24,
+"dir": 1,
+"flags": 2050,
+"label": "instance",
+"target_class": "AwaitOverriddenCoroutineBase",
+"hint": 34,
+"hint_string": "AwaitOverriddenCoroutineBase",
+"usage": 4102
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_fetch"]
+function_name = &"fetch_bool"
+target_class_name = "AwaitOverriddenCoroutineBase"
+target_type = 24
+flags = 520
+await = true
+method = {
+"name": &"fetch_bool",
+"return": {
+"type": 1
+}
+}
+chain = false
+id = 12
+position = Vector2(300, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "AwaitOverriddenCoroutineBase",
+"target_class": "AwaitOverriddenCoroutineBase"
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_print"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 13
+position = Vector2(600, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptNodeOperator" id="OScriptNodeOperator_eq"]
+op = 0
+code = &"=="
+name = &"Equal"
+left_type = 1
+left_type_name = &"bool"
+right_type = 1
+right_type_name = &"bool"
+return_type = 1
+id = 14
+position = Vector2(450, 200)
+pin_data = Array[Dictionary]([{
+"pin_name": &"a",
+"type": 1,
+"flags": 2
+}, {
+"pin_name": &"b",
+"type": 1,
+"flags": 2,
+"dv": true
+}, {
+"pin_name": &"result",
+"type": 1,
+"dir": 1,
+"flags": 2
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_instance"]
+name = "instance"
+category = "Default"
+classification = "class:AwaitOverriddenCoroutineBase"
+type = 24
+
+[resource]
+base_type = &"Node"
+brief_description = "Awaiting a base-typed call whose override is a coroutine yields the override's result."
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_instance")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_ready"), SubResource("OScriptFunction_run")])
+connections = Array[int]([0, 0, 1, 0, 1, 0, 2, 0, 1, 1, 2, 1, 2, 0, 3, 0, 3, 0, 5, 0, 4, 0, 5, 1, 10, 0, 12, 0, 11, 0, 12, 1, 12, 0, 13, 0, 12, 1, 14, 0, 14, 0, 13, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_ready"), SubResource("OScriptNodeNew_new"), SubResource("OScriptNodeVariableSet_set"), SubResource("OScriptNodeCallScriptFunction_run"), SubResource("OScriptNodeVariableGet_get1"), SubResource("OScriptNodeCallMemberFunction_fire"), SubResource("OScriptNodeFunctionEntry_run"), SubResource("OScriptNodeVariableGet_get2"), SubResource("OScriptNodeCallMemberFunction_fetch"), SubResource("OScriptNodeCallBuiltinFunction_print"), SubResource("OScriptNodeOperator_eq")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_event"), SubResource("OScriptGraph_run")])
