@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cshutmeta01"]
+
+[ext_resource type="Script" uid="uid://bshutmeta01" path="res://scenes/features/shutdown_instance_in_engine_meta.torch" id="1_shut_meta"]
+
+[node name="ShutdownInstanceInEngineMeta" type="Node"]
+script = ExtResource("1_shut_meta")
