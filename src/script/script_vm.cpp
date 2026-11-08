@@ -4046,28 +4046,24 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
     }
     #endif
 
-    // Check if this is not the last time it was interrupted by 'await' or if it's the first time executing.
-    // If that is the case then we exit the function like normal; otherwise, postpone it until the last 'await' completes.
-    // This ensures the call stack can be properly shown when using 'await', showing what resumed the function.
-    if (!p_state || awaited) {
-        OScriptLanguage::get_singleton()->exit_function();
+    if (p_state && !awaited) {
+        // This means we've finished executing a resumed function and it was not awaited again.
+        // Exit function only after executing the remaining function states to preserve async call stack.
+        // Postpone the function exiting and the call stack clearing until the last 'await' is completed.
+        // This ensures the call stack can be properly shown when using 'await', showing what resumed the function.
+
+        // Signal the next function-state to resume.
+        p_state->completed.emit(retvalue);
     }
 
-    // Always free reserved addresses, since they are never copied.
+    OScriptLanguage::get_singleton()->exit_function();
+
+    // Free all stack addresses, since they are never copied.
     for (int i = 0; i < stack_size; i++) {
         stack[i].~Variant();
     }
 
     call_depth--;
-
-    if (p_state && !awaited) {
-        // This means we've finished executing a resumed function and it was not awaited again
-        // Signal the next function-state to resume
-        p_state->completed.emit(retvalue);
-
-        // Exit function only after executing the remaining function states to preserve async call stack.
-        OScriptLanguage::get_singleton()->exit_function();
-    }
 
     return retvalue;
 }
