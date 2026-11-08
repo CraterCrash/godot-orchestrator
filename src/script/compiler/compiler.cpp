@@ -2964,22 +2964,26 @@ Error OScriptCompiler::prepare_compilation(OScript* p_script, const OScriptParse
                     return err;
                 }
             } else if (!base->_is_valid()) {
+                // Copy these first, as base may be reassigned to null below and is still needed for error messages.
+                const String base_qualified_name = base->fully_qualified_name;
+                const String base_path = base->path;
+
                 Error err = OK;
-                Ref<OScript> base_root = OScriptCache::get_shallow_script(base->path, err, p_script->path);
+                Ref<OScript> base_root = OScriptCache::get_shallow_script(base_path, err, p_script->path);
                 if (err) {
-                    set_error(vformat(R"(Could not parse base class "%s" from "%s": %s)", base->fully_qualified_name, base->path, error_names[err]), nullptr);
+                    set_error(vformat(R"(Could not parse base class "%s" from "%s": %s)", base_qualified_name, base_path, error_names[err]), nullptr);
                     return err;
                 }
                 if (base_root.is_valid()) {
-                    base = Ref<OScript>(base_root->find_class(base->fully_qualified_name));
+                    base = Ref<OScript>(base_root->find_class(base_qualified_name));
                 }
                 if (base.is_null()) {
-                    set_error(vformat(R"(Could not find class "%s" in "%s".)", base->fully_qualified_name, base->path), nullptr);
+                    set_error(vformat(R"(Could not find class "%s" in "%s".)", base_qualified_name, base_path), nullptr);
                     return ERR_COMPILATION_FAILED;
                 }
                 err = prepare_compilation(base.ptr(), p_class->base_type.class_type, p_keep_state);
                 if (err) {
-                    set_error(vformat(R"(Could not populate class members of base class "%s" in %s".)", base->fully_qualified_name, base->path), nullptr);
+                    set_error(vformat(R"(Could not populate class members of base class "%s" in "%s".)", base_qualified_name, base_path), nullptr);
                     return err;
                 }
             }
