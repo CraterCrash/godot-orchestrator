@@ -42,8 +42,8 @@ static bool _profile_count_as_native(const Object* p_base_obj, const StringName&
         return false;
     }
 
-    StringName cname = p_base_obj->get_class();
-    if ((p_method_name == CoreStringName(new_) && cname == StringName("OScript")) || p_method_name == StringName("call")) {
+    const StringName cname = p_base_obj->get_class();
+    if ((p_method_name == CoreStringName(new_) && cname == OScript::get_class_static()) || p_method_name == CoreStringName(call)) {
         return false;
     }
 
@@ -701,11 +701,11 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
             instruction_args = nullptr;
         }
 
-        for (const KeyValue<int, Variant::Type>& E : temporary_slots) {
+        for (const Pair<int, Variant::Type>& E : temporary_slots) {
             #ifdef USE_TYPE_INIT_FUNCTION_TABLE
-            type_init_function_table[E.value](&stack[E.key]);
+            type_init_function_table[E.second](&stack[E.first]);
             #endif
-            GDE::VariantInternal::initialize(&stack[E.key], E.value);
+            GDE::VariantInternal::initialize(&stack[E.first], E.second);
         }
     }
 
@@ -800,7 +800,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
     #endif
 
     bool awaited = false;
-    Variant* variant_addresses[ADDR_TYPE_MAX] = { stack, constants_ptr, p_instance ? p_instance->_members.ptrw() : nullptr };
+    Variant* variant_addresses[ADDR_TYPE_MAX] = { stack, constants_ptr, p_instance ? p_instance->_members.ptr() : nullptr };
 
     #ifdef DEBUG_ENABLED
     OPCODE_WHILE(ip < code_size) {
@@ -980,7 +980,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 Variant::Type builtin_type = GDE::Variant::as_type(code_ptr[ip + 4]);
                 int native_type_idx = code_ptr[ip + 5];
                 OSCRIPT_ERR_BREAK(native_type_idx < 0 || native_type_idx >= global_names_count);
-                const StringName native_type = global_names_ptr[native_type_idx];
+                const StringName &native_type = global_names_ptr[native_type_idx];
 
                 bool result = false;
                 if (value->get_type() == Variant::ARRAY) {
@@ -1005,13 +1005,13 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 Variant::Type key_builtin_type = GDE::Variant::as_type(code_ptr[ip + 5]);
                 int key_native_type_idx = code_ptr[ip + 6];
                 OSCRIPT_ERR_BREAK(key_native_type_idx < 0 || key_native_type_idx >= global_names_count);
-                const StringName key_native_type = global_names_ptr[key_native_type_idx];
+                const StringName &key_native_type = global_names_ptr[key_native_type_idx];
 
                 GET_VARIANT_PTR(value_script_type, 3);
                 Variant::Type value_builtin_type = GDE::Variant::as_type(code_ptr[ip + 7]);
                 int value_native_type_idx = code_ptr[ip + 8];
                 OSCRIPT_ERR_BREAK(value_native_type_idx < 0 || value_native_type_idx >= global_names_count);
-                const StringName value_native_type = global_names_ptr[value_native_type_idx];
+                const StringName &value_native_type = global_names_ptr[value_native_type_idx];
 
                 bool result = false;
                 if (value->get_type() == Variant::DICTIONARY) {
@@ -1037,7 +1037,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 const int native_type_idx = code_ptr[ip + 3];
                 OSCRIPT_ERR_BREAK(native_type_idx < 0 || native_type_idx >= global_names_count);
-                const StringName native_type = global_names_ptr[native_type_idx];
+                const StringName &native_type = global_names_ptr[native_type_idx];
 
                 bool was_freed = false;
                 Object* object = GDE::Variant::get_validated_object_with_check(*value, was_freed);
@@ -1046,7 +1046,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     OPCODE_BREAK;
                 }
 
-                *dst = object && ClassDB::is_parent_class(object->get_class(), native_type);
+                *dst = object && object->is_class(native_type);
                 ip += 4;
             }
             DISPATCH_OPCODE;
@@ -1492,7 +1492,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 const int native_type_idx = code_ptr[ip + 5];
                 OSCRIPT_ERR_BREAK(native_type_idx < 0 || native_type_idx >= global_names_count);
-                const StringName native_type = global_names_ptr[native_type_idx];
+                const StringName &native_type = global_names_ptr[native_type_idx];
 
                 if (src->get_type() != Variant::ARRAY) {
                     #ifdef DEBUG_ENABLED
@@ -1530,14 +1530,14 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 const int key_native_type_idx = code_ptr[ip + 6];
 				OSCRIPT_ERR_BREAK(key_native_type_idx < 0 || key_native_type_idx >= global_names_count);
-				const StringName key_native_type = global_names_ptr[key_native_type_idx];
+				const StringName &key_native_type = global_names_ptr[key_native_type_idx];
 
 				GET_VARIANT_PTR(value_script_type, 3);
 				Variant::Type value_builtin_type = GDE::Variant::as_type(code_ptr[ip + 7]);
 
                 const int value_native_type_idx = code_ptr[ip + 8];
 				OSCRIPT_ERR_BREAK(value_native_type_idx < 0 || value_native_type_idx >= global_names_count);
-				const StringName value_native_type = global_names_ptr[value_native_type_idx];
+				const StringName &value_native_type = global_names_ptr[value_native_type_idx];
 
 				if (src->get_type() != Variant::DICTIONARY) {
                     #ifdef DEBUG_ENABLED
@@ -1593,7 +1593,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                         OPCODE_BREAK;
                     }
 
-                    if (src_obj && !ClassDB::is_parent_class(src_obj->get_class(), nc->get_name())) {
+                    if (src_obj && !src_obj->is_class(nc->get_name())) {
                         error_text = "Trying to assign value of type '" + src_obj->get_class() +
                                 "' to a variable of type '" + nc->get_name() + "'.";
                         OPCODE_BREAK;
@@ -1714,7 +1714,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 #endif
 
                 Object *src_obj = src->operator Object *();
-                if (src_obj && !ClassDB::is_parent_class(src_obj->get_class(), nc->get_name())) {
+                if (src_obj && !src_obj->is_class(nc->get_name())) {
                     *dst = Variant(); // invalid cast, assign NULL
                 } else {
                     *dst = *src;
@@ -1847,7 +1847,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 Variant::Type builtin_type = GDE::Variant::as_type(code_ptr[ip + 2]);
                 const int native_type_idx = code_ptr[ip + 3];
                 OSCRIPT_ERR_BREAK(native_type_idx < 0 || native_type_idx >= global_names_count);
-                const StringName native_type = global_names_ptr[native_type_idx];
+                const StringName &native_type = global_names_ptr[native_type_idx];
 
                 Array array;
                 array.set_typed(builtin_type, native_type, *script_type);
@@ -1902,13 +1902,13 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 Variant::Type key_builtin_type = GDE::Variant::as_type(code_ptr[ip + 2]);
                 const int key_native_type_idx = code_ptr[ip + 3];
                 OSCRIPT_ERR_BREAK(key_native_type_idx < 0 || key_native_type_idx >= global_names_count);
-                const StringName key_native_type = global_names_ptr[key_native_type_idx];
+                const StringName &key_native_type = global_names_ptr[key_native_type_idx];
 
                 GET_INSTRUCTION_ARG(value_script_type, argc * 2 + 2);
                 Variant::Type value_builtin_type = GDE::Variant::as_type(code_ptr[ip + 4]);
                 const int value_native_type_idx = code_ptr[ip + 5];
                 OSCRIPT_ERR_BREAK(value_native_type_idx < 0 || value_native_type_idx >= global_names_count);
-                const StringName value_native_type = global_names_ptr[value_native_type_idx];
+                const StringName &value_native_type = global_names_ptr[value_native_type_idx];
 
                 Dictionary dict;
                 dict.set_typed(key_builtin_type, key_native_type, *key_script_type, value_builtin_type, value_native_type, *value_script_type);
@@ -1960,8 +1960,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 					call_time = Time::get_singleton()->get_ticks_usec();
 				}
 				Variant::Type base_type = base->get_type();
-				Object* base_obj = base->get_validated_object();
-				StringName base_class = base_obj ? StringName(base_obj->get_class()) : StringName();
+				Object* base_obj = nullptr;
                 #endif
 
 				Variant temp_ret;
@@ -1974,12 +1973,15 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     #ifdef DEBUG_ENABLED
 					if (ret->get_type() == Variant::NIL) {
 						if (base_type == Variant::OBJECT) {
+							if (*methodname == CoreStringName(free_)) {
+								error_text = R"(Trying to get a return value of a method that returns "void")";
+								OPCODE_BREAK;
+							}
+							base_obj = base->get_validated_object();
 							if (base_obj) {
 							    MethodInfo minfo;
-                                bool has_method = GDE::ClassDB::get_method_info(base_class, *methodname, minfo, true);
-								// MethodBind *method = ClassDB::get_method(base_class, *methodname);
-							    // if (*methodname == CoreStringName(free_) || (method && !method->has_return())) {
-								if (*methodname == CoreStringName(free_) || (has_method && !MethodUtils::has_return_value(minfo))) {
+                                bool has_method = GDE::ClassDB::get_method_info(base_obj->get_class(), *methodname, minfo, true);
+								if (has_method && !MethodUtils::has_return_value(minfo)) {
 									error_text = R"(Trying to get a return value of a method that returns "void")";
 									OPCODE_BREAK;
 								}
@@ -2006,14 +2008,15 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 #ifdef DEBUG_ENABLED
 				if (OScriptLanguage::get_singleton()->profiling) {
+					base_obj = (base_obj == nullptr) ? base->get_validated_object() : base_obj;
 					uint64_t t_taken = Time::get_singleton()->get_ticks_usec() - call_time;
 					if (OScriptLanguage::get_singleton()->profile_native_calls && _profile_count_as_native(base_obj, *methodname)) {
-						_profile_native_call(t_taken, *methodname, base_class);
+						_profile_native_call(t_taken, *methodname, base_obj->get_class());
 					}
 					function_call_time += t_taken;
 				}
 
-				if (err.error != GDEXTENSION_CALL_OK) {
+				if (unlikely(err.error != GDEXTENSION_CALL_OK)) {
 					String methodstr = *methodname;
 					String basestr = _get_var_type(base);
 					bool is_callable = false;
@@ -2446,7 +2449,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(argc < 0);
 
                 OSCRIPT_ERR_BREAK(code_ptr[ip + 2] < 0 || code_ptr[ip + 2] >= global_names_count);
-                StringName function = global_names_ptr[code_ptr[ip + 2]];
+                const StringName &function = global_names_ptr[code_ptr[ip + 2]];
 
                 const Variant** argptrs = const_cast<const Variant**>(instruction_args);
                 GET_INSTRUCTION_ARG(dst, argc);
@@ -2879,7 +2882,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 Variant::Type builtin_type = GDE::Variant::as_type(code_ptr[ip + 3]);
                 int native_type_idx = code_ptr[ip + 4];
                 OSCRIPT_ERR_BREAK(native_type_idx < 0 || native_type_idx >= global_names_count);
-                const StringName native_type = global_names_ptr[native_type_idx];
+                const StringName &native_type = global_names_ptr[native_type_idx];
 
                 if (r->get_type() != Variant::ARRAY) {
                     #ifdef DEBUG_ENABLED
@@ -2917,13 +2920,13 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 				Variant::Type key_builtin_type = GDE::Variant::as_type(code_ptr[ip + 4]);
 				int key_native_type_idx = code_ptr[ip + 5];
 				OSCRIPT_ERR_BREAK(key_native_type_idx < 0 || key_native_type_idx >= global_names_count);
-				const StringName key_native_type = global_names_ptr[key_native_type_idx];
+				const StringName &key_native_type = global_names_ptr[key_native_type_idx];
 
 				GET_VARIANT_PTR(value_script_type, 2);
 				Variant::Type value_builtin_type = GDE::Variant::as_type(code_ptr[ip + 6]);
 				int value_native_type_idx = code_ptr[ip + 7];
 				OSCRIPT_ERR_BREAK(value_native_type_idx < 0 || value_native_type_idx >= global_names_count);
-				const StringName value_native_type = global_names_ptr[value_native_type_idx];
+				const StringName &value_native_type = global_names_ptr[value_native_type_idx];
 
 				if (r->get_type() != Variant::DICTIONARY) {
                     #ifdef DEBUG_ENABLED
@@ -2985,7 +2988,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 Object *ret_obj = r->operator Object *();
                 #endif // DEBUG_ENABLED
 
-                if (ret_obj && !ClassDB::is_parent_class(ret_obj->get_class(), nc->get_name())) {
+                if (ret_obj && !ret_obj->is_class(nc->get_name())) {
                     #ifdef DEBUG_ENABLED
                     error_text = vformat(R"(Trying to return a value of type "%s" from a function whose return type is "%s".)",
                         _get_var_type(r), nc->get_name());
@@ -3379,7 +3382,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
             OPCODE(OPCODE_ITERATE_BEGIN_OBJECT) {
                 CHECK_SPACE(4);
 
-                GET_VARIANT_PTR(counter, 0);
+                GET_VARIANT_PTR(state, 0);
                 GET_VARIANT_PTR(container, 1);
 
                 #ifdef DEBUG_ENABLED
@@ -3394,27 +3397,24 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 }
                 #endif
 
-                *counter = Variant();
-                Array ref = { *counter };
-                Variant vref;
-                GDE::VariantInternal::initialize(&vref, Variant::ARRAY);
-                *VariantInternal::get_array(&vref) = ref;
-
-                const Variant *args[] = { &vref };
+                // The state slot holds the iterator's single-element Array, shared with ref. Assign rather than
+                // initialize in place, since the slot may still hold a previous loop's state.
+                Array ref = { Variant() };
+                *state = ref;
 
                 GDExtensionCallError err;
                 Variant has_next;
                 GDE_INTERFACE(variant_call)(
                     container,
                     CoreStringName(_iter_init)._native_ptr(),
-                    reinterpret_cast<const GDExtensionConstVariantPtr*>(args),
+                    reinterpret_cast<const GDExtensionConstVariantPtr*>(&state),
                     1,
                     &has_next,
                     &err);
 
                 #ifdef DEBUG_ENABLED
                 if (ref.size() != 1 || err.error != GDEXTENSION_CALL_OK) {
-                    error_text = vformat(R"(There was an error calling "_iter_next" on iterator object of type %s.)", *container);
+                    error_text = vformat(R"(There was an error calling "_iter_next" on iterator object of type "%s".)", OScript::debug_get_script_name(obj->get_script()));
                     OPCODE_BREAK;
                 }
                 #endif
@@ -3424,20 +3424,20 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     OSCRIPT_ERR_BREAK(jumpto < 0 || jumpto > code_size);
                     ip = jumpto;
                 } else {
-                    *counter = ref[0];
+                    Variant *state_ptr = &(ref[0]);
 
                     GET_VARIANT_PTR(iterator, 2);
                     GDE_INTERFACE(variant_call)(
                         container,
                         CoreStringName(_iter_get)._native_ptr(),
-                        reinterpret_cast<const GDExtensionConstVariantPtr*>(&counter),
+                        reinterpret_cast<const GDExtensionConstVariantPtr*>(&state_ptr),
                         1,
                         iterator,
                         &err);
 
                     #ifdef DEBUG_ENABLED
                     if (err.error != GDEXTENSION_CALL_OK) {
-                        error_text = vformat(R"(There was an error calling "_iter_get" on iterator object of type %s.)", *container);
+                        error_text = vformat(R"(There was an error calling "_iter_get" on iterator object of type "%s".)", OScript::debug_get_script_name(obj->get_script()));
                         OPCODE_BREAK;
                     }
                     #endif
@@ -3762,7 +3762,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
             OPCODE(OPCODE_ITERATE_OBJECT) {
                 CHECK_SPACE(4);
 
-                GET_VARIANT_PTR(counter, 0);
+                GET_VARIANT_PTR(state, 0);
                 GET_VARIANT_PTR(container, 1);
 
                 #ifdef DEBUG_ENABLED
@@ -3777,27 +3777,20 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 }
                 #endif
 
-                Array ref = { *counter };
-                Variant vref;
-                GDE::VariantInternal::initialize(&vref, Variant::ARRAY);
-                *VariantInternal::get_array(&vref) = ref;
-
-                const Variant *args[] = { &vref };
-
                 GDExtensionCallError ce;
 
                 Variant has_next;
                 GDE_INTERFACE(variant_call)(
                     container,
                     CoreStringName(_iter_next)._native_ptr(),
-                    reinterpret_cast<const GDExtensionConstVariantPtr*>(&args),
+                    reinterpret_cast<const GDExtensionConstVariantPtr*>(&state),
                     1,
                     &has_next,
                     &ce);
 
                 #ifdef DEBUG_ENABLED
-                if (ref.size() != 1 || ce.error != GDEXTENSION_CALL_OK) {
-                    error_text = vformat(R"(There was an error calling "_iter_next" on iterator object of type %s.)", *container);
+                if (VariantInternal::get_array(state)->size() != 1 || ce.error != GDEXTENSION_CALL_OK) {
+                    error_text = vformat(R"(There was an error calling "_iter_next" on iterator object of type "%s".)", OScript::debug_get_script_name(obj->get_script()));
                     OPCODE_BREAK;
                 }
                 #endif
@@ -3807,21 +3800,22 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     OSCRIPT_ERR_BREAK(jumpto < 0 || jumpto > code_size);
                     ip = jumpto;
                 } else {
-                    *counter = ref[0];
+                    // For _iter_get(): get a pointer to the single element in the array.
+                    Variant *state_ptr = &((*VariantInternal::get_array(state))[0]);
 
                     GET_VARIANT_PTR(iterator, 2);
 
                     GDE_INTERFACE(variant_call)(
                         container,
                         CoreStringName(_iter_get)._native_ptr(),
-                        reinterpret_cast<const GDExtensionConstVariantPtr*>(&counter),
+                        reinterpret_cast<const GDExtensionConstVariantPtr*>(&state_ptr),
                         1,
                         iterator,
                         &ce);
 
                     #ifdef DEBUG_ENABLED
                     if (ce.error != GDEXTENSION_CALL_OK) {
-                        error_text = vformat(R"(There was an error calling "_iter_get" on iterator object of type %s.)", *container);
+                        error_text = vformat(R"(There was an error calling "_iter_get" on iterator object of type "%s".)", OScript::debug_get_script_name(obj->get_script()));
                         OPCODE_BREAK;
                     }
                     #endif

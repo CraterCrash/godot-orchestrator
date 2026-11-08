@@ -1,0 +1,148 @@
+[orchestration type="OScript" format=4 uid="uid://bbenchtypedas1"]
+
+[obj type="OScriptFunction" id="OScriptFunction_run"]
+guid = "B0000000-0000-4000-8000-0000000002A1"
+method = {
+"name": &"run"
+}
+user_defined = true
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_EventGraph"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([])
+functions = Array[int]([])
+
+[obj type="OScriptGraph" id="OScriptGraph_run"]
+graph_name = &"run"
+flags = 22
+nodes = Array[int]([10, 11, 12, 13, 14, 15])
+functions = Array[int]([10])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_10"]
+function_id = "B0000000-0000-4000-8000-0000000002A1"
+id = 10
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeSelf" id="OScriptNodeSelf_11"]
+id = 11
+pin_data = Array[Dictionary]([{
+"pin_name": &"self",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "Node",
+"dv": null
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_12"]
+variable_name = &"target"
+id = 12
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"target",
+"flags": 2050,
+"usage": 131074
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 131074
+}])
+
+[obj type="OScriptNodeForLoop" id="OScriptNodeForLoop_13"]
+id = 13
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"first_index",
+"type": 2,
+"flags": 2,
+"dv": 0
+}, {
+"pin_name": &"last_index",
+"type": 2,
+"flags": 2,
+"dv": 200000
+}, {
+"pin_name": &"loop_body",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"index",
+"type": 2,
+"dir": 1,
+"flags": 514,
+"dv": 0
+}, {
+"pin_name": &"completed",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_14"]
+variable_name = &"target"
+id = 14
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"dir": 1,
+"flags": 2050,
+"label": "target",
+"usage": 131074
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_15"]
+variable_name = &"node"
+id = 15
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"node",
+"flags": 2050,
+"type": 24,
+"target_class": "Node"
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"type": 24,
+"target_class": "Node"
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_target"]
+name = "target"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[obj type="OScriptVariable" id="OScriptVariable_node"]
+name = "node"
+category = "Default"
+classification = "class:Node"
+default_value = null
+
+[resource]
+base_type = &"Node"
+brief_description = "Assigns an untyped Variant into a Node-typed member (OPCODE_ASSIGN_TYPED_NATIVE)."
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_target"), SubResource("OScriptVariable_node")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_run")])
+connections = Array[int]([10, 0, 12, 0, 11, 0, 12, 1, 12, 0, 13, 0, 13, 0, 15, 0, 14, 0, 15, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_10"), SubResource("OScriptNodeSelf_11"), SubResource("OScriptNodeVariableSet_12"), SubResource("OScriptNodeForLoop_13"), SubResource("OScriptNodeVariableGet_14"), SubResource("OScriptNodeVariableSet_15")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_EventGraph"), SubResource("OScriptGraph_run")])
