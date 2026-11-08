@@ -937,9 +937,19 @@ void OScriptInstance::reload_members() {
 
     // Pass values to the new indices
     for (KeyValue<StringName, OScript::MemberInfo>& E : _script->member_indices) {
+        bool member_value_assigned = false;
+
         if (_member_indices_cache.has(E.key)) {
-            Variant value = _members[_member_indices_cache[E.key]];
-            new_members.write[E.value.index] = value;
+            // Only keep the old value if it still matches the member's type, which may have changed.
+            const Variant value = _members[_member_indices_cache[E.key]];
+            if (E.value.data_type.is_type(value, false)) {
+                member_value_assigned = true;
+                new_members.write[E.value.index] = value;
+            }
+        }
+
+        if (!member_value_assigned) {
+            new_members.write[E.value.index] = OScriptCompiledFunction::get_default_variant_for_data_type(E.value.data_type);
         }
     }
 
