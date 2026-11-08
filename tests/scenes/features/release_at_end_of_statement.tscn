@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://creleaseeos01"]
+
+[ext_resource type="Script" uid="uid://breleaseeos01" path="res://scenes/features/release_at_end_of_statement.torch" id="1_rel_eos"]
+
+[node name="ReleaseAtEndOfStatement" type="Node"]
+script = ExtResource("1_rel_eos")
