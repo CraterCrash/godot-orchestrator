@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cawaitmcres01"]
+
+[ext_resource type="Script" uid="uid://bawaitmcres01" path="res://scenes/features/await_member_call_result.torch" id="1_await_mc"]
+
+[node name="AwaitMemberCallResult" type="Node"]
+script = ExtResource("1_await_mc")
