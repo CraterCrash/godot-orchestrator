@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cawaitovrco01"]
+
+[ext_resource type="Script" uid="uid://bawaitovrco01" path="res://scenes/features/await_overridden_coroutine.torch" id="1_await_oc"]
+
+[node name="AwaitOverriddenCoroutine" type="Node"]
+script = ExtResource("1_await_oc")
