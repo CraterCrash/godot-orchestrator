@@ -387,7 +387,6 @@ private:
 
     String get_call_error(const String& p_where, const Variant** p_args, int p_arg_count, const Variant& p_result, const GDExtensionCallError& p_error) const;
     String get_callable_call_error(const String& p_where, const Callable& p_callable, const Variant** p_args, int p_arg_count, const Variant& p_result, const GDExtensionCallError& p_error) const;
-    Variant get_default_variant_for_data_type(const OScriptDataType& p_type);
 
 public:
     static constexpr int MAX_CALL_DEPTH = 2048; // Limit to avoid crash because of stack overflow
@@ -422,6 +421,7 @@ public:
     StringName get_global_name(int p_index) const;
 
     Variant call(OScriptInstance* p_instance, const Variant** p_args, int p_arg_count, GDExtensionCallError& r_error, CallState* p_state = nullptr);
+    static Variant get_default_variant_for_data_type(const OScriptDataType& p_type);
     void debug_get_stack_member_state(int p_node, List<Pair<StringName, int>>* r_stack_vars) const;
 
     #ifdef DEBUG_ENABLED
