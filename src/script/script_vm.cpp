@@ -3853,7 +3853,10 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(globalname_idx < 0 || globalname_idx >= global_names_count);
 
                 const StringName *globalname = &global_names_ptr[globalname_idx];
-                OSCRIPT_ERR_BREAK(!OScriptLanguage::get_singleton()->get_named_globals_map().has(*globalname));
+                if (unlikely(!OScriptLanguage::get_singleton()->get_named_globals_map().has(*globalname))) {
+                    error_text = vformat(R"(Trying to access non-existent autoload singleton "%s".)", *globalname);
+                    OPCODE_BREAK;
+                }
 
                 GET_VARIANT_PTR(dst, 0);
                 *dst = OScriptLanguage::get_singleton()->get_named_globals_map()[*globalname];
