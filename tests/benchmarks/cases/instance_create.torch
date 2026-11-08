@@ -1,0 +1,137 @@
+[orchestration type="OScript" format=4 uid="uid://bbenchinstcre1"]
+
+[obj type="OScriptFunction" id="OScriptFunction_run"]
+guid = "B0000000-0000-4000-8000-0000000002A1"
+method = {
+"name": &"run"
+}
+user_defined = true
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_EventGraph"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([])
+functions = Array[int]([])
+
+[obj type="OScriptGraph" id="OScriptGraph_run"]
+graph_name = &"run"
+flags = 22
+nodes = Array[int]([10, 13, 14, 15, 16])
+functions = Array[int]([10])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_10"]
+function_id = "B0000000-0000-4000-8000-0000000002A1"
+id = 10
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeForLoop" id="OScriptNodeForLoop_13"]
+id = 13
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"first_index",
+"type": 2,
+"flags": 2,
+"dv": 0
+}, {
+"pin_name": &"last_index",
+"type": 2,
+"flags": 2,
+"dv": 20000
+}, {
+"pin_name": &"loop_body",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"index",
+"type": 2,
+"dir": 1,
+"flags": 514,
+"dv": 0
+}, {
+"pin_name": &"completed",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_14"]
+variable_name = &"keep"
+id = 14
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"dir": 1,
+"flags": 2050,
+"label": "keep",
+"type": 28
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_15"]
+class_name = "BenchInstanceSubject"
+id = 15
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "BenchInstanceSubject",
+"dv": null
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_16"]
+function_name = &"append"
+target_type = 28
+flags = 520
+method = {
+"name": &"append",
+"args": [{
+"name": &"value",
+"usage": 131078
+}]
+}
+chain = false
+id = 16
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 28,
+"flags": 2058,
+"label": "Array"
+}, {
+"pin_name": &"value",
+"flags": 2,
+"usage": 131078
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_keep"]
+name = "keep"
+category = "Default"
+classification = "type:Array"
+default_value = []
+
+[resource]
+base_type = &"Node"
+brief_description = "Creates and retains instances of a 16-member orchestration (per-instance hot-reload bookkeeping)."
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_keep")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_run")])
+connections = Array[int]([10, 0, 13, 0, 13, 0, 15, 0, 15, 0, 16, 0, 14, 0, 16, 1, 15, 1, 16, 2])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_10"), SubResource("OScriptNodeForLoop_13"), SubResource("OScriptNodeVariableGet_14"), SubResource("OScriptNodeNew_15"), SubResource("OScriptNodeCallMemberFunction_16")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_EventGraph"), SubResource("OScriptGraph_run")])

@@ -592,7 +592,7 @@ OScriptCompiledFunction* OScriptBytecodeGenerator::write_end() {
 			opcodes.write[temporaries[i].bytecode_indices[j]] = stack_index | (OScriptCompiledFunction::ADDR_TYPE_STACK << OScriptCompiledFunction::ADDR_BITS);
 		}
 		if (temporaries[i].type != Variant::NIL) {
-			function->temporary_slots[stack_index] = temporaries[i].type;
+			function->temporary_slots.push_back(Pair<int, Variant::Type>(stack_index, temporaries[i].type));
 		}
 	}
 

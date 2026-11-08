@@ -252,13 +252,6 @@ OScriptInstance* OScript::_create_instance(const Variant** p_args, int p_arg_cou
     si->_owner = p_owner;
     si->_owner_id = p_owner->get_instance_id();
 
-    #ifdef DEBUG_ENABLED
-    // Needed for hot reloading
-    for (const KeyValue<StringName, MemberInfo>& E : member_indices) {
-        si->_member_indices_cache[E.key] = E.value.index;
-    }
-    #endif
-
     si->set_instance_info(GDEXTENSION_SCRIPT_INSTANCE_CREATE(&OScriptInstance::INSTANCE_INFO, si));
     // GH-1663 Allows for calling script-level functions during `_init`.
     GDE_INTERFACE(object_set_script_instance)(p_owner->_owner, si->get_instance_info());
@@ -627,7 +620,7 @@ void* OScript::_instance_create(Object* p_object) const {
     }
 
     if (scr->native.is_valid()) {
-        if (!ClassDB::is_parent_class(p_object->get_class(), scr->native->get_name())) {
+        if (!p_object->is_class(scr->native->get_name())) {
             const String message = vformat(
                 "Orchestration inherits from native type '%s', so it can't be assigned to an object of type: '%s'",
                 scr->native->get_name(), p_object->get_class());
@@ -1536,8 +1529,8 @@ String OScript::dump_compiled_state() {
             result += vformat("Instr Arg Size  : %d\n", E.value->instruction_arg_size);
 
             result += vformat("Temporary Slots : %d\n", E.value->temporary_slots.size());
-            for (const KeyValue<int, Variant::Type>& T : E.value->temporary_slots) {
-                result += vformat("\t[%d]: %s\n", T.key, Variant::get_type_name(T.value));
+            for (const Pair<int, Variant::Type>& T : E.value->temporary_slots) {
+                result += vformat("\t[%d]: %s\n", T.first, Variant::get_type_name(T.second));
             }
 
             result += vformat("Code Size       : %d\n\n", E.value->code_size);

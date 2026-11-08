@@ -103,7 +103,7 @@ bool OScriptDataType::is_type(const Variant& p_variant, bool p_allow_implicit_co
 				return !was_freed;
 			}
 
-			if (!ClassDB::is_parent_class(obj->get_class(), native_type)) {
+			if (!obj->is_class(native_type)) {
 				return false;
 			}
 			return true;
@@ -292,8 +292,8 @@ String OScriptCompiledFunction::to_string() {
     result += vformat("Stack Size  : %d\n", stack_size);
     result += vformat("InstrArgSize: %d\n", instruction_arg_size);
     result += vformat("Temp Slots  : %d\n", temporary_slots.size());
-    for (const KeyValue<int, Variant::Type>& E : temporary_slots) {
-        result += vformat("\t[%d]: %s\n", E.key, Variant::get_type_name(E.value));
+    for (const Pair<int, Variant::Type>& E : temporary_slots) {
+        result += vformat("\t[%d]: %s\n", E.first, Variant::get_type_name(E.second));
     }
     result += vformat("Code Size   : %d\n", code_size);
 

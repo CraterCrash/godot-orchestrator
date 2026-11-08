@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cbenchdriver01"]
+
+[ext_resource type="Script" path="res://benchmarks/bench.gd" id="1_bench"]
+
+[node name="Bench" type="Node"]
+script = ExtResource("1_bench")
