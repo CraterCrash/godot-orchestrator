@@ -1245,6 +1245,7 @@ void OScript::clear() {
     }
 
     clearing = true;
+    ERR_FAIL_NULL_MSG(OScriptLanguage::get_singleton(), vformat("Orchestrator bug (please report): OScript '%s' was not cleared before language shutdown.", fully_qualified_name));
 
     RBSet<OScriptCompiledFunction*> functions_to_clear;
     {
@@ -1293,27 +1294,26 @@ void OScript::clear() {
         memdelete(E);
     }
     functions_to_clear.clear();
+
+    cancel_pending_functions(false);
+
+    {
+        MutexLock lock(OScriptLanguage::get_singleton()->lock);
+        script_list.remove_from_list();
+    }
 }
 
 void OScript::cancel_pending_functions(bool p_warn) {
     MutexLock lock(OScriptLanguage::get_singleton()->lock);
     while (SelfList<OScriptFunctionState>* E = pending_func_states.first()) {
-        // Order matters since clearing the stack may already cause the OScriptFunctionState
-        // to be destroyed and thus removed from the list.
-        pending_func_states.remove(E);
-        OScriptFunctionState* state = E->self();
+        Ref<OScriptFunctionState> state = E->self();
+        state->clear();
+
         #ifdef DEBUG_ENABLED
         if (p_warn) {
             WARN_PRINT("Canceling suspended execution of \"" + state->get_readable_function() + "\" due to a script reload.");
         }
         #endif
-
-        const uint64_t id = state->get_instance_id();
-        state->_clear_connections();
-
-        if (ObjectDB::get_instance(id)) {
-            state->_clear_stack();
-        }
     }
 }
 
@@ -1606,9 +1606,9 @@ OScript::OScript()
 }
 
 OScript::~OScript() {
-    if (destructing) {
-        return;
-    }
+    ERR_FAIL_COND_MSG(destructing, "Orchestrator bug (please report): Double free on OScript.");
+    destructing = true;
+
     if (is_print_verbose_enabled()) {
         MutexLock lock(func_ptrs_to_update_mutex);
         if (!func_ptrs_to_update.is_empty()) {
@@ -1618,9 +1618,4 @@ OScript::~OScript() {
         }
     }
     clear();
-    cancel_pending_functions(false);
-    {
-        MutexLock lock(OScriptLanguage::get_singleton()->lock);
-        script_list.remove_from_list();
-    }
 }

@@ -451,6 +451,24 @@ void OScriptFunctionState::_clear_connections() {
     }
 }
 
+void OScriptFunctionState::clear() {
+    if (cleared) {
+        return;
+    }
+
+    ERR_FAIL_NULL_MSG(OScriptLanguage::get_singleton(), "Orchestrator bug (please report): Function state was not cleared before language shutdown.");
+    MutexLock lock(OScriptLanguage::get_singleton()->lock);
+    if (cleared) {
+        return;
+    }
+    cleared = true;
+
+    _clear_connections();
+    scripts_list.remove_from_list();
+    instances_list.remove_from_list();
+    _clear_stack();
+}
+
 void OScriptFunctionState::_bind_methods() {
     ClassDB::bind_method(D_METHOD("resume", "arg"), &OScriptFunctionState::resume, DEFVAL(Variant()));
     ClassDB::bind_method(D_METHOD("is_valid", "extended_check"), &OScriptFunctionState::is_valid, DEFVAL(false));
@@ -467,8 +485,5 @@ OScriptFunctionState::OScriptFunctionState() : scripts_list(this), instances_lis
 }
 
 OScriptFunctionState::~OScriptFunctionState() {
-    MutexLock lock(OScriptLanguage::get_singleton()->lock);
-    scripts_list.remove_from_list();
-    instances_list.remove_from_list();
-    _clear_stack();
+    clear();
 }

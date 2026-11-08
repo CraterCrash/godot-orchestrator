@@ -42,6 +42,7 @@
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/mutex.hpp>
 
 OScriptLanguage* OScriptLanguage::_singleton = nullptr;
@@ -180,35 +181,75 @@ String OScriptLanguage::_get_extension() const {
 }
 
 void OScriptLanguage::_finish() {
-    if (finishing) {
-        return;
-    }
-
+    ERR_FAIL_COND_MSG(finishing, "Orchestrator bug (please report): OScriptLanguage double finish.");
     finishing = true;
 
+    // Clear the cache before walking the script list. Some OScript instances will drop to a reference count of
+    // zero and destruct on their own.
     OScriptCache::clear();
 
-    SelfList<OScript> *s = _scripts.first();
-    while (s) {
-        Ref<OScript> scr = s->self();
-        if (scr.is_valid()) {
-            for (KeyValue<StringName, OScriptCompiledFunction*>& E : scr->member_functions) {
-                OScriptCompiledFunction* func = E.value;
-                for (int i = 0; i < func->argument_types.size(); i++) {
-                    func->argument_types.write[i].script_type_ref = Ref<Script>();
-                }
-                func->return_type.script_type_ref = Ref<Script>();
-            }
-            for (KeyValue<StringName, OScript::MemberInfo>& E : scr->member_indices) {
-                E.value.data_type.script_type_ref = Ref<Script>();
-            }
-            scr->clear();
+    // All remaining scripts in the script list are still referenced. There can be two reasons for this:
+    // 1. They have a cyclic dependency among themselves.
+    // 2. They are referenced from another engine component that shuts down later, e.g. an instance stored in
+    //    the metadata of Engine.
+
+    // 1. Pass: Gracefully clear static data, so that instances stored in static variables can react to
+    //          NOTIFICATION_PREDELETE. It is a user error if NOTIFICATION_PREDELETE interacts with static data,
+    //          in which case the static data becomes subject to non-graceful clearing.
+    {
+        // Copy the script list to avoid problems if it changes during NOTIFICATION_PREDELETE.
+        LocalVector<Ref<OScript>> needs_static_data_clear;
+        for (const SelfList<OScript>* E = _scripts.first(); E != nullptr; E = E->next()) {
+            ERR_CONTINUE_MSG(E->self() == nullptr, "Orchestrator bug (please report): nullptr in the script list.");
+            needs_static_data_clear.push_back(E->self());
         }
-        s = s->next();
+        for (const Ref<OScript>& script : needs_static_data_clear) {
+            script->static_variables_indices.clear();
+            script->static_variables.clear();
+        }
     }
 
-    _scripts.clear();
-    function_list.clear();
+    // 2. Pass: Ungracefully cancel pending functions and detach dangling instances.
+    //          There are no obligations towards user code at this point, this only ensures we do not crash.
+    {
+        // The last reference to a script may come from a dangling instance, so keep the scripts alive until done.
+        LocalVector<Ref<OScript>> needs_dangling_clear;
+        for (const SelfList<OScript>* E = _scripts.first(); E != nullptr; E = E->next()) {
+            ERR_CONTINUE_MSG(E->self() == nullptr, "Orchestrator bug (please report): nullptr in the script list.");
+            needs_dangling_clear.push_back(E->self());
+        }
+        for (const Ref<OScript>& script : needs_dangling_clear) {
+            script->cancel_pending_functions(false);
+            while (!script->instances.is_empty()) {
+                // Turns instances into core objects that can outlive OScriptLanguage.
+                Object* owner = *script->instances.begin();
+                owner->set_script(Variant());
+                ERR_BREAK_MSG(script->instances.has(owner), "Orchestrator bug (please report): Detaching a script does not destruct the instance.");
+            }
+        }
+    }
+
+    // 3. Pass: Clear remaining internal references and turn the scripts into zombies that can outlive OScriptLanguage.
+    while (SelfList<OScript>* s = _scripts.first()) {
+        Ref<OScript> scr = s->self();
+        if (scr.is_null()) {
+            ERR_PRINT("Orchestrator bug (please report): nullptr in the script list.");
+            s->remove_from_list();
+            continue;
+        }
+
+        scr->clear();
+        ERR_BREAK_MSG(_scripts.first() == s || s->in_list(), "Orchestrator bug (please report): Cleared script still in the script list.");
+    }
+
+    if (_scripts.first() != nullptr) {
+        ERR_PRINT("Orchestrator bug (please report): Dangling script in the script list after language shutdown.");
+        _scripts.clear();
+    }
+    if (function_list.first() != nullptr) {
+        ERR_PRINT("Orchestrator bug (please report): Dangling function in the function list after language shutdown.");
+        function_list.clear();
+    }
 
     if (_template_registry) {
         memdelete(_template_registry);
