@@ -3372,8 +3372,6 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     error_text = "Trying to iterate on a null value.";
                     OPCODE_BREAK;
                 }
-                #else
-                Object *obj = *VariantInternal::get_object(container);
                 #endif
 
                 *counter = Variant();
@@ -3387,7 +3385,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 GDExtensionCallError err;
                 Variant has_next;
                 GDE_INTERFACE(variant_call)(
-                    obj,
+                    container,
                     CoreStringName(_iter_init)._native_ptr(),
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(args),
                     1,
@@ -3410,7 +3408,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                     GET_VARIANT_PTR(iterator, 2);
                     GDE_INTERFACE(variant_call)(
-                        obj,
+                        container,
                         CoreStringName(_iter_get)._native_ptr(),
                         reinterpret_cast<const GDExtensionConstVariantPtr*>(&counter),
                         1,
@@ -3757,8 +3755,6 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     error_text = "Trying to iterate on a null value.";
                     OPCODE_BREAK;
                 }
-                #else
-                Object *obj = *VariantInternal::get_object(container);
                 #endif
 
                 Array ref = { *counter };
@@ -3772,7 +3768,7 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
 
                 Variant has_next;
                 GDE_INTERFACE(variant_call)(
-                    obj,
+                    container,
                     CoreStringName(_iter_next)._native_ptr(),
                     reinterpret_cast<const GDExtensionConstVariantPtr*>(&args),
                     1,
@@ -3796,11 +3792,11 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                     GET_VARIANT_PTR(iterator, 2);
 
                     GDE_INTERFACE(variant_call)(
-                        obj,
+                        container,
                         CoreStringName(_iter_get)._native_ptr(),
                         reinterpret_cast<const GDExtensionConstVariantPtr*>(&counter),
                         1,
-                        *iterator,
+                        iterator,
                         &ce);
 
                     #ifdef DEBUG_ENABLED
