@@ -1366,7 +1366,17 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(!oscript);
 
                 const int index = code_ptr[ip + 3];
-                OSCRIPT_ERR_BREAK(index < 0 || index >= oscript->static_variables.size());
+                if (unlikely(index < 0 || index >= oscript->static_variables.size())) {
+                    #ifdef DEBUG_ENABLED
+                    if (OScriptLanguage::get_singleton()->finishing) {
+                        // Assume this is caused by the static deinitialization order, though a bug or a reload could also cause it.
+                        error_text = "Static variable does not exist anymore. Since the order in which static variables are destructed is arbitrary, consider emptying objects from them in a well-defined order manually before shutdown.";
+                    } else {
+                        _err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition 'index < 0 || index >= oscript->static_variables.size()' is true. Breaking...:");
+                    }
+                    #endif
+                    OPCODE_BREAK;
+                }
 
                 oscript->static_variables.write[index] = *value;
 
@@ -1384,7 +1394,17 @@ Variant OScriptCompiledFunction::call(OScriptInstance* p_instance, const Variant
                 OSCRIPT_ERR_BREAK(!oscript);
 
                 const int index = code_ptr[ip + 3];
-                OSCRIPT_ERR_BREAK(index < 0 || index >= oscript->static_variables.size());
+                if (unlikely(index < 0 || index >= oscript->static_variables.size())) {
+                    #ifdef DEBUG_ENABLED
+                    if (OScriptLanguage::get_singleton()->finishing) {
+                        // Assume this is caused by the static deinitialization order, though a bug or a reload could also cause it.
+                        error_text = "Static variable does not exist anymore. Since the order in which static variables are destructed is arbitrary, consider emptying objects from them in a well-defined order manually before shutdown.";
+                    } else {
+                        _err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition 'index < 0 || index >= oscript->static_variables.size()' is true. Breaking...:");
+                    }
+                    #endif
+                    OPCODE_BREAK;
+                }
 
                 *target = oscript->static_variables[index];
 
