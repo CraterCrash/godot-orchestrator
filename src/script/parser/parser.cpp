@@ -1995,7 +1995,7 @@ OScriptParser::StatementResult OScriptParser::build_call_member_function(const R
 
         Node* statement = await;
         if (has_return_value && result_pin.is_valid() && result_pin->has_any_connections()) {
-            statement = create_local(create_cached_variable_name(result_pin), nullptr, nullptr, result_pin);
+            statement = create_local(create_cached_variable_name(result_pin), await, nullptr, result_pin);
         }
 
         add_statement(statement);

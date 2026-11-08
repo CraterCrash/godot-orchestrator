@@ -1,0 +1,115 @@
+[orchestration type="OScript" format=4 uid="uid://bawaitmctor01"]
+
+[obj type="OScriptFunction" id="OScriptFunction_ready"]
+guid = "A1000000-0000-4000-8000-00000000E0E1"
+method = {
+"name": &"_ready",
+"flags": 8
+}
+id = 0
+
+[obj type="OScriptGraph" id="OScriptGraph_event"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([0, 1, 2, 3])
+functions = Array[int]([0])
+
+[obj type="OScriptNodeEvent" id="OScriptNodeEvent_ready"]
+function_id = "A1000000-0000-4000-8000-00000000E0E1"
+id = 0
+position = Vector2(0, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeNew" id="OScriptNodeNew_new"]
+class_name = "AwaitMemberCallTorchHelper"
+id = 1
+position = Vector2(200, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"instance",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "AwaitMemberCallTorchHelper",
+"dv": null
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_fetch"]
+function_name = &"fetch_value"
+target_class_name = "AwaitMemberCallTorchHelper"
+target_type = 24
+flags = 520
+await = true
+method = {
+"name": &"fetch_value",
+"return": {
+"type": 2
+}
+}
+chain = false
+id = 2
+position = Vector2(500, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2050,
+"label": "AwaitMemberCallTorchHelper",
+"target_class": "AwaitMemberCallTorchHelper"
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 1026
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_print"]
+function_name = &"print"
+flags = 33
+method = {
+"name": &"print",
+"flags": 17,
+"args": [{
+"name": &"arg1",
+"usage": 131078
+}]
+}
+variable_arg_count = 0
+id = 3
+position = Vector2(800, 0)
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"arg1",
+"flags": 2,
+"usage": 131078
+}])
+
+[resource]
+base_type = &"Node"
+brief_description = "Awaiting a coroutine member function of an orchestration waits and yields its return value."
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_ready")])
+connections = Array[int]([0, 0, 1, 0, 1, 0, 2, 0, 1, 1, 2, 1, 2, 0, 3, 0, 2, 1, 3, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeEvent_ready"), SubResource("OScriptNodeNew_new"), SubResource("OScriptNodeCallMemberFunction_fetch"), SubResource("OScriptNodeCallBuiltinFunction_print")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_event")])
