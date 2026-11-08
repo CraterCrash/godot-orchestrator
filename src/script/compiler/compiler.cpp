@@ -1545,12 +1545,15 @@ OScriptCodeGenerator::Address OScriptCompiler::parse_expression(CompilerContext&
         case OScriptParser::Node::CALL: {
 			const OScriptParser::CallNode *call = static_cast<const OScriptParser::CallNode *>(p_expression);
 			bool is_awaited = p_expression == awaited_node;
-			OScriptDataType type = resolve_type(call->get_datatype(), p_context.script);
 			OScriptCodeGenerator::Address result;
 			if (p_root) {
 				result = OScriptCodeGenerator::Address(OScriptCodeGenerator::Address::NIL);
+			} else if (is_awaited) {
+				// When called with await, we need to use an untyped temporary regardless of whether the base
+				// class function is a coroutine, because an inherited class could return a function state object.
+				result = p_context.add_temporary();
 			} else {
-				result = p_context.add_temporary(type);
+				result = p_context.add_temporary(resolve_type(call->get_datatype(), p_context.script));
 			}
 
 			Vector<OScriptCodeGenerator::Address> arguments;
