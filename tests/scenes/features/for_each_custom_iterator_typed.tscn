@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cforeachiter04"]
+
+[ext_resource type="Script" uid="uid://bforeachiter03" path="res://scenes/features/for_each_custom_iterator_typed.torch" id="1_fe_it"]
+
+[node name="ForEachCustomIteratorTyped" type="Node"]
+script = ExtResource("1_fe_it")
