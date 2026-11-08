@@ -438,7 +438,7 @@ uint32_t OScriptBytecodeGenerator::add_temporary(const OScriptDataType& p_type) 
             case Variant::PACKED_COLOR_ARRAY:
             case Variant::PACKED_VECTOR4_ARRAY:
             case Variant::VARIANT_MAX: {
-                // Arrays, dictionaries, and objects are reference counted, so we don't use the pool for them.
+                // Arrays, dictionaries, and objects are reference counted, so we use the same pool for them.
                 temp_type = Variant::NIL;
                 break;
             }
@@ -451,7 +451,7 @@ uint32_t OScriptBytecodeGenerator::add_temporary(const OScriptDataType& p_type) 
 
     List<int>& pool = temporaries_pool[temp_type];
     if (pool.is_empty()) {
-        StackSlot new_temp(temp_type, p_type.can_contain_object());
+        StackSlot new_temp(temp_type, temp_type == Variant::NIL);
         int idx = temporaries.size();
         pool.push_back(idx);
         temporaries.push_back(new_temp);
@@ -1583,17 +1583,28 @@ void OScriptBytecodeGenerator::write_cast(const Address& p_target, const Address
 }
 
 void OScriptBytecodeGenerator::write_call(const Address& p_target, const Address& p_base, const StringName& p_function_name, const Vector<Address>& p_arguments) {
-    append_opcode_and_argcount(p_target.mode == Address::NIL ? OScriptCompiledFunction::OPCODE_CALL : OScriptCompiledFunction::OPCODE_CALL_RETURN, 2 + p_arguments.size());
-    for (int i = 0; i < p_arguments.size(); i++) {
-        append(p_arguments[i]);
-    }
-    append(p_base);
+    if (p_target.mode == Address::NIL) {
+        append_opcode_and_argcount(OScriptCompiledFunction::OPCODE_CALL, 2 + p_arguments.size());
+        for (int i = 0; i < p_arguments.size(); i++) {
+            append(p_arguments[i]);
+        }
+        append(p_base);
+        append(Address());
+        append(p_arguments.size());
+        append(p_function_name);
+    } else {
+        append_opcode_and_argcount(OScriptCompiledFunction::OPCODE_CALL_RETURN, 2 + p_arguments.size());
+        for (int i = 0; i < p_arguments.size(); i++) {
+            append(p_arguments[i]);
+        }
+        append(p_base);
 
-    CallTarget ct = get_call_target(p_target);
-    append(ct.target);
-    append(p_arguments.size());
-    append(p_function_name);
-    ct.cleanup();
+        CallTarget ct = get_call_target(p_target);
+        append(ct.target);
+        append(p_arguments.size());
+        append(p_function_name);
+        ct.cleanup();
+    }
 }
 
 void OScriptBytecodeGenerator::write_super_call(const Address& p_target, const StringName& p_function_name, const Vector<Address>& p_arguments) {
@@ -1873,17 +1884,28 @@ void OScriptBytecodeGenerator::write_call_method_bind_validated(const Address& p
 }
 
 void OScriptBytecodeGenerator::write_call_self(const Address& p_target, const StringName& p_function_name, const Vector<Address>& p_arguments) {
-    append_opcode_and_argcount(p_target.mode == Address::NIL ? OScriptCompiledFunction::OPCODE_CALL : OScriptCompiledFunction::OPCODE_CALL_RETURN, 2 + p_arguments.size());
-    for (int i = 0; i < p_arguments.size(); i++) {
-        append(p_arguments[i]);
-    }
-    append(OScriptCompiledFunction::ADDR_TYPE_STACK << OScriptCompiledFunction::ADDR_BITS);
+    if (p_target.mode == Address::NIL) {
+        append_opcode_and_argcount(OScriptCompiledFunction::OPCODE_CALL, 2 + p_arguments.size());
+        for (int i = 0; i < p_arguments.size(); i++) {
+            append(p_arguments[i]);
+        }
+        append(OScriptCompiledFunction::ADDR_TYPE_STACK << OScriptCompiledFunction::ADDR_BITS);
+        append(Address());
+        append(p_arguments.size());
+        append(p_function_name);
+    } else {
+        append_opcode_and_argcount(OScriptCompiledFunction::OPCODE_CALL_RETURN, 2 + p_arguments.size());
+        for (int i = 0; i < p_arguments.size(); i++) {
+            append(p_arguments[i]);
+        }
+        append(OScriptCompiledFunction::ADDR_TYPE_STACK << OScriptCompiledFunction::ADDR_BITS);
 
-    CallTarget ct = get_call_target(p_target);
-    append(ct.target);
-    append(p_arguments.size());
-    append(p_function_name);
-    ct.cleanup();
+        CallTarget ct = get_call_target(p_target);
+        append(ct.target);
+        append(p_arguments.size());
+        append(p_function_name);
+        ct.cleanup();
+    }
 }
 
 void OScriptBytecodeGenerator::write_call_self_async(const Address& p_target, const StringName& p_function_name, const Vector<Address>& p_arguments) {
