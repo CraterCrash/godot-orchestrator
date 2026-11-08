@@ -971,17 +971,8 @@ OScriptInstance::OScriptInstance(const Ref<OScript>& p_script, Object* p_owner)
 OScriptInstance::~OScriptInstance() {
     MutexLock lock(OScriptLanguage::get_singleton()->lock);
     while (SelfList<OScriptFunctionState>* E = _pending_func_states.first()) {
-        // Order matters since clearing the stack may already cause the OScriptFunctionState to
-        // be destroyed and thus removed from the list.
-        _pending_func_states.remove(E);
-
-        OScriptFunctionState* state = E->self();
-        ObjectID state_id = ObjectID(state->get_instance_id());
-
-        state->_clear_connections();
-        if (ObjectDB::get_instance(state_id)) {
-            state->_clear_stack();
-        }
+        Ref<OScriptFunctionState> state = E->self();
+        state->clear();
     }
 
     if (_script.is_valid() && _owner) {

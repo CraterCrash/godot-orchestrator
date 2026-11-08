@@ -1,0 +1,13 @@
+[orchestration type="OScript" format=4 uid="uid://bshutmeta02"]
+
+[obj type="OScriptGraph" id="OScriptGraph_event"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([])
+functions = Array[int]([])
+
+[resource]
+base_type = &"RefCounted"
+class_name = &"ShutdownInstanceInEngineMetaHelper"
+brief_description = "An orchestration instance that is kept alive in Engine metadata until exit."
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_event")])
