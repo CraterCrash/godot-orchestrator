@@ -1,0 +1,125 @@
+[orchestration type="OScript" format=4 uid="uid://bbenchcallutil1"]
+
+[obj type="OScriptFunction" id="OScriptFunction_run"]
+guid = "B0000000-0000-4000-8000-0000000002A1"
+method = {
+"name": &"run"
+}
+user_defined = true
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_EventGraph"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([])
+functions = Array[int]([])
+
+[obj type="OScriptGraph" id="OScriptGraph_run"]
+graph_name = &"run"
+flags = 22
+nodes = Array[int]([10, 13, 14, 15])
+functions = Array[int]([10])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_10"]
+function_id = "B0000000-0000-4000-8000-0000000002A1"
+id = 10
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeForLoop" id="OScriptNodeForLoop_13"]
+id = 13
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"first_index",
+"type": 2,
+"flags": 2,
+"dv": 0
+}, {
+"pin_name": &"last_index",
+"type": 2,
+"flags": 2,
+"dv": 200000
+}, {
+"pin_name": &"loop_body",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"index",
+"type": 2,
+"dir": 1,
+"flags": 514,
+"dv": 0
+}, {
+"pin_name": &"completed",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeCallBuiltinFunction" id="OScriptNodeCallBuiltinFunction_14"]
+function_name = &"absi"
+flags = 33
+method = {
+"name": &"absi",
+"args": [{
+"name": &"x",
+"type": 2
+}],
+"return": {
+"type": 2
+},
+"flags": 1
+}
+id = 14
+pin_data = Array[Dictionary]([{
+"pin_name": &"x",
+"type": 2,
+"flags": 2,
+"dv": 0
+}, {
+"pin_name": &"return_value",
+"type": 2,
+"dir": 1,
+"flags": 2,
+"dv": 0
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_15"]
+variable_name = &"sink"
+id = 15
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"sink",
+"flags": 2050,
+"usage": 131074
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 131074
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_sink"]
+name = "sink"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[resource]
+base_type = &"Node"
+brief_description = "Calls a utility function each iteration (OPCODE_CALL_UTILITY)."
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_sink")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_run")])
+connections = Array[int]([10, 0, 13, 0, 13, 0, 15, 0, 13, 1, 14, 0, 14, 0, 15, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_10"), SubResource("OScriptNodeForLoop_13"), SubResource("OScriptNodeCallBuiltinFunction_14"), SubResource("OScriptNodeVariableSet_15")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_EventGraph"), SubResource("OScriptGraph_run")])

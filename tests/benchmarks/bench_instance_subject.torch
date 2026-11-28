@@ -1,0 +1,113 @@
+[orchestration type="OScript" format=4 uid="uid://bbenchinstsub1"]
+
+[obj type="OScriptGraph" id="OScriptGraph_EventGraph"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([])
+functions = Array[int]([])
+
+[obj type="OScriptVariable" id="OScriptVariable_m00"]
+name = "m00"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m01"]
+name = "m01"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m02"]
+name = "m02"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m03"]
+name = "m03"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m04"]
+name = "m04"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m05"]
+name = "m05"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m06"]
+name = "m06"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m07"]
+name = "m07"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m08"]
+name = "m08"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m09"]
+name = "m09"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m10"]
+name = "m10"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m11"]
+name = "m11"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m12"]
+name = "m12"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m13"]
+name = "m13"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m14"]
+name = "m14"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[obj type="OScriptVariable" id="OScriptVariable_m15"]
+name = "m15"
+category = "Default"
+classification = "type:int"
+default_value = 0
+
+[resource]
+base_type = &"RefCounted"
+class_name = &"BenchInstanceSubject"
+brief_description = "Orchestration with 16 members, instantiated by the instance_create benchmark."
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_m00"), SubResource("OScriptVariable_m01"), SubResource("OScriptVariable_m02"), SubResource("OScriptVariable_m03"), SubResource("OScriptVariable_m04"), SubResource("OScriptVariable_m05"), SubResource("OScriptVariable_m06"), SubResource("OScriptVariable_m07"), SubResource("OScriptVariable_m08"), SubResource("OScriptVariable_m09"), SubResource("OScriptVariable_m10"), SubResource("OScriptVariable_m11"), SubResource("OScriptVariable_m12"), SubResource("OScriptVariable_m13"), SubResource("OScriptVariable_m14"), SubResource("OScriptVariable_m15")])
+functions = Array[OScriptFunction]([])
+connections = Array[int]([])
+nodes = Array[OScriptNode]([])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_EventGraph")])

@@ -94,11 +94,8 @@ class OScriptInstance : public OScriptInstanceBase {
     friend class OScriptCompiler;
     friend class OScriptCompiledFunction;
 
-    Vector<Variant> _members;
+    TightLocalVector<Variant> _members;
     SelfList<OScriptFunctionState>::List _pending_func_states;
-    #ifdef DEBUG_ENABLED
-    HashMap<StringName, int> _member_indices_cache;
-    #endif
 
     void _call_implicit_ready_recursively(const OScript* p_script);
 

@@ -90,6 +90,9 @@ class OScript : public ScriptExtension {
 
     HashMap<StringName, MemberInfo> member_indices;
     HashSet<StringName> members;
+    #ifdef DEBUG_ENABLED
+    HashMap<StringName, MemberInfo> old_member_indices; // Used for hot reloading. Empty while not compiling.
+    #endif
 
     HashMap<StringName, MemberInfo> static_variables_indices;
     Vector<Variant> static_variables;

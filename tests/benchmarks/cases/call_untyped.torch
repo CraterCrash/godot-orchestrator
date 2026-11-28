@@ -1,0 +1,191 @@
+[orchestration type="OScript" format=4 uid="uid://bbenchcallunty1"]
+
+[obj type="OScriptFunction" id="OScriptFunction_run"]
+guid = "B0000000-0000-4000-8000-0000000001A1"
+method = {
+"name": &"run"
+}
+user_defined = true
+id = 10
+
+[obj type="OScriptGraph" id="OScriptGraph_event"]
+graph_name = &"EventGraph"
+flags = 8
+nodes = Array[int]([])
+functions = Array[int]([])
+
+[obj type="OScriptGraph" id="OScriptGraph_run"]
+graph_name = &"run"
+flags = 22
+nodes = Array[int]([10, 11, 12, 13, 14, 15, 16])
+functions = Array[int]([10])
+
+[obj type="OScriptNodeFunctionEntry" id="OScriptNodeFunctionEntry_run"]
+function_id = "B0000000-0000-4000-8000-0000000001A1"
+id = 10
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}])
+
+[obj type="OScriptNodeSelf" id="OScriptNodeSelf_self"]
+id = 11
+pin_data = Array[Dictionary]([{
+"pin_name": &"self",
+"type": 24,
+"dir": 1,
+"flags": 2,
+"target_class": "Node",
+"dv": null
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_target"]
+variable_name = &"target"
+id = 12
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"target",
+"flags": 2050,
+"usage": 131074
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 131074
+}])
+
+[obj type="OScriptNodeForLoop" id="OScriptNodeForLoop_loop"]
+id = 13
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"first_index",
+"type": 2,
+"flags": 2,
+"dv": 0
+}, {
+"pin_name": &"last_index",
+"type": 2,
+"flags": 2,
+"dv": 200000
+}, {
+"pin_name": &"loop_body",
+"dir": 1,
+"flags": 516
+}, {
+"pin_name": &"index",
+"type": 2,
+"dir": 1,
+"flags": 514,
+"dv": 0
+}, {
+"pin_name": &"completed",
+"dir": 1,
+"flags": 516
+}])
+
+[obj type="OScriptNodeVariableGet" id="OScriptNodeVariableGet_target"]
+variable_name = &"target"
+id = 14
+pin_data = Array[Dictionary]([{
+"pin_name": &"value",
+"dir": 1,
+"flags": 2050,
+"label": "target",
+"usage": 131074
+}])
+
+[obj type="OScriptNodeCallMemberFunction" id="OScriptNodeCallMemberFunction_call"]
+function_name = &"has_method"
+target_class_name = "Object"
+target_type = 24
+flags = 520
+method = {
+"name": &"has_method",
+"args": [{
+"name": &"method",
+"type": 21
+}],
+"return": {
+"type": 1
+},
+"flags": 5
+}
+chain = false
+id = 15
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"target",
+"type": 24,
+"flags": 2058,
+"label": "Object",
+"target_class": "Object",
+"dv": null
+}, {
+"pin_name": &"method",
+"type": 21,
+"flags": 2,
+"dv": &"run"
+}, {
+"pin_name": &"return_value",
+"type": 1,
+"dir": 1,
+"flags": 1026,
+"dv": false
+}])
+
+[obj type="OScriptNodeVariableSet" id="OScriptNodeVariableSet_sink"]
+variable_name = &"sink"
+id = 16
+pin_data = Array[Dictionary]([{
+"pin_name": &"ExecIn",
+"flags": 4
+}, {
+"pin_name": &"sink",
+"flags": 2050,
+"usage": 131074
+}, {
+"pin_name": &"ExecOut",
+"dir": 1,
+"flags": 4
+}, {
+"pin_name": &"value",
+"dir": 1,
+"flags": 1026,
+"usage": 131074
+}])
+
+[obj type="OScriptVariable" id="OScriptVariable_target"]
+name = "target"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[obj type="OScriptVariable" id="OScriptVariable_sink"]
+name = "sink"
+category = "Default"
+classification = "type:Nil"
+default_value = null
+
+[resource]
+base_type = &"Node"
+brief_description = "Untyped object method call with a used return value (OPCODE_CALL_RETURN debug path)."
+variables = Array[OScriptVariable]([SubResource("OScriptVariable_target"), SubResource("OScriptVariable_sink")])
+functions = Array[OScriptFunction]([SubResource("OScriptFunction_run")])
+connections = Array[int]([10, 0, 12, 0, 11, 0, 12, 1, 12, 0, 13, 0, 13, 0, 15, 0, 14, 0, 15, 1, 15, 0, 16, 0, 15, 1, 16, 1])
+nodes = Array[OScriptNode]([SubResource("OScriptNodeFunctionEntry_run"), SubResource("OScriptNodeSelf_self"), SubResource("OScriptNodeVariableSet_target"), SubResource("OScriptNodeForLoop_loop"), SubResource("OScriptNodeVariableGet_target"), SubResource("OScriptNodeCallMemberFunction_call"), SubResource("OScriptNodeVariableSet_sink")])
+graphs = Array[OScriptGraph]([SubResource("OScriptGraph_event"), SubResource("OScriptGraph_run")])

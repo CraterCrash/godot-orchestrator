@@ -22,6 +22,8 @@
 #include <godot_cpp/core/method_bind.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
+#include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/self_list.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -295,7 +297,7 @@ private:
 
     SelfList<OScriptCompiledFunction> function_list{ this };
     mutable Variant nil;
-    HashMap<int, Variant::Type> temporary_slots;
+    TightLocalVector<Pair<int, Variant::Type>> temporary_slots;
     List<StackDebug> stack_debug;
 
     Vector<int> code;

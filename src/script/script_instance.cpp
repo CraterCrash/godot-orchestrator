@@ -599,7 +599,7 @@ bool OScriptInstance::set(const StringName& p_name, const Variant& p_value) {
                 return err.error == GDEXTENSION_CALL_OK;
             }
 
-            _members.write[member->index] = value;
+            _members[member->index] = value;
             return true;
         }
     }
@@ -932,35 +932,28 @@ Variant OScriptInstance::callp(const StringName& p_method, const Variant** p_arg
 
 void OScriptInstance::reload_members() {
     #ifdef DEBUG_ENABLED
-    Vector<Variant> new_members;
+    TightLocalVector<Variant> new_members;
     new_members.resize(_script->member_indices.size());
 
-    // Pass values to the new indices
+    // Transfer the old members into their new position.
     for (KeyValue<StringName, OScript::MemberInfo>& E : _script->member_indices) {
         bool member_value_assigned = false;
 
-        if (_member_indices_cache.has(E.key)) {
+        const OScript::MemberInfo* old = _script->old_member_indices.getptr(E.key);
+        if (old != nullptr && old->index < (int)_members.size()) {
             // Only keep the old value if it still matches the member's type, which may have changed.
-            const Variant value = _members[_member_indices_cache[E.key]];
+            const Variant& value = _members[old->index];
             if (E.value.data_type.is_type(value, false)) {
                 member_value_assigned = true;
-                new_members.write[E.value.index] = value;
+                new_members[E.value.index] = value;
             }
         }
 
         if (!member_value_assigned) {
-            new_members.write[E.value.index] = OScriptCompiledFunction::get_default_variant_for_data_type(E.value.data_type);
+            new_members[E.value.index] = OScriptCompiledFunction::get_default_variant_for_data_type(E.value.data_type);
         }
     }
-
-    _members.resize(new_members.size());
-    _members = new_members;
-
-    // Pass values to new indices
-    _member_indices_cache.clear();
-    for (const KeyValue<StringName, OScript::MemberInfo>& E : _script->member_indices) {
-        _member_indices_cache[E.key] = E.value.index;
-    }
+    _members = std::move(new_members);
     #endif
 }
 

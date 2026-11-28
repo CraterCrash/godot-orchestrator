@@ -2863,6 +2863,10 @@ Error OScriptCompiler::prepare_compilation(OScript* p_script, const OScriptParse
 
     parsing_classes.insert(p_script);
 
+    #ifdef DEBUG_ENABLED
+    p_script->old_member_indices = p_script->member_indices;
+    #endif
+
     p_script->clearing = true;
     p_script->cancel_pending_functions(true);
     p_script->native = Ref<OScriptNativeClass>();
@@ -3256,11 +3260,6 @@ Error OScriptCompiler::compile_class(OScript* p_script, const OScriptParser::Cla
                     si->_script = Ref<OScript>(p_script);
                     si->_owner = E->get();
 
-                    // Hot reloading
-                    for (const KeyValue<StringName, OScript::MemberInfo>& F : p_script->member_indices) {
-                        si->_member_indices_cache[F.key] = F.value.index;
-                    }
-
                     GDExtensionCallError error;
                     p_script->initializer->call(si, nullptr, 0, error);
                     if (error.error != GDEXTENSION_CALL_OK) {
@@ -3297,6 +3296,11 @@ Error OScriptCompiler::compile_class(OScript* p_script, const OScriptParser::Cla
     }
 
     p_script->_static_default_init();
+
+    #ifdef DEBUG_ENABLED
+    p_script->old_member_indices.clear();
+    #endif
+
     p_script->_valid = true;
 
     return OK;
